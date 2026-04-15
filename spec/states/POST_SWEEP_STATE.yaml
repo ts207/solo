@@ -1,0 +1,14 @@
+version: 1
+kind: state_definition
+state_id: POST_SWEEP_STATE
+family: LIQUIDITY_DISLOCATION
+source_event_type: SWEEP_STOPRUN
+activation_rule: elapsed_bars <= post_sweep_horizon
+decay_rule: exit on stabilization (spread_pct <= p70)
+features_required:
+- spread_bps
+- quote_volume
+allowed_templates:
+- stop_run_repair
+- overshoot_repair
+- mean_reversion

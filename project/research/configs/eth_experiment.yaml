@@ -1,0 +1,29 @@
+program_id: "eth_event_state_v1"
+run_mode: "research"
+description: "ETH 2-month experiment with VOL_SPIKE and HIGH_VOL_REGIME"
+instrument_scope:
+  instrument_classes: ["crypto"]
+  symbols: ["ETHUSDT"]
+  timeframe: "5m"
+  start: "2024-01-01"
+  end: "2024-03-01"
+trigger_space:
+  allowed_trigger_types: ["EVENT", "STATE"]
+  events:
+    include: ["VOL_SPIKE"]
+  states:
+    include: ["HIGH_VOL_REGIME"]
+templates:
+  include: ["continuation"]
+evaluation:
+  horizons_bars: [12, 24]
+  directions: ["long", "short"]
+  entry_lags: [0]
+contexts:
+  include: {}
+search_control:
+  max_hypotheses_total: 100
+  max_hypotheses_per_template: 50
+  max_hypotheses_per_event_family: 50
+promotion:
+  enabled: false

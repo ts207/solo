@@ -1,0 +1,19 @@
+version: 1
+kind: state_ontology_spec
+metadata:
+  status: generated
+  authored_source: spec/states/FUNDING_FLIP_STATE.yaml
+  generated_notice: GENERATED FILE - DO NOT EDIT
+  generated_from: spec/states/*.yaml
+state_id: FUNDING_FLIP_STATE
+family: POSITIONING_EXTREMES
+source_event_type: FUNDING_FLIP
+activation_rule: funding rate sign flip
+decay_rule: funding persistence achieved
+allowed_templates:
+- reversal_or_squeeze
+- trend_continuation
+state_scope: source_only
+min_events: 200
+features_required:
+- funding_rate_scaled

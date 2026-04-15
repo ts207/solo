@@ -1,0 +1,14 @@
+version: 1
+kind: state_definition
+state_id: OVERSHOOT_STATE
+family: STATISTICAL_DISLOCATION
+source_event_type: OVERSHOOT_AFTER_SHOCK
+activation_rule: overshoot flag active
+decay_rule: exit on first repair milestone
+features_required:
+- zscore
+- rv_96
+allowed_templates:
+- mean_reversion
+- overshoot_repair
+- tail_risk_avoid

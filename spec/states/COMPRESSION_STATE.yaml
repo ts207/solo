@@ -1,0 +1,17 @@
+version: 1
+kind: state_definition
+state_id: COMPRESSION_STATE
+family: VOLATILITY_TRANSITION
+source_event_type: VOL_CLUSTER_SHIFT
+activation_rule: compression_ratio <= compression_threshold
+decay_rule: exit when compression_ratio > compression_threshold
+features_required:
+- range_96
+- range_med_2880
+allowed_templates:
+- continuation
+- trend_continuation
+- volatility_expansion_follow
+- pullback_entry
+- mean_reversion
+- only_if_regime

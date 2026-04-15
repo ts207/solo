@@ -1,0 +1,22 @@
+program_id: synthetic_2025_full_year
+description: basis and oi flush exploration on full year 2025 synthetic data
+run_mode: research
+objective: retail_profitability
+promotion_mode: research
+symbols: [BTCUSDT, ETHUSDT, SOLUSDT]
+timeframe: 5m
+start: 2025-01-01
+end: 2025-12-31
+instrument_classes: [crypto]
+trigger_space:
+  allowed_trigger_types: [EVENT]
+  events:
+    include: [BASIS_DISLOC, OI_FLUSH]
+templates: [mean_reversion, reversal_or_squeeze]
+horizons_bars: [12, 24]
+directions: [long, short]
+entry_lags: [0]
+knobs:
+  candidate_promotion_min_events: 8
+  run_phase2_conditional: 1
+  funding_scale: decimal

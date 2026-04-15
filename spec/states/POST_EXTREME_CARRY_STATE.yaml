@@ -1,0 +1,20 @@
+version: 1
+kind: state_definition
+state_id: POST_EXTREME_CARRY_STATE
+family: POSITIONING_EXTREMES
+source_event_type: FUNDING_EXTREME_ONSET
+activation_rule: funding extreme detected and still elevated
+decay_rule: exit when funding returns to neutral band
+features_required:
+- funding_rate_scaled
+- funding_abs_pct
+- rv_96
+allowed_templates:
+- reversal_or_squeeze
+- mean_reversion
+- continuation
+- exhaustion_reversal
+- convexity_capture
+- only_if_funding
+- only_if_oi
+- tail_risk_avoid

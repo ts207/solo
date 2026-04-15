@@ -1,0 +1,7 @@
+kind: event_config_defaults
+version: 1
+parameters:
+  merge_gap_bars: 1
+  cooldown_bars: 0
+  anchor_rule: max_intensity
+  min_occurrences: 0

@@ -1,0 +1,20 @@
+version: 1
+kind: state_ontology_spec
+metadata:
+  status: generated
+  authored_source: spec/states/DEPTH_RECOVERY_STATE.yaml
+  generated_notice: GENERATED FILE - DO NOT EDIT
+  generated_from: spec/states/*.yaml
+state_id: DEPTH_RECOVERY_STATE
+family: LIQUIDITY_DISLOCATION
+source_event_type: DEPTH_COLLAPSE
+activation_rule: depth_recovery_ratio in (recovery_min, recovery_max)
+decay_rule: exit when depth_recovery_ratio >= recovery_max OR elapsed_bars > max_horizon
+allowed_templates:
+- pullback_entry
+- continuation
+- mean_reversion
+state_scope: source_only
+min_events: 200
+features_required:
+- market_depth

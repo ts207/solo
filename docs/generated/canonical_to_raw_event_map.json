@@ -1,0 +1,224 @@
+{
+  "BASIS_FUNDING_DISLOCATION": {
+    "default_executable_event_types": [
+      "BASIS_DISLOC",
+      "CROSS_VENUE_DESYNC",
+      "FND_DISLOC",
+      "FUNDING_EXTREME_ONSET",
+      "FUNDING_FLIP",
+      "FUNDING_NORMALIZATION_TRIGGER",
+      "FUNDING_PERSISTENCE_TRIGGER",
+      "SPOT_PERP_BASIS_SHOCK"
+    ],
+    "event_types": [
+      "BASIS_DISLOC",
+      "CROSS_VENUE_DESYNC",
+      "FND_DISLOC",
+      "FUNDING_EXTREME_ONSET",
+      "FUNDING_FLIP",
+      "FUNDING_NORMALIZATION_TRIGGER",
+      "FUNDING_PERSISTENCE_TRIGGER",
+      "SEQ_FND_EXTREME_THEN_BREAKOUT",
+      "SPOT_PERP_BASIS_SHOCK"
+    ]
+  },
+  "CROSS_ASSET_DESYNCHRONIZATION": {
+    "default_executable_event_types": [
+      "CROSS_ASSET_DESYNC_EVENT",
+      "INDEX_COMPONENT_DIVERGENCE",
+      "LEAD_LAG_BREAK"
+    ],
+    "event_types": [
+      "CROSS_ASSET_DESYNC_EVENT",
+      "INDEX_COMPONENT_DIVERGENCE",
+      "LEAD_LAG_BREAK"
+    ]
+  },
+  "EXECUTION_FRICTION": {
+    "default_executable_event_types": [
+      "FEE_REGIME_CHANGE_EVENT",
+      "SLIPPAGE_SPIKE_EVENT",
+      "SPREAD_REGIME_WIDENING_EVENT"
+    ],
+    "event_types": [
+      "FEE_REGIME_CHANGE_EVENT",
+      "SLIPPAGE_SPIKE_EVENT",
+      "SPREAD_REGIME_WIDENING_EVENT"
+    ]
+  },
+  "LIQUIDATION_CASCADE": {
+    "default_executable_event_types": [
+      "LIQUIDATION_CASCADE",
+      "LIQUIDATION_CASCADE_PROXY"
+    ],
+    "event_types": [
+      "LIQUIDATION_CASCADE",
+      "LIQUIDATION_CASCADE_PROXY"
+    ]
+  },
+  "LIQUIDITY_STRESS": {
+    "default_executable_event_types": [
+      "ABSORPTION_PROXY",
+      "DEPTH_COLLAPSE",
+      "DEPTH_STRESS_PROXY",
+      "LIQUIDITY_GAP_PRINT",
+      "LIQUIDITY_SHOCK",
+      "LIQUIDITY_STRESS_DIRECT",
+      "LIQUIDITY_STRESS_PROXY",
+      "LIQUIDITY_VACUUM",
+      "ORDERFLOW_IMBALANCE_SHOCK",
+      "PRICE_VOL_IMBALANCE_PROXY",
+      "SPREAD_BLOWOUT",
+      "SWEEP_STOPRUN",
+      "WICK_REVERSAL_PROXY"
+    ],
+    "event_types": [
+      "ABSORPTION_PROXY",
+      "DEPTH_COLLAPSE",
+      "DEPTH_STRESS_PROXY",
+      "LIQUIDITY_GAP_PRINT",
+      "LIQUIDITY_SHOCK",
+      "LIQUIDITY_STRESS_DIRECT",
+      "LIQUIDITY_STRESS_PROXY",
+      "LIQUIDITY_VACUUM",
+      "ORDERFLOW_IMBALANCE_SHOCK",
+      "PRICE_VOL_IMBALANCE_PROXY",
+      "SEQ_LIQ_VACUUM_THEN_DEPTH_RECOVERY",
+      "SPREAD_BLOWOUT",
+      "SWEEP_STOPRUN",
+      "WICK_REVERSAL_PROXY"
+    ]
+  },
+  "POSITIONING_EXPANSION": {
+    "default_executable_event_types": [
+      "OI_SPIKE_NEGATIVE",
+      "OI_SPIKE_POSITIVE"
+    ],
+    "event_types": [
+      "OI_SPIKE_NEGATIVE",
+      "OI_SPIKE_POSITIVE",
+      "SEQ_OI_SPIKEPOS_THEN_VOL_SPIKE"
+    ]
+  },
+  "POSITIONING_UNWIND_DELEVERAGING": {
+    "default_executable_event_types": [
+      "DELEVERAGING_WAVE",
+      "OI_FLUSH",
+      "POST_DELEVERAGING_REBOUND"
+    ],
+    "event_types": [
+      "DELEVERAGING_WAVE",
+      "OI_FLUSH",
+      "POST_DELEVERAGING_REBOUND"
+    ]
+  },
+  "REGIME_TRANSITION": {
+    "default_executable_event_types": [
+      "BETA_SPIKE_EVENT",
+      "CHOP_TO_TREND_SHIFT",
+      "CORRELATION_BREAKDOWN_EVENT",
+      "TREND_TO_CHOP_SHIFT",
+      "VOL_REGIME_SHIFT_EVENT"
+    ],
+    "event_types": [
+      "BETA_SPIKE_EVENT",
+      "CHOP_TO_TREND_SHIFT",
+      "CORRELATION_BREAKDOWN_EVENT",
+      "TREND_TO_CHOP_SHIFT",
+      "VOL_REGIME_SHIFT_EVENT"
+    ]
+  },
+  "SCHEDULED_TEMPORAL_WINDOW": {
+    "default_executable_event_types": [],
+    "event_types": [
+      "FUNDING_TIMESTAMP_EVENT",
+      "SCHEDULED_NEWS_WINDOW_EVENT",
+      "SESSION_CLOSE_EVENT",
+      "SESSION_OPEN_EVENT"
+    ]
+  },
+  "STATISTICAL_STRETCH_OVERSHOOT": {
+    "default_executable_event_types": [
+      "BAND_BREAK",
+      "GAP_OVERSHOOT",
+      "OVERSHOOT_AFTER_SHOCK",
+      "ZSCORE_STRETCH"
+    ],
+    "event_types": [
+      "BAND_BREAK",
+      "COPULA_PAIRS_TRADING",
+      "GAP_OVERSHOOT",
+      "OVERSHOOT_AFTER_SHOCK",
+      "ZSCORE_STRETCH"
+    ]
+  },
+  "TREND_CONTINUATION": {
+    "default_executable_event_types": [
+      "PULLBACK_PIVOT",
+      "RANGE_BREAKOUT",
+      "SUPPORT_RESISTANCE_BREAK",
+      "TREND_ACCELERATION"
+    ],
+    "event_types": [
+      "PULLBACK_PIVOT",
+      "RANGE_BREAKOUT",
+      "SUPPORT_RESISTANCE_BREAK",
+      "TREND_ACCELERATION"
+    ]
+  },
+  "TREND_FAILURE_EXHAUSTION": {
+    "default_executable_event_types": [
+      "CLIMAX_VOLUME_BAR",
+      "FAILED_CONTINUATION",
+      "FALSE_BREAKOUT",
+      "FLOW_EXHAUSTION_PROXY",
+      "FORCED_FLOW_EXHAUSTION",
+      "LIQUIDATION_EXHAUSTION_REVERSAL",
+      "MOMENTUM_DIVERGENCE_TRIGGER",
+      "TREND_DECELERATION",
+      "TREND_EXHAUSTION_TRIGGER"
+    ],
+    "event_types": [
+      "CLIMAX_VOLUME_BAR",
+      "FAILED_CONTINUATION",
+      "FALSE_BREAKOUT",
+      "FLOW_EXHAUSTION_PROXY",
+      "FORCED_FLOW_EXHAUSTION",
+      "LIQUIDATION_EXHAUSTION_REVERSAL",
+      "MOMENTUM_DIVERGENCE_TRIGGER",
+      "TREND_DECELERATION",
+      "TREND_EXHAUSTION_TRIGGER"
+    ]
+  },
+  "VOLATILITY_EXPANSION": {
+    "default_executable_event_types": [
+      "VOL_CLUSTER_SHIFT",
+      "VOL_SPIKE"
+    ],
+    "event_types": [
+      "VOL_CLUSTER_SHIFT",
+      "VOL_SPIKE"
+    ]
+  },
+  "VOLATILITY_RELAXATION_COMPRESSION_RELEASE": {
+    "default_executable_event_types": [
+      "BREAKOUT_TRIGGER",
+      "RANGE_COMPRESSION_END",
+      "VOL_RELAXATION_START"
+    ],
+    "event_types": [
+      "BREAKOUT_TRIGGER",
+      "RANGE_COMPRESSION_END",
+      "SEQ_VOL_COMP_THEN_BREAKOUT",
+      "VOL_RELAXATION_START"
+    ]
+  },
+  "VOLATILITY_TRANSITION": {
+    "default_executable_event_types": [
+      "VOL_SHOCK"
+    ],
+    "event_types": [
+      "VOL_SHOCK"
+    ]
+  }
+}

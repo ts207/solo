@@ -1,0 +1,21 @@
+version: 1
+kind: state_ontology_spec
+metadata:
+  status: generated
+  authored_source: spec/states/MEAN_REVERSION_WINDOW_STATE.yaml
+  generated_notice: GENERATED FILE - DO NOT EDIT
+  generated_from: spec/states/*.yaml
+state_id: MEAN_REVERSION_WINDOW_STATE
+family: FORCED_FLOW_AND_EXHAUSTION
+source_event_type: FORCED_FLOW_EXHAUSTION
+activation_rule: re-entry into prior range detected
+decay_rule: exit after repair completion or timeout
+allowed_templates:
+- mean_reversion
+- range_reversion
+- drawdown_filter
+state_scope: source_only
+min_events: 200
+features_required:
+- range_96
+- close

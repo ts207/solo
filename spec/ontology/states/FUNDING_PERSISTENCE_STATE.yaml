@@ -1,0 +1,26 @@
+version: 1
+kind: state_ontology_spec
+metadata:
+  status: generated
+  authored_source: spec/states/FUNDING_PERSISTENCE_STATE.yaml
+  generated_notice: GENERATED FILE - DO NOT EDIT
+  generated_from: spec/states/*.yaml
+state_id: FUNDING_PERSISTENCE_STATE
+family: POSITIONING_EXTREMES
+source_event_type: FUNDING_PERSISTENCE_TRIGGER
+activation_rule: funding_abs_pct >= persistence_pct for persistence_bars
+decay_rule: exit when funding_abs_pct < normalization_pct
+allowed_templates:
+- reversal_or_squeeze
+- mean_reversion
+- continuation
+- exhaustion_reversal
+- convexity_capture
+- only_if_funding
+- only_if_oi
+- tail_risk_avoid
+state_scope: source_only
+min_events: 200
+features_required:
+- funding_rate_scaled
+- funding_abs_pct

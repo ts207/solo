@@ -1,0 +1,21 @@
+schema_version: campaign_contract_v1
+description: >-
+  Canonical campaign contract for both autonomous and operator-guided research
+  orchestration surfaces. Legacy operator campaign specs may omit program_id and mode;
+  loaders should default them to empty string and operator_guided respectively.
+required_fields:
+  - campaign_id
+  - initial_proposal
+allowed_modes:
+  - autonomous
+  - operator_guided
+  - repair_only
+  - validation_only
+stop_conditions:
+  max_cycles: integer
+  max_fail_streak: integer
+lineage:
+  controller_module: project.research.campaign_controller
+  controller_name: CampaignController
+  orchestration_surface: canonical
+  operator_adapter_module: project.operator.campaign_engine

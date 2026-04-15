@@ -1,0 +1,13 @@
+version: 1
+kind: state_definition
+state_id: REVERSION_IN_PROGRESS_STATE
+family: STATISTICAL_DISLOCATION
+source_event_type: BAND_BREAK
+activation_rule: return path toward central tendency detected
+decay_rule: exit when baseline is reached
+features_required:
+- band_distance
+allowed_templates:
+- mean_reversion
+- overshoot_repair
+- tail_risk_avoid

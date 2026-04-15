@@ -1,0 +1,16 @@
+schema_version: 1
+algorithm: blake2b_256
+require_version_fields: [schema_version, config_version, model_version]
+domains:
+  - feature_frame
+  - state
+  - event_set
+  - action_set
+  - outcome_set
+  - tick_bundle
+record_sort_keys: [tick_time, lane_id, role, instrument_id, venue_id, event_id]
+canonicalization:
+  json_sort_keys: true
+  ensure_ascii: true
+  float_mode: stable_17g
+  datetime_mode: utc_unix_ns

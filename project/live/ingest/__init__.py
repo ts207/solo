@@ -1,0 +1,1 @@
+"""Live data ingestion module."""

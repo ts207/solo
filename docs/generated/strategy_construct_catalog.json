@@ -1,0 +1,22 @@
+{
+  "rows": [
+    {
+      "asset_scope": "cross_asset",
+      "canonical_regime": "STATISTICAL_STRETCH_OVERSHOOT",
+      "deconflict_priority": 0,
+      "disposition": "demote",
+      "event_type": "COPULA_PAIRS_TRADING",
+      "evidence_mode": "statistical",
+      "is_composite": false,
+      "is_context_tag": false,
+      "is_strategy_construct": true,
+      "layer": "strategy_construct",
+      "notes": "Relative-value strategy/search construct, not a canonical market event.",
+      "phase": "strategy",
+      "research_only": false,
+      "strategy_only": true,
+      "subtype": "copula_pairs_trading",
+      "venue_scope": "multi_venue"
+    }
+  ]
+}

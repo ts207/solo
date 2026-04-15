@@ -1,0 +1,78 @@
+version: 1
+kind: event
+event_type: DEPTH_STRESS_PROXY
+maturity: standard
+synthetic_coverage: covered
+active: true
+status: validated
+description: 'Hybrid depth-stress detector: direct micro-depth depletion confirmed
+  by spread and realized-volatility stress.'
+reports_dir: liquidity_dislocation
+events_file: liquidity_dislocation_events.parquet
+signal_column: depth_stress_proxy_event
+parameters:
+  window: 288
+  spread_quantile: 0.99
+  rv_quantile: 0.9
+  depth_quantile: 0.93
+  spread_weight: 0.45
+  rv_weight: 0.35
+  depth_weight: 0.2
+  min_history_bars: 288
+  cooldown_bars: 96
+  merge_gap_bars: 0
+research_family: LIQUIDITY_DISLOCATION
+trigger: Detector triggers when direct depth depletion confirms a liquidity-stress
+  surface.
+confirmation: Spread and realized-volatility stress remain elevated around the depth-collapse
+  impulse.
+expected_behavior:
+  holding_horizon_bars: 1-12
+  invalidation_conditions:
+  - Volume returns above median within 1-2 bars
+  - Spread compresses back to baseline
+  disabled_regimes:
+  - 'SPREAD_BLOWOUT active: spread elevated, unreliable signal'
+cluster_id: liquidity_stress
+identity:
+  canonical_regime: LIQUIDITY_STRESS
+  subtype: depth_collapse
+  phase: collapse
+  evidence_mode: hybrid
+  layer: canonical
+  disposition: merge
+  asset_scope: single_asset
+  venue_scope: single_venue
+governance:
+  event_kind: market_event
+  default_executable: true
+  research_only: false
+  strategy_only: false
+  context_tag: false
+  is_composite: false
+  maturity: standard
+  tier: B
+  operational_role: trigger
+  deployment_disposition: secondary_or_confirm
+  runtime_category: active_runtime_event
+runtime:
+  detector: ''
+  enabled: true
+  signal_column: depth_stress_proxy_event
+  events_file: liquidity_dislocation_events.parquet
+  reports_dir: liquidity_dislocation
+  instrument_classes: []
+  requires_features: []
+  sequence_eligible: true
+  runtime_tags: []
+semantics:
+  summary: 'Hybrid depth-stress detector: direct micro-depth depletion confirmed by
+    spread and realized-volatility stress.'
+  cluster_id: liquidity_stress
+  notes: 'Hybrid liquidity-stress evidence: direct micro-depth depletion combined
+    with spread and RV stress.'
+  precedence_rank: 0
+interaction:
+  suppresses: []
+  suppressed_by: []
+routing: {}

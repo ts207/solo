@@ -1,0 +1,21 @@
+version: 1
+kind: state_ontology_spec
+metadata:
+  status: generated
+  authored_source: spec/states/POST_FUNDING_WINDOW_STATE.yaml
+  generated_notice: GENERATED FILE - DO NOT EDIT
+  generated_from: spec/states/*.yaml
+state_id: POST_FUNDING_WINDOW_STATE
+family: TEMPORAL_STRUCTURE
+source_event_type: FUNDING_TIMESTAMP_EVENT
+activation_rule: elapsed_bars <= post_funding_horizon
+decay_rule: exit when elapsed_bars > post_funding_horizon
+allowed_templates:
+- mean_reversion
+- continuation
+- only_if_no_news_window
+state_scope: source_only
+min_events: 200
+features_required:
+- timestamp
+- funding_rate_scaled

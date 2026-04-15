@@ -1,0 +1,41 @@
+kind: event_compatibility
+version: 1
+
+# suppression_rules: when when_active event is present in the bar window,
+# events in suppress list are penalized (penalty_factor) or hard-blocked (block: true).
+suppression_rules: []
+
+# composite_events: when all required events co-occur within co_occur_window_bars,
+# emit a synthetic composite event at the primary event's timestamp.
+composite_events:
+  - name: EXHAUSTION_REVERSAL_SETUP
+    required:
+      - LIQUIDATION_CASCADE
+      - OI_FLUSH
+    stabilization_required: true
+    stabilization_bars: 8
+    co_occur_window_bars: 24
+    description: >
+      Liquidation cascade + OI flush co-occurrence after a stabilization window
+      indicates forced flow has exhausted. Promotes exhaustion_reversal template.
+
+  - name: FORCED_FLOW_DESYNC
+    required:
+      - CROSS_VENUE_DESYNC
+      - SPREAD_BLOWOUT
+    stabilization_required: false
+    co_occur_window_bars: 8
+    description: >
+      Cross-venue desync + spread blowout: execution window is narrow.
+      Only high-urgency templates should act.
+
+  - name: TREND_CONTINUATION_CONFIRMED
+    required:
+      - TREND_ACCELERATION
+      - VOL_CLUSTER_SHIFT
+    stabilization_required: false
+    liquidity_gate: not_thin
+    co_occur_window_bars: 16
+    description: >
+      Trend acceleration + vol cluster shift + non-thin liquidity confirms
+      continuation. Suppresses reversal templates.

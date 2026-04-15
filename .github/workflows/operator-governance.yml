@@ -1,0 +1,47 @@
+name: operator-governance
+
+on:
+  push:
+    paths:
+      - 'project/cli.py'
+      - 'project/operator/**'
+      - 'project/research/reports/**'
+      - 'project/scripts/generate_operator_surface_inventory.py'
+      - 'docs/00_START_HERE.md'
+      - 'docs/operator_command_inventory.md'
+      - 'README.md'
+      - 'project/tests/operator/**'
+      - 'project/tests/contracts/test_operator_surface_inventory.py'
+  pull_request:
+    paths:
+      - 'project/cli.py'
+      - 'project/operator/**'
+      - 'project/research/reports/**'
+      - 'project/scripts/generate_operator_surface_inventory.py'
+      - 'docs/00_START_HERE.md'
+      - 'docs/operator_command_inventory.md'
+      - 'README.md'
+      - 'project/tests/operator/**'
+      - 'project/tests/contracts/test_operator_surface_inventory.py'
+
+jobs:
+  operator-governance:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - name: Install test dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install pytest pandas pyarrow pyyaml
+      - name: Check operator inventory drift
+        run: |
+          python -m project.scripts.generate_operator_surface_inventory
+          git diff --exit-code docs/operator_command_inventory.md
+      - name: Run operator governance tests
+        run: |
+          pytest -q \
+            project/tests/operator/test_stability.py \
+            project/tests/contracts/test_operator_surface_inventory.py

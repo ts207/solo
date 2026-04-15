@@ -1,0 +1,339 @@
+{
+  "bucket_mismatches": {},
+  "eligible_templates_without_event_support": {},
+  "empty_intersection_regimes": [],
+  "event_template_support": {
+    "BASIS_FUNDING_DISLOCATION": {
+      "BASIS_DISLOC": [
+        "mean_reversion"
+      ],
+      "CROSS_VENUE_DESYNC": [
+        "basis_repair",
+        "convergence"
+      ],
+      "FND_DISLOC": [
+        "mean_reversion"
+      ],
+      "FUNDING_EXTREME_ONSET": [
+        "mean_reversion"
+      ],
+      "FUNDING_FLIP": [
+        "mean_reversion"
+      ],
+      "FUNDING_NORMALIZATION_TRIGGER": [
+        "mean_reversion"
+      ],
+      "FUNDING_PERSISTENCE_TRIGGER": [
+        "mean_reversion"
+      ],
+      "SPOT_PERP_BASIS_SHOCK": [
+        "basis_repair",
+        "convergence"
+      ]
+    },
+    "CROSS_ASSET_DESYNCHRONIZATION": {
+      "CROSS_ASSET_DESYNC_EVENT": [
+        "convergence",
+        "desync_repair",
+        "lead_lag_follow"
+      ],
+      "INDEX_COMPONENT_DIVERGENCE": [
+        "convergence",
+        "desync_repair",
+        "lead_lag_follow"
+      ],
+      "LEAD_LAG_BREAK": [
+        "convergence",
+        "desync_repair",
+        "lead_lag_follow"
+      ]
+    },
+    "EXECUTION_FRICTION": {
+      "FEE_REGIME_CHANGE_EVENT": [
+        "slippage_aware_filter",
+        "tail_risk_avoid"
+      ],
+      "SLIPPAGE_SPIKE_EVENT": [
+        "slippage_aware_filter",
+        "tail_risk_avoid"
+      ],
+      "SPREAD_REGIME_WIDENING_EVENT": [
+        "slippage_aware_filter",
+        "tail_risk_avoid"
+      ]
+    },
+    "LIQUIDATION_CASCADE": {
+      "LIQUIDATION_CASCADE": [
+        "convexity_capture",
+        "exhaustion_reversal",
+        "reversal_or_squeeze"
+      ],
+      "LIQUIDATION_CASCADE_PROXY": [
+        "convexity_capture",
+        "exhaustion_reversal",
+        "reversal_or_squeeze"
+      ]
+    },
+    "LIQUIDITY_STRESS": {
+      "ABSORPTION_PROXY": [
+        "mean_reversion",
+        "stop_run_repair"
+      ],
+      "DEPTH_COLLAPSE": [
+        "mean_reversion",
+        "stop_run_repair"
+      ],
+      "DEPTH_STRESS_PROXY": [
+        "mean_reversion",
+        "stop_run_repair"
+      ],
+      "LIQUIDITY_GAP_PRINT": [
+        "mean_reversion",
+        "stop_run_repair"
+      ],
+      "LIQUIDITY_SHOCK": [
+        "mean_reversion",
+        "stop_run_repair"
+      ],
+      "LIQUIDITY_STRESS_DIRECT": [
+        "mean_reversion",
+        "stop_run_repair"
+      ],
+      "LIQUIDITY_STRESS_PROXY": [
+        "mean_reversion",
+        "stop_run_repair"
+      ],
+      "LIQUIDITY_VACUUM": [
+        "mean_reversion",
+        "stop_run_repair"
+      ],
+      "ORDERFLOW_IMBALANCE_SHOCK": [
+        "mean_reversion",
+        "stop_run_repair"
+      ],
+      "PRICE_VOL_IMBALANCE_PROXY": [
+        "mean_reversion",
+        "stop_run_repair"
+      ],
+      "SPREAD_BLOWOUT": [
+        "mean_reversion",
+        "stop_run_repair"
+      ],
+      "SWEEP_STOPRUN": [
+        "mean_reversion",
+        "stop_run_repair"
+      ],
+      "WICK_REVERSAL_PROXY": [
+        "mean_reversion",
+        "stop_run_repair"
+      ]
+    },
+    "POSITIONING_EXPANSION": {
+      "OI_SPIKE_NEGATIVE": [
+        "continuation",
+        "convexity_capture",
+        "reversal_or_squeeze"
+      ],
+      "OI_SPIKE_POSITIVE": [
+        "continuation",
+        "convexity_capture",
+        "reversal_or_squeeze"
+      ]
+    },
+    "POSITIONING_UNWIND_DELEVERAGING": {
+      "DELEVERAGING_WAVE": [
+        "exhaustion_reversal",
+        "mean_reversion",
+        "reversal_or_squeeze"
+      ],
+      "OI_FLUSH": [
+        "exhaustion_reversal",
+        "mean_reversion",
+        "reversal_or_squeeze"
+      ],
+      "POST_DELEVERAGING_REBOUND": [
+        "exhaustion_reversal",
+        "mean_reversion"
+      ]
+    },
+    "REGIME_TRANSITION": {
+      "BETA_SPIKE_EVENT": [
+        "continuation",
+        "drawdown_filter",
+        "only_if_regime"
+      ],
+      "CHOP_TO_TREND_SHIFT": [
+        "continuation",
+        "drawdown_filter",
+        "only_if_regime"
+      ],
+      "CORRELATION_BREAKDOWN_EVENT": [
+        "continuation",
+        "drawdown_filter",
+        "only_if_regime"
+      ],
+      "TREND_TO_CHOP_SHIFT": [
+        "continuation",
+        "drawdown_filter",
+        "only_if_regime"
+      ],
+      "VOL_REGIME_SHIFT_EVENT": [
+        "continuation",
+        "drawdown_filter",
+        "only_if_regime"
+      ]
+    },
+    "STATISTICAL_STRETCH_OVERSHOOT": {
+      "BAND_BREAK": [
+        "mean_reversion",
+        "overshoot_repair"
+      ],
+      "GAP_OVERSHOOT": [
+        "mean_reversion",
+        "overshoot_repair"
+      ],
+      "OVERSHOOT_AFTER_SHOCK": [
+        "mean_reversion",
+        "overshoot_repair"
+      ],
+      "ZSCORE_STRETCH": [
+        "mean_reversion",
+        "overshoot_repair"
+      ]
+    },
+    "TREND_CONTINUATION": {
+      "PULLBACK_PIVOT": [
+        "breakout_followthrough",
+        "pullback_entry",
+        "trend_continuation"
+      ],
+      "RANGE_BREAKOUT": [
+        "breakout_followthrough",
+        "pullback_entry",
+        "trend_continuation"
+      ],
+      "SUPPORT_RESISTANCE_BREAK": [
+        "breakout_followthrough",
+        "pullback_entry",
+        "trend_continuation"
+      ],
+      "TREND_ACCELERATION": [
+        "breakout_followthrough",
+        "pullback_entry",
+        "trend_continuation"
+      ]
+    },
+    "TREND_FAILURE_EXHAUSTION": {
+      "CLIMAX_VOLUME_BAR": [
+        "exhaustion_reversal",
+        "mean_reversion",
+        "momentum_fade"
+      ],
+      "FAILED_CONTINUATION": [
+        "exhaustion_reversal",
+        "mean_reversion",
+        "momentum_fade"
+      ],
+      "FALSE_BREAKOUT": [
+        "false_breakout_reversal"
+      ],
+      "FLOW_EXHAUSTION_PROXY": [
+        "exhaustion_reversal",
+        "mean_reversion",
+        "momentum_fade"
+      ],
+      "FORCED_FLOW_EXHAUSTION": [
+        "exhaustion_reversal",
+        "mean_reversion",
+        "momentum_fade"
+      ],
+      "LIQUIDATION_EXHAUSTION_REVERSAL": [
+        "exhaustion_reversal",
+        "mean_reversion",
+        "momentum_fade"
+      ],
+      "MOMENTUM_DIVERGENCE_TRIGGER": [
+        "exhaustion_reversal",
+        "mean_reversion",
+        "momentum_fade"
+      ],
+      "TREND_DECELERATION": [
+        "false_breakout_reversal"
+      ],
+      "TREND_EXHAUSTION_TRIGGER": [
+        "exhaustion_reversal",
+        "mean_reversion",
+        "momentum_fade"
+      ]
+    },
+    "VOLATILITY_EXPANSION": {
+      "VOL_CLUSTER_SHIFT": [
+        "trend_continuation",
+        "volatility_expansion_follow"
+      ],
+      "VOL_SPIKE": [
+        "trend_continuation",
+        "volatility_expansion_follow"
+      ]
+    },
+    "VOLATILITY_RELAXATION_COMPRESSION_RELEASE": {
+      "BREAKOUT_TRIGGER": [
+        "pullback_entry"
+      ],
+      "RANGE_COMPRESSION_END": [
+        "pullback_entry"
+      ],
+      "VOL_RELAXATION_START": [
+        "pullback_entry"
+      ]
+    },
+    "VOLATILITY_TRANSITION": {
+      "VOL_SHOCK": [
+        "continuation",
+        "mean_reversion",
+        "trend_continuation"
+      ]
+    }
+  },
+  "events_without_supported_templates": {},
+  "executable_regimes": [
+    "BASIS_FUNDING_DISLOCATION",
+    "CROSS_ASSET_DESYNCHRONIZATION",
+    "EXECUTION_FRICTION",
+    "LIQUIDATION_CASCADE",
+    "LIQUIDITY_STRESS",
+    "POSITIONING_EXPANSION",
+    "POSITIONING_UNWIND_DELEVERAGING",
+    "REGIME_TRANSITION",
+    "STATISTICAL_STRETCH_OVERSHOOT",
+    "TREND_CONTINUATION",
+    "TREND_FAILURE_EXHAUSTION",
+    "VOLATILITY_EXPANSION",
+    "VOLATILITY_RELAXATION_COMPRESSION_RELEASE",
+    "VOLATILITY_TRANSITION"
+  ],
+  "invalid_templates": {},
+  "is_valid": true,
+  "missing_regimes": [],
+  "non_routable_entries": [],
+  "routed_regimes": [
+    "BASIS_FUNDING_DISLOCATION",
+    "CROSS_ASSET_DESYNCHRONIZATION",
+    "EXECUTION_FRICTION",
+    "LIQUIDATION_CASCADE",
+    "LIQUIDITY_STRESS",
+    "POSITIONING_EXPANSION",
+    "POSITIONING_UNWIND_DELEVERAGING",
+    "REGIME_TRANSITION",
+    "STATISTICAL_STRETCH_OVERSHOOT",
+    "TREND_CONTINUATION",
+    "TREND_FAILURE_EXHAUSTION",
+    "VOLATILITY_EXPANSION",
+    "VOLATILITY_RELAXATION_COMPRESSION_RELEASE",
+    "VOLATILITY_TRANSITION"
+  ],
+  "routing_profile_id": "regime_routing",
+  "scorecard_source_run": "",
+  "scorecard_version": "",
+  "unexpected_regimes": []
+}

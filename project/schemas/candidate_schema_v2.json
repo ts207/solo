@@ -1,0 +1,42 @@
+{
+  "version": "candidate_schema_v2",
+  "nodes": {
+    "ConditionNodeSpec": {
+      "type": "object",
+      "properties": {
+        "feature": {"type": "string"},
+        "operator": {"enum": ["==", "!=", "in_range", ">", "<", ">=", "<="]},
+        "value": {"type": "number"},
+        "value_high": {"type": "number"}
+      },
+      "required": ["feature", "operator", "value"]
+    },
+    "FilterNodeSpec": {
+      "type": "object",
+      "properties": {
+        "feature": {"type": "string"},
+        "operator": {"enum": ["<", ">", "between"]},
+        "theta": {"type": "number"},
+        "theta_high": {"type": "number"},
+        "theta_min": {"type": "number"},
+        "theta_max": {"type": "number"},
+        "optimized": {"type": "boolean", "default": false}
+      },
+      "required": ["feature", "operator", "theta"]
+    },
+    "EventSequenceSpec": {
+      "type": "object",
+      "properties": {
+        "sequence": {
+          "type": "array",
+          "items": {"type": "string"}
+        },
+        "max_gap_bars": {
+          "type": "array",
+          "items": {"type": "integer"}
+        }
+      },
+      "required": ["sequence", "max_gap_bars"]
+    }
+  }
+}

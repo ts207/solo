@@ -1,0 +1,28 @@
+version: 1
+kind: search_spec
+metadata:
+  phase: 1
+  description: 'Core discovery: single events and basic state families.'
+search_mode: subset
+subset_rationale: Phase 1 fast discovery on primary triggers.
+triggers:
+  event_families:
+  - LIQUIDITY_DISLOCATION
+  - VOLATILITY_TRANSITION
+  - POSITIONING_EXTREMES
+  state_families:
+  - VOLATILITY_TRANSITION
+  - TREND_STRUCTURE
+contexts:
+  vol_regime: '*'
+  carry_state: '*'
+horizons:
+- 15m
+- 60m
+directions:
+- long
+- short
+entry_lag: '*'
+cost_profiles:
+- standard
+expression_templates: '*'

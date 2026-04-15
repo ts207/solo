@@ -1,0 +1,51 @@
+version: 1
+kind: state_grammar_registry
+metadata:
+  status: generated
+  authored_source: spec/states/*.yaml
+  generated_notice: GENERATED FILE - DO NOT EDIT
+  generated_from: spec/states/*.yaml
+regimes:
+  carry_state:
+  - funding_neg
+  - funding_pos
+  funding_regime:
+  - crowded
+  - normalizing
+  liquidity_regime:
+  - low
+  - refill
+  ms_spread_state:
+  - tight
+  - wide
+  ms_trend_state:
+  - trend
+  - chop
+  trend_structure:
+  - trend
+  - chop
+  vol_regime:
+  - low
+  - high
+context_state_map:
+  carry_state:
+    funding_neg: funding_negative
+    funding_pos: funding_positive
+  funding_regime:
+    crowded: crowding_state
+    normalizing: funding_normalization_state
+  liquidity_regime:
+    low: low_liquidity_state
+    refill: refill_lag_state
+  ms_spread_state:
+    tight: spread_tight
+    wide: spread_wide
+  ms_trend_state:
+    trend: trend_active
+    chop: chop_active
+  trend_structure:
+    trend: trending_state
+    chop: chop_state
+  vol_regime:
+    low: low_vol_regime
+    high: high_vol_regime

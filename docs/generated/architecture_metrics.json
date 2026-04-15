@@ -1,0 +1,12 @@
+{
+  "metrics": {
+    "project.research.compat_importers": 0,
+    "project.strategy_dsl_importers": 0,
+    "project.strategy_templates_importers": 0,
+    "run_all_coordinator_lines": 375,
+    "module_coupling_count": 3446,
+    "cross_boundary_import_count": 2447,
+    "circular_dependency_count": 2,
+    "test_coverage_ratio": 0.3687434827945777
+  }
+}

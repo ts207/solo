@@ -1,0 +1,14 @@
+version: 1
+kind: state_definition
+state_id: EXHAUSTION_STATE
+family: FORCED_FLOW_AND_EXHAUSTION
+source_event_type: TREND_EXHAUSTION_TRIGGER
+activation_rule: divergence trigger active and trend slope decelerating
+decay_rule: exit when trend slope re-accelerates
+features_required:
+- trend_return_96
+- momentum_divergence
+allowed_templates:
+- exhaustion_reversal
+- momentum_fade
+- drawdown_filter

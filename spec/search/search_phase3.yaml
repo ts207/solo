@@ -1,0 +1,37 @@
+version: 1
+kind: search_spec
+metadata:
+  phase: 3
+  description: Transitions and feature predicates discovery.
+search_mode: subset
+subset_rationale: Phase 3 focus on dynamic state changes and continuous features.
+triggers:
+  transition_families:
+  - VOLATILITY_TRANSITION
+  - TREND_STRUCTURE
+  feature_predicates:
+  - feature: imbalance_zscore
+    operator: '>'
+    threshold: 2.0
+  - feature: imbalance_zscore
+    operator: <
+    threshold: -2.0
+  - feature: spread_pct
+    operator: '>='
+    threshold: 0.9
+  - feature: basis_zscore
+    operator: '>='
+    threshold: 1.5
+contexts:
+  vol_regime: '*'
+  carry_state: '*'
+horizons:
+- 15m
+- 60m
+directions:
+- long
+- short
+entry_lag: '*'
+cost_profiles:
+- standard
+expression_templates: '*'

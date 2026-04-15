@@ -1,0 +1,12 @@
+version: 1
+kind: state_definition
+state_id: FEE_REGIME_STATE
+family: EXECUTION_FRICTION
+source_event_type: FEE_REGIME_CHANGE_EVENT
+activation_rule: fee regime transition detected
+decay_rule: fee regime normalizes
+features_required:
+- fee_bps
+allowed_templates:
+- tail_risk_avoid
+- slippage_aware_filter

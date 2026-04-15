@@ -1,0 +1,140 @@
+version: 1
+kind: regime_registry
+metadata:
+  status: authoritative
+  generated_views:
+  - spec/events/regime_routing.yaml
+  notes: >
+    Canonical authored regime registry. Generated routing sidecars are rebuilt
+    from this file for compatibility and audits.
+regimes:
+  BASIS_FUNDING_DISLOCATION:
+    bucket: trade_generating
+    eligible_templates: [basis_repair, convergence, mean_reversion]
+    forbidden_templates: [tail_risk_avoid]
+    risk_posture: moderate
+    execution_style: patient_cross_venue
+    holding_horizon_profile: intraday_to_swing
+    stop_logic_profile: dislocation_normalization_fail
+    profit_taking_profile: basis_compression_ladder
+  CROSS_ASSET_DESYNCHRONIZATION:
+    bucket: trade_generating
+    eligible_templates: [convergence, desync_repair, lead_lag_follow]
+    forbidden_templates: [tail_risk_avoid]
+    risk_posture: moderate
+    execution_style: hedge_first
+    holding_horizon_profile: intraday
+    stop_logic_profile: resync_failure
+    profit_taking_profile: spread_recompression
+  EXECUTION_FRICTION:
+    bucket: trade_filtering
+    eligible_templates: [slippage_aware_filter, tail_risk_avoid]
+    forbidden_templates: [breakout_followthrough, mean_reversion]
+    risk_posture: defensive
+    execution_style: reduce_size_or_wait
+    holding_horizon_profile: gate_only
+    stop_logic_profile: execution_quality_breach
+    profit_taking_profile: not_applicable
+  LIQUIDATION_CASCADE:
+    bucket: trade_generating
+    eligible_templates: [exhaustion_reversal, reversal_or_squeeze, convexity_capture]
+    forbidden_templates: [trend_continuation]
+    risk_posture: aggressive_but_capped
+    execution_style: wait_for_recovery_confirmation
+    holding_horizon_profile: short_horizon
+    stop_logic_profile: cascade_reacceleration
+    profit_taking_profile: liquidity_snapback
+  LIQUIDITY_STRESS:
+    bucket: trade_generating
+    eligible_templates: [stop_run_repair, mean_reversion]
+    forbidden_templates: [range_reversion]
+    risk_posture: reduced_size
+    execution_style: spread_aware
+    holding_horizon_profile: short_horizon
+    stop_logic_profile: spread_depth_failure
+    profit_taking_profile: liquidity_normalization
+    overrides:
+      evidence_mode:
+        proxy:
+          risk_posture: reduced_size_high_confirmation
+  POSITIONING_EXPANSION:
+    bucket: trade_generating
+    eligible_templates: [continuation, convexity_capture, reversal_or_squeeze]
+    forbidden_templates: [exhaustion_reversal]
+    risk_posture: moderate
+    execution_style: momentum_confirmed
+    holding_horizon_profile: intraday
+    stop_logic_profile: expansion_failure
+    profit_taking_profile: trend_follow_trail
+  POSITIONING_UNWIND_DELEVERAGING:
+    bucket: trade_generating
+    eligible_templates: [exhaustion_reversal, mean_reversion, reversal_or_squeeze]
+    forbidden_templates: [trend_continuation]
+    risk_posture: reduced_size
+    execution_style: staged_reentry
+    holding_horizon_profile: short_horizon
+    stop_logic_profile: unwind_reacceleration
+    profit_taking_profile: post_flush_rebound
+  REGIME_TRANSITION:
+    bucket: trade_generating
+    eligible_templates: [continuation, only_if_regime, drawdown_filter]
+    forbidden_templates: [range_reversion]
+    risk_posture: moderate
+    execution_style: transition_confirmed
+    holding_horizon_profile: intraday_to_swing
+    stop_logic_profile: transition_reversal
+    profit_taking_profile: regime_follow_trail
+  STATISTICAL_STRETCH_OVERSHOOT:
+    bucket: trade_generating
+    eligible_templates: [overshoot_repair, mean_reversion]
+    forbidden_templates: [trend_continuation]
+    risk_posture: moderate
+    execution_style: fade_extremes
+    holding_horizon_profile: short_horizon
+    stop_logic_profile: stretch_extension
+    profit_taking_profile: mean_reversion_recenter
+  TREND_CONTINUATION:
+    bucket: trade_generating
+    eligible_templates: [trend_continuation, breakout_followthrough, pullback_entry]
+    forbidden_templates: [exhaustion_reversal]
+    risk_posture: moderate
+    execution_style: follow_through
+    holding_horizon_profile: intraday_to_swing
+    stop_logic_profile: continuation_failure
+    profit_taking_profile: trailing_follow
+  TREND_FAILURE_EXHAUSTION:
+    bucket: trade_filtering
+    eligible_templates: [exhaustion_reversal, false_breakout_reversal, momentum_fade, mean_reversion]
+    forbidden_templates: [trend_continuation]
+    risk_posture: reduced_size_high_confirmation
+    execution_style: wait_for_reclaim
+    holding_horizon_profile: short_horizon
+    stop_logic_profile: failure_invalidation
+    profit_taking_profile: reclaim_then_scale
+  VOLATILITY_EXPANSION:
+    bucket: trade_generating
+    eligible_templates: [volatility_expansion_follow, trend_continuation]
+    forbidden_templates: [mean_reversion]
+    risk_posture: moderate
+    execution_style: fast_follow
+    holding_horizon_profile: intraday
+    stop_logic_profile: expansion_reversal
+    profit_taking_profile: volatility_trail
+  VOLATILITY_RELAXATION_COMPRESSION_RELEASE:
+    bucket: trade_filtering
+    eligible_templates: [pullback_entry]
+    forbidden_templates: [tail_risk_avoid]
+    risk_posture: selective
+    execution_style: await_break_confirmation
+    holding_horizon_profile: short_to_intraday
+    stop_logic_profile: failed_release
+    profit_taking_profile: breakout_extension
+  VOLATILITY_TRANSITION:
+    bucket: trade_generating
+    eligible_templates: [mean_reversion, continuation, trend_continuation]
+    forbidden_templates: [tail_risk_avoid]
+    risk_posture: selective
+    execution_style: normalization_confirmed
+    holding_horizon_profile: short_to_intraday
+    stop_logic_profile: volatility_reexpansion
+    profit_taking_profile: normalization_decay

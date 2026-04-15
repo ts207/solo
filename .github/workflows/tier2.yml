@@ -1,0 +1,69 @@
+name: tier2-workflow-gate
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  tier2:
+    name: Tier 2 - Deterministic Workflow Gate
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e . pytest
+
+      - name: 1. Research Smoke
+        run: pytest project/tests/smoke/test_research_smoke.py
+
+      - name: 2. Promotion Smoke
+        run: pytest project/tests/smoke/test_promotion_smoke.py
+
+      - name: 3. Strategy Packaging (Engine) Smoke
+        run: pytest project/tests/smoke/test_engine_smoke.py
+
+      - name: 3b. Artifact Validation Smoke
+        run: pytest project/tests/smoke/test_validate_artifacts_smoke.py
+
+      - name: 4. Full CLI Smoke Workflow
+        run: python -m project.reliability.cli_smoke --mode full --root "$RUNNER_TEMP/edge-smoke"
+
+      - name: 5. Determinism and Replay Checks
+        run: |
+          pytest -q \
+            project/tests/runtime/test_runtime_hashing_replay.py \
+            project/tests/runtime/test_runtime_postflight.py \
+            project/tests/runtime/test_runtime_postflight_determinism.py \
+            project/tests/runtime/test_runtime_oms_replay.py \
+            project/tests/replays/test_determinism_replay_stage.py \
+            project/tests/replays/test_oms_replay_stage.py
+
+      - name: 6. Manifest and Provenance Assertions
+        run: |
+          pytest -q \
+            project/tests/contracts/test_manifest_integrity.py \
+            project/tests/contracts/test_cross_artifact_reconciliation.py \
+            project/tests/contracts/test_candidate_artifact_schema.py \
+            project/tests/regressions/test_monitor_only_venue_immutability.py \
+            project/tests/regressions/test_run_success_requires_outputs.py \
+            project/tests/regressions/test_stage_registry_path_validity.py
+
+      - name: Upload artifacts on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: tier2-artifacts
+          path: |
+            ${{ runner.temp }}/edge-smoke
+            data/
+            reports/

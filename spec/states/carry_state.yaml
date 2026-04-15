@@ -1,0 +1,17 @@
+version: 1
+kind: state_context_dimension
+state_name: carry_state
+source_feature: funding_rate_bps
+allowed_values:
+  - funding_neg
+  - funding_pos
+mapping:
+  funding_neg: FUNDING_NEGATIVE
+  funding_pos: FUNDING_POSITIVE
+canonical_metrics:
+  - funding_rate_bps
+thresholds:
+  - -0.1
+  - 0.1
+update_cadence: 8h
+acceptance_test_id: CARRY_STABILITY_V1

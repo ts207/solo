@@ -1,0 +1,21 @@
+version: 1
+kind: state_ontology_spec
+metadata:
+  status: generated
+  authored_source: spec/states/DISTRIBUTION_ACCUMULATION_STATE.yaml
+  generated_notice: GENERATED FILE - DO NOT EDIT
+  generated_from: spec/states/*.yaml
+state_id: DISTRIBUTION_ACCUMULATION_STATE
+family: FORCED_FLOW_AND_EXHAUSTION
+source_event_type: CLIMAX_VOLUME_BAR
+activation_rule: climax volume followed by absorption signatures
+decay_rule: exit on breakout failure or trend resumption
+allowed_templates:
+- range_reversion
+- mean_reversion
+- only_if_trend
+state_scope: source_only
+min_events: 200
+features_required:
+- volume
+- order_book

@@ -1,0 +1,135 @@
+event_type: VOL_SHOCK
+synthetic_coverage: covered
+reports_dir: vol_shock_relaxation
+events_file: vol_shock_relaxation_events.parquet
+signal_column: vol_shock_relaxation_event
+detector_contract: true
+parameters:
+  m_controls: 5
+  bootstrap_iters: 1000
+  phase_tolerance_bars: 16
+  shock_quantile: 0.9
+detector:
+  signal_definition: 'Detects realized-volatility shock onset using a point-in-time-safe
+    dynamic threshold on the realized-volatility shock ratio. The emitted event is
+    the first bar where the shock ratio crosses above the dynamic threshold; post-event
+    fields record relaxation and decay diagnostics, but the detector does not require
+    a separate bootstrap-confirmed relaxation gate before emission.
+
+    '
+  formula: 'logret[i]        = log(close[i] / close[i-1])
+
+    realized_vol[i]  = sqrt(mean(logret[i-rv_window+1..i]^2))
+
+    rv_base[i]       = trailing_median(realized_vol, baseline_window, lag=1)[i]
+
+    shock_ratio[i]   = realized_vol[i] / rv_base[i]
+
+    shock_threshold[i] = trailing_quantile(shock_ratio, baseline_window, shock_quantile,
+    lag=1)[i]
+
+    onset[i]         = shock_ratio[i-1] < shock_threshold[i-1] AND shock_ratio[i]
+    >= shock_threshold[i]
+
+    relax_exit[j]    = first j >= i such that shock_ratio[j] <= relax_threshold for
+    relax_consecutive_bars consecutive bars
+
+    event            = onset[i]
+
+    '
+  required_columns:
+  - timestamp
+  - close
+  lookback_bars: 288
+  warmup_bars: 288
+  bar_type: close_to_close
+  timestamp_alignment: 'Event anchor at first bar crossing above the dynamic shock
+    threshold (shock onset). Detected at bar close; downstream metadata records the
+    subsequent relaxation boundary.
+
+    '
+  minimum_sample_size: 200
+calibration:
+  default_threshold: 2.0
+  search_range:
+  - 1.5
+  - 1.75
+  - 2.0
+  - 2.25
+  - 2.5
+  - 3.0
+  calibration_target: 'Maximize stability of point-in-time shock-onset detection and
+    usefulness of post-event decay telemetry (half-life, excess vol area, secondary-shock
+    incidence) while keeping sufficient event counts per window.
+
+    '
+  stability_requirement: 'Shock threshold and onset frequency should remain stable
+    across yearly splits and major symbols after accounting for realized-vol regime
+    differences.
+
+    '
+  failure_modes:
+  - Flat price series: vol near zero, ratio undefined
+  - Persistent high-vol regime: shock threshold never exceeded
+  - Insufficient warmup history for trailing median / quantile calibration
+expected_behavior:
+  holding_horizon_bars: 8-48
+  invalidation_conditions:
+  - Realized vol re-expands above shock threshold within phase_tolerance_bars
+  - Second shock occurs before first relaxation completes
+  false_positive_scenarios:
+  - Weekend low-liquidity vol collapse (not a true relaxation)
+  - Session open vol spike that reverts mechanically
+  - Thin-book instrument where vol is noise-dominated
+  disabled_regimes:
+  - LIQUIDITY_VACUUM active: vol signal unreliable during thin-book conditions
+  - SCHEDULED_NEWS_WINDOW_EVENT: vol shock may be sustained, not relaxing
+  expected_overlap:
+  - LIQUIDITY_VACUUM: moderate; both activate post-impulse
+  - SPREAD_BLOWOUT: low; different mechanisms
+  - TREND_ACCELERATION: low but possible; trending vol differs from shock vol
+identity:
+  canonical_regime: VOLATILITY_TRANSITION
+  subtype: vol_shock
+  phase: shock
+  evidence_mode: statistical
+  layer: canonical
+  disposition: keep
+  asset_scope: single_asset
+  venue_scope: single_venue
+governance:
+  event_kind: market_event
+  default_executable: true
+  research_only: false
+  strategy_only: false
+  context_tag: false
+  is_composite: false
+  maturity: ''
+  tier: A
+  operational_role: trigger
+  deployment_disposition: primary_trigger_candidate
+  runtime_category: active_runtime_event
+runtime:
+  detector: VolShockRelaxationDetector
+  enabled: true
+  signal_column: vol_shock_relaxation_event
+  events_file: vol_shock_relaxation_events.parquet
+  reports_dir: vol_shock_relaxation
+  instrument_classes:
+  - crypto
+  - futures
+  requires_features: []
+  sequence_eligible: true
+  runtime_tags:
+  - vol_regime
+  - high_urgency
+semantics:
+  summary: Canonical volatility shock onset with downstream relaxation telemetry.
+  cluster_id: vol_regime
+  notes: Canonical volatility shock; current detector implementation also models relaxation
+    boundary.
+  precedence_rank: 0
+interaction:
+  suppresses: []
+  suppressed_by: []
+routing: {}

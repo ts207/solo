@@ -1,0 +1,16 @@
+[Unit]
+Description=Edge Live Runtime Alerts Paper
+After=network-online.target edge-live-engine-paper.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=/opt/edge
+Environment=PYTHONUNBUFFERED=1
+EnvironmentFile=/etc/edge/edge-live-runtime-alerts-paper.env
+ExecStart=/opt/edge/.venv/bin/python -m project.scripts.watch_live_runtime_alerts --config ${EDGE_LIVE_ALERTS_CONFIG} --metrics-path ${EDGE_LIVE_ALERTS_METRICS_PATH} --alert-log-path ${EDGE_LIVE_ALERTS_LOG_PATH}
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

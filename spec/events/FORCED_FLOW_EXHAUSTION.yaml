@@ -1,0 +1,79 @@
+event_type: FORCED_FLOW_EXHAUSTION
+maturity: standard
+synthetic_coverage: covered
+reports_dir: directional_exhaustion_after_forced_flow
+events_file: directional_exhaustion_after_forced_flow_events.parquet
+signal_column: forced_flow_exhaustion_event
+parameters:
+  window_end: 32
+  anchor_mode: taker_imbalance
+  anchor_quantile: 0.99
+  threshold_window: 2880
+  oi_drop_quantile: 0.88
+  liquidation_quantile: 0.92
+  spread_quantile: 0.7
+  return_quantile: 0.8
+  rebound_window: 6
+  reversal_window: 3
+  reversal_quantile: 0.65
+  oi_drop_abs_min: 5.0
+  liquidation_abs_min: 25.0
+  liquidation_multiplier: 0.9
+  return_abs_min: 0.0025
+  spread_abs_min: 5.0
+  rv_decay_ratio: 0.99
+  min_spacing: 32
+research_family: FORCED_FLOW_AND_EXHAUSTION
+trigger: Detector triggers on forced flow exhaustion pattern
+confirmation: Post-detection price action confirms signal validity
+expected_behavior:
+  holding_horizon_bars: 2-12
+  invalidation_conditions:
+  - Volume normalizes
+  - Momentum diverges further
+  disabled_regimes:
+  - 'Low volume: flow signals unreliable'
+cluster_id: exhaustion
+identity:
+  canonical_regime: TREND_FAILURE_EXHAUSTION
+  subtype: forced_flow_exhaustion
+  phase: exhaustion
+  evidence_mode: hybrid
+  layer: canonical
+  disposition: keep
+  asset_scope: single_asset
+  venue_scope: single_venue
+governance:
+  event_kind: market_event
+  default_executable: true
+  research_only: false
+  strategy_only: false
+  context_tag: false
+  is_composite: false
+  maturity: standard
+  tier: B
+  operational_role: trigger
+  deployment_disposition: secondary_or_confirm
+  runtime_category: active_runtime_event
+runtime:
+  detector: ForcedFlowExhaustionDetector
+  enabled: true
+  signal_column: forced_flow_exhaustion_event
+  events_file: directional_exhaustion_after_forced_flow_events.parquet
+  reports_dir: directional_exhaustion_after_forced_flow
+  instrument_classes:
+  - crypto
+  - futures
+  requires_features: []
+  sequence_eligible: true
+  runtime_tags:
+  - exhaustion
+  - forced_liquidation
+semantics:
+  cluster_id: exhaustion
+  notes: Exhaustion regime with forced-flow mechanics.
+  precedence_rank: 0
+interaction:
+  suppresses: []
+  suppressed_by: []
+routing: {}

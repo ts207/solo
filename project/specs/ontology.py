@@ -1,0 +1,425 @@
+from __future__ import annotations
+
+import hashlib
+import json
+from pathlib import Path
+from typing import Any, Dict, Iterable, List, Optional, Tuple
+
+import numpy as np
+import pandas as pd
+
+from project.spec_registry import (
+    ONTOLOGY_SPEC_RELATIVE_PATHS,
+    ontology_spec_paths as _registry_ontology_spec_paths,
+)
+
+# State ids that are currently materialized as first-class context columns in
+# market_context_v1. This keeps planner/state filtering and audit behavior
+# deterministic and spec-driven.
+MATERIALIZED_STATE_COLUMNS_BY_ID: Dict[str, str] = {
+    "REFILL_LAG_STATE": "refill_lag_state",
+    "LIQUIDITY_ABSENCE_STATE": "liquidity_absence_state",
+    "POST_SWEEP_STATE": "post_sweep_state",
+    "POST_ABSORPTION_STATE": "post_absorption_state",
+    "SPREAD_ELEVATED_STATE": "spread_elevated_state",
+    "DEPTH_RECOVERY_STATE": "depth_recovery_state",
+    "AFTERSHOCK_STATE": "aftershock_state",
+    "POST_EXPANSION_STATE": "post_expansion_state",
+    "RELAXATION_STATE": "relaxation_state",
+    "COMPRESSION_STATE": "compression_state_flag",
+    "PRE_BREAKOUT_TENSION_STATE": "pre_breakout_tension_state",
+    "HIGH_VOL_REGIME": "high_vol_regime",
+    "LOW_VOL_REGIME": "low_vol_regime",
+    "CROWDING_STATE": "crowding_state",
+    "FUNDING_PERSISTENCE_STATE": "funding_persistence_state",
+    "FUNDING_NORMALIZATION_STATE": "funding_normalization_state",
+    "POST_EXTREME_CARRY_STATE": "post_extreme_carry_state",
+    "DELEVERAGING_STATE": "deleveraging_state",
+    "POST_LIQUIDATION_STATE": "post_liquidation_state",
+    "SQUEEZE_RISK_STATE": "squeeze_risk_state",
+    "POST_FORCED_FLOW_STATE": "post_forced_flow_state",
+    "EXHAUSTION_STATE": "exhaustion_state",
+    "DISTRIBUTION_ACCUMULATION_STATE": "distribution_accumulation_state",
+    "POST_CLIMAX_STATE": "post_climax_state",
+    "MEAN_REVERSION_WINDOW_STATE": "mean_reversion_window_state",
+    "BREAKOUT_HOLD_STATE": "breakout_hold_state",
+    "POST_BREAKOUT_RETEST_STATE": "post_breakout_retest_state",
+    "BULL_TREND_REGIME": "bull_trend_regime",
+    "BEAR_TREND_REGIME": "bear_trend_regime",
+    "CHOP_REGIME": "chop_regime",
+    "TRENDING_STATE": "trending_state",
+    "CHOP_STATE": "chop_state",
+    "OVERBOUGHT_STATE": "overbought_state",
+    "OVERSOLD_STATE": "oversold_state",
+    "PULLBACK_STATE": "pullback_state",
+    "FAILURE_STATE": "failure_state",
+    "STRETCHED_STATE": "stretched_state",
+    "OVERSHOOT_STATE": "overshoot_state",
+    "REPAIR_WINDOW_STATE": "repair_window_state",
+    "REVERSION_IN_PROGRESS_STATE": "reversion_in_progress_state",
+    "RISK_ON_STATE": "risk_on_state",
+    "RISK_OFF_STATE": "risk_off_state",
+    "CORRELATION_BROKEN_STATE": "correlation_broken_state",
+    "NEW_REGIME_STABILIZATION_STATE": "new_regime_stabilization_state",
+    "TRANSITION_TURBULENCE_STATE": "transition_turbulence_state",
+    "DESYNC_PERSISTENCE_STATE": "desync_persistence_state",
+    "BASIS_ELEVATED_STATE": "basis_elevated_state",
+    "CONVERGENCE_WINDOW_STATE": "convergence_window_state",
+    "ARBITRAGE_CROWDING_STATE": "arbitrage_crowding_state",
+    "OPEN_WINDOW_STATE": "open_window_state",
+    "CLOSE_WINDOW_STATE": "close_window_state",
+    "POST_FUNDING_WINDOW_STATE": "post_funding_window_state",
+    "PRE_NEWS_STATE": "pre_news_state",
+    "POST_NEWS_AFTERSHOCK_STATE": "post_news_aftershock_state",
+    "HIGH_FRICTION_STATE": "high_friction_state",
+    "LOW_FRICTION_STATE": "low_friction_state",
+    "ILLIQUID_EXECUTION_STATE": "illiquid_execution_state",
+    "MS_VOL_STATE": "ms_vol_state",
+    "MS_LIQ_STATE": "ms_liq_state",
+    "MS_OI_STATE": "ms_oi_state",
+    "MS_FUNDING_STATE": "ms_funding_state",
+    "MS_TREND_STATE": "ms_trend_state",
+    "MS_SPREAD_STATE": "ms_spread_state",
+    "MS_LIQUIDATION_STATE": "ms_liquidation_state",
+    "MS_CONTEXT_STATE_CODE": "ms_context_state_code",
+    "BETA_SPIKE_STATE": "beta_spike_state",
+    "FEE_REGIME_STATE": "fee_regime_state",
+    "FUNDING_FLIP_STATE": "funding_flip_state",
+    "LOW_LIQUIDITY_STATE": "low_liquidity_state",
+    "MS_BASIS_STATE": "ms_basis_state",
+    "OI_CONTRACTION_STATE": "oi_contraction_state",
+    "POST_CASCADE_RECOVERY_STATE": "post_cascade_recovery_state",
+}
+
+
+def ontology_spec_paths(repo_root: Path) -> Dict[str, Path]:
+    return dict(_registry_ontology_spec_paths(repo_root))
+
+
+def _sha256_bytes(payload: bytes) -> str:
+    return "sha256:" + hashlib.sha256(payload).hexdigest()
+
+
+def _canonical_spec_bytes(path: Path) -> bytes:
+    """
+    Parse YAML/JSON specs and return a canonical byte representation (sorted keys).
+    Ensures non-functional changes (comments, whitespace) do not change the hash.
+    """
+    if not path.exists():
+        return b""
+    try:
+        suffix = path.suffix.lower()
+        if suffix in {".yaml", ".yml"}:
+            from project.spec_registry import load_yaml_path
+
+            data = load_yaml_path(path)
+        elif suffix == ".json":
+            with open(path, "r", encoding="utf-8") as f:
+                data = json.load(f)
+        else:
+            return path.read_bytes()
+
+        # Canonicalize: sort keys, remove whitespace, ensure UTF-8
+        return json.dumps(data, sort_keys=True, separators=(",", ":"), ensure_ascii=False).encode(
+            "utf-8"
+        )
+    except Exception:
+        # Fallback to raw bytes if parsing fails to avoid breaking the pipeline
+        return path.read_bytes()
+
+
+def ontology_component_hashes(repo_root: Path) -> Dict[str, Optional[str]]:
+    out: Dict[str, Optional[str]] = {}
+    for key, path in ontology_spec_paths(repo_root).items():
+        if not path.exists():
+            out[key] = None
+            continue
+        out[key] = _sha256_bytes(_canonical_spec_bytes(path))
+    return out
+
+
+def ontology_spec_hash(repo_root: Path) -> str:
+    hasher = hashlib.sha256()
+    paths = ontology_spec_paths(repo_root)
+    for key in sorted(paths):
+        rel_path = ONTOLOGY_SPEC_RELATIVE_PATHS[key]
+        path = paths[key]
+        hasher.update(key.encode("utf-8"))
+        hasher.update(rel_path.encode("utf-8"))
+        hasher.update(_canonical_spec_bytes(path))
+    return "sha256:" + hasher.hexdigest()
+
+
+def load_ontology_linkage_hash(atlas_dir: Path) -> Optional[str]:
+    path = atlas_dir / "ontology_linkage.json"
+    if not path.exists():
+        return None
+    try:
+        payload = json.loads(path.read_text(encoding="utf-8"))
+    except Exception:
+        return None
+    value = str(payload.get("ontology_spec_hash", "")).strip()
+    return value or None
+
+
+def load_run_manifest_hashes(data_root: Path, run_id: str) -> Dict[str, Optional[str]]:
+    path = data_root / "runs" / run_id / "run_manifest.json"
+    if not path.exists():
+        return {}
+    try:
+        payload = json.loads(path.read_text(encoding="utf-8"))
+    except Exception:
+        return {}
+    return {
+        "ontology_spec_hash": str(payload.get("ontology_spec_hash", "")).strip() or None,
+        "taxonomy_hash": str(payload.get("taxonomy_hash", "")).strip() or None,
+        "canonical_event_registry_hash": str(
+            payload.get("canonical_event_registry_hash", "")
+        ).strip()
+        or None,
+        "state_registry_hash": str(payload.get("state_registry_hash", "")).strip() or None,
+        "verb_lexicon_hash": str(payload.get("verb_lexicon_hash", "")).strip() or None,
+    }
+
+
+def _is_list_like(value: Any) -> bool:
+    return isinstance(value, (list, tuple, np.ndarray))
+
+
+def _as_str_list(value: Any) -> List[str]:
+    if value is None:
+        return []
+    if _is_list_like(value):
+        return [str(v).strip() for v in value if str(v).strip()]
+    token = str(value).strip()
+    if not token:
+        return []
+    # Some parquet writers may serialize object lists as JSON strings.
+    if token.startswith("[") and token.endswith("]"):
+        try:
+            parsed = json.loads(token)
+        except Exception:
+            return [token]
+        if _is_list_like(parsed):
+            return [str(v).strip() for v in parsed if str(v).strip()]
+    return [token]
+
+
+def validate_candidate_templates_schema(df: pd.DataFrame) -> None:
+    required_common = [
+        "template_id",
+        "object_type",
+        "rule_templates",
+        "horizons",
+        "conditioning",
+        "ontology_spec_hash",
+    ]
+    required_event = [
+        "template_id",
+        "object_type",
+        "runtime_event_type",
+        "canonical_event_type",
+        "canonical_family",
+        "rule_templates",
+        "horizons",
+        "conditioning",
+        "ontology_in_taxonomy",
+        "ontology_in_canonical_registry",
+        "ontology_unknown_templates",
+        "ontology_spec_hash",
+        "ontology_source_states",
+        "ontology_family_states",
+        "ontology_all_states",
+    ]
+    required_feature = [
+        "template_id",
+        "object_type",
+        "feature_name",
+        "rule_templates",
+        "horizons",
+        "conditioning",
+        "ontology_spec_hash",
+    ]
+
+    missing_common = [col for col in required_common if col not in df.columns]
+    if missing_common:
+        raise ValueError(f"candidate_templates schema missing common columns: {missing_common}")
+
+    event_mask = df.get("object_type", pd.Series(dtype=object)).astype(str).str.lower() == "event"
+    feature_mask = (
+        df.get("object_type", pd.Series(dtype=object)).astype(str).str.lower() == "feature"
+    )
+    event_rows = df[event_mask].copy()
+    feature_rows = df[feature_mask].copy()
+
+    if not event_rows.empty:
+        missing_event = [col for col in required_event if col not in event_rows.columns]
+        if missing_event:
+            raise ValueError(
+                f"candidate_templates event rows missing required columns: {missing_event}"
+            )
+    if not feature_rows.empty:
+        missing_feature = [col for col in required_feature if col not in feature_rows.columns]
+        if missing_feature:
+            raise ValueError(
+                f"candidate_templates feature rows missing required columns: {missing_feature}"
+            )
+
+    list_columns = [
+        "rule_templates",
+        "horizons",
+        "ontology_unknown_templates",
+        "ontology_source_states",
+        "ontology_family_states",
+        "ontology_all_states",
+    ]
+    for col in list_columns:
+        if col not in df.columns:
+            continue
+        for idx, value in df[col].items():
+            if value is None:
+                raise ValueError(f"candidate_templates.{col} has null at row {idx}")
+            if isinstance(value, float) and pd.isna(value):
+                raise ValueError(f"candidate_templates.{col} has null at row {idx}")
+            if _is_list_like(value):
+                continue
+            # Accept JSON-encoded list strings if they decode.
+            parsed = _as_str_list(value)
+            if not (str(value).strip().startswith("[") and parsed):
+                raise ValueError(
+                    f"candidate_templates.{col} must be list-like at row {idx}; got {type(value).__name__}"
+                )
+
+    if "conditioning" in df.columns:
+        for idx, value in df["conditioning"].items():
+            if not isinstance(value, dict):
+                raise ValueError(
+                    f"candidate_templates.conditioning must be dict at row {idx}; got {type(value).__name__}"
+                )
+
+    if "ontology_spec_hash" in df.columns:
+        hashes = sorted(
+            {str(v).strip() for v in df["ontology_spec_hash"].tolist() if str(v).strip()}
+        )
+        if not hashes:
+            raise ValueError("candidate_templates.ontology_spec_hash is empty")
+        if len(hashes) > 1:
+            raise ValueError(
+                f"candidate_templates has multiple ontology_spec_hash values: {hashes}"
+            )
+
+
+def parse_list_field(value: Any) -> List[str]:
+    return _as_str_list(value)
+
+
+def bool_field(value: Any) -> bool:
+    if isinstance(value, bool):
+        return value
+    if isinstance(value, (np.bool_,)):
+        return bool(value)
+    if value is None:
+        return False
+    token = str(value).strip().lower()
+    return token in {"1", "true", "t", "yes", "y"}
+
+
+def choose_template_ontology_hash(df: pd.DataFrame) -> Optional[str]:
+    if "ontology_spec_hash" not in df.columns:
+        return None
+    hashes = sorted({str(v).strip() for v in df["ontology_spec_hash"].tolist() if str(v).strip()})
+    if len(hashes) == 1:
+        return hashes[0]
+    return None
+
+
+def ontology_component_hash_fields(
+    component_hashes: Dict[str, Optional[str]],
+) -> Dict[str, Optional[str]]:
+    return {
+        "taxonomy_hash": component_hashes.get("taxonomy"),
+        "canonical_event_registry_hash": component_hashes.get("canonical_event_registry"),
+        "state_registry_hash": component_hashes.get("state_registry"),
+        "verb_lexicon_hash": component_hashes.get("template_verb_lexicon"),
+    }
+
+
+def compare_hash_fields(
+    expected: str,
+    candidates: Iterable[Tuple[str, Optional[str]]],
+) -> List[str]:
+    mismatches: List[str] = []
+    for label, value in candidates:
+        v = str(value or "").strip()
+        if not v:
+            continue
+        if v != expected:
+            mismatches.append(f"{label}={v} (expected {expected})")
+    return mismatches
+
+
+def normalize_state_registry_records(state_registry: Dict[str, Any]) -> List[Dict[str, Any]]:
+    defaults = state_registry.get("defaults", {}) if isinstance(state_registry, dict) else {}
+    if not isinstance(defaults, dict):
+        defaults = {}
+    default_scope = str(defaults.get("state_scope", "source_only")).strip() or "source_only"
+    default_min_events = int(defaults.get("min_events", 200) or 200)
+
+    out: List[Dict[str, Any]] = []
+    rows = state_registry.get("states", []) if isinstance(state_registry, dict) else []
+    if not isinstance(rows, list):
+        return out
+    for raw in rows:
+        if not isinstance(raw, dict):
+            continue
+        state_id = str(raw.get("state_id", "")).strip().upper()
+        source_event_type = str(raw.get("source_event_type", "")).strip().upper()
+        family = str(raw.get("family", "")).strip().upper()
+        if not state_id or not source_event_type:
+            continue
+        state_scope = str(raw.get("state_scope", default_scope)).strip().lower() or "source_only"
+        if state_scope not in {"source_only", "family_safe", "global"}:
+            state_scope = "source_only"
+        min_events = int(raw.get("min_events", default_min_events) or default_min_events)
+        allowed_templates = parse_list_field(raw.get("allowed_templates", []))
+        out.append(
+            {
+                "state_id": state_id,
+                "family": family,
+                "source_event_type": source_event_type,
+                "state_scope": state_scope,
+                "min_events": max(0, min_events),
+                "activation_rule": str(raw.get("activation_rule", "")).strip(),
+                "decay_rule": str(raw.get("decay_rule", "")).strip(),
+                "max_duration": raw.get("max_duration"),
+                "allowed_templates": [str(x).strip() for x in allowed_templates if str(x).strip()],
+            }
+        )
+    return out
+
+
+def state_id_to_context_column(state_id: Any) -> str:
+    state = str(state_id or "").strip().upper()
+    if not state:
+        return ""
+    return MATERIALIZED_STATE_COLUMNS_BY_ID.get(state, state.lower())
+
+
+def materialized_state_ids() -> List[str]:
+    return sorted(MATERIALIZED_STATE_COLUMNS_BY_ID.keys())
+
+
+def validate_state_registry_source_events(
+    *,
+    state_registry: Dict[str, Any],
+    canonical_event_types: Iterable[str],
+) -> List[str]:
+    known = {str(x).strip().upper() for x in canonical_event_types if str(x).strip()}
+    issues: List[str] = []
+    for row in normalize_state_registry_records(state_registry):
+        source_event = row["source_event_type"]
+        if source_event not in known:
+            issues.append(
+                f"state_id={row['state_id']} has source_event_type={source_event} not present in canonical registry"
+            )
+    return sorted(set(issues))

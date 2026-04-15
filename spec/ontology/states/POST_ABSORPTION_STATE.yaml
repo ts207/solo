@@ -1,0 +1,21 @@
+version: 1
+kind: state_ontology_spec
+metadata:
+  status: generated
+  authored_source: spec/states/POST_ABSORPTION_STATE.yaml
+  generated_notice: GENERATED FILE - DO NOT EDIT
+  generated_from: spec/states/*.yaml
+state_id: POST_ABSORPTION_STATE
+family: LIQUIDITY_DISLOCATION
+source_event_type: ABSORPTION_PROXY
+activation_rule: absorption_imbalance >= threshold
+decay_rule: exit when imbalance mean-reverts to baseline
+allowed_templates:
+- mean_reversion
+- continuation
+- only_if_liquidity
+state_scope: source_only
+min_events: 200
+features_required:
+- order_book
+- market_depth

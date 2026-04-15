@@ -1,0 +1,71 @@
+version: 1
+kind: event
+event_type: LIQUIDITY_STRESS_PROXY
+maturity: standard
+synthetic_coverage: covered
+active: true
+status: validated
+description: 'Compatibility liquidity-stress detection using hybrid evidence: direct
+  order-book stress when available, confirmed by bar-range expansion and optional
+  trade-flow collapse relative to rolling medians.'
+reports_dir: liquidity_shock
+events_file: liquidity_shock_events.parquet
+signal_column: liquidity_stress_proxy_event
+parameters:
+  depth_collapse_th: 0.5
+  spread_spike_th: 3.0
+  median_window: 288
+research_family: LIQUIDITY_DISLOCATION
+trigger: Detector triggers when direct liquidity stress and proxy range-stress confirmation
+  align.
+confirmation: Spread stress should remain elevated briefly while proxy range expansion
+  or trade-flow weakness confirms the shock.
+expected_behavior:
+  holding_horizon_bars: 1-12
+  invalidation_conditions:
+  - Volume returns above median within 1-2 bars
+  - Spread compresses back to baseline
+  disabled_regimes:
+  - 'SPREAD_BLOWOUT active: spread elevated, unreliable signal'
+identity:
+  canonical_regime: LIQUIDITY_STRESS
+  subtype: liquidity_stress
+  phase: shock
+  evidence_mode: hybrid
+  layer: canonical
+  disposition: merge
+  asset_scope: single_asset
+  venue_scope: single_venue
+governance:
+  event_kind: market_event
+  default_executable: true
+  research_only: false
+  strategy_only: false
+  context_tag: false
+  is_composite: false
+  maturity: standard
+  tier: B
+  operational_role: trigger
+  deployment_disposition: secondary_or_confirm
+  runtime_category: active_runtime_event
+runtime:
+  detector: ''
+  enabled: true
+  signal_column: liquidity_stress_proxy_event
+  events_file: liquidity_shock_events.parquet
+  reports_dir: liquidity_shock
+  instrument_classes: []
+  requires_features: []
+  sequence_eligible: true
+  runtime_tags: []
+semantics:
+  summary: 'Compatibility liquidity-stress detection using hybrid evidence: direct
+    order-book stress when available, confirmed by bar-range expansion and optional
+    trade-flow collapse relative to rolling medians.'
+  notes: 'Hybrid liquidity-stress evidence: direct book stress when available plus
+    bar-range expansion and optional trade-flow collapse confirmation.'
+  precedence_rank: 0
+interaction:
+  suppresses: []
+  suppressed_by: []
+routing: {}

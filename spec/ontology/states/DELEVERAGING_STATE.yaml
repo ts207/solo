@@ -1,0 +1,21 @@
+version: 1
+kind: state_ontology_spec
+metadata:
+  status: generated
+  authored_source: spec/states/DELEVERAGING_STATE.yaml
+  generated_notice: GENERATED FILE - DO NOT EDIT
+  generated_from: spec/states/*.yaml
+state_id: DELEVERAGING_STATE
+family: POSITIONING_EXTREMES
+source_event_type: DELEVERAGING_WAVE
+activation_rule: oi_delta_1h <= deleveraging_threshold AND rv_pct >= p75
+decay_rule: exit when oi_delta_1h recovers above threshold
+allowed_templates:
+- continuation
+- tail_risk_avoid
+- convexity_capture
+state_scope: source_only
+min_events: 200
+features_required:
+- oi_delta_1h
+- rv_96
