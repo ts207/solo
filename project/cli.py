@@ -187,6 +187,22 @@ def _build_parser() -> argparse.ArgumentParser:
     deploy_status = deploy_sub.add_parser("status", help="Show status of deployed theses.")
     deploy_status.add_argument("--data_root", default=None)
 
+    deploy_bind = deploy_sub.add_parser(
+        "bind-config",
+        help="Clone a paper config template and inject thesis_run_id for a promoted run.",
+    )
+    deploy_bind.add_argument("--run_id", required=True, help="Promoted run ID to bind.")
+    deploy_bind.add_argument(
+        "--template",
+        default=None,
+        help="Source config YAML to clone (default: project/configs/live_paper_btc_thesis_v1.yaml).",
+    )
+    deploy_bind.add_argument(
+        "--output",
+        default=None,
+        help="Output path for the bound config (default: project/configs/live_paper_<run_id>.yaml).",
+    )
+
     ingest_parser = subparsers.add_parser("ingest", help="Ingest raw data from external exchanges")
     ingest_parser.add_argument("--run_id", required=True, help="Unique identifier for this run")
     ingest_parser.add_argument(
@@ -451,7 +467,8 @@ def main() -> int:
     if args.command == "deploy":
         from project.artifacts import promoted_theses_path
         from project.core.config import get_data_root
-        data_root = Path(args.data_root) if args.data_root else get_data_root()
+        _data_root_str = getattr(args, "data_root", None)
+        data_root = Path(_data_root_str) if _data_root_str else get_data_root()
 
         if args.subcommand == "list-theses":
             theses_dir = data_root / "live" / "theses"
@@ -517,6 +534,26 @@ def main() -> int:
 
         if args.subcommand == "status":
             print("Deployment Status: Monitoring active sessions via explicit catalog integration.")
+            return 0
+
+        if args.subcommand == "bind-config":
+            import re
+            import shutil
+
+            template_path = Path(args.template) if args.template else PROJECT_ROOT / "configs" / "live_paper_btc_thesis_v1.yaml"
+            if not template_path.exists():
+                print(f"Error: Template config not found: {template_path}")
+                return 1
+
+            output_path = Path(args.output) if args.output else PROJECT_ROOT / "configs" / f"live_paper_{args.run_id}.yaml"
+            shutil.copy2(template_path, output_path)
+
+            content = output_path.read_text()
+            bound = re.sub(r"(thesis_run_id:\s*)(\S+)", rf"\g<1>{args.run_id}", content)
+            output_path.write_text(bound)
+
+            print(f"Bound config written to: {output_path}")
+            print(f"  thesis_run_id: {args.run_id}")
             return 0
 
     if args.command == "ingest":

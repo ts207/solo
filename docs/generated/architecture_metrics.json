@@ -7,6 +7,6 @@
     "module_coupling_count": 3441,
     "cross_boundary_import_count": 2444,
     "circular_dependency_count": 2,
-    "test_coverage_ratio": 0.3689484643414888
+    "test_coverage_ratio": 0.3690305790500976
   }
 }

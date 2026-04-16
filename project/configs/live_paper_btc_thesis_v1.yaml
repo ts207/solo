@@ -20,7 +20,7 @@ execution_degradation_throttle_scale: 0.5
 runtime_metrics_snapshot_path: artifacts/live_runtime_metrics_paper_btc_thesis.json
 strategy_runtime:
   implemented: true
-  thesis_run_id: REPLACE_WITH_EXPORTED_RUN_ID
+  thesis_run_id: productive_golden_path_20260416T041539Z_c7e116bafd
   include_pending_theses: false
   auto_submit: true
   supported_event_families:
