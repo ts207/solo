@@ -209,15 +209,27 @@ def validate_live_runtime_environment(
             f"EDGE_LIVE_SNAPSHOT_PATH must point to {resolved_snapshot_path}"
         )
     if environment_name == "paper":
-        if not (str(env.get("EDGE_BINANCE_PAPER_API_KEY", "")).strip() or str(env.get("EDGE_API_KEY", "")).strip()):
-            errors.append("EDGE_BINANCE_PAPER_API_KEY must be set")
-        if not (str(env.get("EDGE_BINANCE_PAPER_API_SECRET", "")).strip() or str(env.get("EDGE_API_SECRET", "")).strip()):
-            errors.append("EDGE_BINANCE_PAPER_API_SECRET must be set")
+        if edge_venue == "bybit":
+            if not (str(env.get("EDGE_BYBIT_PAPER_API_KEY", "")).strip() or str(env.get("EDGE_API_KEY", "")).strip()):
+                errors.append("EDGE_BYBIT_PAPER_API_KEY must be set")
+            if not (str(env.get("EDGE_BYBIT_PAPER_API_SECRET", "")).strip() or str(env.get("EDGE_API_SECRET", "")).strip()):
+                errors.append("EDGE_BYBIT_PAPER_API_SECRET must be set")
+        else:
+            if not (str(env.get("EDGE_BINANCE_PAPER_API_KEY", "")).strip() or str(env.get("EDGE_API_KEY", "")).strip()):
+                errors.append("EDGE_BINANCE_PAPER_API_KEY must be set")
+            if not (str(env.get("EDGE_BINANCE_PAPER_API_SECRET", "")).strip() or str(env.get("EDGE_API_SECRET", "")).strip()):
+                errors.append("EDGE_BINANCE_PAPER_API_SECRET must be set")
     if environment_name == "production":
-        if not (str(env.get("EDGE_BINANCE_API_KEY", "")).strip() or str(env.get("EDGE_API_KEY", "")).strip()):
-            errors.append("EDGE_BINANCE_API_KEY must be set")
-        if not (str(env.get("EDGE_BINANCE_API_SECRET", "")).strip() or str(env.get("EDGE_API_SECRET", "")).strip()):
-            errors.append("EDGE_BINANCE_API_SECRET must be set")
+        if edge_venue == "bybit":
+            if not (str(env.get("EDGE_BYBIT_API_KEY", "")).strip() or str(env.get("EDGE_API_KEY", "")).strip()):
+                errors.append("EDGE_BYBIT_API_KEY must be set")
+            if not (str(env.get("EDGE_BYBIT_API_SECRET", "")).strip() or str(env.get("EDGE_API_SECRET", "")).strip()):
+                errors.append("EDGE_BYBIT_API_SECRET must be set")
+        else:
+            if not (str(env.get("EDGE_BINANCE_API_KEY", "")).strip() or str(env.get("EDGE_API_KEY", "")).strip()):
+                errors.append("EDGE_BINANCE_API_KEY must be set")
+            if not (str(env.get("EDGE_BINANCE_API_SECRET", "")).strip() or str(env.get("EDGE_API_SECRET", "")).strip()):
+                errors.append("EDGE_BINANCE_API_SECRET must be set")
 
 
     if errors:
@@ -315,7 +327,8 @@ async def preflight_binance_venue_connectivity(
     if not api_key or not api_secret:
         raise VenueConnectivityError("Binance API credentials must be set for venue preflight")
 
-    session_factory = session_factory or _default_aiohttp_session_factory
+    _sf = session_factory if session_factory is not None else _default_aiohttp_session_factory
+    session_factory = _sf
     params = {"timestamp": int(time.time() * 1000)}
     signed_query = _build_binance_signed_query(api_secret, params)
     ping_url = f"{base_url.rstrip('/')}/fapi/v1/ping"
@@ -381,7 +394,8 @@ async def fetch_binance_futures_account_snapshot(
             "Binance API credentials must be set for account snapshot fetch"
         )
 
-    session_factory = session_factory or _default_aiohttp_session_factory
+    _sf = session_factory if session_factory is not None else _default_aiohttp_session_factory
+    session_factory = _sf
     params = {"timestamp": int(time.time() * 1000)}
     signed_query = _build_binance_signed_query(api_secret, params)
     account_url = f"{base_url.rstrip('/')}/fapi/v2/account?{signed_query}"
@@ -402,6 +416,157 @@ async def fetch_binance_futures_account_snapshot(
             payload = await account_response.json()
 
     return normalize_binance_futures_account_snapshot(payload)
+
+
+def _resolve_bybit_api_credentials(environment: Dict[str, str]) -> Dict[str, str]:
+    runtime_environment = str(environment.get("environment", "")).strip().lower()
+    if runtime_environment == "paper":
+        return {
+            "base_url": str(os.environ.get("EDGE_BYBIT_PAPER_API_BASE", "https://api-testnet.bybit.com")).strip(),
+            "api_key": str(os.environ.get("EDGE_BYBIT_PAPER_API_KEY", "") or os.environ.get("EDGE_API_KEY", "")).strip(),
+            "api_secret": str(os.environ.get("EDGE_BYBIT_PAPER_API_SECRET", "") or os.environ.get("EDGE_API_SECRET", "")).strip(),
+            "expected_host": "api-testnet.bybit.com",
+        }
+    return {
+        "base_url": str(os.environ.get("EDGE_BYBIT_API_BASE", "https://api.bybit.com")).strip(),
+        "api_key": str(os.environ.get("EDGE_BYBIT_API_KEY", "") or os.environ.get("EDGE_API_KEY", "")).strip(),
+        "api_secret": str(os.environ.get("EDGE_BYBIT_API_SECRET", "") or os.environ.get("EDGE_API_SECRET", "")).strip(),
+        "expected_host": "api.bybit.com",
+    }
+
+
+def normalize_bybit_account_snapshot(payload: Dict[str, Any]) -> Dict[str, Any]:
+    if not isinstance(payload, dict):
+        raise ValueError("Bybit account payload must be a mapping")
+
+    result_list = payload.get("result", {}).get("list", [])
+    wallet_balance = 0.0
+    available_balance = 0.0
+    for account in result_list:
+        wallet_balance += float(account.get("totalWalletBalance", 0.0) or 0.0)
+        available_balance += float(account.get("totalAvailableBalance", 0.0) or 0.0)
+
+    positions: list[Dict[str, Any]] = []
+    for account in result_list:
+        for raw in list(account.get("coin", [])):
+            qty = float(raw.get("totalPositionMM", 0.0) or 0.0)
+            if qty == 0.0:
+                continue
+            positions.append({
+                "symbol": str(raw.get("coin", "")).upper(),
+                "quantity": qty,
+                "entry_price": 0.0,
+                "mark_price": 0.0,
+                "unrealized_pnl": float(raw.get("unrealisedPnl", 0.0) or 0.0),
+                "liquidation_price": None,
+                "leverage": 1.0,
+                "margin_type": "UNIFIED",
+            })
+
+    return {
+        "wallet_balance": wallet_balance,
+        "margin_balance": wallet_balance,
+        "available_balance": available_balance,
+        "exchange_status": "NORMAL",
+        "positions": positions,
+    }
+
+
+async def preflight_bybit_venue_connectivity(
+    *,
+    environment: Dict[str, str],
+    timeout_seconds: float = 5.0,
+    session_factory: Any | None = None,
+) -> Dict[str, Any]:
+    runtime_environment = str(environment.get("environment", "")).strip().lower()
+    credentials = _resolve_bybit_api_credentials(environment)
+    base_url = credentials["base_url"]
+    api_key = credentials["api_key"]
+    api_secret = credentials["api_secret"]
+    expected_host = credentials["expected_host"]
+
+    if not base_url:
+        raise VenueConnectivityError("Bybit API base URL must be set")
+    if expected_host not in base_url:
+        raise VenueConnectivityError(f"Bybit API base URL must target {expected_host}")
+    if not api_key or not api_secret:
+        raise VenueConnectivityError("Bybit API credentials must be set for venue preflight")
+
+    _sf = session_factory if session_factory is not None else _default_aiohttp_session_factory
+    session_factory = _sf
+    server_time_url = f"{base_url.rstrip('/')}/v5/market/time"
+    wallet_url = f"{base_url.rstrip('/')}/v5/account/wallet-balance?accountType=UNIFIED"
+
+    import hashlib, hmac as hmac_mod
+    timestamp = str(int(time.time() * 1000))
+    recv_window = "5000"
+    sign_str = timestamp + api_key + recv_window + "accountType=UNIFIED"
+    signature = hmac_mod.new(api_secret.encode("utf-8"), sign_str.encode("utf-8"), hashlib.sha256).hexdigest()
+    headers = {
+        "X-BAPI-API-KEY": api_key,
+        "X-BAPI-TIMESTAMP": timestamp,
+        "X-BAPI-RECV-WINDOW": recv_window,
+        "X-BAPI-SIGN": signature,
+    }
+
+    async with session_factory(timeout_seconds=timeout_seconds) as session:
+        async with session.get(server_time_url) as resp:
+            if int(getattr(resp, "status", 0)) != 200:
+                raise VenueConnectivityError(f"Bybit server time check failed: {getattr(resp, 'status', 'unknown')}")
+        async with session.get(wallet_url, headers=headers) as resp:
+            if int(getattr(resp, "status", 0)) != 200:
+                raise VenueConnectivityError(f"Bybit wallet preflight failed: {getattr(resp, 'status', 'unknown')}")
+            payload = await resp.json()
+
+    ret_code = payload.get("retCode", -1)
+    if ret_code != 0:
+        raise VenueConnectivityError(f"Bybit wallet API error: retCode={ret_code} msg={payload.get('retMsg', '')}")
+
+    return {
+        "venue": "bybit",
+        "environment": runtime_environment,
+        "api_base": base_url,
+        "account_can_trade": True,
+        "account_type": "UNIFIED",
+    }
+
+
+async def fetch_bybit_account_snapshot(
+    *,
+    environment: Dict[str, str],
+    timeout_seconds: float = 5.0,
+    session_factory: Any | None = None,
+) -> Dict[str, Any]:
+    credentials = _resolve_bybit_api_credentials(environment)
+    base_url = credentials["base_url"]
+    api_key = credentials["api_key"]
+    api_secret = credentials["api_secret"]
+
+    if not base_url or not api_key or not api_secret:
+        raise VenueConnectivityError("Bybit API credentials must be set for account snapshot")
+
+    import hashlib, hmac as hmac_mod
+    timestamp = str(int(time.time() * 1000))
+    recv_window = "5000"
+    sign_str = timestamp + api_key + recv_window + "accountType=UNIFIED"
+    signature = hmac_mod.new(api_secret.encode("utf-8"), sign_str.encode("utf-8"), hashlib.sha256).hexdigest()
+    headers = {
+        "X-BAPI-API-KEY": api_key,
+        "X-BAPI-TIMESTAMP": timestamp,
+        "X-BAPI-RECV-WINDOW": recv_window,
+        "X-BAPI-SIGN": signature,
+    }
+    wallet_url = f"{base_url.rstrip('/')}/v5/account/wallet-balance?accountType=UNIFIED"
+
+    _sf = session_factory if session_factory is not None else _default_aiohttp_session_factory
+    session_factory = _sf
+    async with session_factory(timeout_seconds=timeout_seconds) as session:
+        async with session.get(wallet_url, headers=headers) as resp:
+            if int(getattr(resp, "status", 0)) != 200:
+                raise VenueConnectivityError(f"Bybit account snapshot failed: {getattr(resp, 'status', 'unknown')}")
+            payload = await resp.json()
+
+    return normalize_bybit_account_snapshot(payload)
 
 
 def _default_aiohttp_session_factory(*, timeout_seconds: float):
@@ -428,18 +593,31 @@ def build_live_runner(
     )
     order_manager = None
     if environment is not None and session_metadata["runtime_mode"] == "trading":
-        from project.live.binance_client import BinanceFuturesClient
         from project.live.oms import OrderManager
 
-        credentials = _resolve_binance_api_credentials(environment)
-        if credentials["base_url"] and credentials["api_key"] and credentials["api_secret"]:
-            order_manager = OrderManager(
-                exchange_client=BinanceFuturesClient(
-                    credentials["api_key"],
-                    credentials["api_secret"],
-                    base_url=credentials["base_url"],
+        venue = str(environment.get("venue", "binance")).strip().lower()
+        if venue == "bybit":
+            from project.live.bybit_client import BybitDerivativesClient
+            credentials = _resolve_bybit_api_credentials(environment)
+            if credentials["base_url"] and credentials["api_key"] and credentials["api_secret"]:
+                order_manager = OrderManager(
+                    exchange_client=BybitDerivativesClient(
+                        credentials["api_key"],
+                        credentials["api_secret"],
+                        base_url=credentials["base_url"],
+                    )
                 )
-            )
+        else:
+            from project.live.binance_client import BinanceFuturesClient
+            credentials = _resolve_binance_api_credentials(environment)
+            if credentials["base_url"] and credentials["api_key"] and credentials["api_secret"]:
+                order_manager = OrderManager(
+                    exchange_client=BinanceFuturesClient(
+                        credentials["api_key"],
+                        credentials["api_secret"],
+                        base_url=credentials["base_url"],
+                    )
+                )
     return LiveEngineRunner(
         session_metadata["symbols"],
         snapshot_path=session_metadata["live_state_snapshot_path"],
@@ -517,16 +695,28 @@ def main(argv: list[str] | None = None) -> int:
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s %(message)s")
     try:
         if runtime_mode == "trading":
-            runner.account_snapshot_fetcher = lambda: fetch_binance_futures_account_snapshot(
-                environment=runtime_environment
-            )
-            preflight = asyncio.run(
-                preflight_binance_venue_connectivity(environment=runtime_environment)
-            )
-            validate_binance_account_preflight(preflight)
-            initial_account_snapshot = asyncio.run(
-                fetch_binance_futures_account_snapshot(environment=runtime_environment)
-            )
+            venue = str(runtime_environment.get("venue", "binance")).strip().lower()
+            if venue == "bybit":
+                runner.account_snapshot_fetcher = lambda: fetch_bybit_account_snapshot(
+                    environment=runtime_environment
+                )
+                preflight = asyncio.run(
+                    preflight_bybit_venue_connectivity(environment=runtime_environment)
+                )
+                initial_account_snapshot = asyncio.run(
+                    fetch_bybit_account_snapshot(environment=runtime_environment)
+                )
+            else:
+                runner.account_snapshot_fetcher = lambda: fetch_binance_futures_account_snapshot(
+                    environment=runtime_environment
+                )
+                preflight = asyncio.run(
+                    preflight_binance_venue_connectivity(environment=runtime_environment)
+                )
+                validate_binance_account_preflight(preflight)
+                initial_account_snapshot = asyncio.run(
+                    fetch_binance_futures_account_snapshot(environment=runtime_environment)
+                )
             runner.state_store.update_from_exchange_snapshot(initial_account_snapshot)
         asyncio.run(runner.start())
     except KeyboardInterrupt:
