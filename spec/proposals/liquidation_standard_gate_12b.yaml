@@ -1,0 +1,35 @@
+program_id: liquidation_std_gate_12b
+description: >
+  LIQUIDATION_CASCADE long exhaustion_reversal 12b, rv_pct_17280 > 70, 2023-2024.
+  One change from v6 (24b): horizon_bars 24 → 12.
+  Tests whether 1h is stronger than 2h — confirms 24b as optimal or finds shorter peak.
+run_mode: research
+objective_name: retail_profitability
+promotion_profile: research
+symbols:
+  - BTCUSDT
+timeframe: 5m
+start: "2023-01-01"
+end: "2024-12-31"
+instrument_classes:
+  - crypto
+search_spec:
+  path: spec/productive_search.yaml
+knobs:
+  - name: discovery_profile
+    value: synthetic
+hypothesis:
+  anchor:
+    type: event
+    event_id: LIQUIDATION_CASCADE
+  filters:
+    feature_predicates:
+      - feature: rv_pct_17280
+        operator: ">"
+        threshold: 70
+  sampling_policy:
+    entry_lag_bars: 1
+  template:
+    id: exhaustion_reversal
+  direction: long
+  horizon_bars: 12
