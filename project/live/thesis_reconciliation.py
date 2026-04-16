@@ -204,7 +204,12 @@ def reconcile_thesis_batch(
     persist_dir: Path,
     thesis_manager_state: Dict[str, str],
     audit_log_path: Path | None = None,
+    data_root: Path | None = None,
 ) -> ReconciliationResult:
+    from project.core.config import get_data_root as _get_data_root
+
+    resolved_data_root = data_root if data_root is not None else _get_data_root()
+
     prev_meta = _load_previous_batch_metadata(persist_dir)
     prev_run_id = prev_meta.get("run_id", "")
     prev_thesis_ids = set(prev_meta.get("thesis_ids", []))
@@ -212,7 +217,7 @@ def reconcile_thesis_batch(
 
     if prev_run_id and prev_thesis_ids:
         try:
-            previous_store = ThesisStore.from_run_id(prev_run_id, data_root=persist_dir.parent.parent)
+            previous_store = ThesisStore.from_run_id(prev_run_id, data_root=resolved_data_root)
         except FileNotFoundError:
             raise DataIntegrityError(
                 f"Previous batch metadata references run_id={prev_run_id} but the thesis store is missing"

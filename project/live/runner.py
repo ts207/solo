@@ -571,11 +571,13 @@ class LiveEngineRunner:
         }
 
         try:
+            from project.core.config import get_data_root as _get_data_root
             result = reconcile_thesis_batch(
                 current_store=self._thesis_store,
                 persist_dir=persist_dir,
                 thesis_manager_state=thesis_manager_state,
                 audit_log_path=audit_log_path,
+                data_root=_get_data_root(),
             )
             
             if not result.safe_to_proceed:
