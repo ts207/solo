@@ -1,0 +1,35 @@
+program_id: campaign_pe_oi_spike_neg_short
+description: >
+  OI_SPIKE_NEGATIVE short exhaustion_reversal 24b, rv_pct_17280 > 70, 2023-2024.
+  One change from OI_SPIKE_NEGATIVE long: direction long → short.
+  Tests whether negative OI spike drives continuation (short) rather than bounce (long).
+run_mode: research
+objective_name: retail_profitability
+promotion_profile: research
+symbols:
+  - BTCUSDT
+timeframe: 5m
+start: "2023-01-01"
+end: "2024-12-31"
+instrument_classes:
+  - crypto
+search_spec:
+  path: spec/productive_search.yaml
+knobs:
+  - name: discovery_profile
+    value: synthetic
+hypothesis:
+  anchor:
+    type: event
+    event_id: OI_SPIKE_NEGATIVE
+  filters:
+    feature_predicates:
+      - feature: rv_pct_17280
+        operator: ">"
+        threshold: 70
+  sampling_policy:
+    entry_lag_bars: 1
+  template:
+    id: exhaustion_reversal
+  direction: short
+  horizon_bars: 24
