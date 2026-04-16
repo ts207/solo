@@ -1,0 +1,31 @@
+program_id: liquidation_standard_gate_v2_h24
+description: >
+  LIQUIDATION_CASCADE long mean_reversion 24b under standard gates.
+  One change from v1: horizon_bars 12 → 24. Testing whether the post-cascade
+  mean-reversion effect has more power at a 2-hour horizon.
+run_mode: research
+objective_name: retail_profitability
+promotion_profile: research
+symbols:
+  - BTCUSDT
+timeframe: 5m
+start: "2024-01-01"
+end: "2024-06-30"
+instrument_classes:
+  - crypto
+search_spec:
+  path: spec/productive_search.yaml
+knobs:
+  - name: discovery_profile
+    value: synthetic
+hypothesis:
+  anchor:
+    type: event
+    event_id: LIQUIDATION_CASCADE
+  filters: {}
+  sampling_policy:
+    entry_lag_bars: 1
+  template:
+    id: mean_reversion
+  direction: long
+  horizon_bars: 24
