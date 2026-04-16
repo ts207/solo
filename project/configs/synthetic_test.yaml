@@ -1,0 +1,11 @@
+workflow_id: synthetic_test_v1
+description: Test synthetic run with real pipeline config.
+run_id: synthetic_test
+symbols: BTCUSDT
+start_date: 2026-01-01
+end_date: 2026-01-07
+discovery_profile: synthetic
+phase2_gate_profile: synthetic
+search_spec: synthetic_truth
+search_min_n: 4
+required_outputs: []

@@ -1,0 +1,29 @@
+id: m3_microstructure_stress
+label: Microstructure stress on BTC perpetual
+symbols:
+- BTCUSDT
+timeframe: 5m
+start: '2024-01-01'
+end: '2024-03-01'
+search_spec:
+  version: 1
+  kind: search_spec
+  search_mode: subset
+  triggers:
+    events:
+    - FUNDING_PERSISTENCE_TRIGGER
+    - PULLBACK_PIVOT
+  contexts: {}
+  horizons:
+  - 5m
+  - 15m
+  directions:
+  - long
+  - short
+  entry_lag: 1
+  cost_profiles:
+  - standard
+  expression_templates: '*'
+  max_candidates_per_run: 50
+event_source: fixture
+fixture_event_registry: data/reports/benchmarks/fixtures/m3_microstructure_stress_event_registry.parquet

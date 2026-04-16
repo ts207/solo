@@ -1,0 +1,46 @@
+workflow_id: live_production_v1
+golden_workflow_config: project/configs/golden_workflow.yaml
+runtime_run_id: live_production
+runtime_mode: monitor_only
+stale_threshold_sec: 60.0
+freshness_streams:
+  - symbol: BTCUSDT
+    stream: kline_5m
+  - symbol: ETHUSDT
+    stream: kline_5m
+oms_lineage:
+  order_source: production_oms
+  session_id: live-production-session
+live_state_snapshot_path: artifacts/live_state_production.json
+microstructure_recovery_streak: 3
+account_sync_interval_seconds: 5.0
+account_sync_failure_threshold: 2
+execution_degradation_min_samples: 3
+execution_degradation_warn_edge_bps: 0.0
+execution_degradation_block_edge_bps: -5.0
+execution_degradation_throttle_scale: 0.25
+strategy_runtime:
+  implemented: false
+  include_pending_theses: false
+  auto_submit: false
+  supported_event_families:
+    - VOL_SHOCK
+  allowed_actions:
+    - probe
+    - trade_small
+  max_notional_fraction: 0.03
+  max_spread_bps: 5.0
+  min_depth_usd: 50000.0
+  min_tob_coverage: 0.9
+  default_depth_usd: 75000.0
+  default_tob_coverage: 0.97
+  default_expected_cost_bps: 3.0
+  memory_root: artifacts/live_memory/production
+  event_detector:
+    vol_shock_min_abs_move_bps: 40.0
+  decision_policy:
+    watch_min: 0.25
+    probe_min: 0.4
+    small_min: 0.6
+    normal_min: 0.8
+    max_contradiction_penalty: 0.4

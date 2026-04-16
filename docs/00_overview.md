@@ -112,6 +112,11 @@ Promotion export validates the schema of `promoted_theses.json` and `index.json`
 This repo no longer needs a compatibility-layer explanation. The current source tree uses canonical paths, structured proposal ingestion, canonical family/regime metadata, and direct package boundaries enforced by tests. Treat older wrapper-oriented descriptions as obsolete.
 
 
-## Proposal / experiment / campaign boundary
+## Terminology: Proposal vs Experiment vs Campaign
 
-The authored research input is the proposal. The proposal is compiled into an experiment config for execution. Campaigns are separate orchestration contracts that manage multiple proposal cycles rather than being embedded inside a single proposal. See `docs/11_proposal_authoring_and_campaigns.md`.
+In the Edge lifecycle architecture, the abstraction boundary is strictly defined:
+- **Proposal**: the authored configuration (YAML) hypothesis/input.
+- **Experiment**: the compiled executable run config derived specifically from that proposal.
+- **Campaign**: a higher-level multi-run controller/container over related proposals/runs.
+
+See `docs/11_proposal_authoring_and_campaigns.md` for authoring structures.

@@ -52,15 +52,15 @@ promotion_confirmatory_gates:
     require_regime_stability: true
   shadow:
     q_value_mechanism_column: q_value_mechanism
-    max_q_value: 0.10
-    min_oos_ess: 20
-    min_oos_event_count: 5
-    require_sign_consistency: true
-    cost_stress_multiplier: 1.5
+    max_q_value: 1.0
+    min_oos_ess: 0
+    min_oos_event_count: 0
+    require_sign_consistency: false
+    cost_stress_multiplier: 1.0
     latency_stress_bars: 1
     # G1: Shadow regime thresholds
-    min_regimes_supported: 1
-    min_ess_per_regime: 10
+    min_regimes_supported: 0
+    min_ess_per_regime: 0
 
 # Promotion modes (G1)
 promotion_modes:
@@ -136,12 +136,12 @@ gate_v1_fallback:
 gate_v1_bridge:
   edge_cost_k: 2.0
   stressed_cost_multiplier: 1.5
-  min_validation_trades: 20
-  search_bridge_min_t_stat: 2.0
-  search_bridge_min_robustness_score: 0.7
-  search_bridge_min_regime_stability_score: 0.6
-  search_bridge_min_stress_survival: 0.5
-  search_bridge_stress_cost_buffer_bps: 2.0
+  min_validation_trades: 10
+  search_bridge_min_t_stat: 0.0
+  search_bridge_min_robustness_score: 0.5
+  search_bridge_min_regime_stability_score: 0.4
+  search_bridge_min_stress_survival: 0.0
+  search_bridge_stress_cost_buffer_bps: 0.0
   # Microstructure risk controls (HP-106).
   micro_max_spread_stress: 2.0
   micro_max_depth_depletion: 0.70

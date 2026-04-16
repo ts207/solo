@@ -117,6 +117,10 @@ class ValidationService:
                 "validated": len(validated),
                 "rejected": len(rejected),
                 "inconclusive": len(inconclusive),
+                "rejection_reasons": {
+                    reason: sum(1 for c in rejected if reason in c.decision.reason_codes)
+                    for reason in set(r for c in rejected for r in c.decision.reason_codes)
+                }
             },
             effect_stability_report=effect_stability_report
         )

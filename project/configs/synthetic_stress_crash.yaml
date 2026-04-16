@@ -1,0 +1,16 @@
+workflow_id: synthetic_stress_crash_v1
+description: Synthetic discovery on stressed liquidity and deleveraging conditions.
+run_id: synthetic_stress_crash
+symbols: BTCUSDT,ETHUSDT,SOLUSDT
+start_date: 2026-07-01
+end_date: 2026-09-30
+volatility_profile: stress_crash
+noise_scale: 1.1
+discovery_profile: synthetic
+phase2_gate_profile: synthetic
+search_spec: synthetic_truth
+search_min_n: 8
+required_outputs:
+  - synthetic/synthetic_stress_crash/synthetic_generation_manifest.json
+  - synthetic/synthetic_stress_crash/synthetic_regime_segments.json
+  - reports/phase2/synthetic_stress_crash/phase2_candidates.parquet

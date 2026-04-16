@@ -357,6 +357,16 @@ def execute_candidate_discovery(config: CandidateDiscoveryConfig) -> CandidateDi
                 "multiplicity_survivors": 0,
                 "rejected_by_min_sample": 0,
                 "prepare_events": prepare_diag,
+                "loss_attribution": {
+                    "raw_anchored_episodes": int(prepare_diag.get("raw_event_count", 0)),
+                    "post_filter_episodes": int(prepare_diag.get("returned_rows", 0)),
+                    "candidate_hypotheses_synthesized": 0,
+                    "surviving_phase_gates": 0,
+                    "candidates_entering_validation": 0,
+                    "rejected_by_scoring": 0,
+                    "rejected_by_multiplicity": 0,
+                    "rejected_by_sample_quality": 0,
+                }
             }
             if events_df.empty:
                 symbol_diagnostics[symbol] = symbol_diag
@@ -433,6 +443,7 @@ def execute_candidate_discovery(config: CandidateDiscoveryConfig) -> CandidateDi
                         "skipped_non_directional_registry_generation"
                     ] = True
             symbol_diag["generated_candidate_rows"] = int(len(candidates))
+            symbol_diag["loss_attribution"]["candidate_hypotheses_synthesized"] = int(len(candidates))
             if candidates.empty:
                 symbol_diagnostics[symbol] = symbol_diag
                 continue
@@ -551,12 +562,13 @@ def execute_candidate_discovery(config: CandidateDiscoveryConfig) -> CandidateDi
                     .astype(bool)
                     .sum()
                 )
-                symbol_diagnostics[symbol]["multiplicity_survivors"] = int(
+                entering_val = int(
                     pd.to_numeric(sym_df.get("is_discovery", False), errors="coerce")
                     .fillna(0)
                     .astype(bool)
                     .sum()
                 )
+                symbol_diagnostics[symbol]["multiplicity_survivors"] = entering_val
                 symbol_diagnostics[symbol]["rejected_by_sample_quality_gate"] = int(
                     pd.to_numeric(sym_df.get("rejected_by_sample_quality", False), errors="coerce")
                     .fillna(0)
@@ -566,6 +578,15 @@ def execute_candidate_discovery(config: CandidateDiscoveryConfig) -> CandidateDi
                 symbol_diagnostics[symbol]["survivors_before_sample_quality_gate"] = (
                     pre_gate_survivors
                 )
+                if "loss_attribution" in symbol_diagnostics[symbol]:
+                    loss = symbol_diagnostics[symbol]["loss_attribution"]
+                    loss["surviving_phase_gates"] = pre_gate_survivors
+                    loss["candidates_entering_validation"] = entering_val
+                    loss["rejected_by_sample_quality"] = symbol_diagnostics[symbol]["rejected_by_sample_quality_gate"]
+                    syn = loss["candidate_hypotheses_synthesized"]
+                    loss["rejected_by_scoring"] = max(0, syn - pre_gate_survivors)
+                    loss["rejected_by_multiplicity"] = max(0, pre_gate_survivors - entering_val - loss["rejected_by_sample_quality"])
+
 
         write_candidate_reports(
             out_dir=out_dir,

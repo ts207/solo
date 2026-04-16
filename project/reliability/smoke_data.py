@@ -6,8 +6,10 @@ import os
 import platform
 import sys
 from dataclasses import dataclass
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, Iterable, List
+
 
 import numpy as np
 import pandas as pd
@@ -432,6 +434,8 @@ def build_smoke_edge_candidates(
                 "low_capital_reject_reason_codes": "" if promoted_like else "capacity,costs",
                 "gate_promo_retail_viability": promoted_like,
                 "gate_promo_low_capital_viability": promoted_like,
+                "sign_consistency": 0.80 if promoted_like else 0.40,
+                "stability_score": float(rec.get("robustness_score", 0.85 if promoted_like else 0.2)),
             }
         )
     out = ensure_candidate_schema(pd.DataFrame(rows))
@@ -468,7 +472,98 @@ def materialize_smoke_promotion_inputs(
         json.dumps({"by_event": {SMOKE_EVENT_TYPE: {"pass_rate_after_bh": 0.0}}}, indent=2),
         encoding="utf-8",
     )
+    materialize_smoke_validation_artifacts(dataset, candidates)
     return candidates
+
+
+def materialize_smoke_validation_artifacts(
+    dataset: SmokeDatasetInfo, candidates: pd.DataFrame
+) -> None:
+    """Write the minimal canonical validation artifacts required by execute_promotion.
+
+    The smoke flow bypasses the real validate stage, so we synthesize a structurally
+    valid ValidationBundle from the smoke edge-candidate table and write it to the
+    expected validation directory.
+    """
+    from project.research.validation.contracts import (
+        ValidatedCandidateRecord,
+        ValidationBundle,
+        ValidationDecision,
+        ValidationMetrics,
+    )
+    from project.research.validation.result_writer import (
+        write_validated_candidate_tables,
+        write_validation_bundle,
+    )
+
+    val_dir = dataset.root / "reports" / "validation" / dataset.run_id
+    ensure_dir(val_dir)
+
+    validated: List[ValidatedCandidateRecord] = []
+    rejected: List[ValidatedCandidateRecord] = []
+
+    for row in candidates.to_dict(orient="records"):
+        candidate_id = str(row.get("candidate_id", "")).strip()
+        if not candidate_id:
+            continue
+        promoted_like = bool(row.get("is_discovery", False))
+        status = "validated" if promoted_like else "rejected"
+        decision = ValidationDecision(
+            status=status,
+            candidate_id=candidate_id,
+            run_id=dataset.run_id,
+            program_id="smoke_program",
+            reason_codes=[] if promoted_like else ["failed_oos_validation"],
+            summary="smoke synthetic validation",
+        )
+        metrics = ValidationMetrics(
+            sample_count=int(row.get("n_events", 80)),
+            effective_sample_size=float(row.get("effective_sample_size", 80)),
+            expectancy=float(row.get("effect_raw", 0.0)),
+            net_expectancy=float(row.get("net_expectancy_bps", 0.0)) / 10_000.0,
+            hit_rate=0.55 if promoted_like else 0.45,
+            p_value=float(row.get("p_value", 0.01 if promoted_like else 0.5)),
+            q_value=float(row.get("q_value", 0.05 if promoted_like else 0.8)),
+            stability_score=float(row.get("robustness_score", 0.85 if promoted_like else 0.2)),
+            cost_sensitivity=float(row.get("cost_survival_ratio", 1.0 if promoted_like else 0.25)),
+        )
+        record = ValidatedCandidateRecord(
+            candidate_id=candidate_id,
+            decision=decision,
+            metrics=metrics,
+            anchor_summary=SMOKE_EVENT_TYPE,
+            template_id=str(row.get("template_verb", "continuation")),
+            direction="long",
+            horizon_bars=SMOKE_HORIZON_BARS,
+            validation_stage_version="v1",
+        )
+        if promoted_like:
+            validated.append(record)
+        else:
+            rejected.append(record)
+
+    created_at = datetime.now(timezone.utc).isoformat()
+    bundle = ValidationBundle(
+        run_id=dataset.run_id,
+        created_at=created_at,
+        program_id="smoke_program",
+        validated_candidates=validated,
+        rejected_candidates=rejected,
+        inconclusive_candidates=[],
+        summary_stats={
+            "run_id": dataset.run_id,
+            "validated_count": len(validated),
+            "rejected_count": len(rejected),
+            "smoke": True,
+        },
+        effect_stability_report={
+            "run_id": dataset.run_id,
+            "smoke": True,
+            "stability_by_candidate": {},
+        },
+    )
+    write_validation_bundle(bundle, base_dir=val_dir)
+    write_validated_candidate_tables(bundle, base_dir=val_dir)
 
 
 def run_promotion_smoke(

@@ -1,0 +1,32 @@
+program_id: productive_golden_path
+description: Optimized proposal generating reliable actionable golden-path outputs
+run_mode: research
+objective_name: retail_profitability
+promotion_profile: research
+symbols:
+  - BTCUSDT
+timeframe: 5m
+start: "2024-01-01"
+end: "2024-06-30"
+instrument_classes:
+  - crypto
+search_spec:
+  path: spec/productive_search.yaml
+knobs:
+  - name: discovery_profile
+    value: synthetic
+  - name: phase2_gate_profile
+    value: synthetic
+  - name: config
+    value: spec/relaxed_bridge_gates.yaml
+hypothesis:
+  anchor:
+    type: event
+    event_id: LIQUIDATION_CASCADE
+  filters: {}
+  sampling_policy:
+    entry_lag_bars: 1
+  template:
+    id: mean_reversion
+  direction: long
+  horizon_bars: 12

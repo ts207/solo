@@ -15,6 +15,4 @@ def run(run_id: str, data_root: Path | None = None):
         if not tables[source].empty:
             candidates_df = tables[source]
             break
-    if candidates_df.empty:
-        raise ValueError(f"No candidates found for run {run_id}")
     return val_svc.run_validation_stage(run_id, candidates_df)

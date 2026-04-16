@@ -1,0 +1,92 @@
+benchmark_modes:
+  A:
+    mode_id: A
+    label: baseline_flat
+    discovery_search:
+      mode: flat
+    discovery_scoring:
+      version: v1
+    discovery_validation:
+      repeated_walkforward:
+        enabled: false
+    discovery_ledger:
+      enabled: false
+    discovery_selection:
+      mode: disabled
+  B:
+    mode_id: B
+    label: flat_v2_scoring
+    discovery_search:
+      mode: flat
+    discovery_scoring:
+      version: v2
+    discovery_validation:
+      repeated_walkforward:
+        enabled: false
+    discovery_ledger:
+      enabled: false
+    discovery_selection:
+      mode: disabled
+  C:
+    mode_id: C
+    label: flat_v2_with_folds
+    discovery_search:
+      mode: flat
+    discovery_scoring:
+      version: v2
+    discovery_validation:
+      repeated_walkforward:
+        enabled: true
+    discovery_ledger:
+      enabled: false
+    discovery_selection:
+      mode: disabled
+  D:
+    mode_id: D
+    label: hierarchical_v2_with_folds
+    discovery_search:
+      mode: hierarchical
+    discovery_scoring:
+      version: v2
+    discovery_validation:
+      repeated_walkforward:
+        enabled: true
+    discovery_ledger:
+      enabled: false
+    discovery_selection:
+      mode: disabled
+  E:
+    mode_id: E
+    label: hierarchical_v2_folds_ledger
+    discovery_search:
+      mode: hierarchical
+    discovery_scoring:
+      version: v2
+    discovery_validation:
+      repeated_walkforward:
+        enabled: true
+    discovery_ledger:
+      enabled: true
+    discovery_selection:
+      mode: disabled
+  F:
+    mode_id: F
+    label: hierarchical_v2_folds_ledger_diversified
+    discovery_search:
+      mode: hierarchical
+    discovery_scoring:
+      version: v2
+    discovery_validation:
+      repeated_walkforward:
+        enabled: true
+    discovery_ledger:
+      enabled: true
+    discovery_selection:
+      mode: diversified
+
+slices:
+  - m0_strong_event.yaml
+  - m1_noisy_event.yaml
+  - m2_regime_shift.yaml
+  - m3_microstructure_stress.yaml
+  - m4_neutral_baseline.yaml

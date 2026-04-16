@@ -42,6 +42,15 @@ Default rule:
 | `build-strategy-candidates` | `project.research.build_strategy_candidates:main` | Build strategy candidate payloads from blueprint inputs. |
 | `ontology-consistency-audit` | `project.scripts.ontology_consistency_audit:main` | Audit ontology/spec consistency. |
 
+## Empty Run Degradation & Supported Pipeline Paths
+
+The Edge lifecycle is designed to rigorously enforce sequence while gracefully handling zero-yield conditions.
+Empty pipeline degradations are supported natively without crashing the execution graph:
+*   Empty discover, validate, promote, and export flows organically resolve as a supported canonical path.
+*   `edge promote export` inherently routes `--allow_bundle_only_export=True` for completely empty or 0-candidate runs, exporting an empty thesis batch.
+*   Validation is a **strict, non-bypassable prerequisite** for the promotion stage. Even when a candidate batch is empty, `edge validate run` must occur to materialize the deterministic `validation_bundle.json` tracking lack-of-evidence for the target.
+
+
 ## Canonical `edge` CLI
 
 Top-level commands from `project/cli.py`:
@@ -132,6 +141,8 @@ Key flags:
 Important runtime semantics:
 
 - `edge deploy paper|live --run_id <run_id>` uses `run_id` as a deployment-gating and inspection input
+- `deploy paper` strictly selects only the theses within the exported batch holding a `paper_only` or `live_enabled` deployment state.
+- deploy flows reliably remain **BLOCKED** and safely exit without crashing when no eligible theses remain in the targeted batch.
 - the live engine still loads its thesis source from `strategy_runtime.thesis_run_id` or `strategy_runtime.thesis_path` inside the config file
 - use the direct `edge-live-engine` CLI when you need explicit runtime-launch control outside the stage wrapper
 
