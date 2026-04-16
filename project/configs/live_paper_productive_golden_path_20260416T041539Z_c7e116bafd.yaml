@@ -1,0 +1,67 @@
+workflow_id: live_paper_btc_thesis_v1
+golden_workflow_config: project/configs/golden_workflow.yaml
+runtime_run_id: live_paper_btc_thesis_v1
+runtime_mode: trading
+stale_threshold_sec: 60.0
+freshness_streams:
+  - symbol: BTCUSDT
+    stream: kline_5m
+oms_lineage:
+  order_source: paper_oms
+  session_id: live-paper-btc-thesis-session
+live_state_snapshot_path: artifacts/live_state_paper_btc_thesis.json
+microstructure_recovery_streak: 2
+account_sync_interval_seconds: 15.0
+account_sync_failure_threshold: 4
+execution_degradation_min_samples: 4
+execution_degradation_warn_edge_bps: 0.0
+execution_degradation_block_edge_bps: -8.0
+execution_degradation_throttle_scale: 0.5
+runtime_metrics_snapshot_path: artifacts/live_runtime_metrics_paper_btc_thesis.json
+strategy_runtime:
+  implemented: true
+  thesis_run_id: productive_golden_path_20260416T041539Z_c7e116bafd
+  include_pending_theses: false
+  auto_submit: true
+  supported_event_families:
+    - VOL_SHOCK
+    - LIQUIDITY_VACUUM
+    - LIQUIDATION_CASCADE
+  allowed_actions:
+    - probe
+    - trade_small
+  max_notional_fraction: 0.03
+  max_spread_bps: 5.0
+  min_depth_usd: 50000.0
+  min_tob_coverage: 0.9
+  default_depth_usd: 75000.0
+  default_tob_coverage: 0.97
+  default_expected_cost_bps: 3.0
+  memory_root: artifacts/live_memory/paper_btc_thesis
+  event_detector:
+    vol_shock_min_abs_move_bps: 35.0
+    liquidity_vacuum_min_spread_bps: 5.0
+    liquidity_vacuum_max_depth_usd: 25000.0
+    liquidation_cascade_min_abs_move_bps: 80.0
+    liquidation_cascade_min_abs_oi_drop_fraction: 0.03
+    liquidation_cascade_min_abs_funding_rate: 0.0005
+  decision_policy:
+    watch_min: 0.25
+    probe_min: 0.4
+    small_min: 0.6
+    normal_min: 0.8
+    max_contradiction_penalty: 0.4
+
+runtime_alerts:
+  metrics_path: artifacts/live_runtime_metrics_paper_btc_thesis.json
+  alert_log_path: artifacts/live_runtime_alerts_paper_btc_thesis.jsonl
+  poll_interval_seconds: 15.0
+  snapshot_max_age_seconds: 180.0
+  decision_drought_seconds: 3600.0
+  funding_elevated_abs: 0.0003
+  funding_stretched_abs: 0.0005
+  oi_stable_abs: 0.01
+  oi_flush_abs: 0.03
+  ratio_min_total: 8
+  trade_small_probe_ratio_baseline: 1.0
+  trade_small_probe_ratio_tolerance_fraction: 0.5
