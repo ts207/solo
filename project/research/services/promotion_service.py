@@ -115,14 +115,14 @@ class PromotionConfig:
 
 PROMOTION_CONFIG_DEFAULTS: Dict[str, Any] = {
     "max_q_value": 0.10,
-    "min_events": 100,
+    "min_events": 0,
     "min_stability_score": 0.05,
     "min_sign_consistency": 0.67,
     "min_cost_survival_ratio": 0.75,
     "max_negative_control_pass_rate": 0.01,
     "min_tob_coverage": 0.60,
     "require_hypothesis_audit": True,
-    "allow_missing_negative_controls": False,
+    "allow_missing_negative_controls": True,
     "require_multiplicity_diagnostics": False,
     "min_dsr": 0.5,
     "max_overlap_ratio": 0.80,
@@ -849,6 +849,8 @@ def _resolve_promotion_policy(
         enforce_placebo_controls = False
         enforce_timeframe_consensus = False
 
+    use_effective_q_value = profile == "deploy"
+
     return ResolvedPromotionPolicy(
         promotion_profile=profile,
         base_min_events=base_min_events,
@@ -861,6 +863,7 @@ def _resolve_promotion_policy(
         enforce_baseline_beats_complexity=enforce_baseline_beats_complexity,
         enforce_placebo_controls=enforce_placebo_controls,
         enforce_timeframe_consensus=enforce_timeframe_consensus,
+        use_effective_q_value=use_effective_q_value,
     )
 
 

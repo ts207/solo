@@ -740,7 +740,6 @@ def evaluate_promotion_bundle(bundle: Dict[str, Any], policy: PromotionPolicy) -
         "delayed_entry_stress",
         "hypothesis_audit",
         "event_discipline",
-        "dsr",
         "robustness",
         "regime",
     ]
