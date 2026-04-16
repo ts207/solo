@@ -1,0 +1,33 @@
+program_id: broad_trend_exhaustion_trigger
+description: >
+  Broad discovery: TREND_EXHAUSTION_TRIGGER long exhaustion_reversal 48b, rv_pct_17280 > 70, 2023-2024.
+run_mode: research
+objective_name: retail_profitability
+promotion_profile: research
+symbols:
+  - BTCUSDT
+timeframe: 5m
+start: "2023-01-01"
+end: "2024-12-31"
+instrument_classes:
+  - crypto
+search_spec:
+  path: spec/productive_search.yaml
+knobs:
+  - name: discovery_profile
+    value: synthetic
+hypothesis:
+  anchor:
+    type: event
+    event_id: TREND_EXHAUSTION_TRIGGER
+  filters:
+    feature_predicates:
+      - feature: rv_pct_17280
+        operator: ">"
+        threshold: 70
+  sampling_policy:
+    entry_lag_bars: 1
+  template:
+    id: exhaustion_reversal
+  direction: long
+  horizon_bars: 48

@@ -1,0 +1,24 @@
+program_id: broad_discovery_2023_2024
+description: >
+  Full event sweep across search_space.yaml. No event pin — all events evaluated.
+  Standard gates (phase2_gate_profile auto), full discovery pipeline with
+  template/execution/context refinement and greedy shortlist.
+  BTC 2023-2024. Identifies which events have signal under real gates.
+run_mode: research
+objective_name: retail_profitability
+promotion_profile: research
+symbols:
+  - BTCUSDT
+timeframe: 5m
+start: "2023-01-01"
+end: "2024-12-31"
+instrument_classes:
+  - crypto
+search_spec:
+  path: spec/search_space.yaml
+hypothesis:
+  anchor:
+    type: event
+  filters: {}
+  sampling_policy:
+    entry_lag_bars: 1
