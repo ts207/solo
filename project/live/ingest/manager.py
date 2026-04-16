@@ -9,6 +9,7 @@ import pandas as pd
 
 from project.live.ingest.bybit_ws_client import BybitWebSocketClient
 from project.live.ingest.parsers import (
+    KlineEvent,
     parse_book_ticker_event,
     parse_bybit_kline_event,
     parse_bybit_liquidation_event,
@@ -123,17 +124,19 @@ class LiveDataManager:
         klines = await self.rest_client.get_klines(symbol, timeframe, limit=limit)
         for k in klines:
             ts = pd.to_datetime(int(k[0]), unit="ms", utc=True)
-            event = {
-                "symbol": symbol.upper(),
-                "timeframe": timeframe,
-                "open": float(k[1]),
-                "high": float(k[2]),
-                "low": float(k[3]),
-                "close": float(k[4]),
-                "volume": float(k[5]),
-                "is_final": True,
-                "timestamp": ts,
-            }
+            event = KlineEvent(
+                symbol=symbol.upper(),
+                timeframe=timeframe,
+                open=float(k[1]),
+                high=float(k[2]),
+                low=float(k[3]),
+                close=float(k[4]),
+                volume=float(k[5]),
+                quote_volume=0.0,
+                taker_base_volume=0.0,
+                is_final=True,
+                timestamp=ts,
+            )
             self._enqueue_threadsafe(self.kline_queue, event, "Kline")
 
     async def stop(self):
@@ -145,7 +148,7 @@ class LiveDataManager:
         queue.get_nowait()
         queue.task_done()
 
-    def _enqueue_threadsafe(self, queue: asyncio.Queue, event: Dict[str, Any], label: str) -> None:
+    def _enqueue_threadsafe(self, queue: asyncio.Queue, event: Any, label: str) -> None:
         loop = self._loop
         if loop is None:
             try:

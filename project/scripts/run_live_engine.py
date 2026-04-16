@@ -328,14 +328,13 @@ async def preflight_binance_venue_connectivity(
         raise VenueConnectivityError("Binance API credentials must be set for venue preflight")
 
     _sf = session_factory if session_factory is not None else _default_aiohttp_session_factory
-    session_factory = _sf
     params = {"timestamp": int(time.time() * 1000)}
     signed_query = _build_binance_signed_query(api_secret, params)
     ping_url = f"{base_url.rstrip('/')}/fapi/v1/ping"
     account_url = f"{base_url.rstrip('/')}/fapi/v2/account?{signed_query}"
     headers = {"X-MBX-APIKEY": api_key}
 
-    async with session_factory(timeout_seconds=timeout_seconds) as session:
+    async with _sf(timeout_seconds=timeout_seconds) as session:
         async with session.get(ping_url) as ping_response:
             if int(getattr(ping_response, "status", 0)) != 200:
                 raise VenueConnectivityError(
@@ -395,13 +394,12 @@ async def fetch_binance_futures_account_snapshot(
         )
 
     _sf = session_factory if session_factory is not None else _default_aiohttp_session_factory
-    session_factory = _sf
     params = {"timestamp": int(time.time() * 1000)}
     signed_query = _build_binance_signed_query(api_secret, params)
     account_url = f"{base_url.rstrip('/')}/fapi/v2/account?{signed_query}"
     headers = {"X-MBX-APIKEY": api_key}
 
-    async with session_factory(timeout_seconds=timeout_seconds) as session:
+    async with _sf(timeout_seconds=timeout_seconds) as session:
         async with session.get(account_url, headers=headers) as account_response:
             if int(getattr(account_response, "status", 0)) != 200:
                 detail = ""
@@ -493,7 +491,6 @@ async def preflight_bybit_venue_connectivity(
         raise VenueConnectivityError("Bybit API credentials must be set for venue preflight")
 
     _sf = session_factory if session_factory is not None else _default_aiohttp_session_factory
-    session_factory = _sf
     server_time_url = f"{base_url.rstrip('/')}/v5/market/time"
     wallet_url = f"{base_url.rstrip('/')}/v5/account/wallet-balance?accountType=UNIFIED"
 
@@ -509,7 +506,7 @@ async def preflight_bybit_venue_connectivity(
         "X-BAPI-SIGN": signature,
     }
 
-    async with session_factory(timeout_seconds=timeout_seconds) as session:
+    async with _sf(timeout_seconds=timeout_seconds) as session:
         async with session.get(server_time_url) as resp:
             if int(getattr(resp, "status", 0)) != 200:
                 raise VenueConnectivityError(f"Bybit server time check failed: {getattr(resp, 'status', 'unknown')}")
@@ -559,8 +556,7 @@ async def fetch_bybit_account_snapshot(
     wallet_url = f"{base_url.rstrip('/')}/v5/account/wallet-balance?accountType=UNIFIED"
 
     _sf = session_factory if session_factory is not None else _default_aiohttp_session_factory
-    session_factory = _sf
-    async with session_factory(timeout_seconds=timeout_seconds) as session:
+    async with _sf(timeout_seconds=timeout_seconds) as session:
         async with session.get(wallet_url, headers=headers) as resp:
             if int(getattr(resp, "status", 0)) != 200:
                 raise VenueConnectivityError(f"Bybit account snapshot failed: {getattr(resp, 'status', 'unknown')}")
@@ -620,6 +616,7 @@ def build_live_runner(
                 )
     return LiveEngineRunner(
         session_metadata["symbols"],
+        exchange=venue,
         snapshot_path=session_metadata["live_state_snapshot_path"],
         microstructure_recovery_streak=session_metadata["kill_switch_recovery_streak"],
         account_sync_interval_seconds=session_metadata["account_sync_interval_seconds"],
