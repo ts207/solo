@@ -70,7 +70,6 @@ class LiveDataManager:
                 streams.append(f"kline.1.{symbol_upper}")
                 streams.append(f"kline.5.{symbol_upper}")
                 streams.append(f"tickers.{symbol_upper}")
-                streams.append(f"liquidation.{symbol_upper}")
         return streams
 
     def health_monitor_keys(self) -> List[tuple[str, str]]:
