@@ -17,6 +17,11 @@ class LiveTradeContext(BaseModel):
     event_family: str = ""
     canonical_regime: str = ""
     event_side: str = Field(min_length=1)
+    event_confidence: float | None = None
+    event_severity: float | None = None
+    data_quality_flag: str = "ok"
+    event_version: str = "v1"
+    threshold_version: str = "1.0"
     live_features: Dict[str, Any] = Field(default_factory=dict)
     regime_snapshot: Dict[str, Any] = Field(default_factory=dict)
     execution_env: Dict[str, Any] = Field(default_factory=dict)

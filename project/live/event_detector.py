@@ -14,6 +14,11 @@ class DetectedEvent:
     canonical_regime: str
     event_side: str
     features: Dict[str, Any]
+    event_confidence: float | None = None
+    event_severity: float | None = None
+    data_quality_flag: str = "ok"
+    event_version: str = "v1"
+    threshold_version: str = "1.0"
 
 
 def _build_detected_event(

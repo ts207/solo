@@ -51,6 +51,13 @@ from project.events.event_specs import (
 )
 
 __all__ = [
+    "DetectorContract",
+    "get_detector_contract",
+    "list_trigger_detectors",
+    "list_context_detectors",
+    "list_runtime_eligible_detectors",
+    "list_promotion_eligible_detectors",
+    "resolve_event_alias",
     "AGGREGATE_EVENT_TYPE_UNIONS",
     "EVENT_REGISTRY_SPECS",
     "REGISTRY_BACKED_SIGNALS",
@@ -163,3 +170,78 @@ def list_events_by_family(family: str) -> list[dict]:
             rows.append(dict(row))
     rows.sort(key=lambda item: str(item.get("event_type", "")))
     return rows
+
+from project.events.detector_contract import DetectorContract, DetectorContractError
+
+def resolve_event_alias(event_name: str) -> str:
+    normalized = str(event_name).strip().upper()
+    registry = load_milestone_event_registry()
+    for key, row in registry.items():
+        aliases = row.get("aliases", [])
+        if normalized == key or normalized in [str(a).strip().upper() for a in aliases]:
+            return key
+    return normalized
+
+def get_detector_contract(event_name: str) -> DetectorContract:
+    canonical_name = resolve_event_alias(event_name)
+    row = get_event_definition(canonical_name)
+    if not row:
+        raise DetectorContractError(f"Event {event_name} not found in registry")
+    try:
+        return DetectorContract(
+            event_name=canonical_name,
+            event_version=str(row.get("version", "v1")),
+            detector_class=str(row.get("detector_name", row.get("detector_class", ""))),
+            canonical_family=str(row.get("canonical_family", "")),
+            subtype=str(row.get("subtype", "")),
+            phase=str(row.get("phase", "")),
+            evidence_mode=str(row.get("evidence_mode", "direct")),
+            role=str(row.get("role", "trigger")),
+            maturity=str(row.get("maturity", "specialized")),
+            planning_default=bool(row.get("planning_default", False)),
+            runtime_default=bool(row.get("runtime_default", False)),
+            promotion_eligible=bool(row.get("promotion_eligible", False)),
+            primary_anchor_eligible=bool(row.get("primary_anchor_eligible", False)),
+            research_only=bool(row.get("research_only", False)),
+            context_only=bool(row.get("context_only", False)),
+            composite=bool(row.get("is_composite", False) or row.get("composite", False)),
+            required_columns=tuple(row.get("required_columns", [])),
+            optional_columns=tuple(row.get("optional_columns", [])),
+            source_dependencies=tuple(row.get("source_dependencies", [])),
+            allowed_templates=tuple(row.get("templates", [])),
+            allowed_horizons=tuple(row.get("horizons", [])),
+            calibration_mode=str(row.get("calibration_mode", "fixed")),
+            threshold_schema_version=str(row.get("threshold_schema_version", "1.0")),
+            merge_gap_bars=int(row.get("merge_gap_bars", 1)),
+            cooldown_bars=int(row.get("cooldown_bars", 0)),
+            supports_confidence=bool(row.get("supports_confidence", False)),
+            supports_severity=bool(row.get("supports_severity", False)),
+            emits_quality_flag=bool(row.get("emits_quality_flag", False)),
+            aliases=tuple(row.get("aliases", [])),
+            notes=str(row.get("notes", ""))
+        )
+    except Exception as e:
+        raise DetectorContractError(f"Invalid contract for {canonical_name}: {e}")
+
+def _list_detectors_by_filter(filter_fn) -> list[DetectorContract]:
+    contracts = []
+    for key in load_milestone_event_registry().keys():
+        try:
+            contract = get_detector_contract(key)
+            if filter_fn(contract):
+                contracts.append(contract)
+        except DetectorContractError:
+            continue
+    return contracts
+
+def list_trigger_detectors() -> list[DetectorContract]:
+    return _list_detectors_by_filter(lambda c: c.role == "trigger")
+
+def list_context_detectors() -> list[DetectorContract]:
+    return _list_detectors_by_filter(lambda c: c.role == "context")
+
+def list_runtime_eligible_detectors() -> list[DetectorContract]:
+    return _list_detectors_by_filter(lambda c: c.runtime_default)
+
+def list_promotion_eligible_detectors() -> list[DetectorContract]:
+    return _list_detectors_by_filter(lambda c: c.promotion_eligible)

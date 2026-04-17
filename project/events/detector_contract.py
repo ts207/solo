@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
+from dataclasses import dataclass
 from typing import ClassVar, List
 
 import pandas as pd
@@ -10,25 +11,57 @@ class DetectorContractError(Exception):
     pass
 
 
-class DetectorContract(ABC):
+@dataclass(frozen=True)
+class DetectorContract:
+    event_name: str
+    event_version: str
+    detector_class: str
+
+    canonical_family: str
+    subtype: str
+    phase: str
+
+    evidence_mode: str
+    role: str
+    maturity: str
+
+    planning_default: bool
+    runtime_default: bool
+    promotion_eligible: bool
+    primary_anchor_eligible: bool
+
+    research_only: bool
+    context_only: bool
+    composite: bool
+
+    required_columns: tuple[str, ...]
+    optional_columns: tuple[str, ...]
+    source_dependencies: tuple[str, ...]
+
+    allowed_templates: tuple[str, ...]
+    allowed_horizons: tuple[str, ...]
+
+    calibration_mode: str
+    threshold_schema_version: str
+    merge_gap_bars: int
+    cooldown_bars: int
+
+    supports_confidence: bool
+    supports_severity: bool
+    emits_quality_flag: bool
+
+    aliases: tuple[str, ...] = ()
+    notes: str = ""
+
+
+class DetectorLogicContract(ABC):
     """
     Protocol that every event detector must satisfy.
-
-    Subclass this and implement the three abstract methods.
-    Class attributes define the contract metadata used for YAML validation
-    and pipeline warm-up calculations.
     """
 
-    # Columns that must be present in the input DataFrame
     required_columns: ClassVar[List[str]] = []
-
-    # Bars of history consumed to produce a valid signal (lookback window)
     lookback_bars: ClassVar[int] = 0
-
-    # Bars to skip at the start before trusting signal output (warm-up)
     warmup_bars: ClassVar[int] = 0
-
-    # Timestamp alignment: "bar_close", "close_to_close", or "intrabar"
     bar_type: ClassVar[str] = "bar_close"
 
     _VALID_BAR_TYPES = frozenset({"bar_close", "close_to_close", "intrabar"})
@@ -49,22 +82,12 @@ class DetectorContract(ABC):
 
     @abstractmethod
     def compute_signal(self, df: pd.DataFrame) -> pd.Series:
-        """
-        Return a continuous signal Series (same length as df, index-aligned).
-        Values should be non-negative floats; 0 means no signal.
-        """
+        pass
 
     @abstractmethod
     def detect_events(self, df: pd.DataFrame, params: dict) -> pd.DataFrame:
-        """
-        Return a DataFrame of detected events (may be empty).
-        Must not use any future data beyond each row's bar close.
-        """
+        pass
 
     @abstractmethod
     def validate_no_lookahead(self, df: pd.DataFrame, event_frame: pd.DataFrame) -> None:
-        """
-        Raise DetectorContractError if event timestamps indicate lookahead.
-        Implementations should verify that every event's detected_ts <=
-        its source bar's timestamp.
-        """
+        pass
