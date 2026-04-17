@@ -227,7 +227,9 @@ def _salient_threshold_keys(parameters: Mapping[str, Any]) -> list[str]:
         key
         for key in keys
         if key not in out
-        and any(token in key for token in ("threshold", "quantile", "pct", "abs_min", "minute", "hour"))
+        and any(
+            token in key for token in ("threshold", "quantile", "pct", "abs_min", "minute", "hour")
+        )
     )
     out.extend(extras)
     return out
@@ -258,7 +260,9 @@ def _infer_threshold_method(parameters: Mapping[str, Any], source_spec: Mapping[
 
     if {"hours_utc", "minute_open", "minute_close_start"} & keys or "event_spacing_bars" in keys:
         return "scheduled_window_gate"
-    if any("quantile" in key for key in keys) and any("z_threshold" in key or key == "threshold_z" for key in keys):
+    if any("quantile" in key for key in keys) and any(
+        "z_threshold" in key or key == "threshold_z" for key in keys
+    ):
         return "quantile_plus_zscore_gate"
     if any(key.endswith("_pct") or key.endswith("_pct_window") for key in keys):
         return "rolling_percentile_gate"
@@ -275,18 +279,23 @@ def _infer_threshold_method(parameters: Mapping[str, Any], source_spec: Mapping[
     if any(key.endswith("_abs_min") for key in keys) or "min_flip_abs" in keys:
         return "absolute_move_floor"
 
-    family = str(
-        source_spec.get("research_family", source_spec.get("canonical_family", "detector"))
-    ).strip() or "detector"
+    family = (
+        str(
+            source_spec.get("research_family", source_spec.get("canonical_family", "detector"))
+        ).strip()
+        or "detector"
+    )
     phase = str(source_spec.get("phase", "event")).strip() or "event"
     evidence = str(source_spec.get("evidence_mode", "observed")).strip() or "observed"
     return _normalize_policy_token(family, phase, evidence, "gate")
 
 
 def _calibration_objective(source_spec: Mapping[str, Any]) -> tuple[str, str]:
-    family = str(
-        source_spec.get("research_family", source_spec.get("canonical_family", ""))
-    ).strip().upper()
+    family = (
+        str(source_spec.get("research_family", source_spec.get("canonical_family", "")))
+        .strip()
+        .upper()
+    )
     phase = str(source_spec.get("phase", "")).strip().lower()
     objective_by_phase = {
         "breakout": "breakout follow-through versus false-break separation",
@@ -348,7 +357,10 @@ def _calibration_objective(source_spec: Mapping[str, Any]) -> tuple[str, str]:
     }
     return objective_by_family.get(
         family,
-        (default_objective, "require stability across rolling windows while preserving minimum event counts"),
+        (
+            default_objective,
+            "require stability across rolling windows while preserving minimum event counts",
+        ),
     )
 
 
@@ -359,7 +371,9 @@ def _infer_calibration_method(parameters: Mapping[str, Any], source_spec: Mappin
         if token:
             return token
     if isinstance(calibration, Mapping):
-        text = _coalesce_text(calibration.get("calibration_target"), calibration.get("stability_requirement"))
+        text = _coalesce_text(
+            calibration.get("calibration_target"), calibration.get("stability_requirement")
+        )
         if text:
             return text
     event_type = str(source_spec.get("event_type", "event")).strip().upper() or "EVENT"
@@ -441,7 +455,11 @@ def build_event_contract(event_type: str) -> dict[str, Any]:
     params = row.get("parameters", {}) if isinstance(row.get("parameters"), Mapping) else {}
     detector = row.get("detector", {}) if isinstance(row.get("detector"), Mapping) else {}
     calibration = row.get("calibration", {}) if isinstance(row.get("calibration"), Mapping) else {}
-    expected_behavior = row.get("expected_behavior", {}) if isinstance(row.get("expected_behavior"), Mapping) else {}
+    expected_behavior = (
+        row.get("expected_behavior", {})
+        if isinstance(row.get("expected_behavior"), Mapping)
+        else {}
+    )
     semantics = row.get("semantics", {}) if isinstance(row.get("semantics"), Mapping) else {}
 
     runtime_category = str(row.get("runtime_category", "")).strip()
@@ -467,7 +485,9 @@ def build_event_contract(event_type: str) -> dict[str, Any]:
             row.get("canonical_family"),
             row.get("canonical_regime"),
         ),
-        "canonical_regime": _coalesce_text(row.get("canonical_regime"), row.get("canonical_family")),
+        "canonical_regime": _coalesce_text(
+            row.get("canonical_regime"), row.get("canonical_family")
+        ),
         "phase": _coalesce_text(row.get("phase")),
         "evidence_mode": _coalesce_text(row.get("evidence_mode"), default="unspecified"),
         "asset_scope": _coalesce_text(row.get("asset_scope"), default="single_asset"),
@@ -496,7 +516,8 @@ def build_event_contract(event_type: str) -> dict[str, Any]:
             row.get("required_features"),
             params.get("required_features"),
             detector.get("required_columns"),
-        ) or ["timestamp"],
+        )
+        or ["timestamp"],
         "threshold_method": _infer_threshold_method(params, row),
         "calibration_method": _infer_calibration_method(params, row),
         "failure_modes": _flatten_failure_modes(
@@ -504,7 +525,10 @@ def build_event_contract(event_type: str) -> dict[str, Any]:
             or params.get("failure_modes")
             or calibration.get("failure_modes")
             or expected_behavior.get("false_positive_scenarios")
-        ) or ["Detector-specific false positives are controlled through thresholding, cooldown, and regime suppression."],
+        )
+        or [
+            "Detector-specific false positives are controlled through thresholding, cooldown, and regime suppression."
+        ],
         "regime_applicability": _coalesce_text(
             row.get("regime_applicability"),
             params.get("regime_applicability"),
@@ -519,7 +543,10 @@ def build_event_contract(event_type: str) -> dict[str, Any]:
             row.get("expected_overlap")
             or params.get("expected_overlap")
             or expected_behavior.get("expected_overlap")
-        ) or [f"Can overlap with nearby {_coalesce_text(row.get("canonical_regime"), row.get("research_family"), row.get("canonical_family"), default="adjacent").replace("_", " " ).lower()} events when the same mechanism cascades across bars."],
+        )
+        or [
+            f"Can overlap with nearby {_coalesce_text(row.get('canonical_regime'), row.get('research_family'), row.get('canonical_family'), default='adjacent').replace('_', ' ').lower()} events when the same mechanism cascades across bars."
+        ],
         "invalidation_rule": _coalesce_text(
             row.get("invalidation_rule"),
             params.get("invalidation_rule"),
@@ -570,7 +597,9 @@ def load_research_motif_specs() -> dict[str, dict[str, Any]]:
     return out
 
 
-def validate_contract_completeness(contracts: Mapping[str, Mapping[str, Any]]) -> dict[str, list[str]]:
+def validate_contract_completeness(
+    contracts: Mapping[str, Mapping[str, Any]],
+) -> dict[str, list[str]]:
     missing: dict[str, list[str]] = {}
     for event_type, contract in contracts.items():
         absent = []
@@ -585,10 +614,16 @@ def validate_contract_completeness(contracts: Mapping[str, Mapping[str, Any]]) -
 
 def active_runtime_event_ids() -> tuple[str, ...]:
     contracts = load_active_event_contracts()
-    return tuple(sorted(k for k, v in contracts.items() if v.get("runtime_category") == "active_runtime_event"))
+    return tuple(
+        sorted(
+            k for k, v in contracts.items() if v.get("runtime_category") == "active_runtime_event"
+        )
+    )
 
 
-def filter_event_ids(*, tiers: Iterable[str] | None = None, roles: Iterable[str] | None = None) -> tuple[str, ...]:
+def filter_event_ids(
+    *, tiers: Iterable[str] | None = None, roles: Iterable[str] | None = None
+) -> tuple[str, ...]:
     tier_set = {str(t).strip().upper() for t in (tiers or []) if str(t).strip()}
     role_set = {str(r).strip().lower() for r in (roles or []) if str(r).strip()}
     out: list[str] = []

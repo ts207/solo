@@ -171,7 +171,7 @@ def apply_multiplicity_controls(
         n_family_tests = test_weights.loc[group.index].sum()
         p_val = simes_p_value(group[p_col], n_tests=int(n_family_tests))
         family_simes_list.append({"family_id": fid, "p_value_family": p_val})
-    
+
     if family_simes_list:
         family_simes = pd.DataFrame(family_simes_list)
         family_simes["q_value_family"] = bh_adjust(family_simes["p_value_family"].values)
@@ -225,7 +225,7 @@ def apply_multiplicity_controls(
             n_cluster_tests = test_weights.loc[group.index].sum()
             p_val = simes_p_value(group[p_col], n_tests=int(n_cluster_tests))
             cluster_simes_list.append({"family_cluster_id": cid, "p_value_cluster": p_val})
-        
+
         if cluster_simes_list:
             cluster_simes = pd.DataFrame(cluster_simes_list)
             cluster_simes["q_value_cluster"] = bh_adjust(cluster_simes["p_value_cluster"].values)
@@ -274,44 +274,41 @@ def apply_multiplicity_controls(
 
 
 def apply_cross_campaign_fdr(
-    dataframes: List[pd.DataFrame],
-    max_q: float,
-    *,
-    p_col_candidate: str = "p_value_for_fdr"
+    dataframes: List[pd.DataFrame], max_q: float, *, p_col_candidate: str = "p_value_for_fdr"
 ) -> pd.DataFrame:
     """
     [DEPRECATED] Use apply_canonical_cross_campaign_multiplicity instead.
-    
+
     Legacy batch cross-campaign FDR helper. Kept for backward compatibility.
     Prefer apply_canonical_cross_campaign_multiplicity for new code.
-    
+
     NOTE: This function applies a simple BH across concatenated dataframes.
     For campaign-lineage scope control, use the canonical function.
     """
     if not dataframes:
         return pd.DataFrame()
-    
+
     combined = pd.concat(dataframes, ignore_index=True)
     if combined.empty:
         return combined
-    
+
     p_col = _resolve_multiplicity_p_value_column(combined)
     test_weights = pd.Series(1, index=combined.index)
     if "side_policy" in combined.columns:
         test_weights[combined["side_policy"].astype(str).str.lower() == "both"] = 2
-        
+
     eligible_idx = combined.get("multiplicity_pool_eligible", pd.Series(True, index=combined.index))
     n_total_tests = int(test_weights.loc[eligible_idx].sum())
-    
+
     combined["q_value_global"] = 1.0
     combined["is_discovery_global"] = False
-    
+
     if n_total_tests > 0 and not combined[eligible_idx].empty:
         p_vals = combined.loc[eligible_idx, p_col].fillna(1.0).to_numpy()
         q_vals = bh_adjust(p_vals, n_tests=n_total_tests)
         combined.loc[eligible_idx, "q_value_global"] = q_vals
         combined["is_discovery_global"] = combined["q_value_global"] <= float(max_q)
-        
+
     return combined
 
 
@@ -326,16 +323,16 @@ def apply_canonical_cross_campaign_multiplicity(
 ) -> pd.DataFrame:
     """
     Canonical cross-campaign / campaign-lineage multiplicity adjustment.
-    
+
     This is THE standard API for scope-level FDR correction in promotions.
     It adds scope-aware multiplicity fields alongside existing family-level fields.
-    
+
     This function MUST be called before promotion gates. All promoted candidates
     will have effective_q_value computed as max(q_value, q_value_scope, q_value_program).
-    
+
     Phase 1 invariant:
         No promoted candidate may lack effective_q_value.
-    
+
     Inputs:
         - frame: DataFrame with at least run_id, p_value columns
         - max_q: FDR threshold
@@ -343,7 +340,7 @@ def apply_canonical_cross_campaign_multiplicity(
         - eligible_col: column indicating multiplicity eligibility
         - p_col_candidate: column name for p-value
         - scope_version: version string for this contract
-    
+
     Outputs (added to frame):
         - num_tests_scope
         - q_value_scope
@@ -353,58 +350,61 @@ def apply_canonical_cross_campaign_multiplicity(
         - multiplicity_scope_key
         - multiplicity_scope_version
         - multiplicity_scope_degraded (if historical data missing)
-    
+
     See:
         - docs/92_assurance_and_benchmarks.md for status
         - project/research/contracts/multiplicity_scope.py for contract
     """
     from project.research.contracts.multiplicity_scope import resolve_effective_scope_key
-    
+
     if frame.empty:
         return frame.copy()
-    
+
     out = frame.copy()
-    
-    p_col = _resolve_multiplicity_p_value_column(out) if p_col_candidate not in out.columns else p_col_candidate
-    
+
+    p_col = (
+        _resolve_multiplicity_p_value_column(out)
+        if p_col_candidate not in out.columns
+        else p_col_candidate
+    )
+
     test_weights = pd.Series(1, index=out.index)
     if "side_policy" in out.columns:
         test_weights[out["side_policy"].astype(str).str.lower() == "both"] = 2
-    
+
     eligible_mask = out.get(eligible_col, pd.Series(True, index=out.index))
-    
+
     out["multiplicity_scope_mode"] = scope_mode
     out["multiplicity_scope_version"] = scope_version
-    
+
     out["multiplicity_scope_key"] = out.apply(
-        lambda r: resolve_effective_scope_key(r.to_dict(), mode=scope_mode),
-        axis=1
+        lambda r: resolve_effective_scope_key(r.to_dict(), mode=scope_mode), axis=1
     )
-    
+
     scope_groups = out.groupby("multiplicity_scope_key")
-    
+
     out["num_tests_scope"] = 0
     out["q_value_scope"] = 1.0
     out["is_discovery_scope"] = False
-    
+
     for scope_key, group_idx in scope_groups.groups.items():
         group_eligible = eligible_mask.loc[group_idx]
         if not group_eligible.any():
             continue
         n_tests = int(test_weights.loc[group_idx][group_eligible].sum())
         out.loc[group_idx, "num_tests_scope"] = n_tests
-        
+
         if n_tests > 0:
             p_vals = out.loc[group_idx[group_eligible], p_col].fillna(1.0).to_numpy()
             q_vals = bh_adjust(p_vals, n_tests=n_tests)
             out.loc[group_idx[group_eligible], "q_value_scope"] = q_vals
-    
+
     eligible_out = out[eligible_mask]
     if not eligible_out.empty:
-        out.loc[eligible_mask, "is_discovery_scope"] = (
-            out.loc[eligible_mask, "q_value_scope"] <= float(max_q)
-        )
-    
+        out.loc[eligible_mask, "is_discovery_scope"] = out.loc[
+            eligible_mask, "q_value_scope"
+        ] <= float(max_q)
+
     q_value_col = "q_value" if "q_value" in out.columns else "q_value_family"
     if q_value_col not in out.columns:
         out[q_value_col] = 1.0
@@ -412,10 +412,6 @@ def apply_canonical_cross_campaign_multiplicity(
         local_q = out[q_value_col].apply(_finite_q_value)
         out["q_value_scope"] = np.maximum(out["q_value_scope"].astype(float), local_q.astype(float))
 
-    q_program = out.get("q_value_program", pd.Series(1.0, index=out.index))
-    q_scope = out["q_value_scope"]
-    q_local = out[q_value_col]
-    
     # max() is intentional: each scope (family, campaign, program) is an independent
     # FDR constraint. A candidate must satisfy all of them — scope-shopping is not
     # allowed. Taking the worst-case (max) q-value across scopes means the candidate
@@ -426,11 +422,11 @@ def apply_canonical_cross_campaign_multiplicity(
             _finite_q_value(r.get("q_value_scope", 1.0)),
             _finite_q_value(r.get("q_value_program", 1.0)),
         ),
-        axis=1
+        axis=1,
     )
-    
+
     out["is_discovery_effective"] = out["effective_q_value"] <= float(max_q)
-    
+
     return out
 
 
@@ -443,9 +439,9 @@ def merge_historical_candidates(
 ) -> pd.DataFrame:
     """
     Merge current candidates with historical tested universe for cross-campaign scope.
-    
+
     If historical is None or empty, returns current with degraded scope status.
-    
+
     Outputs:
         - multiplicity_scope_degraded: bool (True if historical missing)
         - multiplicity_scope_reason: str ("missing_history" or "ok")
@@ -453,33 +449,36 @@ def merge_historical_candidates(
         - Current rows have `multiplicity_context="current"`
     """
     from project.research.contracts.multiplicity_scope import resolve_effective_scope_key
-    
+
     if current.empty:
         return current.copy()
-    
+
     out = current.copy()
     out["multiplicity_context"] = "current"
-    
+
     if historical is None or historical.empty:
-        out["multiplicity_scope_degraded"] = pd.Series([True] * len(out), index=out.index, dtype=object)
+        out["multiplicity_scope_degraded"] = pd.Series(
+            [True] * len(out), index=out.index, dtype=object
+        )
         out["multiplicity_scope_reason"] = "missing_history"
         return out
-    
+
     historical_copy = historical.copy()
     historical_copy["multiplicity_context"] = "historical"
-    
+
     for col in ["multiplicity_scope_key", "multiplicity_context"]:
         if col not in historical_copy.columns:
             historical_copy[col] = ""
-    
+
     combined = pd.concat([out, historical_copy], ignore_index=True)
     combined["multiplicity_scope_key"] = combined.apply(
-        lambda r: resolve_effective_scope_key(r.to_dict(), mode=scope_mode),
-        axis=1
+        lambda r: resolve_effective_scope_key(r.to_dict(), mode=scope_mode), axis=1
     )
-    combined["multiplicity_scope_degraded"] = pd.Series([False] * len(combined), index=combined.index, dtype=object)
+    combined["multiplicity_scope_degraded"] = pd.Series(
+        [False] * len(combined), index=combined.index, dtype=object
+    )
     combined["multiplicity_scope_reason"] = "ok"
-    
+
     return combined
 
 

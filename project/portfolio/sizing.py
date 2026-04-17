@@ -18,6 +18,7 @@ def _to_decimal_return(value: float) -> float:
     v = float(value)
     return v / 10_000.0 if abs(v) > 1.0 else v
 
+
 _LOG = logging.getLogger(__name__)
 
 
@@ -70,14 +71,12 @@ def calculate_target_notional(
     max_kelly_multiplier = max(0.0, float(max_kelly_multiplier))
 
     # 1. Base Sizing from Edge (Kelly-ish / Risk-Adjusted)
-    # Convert bps-like inputs to decimal returns so the multiplier is unit invariant.
-    vol_decimal = abs(_to_decimal_return(vol_regime))
     gross_expected_return, net_expected_return = _resolve_net_expected_return(
         expected_return_bps=expected_return_bps,
         expected_cost_bps=expected_cost_bps,
     )
     expected_adverse = abs(_to_decimal_return(expected_adverse_bps))
-    
+
     # Use the trade-level adverse-move estimate as the Kelly denominator.
     # ``vol_regime`` is already applied separately via ``vol_adj`` and should not
     # suppress size a second time inside the confidence term.

@@ -33,7 +33,6 @@ class EpisodeConfig:
 
 
 def _first_existing(df: pd.DataFrame, cols) -> Optional[str]:
-    DATA_ROOT = get_data_root()
     for c in cols:
         if c in df.columns:
             return c
@@ -62,7 +61,6 @@ def _canonicalize_group(g: pd.DataFrame, cfg: EpisodeConfig) -> Tuple[pd.DataFra
     # Cooldown: events within cooldown_ns of the previous episode end are skipped
     episodes = []
     anchors = []
-    cur_start = enter_ts[0]
     cur_end = exit_ts[0]
     cur_rows = [0]
     cooldown_end_ns: int = 0  # exclusive end of the cooldown window after each episode
@@ -147,10 +145,10 @@ def _canonicalize_group(g: pd.DataFrame, cfg: EpisodeConfig) -> Tuple[pd.DataFra
             flush(cur_rows)
             # After flush cooldown_end_ns is updated; skip if new event still in cooldown
             if cfg.cooldown_ns > 0 and n_start < cooldown_end_ns:
-                cur_start, cur_end = n_start, n_end
+                cur_end = n_end
                 cur_rows = []
                 continue
-            cur_start, cur_end = n_start, n_end
+            cur_end = n_end
             cur_rows = [i]
     flush(cur_rows)
 

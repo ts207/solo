@@ -32,7 +32,6 @@ def _fragility_gate(
     Old style: _fragility_gate(row: dict, stats: dict)
     New style: _fragility_gate(pnl: pd.Series, min_pass_rate=0.60, n_iterations=200)
     """
-    DATA_ROOT = get_data_root()
     if isinstance(row_or_pnl, pd.Series):
         from project.eval.robustness import simulate_parameter_perturbation
 

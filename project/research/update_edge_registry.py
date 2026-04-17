@@ -231,7 +231,6 @@ def _build_observations(
 
 
 def _aggregate_registry(observations: pd.DataFrame) -> pd.DataFrame:
-    DATA_ROOT = get_data_root()
     if observations.empty:
         return pd.DataFrame()
 
@@ -402,15 +401,15 @@ def main(argv: List[str] | None = None) -> int:
     audit_path = (
         Path(args.promotion_audit_path)
         if args.promotion_audit_path
-        else DATA_ROOT / "reports" / "promotions" / args.run_id / "promotion_statistical_audit.parquet"
+        else DATA_ROOT
+        / "reports"
+        / "promotions"
+        / args.run_id
+        / "promotion_statistical_audit.parquet"
     )
     if not audit_path.exists() and not args.promotion_audit_path:
         legacy_audit_path = (
-            DATA_ROOT
-            / "reports"
-            / "promotions"
-            / args.run_id
-            / "promotion_audit.parquet"
+            DATA_ROOT / "reports" / "promotions" / args.run_id / "promotion_audit.parquet"
         )
         if legacy_audit_path.exists():
             audit_path = legacy_audit_path
@@ -478,7 +477,11 @@ def main(argv: List[str] | None = None) -> int:
         no_promotion_observations = False
         if observations_new.empty:
             no_promotion_observations = True
-            history_all = history_existing.copy() if not history_existing.empty else _empty_observations_frame()
+            history_all = (
+                history_existing.copy()
+                if not history_existing.empty
+                else _empty_observations_frame()
+            )
             registry_df = (
                 _aggregate_registry(history_all)
                 if not history_all.empty
@@ -489,7 +492,8 @@ def main(argv: List[str] | None = None) -> int:
         else:
             if ontology_spec_hash and "ontology_spec_hash" in observations_new.columns:
                 mismatch = observations_new[
-                    observations_new["ontology_spec_hash"].astype(str).str.strip() != ontology_spec_hash
+                    observations_new["ontology_spec_hash"].astype(str).str.strip()
+                    != ontology_spec_hash
                 ]
                 if not mismatch.empty:
                     raise ValueError(

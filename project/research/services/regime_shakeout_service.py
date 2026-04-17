@@ -179,7 +179,10 @@ def _routing_templates_for_regime(canonical_regime: str) -> list[str]:
     registry = get_domain_registry()
     event_ids = registry.get_event_ids_for_regime(canonical_regime, executable_only=True)
     families = {
-        (registry.get_event(event_id).research_family or registry.get_event(event_id).canonical_family)
+        (
+            registry.get_event(event_id).research_family
+            or registry.get_event(event_id).canonical_family
+        )
         for event_id in event_ids
         if registry.get_event(event_id) is not None
     }
@@ -385,11 +388,7 @@ def _merged_run_all_overrides(
     defaults = dict(matrix.get("defaults", {}))
     _proposal_knobs, runtime_from_knobs = _split_knobs(defaults.get("knobs", {}))
     explicit_runtime = defaults.get("run_all_overrides", {})
-    runtime_overrides = (
-        dict(explicit_runtime)
-        if isinstance(explicit_runtime, Mapping)
-        else {}
-    )
+    runtime_overrides = dict(explicit_runtime) if isinstance(explicit_runtime, Mapping) else {}
     runtime_overrides.update(runtime_from_knobs)
     merged = dict(translation.get("run_all_overrides", {}))
     merged.update(runtime_overrides)
@@ -554,7 +553,9 @@ def summarize_shakeout_run(
     represented_subtypes = represented_subtypes[represented_subtypes != ""]
     represented_phases = phase2.get("phase", pd.Series(dtype="object")).astype(str).str.strip()
     represented_phases = represented_phases[represented_phases != ""]
-    represented_modes = phase2.get("evidence_mode", pd.Series(dtype="object")).astype(str).str.strip()
+    represented_modes = (
+        phase2.get("evidence_mode", pd.Series(dtype="object")).astype(str).str.strip()
+    )
     represented_modes = represented_modes[represented_modes != ""]
     bucket_agreement_rate = 0.0
     if not phase2.empty and {"recommended_bucket", "regime_bucket"}.issubset(phase2.columns):
@@ -597,7 +598,9 @@ def summarize_shakeout_run(
         "candidate_field_coverage": candidate_rates,
         "promoted_field_coverage": promoted_rates,
         "unknown_regime_rate": (
-            float(1.0 - candidate_rates.get("canonical_regime", 0.0)) if candidate_count > 0 else 0.0
+            float(1.0 - candidate_rates.get("canonical_regime", 0.0))
+            if candidate_count > 0
+            else 0.0
         ),
         "raw_event_to_canonical_collapse_ratio": float(
             int(represented_events.nunique()) / max(int(represented_regimes.nunique()), 1)
@@ -631,7 +634,8 @@ def summarize_shakeout_run(
     if candidate_count > 0:
         for field, rate in candidate_rates.items():
             if (
-                field in {"canonical_regime", "recommended_bucket", "regime_bucket", "routing_profile_id"}
+                field
+                in {"canonical_regime", "recommended_bucket", "regime_bucket", "routing_profile_id"}
                 and rate < min_cov
             ):
                 issues.append(f"candidate field coverage for {field}={rate:.3f} < {min_cov:.3f}")
@@ -676,7 +680,11 @@ def summarize_shakeout_run_group(
         promoted_frames.append(_safe_read_parquet(_promoted_path(data_root, run_id)))
         promotion_frames.append(_safe_read_parquet(_promotion_decisions_path(data_root, run_id)))
         regime_summaries.append(
-            _safe_read_json(research_diagnostics_paths(data_root=data_root, run_id=run_id)["regime_effectiveness"])
+            _safe_read_json(
+                research_diagnostics_paths(data_root=data_root, run_id=run_id)[
+                    "regime_effectiveness"
+                ]
+            )
         )
     phase2 = pd.concat(candidate_frames, ignore_index=True) if candidate_frames else pd.DataFrame()
     if not phase2.empty and "candidate_id" in phase2.columns:
@@ -708,7 +716,9 @@ def summarize_shakeout_run_group(
     represented_subtypes = represented_subtypes[represented_subtypes != ""]
     represented_phases = phase2.get("phase", pd.Series(dtype="object")).astype(str).str.strip()
     represented_phases = represented_phases[represented_phases != ""]
-    represented_modes = phase2.get("evidence_mode", pd.Series(dtype="object")).astype(str).str.strip()
+    represented_modes = (
+        phase2.get("evidence_mode", pd.Series(dtype="object")).astype(str).str.strip()
+    )
     represented_modes = represented_modes[represented_modes != ""]
     bucket_agreement_rate = 0.0
     if not phase2.empty and {"recommended_bucket", "regime_bucket"}.issubset(phase2.columns):
@@ -751,7 +761,9 @@ def summarize_shakeout_run_group(
         "candidate_field_coverage": candidate_rates,
         "promoted_field_coverage": promoted_rates,
         "unknown_regime_rate": (
-            float(1.0 - candidate_rates.get("canonical_regime", 0.0)) if candidate_count > 0 else 0.0
+            float(1.0 - candidate_rates.get("canonical_regime", 0.0))
+            if candidate_count > 0
+            else 0.0
         ),
         "raw_event_to_canonical_collapse_ratio": float(
             int(represented_events.nunique()) / max(int(represented_regimes.nunique()), 1)
@@ -786,7 +798,8 @@ def summarize_shakeout_run_group(
     if candidate_count > 0:
         for field, rate in candidate_rates.items():
             if (
-                field in {"canonical_regime", "recommended_bucket", "regime_bucket", "routing_profile_id"}
+                field
+                in {"canonical_regime", "recommended_bucket", "regime_bucket", "routing_profile_id"}
                 and rate < min_cov
             ):
                 issues.append(f"candidate field coverage for {field}={rate:.3f} < {min_cov:.3f}")
@@ -842,7 +855,9 @@ def build_shakeout_audit(
             bucket.setdefault("raw_control", []).append(slice_def.run_id)
     for pair_id, run_map in sorted(grouped.items()):
         regime_run_id = str(run_map.get("regime_first", "")).strip()
-        raw_run_ids = [str(run_id).strip() for run_id in run_map.get("raw_control", []) if str(run_id).strip()]
+        raw_run_ids = [
+            str(run_id).strip() for run_id in run_map.get("raw_control", []) if str(run_id).strip()
+        ]
         if regime_run_id not in run_summaries or not raw_run_ids:
             continue
         regime_summary = run_summaries[regime_run_id]
@@ -860,20 +875,31 @@ def build_shakeout_audit(
                 "regime_summary": regime_summary,
                 "raw_control_summary": raw_summary,
                 "delta": {
-                    "candidate_count": regime_summary["candidate_count"] - raw_summary["candidate_count"],
-                    "promoted_count": regime_summary["promoted_count"] - raw_summary["promoted_count"],
-                    "promotion_rate": regime_summary["promotion_rate"] - raw_summary["promotion_rate"],
-                    "topk_after_cost_expectancy_mean": regime_summary["topk_after_cost_expectancy_mean"]
+                    "candidate_count": regime_summary["candidate_count"]
+                    - raw_summary["candidate_count"],
+                    "promoted_count": regime_summary["promoted_count"]
+                    - raw_summary["promoted_count"],
+                    "promotion_rate": regime_summary["promotion_rate"]
+                    - raw_summary["promotion_rate"],
+                    "topk_after_cost_expectancy_mean": regime_summary[
+                        "topk_after_cost_expectancy_mean"
+                    ]
                     - raw_summary["topk_after_cost_expectancy_mean"],
-                    "topk_promoted_after_cost_expectancy_mean": regime_summary["topk_promoted_after_cost_expectancy_mean"]
+                    "topk_promoted_after_cost_expectancy_mean": regime_summary[
+                        "topk_promoted_after_cost_expectancy_mean"
+                    ]
                     - raw_summary["topk_promoted_after_cost_expectancy_mean"],
                     "unique_raw_events_represented": regime_summary["unique_raw_events_represented"]
                     - raw_summary["unique_raw_events_represented"],
                     "unique_subtypes_represented": regime_summary["unique_subtypes_represented"]
                     - raw_summary["unique_subtypes_represented"],
-                    "unique_evidence_modes_represented": regime_summary["unique_evidence_modes_represented"]
+                    "unique_evidence_modes_represented": regime_summary[
+                        "unique_evidence_modes_represented"
+                    ]
                     - raw_summary["unique_evidence_modes_represented"],
-                    "raw_event_to_canonical_collapse_ratio": regime_summary["raw_event_to_canonical_collapse_ratio"]
+                    "raw_event_to_canonical_collapse_ratio": regime_summary[
+                        "raw_event_to_canonical_collapse_ratio"
+                    ]
                     - raw_summary["raw_event_to_canonical_collapse_ratio"],
                     "bucket_agreement_rate": regime_summary["bucket_agreement_rate"]
                     - raw_summary["bucket_agreement_rate"],
@@ -1026,9 +1052,10 @@ def run_regime_shakeout_matrix(
         slice_dir = out_dir / "runs" / slice_def.run_id
         proposal_path = slice_dir / "proposal.yaml"
         payload = build_shakeout_proposal_payload(matrix=matrix, slice_def=slice_def)
+        proposal = load_agent_proposal(payload)
         _write_yaml(proposal_path, payload)
         translation = translate_and_validate_proposal(
-            proposal_path,
+            proposal,
             registry_root=registry_root,
             out_dir=slice_dir,
             config_path=slice_dir / "experiment.yaml",

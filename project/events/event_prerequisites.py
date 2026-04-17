@@ -63,7 +63,7 @@ def check_event_prerequisites(
                 else:
                     missing.append(feat)
                     coverage[feat] = 0.0
-    except Exception as e:
+    except Exception:
         missing.extend(required_features)
         for feat in required_features:
             coverage[feat] = 0.0

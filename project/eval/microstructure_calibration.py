@@ -3,7 +3,6 @@ import sys
 import pandas as pd
 import numpy as np
 from typing import Dict, Any
-from project.spec_registry import load_concept_spec
 
 DATA_ROOT = get_data_root()
 
@@ -17,9 +16,6 @@ from project.io.utils import list_parquet_files, read_parquet
 
 def run_calibration(symbols: list[str], run_id: str):
     print(f"Running Microstructure Calibration for {symbols} (Run: {run_id})")
-
-    concept_id = "C_MICROSTRUCTURE_METRICS"
-    spec = load_concept_spec(concept_id)
 
     rows = []
 

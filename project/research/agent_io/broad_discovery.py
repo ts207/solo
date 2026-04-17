@@ -164,17 +164,31 @@ def _load_avoid_region_keys(
 
     mask = pd.Series(True, index=tested.index)
     if "symbol_scope" in tested.columns:
-        mask &= tested["symbol_scope"].astype(str).str.upper().isin(
-            {str(symbol).strip().upper() for symbol in symbols}
+        mask &= (
+            tested["symbol_scope"]
+            .astype(str)
+            .str.upper()
+            .isin({str(symbol).strip().upper() for symbol in symbols})
         )
     if "event_type" in tested.columns:
-        mask &= tested["event_type"].astype(str).str.upper().isin(
-            {str(event_type).strip().upper() for event_type in event_types}
+        mask &= (
+            tested["event_type"]
+            .astype(str)
+            .str.upper()
+            .isin({str(event_type).strip().upper() for event_type in event_types})
         )
     if "template_id" in tested.columns:
-        mask &= tested["template_id"].astype(str).isin({str(template).strip() for template in templates})
+        mask &= (
+            tested["template_id"]
+            .astype(str)
+            .isin({str(template).strip() for template in templates})
+        )
     if "direction" in tested.columns:
-        mask &= tested["direction"].astype(str).isin({str(direction).strip() for direction in directions})
+        mask &= (
+            tested["direction"]
+            .astype(str)
+            .isin({str(direction).strip() for direction in directions})
+        )
     if "horizon" in tested.columns:
         requested_horizons = {
             token
@@ -184,8 +198,11 @@ def _load_avoid_region_keys(
         }
         mask &= tested["horizon"].astype(str).isin(requested_horizons)
     if "entry_lag" in tested.columns:
-        mask &= pd.to_numeric(tested["entry_lag"], errors="coerce").fillna(-1).astype(int).isin(
-            {int(entry_lag) for entry_lag in entry_lags}
+        mask &= (
+            pd.to_numeric(tested["entry_lag"], errors="coerce")
+            .fillna(-1)
+            .astype(int)
+            .isin({int(entry_lag) for entry_lag in entry_lags})
         )
 
     return sorted(
@@ -283,12 +300,7 @@ def _compute_attribution_confidence(
     candidate_conf = min(candidate_count / 100.0, 1.0)
     specificity_conf = 0.8 if not is_family_level else 0.3
 
-    confidence = (
-        0.4 * q_conf
-        + 0.2 * sample_conf
-        + 0.2 * candidate_conf
-        + 0.2 * specificity_conf
-    )
+    confidence = 0.4 * q_conf + 0.2 * sample_conf + 0.2 * candidate_conf + 0.2 * specificity_conf
     return round(confidence, 3)
 
 
@@ -375,11 +387,7 @@ def _parse_results_for_attribution(
     data_root = Path(data_root)
 
     promotion_path = (
-        data_root
-        / "reports"
-        / "promotions"
-        / run_id
-        / "promotion_statistical_audit.parquet"
+        data_root / "reports" / "promotions" / run_id / "promotion_statistical_audit.parquet"
     )
 
     if not promotion_path.exists():
@@ -415,9 +423,7 @@ def _parse_results_for_attribution(
         event_stats[event_type]["expectancies"].append(
             float(row.get("after_cost_expectancy", 0.0) or 0)
         )
-        event_stats[event_type]["robustness"].append(
-            float(row.get("robustness_score", 0.0) or 0)
-        )
+        event_stats[event_type]["robustness"].append(float(row.get("robustness_score", 0.0) or 0))
         event_stats[event_type]["sample_sizes"].append(
             int(row.get("train_n_obs", row.get("sample_size", 0)) or 0)
         )
@@ -598,9 +604,7 @@ class BroadDiscoveryRunner:
         events = events[: self.config.max_events_per_family]
         event_types = [e.event_type for e in events]
 
-        proposal = _build_broad_proposal(
-            self.config.family, events, self.config
-        )
+        proposal = _build_broad_proposal(self.config.family, events, self.config)
 
         if self.config.plan_only:
             return FamilyDiscoveryResult(
@@ -641,17 +645,17 @@ class BroadDiscoveryRunner:
             )
 
         run_id = generate_run_id(self.config.program_id, proposal)
-        proposal_path = self.paths.proposals_dir / f"broad_{self.config.family}_{run_id}" / "proposal.yaml"
+        proposal_path = (
+            self.paths.proposals_dir / f"broad_{self.config.family}_{run_id}" / "proposal.yaml"
+        )
         proposal_path.parent.mkdir(parents=True, exist_ok=True)
 
         import yaml
 
-        proposal_path.write_text(
-            yaml.safe_dump(proposal, sort_keys=False), encoding="utf-8"
-        )
+        proposal_path.write_text(yaml.safe_dump(proposal, sort_keys=False), encoding="utf-8")
 
         try:
-            result = issue_proposal(
+            issue_proposal(
                 proposal_path,
                 registry_root=self.registry_root,
                 data_root=self.data_root,
@@ -682,12 +686,8 @@ class BroadDiscoveryRunner:
         )
 
         events_significant = sum(1 for a in attributions if a.is_significant)
-        events_family_effect = sum(
-            1 for a in attributions if a.effect_type == "family_level"
-        )
-        events_specific_effect = sum(
-            1 for a in attributions if a.effect_type == "event_specific"
-        )
+        events_family_effect = sum(1 for a in attributions if a.effect_type == "family_level")
+        events_specific_effect = sum(1 for a in attributions if a.effect_type == "event_specific")
 
         q_values = [a.q_value for a in attributions]
         family_q = min(q_values) if q_values else 1.0
@@ -732,9 +732,7 @@ if __name__ == "__main__":
     import argparse
     import json
 
-    parser = argparse.ArgumentParser(
-        description="Run BroadDiscovery for a family of events."
-    )
+    parser = argparse.ArgumentParser(description="Run BroadDiscovery for a family of events.")
     parser.add_argument("--program_id", required=True)
     parser.add_argument("--family", required=True)
     parser.add_argument("--registry_root", default="project/configs/registries")
@@ -764,23 +762,29 @@ if __name__ == "__main__":
     runner = BroadDiscoveryRunner(config)
     result = runner.discover()
 
-    print(json.dumps({
-        "family": result.family,
-        "run_id": result.run_id,
-        "timestamp": result.timestamp,
-        "events_tested": result.events_tested,
-        "events_significant": result.events_significant,
-        "is_family_level_effect": result.is_family_level_effect,
-        "summary": result.summary,
-        "attributions": [
+    print(
+        json.dumps(
             {
-                "event_type": a.event_type,
-                "q_value": a.q_value,
-                "is_significant": a.is_significant,
-                "effect_type": a.effect_type,
-                "attribution_confidence": a.attribution_confidence,
-            }
-            for a in result.attributions
-        ],
-        "errors": result.errors,
-    }, indent=2, default=str))
+                "family": result.family,
+                "run_id": result.run_id,
+                "timestamp": result.timestamp,
+                "events_tested": result.events_tested,
+                "events_significant": result.events_significant,
+                "is_family_level_effect": result.is_family_level_effect,
+                "summary": result.summary,
+                "attributions": [
+                    {
+                        "event_type": a.event_type,
+                        "q_value": a.q_value,
+                        "is_significant": a.is_significant,
+                        "effect_type": a.effect_type,
+                        "attribution_confidence": a.attribution_confidence,
+                    }
+                    for a in result.attributions
+                ],
+                "errors": result.errors,
+            },
+            indent=2,
+            default=str,
+        )
+    )

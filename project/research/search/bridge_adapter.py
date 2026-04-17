@@ -76,7 +76,7 @@ def hypotheses_to_bridge_candidates(
 ) -> pd.DataFrame:
     """
     Map evaluator metrics to the production schema.
-    
+
     Args:
         min_events: Minimum number of events required. STATE_ regime features
             generate candidates on every bar, creating noise. Default 5 filters
@@ -98,7 +98,9 @@ def hypotheses_to_bridge_candidates(
     event_types = [_sanitize_event_type(row) for _, row in filtered.iterrows()]
     out["event_type"] = event_types
     out["hypothesis_id"] = filtered["hypothesis_id"].astype(str)
-    out["canonical_event_type"] = [canonical for canonical, _ in map(_registry_semantics, event_types)]
+    out["canonical_event_type"] = [
+        canonical for canonical, _ in map(_registry_semantics, event_types)
+    ]
     out["research_family"] = [family for _, family in map(_registry_semantics, event_types)]
     out["canonical_family"] = out["research_family"]
     out["candidate_id"] = [
@@ -109,7 +111,7 @@ def hypotheses_to_bridge_candidates(
         )
         for hypothesis_id, event_type in zip(filtered["hypothesis_id"], out["canonical_event_type"])
     ]
-    
+
     # Only filter pure regime-label STATE_ events - ones that have very high event counts
     # (appearing on >50% of bars = >280 bars in 3-day window)
     # Keep legitimate events like VOL_SHOCK even if they have STATE_ prefix
@@ -117,7 +119,7 @@ def hypotheses_to_bridge_candidates(
     n_events_arr = filtered["n"].values
     high_frequency_mask = n_events_arr > (577 * 0.5)  # More than 50% of bars
     state_mask = out["event_type"].str.startswith(("STATE_", "TRANSITION_"))
-    
+
     # Remove only STATE_/TRANSITION_ events that are high-frequency (regime labels)
     noise_mask = state_mask & high_frequency_mask
     if noise_mask.any():
@@ -143,9 +145,9 @@ def hypotheses_to_bridge_candidates(
     out["sample_size"] = out["n"]
     out["n_events"] = out["n"]
     out["gate_search_min_sample_size"] = out["n"] >= int(min_n)
-    out["gate_search_min_t_stat"] = pd.to_numeric(
-        filtered["t_stat"], errors="coerce"
-    ).fillna(0.0) >= float(min_t_stat)
+    out["gate_search_min_t_stat"] = pd.to_numeric(filtered["t_stat"], errors="coerce").fillna(
+        0.0
+    ) >= float(min_t_stat)
     for source_col in (
         "train_n_obs",
         "validation_n_obs",
@@ -178,9 +180,9 @@ def hypotheses_to_bridge_candidates(
     out["kill_switch_count"] = (
         filtered["kill_switch_count"] if "kill_switch_count" in filtered.columns else 0
     )
-    out["kill_switch_count"] = pd.to_numeric(
-        out["kill_switch_count"], errors="coerce"
-    ).fillna(0).astype(int)
+    out["kill_switch_count"] = (
+        pd.to_numeric(out["kill_switch_count"], errors="coerce").fillna(0).astype(int)
+    )
 
     out["delta_adverse_mean"] = filtered["mae_mean_bps"] / 10000.0
     out["delta_opportunity_mean"] = filtered["mfe_mean_bps"] / 10000.0
@@ -188,9 +190,7 @@ def hypotheses_to_bridge_candidates(
     out["turnover_proxy_mean"] = 0.5  # Default turnover proxy
 
     # Gating Flags
-    out["gate_oos_validation"] = filtered["robustness_score"] >= float(
-        bridge_min_robustness_score
-    )
+    out["gate_oos_validation"] = filtered["robustness_score"] >= float(bridge_min_robustness_score)
     out["gate_multiplicity"] = False  # Will be set by apply_multiplicity_controls()
     out["gate_c_regime_stable"] = filtered["robustness_score"] >= float(
         bridge_min_regime_stability_score
@@ -223,10 +223,14 @@ def hypotheses_to_bridge_candidates(
     ).fillna(1.0)
     out["p_value"] = p_value_series.astype(float)
     out["p_value_raw"] = out["p_value"]
-    out["p_value_for_fdr"] = pd.to_numeric(
-        filtered.get("p_value_for_fdr", out["p_value"]),
-        errors="coerce",
-    ).fillna(out["p_value"]).astype(float)
+    out["p_value_for_fdr"] = (
+        pd.to_numeric(
+            filtered.get("p_value_for_fdr", out["p_value"]),
+            errors="coerce",
+        )
+        .fillna(out["p_value"])
+        .astype(float)
+    )
 
     out["family_id"] = [
         make_family_id(
@@ -256,14 +260,16 @@ def hypotheses_to_bridge_candidates(
         filter_rows = out[~base_mask]
         expanded_parts = [filter_rows]
         for _, row in base_rows.iterrows():
-            family = str(row.get("research_family", row.get("canonical_family", ""))).strip().upper()
+            family = (
+                str(row.get("research_family", row.get("canonical_family", ""))).strip().upper()
+            )
             exec_templates = list(get_domain_registry().family_templates(family)) if family else []
             if not exec_templates:
                 if family:
                     log.warning(
                         "No execution templates resolved for family %r (event_id=%r); keeping as 'base'",
                         family,
-                        event_id,
+                        row.get("event_type", ""),
                     )
                 # No execution templates found — keep as "base" rather than drop
                 expanded_parts.append(pd.DataFrame([row]))

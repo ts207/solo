@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import logging
 from typing import Any
 
 import numpy as np
@@ -18,10 +19,11 @@ from project.events.contract_registry import load_active_event_contracts, load_r
 
 class CrossAssetInteractionDetector(CompositeDetector):
     """Detects predictive interactions across different assets.
-    
+
     Concretely: Does an OI spike on ETH predict a volatility transition on BTC?
     Does a liquidity vacuum on SOL create a spread opportunity against ETH?
     """
+
     event_type = "CROSS_ASSET_INTERACTION"
     required_columns = ("timestamp",)
 
@@ -53,11 +55,17 @@ _DETECTORS = {}
 if "CROSS_ASSET_INTERACTION" in _ACTIVE_CONTRACTS:
     _DETECTORS["CROSS_ASSET_INTERACTION"] = CrossAssetInteractionDetector
 
+
 # Research-only interaction motifs are intentionally excluded from the default
 # executable runtime registry. They can be enabled explicitly for offline
 # research by setting EDGE_ENABLE_RESEARCH_MOTIFS=1.
 def _research_motif_registration_enabled() -> bool:
-    return str(os.getenv("EDGE_ENABLE_RESEARCH_MOTIFS", "0")).strip().lower() in {"1", "true", "yes", "on"}
+    return str(os.getenv("EDGE_ENABLE_RESEARCH_MOTIFS", "0")).strip().lower() in {
+        "1",
+        "true",
+        "yes",
+        "on",
+    }
 
 
 def _register_research_motif_detectors() -> None:
@@ -80,6 +88,7 @@ def _register_research_motif_detectors() -> None:
                             op=o,
                             lag=l,
                         )
+
                 return DynamicInteractionDetector
 
             _DETECTORS[et] = make_detector_cls(

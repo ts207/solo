@@ -128,9 +128,9 @@ def label_regimes(features: pd.DataFrame) -> pd.Series:
     Format: "high_vol.funding_pos.trend.tight" (dot-separated).
     """
     import logging
+
     _log = logging.getLogger(__name__)
 
-    n = len(features)
     dimension_labels: list[pd.Series] = []
     unknown_dims: list[str] = []
 

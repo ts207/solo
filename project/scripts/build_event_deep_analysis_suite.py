@@ -9,8 +9,15 @@ from pathlib import Path
 from typing import Any, Iterable, Mapping
 
 from project.domain.compiled_registry import get_domain_registry
-from project.events.contract_registry import load_active_event_contracts, validate_contract_completeness
-from project.events.detectors.registry import get_detector, list_registered_event_types, load_all_detectors
+from project.events.contract_registry import (
+    load_active_event_contracts,
+    validate_contract_completeness,
+)
+from project.events.detectors.registry import (
+    get_detector,
+    list_registered_event_types,
+    load_all_detectors,
+)
 from project.events.event_aliases import EVENT_ALIASES, EXECUTABLE_EVENT_ALIASES
 from project.events.event_specs import EVENT_REGISTRY_SPECS
 from project.events.governance import default_planning_event_ids, get_event_governance_metadata
@@ -19,7 +26,9 @@ from project.scripts.detector_coverage_audit import run_audit as run_detector_au
 from project.scripts.event_ontology_audit import run_audit as run_ontology_audit
 from project.scripts.regime_routing_audit import validate_regime_routing_spec
 
-_GENERIC_CALIBRATION_METHOD = "Documented by detector-specific calibration policy and stability checks."
+_GENERIC_CALIBRATION_METHOD = (
+    "Documented by detector-specific calibration policy and stability checks."
+)
 
 
 def _status(*, passed: bool) -> str:
@@ -69,7 +78,14 @@ def _build_tasks() -> list[dict[str, Any]]:
         if str(get_event_governance_metadata(event_id).get("operational_role", "")).lower()
         in {"context", "filter", "research_only", "sequence_component"}
         or str(get_event_governance_metadata(event_id).get("deployment_disposition", "")).lower()
-        in {"context_only", "research_only", "repair_before_promotion", "inactive", "deprecated", "alias_only"}
+        in {
+            "context_only",
+            "research_only",
+            "repair_before_promotion",
+            "inactive",
+            "deprecated",
+            "alias_only",
+        }
     )
 
     tier_counts = _as_int_counter(contract["tier"] for contract in contracts.values())
@@ -77,7 +93,9 @@ def _build_tasks() -> list[dict[str, Any]]:
     disposition_counts = _as_int_counter(
         contract["deployment_disposition"] for contract in contracts.values()
     )
-    threshold_method_counts = _as_int_counter(contract["threshold_method"] for contract in contracts.values())
+    threshold_method_counts = _as_int_counter(
+        contract["threshold_method"] for contract in contracts.values()
+    )
     calibration_method_counts = _as_int_counter(
         contract["calibration_method"] for contract in contracts.values()
     )
@@ -174,7 +192,9 @@ def _build_tasks() -> list[dict[str, Any]]:
                 "alias_count": int(len(EVENT_ALIASES) + len(EXECUTABLE_EVENT_ALIASES)),
             },
             "details": {
-                "runtime_aliases": sorted({*EVENT_ALIASES.keys(), *EXECUTABLE_EVENT_ALIASES.keys()}),
+                "runtime_aliases": sorted(
+                    {*EVENT_ALIASES.keys(), *EXECUTABLE_EVENT_ALIASES.keys()}
+                ),
                 "default_executable_but_not_planning": sorted(
                     set(default_executable_event_ids) - set(planning_event_ids)
                 ),
@@ -234,7 +254,9 @@ def _build_tasks() -> list[dict[str, Any]]:
         {
             "id": "04_maturity_tiers",
             "title": "Check maturity tiers",
-            "status": _status(passed=(tier_counts.get("X", 0) == 0 and tier_counts.get("D", 0) <= 5)),
+            "status": _status(
+                passed=(tier_counts.get("X", 0) == 0 and tier_counts.get("D", 0) <= 5)
+            ),
             "summary": {
                 "tier_counts": tier_counts,
                 "role_counts": role_counts,
@@ -243,8 +265,13 @@ def _build_tasks() -> list[dict[str, Any]]:
             "details": {
                 "planning_default_tiers": ["A", "B"],
                 "planning_event_count": len(planning_event_ids),
-                "non_planning_active_events": sorted(set(active_event_ids) - set(planning_event_ids)),
-                "source_artifacts": ["docs/generated/event_maturity_matrix.csv", "docs/generated/event_tiers.md"],
+                "non_planning_active_events": sorted(
+                    set(active_event_ids) - set(planning_event_ids)
+                ),
+                "source_artifacts": [
+                    "docs/generated/event_maturity_matrix.csv",
+                    "docs/generated/event_tiers.md",
+                ],
             },
             "verification_commands": [
                 "python -m project.scripts.build_event_contract_artifacts --check",
@@ -255,7 +282,9 @@ def _build_tasks() -> list[dict[str, Any]]:
             "id": "05_threshold_calibration",
             "title": "Audit thresholds and calibration",
             "status": _status(
-                passed=(len(generic_calibration_events) == 0 and len(declared_threshold_events) == 0)
+                passed=(
+                    len(generic_calibration_events) == 0 and len(declared_threshold_events) == 0
+                )
             ),
             "summary": {
                 "threshold_method_counts": threshold_method_counts,
@@ -277,8 +306,12 @@ def _build_tasks() -> list[dict[str, Any]]:
             "title": "Map overlap and collisions",
             "status": _status(passed=not ontology_collisions),
             "summary": {
-                "contracts_with_overlap_notes": int(sum(1 for count in overlap_lengths if count > 0)),
-                "avg_expected_overlap_entries": round(sum(overlap_lengths) / max(1, len(overlap_lengths)), 3),
+                "contracts_with_overlap_notes": int(
+                    sum(1 for count in overlap_lengths if count > 0)
+                ),
+                "avg_expected_overlap_entries": round(
+                    sum(overlap_lengths) / max(1, len(overlap_lengths)), 3
+                ),
                 "direct_proxy_group_count": int(len(direct_proxy_groups)),
                 "ontology_collision_group_count": int(len(ontology_collisions)),
             },
@@ -387,7 +420,6 @@ def _build_tasks() -> list[dict[str, Any]]:
                 "event_count": proxy_planning_count,
             }
         )
-    non_planning_active = sorted(set(active_event_ids) - set(planning_event_ids))
     if descriptive_non_planning_active:
         residual_priorities.append(
             {
@@ -460,7 +492,9 @@ def _build_tasks() -> list[dict[str, Any]]:
 
 def build_report() -> dict[str, Any]:
     tasks = _build_tasks()
-    overall_status = "passed" if all(task["status"] == "passed" for task in tasks[:-1]) else "attention"
+    overall_status = (
+        "passed" if all(task["status"] == "passed" for task in tasks[:-1]) else "attention"
+    )
     return {
         "summary": {
             "task_count": len(tasks),
@@ -509,7 +543,8 @@ def build_outputs(base_dir: str = "docs/generated") -> dict[Path, str]:
     out_dir = Path(base_dir)
     report = build_report()
     return {
-        out_dir / "event_deep_analysis_suite.json": json.dumps(report, indent=2, sort_keys=True) + "\n",
+        out_dir / "event_deep_analysis_suite.json": json.dumps(report, indent=2, sort_keys=True)
+        + "\n",
         out_dir / "event_deep_analysis_suite.md": render_markdown(report),
     }
 

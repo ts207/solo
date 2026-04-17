@@ -13,7 +13,6 @@ def test_domain_graph_payload_contains_clean_runtime_sections() -> None:
     assert "templates" in payload
     assert "regimes" in payload
     assert "theses" in payload
-    assert "compatibility" in payload
     assert "runtime" in payload
 
 
@@ -80,5 +79,3 @@ def test_domain_graph_payload_is_a_slim_runtime_read_model() -> None:
     runtime = payload["runtime"]
     assert runtime["event_registry"]["kind"] == "event_runtime_defaults"
     assert runtime["template_registry"]["kind"] == "template_runtime_defaults"
-    assert isinstance(payload["compatibility"]["event_families"], dict)
-    assert isinstance(payload["compatibility"]["state_families"], dict)

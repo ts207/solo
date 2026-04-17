@@ -145,11 +145,13 @@ def classify_thesis_diff(
         if _is_supersede(old, cur):
             superseded.append(tid)
         elif _is_downgrade(old.deployment_state, cur.deployment_state):
-            downgraded.append({
-                "thesis_id": tid,
-                "old_state": old.deployment_state,
-                "new_state": cur.deployment_state,
-            })
+            downgraded.append(
+                {
+                    "thesis_id": tid,
+                    "old_state": old.deployment_state,
+                    "new_state": cur.deployment_state,
+                }
+            )
         elif old.deployment_state == cur.deployment_state:
             unchanged.append(tid)
 
@@ -174,7 +176,6 @@ def check_reconciliation_safety(
         return reasons
 
     prev_by_id = {t.thesis_id: t for t in previous_store.all()}
-    curr_by_id = {t.thesis_id: t for t in current_store.all()}
 
     for tid in diff.removed:
         runtime_state = thesis_manager_state.get(tid)

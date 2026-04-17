@@ -6,7 +6,7 @@ import logging
 import uuid
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Awaitable, Callable, Dict, List, Mapping
+from typing import Any, Awaitable, Callable, Dict, List, Mapping, Optional
 
 from project import PROJECT_ROOT
 from project.live.audit_log import (
@@ -52,22 +52,18 @@ def _classify_canonical_regime(
     ms_trend_state: Optional[float] = None,
 ) -> Dict[str, Any]:
     """
-    Unified regime classification. 
+    Unified regime classification.
     Calls shared project.core.regime_classifier logic.
     """
     from project.core.regime_classifier import classify_regime
-    
-    result = classify_regime(
-        move_bps=move_bps,
-        rv_pct=rv_pct,
-        ms_trend_state=ms_trend_state
-    )
-    
+
+    result = classify_regime(move_bps=move_bps, rv_pct=rv_pct, ms_trend_state=ms_trend_state)
+
     return {
         "canonical_regime": result.regime.value,
         "regime_mode": result.mode.value,
         "regime_confidence": result.confidence,
-        "regime_metadata": result.metadata
+        "regime_metadata": result.metadata,
     }
 
 
@@ -197,7 +193,7 @@ class LiveEngineRunner:
         family_budgets = self.strategy_runtime.get("family_risk_budgets", {})
         if not risk_caps:
             risk_caps = RuntimeRiskCaps(per_family_caps=dict(family_budgets))
-        
+
         self.risk_enforcer = RiskEnforcer(risk_caps)
         self.decay_monitor = DecayMonitor(decay_rules or _default_decay_rules())
         self.thesis_manager = ThesisStateManager()
@@ -205,11 +201,11 @@ class LiveEngineRunner:
 
         # Workstream 1: Deploy admission control
         self._thesis_store = self._load_thesis_store()
-        
+
         # P0: Thesis-batch reconciliation on startup
         if self._thesis_store and self.reconcile_at_startup:
             self._reconcile_thesis_batch()
-        
+
         self._register_theses_in_manager()
         # B3: Inject per-thesis decay rules calibrated from evidence at startup.
         # These supplement (not replace) operator-provided rules.
@@ -477,33 +473,41 @@ class LiveEngineRunner:
             hr_rule_id = f"hit_rate_decay_{tid}"
 
             if expected_bps > 0.0 and edge_rule_id not in existing_rule_ids:
-                new_rules.append(DecayRule(
-                    rule_id=edge_rule_id,
-                    metric="edge",
-                    threshold=0.50,          # fire when realized < 50% of expected
-                    window_samples=window,
-                    action="downsize",
-                    downsize_factor=0.50,
-                ))
+                new_rules.append(
+                    DecayRule(
+                        rule_id=edge_rule_id,
+                        metric="edge",
+                        threshold=0.50,  # fire when realized < 50% of expected
+                        window_samples=window,
+                        action="downsize",
+                        downsize_factor=0.50,
+                    )
+                )
                 _LOG.info(
                     "Registered per-thesis edge decay rule for %s: threshold=50%% of %.1f bps, "
                     "window=%d samples.",
-                    tid, expected_bps, window,
+                    tid,
+                    expected_bps,
+                    window,
                 )
 
             if hr_rule_id not in existing_rule_ids:
                 hr_threshold = max(0.30, expected_hr * 0.70)  # 70% of expected hit rate
-                new_rules.append(DecayRule(
-                    rule_id=hr_rule_id,
-                    metric="hit_rate",
-                    threshold=hr_threshold,
-                    window_samples=window,
-                    action="warn",
-                ))
+                new_rules.append(
+                    DecayRule(
+                        rule_id=hr_rule_id,
+                        metric="hit_rate",
+                        threshold=hr_threshold,
+                        window_samples=window,
+                        action="warn",
+                    )
+                )
                 _LOG.info(
                     "Registered per-thesis hit_rate decay rule for %s: threshold=%.2f, "
                     "window=%d samples.",
-                    tid, hr_threshold, window,
+                    tid,
+                    hr_threshold,
+                    window,
                 )
 
         if new_rules:
@@ -556,22 +560,22 @@ class LiveEngineRunner:
 
     def _reconcile_thesis_batch(self) -> None:
         """P0: Reconcile current thesis batch against previous batch on startup.
-        
+
         Detects added/removed/superseded/downgraded theses and enforces
         fail-safe rules before live trading can proceed.
         """
         if not self._thesis_store:
             return
-        
+
         persist_dir = Path(self.strategy_runtime.get("persist_dir", "live/persist"))
         audit_log_path = persist_dir / "thesis_reconciliation.json"
         thesis_manager_state = {
-            thesis_id: state.state
-            for thesis_id, state in self.thesis_manager.states.items()
+            thesis_id: state.state for thesis_id, state in self.thesis_manager.states.items()
         }
 
         try:
             from project.core.config import get_data_root as _get_data_root
+
             result = reconcile_thesis_batch(
                 current_store=self._thesis_store,
                 persist_dir=persist_dir,
@@ -579,7 +583,7 @@ class LiveEngineRunner:
                 audit_log_path=audit_log_path,
                 data_root=_get_data_root(),
             )
-            
+
             if not result.safe_to_proceed:
                 _LOG.error(
                     "Thesis batch reconciliation failed with %d safety violations. "
@@ -588,12 +592,14 @@ class LiveEngineRunner:
                     "; ".join(result.blocked_reasons),
                 )
                 # Record unsafe state for operator review
-                self.state_store.set_kill_switch_snapshot({
-                    "is_active": True,
-                    "reason": "thesis_batch_reconciliation_failure",
-                    "triggered_at": datetime.now(timezone.utc).isoformat(),
-                    "message": f"Batch reconciliation blocked: {'; '.join(result.blocked_reasons)}",
-                })
+                self.state_store.set_kill_switch_snapshot(
+                    {
+                        "is_active": True,
+                        "reason": "thesis_batch_reconciliation_failure",
+                        "triggered_at": datetime.now(timezone.utc).isoformat(),
+                        "message": f"Batch reconciliation blocked: {'; '.join(result.blocked_reasons)}",
+                    }
+                )
             else:
                 _LOG.info(
                     "Thesis batch reconciliation succeeded: %d added, %d unchanged, "
@@ -615,7 +621,9 @@ class LiveEngineRunner:
             ):
                 raise wrapped
 
-    def _report_reconciliation_degraded_state(self, *, error: ThesisBatchReconciliationError) -> None:
+    def _report_reconciliation_degraded_state(
+        self, *, error: ThesisBatchReconciliationError
+    ) -> None:
         snapshot = {
             "is_active": bool(self.strategy_runtime.get("implemented", False)),
             "reason": "thesis_batch_reconciliation_degraded",
@@ -1113,7 +1121,7 @@ class LiveEngineRunner:
         regime_info = _classify_canonical_regime(
             move_bps=move_bps,
             rv_pct=runtime_features.get("rv_pct"),
-            ms_trend_state=runtime_features.get("ms_trend_state")
+            ms_trend_state=runtime_features.get("ms_trend_state"),
         )
         return {
             "timestamp": str(timestamp),
@@ -1240,20 +1248,23 @@ class LiveEngineRunner:
         # Unique thesis IDs with at least one filled order this session.
         # Deduplication prevents the cap from firing prematurely when a single
         # thesis has multiple fills (each fill would otherwise inflate the count).
-        active_thesis_ids = list({
-            str(o.metadata.get("thesis_id", ""))
-            for o in self.order_manager.order_history
-            if o.status == OrderStatus.FILLED
-            and str(o.metadata.get("thesis_id", ""))
-        })
+        active_thesis_ids = list(
+            {
+                str(o.metadata.get("thesis_id", ""))
+                for o in self.order_manager.order_history
+                if o.status == OrderStatus.FILLED and str(o.metadata.get("thesis_id", ""))
+            }
+        )
 
         # Portfolio Orchestration: Pass active overlap groups to risk enforcer
         active_overlap_groups = self._get_active_overlap_groups()
         thesis_overlap_group = ""
         if self._thesis_store:
-            theses = self._thesis_store.filter(thesis_id=thesis_id)
-            if theses:
-                thesis_overlap_group = theses[0].overlap_group_id
+            matching = [
+                t for t in self._thesis_store.all() if t.thesis_id == outcome.trade_intent.thesis_id
+            ]
+            if matching:
+                thesis_overlap_group = matching[0].overlap_group_id
 
         effective_notional, breach = self.risk_enforcer.check_and_apply_caps(
             thesis_id=outcome.trade_intent.thesis_id,
@@ -1297,14 +1308,14 @@ class LiveEngineRunner:
         active_groups = set()
         if not self._thesis_store:
             return active_groups
-        
+
         for thesis_id, state in self.thesis_manager.states.items():
             if state.state == "active":
                 # Find the thesis in the store to get its overlap_group_id
                 # (This is slightly inefficient, but okay for small thesis sets)
-                theses = self._thesis_store.filter(thesis_id=thesis_id)
-                if theses:
-                    group_id = theses[0].overlap_group_id
+                matching = [t for t in self._thesis_store.all() if t.thesis_id == thesis_id]
+                if matching:
+                    group_id = matching[0].overlap_group_id
                     if group_id:
                         active_groups.add(group_id)
         return active_groups

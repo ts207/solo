@@ -56,7 +56,6 @@ from project.events.registry import EVENT_REGISTRY_SPECS
 
 
 def _call_maybe_with_args(fn: Callable, df, event_type: str, symbol: str):
-    DATA_ROOT = get_data_root()
     try:
         params = inspect.signature(fn).parameters
     except (TypeError, ValueError):

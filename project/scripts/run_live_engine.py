@@ -635,6 +635,7 @@ def build_live_runner(
         snapshot_path=snapshot_path,
     )
     order_manager = None
+    venue = "binance"
     if environment is not None and session_metadata["runtime_mode"] == "trading":
         from project.live.oms import OrderManager
 

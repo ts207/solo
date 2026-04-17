@@ -112,12 +112,9 @@ def _resolve_dependencies(name: str, all_stage_names: List[str]) -> List[str]:
     # 1. Pattern-based resolution
     for pattern, dep_patterns in DEPENDENCY_PATTERNS:
         if "{tf}" in pattern or "{event}" in pattern or "{script}" in pattern:
-            # Check for match
-            match = False
             if "{script}" in pattern and name.startswith("analyze_") and sep_idx >= 0:
                 script_part = prefix_part.replace("analyze_", "")
                 if pattern.startswith("analyze_{script}__"):
-                    match = True
                     for dp in dep_patterns:
                         deps.append(
                             dp.replace("{script}", script_part)
@@ -127,7 +124,6 @@ def _resolve_dependencies(name: str, all_stage_names: List[str]) -> List[str]:
             elif "{event}" in pattern:
                 p_base = pattern.split("{event}")[0]
                 if name.startswith(p_base):
-                    match = True
                     # If we already extracted event from __, use it, otherwise extract it
                     extracted_event = event or name.replace(p_base, "").split("_")[0]
                     for dp in dep_patterns:
@@ -143,7 +139,6 @@ def _resolve_dependencies(name: str, all_stage_names: List[str]) -> List[str]:
                         and not pattern.endswith("_spot")
                     ):
                         continue
-                    match = True
                     for dp in dep_patterns:
                         deps.append(dp.replace("{tf}", tf))
         elif name == pattern:
@@ -183,16 +178,26 @@ def _resolve_dependencies(name: str, all_stage_names: List[str]) -> List[str]:
                     ]
                 )
         elif d == "@OHLCV_INGEST_STAGES":
-            resolved.extend([
-                n for n in all_stage_names 
-                if (n.startswith("ingest_binance_um_ohlcv_") or n.startswith("ingest_bybit_derivatives_ohlcv_"))
-                and n.endswith(f"_{tf}")
-            ])
+            resolved.extend(
+                [
+                    n
+                    for n in all_stage_names
+                    if (
+                        n.startswith("ingest_binance_um_ohlcv_")
+                        or n.startswith("ingest_bybit_derivatives_ohlcv_")
+                    )
+                    and n.endswith(f"_{tf}")
+                ]
+            )
         elif d == "@FUNDING_INGEST_STAGES":
-            resolved.extend([
-                n for n in all_stage_names 
-                if n.startswith("ingest_binance_um_funding") or n.startswith("ingest_bybit_derivatives_funding")
-            ])
+            resolved.extend(
+                [
+                    n
+                    for n in all_stage_names
+                    if n.startswith("ingest_binance_um_funding")
+                    or n.startswith("ingest_bybit_derivatives_funding")
+                ]
+            )
         elif d == "@FIRST_OHLCV_STAGE":
             ohlcv_stages = sorted(
                 [n for n in all_stage_names if n.startswith("ingest_binance_um_ohlcv_")]

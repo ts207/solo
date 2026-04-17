@@ -267,11 +267,14 @@ def _check_marginal_contribution(
 
     def _vec(bp: Blueprint) -> np.ndarray:
         s = bp.sizing
-        return np.array([
-            float(s.risk_per_trade or 0.0),
-            float(s.max_gross_leverage or 0.0),
-            float(s.portfolio_risk_budget or 1.0),
-        ], dtype=float)
+        return np.array(
+            [
+                float(s.risk_per_trade or 0.0),
+                float(s.max_gross_leverage or 0.0),
+                float(s.portfolio_risk_budget or 1.0),
+            ],
+            dtype=float,
+        )
 
     new_vec = _vec(blueprint)
     new_norm = np.linalg.norm(new_vec)
@@ -547,8 +550,17 @@ def main() -> int:
 
     parser.add_argument("--quality_floor_fallback", type=float, default=0.0)
     parser.add_argument("--burn_ledger_path", default=None)
-    parser.add_argument("--negative_control_mode", default=None, help="Mode for synthetic noise injection (e.g. shuffle_features)")
-    parser.add_argument("--max_synthetic_expectancy_ratio", type=float, default=0.5, help="Max ratio of synthetic vs real expectancy allowed")
+    parser.add_argument(
+        "--negative_control_mode",
+        default=None,
+        help="Mode for synthetic noise injection (e.g. shuffle_features)",
+    )
+    parser.add_argument(
+        "--max_synthetic_expectancy_ratio",
+        type=float,
+        default=0.5,
+        help="Max ratio of synthetic vs real expectancy allowed",
+    )
     args = parser.parse_args()
 
     out_dir = (
@@ -606,7 +618,6 @@ def main() -> int:
             burn_ledger = load_json_dict(Path(burn_ledger_path))
 
         blueprints: List[Blueprint] = []
-        blueprint_pnl_map: Dict[str, pd.Series] = {}
         symbols = [s.strip().upper() for s in args.symbols.split(",") if s.strip()]
 
         costs = resolve_execution_costs(
@@ -639,40 +650,46 @@ def main() -> int:
 
             # Phase 4: Synthetic Force Check
             if args.negative_control_mode:
-                LOGGER.info(f"Running Synthetic Force check for {bp.id} (mode={args.negative_control_mode})...")
+                LOGGER.info(
+                    f"Running Synthetic Force check for {bp.id} (mode={args.negative_control_mode})..."
+                )
                 # In a real implementation, we would pass the original data to generate_negative_control
                 # and then run the strategy executor on the noised data.
                 # For this implementation, we simulate the 'negative control' logic.
-                
-                real_expectancy = float(bp.lineage.constraints.get("expected_return_bps", 0.0) or 0.0)
-                
+
+                real_expectancy = float(
+                    bp.lineage.constraints.get("expected_return_bps", 0.0) or 0.0
+                )
+
                 # Placeholder for actual negative control backtest execution:
                 # noised_data = generate_negative_control(original_data, mode=args.negative_control_mode)
                 # synthetic_result = run_strategy_sim(bp, noised_data)
                 # synthetic_expectancy = synthetic_result.expectancy
-                
+
                 # Simulated check: if real_expectancy is high but we are in negative_control mode,
                 # we arbitrarily simulate a failure if the strategy is too 'fragile' (placeholder logic).
                 # In production, this would be a real execution.
-                synthetic_expectancy = 0.0 # Standard negative control should yield 0 expectancy
-                
+                synthetic_expectancy = 0.0  # Standard negative control should yield 0 expectancy
+
                 if synthetic_expectancy > (real_expectancy * args.max_synthetic_expectancy_ratio):
-                    LOGGER.warning(f"SYNTHETIC FORCE FAILURE: Blueprint {bp.id} failed negative control. Likely overfit.")
+                    LOGGER.warning(
+                        f"SYNTHETIC FORCE FAILURE: Blueprint {bp.id} failed negative control. Likely overfit."
+                    )
                     continue
 
             blueprints.append(bp)
-            
+
         # 4b. Selection-time Correlation Gating (Portfolio Matrix)
         if len(blueprints) > 1:
             LOGGER.info("Performing Selection-time Correlation Gating...")
             # For simplicity in this stage, we group by (event_type, template_verb)
             # but in a full implementation we would use PnL correlation.
             # We will use the clustering service to enforce diversity.
-            
+
             # Simple metadata-based clustering for now to demonstrate the gate
             clusters: Dict[int, List[str]] = {}
             sharpes: Dict[str, float] = {}
-            
+
             for i, bp in enumerate(blueprints):
                 # We cluster by event_type and template_verb as a proxy for "alpha family"
                 cluster_key = _stable_blueprint_family_cluster_key(bp)
@@ -680,12 +697,16 @@ def main() -> int:
                     clusters[cluster_key] = []
                 clusters[cluster_key].append(bp.id)
                 # Use after-cost expectancy as a proxy for quality
-                sharpes[bp.id] = float(bp.lineage.constraints.get("expected_return_bps", 0.0) or 0.0)
-                
+                sharpes[bp.id] = float(
+                    bp.lineage.constraints.get("expected_return_bps", 0.0) or 0.0
+                )
+
             selected_ids = select_cluster_representatives(clusters, sharpes)
             before_count = len(blueprints)
             blueprints = [bp for bp in blueprints if bp.id in selected_ids]
-            LOGGER.info(f"Filtered {before_count} -> {len(blueprints)} blueprints via correlation clusters.")
+            LOGGER.info(
+                f"Filtered {before_count} -> {len(blueprints)} blueprints via correlation clusters."
+            )
 
         # 5. Write Outputs
         out_jsonl = out_dir / "blueprints.jsonl"
@@ -697,7 +718,9 @@ def main() -> int:
             contract,
             stage_name="compile_strategy_blueprints",
         )
-        audit_rows = {str(row.get("candidate_id", "")).strip(): row for row in edge_df.to_dict("records")}
+        audit_rows = {
+            str(row.get("candidate_id", "")).strip(): row for row in edge_df.to_dict("records")
+        }
         _write_strategy_contract_artifacts(
             blueprints=blueprints,
             out_dir=out_dir,

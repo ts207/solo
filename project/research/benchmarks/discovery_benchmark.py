@@ -166,7 +166,9 @@ def _extract_benchmark_metrics(df: pd.DataFrame, out_dir: Path) -> Dict[str, Any
     top10 = df.nsmallest(10, "effective_rank") if "effective_rank" in df.columns else df.head(10)
     top10_count = len(top10)
 
-    flag_col = "promotion_candidate_flag" if "promotion_candidate_flag" in df.columns else "is_discovery"
+    flag_col = (
+        "promotion_candidate_flag" if "promotion_candidate_flag" in df.columns else "is_discovery"
+    )
     promotion_density = float(df[flag_col].fillna(False).mean()) if flag_col in df.columns else 0.0
 
     placebo_fail = 0.0
@@ -278,8 +280,11 @@ def run_benchmark_job(
 ) -> Dict:
     out_dir.mkdir(parents=True, exist_ok=True)
 
-    log.info("run_benchmark_job received search_spec: triggers=%s, events=%s",
-             search_spec.get("triggers"), search_spec.get("events"))
+    log.info(
+        "run_benchmark_job received search_spec: triggers=%s, events=%s",
+        search_spec.get("triggers"),
+        search_spec.get("events"),
+    )
 
     search_spec_with_overlays = _build_search_spec_for_mode(search_spec, mode)
     validation_config = _build_validation_config_for_mode(mode)
@@ -324,6 +329,7 @@ def run_benchmark_job(
             fp = Path(fixture_event_registry)
             if not fp.is_absolute():
                 from project import PROJECT_ROOT
+
                 fp = PROJECT_ROOT.parent / fixture_event_registry
             if fp.exists():
                 fixture_path = str(fp)
@@ -343,13 +349,18 @@ def run_benchmark_job(
 
         candidate_paths = list(out_dir.glob("**/phase2_candidates.parquet"))
         if not candidate_paths:
-            candidate_paths = list((data_root / "reports/phase2" / run_id).glob("**/phase2_candidates.parquet"))
+            candidate_paths = list(
+                (data_root / "reports/phase2" / run_id).glob("**/phase2_candidates.parquet")
+            )
 
         if candidate_paths:
             df = pd.read_parquet(candidate_paths[0])
 
             if mode.ledger_adjustment == "enabled":
-                from project.research.services.candidate_discovery_scoring import apply_ledger_multiplicity_correction
+                from project.research.services.candidate_discovery_scoring import (
+                    apply_ledger_multiplicity_correction,
+                )
+
                 df = apply_ledger_multiplicity_correction(
                     df,
                     data_root=data_root,
@@ -362,6 +373,7 @@ def run_benchmark_job(
                 from project.research.services.candidate_diversification import (
                     annotate_candidates_with_diversification,
                 )
+
                 div_config = search_spec_with_overlays.get("discovery_selection", {})
                 if div_config:
                     df, shortlist_df = annotate_candidates_with_diversification(df, div_config)
@@ -389,7 +401,9 @@ def run_benchmark_job(
     return result
 
 
-def run_benchmark(spec_path: Path = BENCHMARK_SPEC_PATH, modes: Optional[List[DiscoveryBenchmarkMode]] = None):
+def run_benchmark(
+    spec_path: Path = BENCHMARK_SPEC_PATH, modes: Optional[List[DiscoveryBenchmarkMode]] = None
+):
     if not spec_path.exists():
         log.error(f"Benchmark spec not found at {spec_path}")
         return
@@ -443,7 +457,9 @@ def run_benchmark(spec_path: Path = BENCHMARK_SPEC_PATH, modes: Optional[List[Di
             if job_result["status"] in ("success", "success_no_candidates"):
                 candidate_paths = list(run_out_dir.glob("**/phase2_candidates.parquet"))
                 if not candidate_paths:
-                    candidate_paths = list((DATA_ROOT / "reports/phase2" / run_id).glob("**/phase2_candidates.parquet"))
+                    candidate_paths = list(
+                        (DATA_ROOT / "reports/phase2" / run_id).glob("**/phase2_candidates.parquet")
+                    )
                 if candidate_paths:
                     case_results[mode_id] = pd.read_parquet(candidate_paths[0])
 
@@ -452,7 +468,7 @@ def run_benchmark(spec_path: Path = BENCHMARK_SPEC_PATH, modes: Optional[List[Di
             results.append(comparison)
 
     if results:
-        global_summary = summarize_global_benchmark(results, base_out_dir)
+        summarize_global_benchmark(results, base_out_dir)
         log.info(f"Benchmark complete. Summary at {base_out_dir}/benchmark_summary.md")
 
 
@@ -497,15 +513,36 @@ def _median_safe(df: pd.DataFrame, col: str) -> float | None:
 
 def _write_score_decomposition(case_id, merged, out_dir):
     required_cols = [
-        "candidate_id", "comp_key", "A_rank", "B_rank", "C_rank", "D_rank", "E_rank", "F_rank",
-        "rank_delta_A_to_B", "rank_delta_B_to_C", "rank_delta_C_to_D",
-        "rank_delta_D_to_E", "rank_delta_E_to_F",
-        "significance_component", "support_component", "falsification_component",
-        "tradability_component", "novelty_component", "overlap_penalty",
-        "fragility_penalty", "fold_stability_component", "ledger_penalty",
-        "discovery_quality_score", "rank_primary_reason", "demotion_reason_codes",
-        "falsification_reason", "tradability_reason", "overlap_reason",
-        "fold_reason", "ledger_reason"
+        "candidate_id",
+        "comp_key",
+        "A_rank",
+        "B_rank",
+        "C_rank",
+        "D_rank",
+        "E_rank",
+        "F_rank",
+        "rank_delta_A_to_B",
+        "rank_delta_B_to_C",
+        "rank_delta_C_to_D",
+        "rank_delta_D_to_E",
+        "rank_delta_E_to_F",
+        "significance_component",
+        "support_component",
+        "falsification_component",
+        "tradability_component",
+        "novelty_component",
+        "overlap_penalty",
+        "fragility_penalty",
+        "fold_stability_component",
+        "ledger_penalty",
+        "discovery_quality_score",
+        "rank_primary_reason",
+        "demotion_reason_codes",
+        "falsification_reason",
+        "tradability_reason",
+        "overlap_reason",
+        "fold_reason",
+        "ledger_reason",
     ]
 
     for col in required_cols:
@@ -529,8 +566,13 @@ def _write_score_decomposition(case_id, merged, out_dir):
     if "F_rank" in merged.columns:
         merged["rank_delta_E_to_F"] = (merged["E_rank"] - merged["F_rank"]).fillna(0)
 
-    for c in ["rank_delta_A_to_B", "rank_delta_B_to_C", "rank_delta_C_to_D",
-              "rank_delta_D_to_E", "rank_delta_E_to_F"]:
+    for c in [
+        "rank_delta_A_to_B",
+        "rank_delta_B_to_C",
+        "rank_delta_C_to_D",
+        "rank_delta_D_to_E",
+        "rank_delta_E_to_F",
+    ]:
         if c in merged.columns:
             merged[c] = pd.to_numeric(merged[c], errors="coerce").fillna(0)
 
@@ -546,30 +588,42 @@ def _write_score_decomposition(case_id, merged, out_dir):
     md.append("| Key | A Rank | B Rank | Delta | Reason |")
     md.append("| --- | --- | --- | --- | --- |")
     for _, r in pos_movers.iterrows():
-        md.append(f"| {r['comp_key']} | {r['A_rank']} | {r['B_rank']} | {r['rank_delta_A_to_B']} | {r['rank_primary_reason']} |")
+        md.append(
+            f"| {r['comp_key']} | {r['A_rank']} | {r['B_rank']} | {r['rank_delta_A_to_B']} | {r['rank_primary_reason']} |"
+        )
 
     md.append("\n## Biggest Negative Movers")
     neg_movers = merged.nsmallest(10, "rank_delta_A_to_B")
     md.append("| Key | A Rank | B Rank | Delta | Reason |")
     md.append("| --- | --- | --- | --- | --- |")
     for _, r in neg_movers.iterrows():
-        md.append(f"| {r['comp_key']} | {r['A_rank']} | {r['B_rank']} | {r['rank_delta_A_to_B']} | {r['rank_primary_reason']} |")
+        md.append(
+            f"| {r['comp_key']} | {r['A_rank']} | {r['B_rank']} | {r['rank_delta_A_to_B']} | {r['rank_primary_reason']} |"
+        )
 
     md.append("\n## Highest A-to-B Promotions")
-    promoted = merged[merged["rank_delta_A_to_B"] > 5].sort_values("rank_delta_A_to_B", ascending=False).head(10)
+    promoted = (
+        merged[merged["rank_delta_A_to_B"] > 5]
+        .sort_values("rank_delta_A_to_B", ascending=False)
+        .head(10)
+    )
     if promoted.empty:
-         md.append("_No significant promotions detected (>5 slots)_")
+        md.append("_No significant promotions detected (>5 slots)_")
     else:
         for _, r in promoted.iterrows():
-            md.append(f"- **{r['comp_key']}**: Rank {r['A_rank']} -> {r['B_rank']} (+{r['rank_delta_A_to_B']})")
+            md.append(
+                f"- **{r['comp_key']}**: Rank {r['A_rank']} -> {r['B_rank']} (+{r['rank_delta_A_to_B']})"
+            )
 
     md.append("\n## Highest A-to-B Demotions")
     demoted = merged[merged["rank_delta_A_to_B"] < -5].sort_values("rank_delta_A_to_B").head(10)
     if demoted.empty:
-         md.append("_No significant demotions detected (<-5 slots)_")
+        md.append("_No significant demotions detected (<-5 slots)_")
     else:
         for _, r in demoted.iterrows():
-            md.append(f"- **{r['comp_key']}**: Rank {r['A_rank']} -> {r['B_rank']} ({r['rank_delta_A_to_B']})")
+            md.append(
+                f"- **{r['comp_key']}**: Rank {r['A_rank']} -> {r['B_rank']} ({r['rank_delta_A_to_B']})"
+            )
 
     md.append("\n## Support-Driven Survivors")
     survivors = merged[merged["support_component"] > 0.8].sort_values("B_rank").head(5)
@@ -577,7 +631,9 @@ def _write_score_decomposition(case_id, merged, out_dir):
         md.append("_No high-support survivors found_")
     else:
         for _, r in survivors.iterrows():
-            md.append(f"- {r['comp_key']} (Rank {r['B_rank']}, Support Score: {r['support_component']:.2f})")
+            md.append(
+                f"- {r['comp_key']} (Rank {r['B_rank']}, Support Score: {r['support_component']:.2f})"
+            )
 
     md.append("\n## Overlap-Penalized Candidates")
     overlapped = merged[merged["overlap_penalty"] < 1.0].sort_values("overlap_penalty").head(5)
@@ -585,19 +641,34 @@ def _write_score_decomposition(case_id, merged, out_dir):
         md.append("_No overlap-penalized candidates detected_")
     else:
         for _, r in overlapped.iterrows():
-            md.append(f"- {r['comp_key']} (Penalty: {r['overlap_penalty']:.2f}, Reason: {r['overlap_reason']})")
+            md.append(
+                f"- {r['comp_key']} (Penalty: {r['overlap_penalty']:.2f}, Reason: {r['overlap_reason']})"
+            )
 
     md.append("\n## Fold-Instability Demotions")
-    unstable = merged[merged["fold_stability_component"] < 0.5].sort_values("fold_stability_component").head(5)
+    unstable = (
+        merged[merged["fold_stability_component"] < 0.5]
+        .sort_values("fold_stability_component")
+        .head(5)
+    )
     if unstable.empty:
         md.append("_No fold-instability demotions detected_")
     else:
         for _, r in unstable.iterrows():
-            md.append(f"- {r['comp_key']} (Score: {r['fold_stability_component']:.2f}, Reason: {r['fold_reason']})" )
+            md.append(
+                f"- {r['comp_key']} (Score: {r['fold_stability_component']:.2f}, Reason: {r['fold_reason']})"
+            )
 
     if "demotion_reason_codes" in merged.columns:
         md.append("\n## Most Common Penalty Types")
-        codes = merged["demotion_reason_codes"].astype(str).str.split("|").explode().str.strip().value_counts()
+        codes = (
+            merged["demotion_reason_codes"]
+            .astype(str)
+            .str.split("|")
+            .explode()
+            .str.strip()
+            .value_counts()
+        )
         md.append("| Penalty Code | Count |")
         md.append("| --- | --- |")
         for code, count in codes.items():
@@ -613,7 +684,9 @@ def summarize_case_comparison(case_id, case_results, out_dir):
 
     def add_key(df, mode_id: str):
         if df is None or df.empty:
-            return pd.DataFrame(columns=["comp_key", "effective_rank", "t_stat", "discovery_quality_score"])
+            return pd.DataFrame(
+                columns=["comp_key", "effective_rank", "t_stat", "discovery_quality_score"]
+            )
         df = df.copy()
 
         df["comp_key"] = df.apply(_candidate_comparison_key, axis=1)
@@ -622,23 +695,37 @@ def summarize_case_comparison(case_id, case_results, out_dir):
             df["A_rank"] = df["t_stat"].abs().rank(ascending=False, method="first")
             df["effective_rank"] = df["A_rank"]
         elif mode_id == "B":
-            score_col = "discovery_quality_score" if "discovery_quality_score" in df.columns else "t_stat"
+            score_col = (
+                "discovery_quality_score" if "discovery_quality_score" in df.columns else "t_stat"
+            )
             df["B_rank"] = df[score_col].rank(ascending=False, method="first")
             df["effective_rank"] = df["B_rank"]
         elif mode_id == "C":
-            score_col = "discovery_quality_score" if "discovery_quality_score" in df.columns else "t_stat"
+            score_col = (
+                "discovery_quality_score" if "discovery_quality_score" in df.columns else "t_stat"
+            )
             df["C_rank"] = df[score_col].rank(ascending=False, method="first")
             df["effective_rank"] = df["C_rank"]
         elif mode_id == "D":
-            score_col = "discovery_quality_score" if "discovery_quality_score" in df.columns else "t_stat"
+            score_col = (
+                "discovery_quality_score" if "discovery_quality_score" in df.columns else "t_stat"
+            )
             df["D_rank"] = df[score_col].rank(ascending=False, method="first")
             df["effective_rank"] = df["D_rank"]
         elif mode_id == "E":
-            score_col = "discovery_quality_score_v3" if "discovery_quality_score_v3" in df.columns else "discovery_quality_score"
+            score_col = (
+                "discovery_quality_score_v3"
+                if "discovery_quality_score_v3" in df.columns
+                else "discovery_quality_score"
+            )
             df["E_rank"] = df[score_col].rank(ascending=False, method="first")
             df["effective_rank"] = df["E_rank"]
         elif mode_id == "F":
-            score_col = "discovery_quality_score_v3" if "discovery_quality_score_v3" in df.columns else "discovery_quality_score"
+            score_col = (
+                "discovery_quality_score_v3"
+                if "discovery_quality_score_v3" in df.columns
+                else "discovery_quality_score"
+            )
             df["F_rank"] = df[score_col].rank(ascending=False, method="first")
             df["effective_rank"] = df["F_rank"]
 
@@ -685,10 +772,18 @@ def summarize_case_comparison(case_id, case_results, out_dir):
                 "promotion_density": _promotion_density(top),
                 "median_after_cost_expectancy_bps": _median_safe(top, "estimate_bps"),
                 "median_cost_survival_ratio": _median_safe(top, "cost_survival_ratio"),
-                "placebo_fail_rate": (top["falsification_component"] < 0.5).mean() if "falsification_component" in top.columns else 0.0,
-                "overlap_concentration": (top["overlap_penalty"] < 1.0).mean() if "overlap_penalty" in top.columns else 0.0,
-                "unique_event_families": top["family_id"].nunique() if "family_id" in top.columns else 0,
-                "unique_template_families": top["template_id"].nunique() if "template_id" in top.columns else 0,
+                "placebo_fail_rate": (top["falsification_component"] < 0.5).mean()
+                if "falsification_component" in top.columns
+                else 0.0,
+                "overlap_concentration": (top["overlap_penalty"] < 1.0).mean()
+                if "overlap_penalty" in top.columns
+                else 0.0,
+                "unique_event_families": top["family_id"].nunique()
+                if "family_id" in top.columns
+                else 0,
+                "unique_template_families": top["template_id"].nunique()
+                if "template_id" in top.columns
+                else 0,
                 "median_fold_stability": _median_safe(top, "fold_stability_component"),
                 "rank_diversity_score": top["comp_key"].nunique() / n if n > 0 else 0.0,
             }
@@ -724,7 +819,9 @@ def summarize_global_benchmark(results, out_dir):
     md = [f"# Discovery Benchmark Summary: {out_dir.name}\n"]
 
     md.append("## Case Results")
-    header = "| Case | " + " | ".join(f"{m} Count" for m in mode_ids) + " | Top-10 Overlap (A vs B) |"
+    header = (
+        "| Case | " + " | ".join(f"{m} Count" for m in mode_ids) + " | Top-10 Overlap (A vs B) |"
+    )
     md.append(header)
     md.append("| --- | " + " | ".join("---" for _ in mode_ids) + " | --- |")
     for r in results:
@@ -738,7 +835,9 @@ def summarize_global_benchmark(results, out_dir):
         for m in mode_ids:
             if m in r and r[m]:
                 dense = [r[m][f"top{n}"]["promotion_density"] for n in [10, 20, 50]]
-                md.append(f"| {r['case_id']} | {m} | {dense[0]:.2f} | {dense[1]:.2f} | {dense[2]:.2f} |")
+                md.append(
+                    f"| {r['case_id']} | {m} | {dense[0]:.2f} | {dense[1]:.2f} | {dense[2]:.2f} |"
+                )
 
     md.append("\n## Tradability by Rank Bucket")
     md.append("| Case | Mode | Top-10 Median (bps) | Top-50 Median (bps) |")
@@ -800,9 +899,9 @@ def summarize_global_benchmark(results, out_dir):
             "placebo_fail_rate",
             "overlap_concentration",
             "tradability_metrics",
-            "diversity_metrics"
+            "diversity_metrics",
         ],
-        "summary_conclusion": "Stabilization pass baseline established. V2 defaults verified as decision-grade."
+        "summary_conclusion": "Stabilization pass baseline established. V2 defaults verified as decision-grade.",
     }
     with open(out_dir / "benchmark_summary.json", "w") as f:
         json.dump(summary_json, f, indent=2)

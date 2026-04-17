@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import logging
 import multiprocessing
-from typing import List, Optional, Sequence, Tuple
+from typing import Any, List, Optional, Sequence, Tuple
 
 import pandas as pd
 
@@ -144,7 +144,9 @@ def _slice_chunk_features(chunk: Sequence[HypothesisSpec], features: pd.DataFram
     return features[valid_cols] if valid_cols else features
 
 
-def _evaluate_chunk(args: Tuple[Sequence[HypothesisSpec], pd.DataFrame, int, bool, Optional[List[Any]]]) -> pd.DataFrame:
+def _evaluate_chunk(
+    args: Tuple[Sequence[HypothesisSpec], pd.DataFrame, int, bool, Optional[List[Any]]],
+) -> pd.DataFrame:
     """Worker function: unpack and evaluate a chunk of hypotheses."""
     chunk, features, min_sample_size, use_context_quality, folds = args
     if features.empty:
@@ -211,7 +213,9 @@ def run_distributed_search(
                 args_list = []
                 for chunk in chunks:
                     chunk_features = _slice_chunk_features(chunk, features)
-                    args_list.append((chunk, chunk_features, min_sample_size, use_context_quality, folds))
+                    args_list.append(
+                        (chunk, chunk_features, min_sample_size, use_context_quality, folds)
+                    )
 
                 parts = pool.map(_evaluate_chunk, args_list)
         except Exception as exc:
@@ -255,7 +259,7 @@ def run_distributed_search(
     combined = pd.concat(normalized_parts, ignore_index=True)
     if combined_folds:
         combined.attrs["fold_breakdown"] = pd.concat(combined_folds, ignore_index=True)
-        
+
     if "hypothesis_id" in combined.columns:
         combined = combined.drop_duplicates(subset=["hypothesis_id"]).reset_index(drop=True)
     return combined

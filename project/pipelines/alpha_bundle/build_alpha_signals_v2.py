@@ -11,135 +11,21 @@ from typing import Dict, List, Optional, Tuple
 
 import numpy as np
 import pandas as pd
-from project import PROJECT_ROOT
 from project.io.utils import ensure_dir, list_parquet_files, read_parquet, write_parquet
 from project.specs.manifest import finalize_manifest, start_manifest
 from project.core.validation import ensure_utc_timestamp
 
 
 def robust_z(series: pd.Series, window: int, eps: float = 1e-12) -> pd.Series:
-    # Winsorize to 1%/99% then MAD-z over rolling window ending at t (PIT).
-    def _rz(x: np.ndarray) -> float:
-        x = x.copy()
-        lo, hi = np.quantile(x, 0.01), np.quantile(x, 0.99)
-        x = np.clip(x, lo, hi)
-        med = np.median(x)
-        mad = np.median(np.abs(x - med))
-        # The rolled window already excludes t because we shift below.
-        # But we need the value at t to compute z-score.
-        # Actually, if we shift(1), rolling window at t contains [t-window, t-1].
-        # We need to compare series[t] against this window.
-        # The rolling().apply() usually just returns a scalar derived from the window.
-        # To get (val - median) / mad, we need the current value.
-        # Since standard pandas rolling apply doesn't give access to the "next" value easily
-        # without including it in the window, we will compute rolling stats on shifted series
-        # and then use vectorized arithmetic.
-        return 0.0 # Unused in vectorized approach
-
-    # Vectorized approach to avoid slow apply and fix lookahead
-    # 1. Shift series to get prior window
-    prior = series.shift(1)
-    
-    # 2. Compute rolling median and MAD on prior window
-    # Winsorization is hard to vectorize perfectly on rolling window without apply,
-    # but for speed and correctness we can skip winsorization or use a simpler robust z.
-    # Given the constraint of the prompt to fix self-contamination, let's use the rolling functions.
-    
-    roll = prior.rolling(window=window, min_periods=window)
-    med = roll.median()
-    # MAD = median(|x - median(x)|). Hard to do exactly with standard rolling functions efficiently.
-    # We can approximate or use the apply on shifted series.
-    # Let's use apply on shifted series to get the stats, then compute z-score.
-    
-    def _get_stats(x: np.ndarray) -> Tuple[float, float]:
-        x = x.copy()
-        # Winsorize
-        lo, hi = np.quantile(x, 0.01), np.quantile(x, 0.99)
-        x = np.clip(x, lo, hi)
-        med = np.median(x)
-        mad = np.median(np.abs(x - med))
-        return med, mad
-
-    # Use apply to get params (slow but correct logic as per request)
-    # We return a dummy value from apply? No, we can return a Series of tuples? No.
-    # Let's stick to the apply approach but shift the series first.
-    # Wait, rolling().apply() produces one value.
-    # If we use rolling apply on shifted series, we get statistics at time t based on [t-w, t-1].
-    # But we can't get both median and mad in one pass easily.
-    # Let's rewrite to use a custom class or just accept 2 passes or simpler logic.
-    # "The fix requires computing stats on [t-window, t-1] (shift the series by 1 before the rolling apply)"
-    # But apply only returns one float.
-    
-    # Let's revert to the original logic but shift the input to rolling,
-    # AND pass the *current* series value via closure or alignment? No.
-    
-    # Best fix: calculate median and mad on shifted series.
-    # Since we need Winsorized MAD, we might have to use apply.
-    # To avoid double calculation, we can compute the z-score inside the apply if we include the current value?
-    # No, that was the bug (self-contamination).
-    
-    # Correct pattern:
-    # stats = series.shift(1).rolling(...).apply(get_stats)
-    # z = (series - stats.med) / stats.mad
-    
-    # Since we can't easily return a struct from apply, we'll do it purely with simple rolling median
-    # and assume the "Winsorized MAD" requirement can be relaxed or is secondary to the critical bug.
-    # OR, we keep the loop.
-    
-    # Let's try to preserve the exact logic:
-    # Z = (X_t - Median_{t-1}) / MAD_{t-1}
-    
-    shifted = series.shift(1)
-    
     def _winsorized_median_mad(x: np.ndarray) -> float:
-        # We pack median and mad into a float? No.
-        # Let's just implement the fix by computing rolling median and rolling MAD separately?
-        # That's expensive (2x apply).
-        
-        # Let's use a simpler robust Z if acceptable, or just pay the cost.
-        # Given this is "critical", correctness > speed.
-        x = x.copy()
-        lo, hi = np.quantile(x, 0.01), np.quantile(x, 0.99)
-        x = np.clip(x, lo, hi)
-        med = np.median(x)
-        mad = np.median(np.abs(x - med))
-        # Pack into a single float? e.g. int(med*10000) + mad? No.
-        # We'll just run it twice or use a generator?
-        
-        # Let's stick to the prompt's suggestion: "shift the series by 1 before the rolling apply".
-        # But we need (X_t - Med) / Mad.
-        # If we run apply on Shifted, we get stats.
-        # We can't access X_t inside the apply of Shifted (it sees X_{t-1}).
-        
-        # Okay, we will use the existing function but change how it's called.
-        # We can pass the UNshifted series, but inside the function, ignore the last value for stats?
-        # def _rz(x):
-        #    target = x[-1]
-        #    history = x[:-1] # This is the window [t-w+1, t-1]
-        #    ... stats on history ...
-        #    return (target - med) / mad
-        
-        # This works if window size is W+1?
-        # If we ask for window=W+1, and take stats on x[:-1], we use W samples (correct).
-        # And x[-1] is the target.
-        # This seems the most robust way to keep the signature.
-        
         target = x[-1]
         history = x[:-1]
-        
-        # We need to handle the case where history is empty or too small?
-        # min_periods handles that.
-        
-        # Winsorize history
         lo, hi = np.quantile(history, 0.01), np.quantile(history, 0.99)
         history_c = np.clip(history, lo, hi)
         med = np.median(history_c)
         mad = np.median(np.abs(history_c - med))
         return float((target - med) / (1.4826 * mad + eps))
 
-    # We increase window by 1 to include the target + history.
-    # _winsorized_median_mad uses x[-1] as the current value and x[:-1] as the
-    # lookback window, giving a PIT-correct MAD z-score with no self-contamination.
     return series.rolling(window=window + 1, min_periods=window + 1).apply(
         _winsorized_median_mad, raw=True
     )
@@ -190,7 +76,6 @@ def main() -> int:
     args = p.parse_args()
 
     run_id = args.run_id
-    project_root = PROJECT_ROOT
     data_root = get_data_root()
     out_dir = Path(args.out_dir) if args.out_dir else data_root / "feature_store" / "signals"
     ensure_dir(out_dir)

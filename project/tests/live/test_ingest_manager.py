@@ -30,7 +30,7 @@ def test_stream_and_health_keys(monkeypatch) -> None:
         "btcusdt@kline_1m",
         "btcusdt@kline_5m",
         "btcusdt@bookTicker",
-        "btcusdt@forceOrder",   # liquidation stream for LIQUIDATION_CASCADE detection
+        "btcusdt@forceOrder",  # liquidation stream for LIQUIDATION_CASCADE detection
         "ethusdt@kline_1m",
         "ethusdt@kline_5m",
         "ethusdt@bookTicker",
@@ -44,7 +44,6 @@ def test_stream_and_health_keys(monkeypatch) -> None:
         ("ETHUSDT", "kline:5m"),
         ("ETHUSDT", "ticker"),
     ]
-
 
 
 def test_backfill_drops_oldest_when_queue_is_full(monkeypatch) -> None:
@@ -62,7 +61,7 @@ def test_backfill_drops_oldest_when_queue_is_full(monkeypatch) -> None:
     asyncio.run(ld.backfill())
     assert ld.kline_queue.qsize() == 1
     item = ld.kline_queue.get_nowait()
-    assert item["close"] == 20.5
+    assert item.close == 20.5
 
 
 def test_backfill_drop_preserves_queue_task_accounting(monkeypatch) -> None:

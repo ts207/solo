@@ -1,11 +1,13 @@
 # Edge
 
-Edge is a Python 3.11+ trading research and runtime repository organized around a four-stage lifecycle:
+Edge is a Python 3.11+ trading research and runtime repository organized around a four-stage lifecycle: **discover → validate → promote → deploy**.
 
 1. **Discover** — translate a structured proposal into a bounded experiment plan and run the research pipeline.
 2. **Validate** — convert discovery outputs into validation bundles, rejection diagnostics, and promotion-ready tables.
 3. **Promote** — package validated candidates into promoted theses and blueprint artifacts.
 4. **Deploy** — run paper or live monitoring/trading against exported promoted theses.
+
+Canonical model terms: **Anchor** (trigger specification), **Filter** (conditioning predicate), **Thesis** (promoted deployable unit).
 
 This docset was rewritten from the current repository state, not from the previous markdown set. The repo currently contains:
 

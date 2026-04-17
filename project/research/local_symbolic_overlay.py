@@ -42,7 +42,6 @@ def train_local_symbolic_filter(
     quantiles = np.linspace(0.1, 0.9, max_grid_points)
     candidate_thetas = feature_series.quantile(quantiles).unique()
 
-    best_train_theta = None
     best_train_score = -np.inf
 
     top_k_thetas = []
@@ -59,7 +58,6 @@ def train_local_symbolic_filter(
         score = labels_train[mask].mean()
         if score > best_train_score:
             best_train_score = score
-            best_train_theta = theta
 
         top_k_thetas.append((theta, score))
 

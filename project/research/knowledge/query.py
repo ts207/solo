@@ -75,7 +75,8 @@ def query_static_rows(
             filtered = filtered.head(0)
         else:
             filtered = filtered[
-                (filtered["entity_type"] == "feature") & (filtered["name"].astype(str) == str(feature))
+                (filtered["entity_type"] == "feature")
+                & (filtered["name"].astype(str) == str(feature))
             ]
     else:
         filtered = filtered.head(limit)
@@ -208,7 +209,6 @@ def query_dynamic_weights(
 ) -> Dict[str, Any]:
     """Query dynamic quality weights computed from campaign promotion history."""
     resolved_data_root = Path(data_root) if data_root is not None else get_data_root()
-    memory_files = memory_paths(program_id, data_root=resolved_data_root)
 
     tested_regions = read_memory_table(
         program_id,

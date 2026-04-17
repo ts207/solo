@@ -100,12 +100,15 @@ def _coerce_sparse_evidence_bundle(bundle: Dict[str, Any]) -> Dict[str, Any]:
     """
     normalized = _json_safe(dict(bundle))
 
-    event_type = str(normalized.get("event_type") or normalized.get("primary_event_id") or "").strip()
+    event_type = str(
+        normalized.get("event_type") or normalized.get("primary_event_id") or ""
+    ).strip()
     lineage = dict(normalized.get("lineage") or {})
     normalized.setdefault("primary_event_id", event_type)
     normalized.setdefault(
         "run_id",
-        str(normalized.get("run_id") or lineage.get("run_id") or "__adhoc__").strip() or "__adhoc__",
+        str(normalized.get("run_id") or lineage.get("run_id") or "__adhoc__").strip()
+        or "__adhoc__",
     )
 
     sample = dict(normalized.get("sample_definition") or {})
@@ -153,20 +156,34 @@ def _coerce_sparse_evidence_bundle(bundle: Dict[str, Any]) -> Dict[str, Any]:
 
     stability = dict(normalized.get("stability_tests") or {})
     stability.setdefault("stability_score", safe_float(stability.get("stability_score", 0.0), 0.0))
-    stability.setdefault("sign_consistency", safe_float(stability.get("sign_consistency", 0.0), 0.0))
+    stability.setdefault(
+        "sign_consistency", safe_float(stability.get("sign_consistency", 0.0), 0.0)
+    )
     normalized["stability_tests"] = stability
 
     falsification = dict(normalized.get("falsification_results") or {})
-    falsification.setdefault("negative_control_pass", bool(as_bool(falsification.get("negative_control_pass", False))))
-    falsification.setdefault("passes_control", bool(as_bool(falsification.get("passes_control", False))))
-    falsification.setdefault("shift_placebo_pass", bool(as_bool(falsification.get("passes_control", False))))
-    falsification.setdefault("random_placebo_pass", bool(as_bool(falsification.get("passes_control", False))))
-    falsification.setdefault("direction_reversal_pass", bool(as_bool(falsification.get("passes_control", False))))
+    falsification.setdefault(
+        "negative_control_pass", bool(as_bool(falsification.get("negative_control_pass", False)))
+    )
+    falsification.setdefault(
+        "passes_control", bool(as_bool(falsification.get("passes_control", False)))
+    )
+    falsification.setdefault(
+        "shift_placebo_pass", bool(as_bool(falsification.get("passes_control", False)))
+    )
+    falsification.setdefault(
+        "random_placebo_pass", bool(as_bool(falsification.get("passes_control", False)))
+    )
+    falsification.setdefault(
+        "direction_reversal_pass", bool(as_bool(falsification.get("passes_control", False)))
+    )
     normalized["falsification_results"] = falsification
 
     cost = dict(normalized.get("cost_robustness") or {})
     tob_coverage = safe_float(cost.get("tob_coverage", np.nan), np.nan)
-    micro_pass = bool(as_bool(cost.get("microstructure_pass", cost.get("tob_coverage_pass", False))))
+    micro_pass = bool(
+        as_bool(cost.get("microstructure_pass", cost.get("tob_coverage_pass", False)))
+    )
     normalized["cost_robustness"] = {
         "cost_survival_ratio": safe_float(cost.get("cost_survival_ratio", np.nan), np.nan),
         "net_expectancy_bps": safe_float(cost.get("net_expectancy_bps", estimate_bps), np.nan),
@@ -196,13 +213,19 @@ def _coerce_sparse_evidence_bundle(bundle: Dict[str, Any]) -> Dict[str, Any]:
         "multiplicity_scope_mode": str(mult.get("multiplicity_scope_mode", "") or ""),
         "multiplicity_scope_key": str(mult.get("multiplicity_scope_key", "") or ""),
         "multiplicity_scope_version": str(mult.get("multiplicity_scope_version", "") or ""),
-        "multiplicity_scope_degraded": bool(as_bool(mult.get("multiplicity_scope_degraded", False))),
+        "multiplicity_scope_degraded": bool(
+            as_bool(mult.get("multiplicity_scope_degraded", False))
+        ),
     }
 
     metadata = dict(normalized.get("metadata") or {})
     metadata.setdefault("tob_coverage", tob_coverage)
-    metadata.setdefault("repeated_fold_consistency", safe_float(stability.get("sign_consistency", 0.0), 0.0))
-    metadata.setdefault("structural_robustness_score", safe_float(stability.get("stability_score", 0.0), 0.0))
+    metadata.setdefault(
+        "repeated_fold_consistency", safe_float(stability.get("sign_consistency", 0.0), 0.0)
+    )
+    metadata.setdefault(
+        "structural_robustness_score", safe_float(stability.get("stability_score", 0.0), 0.0)
+    )
     normalized["metadata"] = metadata
 
     promotion_decision = dict(normalized.get("promotion_decision") or {})
@@ -232,7 +255,9 @@ def _optional_bool_gate(row: Dict[str, Any], *keys: str) -> bool | None:
     return bool(as_bool(value))
 
 
-def _set_optional_extra_bool(target: BaseModel, row: Dict[str, Any], key: str, *aliases: str) -> None:
+def _set_optional_extra_bool(
+    target: BaseModel, row: Dict[str, Any], key: str, *aliases: str
+) -> None:
     """Set an optional boolean extra field on a Pydantic model.
 
     For models with extra="allow", this sets arbitrary boolean gates
@@ -405,7 +430,9 @@ def build_evidence_bundle(
             "multiplicity_scope_mode": str(row.get("multiplicity_scope_mode", "")),
             "multiplicity_scope_key": str(row.get("multiplicity_scope_key", "")),
             "multiplicity_scope_version": str(row.get("multiplicity_scope_version", "")),
-            "multiplicity_scope_degraded": bool(as_bool(row.get("multiplicity_scope_degraded", False))),
+            "multiplicity_scope_degraded": bool(
+                as_bool(row.get("multiplicity_scope_degraded", False))
+            ),
         },
         metadata={
             "hypothesis_id": str(row.get("hypothesis_id", "")).strip(),
@@ -415,9 +442,13 @@ def build_evidence_bundle(
             "event_is_trade_trigger": bool(as_bool(row.get("event_is_trade_trigger", True))),
             "event_contract_tier": str(row.get("event_contract_tier", "")).strip(),
             "event_operational_role": str(row.get("event_operational_role", "")).strip(),
-            "event_deployment_disposition": str(row.get("event_deployment_disposition", "")).strip(),
+            "event_deployment_disposition": str(
+                row.get("event_deployment_disposition", "")
+            ).strip(),
             "event_runtime_category": str(row.get("event_runtime_category", "")).strip(),
-            "event_requires_stronger_evidence": bool(as_bool(row.get("event_requires_stronger_evidence", False))),
+            "event_requires_stronger_evidence": bool(
+                as_bool(row.get("event_requires_stronger_evidence", False))
+            ),
             "is_reduced_evidence": bool(as_bool(row.get("is_reduced_evidence", False))),
             "bridge_certified": bool(as_bool(row.get("bridge_certified", False))),
             "has_realized_oos_path": bool(has_realized_oos_path),
@@ -433,7 +464,6 @@ def build_evidence_bundle(
             if _bool_gate_value(row, "gate_promo_tob_coverage", tob_gate_default)
             else "fallback_only",
         },
-
         policy_version=policy_version,
         bundle_version=bundle_version,
     )
@@ -477,29 +507,34 @@ def build_evidence_bundle(
         bundle.metadata.gate_structural_break = gate_structural_break
     else:
         _clear_optional_extra(bundle.metadata, "gate_structural_break")
-    
+
     # Workstream B: Add search burden to bundle
     bundle.search_burden = SearchBurden(
         search_proposals_attempted=safe_int(row.get("search_proposals_attempted", 0), 0),
         search_candidates_generated=safe_int(row.get("search_candidates_generated", 0), 0),
         search_candidates_scored=safe_int(row.get("search_candidates_scored", 0), 0),
         search_candidates_eligible=safe_int(row.get("search_candidates_eligible", 0), 0),
-        search_parameterizations_attempted=safe_int(row.get("search_parameterizations_attempted", 0), 0),
+        search_parameterizations_attempted=safe_int(
+            row.get("search_parameterizations_attempted", 0), 0
+        ),
         search_mutations_attempted=safe_int(row.get("search_mutations_attempted", 0), 0),
         search_directions_tested=safe_int(row.get("search_directions_tested", 0), 0),
         search_confirmations_attempted=safe_int(row.get("search_confirmations_attempted", 0), 0),
-        search_trigger_variants_attempted=safe_int(row.get("search_trigger_variants_attempted", 0), 0),
+        search_trigger_variants_attempted=safe_int(
+            row.get("search_trigger_variants_attempted", 0), 0
+        ),
         search_family_count=safe_int(row.get("search_family_count", 0), 0),
         search_lineage_count=safe_int(row.get("search_lineage_count", 0), 0),
         search_scope_version=str(row.get("search_scope_version", "phase1_v1")),
         search_burden_estimated=bool(as_bool(row.get("search_burden_estimated", False))),
     )
-    
+
     return bundle.to_dict()
 
 
 def validate_evidence_bundle(bundle: Dict[str, Any]) -> None:
     from project.research.validation.schemas import EvidenceBundle as _EvidenceBundle
+
     try:
         _EvidenceBundle.model_validate(_coerce_sparse_evidence_bundle(bundle))
     except Exception as exc:
@@ -537,7 +572,7 @@ def evaluate_promotion_bundle(bundle: Dict[str, Any], policy: PromotionPolicy) -
     )
     q_value_by = safe_float(uncertainty.get("q_value_by", np.nan), np.nan)
     q_value_cluster = safe_float(uncertainty.get("q_value_cluster", np.nan), np.nan)
-    
+
     values_for_effective_q = [
         v
         for v in [q_value, q_value_program, q_value_scope, upstream_effective_q_value]
@@ -548,11 +583,14 @@ def evaluate_promotion_bundle(bundle: Dict[str, Any], policy: PromotionPolicy) -
     else:
         effective_q_value = q_value
     effective_q_value_for_check = (
-        effective_q_value if bool(policy.use_effective_q_value)
+        effective_q_value
+        if bool(policy.use_effective_q_value)
         else (q_value if np.isfinite(q_value) else effective_q_value)
     )
     multiplicity_adjustment = bundle.get("multiplicity_adjustment", {}) or {}
-    scope_degraded = bool(as_bool(multiplicity_adjustment.get("multiplicity_scope_degraded", False)))
+    scope_degraded = bool(
+        as_bool(multiplicity_adjustment.get("multiplicity_scope_degraded", False))
+    )
     scope_metadata_present = any(
         [
             np.isfinite(q_value_scope),
@@ -574,11 +612,10 @@ def evaluate_promotion_bundle(bundle: Dict[str, Any], policy: PromotionPolicy) -
         )
     )
     placebo_controls_pass = bool(as_bool(meta.get("gate_promo_placebo_controls", False)))
-    falsification_pass = bool(
-        as_bool(meta.get("gate_promo_falsification", falsification.get("passes_control", False)))
-    )
     if "gate_promo_falsification" not in meta:
-        falsification_pass = bool(placebo_controls_pass and negative_control_pass)
+        falsification.setdefault(
+            "passes_control", bool(placebo_controls_pass and negative_control_pass)
+        )
 
     gate_results = {}
 
@@ -612,20 +649,10 @@ def evaluate_promotion_bundle(bundle: Dict[str, Any], policy: PromotionPolicy) -
             if (
                 (not policy.require_scope_level_multiplicity)
                 or (not scope_metadata_present)
-                or (
-                    np.isfinite(q_value_scope)
-                    and q_value_scope <= float(policy.max_q_value)
-                )
-                or (
-                    scope_degraded
-                    and bool(policy.allow_multiplicity_scope_degraded)
-                )
+                or (np.isfinite(q_value_scope) and q_value_scope <= float(policy.max_q_value))
+                or (scope_degraded and bool(policy.allow_multiplicity_scope_degraded))
             )
-            else (
-                "fail"
-                if scope_metadata_present
-                else "missing_evidence"
-            )
+            else ("fail" if scope_metadata_present else "missing_evidence")
         ),
         "multiplicity_diagnostics": (
             "pass"
@@ -853,13 +880,23 @@ def bundle_to_flat_record(bundle: Dict[str, Any]) -> Dict[str, Any]:
         "rejection_reasons": "|".join(map(str, decision.get("rejection_reasons", []))),
         "policy_version": bundle.get("policy_version", ""),
         "bundle_version": bundle.get("bundle_version", ""),
-        "search_proposals_attempted": safe_int(search_burden.get("search_proposals_attempted", 0), 0),
-        "search_candidates_generated": safe_int(search_burden.get("search_candidates_generated", 0), 0),
-        "search_candidates_eligible": safe_int(search_burden.get("search_candidates_eligible", 0), 0),
-        "search_mutations_attempted": safe_int(search_burden.get("search_mutations_attempted", 0), 0),
+        "search_proposals_attempted": safe_int(
+            search_burden.get("search_proposals_attempted", 0), 0
+        ),
+        "search_candidates_generated": safe_int(
+            search_burden.get("search_candidates_generated", 0), 0
+        ),
+        "search_candidates_eligible": safe_int(
+            search_burden.get("search_candidates_eligible", 0), 0
+        ),
+        "search_mutations_attempted": safe_int(
+            search_burden.get("search_mutations_attempted", 0), 0
+        ),
         "search_family_count": safe_int(search_burden.get("search_family_count", 0), 0),
         "search_lineage_count": safe_int(search_burden.get("search_lineage_count", 0), 0),
-        "search_burden_estimated": bool(as_bool(search_burden.get("search_burden_estimated", False))),
+        "search_burden_estimated": bool(
+            as_bool(search_burden.get("search_burden_estimated", False))
+        ),
         "search_scope_version": str(search_burden.get("search_scope_version", "phase1_v1")),
     }
 

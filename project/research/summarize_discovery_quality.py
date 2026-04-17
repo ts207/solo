@@ -14,8 +14,8 @@ import pandas as pd
 from project.io.utils import read_parquet
 from project.specs.manifest import finalize_manifest, start_manifest
 
+
 def _utc_now_iso() -> str:
-    DATA_ROOT = get_data_root()
     return datetime.now(timezone.utc).isoformat()
 
 
@@ -252,10 +252,16 @@ def _build_summary_from_flat_phase2_layout(
 
     primary_event_ids = sorted(by_primary_event_id.keys())
     total_candidates = int(
-        sum(int(by_primary_event_id[event_id].get("total_candidates", 0)) for event_id in primary_event_ids)
+        sum(
+            int(by_primary_event_id[event_id].get("total_candidates", 0))
+            for event_id in primary_event_ids
+        )
     )
     gate_pass_count = int(
-        sum(int(by_primary_event_id[event_id].get("gate_pass_count", 0)) for event_id in primary_event_ids)
+        sum(
+            int(by_primary_event_id[event_id].get("gate_pass_count", 0))
+            for event_id in primary_event_ids
+        )
     )
 
     return {

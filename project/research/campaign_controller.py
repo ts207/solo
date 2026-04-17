@@ -290,7 +290,6 @@ class CampaignController:
         status: str,
         returncode: int,
     ) -> None:
-        paths = memory_paths(self.config.program_id, data_root=self.data_root)
         payload = yaml.safe_load(config_path.read_text(encoding="utf-8")) or {}
         instrument_scope = payload.get("instrument_scope", {}) if isinstance(payload, dict) else {}
         promotion = payload.get("promotion", {}) if isinstance(payload, dict) else {}

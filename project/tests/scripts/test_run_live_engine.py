@@ -32,6 +32,7 @@ def test_build_live_runner_uses_snapshot_path_and_config_defaults(tmp_path: Path
             self,
             symbols,
             *,
+            exchange,
             snapshot_path,
             microstructure_recovery_streak,
             account_sync_interval_seconds,
@@ -58,7 +59,8 @@ def test_build_live_runner_uses_snapshot_path_and_config_defaults(tmp_path: Path
                 "stale_threshold_sec": float(stale_threshold_sec),
                 "runtime_mode": str(runtime_mode),
                 "strategy_runtime_implemented": bool(
-                    isinstance(strategy_runtime, dict) and strategy_runtime.get("implemented", False)
+                    isinstance(strategy_runtime, dict)
+                    and strategy_runtime.get("implemented", False)
                 ),
             }
             self.order_manager = order_manager
@@ -135,7 +137,9 @@ def test_validate_live_runtime_environment_accepts_paper_contract() -> None:
     assert out["venue"] == "binance"
 
 
-def test_validate_live_runtime_environment_accepts_monitor_only_without_trading_credentials() -> None:
+def test_validate_live_runtime_environment_accepts_monitor_only_without_trading_credentials() -> (
+    None
+):
     out = run_live_engine.validate_live_runtime_environment(
         config_path=Path("project/configs/live_paper.yaml"),
         environ={
@@ -389,7 +393,9 @@ def test_run_live_engine_start_validates_runtime_environment_before_start(
             }
         ),
     )
-    monkeypatch.setattr(run_live_engine, "validate_binance_account_preflight", lambda payload: payload)
+    monkeypatch.setattr(
+        run_live_engine, "validate_binance_account_preflight", lambda payload: payload
+    )
     monkeypatch.setattr(
         run_live_engine,
         "fetch_binance_futures_account_snapshot",
@@ -711,7 +717,9 @@ def test_run_live_engine_start_hydrates_initial_account_snapshot_before_start(
             }
         ),
     )
-    monkeypatch.setattr(run_live_engine, "validate_binance_account_preflight", lambda payload: payload)
+    monkeypatch.setattr(
+        run_live_engine, "validate_binance_account_preflight", lambda payload: payload
+    )
     monkeypatch.setattr(
         run_live_engine,
         "fetch_binance_futures_account_snapshot",

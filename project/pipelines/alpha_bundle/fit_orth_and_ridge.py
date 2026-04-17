@@ -11,7 +11,6 @@ from typing import Dict, List, Optional, Tuple
 
 import numpy as np
 import pandas as pd
-from project import PROJECT_ROOT
 from project.io.utils import ensure_dir, list_parquet_files, read_parquet, write_parquet
 from project.specs.manifest import finalize_manifest, start_manifest
 from project.core.validation import ensure_utc_timestamp
@@ -33,20 +32,20 @@ def sequential_residualize(Xz: np.ndarray) -> tuple[np.ndarray, list[list[float]
     for j in range(1, k):
         Xprev = Xo[:, :j]
         y = Xo[:, j]
-        
+
         # Guard against collinearity
         # If Xprev is ill-conditioned, OLS is unstable.
         # Check condition number or rank.
         # Since calculating svd/cond is expensive, we can use a cheaper heuristic?
         # Or just use `lstsq` but warn if residuals are suspiciously small or coefficients large?
         # Better to check singular values.
-        
+
         # Cheap check: if any column in Xprev is highly correlated with others?
         # Or just catch the near-zero residual case.
-        
+
         # Proper fix: check condition number if dimension is small enough.
         # Or use rcond explicitly in lstsq to zero out small singular values.
-        
+
         # Let's use a dynamic rcond based on machine precision
         b, residuals, rank, s = np.linalg.lstsq(Xprev, y, rcond=1e-5)
 
@@ -55,11 +54,14 @@ def sequential_residualize(Xz: np.ndarray) -> tuple[np.ndarray, list[list[float]
         # rather than residualizing against a near-singular basis.
         if rank < j:
             import logging
+
             logging.getLogger(__name__).warning(
                 "sequential_residualize: collinearity detected at signal column %d "
                 "(effective rank %d < %d). Skipping residualization for this column; "
                 "original signal preserved. Consider deduplicating correlated signals.",
-                j, rank, j,
+                j,
+                rank,
+                j,
             )
             betas.append(None)
             continue
@@ -143,7 +145,6 @@ def main() -> int:
     args = p.parse_args()
 
     run_id = args.run_id
-    project_root = PROJECT_ROOT
     data_root = get_data_root()
     out_dir = Path(args.out_dir) if args.out_dir else data_root / "model_registry"
     ensure_dir(out_dir)
@@ -260,7 +261,7 @@ def main() -> int:
                     weight = len(va)
                     weighted_ic_sum += ic * weight
                     total_weight += weight
-                
+
                 mean_ic = weighted_ic_sum / total_weight if total_weight > 0 else 0.0
                 if mean_ic > best_ic:
                     best_ic = mean_ic

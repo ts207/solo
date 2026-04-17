@@ -30,9 +30,16 @@ def _patch_canonical_validation_inputs(
         "load_validation_bundle",
         lambda *args, **kwargs: SimpleNamespace(
             validated_candidates=[
-                SimpleNamespace(candidate_id=candidate_id) for candidate_id in candidate_ids
+                SimpleNamespace(
+                    candidate_id=candidate_id,
+                    decision=SimpleNamespace(status="promoted", reason_codes=[]),
+                    artifact_refs=[],
+                )
+                for candidate_id in candidate_ids
             ],
             rejected_candidates=[],
+            inconclusive_candidates=[],
+            run_id="test_run",
         ),
     )
     monkeypatch.setattr(
@@ -61,7 +68,9 @@ def test_promotion_rejection_classification_and_annotations() -> None:
                 "promotion_fail_reason_primary": "low expectancy after_cost",
                 "promotion_fail_gate_primary": "economics_gate",
                 "reject_reason": "turnover",
-                "promotion_metrics_trace": json.dumps({"economics": {"passed": False}, "stability": {"passed": False}}),
+                "promotion_metrics_trace": json.dumps(
+                    {"economics": {"passed": False}, "stability": {"passed": False}}
+                ),
             },
         ]
     )
@@ -115,7 +124,6 @@ def test_resolve_promotion_policy_switches_by_profile(monkeypatch, tmp_path: Pat
         promotion_profile="auto",
     )
 
-
     research = svc._resolve_promotion_policy(
         config=base_config,
         contract=contract,
@@ -123,7 +131,7 @@ def test_resolve_promotion_policy_switches_by_profile(monkeypatch, tmp_path: Pat
         project_root=tmp_path,
     )
     assert research.promotion_profile == "research"
-    assert research.base_min_events == 5
+    assert research.base_min_events == base_config.min_events
     assert research.dynamic_min_events == {}
     assert research.min_net_expectancy_bps == 1.5
     assert research.require_retail_viability is False
@@ -136,7 +144,7 @@ def test_resolve_promotion_policy_switches_by_profile(monkeypatch, tmp_path: Pat
         project_root=tmp_path,
     )
     assert deploy.promotion_profile == "deploy"
-    assert deploy.base_min_events == 20
+    assert deploy.base_min_events == max(base_config.min_events, contract.min_trade_count)
     assert deploy.dynamic_min_events["BASIS_DISLOC"] == 25
     assert deploy.require_retail_viability is True
 
@@ -149,6 +157,13 @@ def test_execute_promotion_success_path(monkeypatch, tmp_path: Path) -> None:
             "confirmatory_locked": [True],
             "frozen_spec_hash": ["spec-hash"],
             "symbol": ["BTCUSDT"],
+            "family": ["BASIS_FUNDING_DISLOCATION"],
+            "net_expectancy_bps": [9.0],
+            "stability_score": [0.9],
+            "sign_consistency": [1.0],
+            "cost_survival_ratio": [1.0],
+            "q_value": [0.01],
+            "n_events": [120],
         }
     )
     audit_df = pd.DataFrame(
@@ -162,7 +177,11 @@ def test_execute_promotion_success_path(monkeypatch, tmp_path: Path) -> None:
             "policy_version": ["v1"],
             "bundle_version": ["1"],
             "is_reduced_evidence": [False],
-            "promotion_metrics_trace": [json.dumps({"economics": {"passed": True, "observed": {"x": 1}, "thresholds": {"y": 2}}})],
+            "promotion_metrics_trace": [
+                json.dumps(
+                    {"economics": {"passed": True, "observed": {"x": 1}, "thresholds": {"y": 2}}}
+                )
+            ],
             "evidence_bundle_json": [
                 json.dumps(
                     {
@@ -170,16 +189,77 @@ def test_execute_promotion_success_path(monkeypatch, tmp_path: Path) -> None:
                         "event_family": "BASIS_DISLOC",
                         "event_type": "BASIS_DISLOC",
                         "run_id": "run-1",
-                        "sample_definition": {"n_events": 120, "validation_samples": 60, "test_samples": 60, "symbol": "BTCUSDT"},
-                        "split_definition": {"split_scheme_id": "confirmatory", "purge_bars": 1, "embargo_bars": 1, "bar_duration_minutes": 5},
-                        "effect_estimates": {"estimate": 0.12, "estimate_bps": 12.0, "stderr": 0.03, "stderr_bps": 3.0},
-                        "uncertainty_estimates": {"ci_low": 0.02, "ci_high": 0.22, "ci_low_bps": 2.0, "ci_high_bps": 22.0, "p_value_raw": 0.01, "q_value": 0.01, "q_value_by": 0.01, "q_value_cluster": 0.01, "n_obs": 120, "n_clusters": 8},
-                        "stability_tests": {"sign_consistency": 1.0, "stability_score": 0.9, "regime_stability_pass": True, "timeframe_consensus_pass": True, "delay_robustness_pass": True},
-                        "falsification_results": {"shift_placebo_pass": True, "random_placebo_pass": True, "direction_reversal_pass": True, "negative_control_pass": True, "passes_control": True},
-                        "cost_robustness": {"cost_survival_ratio": 1.0, "net_expectancy_bps": 9.0, "effective_cost_bps": 3.0, "turnover_proxy_mean": 1.0, "tob_coverage": 0.9, "tob_coverage_pass": True, "stressed_cost_pass": True, "retail_net_expectancy_pass": True, "retail_cost_budget_pass": True, "retail_turnover_pass": True},
-                        "multiplicity_adjustment": {"correction_family_id": "default_program", "correction_method": "bh", "p_value_adj": 0.01, "p_value_adj_by": 0.01, "p_value_adj_holm": 0.01, "q_value_program": 0.01},
+                        "sample_definition": {
+                            "n_events": 120,
+                            "validation_samples": 60,
+                            "test_samples": 60,
+                            "symbol": "BTCUSDT",
+                        },
+                        "split_definition": {
+                            "split_scheme_id": "confirmatory",
+                            "purge_bars": 1,
+                            "embargo_bars": 1,
+                            "bar_duration_minutes": 5,
+                        },
+                        "effect_estimates": {
+                            "estimate": 0.12,
+                            "estimate_bps": 12.0,
+                            "stderr": 0.03,
+                            "stderr_bps": 3.0,
+                        },
+                        "uncertainty_estimates": {
+                            "ci_low": 0.02,
+                            "ci_high": 0.22,
+                            "ci_low_bps": 2.0,
+                            "ci_high_bps": 22.0,
+                            "p_value_raw": 0.01,
+                            "q_value": 0.01,
+                            "q_value_by": 0.01,
+                            "q_value_cluster": 0.01,
+                            "n_obs": 120,
+                            "n_clusters": 8,
+                        },
+                        "stability_tests": {
+                            "sign_consistency": 1.0,
+                            "stability_score": 0.9,
+                            "regime_stability_pass": True,
+                            "timeframe_consensus_pass": True,
+                            "delay_robustness_pass": True,
+                        },
+                        "falsification_results": {
+                            "shift_placebo_pass": True,
+                            "random_placebo_pass": True,
+                            "direction_reversal_pass": True,
+                            "negative_control_pass": True,
+                            "passes_control": True,
+                        },
+                        "cost_robustness": {
+                            "cost_survival_ratio": 1.0,
+                            "net_expectancy_bps": 9.0,
+                            "effective_cost_bps": 3.0,
+                            "turnover_proxy_mean": 1.0,
+                            "tob_coverage": 0.9,
+                            "tob_coverage_pass": True,
+                            "stressed_cost_pass": True,
+                            "retail_net_expectancy_pass": True,
+                            "retail_cost_budget_pass": True,
+                            "retail_turnover_pass": True,
+                        },
+                        "multiplicity_adjustment": {
+                            "correction_family_id": "default_program",
+                            "correction_method": "bh",
+                            "p_value_adj": 0.01,
+                            "p_value_adj_by": 0.01,
+                            "p_value_adj_holm": 0.01,
+                            "q_value_program": 0.01,
+                        },
                         "metadata": {"plan_row_id": "plan-1", "hypothesis_id": "hyp-1"},
-                        "promotion_decision": {"promotion_status": "promoted", "promotion_track": "deploy", "eligible": True, "rank_score": 1.0},
+                        "promotion_decision": {
+                            "promotion_status": "promoted",
+                            "promotion_track": "deploy",
+                            "eligible": True,
+                            "rank_score": 1.0,
+                        },
                     }
                 )
             ],
@@ -188,35 +268,59 @@ def test_execute_promotion_success_path(monkeypatch, tmp_path: Path) -> None:
     promoted_df = pd.DataFrame({"candidate_id": ["cand-1"], "event_type": ["BASIS_DISLOC"]})
     writes = {}
 
-    monkeypatch.setattr(svc, "load_run_manifest", lambda run_id: {
-        "run_mode": "production",
-        "discovery_profile": "standard",
-        "confirmatory_rerun_run_id": "rerun-1",
-        "candidate_origin_run_id": "origin-1",
-        "program_id": "prog-1",
-        "symbols": "BTCUSDT",
-    })
-    monkeypatch.setattr(svc, "resolve_objective_profile_contract", lambda **kwargs: SimpleNamespace(
-        min_net_expectancy_bps=3.0,
-        max_fee_plus_slippage_bps=7.0,
-        max_daily_turnover_multiple=2.0,
-        require_retail_viability=True,
-        require_low_capital_contract=True,
-        min_trade_count=10,
-    ))
+    monkeypatch.setattr(
+        svc,
+        "load_run_manifest",
+        lambda run_id: {
+            "run_mode": "production",
+            "discovery_profile": "standard",
+            "confirmatory_rerun_run_id": "rerun-1",
+            "candidate_origin_run_id": "origin-1",
+            "program_id": "prog-1",
+            "symbols": "BTCUSDT",
+        },
+    )
+    monkeypatch.setattr(
+        svc,
+        "resolve_objective_profile_contract",
+        lambda **kwargs: SimpleNamespace(
+            min_net_expectancy_bps=3.0,
+            max_fee_plus_slippage_bps=7.0,
+            max_daily_turnover_multiple=2.0,
+            require_retail_viability=True,
+            require_low_capital_contract=True,
+            min_trade_count=10,
+        ),
+    )
     monkeypatch.setattr(svc, "ontology_spec_hash", lambda root: "spec-hash")
     monkeypatch.setattr(svc, "_load_gates_spec", lambda root: {})
     monkeypatch.setattr(svc, "_load_hypothesis_index", lambda **kwargs: {})
     monkeypatch.setattr(svc, "_load_negative_control_summary", lambda run_id: {})
-    monkeypatch.setattr(svc, "_hydrate_edge_candidates_from_phase2", lambda **kwargs: candidates_df.copy())
-    monkeypatch.setattr(svc, "promote_candidates", lambda **kwargs: (audit_df.copy(), promoted_df.copy(), {"seed": 1}))
+    monkeypatch.setattr(
+        svc, "_hydrate_edge_candidates_from_phase2", lambda **kwargs: candidates_df.copy()
+    )
+    monkeypatch.setattr(
+        svc,
+        "promote_candidates",
+        lambda **kwargs: (audit_df.copy(), promoted_df.copy(), {"seed": 1}),
+    )
     monkeypatch.setattr(svc, "build_promotion_statistical_audit", lambda **kwargs: audit_df.copy())
-    monkeypatch.setattr(svc, "stabilize_promoted_output_schema", lambda **kwargs: promoted_df.copy())
-    monkeypatch.setattr(svc, "serialize_evidence_bundles", lambda bundles, path: writes.setdefault("bundles", list(bundles)))
+    monkeypatch.setattr(
+        svc, "stabilize_promoted_output_schema", lambda **kwargs: promoted_df.copy()
+    )
+    monkeypatch.setattr(
+        svc,
+        "serialize_evidence_bundles",
+        lambda bundles, path: writes.setdefault("bundles", list(bundles)),
+    )
     monkeypatch.setattr(svc, "bundle_to_flat_record", lambda bundle: dict(bundle))
     monkeypatch.setattr(svc, "write_promotion_reports", lambda **kwargs: writes.update(kwargs))
     monkeypatch.setattr(svc, "start_manifest", lambda *args, **kwargs: {"status": "started"})
-    monkeypatch.setattr(svc, "finalize_manifest", lambda manifest, status, **kwargs: manifest.update({"status": status, **kwargs}))
+    monkeypatch.setattr(
+        svc,
+        "finalize_manifest",
+        lambda manifest, status, **kwargs: manifest.update({"status": status, **kwargs}),
+    )
 
     config = PromotionConfig(
         run_id="test_run",
@@ -261,6 +365,13 @@ def test_execute_promotion_allows_research_run_mode(monkeypatch, tmp_path: Path)
             "confirmatory_locked": [False],
             "frozen_spec_hash": [pd.NA],
             "symbol": ["BTCUSDT"],
+            "family": ["BASIS_FUNDING_DISLOCATION"],
+            "net_expectancy_bps": [9.0],
+            "stability_score": [0.9],
+            "sign_consistency": [1.0],
+            "cost_survival_ratio": [1.0],
+            "q_value": [0.01],
+            "n_events": [120],
         }
     )
     audit_df = pd.DataFrame(
@@ -275,7 +386,9 @@ def test_execute_promotion_allows_research_run_mode(monkeypatch, tmp_path: Path)
             "bundle_version": ["1"],
             "is_reduced_evidence": [False],
             "promotion_metrics_trace": [json.dumps({"economics": {"passed": False}})],
-            "evidence_bundle_json": [json.dumps({"candidate_id": "cand-1", "event_type": "BASIS_DISLOC"})],
+            "evidence_bundle_json": [
+                json.dumps({"candidate_id": "cand-1", "event_type": "BASIS_DISLOC"})
+            ],
         }
     )
     promoted_df = pd.DataFrame(columns=["candidate_id", "event_type"])
@@ -307,15 +420,31 @@ def test_execute_promotion_allows_research_run_mode(monkeypatch, tmp_path: Path)
     monkeypatch.setattr(svc, "_load_gates_spec", lambda root: {})
     monkeypatch.setattr(svc, "_load_hypothesis_index", lambda **kwargs: {})
     monkeypatch.setattr(svc, "_load_negative_control_summary", lambda run_id: {})
-    monkeypatch.setattr(svc, "_hydrate_edge_candidates_from_phase2", lambda **kwargs: candidates_df.copy())
-    monkeypatch.setattr(svc, "promote_candidates", lambda **kwargs: (audit_df.copy(), promoted_df.copy(), {"seed": 1}))
+    monkeypatch.setattr(
+        svc, "_hydrate_edge_candidates_from_phase2", lambda **kwargs: candidates_df.copy()
+    )
+    monkeypatch.setattr(
+        svc,
+        "promote_candidates",
+        lambda **kwargs: (audit_df.copy(), promoted_df.copy(), {"seed": 1}),
+    )
     monkeypatch.setattr(svc, "build_promotion_statistical_audit", lambda **kwargs: audit_df.copy())
-    monkeypatch.setattr(svc, "stabilize_promoted_output_schema", lambda **kwargs: promoted_df.copy())
-    monkeypatch.setattr(svc, "serialize_evidence_bundles", lambda bundles, path: writes.setdefault("bundles", list(bundles)))
+    monkeypatch.setattr(
+        svc, "stabilize_promoted_output_schema", lambda **kwargs: promoted_df.copy()
+    )
+    monkeypatch.setattr(
+        svc,
+        "serialize_evidence_bundles",
+        lambda bundles, path: writes.setdefault("bundles", list(bundles)),
+    )
     monkeypatch.setattr(svc, "bundle_to_flat_record", lambda bundle: dict(bundle))
     monkeypatch.setattr(svc, "write_promotion_reports", lambda **kwargs: writes.update(kwargs))
     monkeypatch.setattr(svc, "start_manifest", lambda *args, **kwargs: {"status": "started"})
-    monkeypatch.setattr(svc, "finalize_manifest", lambda manifest, status, **kwargs: manifest.update({"status": status, **kwargs}))
+    monkeypatch.setattr(
+        svc,
+        "finalize_manifest",
+        lambda manifest, status, **kwargs: manifest.update({"status": status, **kwargs}),
+    )
 
     config = PromotionConfig(
         run_id="test_run",
@@ -358,6 +487,13 @@ def test_execute_promotion_normalizes_empty_bundle_outputs(monkeypatch, tmp_path
             "candidate_id": ["cand-1"],
             "event_type": ["BASIS_DISLOC"],
             "symbol": ["BTCUSDT"],
+            "family": ["BASIS_FUNDING_DISLOCATION"],
+            "net_expectancy_bps": [9.0],
+            "stability_score": [0.9],
+            "sign_consistency": [1.0],
+            "cost_survival_ratio": [1.0],
+            "q_value": [0.01],
+            "n_events": [120],
         }
     )
     audit_df = pd.DataFrame()
@@ -390,14 +526,18 @@ def test_execute_promotion_normalizes_empty_bundle_outputs(monkeypatch, tmp_path
     monkeypatch.setattr(svc, "_load_gates_spec", lambda root: {})
     monkeypatch.setattr(svc, "_load_hypothesis_index", lambda **kwargs: {})
     monkeypatch.setattr(svc, "_load_negative_control_summary", lambda run_id: {})
-    monkeypatch.setattr(svc, "_hydrate_edge_candidates_from_phase2", lambda **kwargs: candidates_df.copy())
+    monkeypatch.setattr(
+        svc, "_hydrate_edge_candidates_from_phase2", lambda **kwargs: candidates_df.copy()
+    )
     monkeypatch.setattr(
         svc,
         "promote_candidates",
         lambda **kwargs: (audit_df.copy(), promoted_df.copy(), {"seed": 1}),
     )
     monkeypatch.setattr(svc, "build_promotion_statistical_audit", lambda **kwargs: audit_df.copy())
-    monkeypatch.setattr(svc, "stabilize_promoted_output_schema", lambda **kwargs: promoted_df.copy())
+    monkeypatch.setattr(
+        svc, "stabilize_promoted_output_schema", lambda **kwargs: promoted_df.copy()
+    )
     monkeypatch.setattr(
         svc,
         "serialize_evidence_bundles",

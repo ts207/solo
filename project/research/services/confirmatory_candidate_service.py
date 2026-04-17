@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import logging
 from datetime import date
 from pathlib import Path
 from typing import Any, Dict, List
@@ -395,9 +396,7 @@ def compare_confirmatory_candidates(
         / origin_run_id
         / "edge_candidates_normalized.parquet"
     )
-    target_path = (
-        resolve_phase2_candidates_path(data_root=data_root, run_id=target_run_id)
-    )
+    target_path = resolve_phase2_candidates_path(data_root=data_root, run_id=target_run_id)
 
     origin_raw = _read_parquet(origin_path)
     target_raw = _read_parquet(target_path)
@@ -415,7 +414,10 @@ def compare_confirmatory_candidates(
             + ", ".join(
                 column
                 for column in STRICT_COST_IDENTITY_COLUMNS
-                if not (_column_has_signal(origin_raw, column) and _column_has_signal(target_raw, column))
+                if not (
+                    _column_has_signal(origin_raw, column)
+                    and _column_has_signal(target_raw, column)
+                )
             )
         ]
         if strict_matching_blocked
@@ -557,9 +559,7 @@ def build_adjacent_survivorship_payload(
         / origin_run_id
         / "edge_candidates_normalized.parquet"
     )
-    target_path = (
-        resolve_phase2_candidates_path(data_root=data_root, run_id=target_run_id)
-    )
+    target_path = resolve_phase2_candidates_path(data_root=data_root, run_id=target_run_id)
     origin_raw = _read_parquet(origin_path)
     target_raw = _read_parquet(target_path)
     key_columns = _resolve_structural_key_columns(origin_raw, target_raw)
@@ -668,19 +668,17 @@ def write_confirmatory_candidate_report(
     report_dir.mkdir(parents=True, exist_ok=True)
     out_path = report_dir / "confirmatory_candidates.json"
     out_path.write_text(json.dumps(payload, indent=2), encoding="utf-8")
-    
+
     # NEW: Run Validation Stage for the target run (the confirmatory run)
     try:
         from project.research.services.evaluation_service import ValidationService
+
         val_svc = ValidationService(data_root=data_root)
         # Load the target candidates table
         tables = val_svc.load_candidate_tables(target_run_id)
         candidates_df = tables.get("phase2_candidates", pd.DataFrame())
         if not candidates_df.empty:
-            val_svc.run_validation_stage(
-                run_id=target_run_id,
-                candidates_df=candidates_df
-            )
+            val_svc.run_validation_stage(run_id=target_run_id, candidates_df=candidates_df)
     except Exception as exc:
         logging.warning("Failed to run validation stage in confirmatory report: %s", exc)
 

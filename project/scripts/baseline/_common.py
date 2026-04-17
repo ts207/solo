@@ -188,7 +188,11 @@ def snapshot_analyzer_outputs(*, strict: bool = False) -> Path:
                 target = dest / source.name / rel
                 ensure_dir(target.parent)
                 shutil.copy2(path, target)
-                manifest["copied_files"].append(str(target.relative_to(REPO_ROOT)))
+                manifest["copied_files"].append(
+                    str(target.relative_to(REPO_ROOT))
+                    if str(target).startswith(str(REPO_ROOT))
+                    else str(target)
+                )
     write_json(dest / "manifest.json", manifest)
     if strict and not found_any:
         raise FileNotFoundError("No analyzer output roots found for baseline snapshot")

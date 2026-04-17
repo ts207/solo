@@ -78,15 +78,6 @@ def _parser_knobs(
             continue
         choices = list(getattr(action, "choices", []) or [])
         default_value = getattr(action, "default", None)
-        value_type = "string"
-        if isinstance(default_value, bool):
-            value_type = "bool"
-        elif isinstance(default_value, int) and not isinstance(default_value, bool):
-            value_type = "int"
-        elif isinstance(default_value, float):
-            value_type = "float"
-        elif choices:
-            value_type = "enum"
         rows.append(
             _knob_row(
                 scope=scope,

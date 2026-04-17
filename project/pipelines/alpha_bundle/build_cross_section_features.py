@@ -11,7 +11,6 @@ from typing import Dict, List, Optional, Tuple
 
 import numpy as np
 import pandas as pd
-from project import PROJECT_ROOT
 from project.io.utils import ensure_dir, list_parquet_files, read_parquet, write_parquet
 from project.specs.manifest import finalize_manifest, start_manifest
 from project.core.validation import ensure_utc_timestamp
@@ -59,7 +58,6 @@ def main() -> int:
     args = p.parse_args()
 
     run_id = args.run_id
-    project_root = PROJECT_ROOT
     data_root = get_data_root()
     out_dir = Path(args.out_dir) if args.out_dir else data_root / "feature_store" / "cross_section"
     ensure_dir(out_dir)

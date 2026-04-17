@@ -84,6 +84,7 @@ _STRUCTURAL_WEIGHTS: list[tuple[str, float]] = [
 # Internal helpers
 # ---------------------------------------------------------------------------
 
+
 def _safe_str(value: Any) -> str:
     if value is None:
         return ""
@@ -187,6 +188,7 @@ def _sign_concordance(v1: str, v2: str) -> float:
 # Union-Find for connected components
 # ---------------------------------------------------------------------------
 
+
 class _UnionFind:
     def __init__(self, n: int) -> None:
         self.parent = list(range(n))
@@ -213,6 +215,7 @@ class _UnionFind:
 # Step 1 — Overlap signatures
 # ---------------------------------------------------------------------------
 
+
 def build_candidate_overlap_signatures(candidates: pd.DataFrame) -> pd.DataFrame:
     """Build one canonical overlap signature row per candidate.
 
@@ -233,23 +236,27 @@ def build_candidate_overlap_signatures(candidates: pd.DataFrame) -> pd.DataFrame
         ctx_bucket = _context_dim_bucket(ctx_count)
         lineage_key = _safe_str(row_dict.get("concept_lineage_key", ""))
         fold_sv = _fold_sign_vector(row_dict)
-        fold_pr = float(row_dict.get("fold_stability_score", row_dict.get("fold_pass_rate", 0.5)) or 0.5)
+        fold_pr = float(
+            row_dict.get("fold_stability_score", row_dict.get("fold_pass_rate", 0.5)) or 0.5
+        )
 
-        rows.append({
-            "_orig_idx": idx,
-            "candidate_id": str(row_dict.get("candidate_id", f"cand_{idx}")),
-            "primary_event_id": event_fam,
-            "event_family": event_fam,
-            "template_family": tmpl_fam,
-            "direction": direction,
-            "horizon_bucket": horizon_b,
-            "symbol_scope_type": sym_scope,
-            "context_dim_count": int(ctx_count),
-            "context_dim_count_bucket": ctx_bucket,
-            "concept_lineage_key": lineage_key,
-            "fold_sign_vector": fold_sv,
-            "fold_pass_rate": fold_pr,
-        })
+        rows.append(
+            {
+                "_orig_idx": idx,
+                "candidate_id": str(row_dict.get("candidate_id", f"cand_{idx}")),
+                "primary_event_id": event_fam,
+                "event_family": event_fam,
+                "template_family": tmpl_fam,
+                "direction": direction,
+                "horizon_bucket": horizon_b,
+                "symbol_scope_type": sym_scope,
+                "context_dim_count": int(ctx_count),
+                "context_dim_count_bucket": ctx_bucket,
+                "concept_lineage_key": lineage_key,
+                "fold_sign_vector": fold_sv,
+                "fold_pass_rate": fold_pr,
+            }
+        )
 
     return pd.DataFrame(rows).set_index("_orig_idx")
 
@@ -257,6 +264,7 @@ def build_candidate_overlap_signatures(candidates: pd.DataFrame) -> pd.DataFrame
 # ---------------------------------------------------------------------------
 # Step 2 — Pairwise similarity
 # ---------------------------------------------------------------------------
+
 
 def _structural_similarity(sig_a: dict, sig_b: dict) -> float:
     score = 0.0
@@ -301,11 +309,7 @@ def _pairwise_score(
     struct_sim = _structural_similarity(sig_a, sig_b)
     fold_sim = _fold_similarity(sig_a, sig_b)
     lin_sim = _lineage_similarity(sig_a, sig_b)
-    score = (
-        structural_weight * struct_sim
-        + fold_weight * fold_sim
-        + lineage_weight * lin_sim
-    )
+    score = structural_weight * struct_sim + fold_weight * fold_sim + lineage_weight * lin_sim
     score = float(np.clip(score, 0.0, 1.0))
 
     shared: list[str] = []
@@ -338,8 +342,14 @@ def compute_pairwise_similarity(
     """
     if signatures is None or signatures.empty:
         return pd.DataFrame(
-            columns=["source_idx", "target_idx", "source_id", "target_id",
-                     "similarity", "shared_dimensions"]
+            columns=[
+                "source_idx",
+                "target_idx",
+                "source_id",
+                "target_id",
+                "similarity",
+                "shared_dimensions",
+            ]
         )
 
     sig_list = signatures.reset_index().to_dict(orient="records")
@@ -354,7 +364,8 @@ def compute_pairwise_similarity(
     else:
         log.info(
             "Diversification: %d candidates exceeds limit %d — using bucket similarity",
-            n, max_candidates,
+            n,
+            max_candidates,
         )
         # Pre-bucket by event_family × direction
         buckets: dict[str, list[int]] = {}
@@ -364,42 +375,62 @@ def compute_pairwise_similarity(
         pairs = []
         for bucket in buckets.values():
             for ii, i in enumerate(bucket):
-                for j in bucket[ii + 1:]:
+                for j in bucket[ii + 1 :]:
                     pairs.append((i, j))
 
     for i, j in pairs:
         sig_a = sig_list[i]
         sig_b = sig_list[j]
         score, shared = _pairwise_score(
-            sig_a, sig_b,
+            sig_a,
+            sig_b,
             structural_weight=structural_weight,
             fold_weight=fold_weight,
             lineage_weight=lineage_weight,
         )
         if score <= 0.0:
             continue
-        edges.append({
-            "source_idx": i,
-            "target_idx": j,
-            "source_id": str(sig_a.get("candidate_id", "")),
-            "target_id": str(sig_b.get("candidate_id", "")),
-            "similarity": round(score, 6),
-            "shared_dimensions": "|".join(shared),
-        })
+        edges.append(
+            {
+                "source_idx": i,
+                "target_idx": j,
+                "source_id": str(sig_a.get("candidate_id", "")),
+                "target_id": str(sig_b.get("candidate_id", "")),
+                "similarity": round(score, 6),
+                "shared_dimensions": "|".join(shared),
+            }
+        )
 
-    return pd.DataFrame(
-        edges,
-        columns=["source_idx", "target_idx", "source_id", "target_id",
-                 "similarity", "shared_dimensions"],
-    ) if edges else pd.DataFrame(
-        columns=["source_idx", "target_idx", "source_id", "target_id",
-                 "similarity", "shared_dimensions"]
+    return (
+        pd.DataFrame(
+            edges,
+            columns=[
+                "source_idx",
+                "target_idx",
+                "source_id",
+                "target_id",
+                "similarity",
+                "shared_dimensions",
+            ],
+        )
+        if edges
+        else pd.DataFrame(
+            columns=[
+                "source_idx",
+                "target_idx",
+                "source_id",
+                "target_id",
+                "similarity",
+                "shared_dimensions",
+            ]
+        )
     )
 
 
 # ---------------------------------------------------------------------------
 # Step 3 — Overlap clustering
 # ---------------------------------------------------------------------------
+
 
 def cluster_candidates_by_overlap(
     candidates: pd.DataFrame,
@@ -421,9 +452,6 @@ def cluster_candidates_by_overlap(
         return out
 
     uf = _UnionFind(n)
-    # idx_list maps position → original DataFrame index
-    idx_list = list(out.index)
-    idx_to_pos = {idx: pos for pos, idx in enumerate(idx_list)}
 
     # Per-pair max similarity for duplicate detection
     max_sim: dict[int, float] = {i: 0.0 for i in range(n)}
@@ -480,8 +508,7 @@ def cluster_candidates_by_overlap(
     cluster_sz = [cluster_sizes.get(cid, 1) for cid in cluster_ids]
     cluster_dens = [round(avg_density.get(cid, 0.0), 4) for cid in cluster_ids]
     is_dup = [
-        bool(sz > 1 and max_sim.get(pos, 0.0) >= 0.85)
-        for pos, sz in zip(range(n), cluster_sz)
+        bool(sz > 1 and max_sim.get(pos, 0.0) >= 0.85) for pos, sz in zip(range(n), cluster_sz)
     ]
 
     out["overlap_cluster_id"] = cluster_ids
@@ -495,6 +522,7 @@ def cluster_candidates_by_overlap(
 # ---------------------------------------------------------------------------
 # Step 4 — Novelty and crowding
 # ---------------------------------------------------------------------------
+
 
 def compute_novelty_crowding(
     candidates: pd.DataFrame,
@@ -512,8 +540,6 @@ def compute_novelty_crowding(
         out["cluster_rank"] = pd.Series(dtype=int)
         return out
 
-    idx_list = list(out.index)
-
     # Max similarity to any other candidate
     max_sim_to_other: dict[int, float] = {i: 0.0 for i in range(n)}
     if similarity_edges is not None and not similarity_edges.empty:
@@ -527,11 +553,11 @@ def compute_novelty_crowding(
 
     log_n = math.log1p(max(n, 1))
     cluster_sizes = (
-        out["cluster_size"] if "cluster_size" in out.columns
-        else pd.Series(1, index=out.index)
+        out["cluster_size"] if "cluster_size" in out.columns else pd.Series(1, index=out.index)
     ).fillna(1)
     ledger_pen = pd.to_numeric(
-        out["ledger_multiplicity_penalty"] if "ledger_multiplicity_penalty" in out.columns
+        out["ledger_multiplicity_penalty"]
+        if "ledger_multiplicity_penalty" in out.columns
         else pd.Series(0.0, index=out.index),
         errors="coerce",
     ).fillna(0)
@@ -547,11 +573,7 @@ def compute_novelty_crowding(
         novelty = float(np.clip(novelty, 0.0, 1.0))
         novelty_scores.append(round(novelty, 6))
 
-        crowding = (
-            0.4 * (c_size - 1) / max(n, 1)
-            + 0.4 * (1.0 - novelty)
-            + 0.2 * (l_pen / 3.0)
-        )
+        crowding = 0.4 * (c_size - 1) / max(n, 1) + 0.4 * (1.0 - novelty) + 0.2 * (l_pen / 3.0)
         crowding = float(np.clip(crowding, 0.0, 1.0))
         crowding_penalties.append(round(crowding, 6))
 
@@ -579,6 +601,7 @@ def _best_quality_col(df: pd.DataFrame) -> str:
 # ---------------------------------------------------------------------------
 # Step 5 — Greedy MMR shortlist selector
 # ---------------------------------------------------------------------------
+
 
 def select_diversified_shortlist(
     candidates: pd.DataFrame,
@@ -618,9 +641,13 @@ def select_diversified_shortlist(
     )
     _sort_key = pd.to_numeric(candidates.get(qcol, 0), errors="coerce").fillna(0.0)
     candidates = candidates.assign(_sort_cid=_cid_for_sort, _sort_q=_sort_key)
-    candidates = candidates.sort_values(
-        ["_sort_q", "_sort_cid"], ascending=[False, True], na_position="last"
-    ).drop(columns=["_sort_q", "_sort_cid"]).reset_index(drop=True)
+    candidates = (
+        candidates.sort_values(
+            ["_sort_q", "_sort_cid"], ascending=[False, True], na_position="last"
+        )
+        .drop(columns=["_sort_q", "_sort_cid"])
+        .reset_index(drop=True)
+    )
 
     quality_raw = pd.to_numeric(candidates.get(qcol, 0), errors="coerce").fillna(0.0)
     q_min, q_max = float(quality_raw.min()), float(quality_raw.max())
@@ -631,39 +658,47 @@ def select_diversified_shortlist(
         quality_norm = (quality_raw - q_min) / q_range
 
     crowding = pd.to_numeric(
-        candidates["crowding_penalty"] if "crowding_penalty" in candidates.columns
+        candidates["crowding_penalty"]
+        if "crowding_penalty" in candidates.columns
         else pd.Series(0.0, index=candidates.index),
         errors="coerce",
     ).fillna(0.0)
     cluster_col = (
-        candidates["overlap_cluster_id"] if "overlap_cluster_id" in candidates.columns
+        candidates["overlap_cluster_id"]
+        if "overlap_cluster_id" in candidates.columns
         else pd.Series("c0000", index=candidates.index)
     ).fillna("c0000")
     trig_col = (
-        candidates["event_family"] if "event_family" in candidates.columns
-        else candidates["canonical_event_type"] if "canonical_event_type" in candidates.columns
-        else candidates["event_type"] if "event_type" in candidates.columns
+        candidates["event_family"]
+        if "event_family" in candidates.columns
+        else candidates["canonical_event_type"]
+        if "canonical_event_type" in candidates.columns
+        else candidates["event_type"]
+        if "event_type" in candidates.columns
         else pd.Series("unknown", index=candidates.index)
     ).fillna("unknown")
     lineage_col = (
-        candidates["concept_lineage_key"] if "concept_lineage_key" in candidates.columns
+        candidates["concept_lineage_key"]
+        if "concept_lineage_key" in candidates.columns
         else pd.Series("", index=candidates.index)
     ).fillna("")
     cid_col = (
-        candidates["candidate_id"] if "candidate_id" in candidates.columns
+        candidates["candidate_id"]
+        if "candidate_id" in candidates.columns
         else pd.Series(range(len(candidates)), index=candidates.index)
     ).astype(str)
 
     # Build similarity lookup: candidate_id → {candidate_id: similarity}
     # We use a simple max_sim_to_selected dict updated greedily
     candidate_ids = cid_col.tolist()
-    id_to_pos = {cid: pos for pos, cid in enumerate(candidate_ids)}
 
     # Build similarity matrix from overlap edges (if cluster cols available)
     sim_lookup: dict[str, dict[str, float]] = {cid: {} for cid in candidate_ids}
     # Infer from cluster membership: same cluster → density as proxy similarity
     if "overlap_cluster_id" in candidates.columns and "cluster_density" in candidates.columns:
-        cluster_density = pd.to_numeric(candidates.get("cluster_density", 0), errors="coerce").fillna(0.0)
+        cluster_density = pd.to_numeric(
+            candidates.get("cluster_density", 0), errors="coerce"
+        ).fillna(0.0)
         for pos, idx in enumerate(candidates.index):
             cid = candidate_ids[pos]
             clu = str(cluster_col.iloc[pos])
@@ -721,14 +756,11 @@ def select_diversified_shortlist(
             )
             cpen = float(crowding.iloc[pos])
 
-            sel_score = (
-                lambda_quality * q
-                - lambda_overlap * max_sim
-                - lambda_crowding * cpen
-            )
+            sel_score = lambda_quality * q - lambda_overlap * max_sim - lambda_crowding * cpen
 
             if sel_score > best_score or (
-                abs(sel_score - best_score) < 1e-9 and cid < (candidate_ids[best_pos] if best_pos is not None else "~")
+                abs(sel_score - best_score) < 1e-9
+                and cid < (candidate_ids[best_pos] if best_pos is not None else "~")
             ):
                 best_pos = pos
                 best_score = sel_score
@@ -775,7 +807,9 @@ def select_diversified_shortlist(
     shortlist = shortlist.sort_values("shortlist_rank").reset_index(drop=True)
     log.info(
         "Diversification shortlist: %d candidates selected from %d (size=%d)",
-        len(shortlist), len(candidates), size,
+        len(shortlist),
+        len(candidates),
+        size,
     )
     return shortlist
 
@@ -783,6 +817,7 @@ def select_diversified_shortlist(
 # ---------------------------------------------------------------------------
 # Orchestrator
 # ---------------------------------------------------------------------------
+
 
 def annotate_candidates_with_diversification(
     candidates: pd.DataFrame,
@@ -875,20 +910,28 @@ def annotate_candidates_with_diversification(
             )
             # Back-annotate shortlist columns onto full table
             if not shortlist_df.empty and "candidate_id" in shortlist_df.columns:
-                cid_col = annotated.get("candidate_id", pd.Series("", index=annotated.index)).astype(str)
+                cid_col = annotated.get(
+                    "candidate_id", pd.Series("", index=annotated.index)
+                ).astype(str)
                 shortlist_cids = set(shortlist_df["candidate_id"].astype(str).tolist())
-                sl_rank_map = dict(zip(
-                    shortlist_df["candidate_id"].astype(str),
-                    shortlist_df["shortlist_rank"].astype(int),
-                ))
-                sl_score_map = dict(zip(
-                    shortlist_df["candidate_id"].astype(str),
-                    shortlist_df["selection_score"].astype(float),
-                ))
-                sl_reason_map = dict(zip(
-                    shortlist_df["candidate_id"].astype(str),
-                    shortlist_df["selection_reason"].astype(str),
-                ))
+                sl_rank_map = dict(
+                    zip(
+                        shortlist_df["candidate_id"].astype(str),
+                        shortlist_df["shortlist_rank"].astype(int),
+                    )
+                )
+                sl_score_map = dict(
+                    zip(
+                        shortlist_df["candidate_id"].astype(str),
+                        shortlist_df["selection_score"].astype(float),
+                    )
+                )
+                sl_reason_map = dict(
+                    zip(
+                        shortlist_df["candidate_id"].astype(str),
+                        shortlist_df["selection_reason"].astype(str),
+                    )
+                )
                 annotated["selected_into_diversified_shortlist"] = cid_col.isin(shortlist_cids)
                 annotated["shortlist_rank"] = cid_col.map(sl_rank_map).fillna(0).astype(int)
                 annotated["selection_score"] = cid_col.map(sl_score_map)
@@ -896,11 +939,21 @@ def annotate_candidates_with_diversification(
         except Exception as exc:
             log.warning("Phase 5: shortlist selection failed: %s", exc)
 
-    n_clusters = annotated["overlap_cluster_id"].nunique() if "overlap_cluster_id" in annotated.columns else 0
-    n_dup = int(annotated.get("is_duplicate_like", pd.Series(False)).sum()) if "is_duplicate_like" in annotated.columns else 0
+    n_clusters = (
+        annotated["overlap_cluster_id"].nunique()
+        if "overlap_cluster_id" in annotated.columns
+        else 0
+    )
+    n_dup = (
+        int(annotated.get("is_duplicate_like", pd.Series(False)).sum())
+        if "is_duplicate_like" in annotated.columns
+        else 0
+    )
     log.info(
         "Phase 5: %d clusters, %d duplicate-like, %d shortlisted",
-        n_clusters, n_dup, len(shortlist_df),
+        n_clusters,
+        n_dup,
+        len(shortlist_df),
     )
     return annotated, shortlist_df
 

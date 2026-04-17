@@ -17,9 +17,19 @@ def sample_quality_summary(df: pd.DataFrame) -> dict[str, Any]:
             "median_test_n_obs": 0.0,
             "median_n_obs": 0.0,
         }
-    validation = pd.to_numeric(df["validation_n_obs"] if "validation_n_obs" in df.columns else pd.Series(0, index=df.index), errors="coerce").fillna(0)
-    test = pd.to_numeric(df["test_n_obs"] if "test_n_obs" in df.columns else pd.Series(0, index=df.index), errors="coerce").fillna(0)
-    n_obs = pd.to_numeric(df["n_obs"] if "n_obs" in df.columns else pd.Series(0, index=df.index), errors="coerce").fillna(0)
+    validation = pd.to_numeric(
+        df["validation_n_obs"]
+        if "validation_n_obs" in df.columns
+        else pd.Series(0, index=df.index),
+        errors="coerce",
+    ).fillna(0)
+    test = pd.to_numeric(
+        df["test_n_obs"] if "test_n_obs" in df.columns else pd.Series(0, index=df.index),
+        errors="coerce",
+    ).fillna(0)
+    n_obs = pd.to_numeric(
+        df["n_obs"] if "n_obs" in df.columns else pd.Series(0, index=df.index), errors="coerce"
+    ).fillna(0)
     return {
         "candidates_total": int(len(df)),
         "zero_validation_rows": int((validation <= 0).sum()),
@@ -61,30 +71,64 @@ def survivor_quality_summary(df: pd.DataFrame) -> dict[str, Any]:
     family_counts = {}
     if "event_family" in survivors.columns or "family_id" in survivors.columns:
         fam_col = "event_family" if "event_family" in survivors.columns else "family_id"
-        family_counts = {str(k): int(v) for k, v in survivors[fam_col].value_counts().head(10).to_dict().items()}
+        family_counts = {
+            str(k): int(v) for k, v in survivors[fam_col].value_counts().head(10).to_dict().items()
+        }
 
     return {
         "survivors_total": int(len(survivors)),
         "median_q_value": float(
-            pd.to_numeric(survivors["q_value"] if "q_value" in survivors.columns else pd.Series(1.0, index=survivors.index), errors="coerce").fillna(1.0).median()
+            pd.to_numeric(
+                survivors["q_value"]
+                if "q_value" in survivors.columns
+                else pd.Series(1.0, index=survivors.index),
+                errors="coerce",
+            )
+            .fillna(1.0)
+            .median()
         ),
         "median_q_value_by": float(
-            pd.to_numeric(survivors["q_value_by"] if "q_value_by" in survivors.columns else pd.Series(1.0, index=survivors.index), errors="coerce").fillna(1.0).median()
+            pd.to_numeric(
+                survivors["q_value_by"]
+                if "q_value_by" in survivors.columns
+                else pd.Series(1.0, index=survivors.index),
+                errors="coerce",
+            )
+            .fillna(1.0)
+            .median()
         ),
         "median_estimate_bps": float(
-            pd.to_numeric(survivors["estimate_bps"] if "estimate_bps" in survivors.columns else pd.Series(0.0, index=survivors.index), errors="coerce").fillna(0.0).median()
+            pd.to_numeric(
+                survivors["estimate_bps"]
+                if "estimate_bps" in survivors.columns
+                else pd.Series(0.0, index=survivors.index),
+                errors="coerce",
+            )
+            .fillna(0.0)
+            .median()
         ),
         "median_cost_bps": float(
-            pd.to_numeric(survivors["resolved_cost_bps"] if "resolved_cost_bps" in survivors.columns else pd.Series(0.0, index=survivors.index), errors="coerce")
+            pd.to_numeric(
+                survivors["resolved_cost_bps"]
+                if "resolved_cost_bps" in survivors.columns
+                else pd.Series(0.0, index=survivors.index),
+                errors="coerce",
+            )
             .fillna(0.0)
             .median()
         ),
         "median_discovery_quality_score": float(
-            pd.to_numeric(survivors.get("discovery_quality_score", np.nan), errors="coerce")
-            .median()
-        ) if "discovery_quality_score" in survivors.columns else 0.0,
+            pd.to_numeric(
+                survivors.get("discovery_quality_score", np.nan), errors="coerce"
+            ).median()
+        )
+        if "discovery_quality_score" in survivors.columns
+        else 0.0,
         "v2_demotion_reasons": (
-            {str(k): int(v) for k, v in survivors["rank_primary_reason"].value_counts().to_dict().items()}
+            {
+                str(k): int(v)
+                for k, v in survivors["rank_primary_reason"].value_counts().to_dict().items()
+            }
             if "rank_primary_reason" in survivors.columns
             else {}
         ),
@@ -259,7 +303,8 @@ def build_v2_scoring_diagnostics(df: pd.DataFrame) -> dict[str, Any]:
                 "new_rank": int(new_rank.loc[i]),
                 "delta": int(delta.loc[i]),
             }
-            for i in movers_idx if delta.loc[i] > 0
+            for i in movers_idx
+            if delta.loc[i] > 0
         ]
 
     # V1 vs V2 (t-stat vs discovery_quality_score)
@@ -279,7 +324,9 @@ def build_v2_scoring_diagnostics(df: pd.DataFrame) -> dict[str, Any]:
         all_codes = []
         for codes in df["demotion_reason_codes"].fillna("").astype(str):
             all_codes.extend([c.strip() for c in codes.split("|") if c.strip()])
-        penalty_counts = {str(k): int(v) for k, v in pd.Series(all_codes).value_counts().to_dict().items()}
+        penalty_counts = {
+            str(k): int(v) for k, v in pd.Series(all_codes).value_counts().to_dict().items()
+        }
 
     return {
         "v2_scoring_enabled": True,
@@ -332,6 +379,7 @@ def apply_sample_quality_gates(
 # Phase 3 — Ledger diagnostics
 # ---------------------------------------------------------------------------
 
+
 def build_ledger_diagnostics(combined: pd.DataFrame) -> dict[str, Any]:
     """Build a diagnostics dict describing ledger-driven rank changes.
 
@@ -382,32 +430,33 @@ def build_ledger_diagnostics(combined: pd.DataFrame) -> dict[str, Any]:
     repeated_failure: list[str] = []
     if has_lineage and "ledger_prior_test_count" in combined.columns:
         lineage_burden = (
-            combined.groupby("concept_lineage_key")["ledger_prior_test_count"]
-            .max()
-            .reset_index()
+            combined.groupby("concept_lineage_key")["ledger_prior_test_count"].max().reset_index()
         )
-        crowded = (
-            lineage_burden[lineage_burden["ledger_prior_test_count"] >= 20]["concept_lineage_key"]
-            .tolist()
-        )
+        crowded = lineage_burden[lineage_burden["ledger_prior_test_count"] >= 20][
+            "concept_lineage_key"
+        ].tolist()
 
     if (
         has_lineage
         and "ledger_empirical_success_rate" in combined.columns
         and "ledger_prior_test_count" in combined.columns
     ):
-        fail_df = combined.groupby("concept_lineage_key").agg(
-            rate=("ledger_empirical_success_rate", "min"),
-            tests=("ledger_prior_test_count", "max"),
-        ).reset_index()
-        repeated_failure = (
-            fail_df[
-                (fail_df["rate"] < 0.10) & (fail_df["tests"] >= 5)
-            ]["concept_lineage_key"].tolist()
+        fail_df = (
+            combined.groupby("concept_lineage_key")
+            .agg(
+                rate=("ledger_empirical_success_rate", "min"),
+                tests=("ledger_prior_test_count", "max"),
+            )
+            .reset_index()
         )
+        repeated_failure = fail_df[(fail_df["rate"] < 0.10) & (fail_df["tests"] >= 5)][
+            "concept_lineage_key"
+        ].tolist()
 
     # Top burdened candidates (highest penalty)
-    penalty_col = pd.to_numeric(combined.get("ledger_multiplicity_penalty", 0), errors="coerce").fillna(0)
+    penalty_col = pd.to_numeric(
+        combined.get("ledger_multiplicity_penalty", 0), errors="coerce"
+    ).fillna(0)
     top_n = min(10, int((penalty_col > 0).sum()))
     top_burdened: list[dict] = []
     if top_n > 0:
@@ -418,9 +467,13 @@ def build_ledger_diagnostics(combined: pd.DataFrame) -> dict[str, Any]:
                 {
                     "candidate_id": str(row.get("candidate_id", "")).strip(),
                     "concept_lineage_key": str(row.get("concept_lineage_key", "")),
-                    "ledger_multiplicity_penalty": float(row.get("ledger_multiplicity_penalty", 0.0)),
+                    "ledger_multiplicity_penalty": float(
+                        row.get("ledger_multiplicity_penalty", 0.0)
+                    ),
                     "ledger_prior_test_count": int(row.get("ledger_prior_test_count", 0)),
-                    "ledger_empirical_success_rate": float(row.get("ledger_empirical_success_rate", 0.0)),
+                    "ledger_empirical_success_rate": float(
+                        row.get("ledger_empirical_success_rate", 0.0)
+                    ),
                 }
             )
 
@@ -428,7 +481,9 @@ def build_ledger_diagnostics(combined: pd.DataFrame) -> dict[str, Any]:
     rank_demotions: list[dict] = []
     if has_v2 and has_v3:
         score_v2 = pd.to_numeric(combined.get("discovery_quality_score", np.nan), errors="coerce")
-        score_v3 = pd.to_numeric(combined.get("discovery_quality_score_v3", np.nan), errors="coerce")
+        score_v3 = pd.to_numeric(
+            combined.get("discovery_quality_score_v3", np.nan), errors="coerce"
+        )
         valid_both = score_v2.notna() & score_v3.notna()
         if valid_both.any():
             ranked_v2 = score_v2[valid_both].rank(ascending=False, method="first").astype(int)
@@ -440,7 +495,11 @@ def build_ledger_diagnostics(combined: pd.DataFrame) -> dict[str, Any]:
                 row = combined.loc[idx]
                 reason = str(row.get("demotion_reason_codes", "")).strip()
                 ledger_codes = [
-                    r for r in reason.split("|") if r.startswith(("crowded", "repeated", "low_empirical", "high_recent", "ledger"))
+                    r
+                    for r in reason.split("|")
+                    if r.startswith(
+                        ("crowded", "repeated", "low_empirical", "high_recent", "ledger")
+                    )
                 ]
                 if not ledger_codes:
                     continue
@@ -488,6 +547,7 @@ def build_ledger_diagnostics(combined: pd.DataFrame) -> dict[str, Any]:
 # ---------------------------------------------------------------------------
 # Phase 4 — Hierarchical stage diagnostics
 # ---------------------------------------------------------------------------
+
 
 def build_hierarchical_stage_diagnostics(
     stage_artifacts: "dict[str, pd.DataFrame]",
@@ -562,9 +622,7 @@ def build_hierarchical_stage_diagnostics(
         top_triggers: list[str] = []
         dropped_triggers: list[str] = []
         if event_col in df.columns:
-            top_triggers = (
-                df.loc[pass_col, event_col].dropna().astype(str).unique().tolist()[:10]
-            )
+            top_triggers = df.loc[pass_col, event_col].dropna().astype(str).unique().tolist()[:10]
             dropped_triggers = (
                 df.loc[~pass_col, event_col].dropna().astype(str).unique().tolist()[:10]
             )
@@ -590,17 +648,12 @@ def build_hierarchical_stage_diagnostics(
 
         # Context stage extras
         if stage == "context_refinement" and "context_gain_score" in df.columns:
-            gain = pd.to_numeric(df.get("context_gain_score", 0), errors="coerce").fillna(0)
             ctx_mask = df.get("context", pd.Series("", index=df.index)).apply(
                 lambda v: bool(v) and isinstance(v, dict) and len(v) > 0
             )
             baseline_mask = ~ctx_mask
-            stage_body["survivors_with_context"] = int(
-                (pass_col & ctx_mask).sum()
-            )
-            stage_body["baseline_survivors"] = int(
-                (pass_col & baseline_mask).sum()
-            )
+            stage_body["survivors_with_context"] = int((pass_col & ctx_mask).sum())
+            stage_body["baseline_survivors"] = int((pass_col & baseline_mask).sum())
             stage_body["context_gains"] = [
                 {
                     "candidate_id": str(row.get("candidate_id", "")),
@@ -613,10 +666,14 @@ def build_hierarchical_stage_diagnostics(
         stage_diags[stage] = stage_body
 
     hierarchical_evaluated_count = total_evaluated
-    pruning_efficiency = round(
-        1.0 - (hierarchical_evaluated_count / max(flat_mode_equivalent_count, 1)),
-        4,
-    ) if flat_mode_equivalent_count > 0 else 0.0
+    pruning_efficiency = (
+        round(
+            1.0 - (hierarchical_evaluated_count / max(flat_mode_equivalent_count, 1)),
+            4,
+        )
+        if flat_mode_equivalent_count > 0
+        else 0.0
+    )
 
     return {
         "search_mode": "hierarchical",
@@ -631,6 +688,7 @@ def build_hierarchical_stage_diagnostics(
 # ---------------------------------------------------------------------------
 # Phase 5 — Diversification diagnostics
 # ---------------------------------------------------------------------------
+
 
 def build_diversification_diagnostics(
     candidates: "pd.DataFrame",
@@ -678,20 +736,22 @@ def build_diversification_diagnostics(
 
     # Trigger family concentration
     event_col = (
-        "event_family" if "event_family" in candidates.columns
-        else "canonical_event_type" if "canonical_event_type" in candidates.columns
+        "event_family"
+        if "event_family" in candidates.columns
+        else "canonical_event_type"
+        if "canonical_event_type" in candidates.columns
         else "event_type"
     )
     trig_counts: dict[str, int] = {}
     if event_col in candidates.columns:
         for v in candidates[event_col].fillna("unknown").astype(str):
             trig_counts[v.upper()] = trig_counts.get(v.upper(), 0) + 1
-    top_trig = dict(
-        sorted(trig_counts.items(), key=lambda kv: -kv[1])[:10]
-    )
+    top_trig = dict(sorted(trig_counts.items(), key=lambda kv: -kv[1])[:10])
 
     # Lineage concentration
-    lineage_col = candidates.get("concept_lineage_key", pd.Series("", index=candidates.index)).fillna("")
+    lineage_col = candidates.get(
+        "concept_lineage_key", pd.Series("", index=candidates.index)
+    ).fillna("")
     lin_counts: dict[str, int] = {}
     for key in lineage_col.astype(str):
         if key:
@@ -699,11 +759,10 @@ def build_diversification_diagnostics(
     top_lin = dict(sorted(lin_counts.items(), key=lambda kv: -kv[1])[:5])
 
     # Top crowded clusters
-    cluster_size_col = candidates.get("cluster_size", pd.Series(1, index=candidates.index)).fillna(1)
-    cluster_density_col = candidates.get("cluster_density", pd.Series(0.0, index=candidates.index)).fillna(0.0)
+    cluster_size_col = candidates.get("cluster_size", pd.Series(1, index=candidates.index)).fillna(
+        1
+    )
     quality_col_name = _best_quality_col_diag(candidates)
-    quality_col = pd.to_numeric(candidates.get(quality_col_name, 0), errors="coerce").fillna(0.0)
-    cid_col = candidates.get("candidate_id", pd.Series("", index=candidates.index)).fillna("").astype(str)
 
     cluster_summaries: list[dict] = []
     seen_clusters: set[str] = set()
@@ -713,21 +772,29 @@ def build_diversification_diagnostics(
             continue
         seen_clusters.add(clu)
         clu_members = candidates[cluster_col == clu]
-        top_q = pd.to_numeric(clu_members.get(quality_col_name, 0), errors="coerce").fillna(0.0).max()
-        top_member = str(
-            clu_members.loc[clu_members.get(quality_col_name, pd.Series(0)).idxmax(), :]
-            .get("candidate_id", "")
-            if not clu_members.empty else ""
+        top_q = (
+            pd.to_numeric(clu_members.get(quality_col_name, 0), errors="coerce").fillna(0.0).max()
         )
-        cluster_summaries.append({
-            "cluster_id": clu,
-            "size": int(clu_members["cluster_size"].iloc[0])
-            if "cluster_size" in clu_members.columns else len(clu_members),
-            "density": float(clu_members["cluster_density"].iloc[0])
-            if "cluster_density" in clu_members.columns else 0.0,
-            "top_member": top_member,
-            "top_quality": round(float(top_q), 4),
-        })
+        top_member = str(
+            clu_members.loc[clu_members.get(quality_col_name, pd.Series(0)).idxmax(), :].get(
+                "candidate_id", ""
+            )
+            if not clu_members.empty
+            else ""
+        )
+        cluster_summaries.append(
+            {
+                "cluster_id": clu,
+                "size": int(clu_members["cluster_size"].iloc[0])
+                if "cluster_size" in clu_members.columns
+                else len(clu_members),
+                "density": float(clu_members["cluster_density"].iloc[0])
+                if "cluster_density" in clu_members.columns
+                else 0.0,
+                "top_member": top_member,
+                "top_quality": round(float(top_q), 4),
+            }
+        )
     top_crowded = sorted(cluster_summaries, key=lambda d: -d["size"])[:10]
 
     # Strongest excluded (selected_into_diversified_shortlist == False, sorted by quality)
@@ -739,14 +806,18 @@ def build_diversification_diagnostics(
         shortlist_actual_size = int(selected_mask.sum())
         exc_quality = pd.to_numeric(excluded.get(quality_col_name, 0), errors="coerce").fillna(0.0)
         exc_sorted = excluded.assign(_q=exc_quality).sort_values("_q", ascending=False).head(10)
-        reason_col = candidates.get("selection_reason", pd.Series("", index=candidates.index)).fillna("")
+        reason_col = candidates.get(
+            "selection_reason", pd.Series("", index=candidates.index)
+        ).fillna("")
         for _, r in exc_sorted.iterrows():
-            strongest_excluded.append({
-                "candidate_id": str(r.get("candidate_id", "")),
-                "quality_score": round(float(r.get("_q", 0.0)), 4),
-                "cluster_id": str(cluster_col.get(r.name, "")),
-                "exclusion_reason": str(reason_col.get(r.name, "not_selected")),
-            })
+            strongest_excluded.append(
+                {
+                    "candidate_id": str(r.get("candidate_id", "")),
+                    "quality_score": round(float(r.get("_q", 0.0)), 4),
+                    "cluster_id": str(cluster_col.get(r.name, "")),
+                    "exclusion_reason": str(reason_col.get(r.name, "not_selected")),
+                }
+            )
     elif shortlist is not None and not shortlist.empty:
         shortlist_actual_size = len(shortlist)
 
@@ -757,8 +828,12 @@ def build_diversification_diagnostics(
         top_n = candidates.head(int(shortlist_size)).copy()
         top_n_q = pd.to_numeric(top_n.get(quality_col_name, 0), errors="coerce").fillna(0.0)
         sl_q = pd.to_numeric(shortlist_df.get(quality_col_name, 0), errors="coerce").fillna(0.0)
-        top_n_clusters = top_n.get("overlap_cluster_id", pd.Series("c0", index=top_n.index)).nunique()
-        sl_clusters = shortlist_df.get("overlap_cluster_id", pd.Series("c0", index=shortlist_df.index)).nunique()
+        top_n_clusters = top_n.get(
+            "overlap_cluster_id", pd.Series("c0", index=top_n.index)
+        ).nunique()
+        sl_clusters = shortlist_df.get(
+            "overlap_cluster_id", pd.Series("c0", index=shortlist_df.index)
+        ).nunique()
         shortlist_vs_top_n = {
             "raw_top_n_quality_mean": round(float(top_n_q.mean()), 4) if not top_n_q.empty else 0.0,
             "shortlist_quality_mean": round(float(sl_q.mean()), 4) if not sl_q.empty else 0.0,

@@ -567,7 +567,6 @@ def _write_bridge_symbol_calibrations(
 
 
 def _make_parser() -> argparse.ArgumentParser:
-    DATA_ROOT = get_data_root()
     parser = argparse.ArgumentParser(description="Evaluate candidates on bridge/oos data.")
     parser.add_argument("--run_id", required=True)
     parser.add_argument("--symbols", required=True)
@@ -611,9 +610,7 @@ def _resolve_bridge_policy(args: argparse.Namespace, data_root: Path) -> Dict[st
         "min_net_expectancy_bps": float(getattr(contract, "min_net_expectancy_bps", 0.0) or 0.0),
         "max_fee_plus_slippage_bps": getattr(contract, "max_fee_plus_slippage_bps", None),
         "max_daily_turnover_multiple": getattr(contract, "max_daily_turnover_multiple", None),
-        "require_retail_viability": bool(
-            getattr(contract, "require_retail_viability", False)
-        ),
+        "require_retail_viability": bool(getattr(contract, "require_retail_viability", False)),
         "low_capital_contract": dict(getattr(contract, "low_capital_contract", {}) or {}),
         "enforce_low_capital_viability": bool(
             getattr(contract, "require_low_capital_contract", False)
@@ -761,7 +758,11 @@ def main() -> int:
             finalize_manifest(
                 manifest,
                 "warning",
-                stats={"candidate_count": 0, "evaluation_skipped": True, "skip_reason": "no_candidates"},
+                stats={
+                    "candidate_count": 0,
+                    "evaluation_skipped": True,
+                    "skip_reason": "no_candidates",
+                },
             )
             return 1
 

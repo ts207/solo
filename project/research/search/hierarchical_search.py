@@ -40,6 +40,7 @@ log = logging.getLogger(__name__)
 
 # ── Result container ─────────────────────────────────────────────────────────
 
+
 @dataclass
 class HierarchicalSearchResult:
     """Outcome of a full hierarchical search for one symbol."""
@@ -63,6 +64,7 @@ class HierarchicalSearchResult:
 
 
 # ── Internal helpers ─────────────────────────────────────────────────────────
+
 
 def _safe_int(value, default: int = 0) -> int:
     try:
@@ -136,10 +138,7 @@ def _evaluate_hypotheses(
 
 
 def _apply_v2_scoring(
-    candidates: pd.DataFrame, 
-    *, 
-    data_root: Path | None = None, 
-    run_id: str | None = None
+    candidates: pd.DataFrame, *, data_root: Path | None = None, run_id: str | None = None
 ) -> pd.DataFrame:
     """Apply v2/v3 discovery scoring if possible (non-fatal)."""
     if candidates.empty:
@@ -149,7 +148,7 @@ def _apply_v2_scoring(
         from project import PROJECT_ROOT
         from project.research.services.candidate_discovery_scoring import (
             annotate_discovery_v2_scores,
-            apply_ledger_multiplicity_correction
+            apply_ledger_multiplicity_correction,
         )
 
         config = {
@@ -165,11 +164,13 @@ def _apply_v2_scoring(
                     config.update(yaml_data["v2_scoring"])
 
         out = annotate_discovery_v2_scores(candidates, config)
-        
+
         # Apply ledger correction (v3) if data_root/run_id are available
         if data_root and run_id:
-            out = apply_ledger_multiplicity_correction(out, data_root=data_root, current_run_id=run_id)
-            
+            out = apply_ledger_multiplicity_correction(
+                out, data_root=data_root, current_run_id=run_id
+            )
+
         return out
     except Exception as exc:
         log.debug("V2 scoring failed/skipped in hierarchical stage: %s", exc)
@@ -191,10 +192,16 @@ def _stage_stats(
             "pruned": evaluated_count,
             "reason_breakdown": {},
         }
-    pass_mask = candidates.get("stage_pass", pd.Series(False, index=candidates.index)).fillna(False).astype(bool)
+    pass_mask = (
+        candidates.get("stage_pass", pd.Series(False, index=candidates.index))
+        .fillna(False)
+        .astype(bool)
+    )
     survivors = int(pass_mask.sum())
     pruned = len(candidates) - survivors
-    reason_col = candidates.get("stage_reason_code", pd.Series("", index=candidates.index)).fillna("")
+    reason_col = candidates.get("stage_reason_code", pd.Series("", index=candidates.index)).fillna(
+        ""
+    )
     reason_breakdown: dict[str, int] = {}
     for reason in reason_col[~pass_mask]:
         for code in str(reason).split("|"):
@@ -226,7 +233,9 @@ def _extract_trigger_templates_from_candidates(
     """Pull (event_type, template_id) pairs from a bridge candidate frame."""
     if candidates.empty:
         return []
-    event_col = "canonical_event_type" if "canonical_event_type" in candidates.columns else "event_type"
+    event_col = (
+        "canonical_event_type" if "canonical_event_type" in candidates.columns else "event_type"
+    )
     tmpl_col = "rule_template" if "rule_template" in candidates.columns else "template_id"
     if event_col not in candidates.columns or tmpl_col not in candidates.columns:
         return []
@@ -250,7 +259,11 @@ def _specs_from_survivor_candidates(
     """
     if candidates.empty or not all_evaluated_specs:
         return []
-    pass_mask = candidates.get("stage_pass", pd.Series(False, index=candidates.index)).fillna(False).astype(bool)
+    pass_mask = (
+        candidates.get("stage_pass", pd.Series(False, index=candidates.index))
+        .fillna(False)
+        .astype(bool)
+    )
     survivor_ids = set(
         candidates.loc[pass_mask, "hypothesis_id"].dropna().astype(str).tolist()
         if "hypothesis_id" in candidates.columns
@@ -275,10 +288,14 @@ def _annotate_lineage(
     out["search_stage"] = stage
 
     if "root_trigger_id" not in out.columns:
-        event_col = "canonical_event_type" if "canonical_event_type" in out.columns else "event_type"
+        event_col = (
+            "canonical_event_type" if "canonical_event_type" in out.columns else "event_type"
+        )
         if root_trigger_map and event_col in out.columns:
-            out["root_trigger_id"] = out[event_col].map(root_trigger_map).fillna(
-                out[event_col] if event_col in out.columns else ""
+            out["root_trigger_id"] = (
+                out[event_col]
+                .map(root_trigger_map)
+                .fillna(out[event_col] if event_col in out.columns else "")
             )
         elif event_col in out.columns:
             out["root_trigger_id"] = out[event_col].astype(str)
@@ -288,14 +305,15 @@ def _annotate_lineage(
     if "parent_candidate_id" not in out.columns:
         out["parent_candidate_id"] = ""
     if parent_candidate_id_map and "root_trigger_id" in out.columns:
-        out["parent_candidate_id"] = out["root_trigger_id"].map(parent_candidate_id_map).fillna(
-            out["parent_candidate_id"]
+        out["parent_candidate_id"] = (
+            out["root_trigger_id"].map(parent_candidate_id_map).fillna(out["parent_candidate_id"])
         )
 
     return out
 
 
 # ── Stage runners ─────────────────────────────────────────────────────────────
+
 
 def _run_stage_a(
     events: list[str],
@@ -396,9 +414,11 @@ def _run_stage_b(
     if stage_a_candidates.empty:
         return pd.DataFrame(), []
 
-    pass_mask = stage_a_candidates.get(
-        "stage_pass", pd.Series(False, index=stage_a_candidates.index)
-    ).fillna(False).astype(bool)
+    pass_mask = (
+        stage_a_candidates.get("stage_pass", pd.Series(False, index=stage_a_candidates.index))
+        .fillna(False)
+        .astype(bool)
+    )
     if not pass_mask.any():
         log.info("Stage B: no Stage A survivors — skipping template refinement")
         return pd.DataFrame(), []
@@ -431,7 +451,9 @@ def _run_stage_b(
     candidates = _apply_v2_scoring(candidates, data_root=data_root, run_id=run_id)
 
     # Build root_trigger_id map from event_type → existing Stage A candidate_id
-    event_col = "canonical_event_type" if "canonical_event_type" in survivors_a.columns else "event_type"
+    event_col = (
+        "canonical_event_type" if "canonical_event_type" in survivors_a.columns else "event_type"
+    )
     cid_col = "candidate_id" if "candidate_id" in survivors_a.columns else "hypothesis_id"
     parent_map: dict[str, str] = {}
     if event_col in survivors_a.columns and cid_col in survivors_a.columns:
@@ -490,9 +512,11 @@ def _run_stage_c(
     if stage_b_candidates.empty:
         return pd.DataFrame(), []
 
-    pass_mask = stage_b_candidates.get(
-        "stage_pass", pd.Series(False, index=stage_b_candidates.index)
-    ).fillna(False).astype(bool)
+    pass_mask = (
+        stage_b_candidates.get("stage_pass", pd.Series(False, index=stage_b_candidates.index))
+        .fillna(False)
+        .astype(bool)
+    )
     if not pass_mask.any():
         log.info("Stage C: no Stage B survivors — skipping execution refinement")
         return pd.DataFrame(), []
@@ -525,7 +549,9 @@ def _run_stage_c(
     candidates = _apply_v2_scoring(candidates, data_root=data_root, run_id=run_id)
 
     # Parent map: (event_type, template) → Stage B candidate_id
-    event_col = "canonical_event_type" if "canonical_event_type" in survivors_b.columns else "event_type"
+    event_col = (
+        "canonical_event_type" if "canonical_event_type" in survivors_b.columns else "event_type"
+    )
     tmpl_col = "rule_template" if "rule_template" in survivors_b.columns else "template_id"
     cid_col = "candidate_id" if "candidate_id" in survivors_b.columns else "hypothesis_id"
     parent_map: dict[str, str] = {}
@@ -540,7 +566,9 @@ def _run_stage_c(
     )
     # Wire parent_candidate_id for the (event, template) group
     if not candidates.empty:
-        ev_col_c = "canonical_event_type" if "canonical_event_type" in candidates.columns else "event_type"
+        ev_col_c = (
+            "canonical_event_type" if "canonical_event_type" in candidates.columns else "event_type"
+        )
         tm_col_c = "rule_template" if "rule_template" in candidates.columns else "template_id"
         if ev_col_c in candidates.columns and tm_col_c in candidates.columns:
             candidates["parent_candidate_id"] = [
@@ -559,7 +587,9 @@ def _run_stage_c(
 
     ranked = rank_stage_candidates(
         candidates,
-        parent_group_col="_stage_group" if "_stage_group" in candidates.columns else "root_trigger_id",
+        parent_group_col="_stage_group"
+        if "_stage_group" in candidates.columns
+        else "root_trigger_id",
         stage=STAGE_EXECUTION_REFINEMENT,
     )
     advanced = advance_stage_survivors(
@@ -607,9 +637,11 @@ def _run_stage_d(
     if stage_c_candidates.empty:
         return pd.DataFrame()
 
-    pass_mask = stage_c_candidates.get(
-        "stage_pass", pd.Series(False, index=stage_c_candidates.index)
-    ).fillna(False).astype(bool)
+    pass_mask = (
+        stage_c_candidates.get("stage_pass", pd.Series(False, index=stage_c_candidates.index))
+        .fillna(False)
+        .astype(bool)
+    )
     if not pass_mask.any():
         log.info("Stage D: no Stage C survivors — skipping context refinement")
         return pd.DataFrame()
@@ -624,7 +656,6 @@ def _run_stage_d(
 
     stage_cfg = hierarchical_config.get("context_refinement", {})
     min_context_gain = float(stage_cfg.get("min_context_gain", 0.0))
-    top_k_ctx = int(stage_cfg.get("top_k_contexts_per_candidate", 2))
 
     baseline_specs, context_specs = generate_context_refinement_candidates(
         survivor_specs, search_spec_doc, hierarchical_config, features=features
@@ -717,6 +748,7 @@ def _run_stage_d(
 
 # ── Public orchestrator ───────────────────────────────────────────────────────
 
+
 def run_hierarchical_search(
     *,
     run_id: str,
@@ -789,7 +821,11 @@ def run_hierarchical_search(
     stage_b_cfg = hierarchical_config.get("template_refinement", {})
     if not stage_b_cfg.get("enabled", True):
         # Flat-pass Stage A survivors directly
-        surviving = stage_a_df[stage_a_df.get("stage_pass", pd.Series(False)).fillna(False).astype(bool)] if not stage_a_df.empty else pd.DataFrame()
+        surviving = (
+            stage_a_df[stage_a_df.get("stage_pass", pd.Series(False)).fillna(False).astype(bool)]
+            if not stage_a_df.empty
+            else pd.DataFrame()
+        )
         result.final_candidates = surviving
         return result
 
@@ -823,7 +859,11 @@ def run_hierarchical_search(
     # ── Stage C ───────────────────────────────────────────────────────────
     stage_c_cfg = hierarchical_config.get("execution_refinement", {})
     if not stage_c_cfg.get("enabled", True):
-        surviving = stage_b_df[stage_b_df.get("stage_pass", pd.Series(False)).fillna(False).astype(bool)] if not stage_b_df.empty else pd.DataFrame()
+        surviving = (
+            stage_b_df[stage_b_df.get("stage_pass", pd.Series(False)).fillna(False).astype(bool)]
+            if not stage_b_df.empty
+            else pd.DataFrame()
+        )
         result.final_candidates = surviving
         return result
 
@@ -857,7 +897,11 @@ def run_hierarchical_search(
     # ── Stage D ───────────────────────────────────────────────────────────
     stage_d_cfg = hierarchical_config.get("context_refinement", {})
     if not stage_d_cfg.get("enabled", True):
-        surviving = stage_c_df[stage_c_df.get("stage_pass", pd.Series(False)).fillna(False).astype(bool)] if not stage_c_df.empty else pd.DataFrame()
+        surviving = (
+            stage_c_df[stage_c_df.get("stage_pass", pd.Series(False)).fillna(False).astype(bool)]
+            if not stage_c_df.empty
+            else pd.DataFrame()
+        )
         result.final_candidates = surviving
         result.candidates_evaluated_total = total_evaluated
         return result

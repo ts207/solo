@@ -113,23 +113,26 @@ def evaluate_row(
         # Sensitivity Gate (Phase 2)
         sensitivity_max_score = 0.4
         if promotion_confirmatory_gates:
-            sensitivity_max_score = float(promotion_confirmatory_gates.get("sensitivity_max_score", 0.4))
-        
+            sensitivity_max_score = float(
+                promotion_confirmatory_gates.get("sensitivity_max_score", 0.4)
+            )
+
         sensitivity_status, sensitivity_msg = "pass", ""
         if run_id and data_root:
             from pathlib import Path as _Path
+
             sensitivity_status, sensitivity_msg = evaluate_sensitivity_gate(
-                row, 
-                run_id=run_id, 
-                data_root=_Path(data_root), 
-                max_sensitivity_score=sensitivity_max_score
+                row,
+                run_id=run_id,
+                data_root=_Path(data_root),
+                max_sensitivity_score=sensitivity_max_score,
             )
-        
+
         if sensitivity_status == "fail":
             reasons.add_reject(f"sensitivity_high ({sensitivity_msg})", category="stability")
             reasons.add_promo_fail("gate_promo_sensitivity", category="stability")
-        
-        sensitivity_pass = (sensitivity_status == "pass")
+
+        sensitivity_pass = sensitivity_status == "pass"
 
         plan_row_id = str(row.get("plan_row_id", "")).strip()
         n_events = _quiet_int(row.get("n_events", row.get("sample_size", 0)), 0)
@@ -159,8 +162,7 @@ def evaluate_row(
         program_q_value_available = bool(np.isfinite(q_value_program))
         q_value_scope = coerce_numeric_nan(row.get("q_value_scope"))
         scope_q_value_available = bool(np.isfinite(q_value_scope))
-        
-        scope_level_multiplicity_pass = True
+
         multiplicity_scope_degraded = as_bool(row.get("multiplicity_scope_degraded", False))
         use_effective_q = bool(use_effective_q_value)
         scope_metadata_present = any(
@@ -172,7 +174,7 @@ def evaluate_row(
                 "multiplicity_scope_degraded" in row,
             ]
         )
-        
+
         upstream_effective_q_value = coerce_numeric_nan(row.get("effective_q_value"))
         values_for_effective_q = [
             v
@@ -183,16 +185,18 @@ def evaluate_row(
             effective_q_value = max(values_for_effective_q)
         else:
             effective_q_value = q_value
-        
+
         if use_effective_q:
             effective_q_value_for_check = effective_q_value
         else:
             effective_q_value_for_check = q_value if q_value_available else effective_q_value
-        
+
         statistical_pass = (
-            q_value_available and finite_le(effective_q_value_for_check, max_q_value) and (n_events >= int(min_events))
+            q_value_available
+            and finite_le(effective_q_value_for_check, max_q_value)
+            and (n_events >= int(min_events))
         )
-        
+
         if not statistical_pass:
             if not q_value_available:
                 reasons.add_pair(
@@ -217,10 +221,9 @@ def evaluate_row(
                 promo_fail_reason="gate_promo_statistical",
                 category="statistical_significance",
             )
-        
+
         require_scope_multiplicity = bool(require_scope_level_multiplicity)
-        allow_degraded = bool(allow_multiplicity_scope_degraded)
-        
+
         if (
             require_scope_multiplicity
             and scope_metadata_present
@@ -232,19 +235,17 @@ def evaluate_row(
                 promo_fail_reason="gate_promo_multiplicity_scope",
                 category="multiplicity_scope",
             )
-            scope_level_multiplicity_pass = False
         elif (
             require_scope_multiplicity
             and scope_metadata_present
             and multiplicity_scope_degraded
-            and not allow_degraded
+            and not allow_multiplicity_scope_degraded
         ):
             reasons.add_pair(
                 reject_reason="multiplicity_scope_degraded_not_allowed",
                 promo_fail_reason="gate_promo_multiplicity_scope",
                 category="multiplicity_scope",
             )
-            scope_level_multiplicity_pass = False
 
         market_eval = _evaluate_market_execution_and_stability(
             row=row,
@@ -378,7 +379,9 @@ def evaluate_row(
                 "event_runtime_category": str(governance.get("runtime_category", "")),
                 "event_is_descriptive": bool(is_descriptive),
                 "event_is_trade_trigger": bool(is_trade_trigger),
-                "event_requires_stronger_evidence": bool(governance.get("requires_stronger_evidence", False)),
+                "event_requires_stronger_evidence": bool(
+                    governance.get("requires_stronger_evidence", False)
+                ),
             }
         )
 

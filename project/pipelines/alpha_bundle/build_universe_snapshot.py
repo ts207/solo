@@ -11,7 +11,6 @@ from typing import Dict, List, Optional, Tuple
 
 import numpy as np
 import pandas as pd
-from project import PROJECT_ROOT
 from project.io.utils import ensure_dir, list_parquet_files, read_parquet, write_parquet
 from project.specs.manifest import finalize_manifest, start_manifest
 from project.core.validation import ensure_utc_timestamp
@@ -53,7 +52,6 @@ def main() -> int:
     symbols = [s.strip() for s in args.symbols.split(",") if s.strip()]
     symbols_sorted = _stable_symbol_sort(symbols)
 
-    project_root = PROJECT_ROOT
     data_root = get_data_root()
     out_dir = (
         Path(args.out_dir) if args.out_dir else data_root / "feature_store" / "universe_snapshots"

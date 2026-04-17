@@ -19,17 +19,7 @@ def debug_rejections():
     print(f"Rejection Reasons: {audit['rejection_reason_counts']}")
 
     # Analyze the rejected rows to find specific errors
-    errors_by_event = {}
     for row in audit["rejected_rows"]:
-        # row comes from FeasibilityCheckedHypothesis.to_record()
-        # It should have feasibility.details['errors'] if it was a validation_error
-        # But wait, looking at generator.py line 226:
-        # _record_rejection("validation_error", {"errors": list(errors)})
-
-        # Let's just manually re-validate to be sure
-        spec_dict = row.get("spec")  # Not in the record directly usually?
-        # Actually FeasibilityCheckedHypothesis.to_record() includes spec?
-        # Let's just use the audit data if possible.
         pass
 
     # Alternative: just iterate through events and templates and validate

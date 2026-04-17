@@ -171,13 +171,6 @@ def run_certification() -> int:
                 failures.append(msg)
                 print(f"   FAIL: {msg}")
 
-        nodes_hash = hashlib.sha256(
-            json.dumps(
-                [{"feature": n.feature, "operator": n.operator, "value": n.value} for n in nodes],
-                sort_keys=True,
-            ).encode()
-        ).hexdigest()[:16]
-
         audit_rows.append(
             {
                 "candidate_id": cid,

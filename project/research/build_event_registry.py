@@ -31,7 +31,6 @@ from project.schemas.data_contracts import EventRegistrySchema
 
 
 def _parse_symbols(symbols_csv: str) -> List[str]:
-    DATA_ROOT = get_data_root()
     symbols = [s.strip().upper() for s in str(symbols_csv).split(",") if s.strip()]
     return list(dict.fromkeys(symbols))
 
@@ -118,19 +117,19 @@ def main() -> int:
         if not events.empty:
             logging.info("Scoring event quality")
             events = score_event_frame(events)
-            
+
             logging.info("Applying event arbitration")
             arb_result = arbitrate_events(events)
             events = arb_result.events
             if not arb_result.composite_events.empty:
                 logging.info(f"Adding {len(arb_result.composite_events)} composite events")
                 from project.events.event_normalizer import normalize_registry_events_frame
-                
+
                 # Propagate run_id to composite events if missing
                 if "run_id" in events.columns and not events["run_id"].empty:
                     run_id = str(events["run_id"].iloc[0])
                     arb_result.composite_events["run_id"] = run_id
-                
+
                 events = pd.concat([events, arb_result.composite_events], ignore_index=True)
                 # Re-normalize to ensure all columns are present and typed correctly
                 events = normalize_registry_events_frame(events)
@@ -175,8 +174,8 @@ def main() -> int:
             logging.info("Converting timestamps to int64")
             # Ensure timestamp itself is int64
             events["timestamp"] = (
-                pd.to_datetime(events["timestamp"], utc=True, errors="coerce")
-                .astype("int64") // 10**6
+                pd.to_datetime(events["timestamp"], utc=True, errors="coerce").astype("int64")
+                // 10**6
             )
             for _ts_col in (
                 "phenom_enter_ts",

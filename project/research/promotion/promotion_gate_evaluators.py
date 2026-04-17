@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import logging
+from pathlib import Path
 from typing import Any, Dict, List
 
 import numpy as np
@@ -50,7 +51,7 @@ def _parse_returns_oos(values: Any) -> pd.Series:
         normalized = normalize_returns_oos_combined(values)
     except ValueError:
         return pd.Series(dtype=float)
-    return pd.to_numeric(pd.Series(normalized, dtype='float64'), errors='coerce').dropna()
+    return pd.to_numeric(pd.Series(normalized, dtype="float64"), errors="coerce").dropna()
 
 
 def _confirmatory_shadow_gates(
@@ -397,7 +398,12 @@ def _evaluate_control_audit_and_dsr(
         # Fallback order for DSR trials: broader effective multiplicity count
         raw_n_trials = 0
         used_col = "none"
-        for col in ["num_tests_effective", "num_tests_campaign", "num_tests_family"]:
+        for col in [
+            "num_tests_effective",
+            "num_tests_campaign",
+            "num_tests_family",
+            "num_tests_event_family",
+        ]:
             val = _quiet_int(row.get(col, 0), 0)
             if val >= 1:
                 raw_n_trials = val
@@ -405,15 +411,25 @@ def _evaluate_control_audit_and_dsr(
                 break
 
         if raw_n_trials < 1:
-            # No multiplicity columns found - fallback to 1 (PSR equivalence)
-            log.warning(
-                "_evaluate_control_audit_and_dsr: No multiplicity test-count columns found (effective, campaign, family)."
-                " DSR will use n_trials=1 (PSR equivalence). Selection penalty will be underestimated."
-            )
+            if float(min_dsr) > 0:
+                if (
+                    _quiet_int(row.get("num_tests_event_family", 0), 0) == 0
+                    and "num_tests_event_family" in row
+                ):
+                    log.warning(
+                        "num_tests_event_family=0: DSR n_trials fallback to 1. "
+                        "Selection penalty will be underestimated."
+                    )
+                else:
+                    log.warning(
+                        "_evaluate_control_audit_and_dsr: No multiplicity test-count columns found (effective, campaign, family)."
+                        " DSR will use n_trials=1 (PSR equivalence). Selection penalty will be underestimated."
+                    )
         else:
             log.info(
                 "_evaluate_control_audit_and_dsr: DSR using n_trials=%d from '%s'",
-                raw_n_trials, used_col
+                raw_n_trials,
+                used_col,
             )
 
         n_trials = max(1, raw_n_trials)
@@ -598,7 +614,7 @@ def _evaluate_deploy_oos_and_low_capital(
     # no explicit OOS samples are present. Candidates without out-of-sample evidence
     # must NOT receive a passing OOS mark — this was silently allowing promotions
     # without any OOS validation. In deploy mode, oos_not_evaluated is a hard block.
-    oos_pass: bool | None = None   # None = not evaluated; True = pass; False = fail
+    oos_pass: bool | None = None  # None = not evaluated; True = pass; False = fail
     oos_evaluated: bool = False
     direction_match = True
     min_val_events = 0

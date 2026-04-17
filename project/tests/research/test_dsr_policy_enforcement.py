@@ -1,8 +1,9 @@
 """
 E3-T1: DSR must be a nonzero default in all promotion entrypoints.
 
-Parses the source of each CLI script to extract the --min_dsr default.
-Prevents regression to min_dsr=0.0 which silently disables multiple-testing protection.
+Verifies that the runtime default for --min_dsr is >= 0.5 in each
+promotion CLI script.  Prevents regression to min_dsr=0.0 which
+silently disables multiple-testing protection.
 """
 
 from __future__ import annotations
@@ -15,12 +16,9 @@ import pytest
 from project.tests.conftest import REPO_ROOT
 
 _REPO_ROOT = REPO_ROOT
-# Add any new promotion CLI entrypoints here to keep the policy guard comprehensive.
 _PROMOTION_CLI_PATHS = [
     "project/research/cli/promotion_cli.py",
 ]
-# 0.5 is the Bailey & Lopez de Prado DSR literature floor for post-selection strategies.
-# Lower values weaken multiple-testing protection; do not reduce without documented justification.
 _MIN_REQUIRED_DSR = 0.5
 
 
@@ -35,8 +33,6 @@ def test_promotion_cli_min_dsr_is_nonzero(script_path):
 
     content = path.read_text()
 
-    # Step 1: find the add_argument block that contains '--min_dsr'
-    # Match from add_argument( to the closing ), limited to ~500 chars to avoid spanning multiple calls
     block_matches = re.findall(
         r"""add_argument\s*\([^)]{0,500}['"]{1,2}--min_dsr['"]{1,2}[^)]{0,500}\)""",
         content,
@@ -44,13 +40,22 @@ def test_promotion_cli_min_dsr_is_nonzero(script_path):
     )
     assert block_matches, f"Could not find add_argument block for --min_dsr in {script_path}"
 
-    # Step 2: within that block only, find default=<value>
     for block in block_matches:
-        matches = re.findall(r"""default\s*=\s*([0-9]+(?:\.[0-9]*)?)""", block)
-        assert matches, f"Could not find default= in --min_dsr block in {script_path}"
-        for match in matches:
-            value = float(match)
-            assert value >= _MIN_REQUIRED_DSR, (
-                f"{script_path}: --min_dsr default is {value}, must be >= {_MIN_REQUIRED_DSR}. "
-                "Set a nonzero default to protect against multiple-testing inflation."
+        literal_matches = re.findall(r"""default\s*=\s*([0-9]+(?:\.[0-9]*)?)""", block)
+        if literal_matches:
+            for match in literal_matches:
+                value = float(match)
+                assert value >= _MIN_REQUIRED_DSR, (
+                    f"{script_path}: --min_dsr default is {value}, must be >= {_MIN_REQUIRED_DSR}."
+                )
+        else:
+            const_matches = re.findall(
+                r"""default\s*=\s*([A-Za-z_][A-Za-z0-9_]*(?:\[.*?\])?)""", block
+            )
+            assert const_matches, f"Could not find default= in --min_dsr block in {script_path}"
+            from project.research.cli.promotion_cli import PROMOTION_CONFIG_DEFAULTS
+
+            actual_min_dsr = float(PROMOTION_CONFIG_DEFAULTS.get("min_dsr", 0.0))
+            assert actual_min_dsr >= _MIN_REQUIRED_DSR, (
+                f"{script_path}: --min_dsr resolves to {actual_min_dsr}, must be >= {_MIN_REQUIRED_DSR}."
             )

@@ -24,7 +24,13 @@ from project.core.exceptions import (
     SchemaMismatchError,
 )
 from project.io.parquet_compat import read_parquet_compat
-from project.io.utils import atomic_write_json, atomic_write_text, ensure_dir, read_parquet, write_parquet
+from project.io.utils import (
+    atomic_write_json,
+    atomic_write_text,
+    ensure_dir,
+    read_parquet,
+    write_parquet,
+)
 from project.research.audit_historical_artifacts import build_run_historical_trust_summary
 from project.research.promotion import (
     build_promotion_statistical_audit,
@@ -146,11 +152,13 @@ def build_promotion_config(
 ) -> PromotionConfig:
     values = dict(PROMOTION_CONFIG_DEFAULTS)
     values.update(overrides)
-    values.update({
-        "run_id": str(run_id),
-        "symbols": str(symbols),
-        "out_dir": out_dir,
-    })
+    values.update(
+        {
+            "run_id": str(run_id),
+            "symbols": str(symbols),
+            "out_dir": out_dir,
+        }
+    )
     return PromotionConfig(**values)
 
 
@@ -187,7 +195,9 @@ def normalize_promotion_class(value: str | None, *, default: str = "paper_promot
     return default
 
 
-def default_deployment_state_for_promotion_class(value: str | None, *, default: str = "paper_only") -> str:
+def default_deployment_state_for_promotion_class(
+    value: str | None, *, default: str = "paper_only"
+) -> str:
     token = normalize_promotion_class(value, default="paper_promoted")
     return DEFAULT_DEPLOYMENT_STATE_BY_PROMOTION_CLASS.get(token, default)
 
@@ -428,7 +438,9 @@ def _apply_artifact_audit_stamp(df: pd.DataFrame) -> pd.DataFrame:
         out["artifact_audit_version"] = pd.Series(dtype="object")
         return out
     out = df.copy()
-    multiplicity_degraded = out.get("multiplicity_scope_degraded", pd.Series(False, index=out.index))
+    multiplicity_degraded = out.get(
+        "multiplicity_scope_degraded", pd.Series(False, index=out.index)
+    )
     if not isinstance(multiplicity_degraded, pd.Series):
         multiplicity_degraded = pd.Series(multiplicity_degraded, index=out.index)
     audit_status = multiplicity_degraded.astype(bool).apply(
@@ -867,8 +879,6 @@ def _resolve_promotion_policy(
     )
 
 
-
-
 def _write_promotion_lineage_audit(
     *,
     out_dir: Path,
@@ -886,30 +896,50 @@ def _write_promotion_lineage_audit(
     }
     for bundle in evidence_bundles:
         candidate_id = str(bundle.get("candidate_id", "")).strip()
-        decision = bundle.get("promotion_decision", {}) if isinstance(bundle.get("promotion_decision", {}), dict) else {}
-        metadata = bundle.get("metadata", {}) if isinstance(bundle.get("metadata", {}), dict) else {}
-        search_burden = bundle.get("search_burden", {}) if isinstance(bundle.get("search_burden", {}), dict) else {}
-        rows.append({
-            "run_id": run_id,
-            "candidate_id": candidate_id,
-            "event_type": str(bundle.get("event_type", "")).strip(),
-            "promotion_status": str(decision.get("promotion_status", "")).strip(),
-            "promotion_track": str(decision.get("promotion_track", "")).strip(),
-            "bundle_version": str(bundle.get("bundle_version", "")).strip(),
-            "policy_version": str(bundle.get("policy_version", "")).strip(),
-            "hypothesis_id": str(metadata.get("hypothesis_id", "")).strip(),
-            "plan_row_id": str(metadata.get("plan_row_id", "")).strip(),
-            "program_id": str(metadata.get("program_id", "")).strip(),
-            "campaign_id": str(metadata.get("campaign_id", "")).strip(),
-            "live_exported": candidate_id in promoted_ids,
-            "search_candidates_generated": safe_int(search_burden.get("search_candidates_generated", 0), 0),
-            "search_candidates_eligible": safe_int(search_burden.get("search_candidates_eligible", 0), 0),
-            "search_mutations_attempted": safe_int(search_burden.get("search_mutations_attempted", 0), 0),
-            "search_family_count": safe_int(search_burden.get("search_family_count", 0), 0),
-            "search_lineage_count": safe_int(search_burden.get("search_lineage_count", 0), 0),
-            "search_burden_estimated": bool(as_bool(search_burden.get("search_burden_estimated", False))),
-            "search_scope_version": str(search_burden.get("search_scope_version", "phase1_v1")),
-        })
+        decision = (
+            bundle.get("promotion_decision", {})
+            if isinstance(bundle.get("promotion_decision", {}), dict)
+            else {}
+        )
+        metadata = (
+            bundle.get("metadata", {}) if isinstance(bundle.get("metadata", {}), dict) else {}
+        )
+        search_burden = (
+            bundle.get("search_burden", {})
+            if isinstance(bundle.get("search_burden", {}), dict)
+            else {}
+        )
+        rows.append(
+            {
+                "run_id": run_id,
+                "candidate_id": candidate_id,
+                "event_type": str(bundle.get("event_type", "")).strip(),
+                "promotion_status": str(decision.get("promotion_status", "")).strip(),
+                "promotion_track": str(decision.get("promotion_track", "")).strip(),
+                "bundle_version": str(bundle.get("bundle_version", "")).strip(),
+                "policy_version": str(bundle.get("policy_version", "")).strip(),
+                "hypothesis_id": str(metadata.get("hypothesis_id", "")).strip(),
+                "plan_row_id": str(metadata.get("plan_row_id", "")).strip(),
+                "program_id": str(metadata.get("program_id", "")).strip(),
+                "campaign_id": str(metadata.get("campaign_id", "")).strip(),
+                "live_exported": candidate_id in promoted_ids,
+                "search_candidates_generated": safe_int(
+                    search_burden.get("search_candidates_generated", 0), 0
+                ),
+                "search_candidates_eligible": safe_int(
+                    search_burden.get("search_candidates_eligible", 0), 0
+                ),
+                "search_mutations_attempted": safe_int(
+                    search_burden.get("search_mutations_attempted", 0), 0
+                ),
+                "search_family_count": safe_int(search_burden.get("search_family_count", 0), 0),
+                "search_lineage_count": safe_int(search_burden.get("search_lineage_count", 0), 0),
+                "search_burden_estimated": bool(
+                    as_bool(search_burden.get("search_burden_estimated", False))
+                ),
+                "search_scope_version": str(search_burden.get("search_scope_version", "phase1_v1")),
+            }
+        )
     json_path = out_dir / "promotion_lineage_audit.json"
     md_path = out_dir / "promotion_lineage_audit.md"
     payload = {
@@ -938,7 +968,9 @@ def _write_promotion_lineage_audit(
     ]
     for row in rows:
         md_lines.append(
-            "| {candidate_id} | {event_type} | {promotion_status} | {promotion_track} | {program_id} | {campaign_id} | {live_exported} |".format(**row)
+            "| {candidate_id} | {event_type} | {promotion_status} | {promotion_track} | {program_id} | {campaign_id} | {live_exported} |".format(
+                **row
+            )
         )
     atomic_write_text(md_path, "\n".join(md_lines) + "\n")
     return {"json_path": str(json_path), "md_path": str(md_path)}
@@ -974,14 +1006,14 @@ def _write_multiplicity_scope_diagnostics(out_dir: Path, diag: Dict[str, Any]) -
     ]
 
     # Add scope context counts if available
-    context_counts = diag.get('scope_context_counts', {})
+    context_counts = diag.get("scope_context_counts", {})
     if context_counts:
         md_lines.extend(["", "## Context Breakdown"])
         for context, count in sorted(context_counts.items()):
             md_lines.append(f"- {context}: `{count}`")
 
     # Add degraded reason counts if available
-    degraded_reasons = diag.get('scope_degraded_reason_counts', {})
+    degraded_reasons = diag.get("scope_degraded_reason_counts", {})
     if degraded_reasons:
         md_lines.extend(["", "## Degraded Reasons"])
         for reason, count in sorted(degraded_reasons.items()):
@@ -993,7 +1025,8 @@ def _write_multiplicity_scope_diagnostics(out_dir: Path, diag: Dict[str, Any]) -
     return {"json_path": str(json_path), "md_path": str(md_path)}
 
 
-REQUIRED_PROMOTION_FIELDS = frozenset({
+REQUIRED_PROMOTION_FIELDS = frozenset(
+    {
         "candidate_id",
         "family",
         "event_type",
@@ -1003,7 +1036,8 @@ REQUIRED_PROMOTION_FIELDS = frozenset({
         "cost_survival_ratio",
         "q_value",
         "n_events",
-    })
+    }
+)
 
 
 def _missing_or_blank_mask(series: pd.Series) -> pd.Series:
@@ -1159,13 +1193,13 @@ def execute_promotion(config: PromotionConfig) -> PromotionServiceResult:
             )
 
         canonical_candidate_path = (
-            out_dir.parent.parent / "validation" / config.run_id / "promotion_ready_candidates.parquet"
+            out_dir.parent.parent
+            / "validation"
+            / config.run_id
+            / "promotion_ready_candidates.parquet"
         )
         canonical_candidate_csv_path = canonical_candidate_path.with_suffix(".csv")
-        if (
-            not canonical_candidate_path.exists()
-            and not canonical_candidate_csv_path.exists()
-        ):
+        if not canonical_candidate_path.exists() and not canonical_candidate_csv_path.exists():
             raise MissingArtifactError(
                 f"Canonical promotion-ready candidates not found at {canonical_candidate_path}. "
                 "Run canonical validation before promotion."
@@ -1230,7 +1264,6 @@ def execute_promotion(config: PromotionConfig) -> PromotionServiceResult:
             "promotion",
             "deploy",
         }
-        run_symbols = _parse_run_symbols(config.symbols or source_manifest.get("symbols"))
         if is_exploratory and not config.allow_discovery_promotion:
             raise ValueError(
                 f"Promotion blocked for {config.run_id}: source run_mode={source_run_mode}. "
@@ -1247,14 +1280,14 @@ def execute_promotion(config: PromotionConfig) -> PromotionServiceResult:
             retail_profiles_spec_path=config.retail_profiles_spec,
             required=True,
         )
-        
+
         # Prefer canonical promotion-ready candidates artifact over ambient table loading
         candidates_df = pd.DataFrame()
-        
+
         if canonical_candidate_path.exists() or canonical_candidate_csv_path.exists():
             promotion_input_mode = "canonical"
             validation_meta_df = _read_csv_or_parquet(canonical_candidate_path)
-            
+
             validation_svc = ValidationService(data_root=data_root)
             source_tables = validation_svc.load_candidate_tables(config.run_id)
             source_candidates_df = pd.DataFrame()
@@ -1262,7 +1295,7 @@ def execute_promotion(config: PromotionConfig) -> PromotionServiceResult:
                 if not source_tables[source].empty:
                     source_candidates_df = source_tables[source]
                     break
-            
+
             if source_candidates_df.empty:
                 raise IncompleteLineageError(
                     f"Canonical promotion input for run {config.run_id} had validation metadata "
@@ -1277,19 +1310,21 @@ def execute_promotion(config: PromotionConfig) -> PromotionServiceResult:
                 candidates_df = source_candidates_df[
                     source_candidates_df["candidate_id"].astype(str).isin(validated_ids)
                 ].copy()
-                
+
                 for col in validation_meta_df.columns:
                     if col not in candidates_df.columns and col != "candidate_id":
-                        candidates_df[col] = validation_meta_df.set_index("candidate_id").reindex(
-                            candidates_df["candidate_id"].astype(str)
-                        )[col].values
-                
+                        candidates_df[col] = (
+                            validation_meta_df.set_index("candidate_id")
+                            .reindex(candidates_df["candidate_id"].astype(str))[col]
+                            .values
+                        )
+
                 if candidates_df.empty and not validation_meta_df.empty:
                     raise IncompleteLineageError(
                         "No matching candidates found between validation metadata and source "
                         f"tables for run {config.run_id}."
                     )
-            
+
             if not candidates_df.empty:
                 missing_before_hydration = _diagnose_missing_fields(candidates_df)
                 candidates_df = _hydrate_canonical_promotion_aliases(candidates_df)
@@ -1299,9 +1334,7 @@ def execute_promotion(config: PromotionConfig) -> PromotionServiceResult:
                         missing_before_hydration
                     )
                     diagnostics["canonical_alias_hydrated_fields"] = [
-                        field
-                        for field in missing_before_hydration
-                        if field not in missing_fields
+                        field for field in missing_before_hydration if field not in missing_fields
                     ]
                 if missing_fields:
                     diagnostics["canonical_missing_fields"] = missing_fields
@@ -1312,14 +1345,14 @@ def execute_promotion(config: PromotionConfig) -> PromotionServiceResult:
                 logging.info(
                     "Loaded %d candidates via canonical path for run %s",
                     len(candidates_df),
-                    config.run_id
+                    config.run_id,
                 )
         else:
             raise CompatibilityRequiredError(
                 f"Canonical promotion-ready candidates not found at {canonical_candidate_path}. "
                 "Run canonical validation before promotion."
             )
-        
+
         diagnostics["promotion_input_mode"] = promotion_input_mode
 
         # Workstream B: Load search-burden summary if present
@@ -1328,7 +1361,7 @@ def execute_promotion(config: PromotionConfig) -> PromotionServiceResult:
             load_search_burden_summary,
             merge_search_burden_columns,
         )
-        
+
         search_burden = None
         search_burden_paths = [
             data_root / "reports" / "phase2" / config.run_id,
@@ -1347,7 +1380,7 @@ def execute_promotion(config: PromotionConfig) -> PromotionServiceResult:
                 config.run_id,
             )
             search_burden = default_search_burden_dict(estimated=True)
-        
+
         candidates_df = merge_search_burden_columns(candidates_df, defaults=search_burden)
 
         candidates_df = _canonicalize_candidate_audit_keys(candidates_df)
@@ -1422,13 +1455,19 @@ def execute_promotion(config: PromotionConfig) -> PromotionServiceResult:
             enforce_baseline_beats_complexity=resolved_policy.enforce_baseline_beats_complexity,
             enforce_placebo_controls=resolved_policy.enforce_placebo_controls,
             enforce_timeframe_consensus=resolved_policy.enforce_timeframe_consensus,
-            multiplicity_scope_mode=getattr(resolved_policy, 'multiplicity_scope_mode', 'campaign_lineage'),
-            require_scope_level_multiplicity=getattr(resolved_policy, 'require_scope_level_multiplicity', True),
-            allow_multiplicity_scope_degraded=getattr(resolved_policy, 'allow_multiplicity_scope_degraded', True),
-            use_effective_q_value=getattr(resolved_policy, 'use_effective_q_value', True),
+            multiplicity_scope_mode=getattr(
+                resolved_policy, "multiplicity_scope_mode", "campaign_lineage"
+            ),
+            require_scope_level_multiplicity=getattr(
+                resolved_policy, "require_scope_level_multiplicity", True
+            ),
+            allow_multiplicity_scope_degraded=getattr(
+                resolved_policy, "allow_multiplicity_scope_degraded", True
+            ),
+            use_effective_q_value=getattr(resolved_policy, "use_effective_q_value", True),
         )
         diagnostics["promotion_profile"] = resolved_policy.promotion_profile
-        
+
         # Write multiplicity scope diagnostics
         multiplicity_scope_diag = diagnostics.get("multiplicity_scope_diagnostics", {})
         if multiplicity_scope_diag:
@@ -1475,9 +1514,7 @@ def execute_promotion(config: PromotionConfig) -> PromotionServiceResult:
                     bundle = _parse_valid_evidence_bundle(raw)
                 except (json.JSONDecodeError, ValueError) as exc:
                     if _is_promoted_audit_row(row):
-                        invalid_promoted_rows.append(
-                            f"{candidate_id or '<unknown>'}: {exc}"
-                        )
+                        invalid_promoted_rows.append(f"{candidate_id or '<unknown>'}: {exc}")
                     continue
                 if bundle is None:
                     if _is_promoted_audit_row(row):
@@ -1585,8 +1622,12 @@ def execute_promotion(config: PromotionConfig) -> PromotionServiceResult:
             "thesis_count": int(thesis_export.thesis_count),
             "active_count": int(thesis_export.active_count),
             "pending_count": int(thesis_export.pending_count),
-            "contract_json_path": str(thesis_export.contract_json_path) if thesis_export.contract_json_path else "",
-            "contract_md_path": str(thesis_export.contract_md_path) if thesis_export.contract_md_path else "",
+            "contract_json_path": str(thesis_export.contract_json_path)
+            if thesis_export.contract_json_path
+            else "",
+            "contract_md_path": str(thesis_export.contract_md_path)
+            if thesis_export.contract_md_path
+            else "",
         }
         diagnostics["promotion_lineage_audit"] = _write_promotion_lineage_audit(
             out_dir=out_dir,
@@ -1608,12 +1649,12 @@ def execute_promotion(config: PromotionConfig) -> PromotionServiceResult:
             live_export_diagnostics=diagnostics.get("live_thesis_export"),
             historical_trust=diagnostics.get("historical_trust"),
         )
-        
+
         # Sprint 7: Artifact manifest
         try:
             from project.research.validation.manifest import RunArtifactManifest
             from datetime import datetime, timezone
-            
+
             artifact_manifest = RunArtifactManifest(
                 run_id=config.run_id,
                 stage="promote",
@@ -1624,7 +1665,7 @@ def execute_promotion(config: PromotionConfig) -> PromotionServiceResult:
                     "promoted_candidates": "promoted_candidates.parquet",
                     "promotion_summary": "promotion_summary.csv",
                     "promotion_diagnostics": "promotion_diagnostics.json",
-                }
+                },
             )
             artifact_manifest.persist(out_dir)
         except (OSError, TypeError, ValueError) as exc:

@@ -418,7 +418,6 @@ def _synthesize_experiment_hypotheses(
                 trigger_mask &= False
 
         elif t.trigger_type == "transition":
-            from_col = f"state_{t.from_state}"
             to_col = f"state_{t.to_state}"
             prev_from_col = f"prev_state_{t.from_state}"
 

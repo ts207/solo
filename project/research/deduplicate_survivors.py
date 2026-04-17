@@ -18,7 +18,6 @@ from project.research.utils.decision_safety import fail_closed_bool
 
 
 def _calculate_jaccard(set_a: set, set_b: set) -> float:
-    DATA_ROOT = get_data_root()
     if not set_a and not set_b:
         return 1.0
     intersection = len(set_a.intersection(set_b))

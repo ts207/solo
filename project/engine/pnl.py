@@ -292,7 +292,9 @@ def compute_pnl_ledger(
     if funding_rate is None:
         funding_pnl = pd.Series(0.0, index=state.index, dtype=float)
     elif use_event_aligned_funding:
-        funding_pnl = compute_funding_pnl_event_aligned(executed, funding_rate_aligned, funding_hours=funding_hours)
+        funding_pnl = compute_funding_pnl_event_aligned(
+            executed, funding_rate_aligned, funding_hours=funding_hours
+        )
     else:
         funding_pnl = -executed * funding_rate_aligned
 
@@ -348,7 +350,7 @@ def compute_pnl_components(
     use_event_aligned_funding: bool = True,
     execution_mode: str = "close",
     funding_hours: tuple[int, ...] = FUNDING_HOURS_BINANCE,
-    ) -> pd.DataFrame:
+) -> pd.DataFrame:
     """
     Legacy per-bar PnL component calculation.
 
@@ -371,6 +373,7 @@ def compute_pnl_components(
                 )
 
     import warnings
+
     warnings.warn(
         "compute_pnl_components is deprecated and will be removed in a future release. "
         "Use compute_pnl_ledger() which correctly handles flip trades and next-open fills.",
@@ -384,22 +387,21 @@ def compute_pnl_components(
     exec_mode = str(execution_mode).strip().lower()
     if exec_mode == "next_open":
         # A flip (long -> short or vice versa) means both prior_pos and aligned_pos are non-zero
-        # but have different signs or magnitudes. 
+        # but have different signs or magnitudes.
         # is_entry should detect any change from zero to non-zero.
         # But for a flip, we need to handle the intrabar leg carefully.
-        
+
         # In next_open mode:
         # gap_ret = open[t]/close[t-1] - 1 (accrued to prior_pos)
         # intrabar_ret = close[t]/open[t] - 1 (accrued to aligned_pos)
-        
+
         # The legacy 'position_for_pnl' approach is too simplistic for flips.
         # Let's adjust it to match build_execution_state semantics where possible
         # for a single 'ret' series (which is cc_ret).
-        
+
         is_entry = (prior_pos == 0) & (aligned_pos != 0)
-        is_exit = (prior_pos != 0) & (aligned_pos == 0)
         is_flip = (prior_pos != 0) & (aligned_pos != 0) & (prior_pos != aligned_pos)
-        
+
         # If it's a flip, the best we can do with a single CC return is a weighted average
         # or choosing one. build_execution_state decomposes the bar.
         # For this legacy helper, we'll use the new position if it's an entry or flip.

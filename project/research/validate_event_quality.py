@@ -32,7 +32,6 @@ from project.io.utils import (
 
 
 def _default_horizons_bars_csv() -> str:
-    DATA_ROOT = get_data_root()
     return ",".join(str(int(x)) for x in DEFAULT_EVENT_HORIZON_BARS)
 
 

@@ -20,7 +20,6 @@ def check_exit_conditions(
     """
     Evaluate adaptive exit conditions.
     """
-    close = float(bar["close"])
 
     # 1. Fixed Horizon (Timeout)
     timeout_bars = int(blueprint_exit.get("time_stop_bars", 96))
@@ -30,7 +29,7 @@ def check_exit_conditions(
     # 2. Target Hit
     target_value = float(blueprint_exit.get("target_value", 0.05))
     target_type = str(blueprint_exit.get("target_type", "percent")).lower()
-    
+
     # Calculate target price
     if target_type == "percent":
         target_price = (
@@ -56,7 +55,7 @@ def check_exit_conditions(
     # and ``atr``; in that case treat the bar as gap-free.
     bar_close = float(bar["close"])
     bar_open = float(bar.get("open", bar_close))
-    
+
     if is_long:
         # For long, hit target if high >= target. But here we only have open/close.
         # Conservative: check max(open, close) >= target

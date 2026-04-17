@@ -54,6 +54,7 @@ REASON_LEDGER_BURDEN = "ledger_burden_exceeded"
 
 # ── Stage score ──────────────────────────────────────────────────────────────
 
+
 def _safe_float(value, default: float = 0.0) -> float:
     try:
         v = float(value)
@@ -80,9 +81,7 @@ def _compute_stage_score(row: dict | pd.Series, *, stage: str) -> float:
     and store it as a separate column.
     """
     # ── Evidence inputs from existing columns ────────────────────────────
-    t_raw = _safe_float(
-        row.get("t_stat", row.get("t_statistic", 0.0)), 0.0
-    )
+    t_raw = _safe_float(row.get("t_stat", row.get("t_statistic", 0.0)), 0.0)
     # Normalize t to [0, 1] using a gate-relative scale: [_T_MIN_GATE, 3.0] → [0, 1].
     # This maps t=1.5 (minimum viable) to 0.0 and t=3.0 to 1.0.
     # The old division by 3.0 mapped t=1.5 to 0.5, creating a structural soft
@@ -90,9 +89,7 @@ def _compute_stage_score(row: dict | pd.Series, *, stage: str) -> float:
     # could strengthen them (the flat path evaluates all combinations;).
     t_norm = _clamp((abs(t_raw) - _T_MIN_GATE) / (3.0 - _T_MIN_GATE), 0.0, 1.0)
 
-    rob = _clamp(
-        _safe_float(row.get("robustness_score", 0.0), 0.0), 0.0, 1.0
-    )
+    rob = _clamp(_safe_float(row.get("robustness_score", 0.0), 0.0), 0.0, 1.0)
 
     # Fold stability — prefer fold_stability_score, then fold_pass_rate
     fold_stab_raw = row.get("fold_stability_score")
@@ -103,38 +100,20 @@ def _compute_stage_score(row: dict | pd.Series, *, stage: str) -> float:
     # Ledger burden — Phase 3 column; 0 if absent (no history = no penalty)
     ledger_pen = _clamp(
         _safe_float(row.get("ledger_multiplicity_penalty", 0.0), 0.0),
-        0.0, 3.0,
-    )
-
-    # Base v3 score already integrates fold + ledger from prior phases
-    # Use it as a soft anchor but don't double-count the penalty
-    base_v3 = _safe_float(
-        row.get("discovery_quality_score_v3",
-                row.get("discovery_quality_score", 0.0)),
         0.0,
+        3.0,
     )
 
     # ── Stage-specific weights ────────────────────────────────────────────
     if stage == STAGE_TRIGGER_VIABILITY:
         # Cheap probe — lean on t-stat and basic robustness
-        score = (
-            0.40 * t_norm
-            + 0.30 * rob
-            + 0.15 * fold_stab
-            - 0.15 * (ledger_pen / 3.0)
-        )
+        score = 0.40 * t_norm + 0.30 * rob + 0.15 * fold_stab - 0.15 * (ledger_pen / 3.0)
     elif stage == STAGE_TEMPLATE_REFINEMENT:
         # Templates ranked within trigger; fold evidence more important
-        score = (
-            0.35 * t_norm
-            + 0.25 * rob
-            + 0.25 * fold_stab
-            - 0.15 * (ledger_pen / 3.0)
-        )
+        score = 0.35 * t_norm + 0.25 * rob + 0.25 * fold_stab - 0.15 * (ledger_pen / 3.0)
     elif stage == STAGE_EXECUTION_REFINEMENT:
         # Direction/lag: cost-adjusted expectancy matters more
-        cost_adj_raw = row.get("cost_adjusted_return_bps",
-                               row.get("mean_return_bps", 0.0))
+        cost_adj_raw = row.get("cost_adjusted_return_bps", row.get("mean_return_bps", 0.0))
         cost_adj = _clamp(_safe_float(cost_adj_raw, 0.0) / 20.0, -1.0, 1.0)
         score = (
             0.30 * t_norm
@@ -145,25 +124,16 @@ def _compute_stage_score(row: dict | pd.Series, *, stage: str) -> float:
         )
     elif stage == STAGE_CONTEXT_REFINEMENT:
         # Context: fold stability critical; ledger burden weighted higher
-        score = (
-            0.30 * t_norm
-            + 0.25 * rob
-            + 0.30 * fold_stab
-            - 0.15 * (ledger_pen / 3.0)
-        )
+        score = 0.30 * t_norm + 0.25 * rob + 0.30 * fold_stab - 0.15 * (ledger_pen / 3.0)
     else:
         # Fallback / unknown stage
-        score = (
-            0.35 * t_norm
-            + 0.25 * rob
-            + 0.25 * fold_stab
-            - 0.15 * (ledger_pen / 3.0)
-        )
+        score = 0.35 * t_norm + 0.25 * rob + 0.25 * fold_stab - 0.15 * (ledger_pen / 3.0)
 
     return _clamp(score, -1.0, 2.0)
 
 
 # ── Ranking ──────────────────────────────────────────────────────────────────
+
 
 def rank_stage_candidates(
     candidates: pd.DataFrame,
@@ -187,10 +157,7 @@ def rank_stage_candidates(
     out["search_stage"] = stage
 
     # Compute stage_score for every row
-    scores = [
-        _compute_stage_score(dict(row), stage=stage)
-        for _, row in out.iterrows()
-    ]
+    scores = [_compute_stage_score(dict(row), stage=stage) for _, row in out.iterrows()]
     out["stage_score"] = scores
 
     # Rank within parent group (higher score = lower rank number = better)
@@ -210,6 +177,7 @@ def rank_stage_candidates(
 
 
 # ── Survivor advancement ─────────────────────────────────────────────────────
+
 
 def advance_stage_survivors(
     ranked: pd.DataFrame,
@@ -239,7 +207,9 @@ def advance_stage_survivors(
         return out
 
     score_series = pd.to_numeric(out["stage_score"], errors="coerce").fillna(-999.0)
-    rank_series = pd.to_numeric(out["stage_rank_within_parent"], errors="coerce").fillna(9999).astype(int)
+    rank_series = (
+        pd.to_numeric(out["stage_rank_within_parent"], errors="coerce").fillna(9999).astype(int)
+    )
 
     for idx in out.index:
         score = float(score_series.loc[idx])
@@ -281,6 +251,7 @@ def advance_stage_survivors(
 
 # ── Context gain ─────────────────────────────────────────────────────────────
 
+
 def compute_context_gain(
     context_row: dict | pd.Series,
     baseline_row: dict | pd.Series,
@@ -320,10 +291,7 @@ def annotate_context_gains(
 
     # Build baseline lookup: parent_candidate_id → baseline row dict
     if "candidate_id" in baseline_df.columns:
-        baseline_map = {
-            str(row["candidate_id"]): dict(row)
-            for _, row in baseline_df.iterrows()
-        }
+        baseline_map = {str(row["candidate_id"]): dict(row) for _, row in baseline_df.iterrows()}
     else:
         return out
 
@@ -340,6 +308,7 @@ def annotate_context_gains(
 
 
 # ── Reason code builder ───────────────────────────────────────────────────────
+
 
 def build_stage_reason_codes(row: dict | pd.Series, *, stage: str) -> str:
     """Return a pipe-delimited string of reasons this row might be flagged.

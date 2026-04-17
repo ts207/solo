@@ -30,15 +30,27 @@ def _proposal_payload(search_spec: Path) -> dict[str, object]:
         "start": "2021-01-01",
         "end": "2021-01-02",
         "symbols": ["BTCUSDT"],
-        "templates": ["mean_reversion"],
-        "search_spec": str(search_spec),
-        "trigger_space": {
-            "allowed_trigger_types": ["VOL_SHOCK"],
-            "canonical_regimes": ["normal"],
+        "timeframe": "5m",
+        "hypothesis": {
+            "anchor": {
+                "type": "event",
+                "event_id": "VOL_SHOCK",
+            },
+            "filters": {
+                "feature_predicates": [],
+            },
+            "sampling_policy": {
+                "entry_lag_bars": 1,
+            },
+            "template": {
+                "id": "mean_reversion",
+            },
+            "direction": "short",
+            "horizon_bars": 12,
         },
-        "horizons_bars": [12],
-        "directions": ["short"],
-        "entry_lags": [1],
+        "search_spec": {
+            "path": str(search_spec),
+        },
     }
 
 
@@ -80,7 +92,9 @@ def test_operator_preflight_passes_with_vendorless_local_raw_layout(tmp_path, mo
             required_states=[],
         ),
     )
-    monkeypatch.setattr("project.operator.preflight.translate_and_validate_proposal", _stub_translation)
+    monkeypatch.setattr(
+        "project.operator.preflight.translate_and_validate_proposal", _stub_translation
+    )
 
     out_json = tmp_path / "preflight.json"
     result = run_preflight(
@@ -118,7 +132,9 @@ def test_operator_preflight_blocks_when_ohlcv_is_missing(tmp_path, monkeypatch) 
             required_states=[],
         ),
     )
-    monkeypatch.setattr("project.operator.preflight.translate_and_validate_proposal", _stub_translation)
+    monkeypatch.setattr(
+        "project.operator.preflight.translate_and_validate_proposal", _stub_translation
+    )
 
     result = run_preflight(
         proposal_path=proposal_path,
@@ -164,7 +180,9 @@ def test_operator_preflight_warns_when_some_local_raw_shards_are_unreadable(
             required_states=[],
         ),
     )
-    monkeypatch.setattr("project.operator.preflight.translate_and_validate_proposal", _stub_translation)
+    monkeypatch.setattr(
+        "project.operator.preflight.translate_and_validate_proposal", _stub_translation
+    )
 
     from project.io import utils as io_utils
 

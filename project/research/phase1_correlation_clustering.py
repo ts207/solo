@@ -30,7 +30,6 @@ def main() -> int:
     parser.add_argument("--correlation_threshold", type=float, default=0.85)
     args = parser.parse_args()
 
-    symbols = [s.strip().upper() for s in args.symbols.split(",") if s.strip()]
     manifest = start_manifest("phase1_correlation_clustering", args.run_id, vars(args), [], [])
 
     try:

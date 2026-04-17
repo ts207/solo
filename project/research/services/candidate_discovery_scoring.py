@@ -109,15 +109,28 @@ def _t_stat(frame: pd.DataFrame, column: str = "forward_return") -> float:
 def _regime_labels(frame: pd.DataFrame) -> pd.Series:
     if frame.empty:
         return pd.Series(dtype=object)
-    for column in ("regime", "vol_regime", "liquidity_state", "market_liquidity_state", "depth_state"):
+    for column in (
+        "regime",
+        "vol_regime",
+        "liquidity_state",
+        "market_liquidity_state",
+        "depth_state",
+    ):
         if column in frame.columns:
             values = frame[column].astype("object").where(frame[column].notna(), "unknown")
             return values.astype(str)
     return pd.Series(["unknown"] * len(frame), index=frame.index, dtype=object)
 
 
-def _random_entry_events(events_df: pd.DataFrame, features_df: Optional[pd.DataFrame]) -> pd.DataFrame:
-    if events_df.empty or features_df is None or features_df.empty or "timestamp" not in features_df.columns:
+def _random_entry_events(
+    events_df: pd.DataFrame, features_df: Optional[pd.DataFrame]
+) -> pd.DataFrame:
+    if (
+        events_df.empty
+        or features_df is None
+        or features_df.empty
+        or "timestamp" not in features_df.columns
+    ):
         return pd.DataFrame()
     sampled_ts = pd.to_datetime(features_df["timestamp"], utc=True, errors="coerce").dropna()
     sampled_ts = sampled_ts.drop_duplicates().sort_values()
@@ -228,7 +241,9 @@ def _build_confirmatory_evidence(
     funding_present = funding_present.fillna(False).astype(bool)
     funding_carry = _numeric_series(eval_frame, "funding_carry_return", default=0.0).fillna(0.0)
     funding_carry_eval_coverage = float(funding_present.mean()) if len(funding_present) else 0.0
-    mean_funding_carry_bps = float(funding_carry[funding_present].mean() * 1e4) if bool(funding_present.any()) else 0.0
+    mean_funding_carry_bps = (
+        float(funding_carry[funding_present].mean() * 1e4) if bool(funding_present.any()) else 0.0
+    )
     if "event_ts" in eval_frame.columns:
         event_ts = pd.to_datetime(eval_frame["event_ts"], utc=True, errors="coerce").dropna()
         timestamps = [ts.isoformat() for ts in event_ts.tolist()]
@@ -723,9 +738,7 @@ def split_and_score_candidates(
         out.at[idx, "estimation_method"] = str(estimate.method)
         out.at[idx, "cluster_col"] = str(estimate.cluster_col or "cluster_day")
         out.at[idx, "effect_split_basis"] = (
-            "validation_test"
-            if bool(split_labels.isin(["validation", "test"]).any())
-            else "none"
+            "validation_test" if bool(split_labels.isin(["validation", "test"]).any()) else "none"
         )
         out.at[idx, "validation_n_obs"] = int((split_labels == "validation").sum())
         out.at[idx, "test_n_obs"] = int((split_labels == "test").sum())
@@ -758,7 +771,9 @@ def apply_validation_multiple_testing(candidates_df: pd.DataFrame) -> pd.DataFra
     if candidates_df.empty:
         return candidates_df.copy()
     out = candidates_df.copy()
-    source_events = out.get("canonical_event_type", out.get("event_type", pd.Series("", index=out.index)))
+    source_events = out.get(
+        "canonical_event_type", out.get("event_type", pd.Series("", index=out.index))
+    )
     out["primary_event_id"] = source_events.astype(str).str.strip().str.upper()
     out["event_family"] = source_events.map(_canonical_grouping_for_event)
     out["compat_event_family"] = (
@@ -834,7 +849,6 @@ def apply_validation_multiple_testing(candidates_df: pd.DataFrame) -> pd.DataFra
     return out
 
 
-
 def _candidate_run_id_from_phase2_path(path: Path) -> str:
     parts = list(path.parts)
     if "phase2" in parts:
@@ -842,7 +856,6 @@ def _candidate_run_id_from_phase2_path(path: Path) -> str:
         if idx + 1 < len(parts):
             return str(parts[idx + 1])
     return ""
-
 
 
 def _historical_phase2_candidate_paths(data_root: Path, *, current_run_id: str) -> list[Path]:
@@ -858,7 +871,6 @@ def _historical_phase2_candidate_paths(data_root: Path, *, current_run_id: str) 
                 continue
             discovered_by_run.setdefault(run_id, path)
     return sorted(discovered_by_run.values())
-
 
 
 def apply_historical_frontier_multiple_testing(
@@ -882,7 +894,10 @@ def apply_historical_frontier_multiple_testing(
         out["primary_event_id"] = source_events.astype(str).str.strip().str.upper()
     if "compat_event_family" not in out.columns:
         out["compat_event_family"] = (
-            out.get("event_family", pd.Series("", index=out.index)).astype(str).str.strip().str.upper()
+            out.get("event_family", pd.Series("", index=out.index))
+            .astype(str)
+            .str.strip()
+            .str.upper()
         )
     if "correction_frontier_id" not in out.columns:
         out["correction_frontier_id"] = (
@@ -895,7 +910,9 @@ def apply_historical_frontier_multiple_testing(
     out["gate_multiplicity_frontier"] = out.get("gate_multiplicity", False)
 
     historical_parts: list[pd.DataFrame] = []
-    for path in _historical_phase2_candidate_paths(Path(data_root), current_run_id=str(current_run_id)):
+    for path in _historical_phase2_candidate_paths(
+        Path(data_root), current_run_id=str(current_run_id)
+    ):
         try:
             hist = pd.read_parquet(path)
         except Exception:
@@ -941,16 +958,23 @@ def apply_historical_frontier_multiple_testing(
         ).dropna()
         if current_vals.empty:
             continue
-        pool = pd.concat([hist_vals.reset_index(drop=True), current_vals.reset_index(drop=True)], ignore_index=True)
+        pool = pd.concat(
+            [hist_vals.reset_index(drop=True), current_vals.reset_index(drop=True)],
+            ignore_index=True,
+        )
         q_pool = bh_adjust(pool.fillna(1.0).to_numpy())
-        q_current = q_pool[len(hist_vals):]
+        q_current = q_pool[len(hist_vals) :]
         out.loc[current_idx, "historical_frontier_test_count"] = int(len(pool))
         out.loc[current_vals.index, "q_value_historical_frontier"] = q_current
         out.loc[current_vals.index, "gate_multiplicity_frontier"] = q_current <= 0.10
 
     local_q = pd.to_numeric(out.get("q_value", np.nan), errors="coerce")
     frontier_q = pd.to_numeric(out.get("q_value_historical_frontier", np.nan), errors="coerce")
-    combined_q = np.where(local_q.notna() & frontier_q.notna(), np.maximum(local_q, frontier_q), np.where(frontier_q.notna(), frontier_q, local_q))
+    combined_q = np.where(
+        local_q.notna() & frontier_q.notna(),
+        np.maximum(local_q, frontier_q),
+        np.where(frontier_q.notna(), frontier_q, local_q),
+    )
     out["q_value_run_local"] = local_q
     out["q_value"] = combined_q
     out["gate_multiplicity_run_local"] = out.get("gate_multiplicity", False)
@@ -961,6 +985,7 @@ def apply_historical_frontier_multiple_testing(
 
 
 # --- Phase 2 V2 Scoring Components ---
+
 
 def _row_get(row: object, key: str, default: object = np.nan) -> object:
     getter = getattr(row, "get", None)
@@ -982,11 +1007,11 @@ def _row_has(row: object, key: str) -> bool:
 def score_falsification_precheck(row: object) -> tuple[float, list[str]]:
     penalty = 0.0
     flags = []
-    
+
     mean_bps = _row_get(row, "mean_return_bps", np.nan)
     placebo_shift = _row_get(row, "placebo_shift_effect", np.nan)
     null_ratio = _row_get(row, "null_strength_ratio", np.nan)
-    
+
     if pd.notna(mean_bps) and pd.notna(placebo_shift):
         if abs(placebo_shift) > abs(mean_bps):
             penalty += 2.0
@@ -994,21 +1019,21 @@ def score_falsification_precheck(row: object) -> tuple[float, list[str]]:
         elif pd.notna(null_ratio) and null_ratio < 2.0:
             penalty += 1.0
             flags.append("weak_null_strength")
-            
+
     reversal = _row_get(row, "direction_reversal_effect", np.nan)
     if pd.notna(reversal) and pd.notna(mean_bps) and abs(mean_bps) > 1e-10:
         # Guard: np.sign(0) == 0, which would falsely match any zero reversal
         if np.sign(mean_bps) != 0 and np.sign(reversal) == np.sign(mean_bps):
             penalty += 1.5
             flags.append("asymmetric_reversal_failure")
-            
+
     return penalty, flags
 
 
 def score_tradability_precheck(row: object, config: dict) -> tuple[float, list[str]]:
     score = 0.0
     flags = []
-    
+
     survival_ratio = _row_get(row, "cost_survival_ratio", np.nan)
     if pd.notna(survival_ratio):
         if survival_ratio < 0.5:
@@ -1016,37 +1041,39 @@ def score_tradability_precheck(row: object, config: dict) -> tuple[float, list[s
             flags.append("poor_cost_survival")
         elif survival_ratio > 1.5:
             score += 1.0
-            
+
     turnover = _row_get(row, "turnover_proxy", np.nan)
     turnover_threshold = config.get("default_turnover_penalty_thresh", 0.8)
     if pd.notna(turnover) and turnover > turnover_threshold:
         score -= 1.0
         flags.append("high_turnover_penalty")
-        
+
     coverage = _row_get(row, "coverage_ratio", np.nan)
     coverage_threshold = config.get("default_coverage_thresh", 0.01)
     if pd.notna(coverage) and coverage < coverage_threshold:
         score -= 0.5
         flags.append("low_coverage_penalty")
-        
+
     return score, flags
 
 
-def score_novelty_precheck(row: object, overlap_context: dict) -> tuple[float, float, str, list[str]]:
+def score_novelty_precheck(
+    row: object, overlap_context: dict
+) -> tuple[float, float, str, list[str]]:
     key = (
         str(_row_get(row, "event_family_key", "")),
         str(_row_get(row, "template_family_key", "")),
         str(_row_get(row, "direction_key", "")),
-        str(_row_get(row, "horizon_bucket", ""))
+        str(_row_get(row, "horizon_bucket", "")),
     )
     cluster_id = "|".join(key)
-    
+
     counts = overlap_context.get(cluster_id, 1)
-    
+
     overlap_penalty = 0.0
     novelty_score = 1.0
     flags = []
-    
+
     if counts > 3:
         overlap_penalty = 2.0
         novelty_score = 0.0
@@ -1055,24 +1082,24 @@ def score_novelty_precheck(row: object, overlap_context: dict) -> tuple[float, f
         overlap_penalty = 0.5
         novelty_score = 0.5
         flags.append("structural_duplicate_present")
-        
+
     return novelty_score, overlap_penalty, cluster_id, flags
 
 
 def score_support_component(row: object, config: dict) -> tuple[float, list[str]]:
     score = 0.0
     flags = []
-    
+
     regime_support = _row_get(row, "regime_support_ratio", np.nan)
     min_support = config.get("min_acceptable_regime_support_ratio", 0.5)
-    
+
     if pd.notna(regime_support):
         if regime_support < min_support:
             score -= 1.0
             flags.append("fragile_regime_support")
         else:
             score += 1.0  # symmetric with penalty: bonus is flat +1.0, not continuous
-    
+
     return score, flags
 
 
@@ -1082,32 +1109,32 @@ def score_significance_component(row: object) -> float:
         return 0.0
     return float(np.clip(abs(t_stat) / 2.0, 0.0, 3.0))
 
+
 def score_fold_stability_precheck(row: object, config: dict) -> tuple[float, float, list[str]]:
     flags = []
     stability_penalty = 0.0
     evidence_bonus = 0.0
-    
+
     fold_valid_count = _row_get(row, "fold_valid_count", np.nan)
     if not _row_has(row, "fold_valid_count") or pd.isna(fold_valid_count) or fold_valid_count < 1:
         return 0.0, 0.0, []
-        
+
     valid_folds = int(fold_valid_count)
     sign_consistency = float(_row_get(row, "fold_sign_consistency", 0.0))
     fail_ratio = float(_row_get(row, "fold_fail_ratio", 1.0))
-    worst_oos = float(_row_get(row, "fold_worst_oos_expectancy", 0.0))
-    
+
     # 1. Sign Consistency (Bonus)
     if sign_consistency >= 0.8:
         evidence_bonus += 1.0
     elif sign_consistency < 0.5:
         stability_penalty += 1.0
         flags.append("unstable_sign_across_folds")
-        
+
     # 2. Fail Ratio Penalty
     if fail_ratio >= 0.5:
         stability_penalty += 1.5
         flags.append("high_fold_fail_ratio")
-        
+
     # 3. Validation Fold Concentration Check — penalize, not just flag
     if valid_folds < 3:
         stability_penalty += 1.0
@@ -1119,21 +1146,23 @@ def score_fold_stability_precheck(row: object, config: dict) -> tuple[float, flo
 def build_discovery_quality_score(row: object, overlap_context: dict, config: dict) -> dict:
     falsification_penalty, falsification_flags = score_falsification_precheck(row)
     tradability_score, tradability_flags = score_tradability_precheck(row, config)
-    novelty_score, overlap_penalty, cluster_id, overlap_flags = score_novelty_precheck(row, overlap_context)
+    novelty_score, overlap_penalty, cluster_id, overlap_flags = score_novelty_precheck(
+        row, overlap_context
+    )
     support_score, support_flags = score_support_component(row, config)
     significance_score = score_significance_component(row)
     fold_bonus, fold_penalty, fold_flags = score_fold_stability_precheck(row, config)
-    
+
     f_weight = config.get("falsification_weight", 1.0)
     t_weight = config.get("tradability_weight", 1.0)
     n_weight = config.get("novelty_weight", 1.0)
     o_weight = config.get("overlap_penalty_weight", 1.0)
     s_weight = config.get("fragility_penalty_weight", 1.0)
-    
+
     fragility_penalty = 0.0
     if "fragile_regime_support" in support_flags:
         fragility_penalty = 1.0
-        
+
     combined_score = (
         significance_score
         + support_score
@@ -1145,12 +1174,14 @@ def build_discovery_quality_score(row: object, overlap_context: dict, config: di
         - (fragility_penalty * s_weight)
         - fold_penalty
     )
-    
-    demotion_reasons = falsification_flags + tradability_flags + overlap_flags + support_flags + fold_flags
+
+    demotion_reasons = (
+        falsification_flags + tradability_flags + overlap_flags + support_flags + fold_flags
+    )
     rank_primary_reason = demotion_reasons[0] if demotion_reasons else "strong_baseline"
     if combined_score > 2.0 and not demotion_reasons:
         rank_primary_reason = "high_quality_discovery"
-        
+
     return {
         "falsification_component": falsification_penalty,
         "tradability_component": tradability_score,
@@ -1168,13 +1199,14 @@ def build_discovery_quality_score(row: object, overlap_context: dict, config: di
         "tradability_reason": "|".join(tradability_flags),
         "overlap_reason": "|".join(overlap_flags),
         "rank_primary_reason": rank_primary_reason,
-        "demotion_reason_codes": "|".join(demotion_reasons)
+        "demotion_reason_codes": "|".join(demotion_reasons),
     }
+
 
 def annotate_discovery_v2_scores(candidates: pd.DataFrame, config: dict) -> pd.DataFrame:
     if candidates.empty:
         return candidates
-        
+
     out = candidates.copy()
 
     cluster_keys = (
@@ -1187,16 +1219,16 @@ def annotate_discovery_v2_scores(candidates: pd.DataFrame, config: dict) -> pd.D
         + out.get("horizon_bucket", pd.Series("", index=out.index)).astype(str)
     )
     overlap_context = cluster_keys.value_counts(dropna=False).to_dict()
-        
+
     v2_metrics = []
     for row in out.itertuples(index=False):
         v2_metrics.append(build_discovery_quality_score(row._asdict(), overlap_context, config))
-        
+
     v2_df = pd.DataFrame(v2_metrics, index=out.index)
-    
+
     for col in v2_df.columns:
         out[col] = v2_df[col]
-        
+
     return out
 
 
@@ -1240,7 +1272,9 @@ def load_ledger_config(data_root: Path | None = None) -> dict:
 
         # Also try path relative to this file's repo root
         _this_dir = Path(__file__).resolve().parent
-        repo_candidate = _this_dir.parent.parent.parent / "project" / "configs" / "discovery_ledger.yaml"
+        repo_candidate = (
+            _this_dir.parent.parent.parent / "project" / "configs" / "discovery_ledger.yaml"
+        )
         candidate_paths.append(repo_candidate)
 
         for cfg_path in candidate_paths:
@@ -1357,8 +1391,7 @@ def apply_ledger_multiplicity_correction(
         recent_window_days=recent_window_days,
     )
     summary_map: dict[str, dict] = {
-        row["concept_lineage_key"]: row
-        for row in summary.to_dict(orient="records")
+        row["concept_lineage_key"]: row for row in summary.to_dict(orient="records")
     }
 
     # Descriptor columns
@@ -1391,7 +1424,6 @@ def apply_ledger_multiplicity_correction(
 
     for _, row in out.iterrows():
         prior_count = int(row.get("ledger_prior_test_count", 0) or 0)
-        prior_disc = int(row.get("ledger_prior_discovery_count", 0) or 0)
         recent_count = int(row.get("ledger_recent_test_count", 0) or 0)
         recent_fail = int(row.get("ledger_recent_failure_count", 0) or 0)
         success_rate = float(row.get("ledger_empirical_success_rate", 0.0) or 0.0)
@@ -1407,11 +1439,7 @@ def apply_ledger_multiplicity_correction(
             # success_rate credit removed — it's already captured via (1 - fail_rate).
             _log_norm = float(np.log1p(100))
             normalized_age = min(float(np.log1p(prior_count)) / _log_norm, 1.0)
-            raw_penalty = (
-                0.5 * empirical_fail_rate
-                + 0.3 * recent_pressure
-                + 0.2 * normalized_age
-            )
+            raw_penalty = 0.5 * empirical_fail_rate + 0.3 * recent_pressure + 0.2 * normalized_age
             penalty = float(np.clip(raw_penalty * max_penalty, 0.0, max_penalty))
 
         # Adjusted q-value
@@ -1422,9 +1450,7 @@ def apply_ledger_multiplicity_correction(
             adj_q = float("nan")
 
         # Evidence score (v3)
-        base_score = pd.to_numeric(
-            row.get("discovery_quality_score", np.nan), errors="coerce"
-        )
+        base_score = pd.to_numeric(row.get("discovery_quality_score", np.nan), errors="coerce")
         if pd.notna(base_score):
             ev_score = float(base_score) - penalty
             v3 = ev_score

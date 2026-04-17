@@ -124,8 +124,16 @@ def _write_event_scoped_search_spec(
     event_templates = event_row.get("templates", [])
     if isinstance(event_templates, (list, tuple)) and event_templates:
         _registry = get_domain_registry()
-        expr_templates = [str(t) for t in event_templates if str(t).strip() and not _registry.is_filter_template(str(t))]
-        filter_templates = [str(t) for t in event_templates if str(t).strip() and _registry.is_filter_template(str(t))]
+        expr_templates = [
+            str(t)
+            for t in event_templates
+            if str(t).strip() and not _registry.is_filter_template(str(t))
+        ]
+        filter_templates = [
+            str(t)
+            for t in event_templates
+            if str(t).strip() and _registry.is_filter_template(str(t))
+        ]
         if expr_templates:
             narrowed["expression_templates"] = expr_templates
         if filter_templates:
@@ -208,20 +216,15 @@ def _classify_metrics_counts(
     if metrics.empty:
         return 0, 0, 0
 
-    valid_mask = metrics.get("valid", pd.Series(False, index=metrics.index)).fillna(False).astype(bool)
-    invalid_reason = metrics.get("invalid_reason", pd.Series("", index=metrics.index)).fillna("").astype(str)
-    n_values = pd.to_numeric(metrics.get("n", 0), errors="coerce").fillna(0)
-    t_values = pd.to_numeric(metrics.get("t_stat", 0.0), errors="coerce").abs().fillna(0.0)
+    valid_mask = (
+        metrics.get("valid", pd.Series(False, index=metrics.index)).fillna(False).astype(bool)
+    )
+    invalid_reason = (
+        metrics.get("invalid_reason", pd.Series("", index=metrics.index)).fillna("").astype(str)
+    )
 
     valid_metrics_rows = int(valid_mask.sum())
     rejected_by_min_n = int(((~valid_mask) & invalid_reason.eq("min_sample_size")).sum())
-    rejected_by_min_t_stat = int(
-        (
-            valid_mask
-            & (n_values >= int(min_n))
-            & (t_values < float(min_t_stat))
-        ).sum()
-    )
     rejected_invalid_metrics = max(
         0,
         int(len(metrics)) - valid_metrics_rows - rejected_by_min_n,
@@ -360,9 +363,7 @@ def _interaction_lag_steps(features: pd.DataFrame, raw_lag: Any) -> int:
         except Exception:
             return 1
 
-    bar_minutes = float(
-        (timestamps.diff().dropna().dt.total_seconds().median() or 300.0) / 60.0
-    )
+    bar_minutes = float((timestamps.diff().dropna().dt.total_seconds().median() or 300.0) / 60.0)
     if bar_minutes <= 0:
         bar_minutes = 5.0
 
@@ -476,15 +477,6 @@ def _materialize_interaction_trigger_columns(
 
         future_right = (
             right_mask.shift(-1)
-            .iloc[::-1]
-            .rolling(window=lag_steps, min_periods=1)
-            .max()
-            .iloc[::-1]
-            .fillna(0)
-            .astype(bool)
-        )
-        future_left = (
-            left_mask.shift(-1)
             .iloc[::-1]
             .rolling(window=lag_steps, min_periods=1)
             .max()
@@ -614,9 +606,7 @@ def _write_regime_conditional_candidates(
     ret_num = pd.to_numeric(final_df[ret_col], errors="coerce").fillna(0.0)
 
     mask = (
-        (t_num >= min_t_stat_lower)
-        & (t_num < weak_t_stat_upper)
-        & (ret_num > min_mean_return_bps)
+        (t_num >= min_t_stat_lower) & (t_num < weak_t_stat_upper) & (ret_num > min_mean_return_bps)
     )
     weak_positive = final_df[mask].copy()
 
@@ -633,32 +623,35 @@ def _write_regime_conditional_candidates(
         # Extract event_type from trigger_key ("event:EVTNAME" → "EVTNAME")
         tkey = str(row.get("trigger_key", ""))
         if tkey.startswith("event:"):
-            event_type = tkey[len("event:"):]
+            event_type = tkey[len("event:") :]
         elif tkey.startswith("state:"):
-            event_type = tkey[len("state:"):]
+            event_type = tkey[len("state:") :]
         else:
             event_type = tkey
 
-        out_rows.append({
-            "hypothesis_id": str(row.get("hypothesis_id", "")),
-            "event_type": event_type,
-            "template_id": str(row.get("template_id", "")),
-            "direction": str(row.get("direction", "")),
-            "horizon": str(row.get("horizon", "")),
-            "entry_lag": int(row.get("entry_lag", row.get("entry_lag_bars", 0)) or 0),
-            "entry_lag_bars": int(row.get("entry_lag_bars", row.get("entry_lag", 0)) or 0),
-            "trigger_key": tkey,
-            "t_stat": float(row.get(t_col, 0.0)),
-            "mean_return_bps": float(row.get(ret_col, 0.0)),
-            "robustness_score": float(row.get("robustness_score", 0.0)),
-            "context_json": str(row.get("context_json", "") or ""),
-        })
+        out_rows.append(
+            {
+                "hypothesis_id": str(row.get("hypothesis_id", "")),
+                "event_type": event_type,
+                "template_id": str(row.get("template_id", "")),
+                "direction": str(row.get("direction", "")),
+                "horizon": str(row.get("horizon", "")),
+                "entry_lag": int(row.get("entry_lag", row.get("entry_lag_bars", 0)) or 0),
+                "entry_lag_bars": int(row.get("entry_lag_bars", row.get("entry_lag", 0)) or 0),
+                "trigger_key": tkey,
+                "t_stat": float(row.get(t_col, 0.0)),
+                "mean_return_bps": float(row.get(ret_col, 0.0)),
+                "robustness_score": float(row.get("robustness_score", 0.0)),
+                "context_json": str(row.get("context_json", "") or ""),
+            }
+        )
 
     rcc_df = pd.DataFrame(out_rows, columns=_REGIME_CANDIDATE_COLUMNS)
     write_parquet(rcc_df, rcc_path)
     log.info(
         "Phase 4.2: wrote %d regime_conditional_candidates to %s",
-        len(rcc_df), rcc_path,
+        len(rcc_df),
+        rcc_path,
     )
 
 
@@ -677,7 +670,10 @@ def _expected_event_ids_from_hypotheses(hypotheses) -> list[str]:
                 if token and token not in seen:
                     expected.append(token)
                     seen.add(token)
-        if str(getattr(trigger, "trigger_type", "") or "").strip().lower() == TriggerType.INTERACTION:
+        if (
+            str(getattr(trigger, "trigger_type", "") or "").strip().lower()
+            == TriggerType.INTERACTION
+        ):
             for component_id in (getattr(trigger, "left", ""), getattr(trigger, "right", "")):
                 token = str(component_id or "").strip().upper()
                 if token in EVENT_REGISTRY_SPECS and token not in seen:
@@ -747,7 +743,10 @@ def _filter_previously_tested_hypotheses(
     filtered: list[Any] = []
     skipped = 0
     for hypothesis in hypotheses:
-        if _hypothesis_region_key(hypothesis, program_id=program_id, symbol=symbol) in avoid_region_keys:
+        if (
+            _hypothesis_region_key(hypothesis, program_id=program_id, symbol=symbol)
+            in avoid_region_keys
+        ):
             skipped += 1
             continue
         filtered.append(hypothesis)
@@ -815,14 +814,15 @@ def _annotate_promotion_gate_fields(df: pd.DataFrame) -> pd.DataFrame:
             df["sign_consistency"] = pd.to_numeric(df["hit_rate"], errors="coerce").clip(0.0, 1.0)
         elif "robustness_score" in df.columns:
             import logging as _logging
+
             _logging.getLogger(__name__).warning(
                 "_populate_bridge_compatible_fields: neither sign_consistency nor hit_rate "
                 "available; falling back to robustness_score proxy. sign_consistency gate "
                 "may be inaccurate for this candidate."
             )
-            df["sign_consistency"] = pd.to_numeric(
-                df["robustness_score"], errors="coerce"
-            ).clip(0.0, 1.0)
+            df["sign_consistency"] = pd.to_numeric(df["robustness_score"], errors="coerce").clip(
+                0.0, 1.0
+            )
     # stability_score: robustness_score already measures fold-level direction consistency
     if "stability_score" not in df.columns and "robustness_score" in df.columns:
         df["stability_score"] = df["robustness_score"].clip(0.0, 1.0)
@@ -878,6 +878,7 @@ def _write_hierarchical_stage_artifacts(
             write_parquet(df, out_dir / f"{stem}__{symbol}.parquet")
         except Exception as exc:
             log.warning("Stage artifact write failed (%s / %s): %s", stage, symbol, exc)
+
 
 def _load_diversification_config(search_spec_doc: dict) -> dict:
     """Return the discovery_selection config block or empty dict."""
@@ -1040,9 +1041,7 @@ def run(
                     "rejected": skipped_prior_regions,
                 },
                 "rejection_reason_counts": (
-                    {"prior_tested_region": skipped_prior_regions}
-                    if skipped_prior_regions
-                    else {}
+                    {"prior_tested_region": skipped_prior_regions} if skipped_prior_regions else {}
                 ),
             }
             log.info(
@@ -1077,7 +1076,9 @@ def run(
                 event_registry_override=event_registry_override,
             )
             if features.empty:
-                log.warning("Empty feature table for %s after expected-event materialization", symbol)
+                log.warning(
+                    "Empty feature table for %s after expected-event materialization", symbol
+                )
                 continue
 
         features = _materialize_sequence_trigger_columns(features, hypotheses)
@@ -1109,7 +1110,9 @@ def run(
         )
         generation_rejected_hypotheses = int(generation_audit.get("counts", {}).get("rejected", 0))
         total_rejected_hypotheses += generation_rejected_hypotheses
-        generation_rejection_reason_counts = dict(generation_audit.get("rejection_reason_counts", {}))
+        generation_rejection_reason_counts = dict(
+            generation_audit.get("rejection_reason_counts", {})
+        )
         for reason, count in generation_rejection_reason_counts.items():
             aggregated_rejection_reasons[str(reason)] = aggregated_rejection_reasons.get(
                 str(reason), 0
@@ -1165,13 +1168,19 @@ def run(
         folds = None
         try:
             import yaml
-            val_config_path = PROJECT_ROOT.parent / "project" / "configs" / "discovery_validation.yaml"
+
+            val_config_path = (
+                PROJECT_ROOT.parent / "project" / "configs" / "discovery_validation.yaml"
+            )
             if val_config_path.exists():
                 with val_config_path.open() as f:
                     vconfig = yaml.safe_load(f)
                     rw = vconfig.get("discovery_validation", {}).get("repeated_walkforward", {})
                     if rw.get("enabled"):
-                        from project.research.validation.splits import build_repeated_walkforward_splits
+                        from project.research.validation.splits import (
+                            build_repeated_walkforward_splits,
+                        )
+
                         folds = build_repeated_walkforward_splits(
                             features["timestamp"],
                             train_bars=rw.get("train_bars", 2000),
@@ -1198,9 +1207,7 @@ def run(
 
         if _h_config is not None:
             # ── HIERARCHICAL MODE ────────────────────────────────────────────
-            log.info(
-                "Phase 4 hierarchical search mode active for %s", symbol
-            )
+            log.info("Phase 4 hierarchical search mode active for %s", symbol)
             from project.research.search.hierarchical_search import run_hierarchical_search
             from project.spec_validation import expand_triggers
 
@@ -1230,11 +1237,15 @@ def run(
                     gate_mask = candidates["gate_search_min_t_stat"].fillna(False).astype(bool)
                     candidates = candidates[gate_mask].copy()
                     if candidates.empty:
-                        log.warning("All hierarchical candidates filtered by gate_search_min_t_stat")
+                        log.warning(
+                            "All hierarchical candidates filtered by gate_search_min_t_stat"
+                        )
                         continue
                 if "candidate_id" in candidates.columns:
                     candidates = candidates.copy()
-                    candidates["candidate_id"] = symbol + "::" + candidates["candidate_id"].astype(str)
+                    candidates["candidate_id"] = (
+                        symbol + "::" + candidates["candidate_id"].astype(str)
+                    )
                 all_candidates.append(candidates)
 
             total_metrics_rows += h_result.candidates_evaluated_total
@@ -1247,9 +1258,13 @@ def run(
             for stage_name, stage_df in h_result.stage_artifacts.items():
                 if not stage_df.empty:
                     existing = run._h_stage_artifacts.get(stage_name, pd.DataFrame())  # type: ignore[attr-defined]
-                    run._h_stage_artifacts[stage_name] = pd.concat(  # type: ignore[attr-defined]
-                        [existing, stage_df], ignore_index=True
-                    ) if not existing.empty else stage_df.copy()
+                    run._h_stage_artifacts[stage_name] = (
+                        pd.concat(  # type: ignore[attr-defined]
+                            [existing, stage_df], ignore_index=True
+                        )
+                        if not existing.empty
+                        else stage_df.copy()
+                    )
 
             symbol_diagnostics.append(
                 build_search_engine_diagnostics(
@@ -1390,18 +1405,17 @@ def run(
             rejected_by_min_t_stat=rejected_by_min_t_stat,
         )
         if rejected_invalid_metrics:
-            aggregated_rejection_reasons["invalid_metrics"] = (
-                aggregated_rejection_reasons.get("invalid_metrics", 0)
-                + int(rejected_invalid_metrics)
-            )
+            aggregated_rejection_reasons["invalid_metrics"] = aggregated_rejection_reasons.get(
+                "invalid_metrics", 0
+            ) + int(rejected_invalid_metrics)
         if rejected_by_min_n:
-            aggregated_rejection_reasons["min_sample_size"] = (
-                aggregated_rejection_reasons.get("min_sample_size", 0) + int(rejected_by_min_n)
-            )
+            aggregated_rejection_reasons["min_sample_size"] = aggregated_rejection_reasons.get(
+                "min_sample_size", 0
+            ) + int(rejected_by_min_n)
         if rejected_by_min_t_stat:
-            aggregated_rejection_reasons["min_t_stat"] = (
-                aggregated_rejection_reasons.get("min_t_stat", 0) + int(rejected_by_min_t_stat)
-            )
+            aggregated_rejection_reasons["min_t_stat"] = aggregated_rejection_reasons.get(
+                "min_t_stat", 0
+            ) + int(rejected_by_min_t_stat)
 
         regime_conditional_source = metrics[
             valid_mask
@@ -1542,12 +1556,13 @@ def run(
             import yaml
             from project.research.services.candidate_discovery_scoring import (
                 annotate_discovery_v2_scores,
-                apply_ledger_multiplicity_correction
+                apply_ledger_multiplicity_correction,
             )
+
             config = {
                 "default_turnover_penalty_thresh": 0.8,
                 "default_coverage_thresh": 0.01,
-                "min_acceptable_regime_support_ratio": 0.4
+                "min_acceptable_regime_support_ratio": 0.4,
             }
             config_path = PROJECT_ROOT.parent / "project" / "configs" / "discovery_scoring_v2.yaml"
             if config_path.exists():
@@ -1558,12 +1573,14 @@ def run(
                             config.update(yaml_data["v2_scoring"])
                 except Exception as e:
                     log.warning(f"Failed to load V2 scoring config: {e}")
-                    
+
             # TICKET-015: Decomposition components are now ALWAYS computed for diagnostics
             final_df = annotate_discovery_v2_scores(final_df, config)
-            
+
             # Phase 3: Ledger-adjusted scoring (v3) — also ALWAYS computed (if enabled in yaml)
-            final_df = apply_ledger_multiplicity_correction(final_df, data_root=data_root, current_run_id=run_id)
+            final_df = apply_ledger_multiplicity_correction(
+                final_df, data_root=data_root, current_run_id=run_id
+            )
 
             if enable_discovery_v2_scoring:
                 # Rank by V3 if available, otherwise V2, otherwise legacy
@@ -1572,21 +1589,26 @@ def run(
                 elif "discovery_quality_score" in final_df.columns:
                     rank_col = "discovery_quality_score"
                 else:
-                    rank_col = "t_stat" # fallback
+                    rank_col = "t_stat"  # fallback
 
                 if "is_discovery" in final_df.columns:
                     final_df = final_df.sort_values(
                         ["is_discovery", rank_col], ascending=[False, False]
                     ).reset_index(drop=True)
                 else:
-                    final_df = final_df.sort_values(rank_col, ascending=False).reset_index(drop=True)
+                    final_df = final_df.sort_values(rank_col, ascending=False).reset_index(
+                        drop=True
+                    )
                 log.info("Sorted candidates by %s (V2 stabilization)", rank_col)
             else:
                 # Default legacy sorting (abs(t_stat))
                 if "is_discovery" in final_df.columns:
                     final_df = final_df.sort_values(
-                        ["is_discovery", "t_stat" if "t_stat" in final_df.columns else "discovery_quality_score"], # fallback
-                        ascending=[False, False]
+                        [
+                            "is_discovery",
+                            "t_stat" if "t_stat" in final_df.columns else "discovery_quality_score",
+                        ],  # fallback
+                        ascending=[False, False],
                     ).reset_index(drop=True)
 
         except Exception as e:
@@ -1609,9 +1631,7 @@ def run(
             )
             if not ledger_records.empty:
                 append_concept_ledger(ledger_records, default_ledger_path(data_root))
-                log.info(
-                    "Phase 3: wrote %d concept ledger records", len(ledger_records)
-                )
+                log.info("Phase 3: wrote %d concept ledger records", len(ledger_records))
         except Exception as _ledger_exc:
             log.warning("Phase 3 ledger write failed: %s", _ledger_exc)
 
@@ -1648,7 +1668,9 @@ def run(
         "context_refinement": "phase2_context_refinement.parquet",
     }
     for stage_name, merged_df in _combined_stage_artifacts.items():
-        artifact_name = stage_artifact_name_map.get(stage_name, f"phase2_stage_{stage_name}.parquet")
+        artifact_name = stage_artifact_name_map.get(
+            stage_name, f"phase2_stage_{stage_name}.parquet"
+        )
         if not merged_df.empty:
             try:
                 write_parquet(merged_df, out_dir / artifact_name)
@@ -1683,14 +1705,27 @@ def run(
 
             # Write overlap metrics artifact (always, if overlap ran)
             _overlap_cols = [
-                "candidate_id", "overlap_cluster_id", "cluster_size", "cluster_density",
-                "is_duplicate_like", "novelty_score", "crowding_penalty", "cluster_rank",
-                "selected_into_diversified_shortlist", "shortlist_rank",
+                "candidate_id",
+                "overlap_cluster_id",
+                "cluster_size",
+                "cluster_density",
+                "is_duplicate_like",
+                "novelty_score",
+                "crowding_penalty",
+                "cluster_rank",
+                "selected_into_diversified_shortlist",
+                "shortlist_rank",
             ]
             _present_overlap_cols = [c for c in _overlap_cols if c in final_df.columns]
             if _present_overlap_cols and "overlap_cluster_id" in final_df.columns:
-                _overlap_metrics = final_df[_present_overlap_cols].dropna(subset=["candidate_id"]) if "candidate_id" in _present_overlap_cols else final_df[_present_overlap_cols]
-                write_parquet(_overlap_metrics, out_dir / "phase2_candidate_overlap_metrics.parquet")
+                _overlap_metrics = (
+                    final_df[_present_overlap_cols].dropna(subset=["candidate_id"])
+                    if "candidate_id" in _present_overlap_cols
+                    else final_df[_present_overlap_cols]
+                )
+                write_parquet(
+                    _overlap_metrics, out_dir / "phase2_candidate_overlap_metrics.parquet"
+                )
                 log.info("Phase 5: wrote overlap metrics (%d rows)", len(_overlap_metrics))
 
             # Write shortlist artifact (only if shortlist selection ran)
@@ -1731,7 +1766,9 @@ def run(
             hypotheses_generated=total_hypotheses_generated,
             feasible_hypotheses=total_feasible_hypotheses,
             metrics=(
-                _safe_concat(metrics_frames, ignore_index=True) if metrics_frames else pd.DataFrame()
+                _safe_concat(metrics_frames, ignore_index=True)
+                if metrics_frames
+                else pd.DataFrame()
             ),
             candidate_universe=(
                 _safe_concat(candidate_universe_frames, ignore_index=True)
@@ -1755,14 +1792,14 @@ def run(
         )
 
     write_json_report(main_diag, diagnostics_path)
-    
+
     # Workstream B: Emit search-burden summary
     try:
         from project.research.contracts.search_burden import (
             build_search_burden_summary,
             write_search_burden_summary,
         )
-        
+
         unique_families = set()
         unique_lineages = set()
         if not final_df.empty:
@@ -1770,7 +1807,7 @@ def run(
                 unique_families = set(final_df["family_id"].dropna().unique())
             if "concept_lineage_key" in final_df.columns:
                 unique_lineages = set(final_df["concept_lineage_key"].dropna().unique())
-        
+
         burden_summary = build_search_burden_summary(
             proposals_attempted=total_hypotheses_generated,
             candidates_generated=total_feasible_hypotheses,
@@ -1786,7 +1823,7 @@ def run(
             estimated=False,
             scope_version="phase1_v1",
         )
-        
+
         burden_paths = write_search_burden_summary(burden_summary, out_dir)
         log.info(
             "Wrote search-burden summary: %d proposals, %d candidates, %d families, %d lineages",
@@ -1798,7 +1835,7 @@ def run(
         main_diag["search_burden_summary_path"] = burden_paths.get("json_path", "")
     except Exception as _burden_exc:
         log.warning("Failed to emit search-burden summary (non-fatal): %s", _burden_exc)
-    
+
     log.info("Wrote candidates to %s", output_path)
     return 0
 

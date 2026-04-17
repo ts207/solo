@@ -30,7 +30,6 @@ def get_equivalence_classes(edges: List[tuple], nodes: List[str]) -> List[Dict[s
     for u, v in edges:
         G.add_edge(u, v)
 
-    components = []
     # Lexicographically smallest name or largest support for deterministic selection
     # We will pick the highest coverage, tie-breaking lexicographically
     # Wait, coverage is available outside. We can just pass the coverage mapping in.

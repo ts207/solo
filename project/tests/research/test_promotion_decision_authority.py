@@ -189,7 +189,7 @@ class TestPromotionDecisionAuthority:
             "run_id": "r1",
             "primary_event_id": "e1",
             "event_family": "FAM",
-            # Missing sample_definition entirely
+            "sample_definition": {"n_events": -1},
         }
         mock_build.return_value = invalid_bundle
 

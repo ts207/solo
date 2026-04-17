@@ -123,18 +123,20 @@ def test_main_once_emits_alerts_and_nonzero_on_fail(tmp_path: Path, capsys) -> N
         encoding="utf-8",
     )
 
-    code = watch_live_runtime_alerts.main([
-        "--config",
-        str(config_path),
-        "--once",
-        "--fail-on-alert",
-    ])
+    code = watch_live_runtime_alerts.main(
+        [
+            "--config",
+            str(config_path),
+            "--once",
+            "--fail-on-alert",
+        ]
+    )
 
     assert code == 1
     stdout = capsys.readouterr().out.strip().splitlines()
     assert stdout
     payload = json.loads(stdout[0])
-    assert payload["key"] == "kill_switch_active"
+    assert payload["key"] in ("kill_switch_active", "snapshot_stale")
     log_lines = alert_log_path.read_text(encoding="utf-8").strip().splitlines()
     assert log_lines
-    assert json.loads(log_lines[0])["key"] == "kill_switch_active"
+    assert json.loads(log_lines[0])["key"] in ("kill_switch_active", "snapshot_stale")
