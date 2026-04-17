@@ -1,60 +1,108 @@
-# Edge — documentation
+# Edge documentation
 
-## Navigation
+This docset is meant to stand on its own. Read it as the map of the repository, the lifecycle guide for the trading system, and the operator handbook for running it safely.
 
-### Start here
+## Start here
 
-- **[lifecycle/overview.md](lifecycle/overview.md)** — system model, four-stage lifecycle, repo-wide invariants
+If you want the shortest path to a working model of the repo:
 
-### Lifecycle guides
+1. [lifecycle/overview.md](lifecycle/overview.md)
+2. [reference/full_repo_surface.md](reference/full_repo_surface.md)
+3. [reference/repository_map.md](reference/repository_map.md)
+4. [reference/architecture.md](reference/architecture.md)
 
-| Stage | File | What it covers |
-|-------|------|----------------|
-| Discover | [lifecycle/discover.md](lifecycle/discover.md) | Proposal authoring, pipeline execution, discovery artifacts |
-| Validate | [lifecycle/validate.md](lifecycle/validate.md) | Candidate validation, robustness testing, artifact contract |
-| Promote | [lifecycle/promote.md](lifecycle/promote.md) | Thesis packaging, live export, deployment states |
-| Deploy | [lifecycle/deploy.md](lifecycle/deploy.md) | Live/paper runtime, config contract, environment setup |
+That sequence gives you:
+- the lifecycle the repo is built around,
+- the full directory and package surface,
+- the ownership of each major package,
+- the structural rules enforced by tests.
 
-### Reference
+## Reading paths by goal
 
-| File | What it covers |
-|------|----------------|
-| [reference/repository_map.md](reference/repository_map.md) | Package layout, ownership, generated vs authored files |
-| [reference/architecture.md](reference/architecture.md) | Package dependency DAG, design decisions, extension guidance |
-| [reference/commands.md](reference/commands.md) | All CLI commands, Make targets, and direct scripts |
-| [reference/spec_authoring.md](reference/spec_authoring.md) | How to write proposals, event specs, and templates |
-| [reference/assurance.md](reference/assurance.md) | Test surface, minimum green gate, governance, benchmarks |
+### Understand the system end to end
 
-### Operations
+1. [lifecycle/overview.md](lifecycle/overview.md)
+2. [lifecycle/discover.md](lifecycle/discover.md)
+3. [lifecycle/validate.md](lifecycle/validate.md)
+4. [lifecycle/promote.md](lifecycle/promote.md)
+5. [lifecycle/deploy.md](lifecycle/deploy.md)
+6. [operator/runbook.md](operator/runbook.md)
 
-| File | What it covers |
-|------|----------------|
-| [operator/runbook.md](operator/runbook.md) | Paper engine bring-up, startup certification, failure handling |
+### Understand the full repository surface
 
-### Research
+1. [reference/full_repo_surface.md](reference/full_repo_surface.md)
+2. [reference/repository_map.md](reference/repository_map.md)
+3. [reference/commands.md](reference/commands.md)
+4. [reference/assurance.md](reference/assurance.md)
 
-| File | What it covers |
-|------|----------------|
-| [research/results.md](research/results.md) | All hypothesis results — auto-generated after every run |
-| [research/campaign_results.md](research/campaign_results.md) | Organized results by event with horizon/filter detail |
-| [research/reflections.md](research/reflections.md) | Observations + auto-detected patterns (ceiling, incompatibility, regime breaks) |
-| [research/narrative.md](research/narrative.md) | Written reflections: technical and trading research |
+### Add or modify specs
 
-### Generated reference
+1. [reference/spec_authoring.md](reference/spec_authoring.md)
+2. [lifecycle/discover.md](lifecycle/discover.md)
+3. [reference/architecture.md](reference/architecture.md)
+4. [reference/assurance.md](reference/assurance.md)
 
-`generated/` contains code-derived audits (event contracts, ontology mappings, detector coverage). These are outputs — do not edit them. Run `make governance` to regenerate.
+### Run paper or live safely
 
----
+1. [lifecycle/promote.md](lifecycle/promote.md)
+2. [lifecycle/deploy.md](lifecycle/deploy.md)
+3. [operator/runbook.md](operator/runbook.md)
 
-## What the repo does
+## Lifecycle guides
 
-Edge is a research-to-runtime trading system. A structured YAML proposal enters at `edge discover`, passes through statistical evaluation, promotion gating, and thesis export, and exits as a live/paper runtime config bound to a governed thesis package. The codebase spans a pipeline DAG (~1400 Python files), a compiled spec/domain model (~440 YAML specs), a backtest and live execution stack, and a comprehensive test suite (~560 test files).
+| Stage | File | Main question answered |
+|-------|------|------------------------|
+| Overview | [lifecycle/overview.md](lifecycle/overview.md) | What is this system, and what invariants govern it? |
+| Discover | [lifecycle/discover.md](lifecycle/discover.md) | How does a proposal become a governed discovery run? |
+| Validate | [lifecycle/validate.md](lifecycle/validate.md) | How do candidate rows become a formal validation bundle? |
+| Promote | [lifecycle/promote.md](lifecycle/promote.md) | How do validated candidates become promoted theses? |
+| Deploy | [lifecycle/deploy.md](lifecycle/deploy.md) | How does runtime load and act on promoted theses? |
 
-## Finding things quickly
+## Reference docs
 
-- **Where does X live in the code?** → `reference/repository_map.md`
-- **What commands are available?** → `reference/commands.md`
-- **How do I write a proposal?** → `reference/spec_authoring.md`
-- **What do the current research results show?** → `research/results.md`
-- **How do I bring up the paper engine?** → `operator/runbook.md`
-- **What does "bridge gate" mean?** → `lifecycle/overview.md` (gates section)
+| File | Main coverage |
+|------|---------------|
+| [reference/full_repo_surface.md](reference/full_repo_surface.md) | Top-level directories, major packages, spec tree, artifact tree, tests, entrypoints |
+| [reference/repository_map.md](reference/repository_map.md) | Package ownership, dependency flow, recommended reading order |
+| [reference/architecture.md](reference/architecture.md) | Enforced import boundaries and extension rules |
+| [reference/commands.md](reference/commands.md) | CLI commands, scripts, Make targets, operational entrypoints |
+| [reference/spec_authoring.md](reference/spec_authoring.md) | Event, template, proposal, and generated-domain workflow |
+| [reference/assurance.md](reference/assurance.md) | Test surface, governance, certification, and minimum-green checks |
+
+## Operations
+
+| File | Main coverage |
+|------|---------------|
+| [operator/runbook.md](operator/runbook.md) | Practical paper-engine bring-up, shutdown, restart, and failure handling |
+
+## Research views
+
+| File | Main coverage |
+|------|---------------|
+| [research/results.md](research/results.md) | Results index and result surfaces |
+| [research/campaign_results.md](research/campaign_results.md) | Campaign-style summaries |
+| [research/reflections.md](research/reflections.md) | Pattern summaries and research reflections |
+| [research/narrative.md](research/narrative.md) | Longer-form narrative interpretation |
+
+## Generated reference
+
+`generated/` contains machine-derived inventories and audits. These files are not the place to explain the system, but they are useful when you need a mechanically produced index or consistency report.
+
+High-value generated documents:
+- `generated/system_map.md` — stage and dependency inventory
+- `generated/detector_coverage.md` — detector coverage across the event surface
+- `generated/event_contract_reference.md` — event catalog and contract view
+- `generated/event_ontology_mapping.md` — canonical event mapping view
+
+Refresh generated docs through the governance and generator scripts referenced in [reference/assurance.md](reference/assurance.md).
+
+## Fast answers
+
+- **What is the repo’s main architectural idea?** Research produces evidence, promotion packages evidence into thesis contracts, and runtime trades only against thesis contracts. Start with [lifecycle/overview.md](lifecycle/overview.md).
+- **Where is the full repo map?** [reference/full_repo_surface.md](reference/full_repo_surface.md)
+- **Where should I start reading code?** [reference/repository_map.md](reference/repository_map.md)
+- **Where is the live engine?** `project/live/` plus `project/scripts/run_live_engine.py`, explained in [lifecycle/deploy.md](lifecycle/deploy.md)
+- **Where is research logic?** `project/research/`, explained in [reference/repository_map.md](reference/repository_map.md)
+- **Where are event definitions?** `spec/events/`, with runtime consumers in `project/events/`
+- **Where do artifacts land?** [reference/full_repo_surface.md](reference/full_repo_surface.md)
+- **Where are the operator procedures?** [operator/runbook.md](operator/runbook.md)

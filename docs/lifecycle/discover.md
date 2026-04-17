@@ -1,46 +1,123 @@
 # Discover stage
 
-## CLI
+The discover stage turns a structured proposal into a governed pipeline run and candidate evidence.
+
+It answers this question:
+
+**Given a bounded market hypothesis, what candidate effects can the system discover, measure, and record?**
+
+## CLI surface
 
 ```bash
-edge discover plan --proposal spec/proposals/your_proposal.yaml          # plan only, no data
-edge discover run  --proposal spec/proposals/your_proposal.yaml          # full run
-edge discover run  --proposal ... --run_id <existing_run_id>             # reuse cached lake
+edge discover plan --proposal spec/proposals/your_proposal.yaml
+edge discover run  --proposal spec/proposals/your_proposal.yaml
+edge discover run  --proposal spec/proposals/your_proposal.yaml --run_id <existing_run_id>
 edge discover list-artifacts --run_id <run_id>
 ```
 
----
+Use `plan` when you want the normalized experiment plan and feasibility checks without running the full pipeline.
+
+Use `run` when you want the orchestrated discovery pipeline executed.
+
+## What discover consumes
+
+The canonical input is a proposal file under `spec/proposals/`.
+
+A proposal is structured YAML, not free text. It is validated by the proposal schema before the pipeline is allowed to run.
+
+Typical proposal fields include:
+- `program_id`
+- `objective_name`
+- `promotion_profile`
+- `symbols`
+- `timeframe`
+- `start`, `end`
+- `search_spec`
+- `hypothesis.anchor`
+- `hypothesis.filters`
+- `hypothesis.template`
+- `hypothesis.direction`
+- `hypothesis.horizon_bars`
 
 ## Code path
 
-```
-project/research/agent_io/issue_proposal.py        ← front door
-  ├─ proposal_schema.py                             ← load + validate proposal
-  ├─ operator/bounded.py                            ← bounded constraints check
-  ├─ proposal_to_experiment.py                      ← translate to experiment config
-  │    └─ experiment_engine.build_experiment_plan   ← expand hypotheses, check feasibility
-  │         └─ experiment_engine_validators.py      ← check_hypothesis_feasibility per hyp
-  └─ execute_proposal.py → project/pipelines/run_all.py  ← stage DAG orchestrator
+The stage entry is the discover CLI, but the real path is:
+
+```text
+project/cli.py
+  → project/discover/__init__.py
+  → project/research/agent_io/issue_proposal.py
+      → proposal_schema.py
+      → project/operator/bounded.py
+      → proposal_to_experiment.py
+          → experiment planning / feasibility checks
+      → execute_proposal.py
+          → project/pipelines/run_all.py
 ```
 
-`run_all.py` plans and executes the stage DAG:
+Read these files in that order if you want the clearest proposal-to-pipeline understanding.
 
-```
-ingest → build_cleaned_5m → build_features_5m → build_market_context_5m
-  → analyze_events__<EVENT>_5m → build_event_registry
-  → phase2_search_engine → summarize_discovery_quality
-  → promote (if run_candidate_promotion=1) → finalize
+## What each step does
+
+### 1. Proposal load and schema validation
+
+`proposal_schema.py` turns raw YAML into a typed proposal object and checks structural correctness.
+
+This is where malformed or semantically incomplete proposals should fail.
+
+### 2. Bounded-change validation
+
+If the proposal includes bounded semantics, `project/operator/bounded.py` checks that the requested change is within allowed bounds relative to the baseline.
+
+This exists to prevent uncontrolled strategy drift during operator-driven research.
+
+### 3. Proposal-to-experiment translation
+
+`proposal_to_experiment.py` converts the proposal into two important outputs:
+
+- a normalized experiment configuration,
+- a `run_all` override set used by the orchestrator.
+
+This translation is where event, template, direction, horizon, filters, and discovery profile become concrete run settings.
+
+### 4. Feasibility and plan build
+
+Before execution, the system compiles a plan and checks feasibility.
+
+The resulting validated plan typically surfaces:
+- estimated hypothesis count,
+- required detectors,
+- required features,
+- required states.
+
+This step matters because it tells you whether the search you described is actually compatible with the domain registry.
+
+### 5. Pipeline execution through `run_all`
+
+`execute_proposal.py` shells into `project/pipelines/run_all.py`, which executes the stage family DAG required for the run.
+
+A simplified conceptual path is:
+
+```text
+ingest → cleaned bars → features → market context → event analysis → event registry / phase2 discovery → candidate reports → manifests
 ```
 
----
+The exact set of stage instances depends on config, but `run_all.py` is the canonical orchestrator.
+
+## Important lifecycle rule: discover does not promote by default
+
+The discover path explicitly disables candidate promotion during the normal proposal execution flow.
+
+That means discovery is for finding and recording candidates. Promotion is a later lifecycle step with its own canonical input and rules.
+
+Do not mentally collapse discover and promote into one stage.
 
 ## Writing a proposal
 
-Canonical example: `spec/proposals/canonical_event_hypothesis.yaml`
+A representative proposal shape:
 
 ```yaml
-program_id: my_event_long_24b        # unique; names the experiment memory dir
-description: "..."
+program_id: my_event_long_24b
 run_mode: research
 objective_name: retail_profitability
 promotion_profile: research
@@ -52,100 +129,95 @@ end: "2024-12-31"
 instrument_classes:
   - crypto
 search_spec:
-  path: spec/productive_search.yaml  # controls which templates/horizons are generated
+  path: spec/productive_search.yaml
 knobs:
   - name: discovery_profile
     value: synthetic
 hypothesis:
   anchor:
     type: event
-    event_id: VOL_SPIKE              # must exist in spec/events/
+    event_id: VOL_SPIKE
   filters:
     feature_predicates:
-      - feature: rv_pct_17280        # 0-100 percentile scale; 70 = 70th pctile
+      - feature: rv_pct_17280
         operator: ">"
         threshold: 70
   sampling_policy:
     entry_lag_bars: 1
   template:
-    id: mean_reversion               # must be compatible with event family
+    id: mean_reversion
   direction: long
   horizon_bars: 24
 ```
 
-### Template-family compatibility
+## Template and event compatibility
 
-Proposals that specify an incompatible template produce `estimated_hypothesis_count: 0` in `validated_plan.json` — **no error, no warning visible in output**. Always verify this field before concluding an event has no signal.
+A common source of confusion is an apparently valid proposal that yields an empty plan.
 
-| Event family | Valid templates |
-|---|---|
-| VOLATILITY_EXPANSION / VOLATILITY_TRANSITION | `mean_reversion`, `continuation`, `impulse_continuation`, `vol_breakout` |
-| TREND_FAILURE_EXHAUSTION / FORCED_FLOW_AND_EXHAUSTION | `exhaustion_reversal` |
-| TREND_STRUCTURE | `exhaustion_reversal`, `mean_reversion`, `impulse_continuation` |
+One major reason is event-family and template incompatibility. The feasibility layer can reduce the plan to zero hypotheses without an obvious runtime error.
 
-Check compatibility programmatically:
-```python
-from project.research.search.feasibility import check_hypothesis_feasibility
-from project.domain.hypotheses import HypothesisSpec, TriggerSpec
-from project.domain.compiled_registry import get_domain_registry
-r = check_hypothesis_feasibility(
-    HypothesisSpec(trigger=TriggerSpec(trigger_type='event', event_id='VOL_SPIKE'),
-                   template_id='mean_reversion', horizon='24b', direction='long', entry_lag=1),
-    registry=get_domain_registry()
-)
-print(r.valid, r.reasons)
-```
+That makes `validated_plan.json` one of the first artifacts to inspect.
 
-### `search_spec` and what it controls
+If `estimated_hypothesis_count` is `0`, check:
+- whether the event exists,
+- whether the template exists,
+- whether the template is compatible with that event family,
+- whether the search spec and proposal overrides leave any legal combinations.
 
-`spec/productive_search.yaml` is the standard discovery search spec. It controls:
-- which templates are enumerated (expression_templates list)
-- horizons (if not overridden by `horizon_bars` in the proposal)
-- discovery_search mode (flat vs hierarchical)
+## Key discovery artifacts
 
-The proposal's `hypothesis.template.id` and `horizon_bars` fields override the search spec defaults for single-hypothesis runs.
+| Artifact | Path | Why it matters |
+|----------|------|----------------|
+| Validated plan | `data/artifacts/experiments/<program_id>/<run_id>/validated_plan.json` | confirms what the system believed you asked it to run |
+| Evaluation results | `data/artifacts/experiments/<program_id>/<run_id>/evaluation_results.parquet` | canonical per-run evidence table |
+| Program memory | `data/artifacts/experiments/<program_id>/memory/` | proposal memory, ledgers, and campaign-level state |
+| Phase2 diagnostics | `data/reports/phase2/<run_id>/phase2_diagnostics.json` | explains funnel counts and candidate outcomes |
+| Candidate tables | `data/reports/phase2/<run_id>/...` and/or `data/reports/edge_candidates/<run_id>/...` | handoff surface for validation |
+| Run manifest | run-scoped manifest files written by the pipeline | provenance for the orchestrated run |
 
----
+## How to read discovery results
 
-## Key artifacts produced
+A good order is:
 
-| Artifact | Path | Notes |
-|----------|------|-------|
-| Validated plan | `data/artifacts/experiments/<prog>/<run_id>/validated_plan.json` | Check `estimated_hypothesis_count` |
-| Evaluation results | `data/artifacts/experiments/<prog>/<run_id>/evaluation_results.parquet` | Primary result — t, rob, n, q, exp |
-| Campaign summary | `data/artifacts/experiments/<prog>/campaign_summary.json` | High-level per-event aggregates |
-| Phase2 hypotheses | `data/reports/phase2/<run_id>/hypotheses/BTCUSDT/evaluated_hypotheses.parquet` | Overwritten if multiple proposals share run_id |
-| Phase2 diagnostics | `data/reports/phase2/<run_id>/phase2_diagnostics.json` | Gate funnel counts |
-| Program memory | `data/artifacts/experiments/<prog>/memory/` | Belief state, ledger, event/template statistics |
+1. `validated_plan.json` — did the plan compile as expected?
+2. `phase2_diagnostics.json` — where were candidates filtered?
+3. `evaluation_results.parquet` — what was actually measured?
+4. candidate tables in `data/reports/phase2/<run_id>/` or `data/reports/edge_candidates/<run_id>/` — what will validation see?
 
----
+A practical note: `after_cost_expectancy_per_trade` is stored as a fraction, so convert to basis points if you want trading-friendly units.
 
-## Reading results
+## Reusing an existing `run_id`
 
-```python
-import pandas as pd
-df = pd.read_parquet('data/artifacts/experiments/<program_id>/<run_id>/evaluation_results.parquet')
-# Key columns: t_stat, robustness_score, n_events, q_value, after_cost_expectancy_per_trade,
-#              is_discovery, gate_bridge_tradable, gate_oos_validation, gate_multiplicity
-```
+Passing `--run_id <existing_run_id>` lets the pipeline reuse that run’s lake and skip some expensive upstream build steps.
 
-`after_cost_expectancy_per_trade` is stored as a fraction; multiply by 10000 for basis points.
+That is useful when sweeping templates, horizons, or related proposal variants over the same prepared data.
 
-**`not_executed_or_missing_data`** in `tested_ledger.parquet` is a campaign-controller reporting artifact — it does not mean the pipeline didn't run. Check `phase2_diagnostics.json` and the per-experiment `evaluation_results.parquet` directly.
+The trade-off is that run-scoped report directories such as `data/reports/phase2/<run_id>/` can be overwritten by later runs sharing that same `run_id`.
 
----
+When you need proposal-specific evidence, prefer the per-program artifact locations under:
 
-## Reusing cached lake data
+`data/artifacts/experiments/<program_id>/<run_id>/`
 
-Passing `--run_id <existing_run_id>` tells the pipeline to use that run's already-built lake (cleaned bars + features). This skips the slow ingest/clean/features stages — useful when sweeping horizons or templates on the same data window.
+## Common failure modes
 
-When multiple proposals share a `run_id`, each run overwrites `data/reports/phase2/<run_id>/`. Use `data/artifacts/experiments/<program_id>/evaluation_results.parquet` for per-proposal results.
+### Empty or zero-hypothesis plan
 
----
+Usually caused by proposal/schema errors, event/template incompatibility, or search-space settings that eliminate all legal combinations.
 
-## Debugging a run that produced no results
+### Pipeline ran, but campaign reporting looks missing
 
-1. Check `data/artifacts/experiments/<prog>/<run_id>/validated_plan.json` → `estimated_hypothesis_count`. If 0, template is incompatible — see table above.
-2. Check `data/reports/phase2/<run_id>/phase2_diagnostics.json` → `gate_funnel` → `pass_min_sample_size`. If 0, the detector fired too few events.
-3. Check `data/reports/phase2/<run_id>/phase2_diagnostics.json` → `rejected_invalid_metrics`. These are hypotheses where the detector fired 0 events under the feature filter.
-4. Check `data/artifacts/experiments/<prog>/memory/event_statistics.parquet` for the event's `times_evaluated` count.
+Some ledger-style summaries can mark rows as missing or not executed even when the pipeline itself did run. Read the direct per-run artifacts first.
+
+### Candidate reports exist but look sparse
+
+Check the validated plan and diagnostics before changing thresholds. Sparse outputs often reflect narrow search scope rather than a broken pipeline.
+
+## What discover hands to the next stage
+
+Validation consumes normalized candidate tables produced by discovery. Discover is done when you have:
+- a stable `run_id`,
+- experiment evidence,
+- discovery candidate tables,
+- enough diagnostics to explain what the search did.
+
+Next: [validate.md](validate.md)

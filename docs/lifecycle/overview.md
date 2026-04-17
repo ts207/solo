@@ -1,128 +1,118 @@
-# System overview
+# Lifecycle overview
 
-## What Edge is
+This repository is built around a governed four-stage lifecycle:
 
-Edge is a research-to-runtime trading repository structured around a canonical four-stage lifecycle:
-
-```
+```text
 discover → validate → promote → deploy
 ```
 
-Each stage is a distinct executable operation with defined artifact inputs and outputs. The same lifecycle is exposed through the `edge` CLI (`project/cli.py`) and the Makefile.
+That sequence is the core architectural contract of the repo. It is not just the preferred CLI flow. The packages, artifacts, and runtime checks are organized around it.
 
----
+## What the system is
 
-## Four-stage lifecycle
+Edge is a research-to-runtime trading system for event-driven strategies.
 
-### 1. Discover
+Its core unit of authorship is not a Python strategy class. It is a structured market hypothesis expressed through specs and proposals. Its core runtime unit is not a raw candidate row. It is a promoted thesis artifact.
 
-Takes a structured YAML proposal and produces discovery candidates.
+The most important system transition is:
 
-- **Input:** `spec/proposals/*.yaml`
-- **Runs:** pipeline DAG (ingest → clean → features → market_context → analyze_events → phase2_search_engine)
-- **Output:** `data/artifacts/experiments/<program_id>/`, `data/reports/phase2/<run_id>/`
-- **Details:** [lifecycle/discover.md](discover.md)
+```text
+proposal → discovery evidence → validation bundle → promoted thesis package → runtime action
+```
 
-### 2. Validate
+## Stage boundaries in one table
 
-Converts discovery candidates into formally validated outputs with robustness testing.
+| Stage | Purpose | Canonical input | Canonical output | Main code surface |
+|------|---------|-----------------|------------------|-------------------|
+| Discover | turn a proposal into candidate evidence | `spec/proposals/*.yaml` | experiment artifacts and discovery candidate tables | `project/research/agent_io/*`, `project/pipelines/run_all.py` |
+| Validate | decide whether candidate rows remain credible under formal gates | discovery candidate tables | `data/reports/validation/<run_id>/` | `project/research/services/evaluation_service.py` |
+| Promote | turn validated candidates into governed thesis contracts | `promotion_ready_candidates.parquet` | `data/live/theses/<run_id>/promoted_theses.json` | `project/research/services/promotion_service.py`, `project/research/live_export.py` |
+| Deploy | run paper/live runtime against promoted theses | thesis package + runtime config | runtime actions, audits, snapshots, kill-switch events | `project/scripts/run_live_engine.py`, `project/live/runner.py` |
 
-- **Input:** `data/reports/phase2/<run_id>/phase2_candidates.parquet` (or edge_candidates, promotions tables)
-- **Runs:** evaluation service, stability tests, regime slicing
-- **Output:** `data/reports/validation/<run_id>/` — bundle, report, stability report, candidate tables
-- **Details:** [lifecycle/validate.md](validate.md)
+## The system model
 
-### 3. Promote
+### 1. Specs define the vocabulary
 
-Packages validated candidates into governed thesis artifacts.
+`spec/` is the authored source of truth for the trading vocabulary.
 
-- **Input:** `data/reports/validation/<run_id>/promotion_ready_candidates.parquet`
-- **Runs:** promotion service, live export
-- **Output:** `data/live/theses/<run_id>/promoted_theses.json`, `data/live/theses/index.json`
-- **Details:** [lifecycle/promote.md](promote.md)
+Important authored subtrees:
+- `spec/events/` — event definitions and event metadata
+- `spec/templates/` — template vocabulary used in research
+- `spec/proposals/` — runnable proposal files
+- `spec/search/` — search-space presets
+- `spec/objectives/` — evaluation and objective semantics
+- `spec/states/`, `spec/features/`, `spec/runtime/` — context and runtime vocabulary
 
-### 4. Deploy
+`spec/domain/domain_graph.yaml` is a generated compiled read model. Treat it as generated output, not as the primary authoring surface.
 
-Runs the live or paper engine against promoted theses.
+### 2. Discovery is bounded research, not free search
 
-- **Input:** bound config yaml + promoted thesis package
-- **Runs:** `project/scripts/run_live_engine.py`
-- **Output:** live orders, positions, audit log, kill-switch events
-- **Details:** [lifecycle/deploy.md](deploy.md)
+A proposal is validated, normalized, and turned into an experiment plan. That plan includes feasibility checks and a bounded hypothesis count. The repo is intentionally structured to constrain search and make run scope explicit.
 
----
+### 3. Validation is a separate legal stage
 
-## Mental model
+Discovery can produce rows that look statistically interesting. Validation decides whether those rows survive formal gates and can become promotion candidates.
 
-### Specs define the vocabulary
+### 4. Promotion is the bridge to runtime
 
-All authored truth lives under `spec/`. The compiled runtime model is `spec/domain/domain_graph.yaml` — generated, do not edit.
+The runtime does not consume raw discovery output. It consumes promoted thesis contracts exported from validated candidates. That is one of the strongest safety and governance rules in the codebase.
 
-- `spec/events/` — event definitions: family, detector, signal column, canonical regime
-- `spec/templates/` — expression templates (e.g. `exhaustion_reversal`, `continuation`) and filter templates
-- `spec/proposals/` — runnable YAML proposal files
-- `spec/search/`, `spec/objectives/`, `spec/ontology/` — search spec vocabulary
+### 5. Deploy is thesis-driven runtime
 
-After any spec change: `PYTHONPATH=. python3 project/scripts/build_domain_graph.py`
+The live and paper runtime loads a thesis batch, reconciles it against prior runtime state, and decides trade intent only in the context of active theses, risk policy, and runtime health.
 
-### A proposal is structured input only
+## Canonical run identity and artifact flow
 
-The proposal schema (`project/research/agent_io/proposal_schema.py`) validates that a proposal is well-formed before anything runs. The pipeline cannot receive free-text instructions — only structured YAML that the schema accepts.
+Each lifecycle instance is centered on a `run_id`.
 
-### Each run has a `run_id` and a lake
+A `run_id` ties together:
+- the discovery lake under `data/lake/runs/<run_id>/`
+- stage reports under `data/reports/*/<run_id>/`
+- validation outputs under `data/reports/validation/<run_id>/`
+- thesis export under `data/live/theses/<run_id>/`
 
-The `run_id` is the canonical identifier. It names:
-- the data lake: `data/lake/runs/<run_id>/`
-- all report directories: `data/reports/*/run_id>/`
-- the thesis package: `data/live/theses/<run_id>/`
+A useful simplification is:
 
-**Passing an existing `run_id` to a new proposal reuses that lake** (skips ingest/clean/features). When multiple proposals share a `run_id`, each overwrites `data/reports/phase2/<run_id>/` — read per-run results from `data/artifacts/experiments/<program_id>/evaluation_results.parquet` instead.
-
-### Template-family compatibility
-
-`check_hypothesis_feasibility` (in `project/research/search/feasibility.py`) silently drops incompatible event+template hypotheses at plan time. **If `estimated_hypothesis_count` in `validated_plan.json` is 0, check template compatibility before concluding no signal exists.**
-
-Compatible templates by event family:
-- VOLATILITY_EXPANSION / VOLATILITY_TRANSITION → `mean_reversion`, `continuation`, `impulse_continuation`, `vol_breakout`
-- TREND_FAILURE_EXHAUSTION / FORCED_FLOW_AND_EXHAUSTION → `exhaustion_reversal`
-- TREND_STRUCTURE → `exhaustion_reversal`, `mean_reversion`, `impulse_continuation`
-
----
-
-## Research gates
-
-| Gate | Requirement |
-|------|-------------|
-| Bridge gate | t ≥ 2.0 AND robustness ≥ 0.70 |
-| Phase2 gate | robustness ≥ 0.60 |
-| FDR gate | q_value < 0.05 (BH-adjusted) |
-
-`rv_pct_17280` is on a 0–100 percentile scale (mean ≈ 46). A threshold of 70 means the 70th percentile, not 0.70.
-
----
+```text
+run_id = the identity that binds discovery, validation, promotion, and deployment artifacts together
+```
 
 ## Repo-wide invariants
 
-### Manifested pipeline runs
+### Runtime should consume only promoted theses
 
-The orchestrator writes stage manifests and `run_manifest.json`. `project/specs/manifest.py` fingerprints and validates these. A manifest is the provenance record for a run.
+The codebase is designed so that research and runtime communicate through exported thesis artifacts. Bypassing that contract removes the main evidence-to-runtime safety boundary.
 
-### Specs feed generated registries
+### Specs are authored; compiled outputs are generated
 
-Changing event behavior means updating `spec/events/*.yaml` (and related template/ontology files) plus rebuilding the domain graph. The domain graph is the compiled read model consumed by research, promotion, and live export.
+Change the authored specs and rebuild generated views. Do not patch the compiled domain graph or generated audits by hand unless the generators are broken.
 
-### Package DAG is enforced
+### Package boundaries matter
 
-`project/tests/test_architectural_integrity.py` enforces allowed import directions. Placing code in the wrong package fails the architecture test. See [reference/architecture.md](../reference/architecture.md).
+`project/tests/test_architectural_integrity.py` enforces allowed package dependencies. Package placement is part of correctness.
 
-### Live theses are governed artifacts
+### Shared risk policy should remain shared
 
-`promoted_theses.json` and `index.json` are schema-validated on export. `live_export.py` rejects malformed or incomplete lineage rather than silently exporting a partial package.
+Overlap, admission, and sizing logic lives in `project/portfolio/` so both execution-side simulation and live runtime can share policy instead of diverging.
 
-### Promotion gates (research profile)
+### Artifacts and manifests are first-class
 
-Four gates have been removed from `PROMOTION_CONFIG_DEFAULTS` for the research profile:
-1. `min_events`: 100 → 0
-2. `allow_missing_negative_controls`: False → True
-3. `dsr`: removed from `required_for_eligibility`
-4. `use_effective_q_value=False` (prevents q inflation from scope degradation)
+Runs are tracked through manifests, reports, and thesis exports. This is an artifact-driven system, not just a collection of scripts.
+
+## The shortest correct mental model
+
+Use this model when reading the repo:
+
+1. a proposal defines what to test,
+2. discovery runs the bounded search and writes evidence,
+3. validation decides what survives,
+4. promotion turns survivors into runtime-safe thesis contracts,
+5. deploy loads those thesis contracts and trades only when runtime and risk gates allow it.
+
+## Where to go next
+
+- For the proposal-to-candidate path: [discover.md](discover.md)
+- For the candidate-to-bundle path: [validate.md](validate.md)
+- For the bundle-to-thesis path: [promote.md](promote.md)
+- For the thesis-to-runtime path: [deploy.md](deploy.md)
+- For the full code/package map: [../reference/full_repo_surface.md](../reference/full_repo_surface.md)

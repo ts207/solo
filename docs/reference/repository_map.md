@@ -1,129 +1,178 @@
 # Repository map
 
-## Top-level layout
+This file explains how the repo is shaped logically, not just where directories happen to sit on disk.
 
+## System model in one sentence
+
+`spec/` defines the market vocabulary, `project/research/` and `project/pipelines/` turn that vocabulary into evidence, `project/research/live_export.py` packages evidence into theses, and `project/live/` consumes those theses at runtime.
+
+## Top-level dependency flow
+
+```text
+spec/ → spec_registry/spec_validation/specs/domain
+     → events/features/research/operator/eval
+     → pipelines
+     → validation/promotion/live_export
+     → live/runtime/engine/portfolio
 ```
-project/      application code, pipeline orchestration, runtime, research, tests
-spec/         authored YAML/CSV specs — the source of truth for domain model
-docs/         documentation (lifecycle, reference, operator, research)
-data/         local data root (default; override with EDGE_DATA_ROOT)
-deploy/       deployment config roots
-```
 
-## `project/` packages
+The package DAG is enforced by `project/tests/test_architectural_integrity.py`. Package placement is therefore part of correctness, not just tidiness.
 
-### Core substrate (lowest layer)
+## Reading order for code
 
-| Package | What it owns |
-|---------|-------------|
-| `project/core` | Config, coercion, stats, validation primitives, feature schema |
-| `project/io` | Parquet compat, repository helpers, I/O utilities |
-| `project/artifacts` | Canonical artifact path helpers |
-| `project/contracts` | Pipeline/stage/system-map contracts |
+### For end-to-end lifecycle understanding
 
-### Spec and domain model
+1. `project/cli.py`
+2. `project/research/agent_io/issue_proposal.py`
+3. `project/research/agent_io/proposal_to_experiment.py`
+4. `project/research/agent_io/execute_proposal.py`
+5. `project/pipelines/run_all.py`
+6. `project/research/services/evaluation_service.py`
+7. `project/research/services/promotion_service.py`
+8. `project/research/live_export.py`
+9. `project/scripts/run_live_engine.py`
+10. `project/live/runner.py`
 
-| Package | What it owns |
-|---------|-------------|
-| `project/spec_registry` | Load YAML specs from `spec/` |
-| `project/specs` | Manifest, ontology, gates, invariants, objective helpers |
-| `project/spec_validation` | Grammar, ontology, search validators |
-| `project/domain` | Compiled registry models and loaders; `get_domain_registry()` |
+### For package-boundary understanding
 
-### Research stack
+1. `docs/reference/architecture.md`
+2. `project/contracts/`
+3. `project/pipelines/`
+4. `project/research/`
+5. `project/live/`, `project/runtime/`, `project/engine/`, `project/portfolio/`
 
-| Package | What it owns |
-|---------|-------------|
-| `project/events` | Event registry, ontology, detectors, arbitration, governance |
-| `project/features` | Feature, state, and context derivation |
-| `project/research` | Search, candidate generation, evaluation, promotion helpers, reporting |
-| `project/operator` | Bounded proposal semantics, campaign/mutation decision support |
-| `project/pipelines` | Run planner, execution DAG, stage registry, provenance |
+## Package ownership
 
-### Execution and runtime
+### 1. Core substrate
 
-| Package | What it owns |
-|---------|-------------|
-| `project/engine` | Backtest execution, fills, PnL, slippage, risk allocator |
-| `project/portfolio` | Overlap/admission policy, sizing, risk budgets |
-| `project/live` | Live runner, OMS, kill-switch, thesis reconciliation, venue clients |
-| `project/runtime` | Replay, timebase, firewall, invariant helpers |
-| `project/reliability` | Smoke, contracts, promotion gates, temporal lint |
+| Package | Ownership | Important files |
+|---------|-----------|-----------------|
+| `project/core` | shared config, stats, coercion, validation helpers | `config.py`, shared utility modules |
+| `project/io` | file and serialization helpers | parquet and file-system helpers |
+| `project/artifacts` | canonical artifact paths | artifact path helpers |
+| `project/schemas` | reusable schemas/control contracts | schema modules |
 
-### Supporting packages
+These packages should stay low-level and side-effect light.
 
-| Package | What it owns |
-|---------|-------------|
-| `project/eval` | Ablation, attribution, benchmarks, cost model, drift detection |
-| `project/strategy` | Executable strategy spec and runtime |
-| `project/compilers` | Strategy compilation surface |
-| `project/episodes` | Episode registry |
-| `project/schemas` | Control spec, data contracts, strategy spec |
-| `project/scripts` | CLI scripts — audits, generation, benchmarks, governance |
-| `project/tests` | All test files (565 files) — unit, contract, integration, regression, smoke |
+### 2. Spec and domain model
 
-## `spec/` subtree
+| Package | Ownership | Important files |
+|---------|-----------|-----------------|
+| `project/spec_registry` | loading authored specs from `spec/` | package modules |
+| `project/specs` | spec-side invariants, manifests, helper models | `manifest.py` |
+| `project/spec_validation` | grammar and consistency checks for specs | package modules |
+| `project/domain` | compiled registry read model | `compiled_registry.py` |
+| `project/contracts` | stage, artifact, and system-map contracts | `pipeline_registry.py`, `artifacts.py`, `system_map.py` |
 
-| Directory | What it contains |
-|-----------|-----------------|
-| `spec/events/` | Event definitions: detector, signal_column, family, canonical_regime, templates |
-| `spec/templates/` | Expression templates, filter templates, registry, event_template_registry |
-| `spec/proposals/` | Runnable YAML proposals (authored examples + project-specific runs) |
-| `spec/states/` | Regime/state definitions |
-| `spec/features/` | Feature definitions and metrics |
-| `spec/ontology/` | Ontology templates, features, states |
-| `spec/runtime/` | Runtime lanes, hashing, firewall |
-| `spec/search/` | Search specs (benchmark, full, smoke, productive) |
-| `spec/domain/domain_graph.yaml` | **Compiled domain graph — generated, do not edit** |
-| `spec/campaigns/`, `spec/hypotheses/`, `spec/theses/` | Campaign and hypothesis specs |
+These packages encode vocabulary and contracts. They should not own research decisions or live orchestration.
+
+### 3. Market interpretation layer
+
+| Package | Ownership | Important files |
+|---------|-----------|-----------------|
+| `project/events` | event registry, ontology, governance, detectors | `registry.py`, detector modules |
+| `project/features` | feature/state/context derivation | feature modules relevant to your event family |
+| `project/synthetic_truth` | synthetic data/truth support | package modules |
+
+This layer converts authored vocabulary into detectible and computable market constructs.
+
+### 4. Research and evaluation layer
+
+| Package | Ownership | Important files |
+|---------|-----------|-----------------|
+| `project/research` | proposal handling, candidate search, evaluation, reporting, promotion support | `agent_io/`, `services/`, `live_export.py` |
+| `project/operator` | bounded proposal semantics and operator support | `bounded.py` |
+| `project/eval` | analytics, benchmarks, drift, attribution, cost helpers | package modules |
+| `project/experiments`, `project/episodes`, `project/compilers` | supporting experiment/episode/compiler utilities | package roots |
+
+This is the broadest layer because it coordinates search and evidence production. It is intentionally rich, but it should not absorb generic utility code that belongs lower.
+
+### 5. Orchestration layer
+
+| Package | Ownership | Important files |
+|---------|-----------|-----------------|
+| `project/pipelines` | stage planning, run orchestration, provenance, run manifests | `run_all.py`, `pipeline_planning.py`, `stage_registry.py` |
+
+The orchestration layer wires together stages but should not become the home for business semantics.
+
+### 6. Execution and runtime layer
+
+| Package | Ownership | Important files |
+|---------|-----------|-----------------|
+| `project/engine` | execution mechanics and deterministic trade-state transitions | engine core modules |
+| `project/portfolio` | overlap, admission, sizing, risk budget policy | policy modules |
+| `project/runtime` | runtime invariants, replay/timebase surfaces | runtime modules |
+| `project/live` | live runner, thesis store, reconciliation, OMS, venue wiring, kill-switch | `runner.py`, `thesis_store.py`, `thesis_reconciliation.py` |
+| `project/strategy` | strategy runtime/spec support used by research and execution | package modules |
+| `project/reliability` | smoke and reliability checks | `cli_smoke.py` |
+
+The key design intent here is that the live runner acts on promoted theses rather than arbitrary raw research outputs.
+
+## The authored spec tree and how it maps to code
+
+| Spec subtree | Main consumers |
+|-------------|----------------|
+| `spec/events/` | `project/events`, `project/domain`, research planning |
+| `spec/states/`, `spec/features/` | `project/features`, research filters, runtime context |
+| `spec/templates/`, `spec/search/` | discovery planning and hypothesis expansion |
+| `spec/proposals/` | `project/research/agent_io/*`, discover CLI |
+| `spec/objectives/`, `spec/ontology/`, `spec/runtime/` | validation, routing, domain compilation, runtime controls |
+| `spec/domain/domain_graph.yaml` | `project/domain/compiled_registry.py` |
+
+When changing domain behavior, start from the authored spec files and regenerate compiled outputs rather than patching generated artifacts.
+
+## Non-code surfaces that matter operationally
+
+| Path | What it does |
+|------|--------------|
+| `project/configs/` | discovery, validation, promotion, and live runtime config presets |
+| `project/scripts/` | governance, audits, maintenance, certification, and direct launch scripts |
+| `dashboard/` | local repo/operator dashboard |
+| `deploy/` | env examples and systemd service templates |
+| `docs/generated/` | machine-derived audits used for governance and orientation |
+
+## Where to start for common tasks
+
+### Add or change a proposal
+
+- `spec/proposals/`
+- `docs/lifecycle/discover.md`
+- `project/research/agent_io/proposal_schema.py`
+
+### Diagnose a run
+
+- `data/artifacts/experiments/<program_id>/`
+- `data/reports/phase2/<run_id>/`
+- `data/reports/validation/<run_id>/`
+- `docs/operator/runbook.md`
+
+### Add an event detector
+
+- `spec/events/`
+- `project/events/detectors/`
+- `docs/reference/spec_authoring.md`
+- `make governance`
+
+### Change runtime behavior
+
+- `project/scripts/run_live_engine.py`
+- `project/live/runner.py`
+- `project/live/thesis_store.py`
+- `project/portfolio/`
+- `project/tests/live/` and `project/tests/regressions/`
 
 ## Authored vs generated
 
-### Authored (edit these)
-- `spec/**/*.yaml` except `spec/domain/domain_graph.yaml`
-- `project/configs/registries/*.yaml`
-- `docs/` except `docs/generated/`
-- `spec/proposals/*.yaml`
+### Edit directly
 
-### Generated (do not edit; regenerate with commands)
-- `spec/domain/domain_graph.yaml` — `PYTHONPATH=. python3 project/scripts/build_domain_graph.py`
-- `docs/generated/*` — `make governance`
-- `project/configs/registries/events.yaml` — synced by governance scripts
+- `project/**/*.py`
+- `spec/**/*.yaml` except compiled generated outputs
+- `docs/**/*.md` except `docs/generated/`
+- `project/configs/**/*.yaml`
+- `deploy/**/*`
 
-### Written at runtime (not source-controlled by default)
-- `data/lake/runs/<run_id>/` — cleaned bars and features
-- `data/artifacts/experiments/` — discovery artifacts and program memory
-- `data/reports/` — all stage output reports
-- `data/live/theses/` — promoted thesis packages
+### Regenerate
 
-## `data/` layout
-
-```
-data/
-  lake/runs/<run_id>/
-    cleaned/perp/<SYMBOL>/bars_5m/year=.../month=.../
-    features/perp/<SYMBOL>/5m/features_feature_schema_v2/year=.../
-    features/perp/<SYMBOL>/5m/market_context/year=.../
-    metadata/run_manifest.json
-  artifacts/experiments/<program_id>/
-    <run_id>/
-      evaluation_results.parquet     ← primary discovery result
-      validated_plan.json            ← check estimated_hypothesis_count
-      expanded_hypotheses.parquet
-    memory/
-      event_statistics.parquet
-      tested_ledger.parquet
-      belief_state.json
-  reports/
-    phase2/<run_id>/
-      hypotheses/BTCUSDT/evaluated_hypotheses.parquet
-      phase2_diagnostics.json
-      phase2_candidates.parquet
-    validation/<run_id>/
-    promotions/<run_id>/
-    edge_candidates/<run_id>/
-    expectancy/<run_id>/
-  live/theses/
-    index.json
-    <run_id>/promoted_theses.json
-```
+- `docs/generated/*`
+- `spec/domain/domain_graph.yaml`
+- generated registry and audit artifacts refreshed by governance scripts
