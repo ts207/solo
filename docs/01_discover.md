@@ -83,9 +83,8 @@ The pipeline reads market data from the resolved data root. The default root is 
 
 Use these docs together when working on discover inputs:
 
-- `11_proposal_authoring_and_campaigns.md` for proposal fields outside `hypothesis`, bounded follow-ups, experiment compilation, and campaign boundaries
 - the structured proposal examples in `spec/proposals/` for canonical cold-start and bounded follow-up patterns
-- `09_operator_runbook.md` for the end-to-end operator sequence after discover succeeds
+- `operator_runbook.md` for the end-to-end operator sequence after discover succeeds
 
 ## Discover outputs
 

@@ -9,9 +9,9 @@ Edge is a Python 3.11+ trading research and runtime repository organized around 
 
 This docset was rewritten from the current repository state, not from the previous markdown set. The repo currently contains:
 
-- 1442 Python modules under `project/`
-- 564 test files under `project/tests/`
-- 397 YAML spec files under `spec/`
+- 1444 Python modules under `project/`
+- 565 test files under `project/tests/`
+- 443 YAML spec files under `spec/`
 - canonical console entry points defined in `pyproject.toml`
 - a contract-enforced package DAG in `project/tests/test_architectural_integrity.py`
 
@@ -21,11 +21,7 @@ This docset was rewritten from the current repository state, not from the previo
 - `docs/00_overview.md` — system model, invariants, and top-level flow
 - `docs/02_REPOSITORY_MAP.md` — package-by-package repo map
 - `docs/operator_command_inventory.md` — re-audited commands, scripts, and regeneration entry points
-- `docs/09_operator_runbook.md` — end-to-end operator workflow from proposal to runtime
-- `docs/11_proposal_authoring_and_campaigns.md` — proposal fields outside `hypothesis`, experiment compilation, and campaign boundaries
-- `docs/08_runtime_config_reference.md` — live engine config and environment contract
-- `docs/10_regeneration_and_test_matrix.md` — what to rerun after structural changes
-- `docs/06_data_and_artifacts.md` — where run outputs, reports, memory, and live thesis artifacts live
+- `docs/operator_runbook.md` — end-to-end operator workflow from proposal to runtime
 
 ## Canonical commands
 

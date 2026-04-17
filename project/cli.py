@@ -52,13 +52,13 @@ def _build_parser() -> argparse.ArgumentParser:
         "triggers",
         help="Advanced: Mining and proposing new trigger candidate definitions (internal research lane).",
         description="Advanced/Internal trigger discovery lane.\nProposal-generating only. No runtime effect. Manual review required before registry adoption.",
-        formatter_class=argparse.RawTextHelpFormatter
+        formatter_class=argparse.RawTextHelpFormatter,
     )
     triggers_sub = triggers_parser.add_subparsers(dest="trigger_command")
 
     sweep_parser = triggers_sub.add_parser(
         "parameter-sweep",
-        help="Run parameter sweep over a detector family (e.g. vol_shock) to propose candidate triggers."
+        help="Run parameter sweep over a detector family (e.g. vol_shock) to propose candidate triggers.",
     )
     sweep_parser.add_argument("--family", default="vol_shock")
     sweep_parser.add_argument("--symbol", default="BTCUSDT")
@@ -68,7 +68,7 @@ def _build_parser() -> argparse.ArgumentParser:
 
     cluster_parser = triggers_sub.add_parser(
         "feature-cluster",
-        help="Mine recurring feature excursions to propose new trigger interaction families."
+        help="Mine recurring feature excursions to propose new trigger interaction families.",
     )
     cluster_parser.add_argument("--symbol", default="BTCUSDT")
     cluster_parser.add_argument("--timeframe", default="5m")
@@ -76,27 +76,32 @@ def _build_parser() -> argparse.ArgumentParser:
     cluster_parser.add_argument("--out_dir", default=None)
 
     report_parser = triggers_sub.add_parser(
-        "report",
-        help="Inspect generated candidate trigger proposals and registry novelty scores."
+        "report", help="Inspect generated candidate trigger proposals and registry novelty scores."
     )
     report_parser.add_argument("--proposal_dir", required=True)
 
     payload_parser = triggers_sub.add_parser(
         "emit-registry-payload",
-        help="Generate a registry YAML snippet for a given candidate trigger ID."
+        help="Generate a registry YAML snippet for a given candidate trigger ID.",
     )
     payload_parser.add_argument("--candidate_id", required=True)
     payload_parser.add_argument("--proposal_dir", required=True)
 
     # Governance Control Plane
-    list_parser = triggers_sub.add_parser("list", help="List all generated trigger proposals and their adoption states.")
+    list_parser = triggers_sub.add_parser(
+        "list", help="List all generated trigger proposals and their adoption states."
+    )
     list_parser.add_argument("--proposal_dir", default="data/trigger_proposals")
 
-    inspect_parser = triggers_sub.add_parser("inspect", help="Inspect a specific trigger proposal's details.")
+    inspect_parser = triggers_sub.add_parser(
+        "inspect", help="Inspect a specific trigger proposal's details."
+    )
     inspect_parser.add_argument("--candidate_id", required=True)
     inspect_parser.add_argument("--proposal_dir", default="data/trigger_proposals")
 
-    review_parser = triggers_sub.add_parser("review", help="Mark a trigger proposal as under_review.")
+    review_parser = triggers_sub.add_parser(
+        "review", help="Mark a trigger proposal as under_review."
+    )
     review_parser.add_argument("--candidate_id", required=True)
     review_parser.add_argument("--proposal_dir", default="data/trigger_proposals")
 
@@ -109,12 +114,16 @@ def _build_parser() -> argparse.ArgumentParser:
     reject_parser.add_argument("--reason", required=True)
     reject_parser.add_argument("--proposal_dir", default="data/trigger_proposals")
 
-    adopt_parser = triggers_sub.add_parser("mark-adopted", help="Mark an approved trigger proposal as formally adopted.")
+    adopt_parser = triggers_sub.add_parser(
+        "mark-adopted", help="Mark an approved trigger proposal as formally adopted."
+    )
     adopt_parser.add_argument("--candidate_id", required=True)
     adopt_parser.add_argument("--proposal_dir", default="data/trigger_proposals")
 
     # 2. VALIDATE
-    validate_parser = subparsers.add_parser("validate", help="Stage 2: Truth-testing and robustness.")
+    validate_parser = subparsers.add_parser(
+        "validate", help="Stage 2: Truth-testing and robustness."
+    )
     validate_sub = validate_parser.add_subparsers(dest="subcommand")
 
     validate_run = validate_sub.add_parser("run", help="Run formal validation on a discovery run.")
@@ -125,12 +134,16 @@ def _build_parser() -> argparse.ArgumentParser:
     validate_report.add_argument("--run_id", required=True)
     validate_report.add_argument("--data_root", default=None)
 
-    validate_diagnose = validate_sub.add_parser("diagnose", help="Write negative-result diagnostics.")
+    validate_diagnose = validate_sub.add_parser(
+        "diagnose", help="Write negative-result diagnostics."
+    )
     validate_diagnose.add_argument("--run_id", required=True)
     validate_diagnose.add_argument("--program_id", default=None)
     validate_diagnose.add_argument("--data_root", default=None)
 
-    validate_artifacts = validate_sub.add_parser("list-artifacts", help="List validation artifacts.")
+    validate_artifacts = validate_sub.add_parser(
+        "list-artifacts", help="List validation artifacts."
+    )
     validate_artifacts.add_argument("--run_id", required=True)
     validate_artifacts.add_argument("--data_root", default=None)
 
@@ -170,7 +183,9 @@ def _build_parser() -> argparse.ArgumentParser:
     deploy_list = deploy_sub.add_parser("list-theses", help="List available promoted theses.")
     deploy_list.add_argument("--data_root", default=None)
 
-    deploy_inspect = deploy_sub.add_parser("inspect-thesis", help="Inspect a specific promoted thesis.")
+    deploy_inspect = deploy_sub.add_parser(
+        "inspect-thesis", help="Inspect a specific promoted thesis."
+    )
     deploy_inspect.add_argument("--run_id", required=True)
     deploy_inspect.add_argument("--data_root", default=None)
 
@@ -241,25 +256,39 @@ def _build_parser() -> argparse.ArgumentParser:
     ingest_parser.add_argument("--log_path", default=None)
 
     # 5. CATALOG (Sprint 7)
-    catalog_parser = subparsers.add_parser("catalog", help="Research operations and artifact intelligence.")
+    catalog_parser = subparsers.add_parser(
+        "catalog", help="Research operations and artifact intelligence."
+    )
     catalog_sub = catalog_parser.add_subparsers(dest="subcommand")
 
     catalog_list = catalog_sub.add_parser("list", help="List runs with artifact manifests.")
     catalog_list.add_argument("--stage", choices=["discover", "validate", "promote", "deploy"])
     catalog_list.add_argument("--data_root", default=None)
 
-    catalog_compare = catalog_sub.add_parser("compare", help="Compare two runs at a specific stage.")
+    catalog_compare = catalog_sub.add_parser(
+        "compare", help="Compare two runs at a specific stage."
+    )
     catalog_compare.add_argument("--run_id_a", required=True)
     catalog_compare.add_argument("--run_id_b", required=True)
-    catalog_compare.add_argument("--stage", required=True, choices=["discover", "validate", "promote"])
+    catalog_compare.add_argument(
+        "--stage", required=True, choices=["discover", "validate", "promote"]
+    )
     catalog_compare.add_argument("--data_root", default=None)
 
-    catalog_audit = catalog_sub.add_parser("audit-artifacts", help="Scan historical artifacts for audit inventory.")
+    catalog_audit = catalog_sub.add_parser(
+        "audit-artifacts", help="Scan historical artifacts for audit inventory."
+    )
     catalog_audit.add_argument("--run_id", default=None, help="Filter to specific run ID")
-    catalog_audit.add_argument("--since", default=None, help="ISO timestamp to filter artifacts since")
+    catalog_audit.add_argument(
+        "--since", default=None, help="ISO timestamp to filter artifacts since"
+    )
     catalog_audit.add_argument("--data_root", default=None)
-    catalog_audit.add_argument("--emit_inventory", type=int, default=1, help="Write inventory outputs (parquet/json/md)")
-    catalog_audit.add_argument("--rewrite_stamps", type=int, default=0, help="Write sidecar audit stamps (non-destructive)")
+    catalog_audit.add_argument(
+        "--emit_inventory", type=int, default=1, help="Write inventory outputs (parquet/json/md)"
+    )
+    catalog_audit.add_argument(
+        "--rewrite_stamps", type=int, default=0, help="Write sidecar audit stamps (non-destructive)"
+    )
 
     subparsers.required = True
     return parser
@@ -283,6 +312,7 @@ def main() -> int:
     if args.command == "discover":
         if args.subcommand in {"plan", "run"}:
             from project import discover
+
             result = discover.run(
                 args.proposal,
                 registry_root=Path(args.registry_root),
@@ -293,10 +323,15 @@ def main() -> int:
                 check=bool(getattr(args, "check", False)),
             )
             print(json.dumps(result, indent=2, sort_keys=True))
-            return 0 if int(result.get("execution", {}).get("returncode", 0)) == 0 else int(result["execution"]["returncode"])
+            return (
+                0
+                if int(result.get("execution", {}).get("returncode", 0)) == 0
+                else int(result["execution"]["returncode"])
+            )
 
         if args.subcommand == "list-artifacts":
             from project.core.config import get_data_root
+
             data_root = Path(args.data_root) if args.data_root else get_data_root()
             paths = [data_root / "reports" / "phase2" / args.run_id]
             print(f"Artifacts for discovery run {args.run_id}:")
@@ -315,11 +350,14 @@ def main() -> int:
             from project.research.discover_triggers import main as trigger_main
             # We must map the CLI args back to the orchestrator's expectations
             # discover_triggers.py expects --mode choices: [parameter_sweep, feature_cluster]
-            
+
             if args.trigger_command == "emit-registry-payload":
                 # Special helper for registry payload emission
-                from project.research.trigger_discovery.proposal_emission import generate_suggested_registry_payload
+                from project.research.trigger_discovery.proposal_emission import (
+                    generate_suggested_registry_payload,
+                )
                 import pandas as pd
+
                 parquet_path = Path(args.proposal_dir) / "candidate_trigger_scored.parquet"
                 if not parquet_path.exists():
                     print(f"Error: Missing {parquet_path}")
@@ -331,13 +369,22 @@ def main() -> int:
                     return 1
                 payload = generate_suggested_registry_payload(match.iloc[0])
                 import yaml
+
                 print(yaml.dump(payload, sort_keys=False))
                 return 0
 
-            if args.trigger_command in ["list", "inspect", "review", "approve", "reject", "mark-adopted"]:
+            if args.trigger_command in [
+                "list",
+                "inspect",
+                "review",
+                "approve",
+                "reject",
+                "mark-adopted",
+            ]:
                 from project.research.trigger_discovery import adoption_store
+
                 out_dir = Path(args.proposal_dir)
-                
+
                 if args.trigger_command == "list":
                     proposals = adoption_store.list_proposals(out_dir)
                     if not proposals:
@@ -348,30 +395,28 @@ def main() -> int:
                     for p in proposals:
                         print(f"{p['candidate_id']:<45} | {p['status']:<15} | {p['source_lane']}")
                     return 0
-                    
+
                 if args.trigger_command == "inspect":
                     p = adoption_store.get_proposal(args.candidate_id, out_dir)
                     if not p:
                         print(f"Proposal {args.candidate_id} not found.")
                         return 1
                     import yaml
+
                     print(yaml.dump(p, sort_keys=False))
                     return 0
-                    
+
                 status_map = {
                     "review": "under_review",
                     "approve": "approved",
                     "reject": "rejected",
-                    "mark-adopted": "adopted"
+                    "mark-adopted": "adopted",
                 }
                 new_status = status_map[args.trigger_command]
                 reason = getattr(args, "reason", None)
-                
+
                 success = adoption_store.transition_state(
-                    args.candidate_id, 
-                    new_status, 
-                    out_dir,
-                    reason=reason
+                    args.candidate_id, new_status, out_dir, reason=reason
                 )
                 return 0 if success else 1
 
@@ -381,23 +426,34 @@ def main() -> int:
                 sys.argv.extend(["--mode", "parameter_sweep", "--family", args.family])
             elif args.trigger_command == "feature-cluster":
                 sys.argv.extend(["--mode", "feature_cluster"])
-            
-            if getattr(args, "symbol", None): sys.argv.extend(["--symbol", args.symbol])
-            if getattr(args, "timeframe", None): sys.argv.extend(["--timeframe", args.timeframe])
-            if getattr(args, "data_root", None): sys.argv.extend(["--data_root", args.data_root])
-            if getattr(args, "out_dir", None): sys.argv.extend(["--out_dir", args.out_dir])
-            
+
+            if getattr(args, "symbol", None):
+                sys.argv.extend(["--symbol", args.symbol])
+            if getattr(args, "timeframe", None):
+                sys.argv.extend(["--timeframe", args.timeframe])
+            if getattr(args, "data_root", None):
+                sys.argv.extend(["--data_root", args.data_root])
+            if getattr(args, "out_dir", None):
+                sys.argv.extend(["--out_dir", args.out_dir])
+
             return int(trigger_main() or 0)
 
     if args.command == "validate":
         from project import validate
+
         if args.subcommand == "run":
             try:
-                bundle = validate.run(args.run_id, data_root=Path(args.data_root) if args.data_root else None)
-                print(f"Validation completed. Validated: {len(bundle.validated_candidates)}, Rejected: {len(bundle.rejected_candidates)}")
+                bundle = validate.run(
+                    args.run_id, data_root=Path(args.data_root) if args.data_root else None
+                )
+                print(
+                    f"Validation completed. Validated: {len(bundle.validated_candidates)}, Rejected: {len(bundle.rejected_candidates)}"
+                )
             except ValueError as exc:
                 if "No candidates found" in str(exc):
-                    print(f"Validation completed. No candidates found for run {args.run_id}. Validated: 0, Rejected: 0")
+                    print(
+                        f"Validation completed. No candidates found for run {args.run_id}. Validated: 0, Rejected: 0"
+                    )
                 else:
                     raise
             return 0
@@ -418,6 +474,7 @@ def main() -> int:
             return 0
         if args.subcommand == "list-artifacts":
             from project.core.config import get_data_root
+
             data_root = Path(args.data_root) if args.data_root else get_data_root()
             val_dir = data_root / "reports" / "validation" / args.run_id
             if val_dir.exists():
@@ -430,6 +487,7 @@ def main() -> int:
 
     if args.command == "promote":
         from project import promote
+
         if args.subcommand == "run":
             result = promote.run(
                 run_id=args.run_id,
@@ -440,7 +498,9 @@ def main() -> int:
             if result.exit_code != 0:
                 err = str(result.diagnostics.get("error", ""))
                 if "missing validation bundle" in err or "No candidates found" in err:
-                    print(f"Promotion completed. No validated candidates for run {args.run_id}. Promoted: 0")
+                    print(
+                        f"Promotion completed. No validated candidates for run {args.run_id}. Promoted: 0"
+                    )
                     return 0
             print(f"Promotion completed with exit code: {result.exit_code}")
             return result.exit_code
@@ -454,6 +514,7 @@ def main() -> int:
             return 0
         if args.subcommand == "list-artifacts":
             from project.core.config import get_data_root
+
             data_root = Path(args.data_root) if args.data_root else get_data_root()
             promo_dir = data_root / "reports" / "promotions" / args.run_id
             if promo_dir.exists():
@@ -467,6 +528,7 @@ def main() -> int:
     if args.command == "deploy":
         from project.artifacts import promoted_theses_path
         from project.core.config import get_data_root
+
         _data_root_str = getattr(args, "data_root", None)
         data_root = Path(_data_root_str) if _data_root_str else get_data_root()
 
@@ -490,12 +552,15 @@ def main() -> int:
 
             if args.subcommand == "inspect-thesis":
                 from project.live.thesis_store import ThesisStore
+
                 store = ThesisStore.from_path(path)
                 print(f"Thesis Inspection: {args.run_id}")
                 print(f"  - Thesis Count: {len(store.all())}")
                 for t in store.all():
-                    deployment_state = getattr(t, 'deployment_state', 'N/A')
-                    print(f"  - [{t.thesis_id}] Status: {t.status}, Deployment State: {deployment_state}, Class: {t.promotion_class}")
+                    deployment_state = getattr(t, "deployment_state", "N/A")
+                    print(
+                        f"  - [{t.thesis_id}] Status: {t.status}, Deployment State: {deployment_state}, Class: {t.promotion_class}"
+                    )
                 return 0
 
             if args.subcommand == "paper":
@@ -503,9 +568,14 @@ def main() -> int:
                 from project.live.thesis_store import ThesisStore
 
                 store = ThesisStore.from_path(path)
-                if not any(getattr(t, 'deployment_state', None) in ("paper_only", "live_enabled") for t in store.all()):
+                if not any(
+                    getattr(t, "deployment_state", None) in ("paper_only", "live_enabled")
+                    for t in store.all()
+                ):
                     print("  - Status: BLOCKED")
-                    print("  - Reason: Batch does not contain any theses with deployment_state 'paper_only' or 'live_enabled'.")
+                    print(
+                        "  - Reason: Batch does not contain any theses with deployment_state 'paper_only' or 'live_enabled'."
+                    )
                     return 1
 
                 config_path = args.config
@@ -513,15 +583,21 @@ def main() -> int:
                     config_path = str(PROJECT_ROOT / "configs" / "live_paper.yaml")
 
                 from project.scripts.run_live_engine import main as run_live_engine_main
-                run_argv = ["--config", config_path]
+
+                run_argv = ["--config", config_path, "--run_id", args.run_id]
                 return run_live_engine_main(run_argv)
 
             if args.subcommand == "live":
                 from project.live.thesis_store import ThesisStore
+
                 store = ThesisStore.from_path(path)
-                if not any(getattr(t, 'deployment_state', None) == "live_enabled" for t in store.all()):
+                if not any(
+                    getattr(t, "deployment_state", None) == "live_enabled" for t in store.all()
+                ):
                     print("  - Status: BLOCKED")
-                    print("  - Reason: Batch does not contain any theses with deployment_state 'live_enabled'.")
+                    print(
+                        "  - Reason: Batch does not contain any theses with deployment_state 'live_enabled'."
+                    )
                     return 1
 
                 config_path = args.config
@@ -529,55 +605,133 @@ def main() -> int:
                     config_path = str(PROJECT_ROOT / "configs" / "live_production.yaml")
 
                 from project.scripts.run_live_engine import main as run_live_engine_main
-                run_argv = ["--config", config_path]
+
+                run_argv = ["--config", config_path, "--run_id", args.run_id]
                 return run_live_engine_main(run_argv)
 
         if args.subcommand == "status":
-            print("Deployment Status: Monitoring active sessions via explicit catalog integration.")
+            from project.live.thesis_store import ThesisStore
+
+            theses_dir = data_root / "live" / "theses"
+            if not theses_dir.exists():
+                print("No thesis inventory found.")
+                return 0
+
+            all_theses = []
+            for d in sorted(theses_dir.iterdir()):
+                if d.is_dir() and (d / "promoted_theses.json").exists():
+                    store = ThesisStore.from_path(d / "promoted_theses.json")
+                    for t in store.all():
+                        all_theses.append((d.name, t))
+
+            if not all_theses:
+                print("No promoted theses found.")
+                return 0
+
+            print(
+                f"Deployment Status: {len(all_theses)} thesis(es) across {len(set(r for r, _ in all_theses))} run(s)"
+            )
+            print()
+
+            state_counts = {}
+            for _, t in all_theses:
+                ds = getattr(t, "deployment_state", "unknown")
+                state_counts[ds] = state_counts.get(ds, 0) + 1
+            for state, count in sorted(state_counts.items()):
+                print(f"  {state}: {count}")
+
+            persist_dir = PROJECT_ROOT / "live" / "persist"
+            recon_path = persist_dir / "thesis_reconciliation.json"
+            batch_path = persist_dir / "thesis_batch_metadata.json"
+            if recon_path.exists():
+                recon = json.loads(recon_path.read_text())
+                print(f"\n  Reconciliation: {recon.get('status', 'N/A')}")
+            if batch_path.exists():
+                batch = json.loads(batch_path.read_text())
+                print(
+                    f"  Batch metadata: {len(batch.get('batches', batch.get('thesis_runs', [])))} batch(es)"
+                )
+
+            print()
+            for run_id, t in all_theses:
+                ds = getattr(t, "deployment_state", "unknown")
+                sym = getattr(t, "anchor_event", "?")
+                print(f"  [{run_id}] {t.thesis_id} | {ds} | {sym}")
+
             return 0
 
         if args.subcommand == "bind-config":
             import re
             import shutil
 
-            template_path = Path(args.template) if args.template else PROJECT_ROOT / "configs" / "live_paper_btc_thesis_v1.yaml"
+            template_path = (
+                Path(args.template)
+                if args.template
+                else PROJECT_ROOT / "configs" / "live_paper_btc_thesis_v1.yaml"
+            )
             if not template_path.exists():
                 print(f"Error: Template config not found: {template_path}")
                 return 1
 
-            output_path = Path(args.output) if args.output else PROJECT_ROOT / "configs" / f"live_paper_{args.run_id}.yaml"
+            output_path = (
+                Path(args.output)
+                if args.output
+                else PROJECT_ROOT / "configs" / f"live_paper_{args.run_id}.yaml"
+            )
             shutil.copy2(template_path, output_path)
 
             content = output_path.read_text()
             bound = re.sub(r"(thesis_run_id:\s*)(\S+)", rf"\g<1>{args.run_id}", content)
+            bound = re.sub(r"(runtime_run_id:\s*)(\S+)", rf"\g<1>live_paper_{args.run_id}", bound)
+            bound = re.sub(r"(session_id:\s*)(\S+)", rf"\g<1>live-paper-{args.run_id}", bound)
+            bound = re.sub(
+                r"(live_state_snapshot_path:\s*)(\S+)",
+                rf"\g<1>artifacts/live_state_paper_{args.run_id}.json",
+                bound,
+            )
+            bound = re.sub(
+                r"(runtime_metrics_snapshot_path:\s*)(\S+)",
+                rf"\g<1>artifacts/live_runtime_metrics_paper_{args.run_id}.json",
+                bound,
+            )
             output_path.write_text(bound)
 
             print(f"Bound config written to: {output_path}")
             print(f"  thesis_run_id: {args.run_id}")
+            print(f"  runtime_run_id: live_paper_{args.run_id}")
+            print(f"  session_id: live-paper-{args.run_id}")
             return 0
 
     if args.command == "ingest":
         if args.exchange == "binance":
             if args.data_type == "ohlcv":
                 from project.pipelines.ingest import ingest_binance_um_ohlcv as _ingest_ohlcv
+
                 ingest_script = "ingest_binance_um_ohlcv.py"
             else:
                 # We could add more binance types here if needed, but for now focusing on bybit
-                raise ValueError(f"Binance ingestion for {args.data_type} not yet integrated in this unified command")
+                raise ValueError(
+                    f"Binance ingestion for {args.data_type} not yet integrated in this unified command"
+                )
         elif args.exchange == "bybit":
             if args.data_type in ["ohlcv", "mark_price", "index_price"]:
                 from project.pipelines.ingest import ingest_bybit_derivatives_ohlcv as _ingest_ohlcv
+
                 ingest_script = "ingest_bybit_derivatives_ohlcv.py"
             elif args.data_type == "funding":
-                from project.pipelines.ingest import ingest_bybit_derivatives_funding as _ingest_ohlcv
+                from project.pipelines.ingest import (
+                    ingest_bybit_derivatives_funding as _ingest_ohlcv,
+                )
+
                 ingest_script = "ingest_bybit_derivatives_funding.py"
             elif args.data_type == "oi":
-                from project.pipelines.ingest import ingest_bybit_derivatives_open_interest as _ingest_ohlcv
+                from project.pipelines.ingest import (
+                    ingest_bybit_derivatives_open_interest as _ingest_ohlcv,
+                )
+
                 ingest_script = "ingest_bybit_derivatives_open_interest.py"
             else:
                 raise ValueError(f"Unsupported data_type: {args.data_type}")
-
-
 
         else:
             raise ValueError(f"Unsupported exchange: {args.exchange}")
@@ -609,6 +763,7 @@ def main() -> int:
 
     if args.command == "catalog":
         from project.research.services import run_catalog_service
+
         data_root = Path(args.data_root) if args.data_root else None
         if args.subcommand == "list":
             runs = run_catalog_service.list_runs(stage=args.stage, data_root=data_root)
@@ -629,6 +784,7 @@ def main() -> int:
                 write_audit_inventory,
                 rewrite_audit_stamp_sidecars,
             )
+
             result = scan_historical_artifacts(
                 data_root=data_root,
                 run_id=args.run_id,

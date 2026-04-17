@@ -21,6 +21,7 @@ execution_degradation_block_edge_bps: -8.0
 execution_degradation_throttle_scale: 0.5
 strategy_runtime:
   implemented: false
+  thesis_run_id: ""
   include_pending_theses: true
   auto_submit: false
   supported_event_families:

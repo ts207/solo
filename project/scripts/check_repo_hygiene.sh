@@ -59,8 +59,16 @@ zone_files="$(find . \
   \) | sed 's#^\./##' | sort)"
 if [[ -n "$zone_files" ]]; then
   echo "[hygiene] Zone.Identifier sidecar files detected ($(echo "$zone_files" | wc -l) files):"
-  echo "$zone_files" | head -20
+  echo "$zone_files" | head -20 || true
   echo "[hygiene] Fix: make clean-hygiene"
+  fail=1
+fi
+
+tracked_zone="$(git ls-files -- '*:Zone.Identifier' '*#Uf03aZone.Identifier' 2>/dev/null || true)"
+if [[ -n "$tracked_zone" ]]; then
+  echo "[hygiene] Zone.Identifier files are tracked by git ($(echo "$tracked_zone" | wc -l) files):"
+  echo "$tracked_zone" | head -20 || true
+  echo "[hygiene] Fix: git rm --cached the tracked sidecar files"
   fail=1
 fi
 

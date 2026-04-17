@@ -53,8 +53,7 @@ def _normalize_strategy_runtime(config: Dict[str, Any], *, config_path: Path) ->
         )
     if thesis_path and thesis_run_id:
         raise LiveRuntimeConfigError(
-            "strategy_runtime must set only one of thesis_path or thesis_run_id: "
-            f"{config_path}"
+            f"strategy_runtime must set only one of thesis_path or thesis_run_id: {config_path}"
         )
     if implemented and not (thesis_path or thesis_run_id):
         raise LiveRuntimeConfigError(
@@ -205,32 +204,53 @@ def validate_live_runtime_environment(
     elif resolved_snapshot_path and not _path_matches_expected(
         edge_live_snapshot_path, resolved_snapshot_path
     ):
-        errors.append(
-            f"EDGE_LIVE_SNAPSHOT_PATH must point to {resolved_snapshot_path}"
-        )
+        errors.append(f"EDGE_LIVE_SNAPSHOT_PATH must point to {resolved_snapshot_path}")
     if environment_name == "paper":
         if edge_venue == "bybit":
-            if not (str(env.get("EDGE_BYBIT_PAPER_API_KEY", "")).strip() or str(env.get("EDGE_API_KEY", "")).strip()):
+            if not (
+                str(env.get("EDGE_BYBIT_PAPER_API_KEY", "")).strip()
+                or str(env.get("EDGE_API_KEY", "")).strip()
+            ):
                 errors.append("EDGE_BYBIT_PAPER_API_KEY must be set")
-            if not (str(env.get("EDGE_BYBIT_PAPER_API_SECRET", "")).strip() or str(env.get("EDGE_API_SECRET", "")).strip()):
+            if not (
+                str(env.get("EDGE_BYBIT_PAPER_API_SECRET", "")).strip()
+                or str(env.get("EDGE_API_SECRET", "")).strip()
+            ):
                 errors.append("EDGE_BYBIT_PAPER_API_SECRET must be set")
         else:
-            if not (str(env.get("EDGE_BINANCE_PAPER_API_KEY", "")).strip() or str(env.get("EDGE_API_KEY", "")).strip()):
+            if not (
+                str(env.get("EDGE_BINANCE_PAPER_API_KEY", "")).strip()
+                or str(env.get("EDGE_API_KEY", "")).strip()
+            ):
                 errors.append("EDGE_BINANCE_PAPER_API_KEY must be set")
-            if not (str(env.get("EDGE_BINANCE_PAPER_API_SECRET", "")).strip() or str(env.get("EDGE_API_SECRET", "")).strip()):
+            if not (
+                str(env.get("EDGE_BINANCE_PAPER_API_SECRET", "")).strip()
+                or str(env.get("EDGE_API_SECRET", "")).strip()
+            ):
                 errors.append("EDGE_BINANCE_PAPER_API_SECRET must be set")
     if environment_name == "production":
         if edge_venue == "bybit":
-            if not (str(env.get("EDGE_BYBIT_API_KEY", "")).strip() or str(env.get("EDGE_API_KEY", "")).strip()):
+            if not (
+                str(env.get("EDGE_BYBIT_API_KEY", "")).strip()
+                or str(env.get("EDGE_API_KEY", "")).strip()
+            ):
                 errors.append("EDGE_BYBIT_API_KEY must be set")
-            if not (str(env.get("EDGE_BYBIT_API_SECRET", "")).strip() or str(env.get("EDGE_API_SECRET", "")).strip()):
+            if not (
+                str(env.get("EDGE_BYBIT_API_SECRET", "")).strip()
+                or str(env.get("EDGE_API_SECRET", "")).strip()
+            ):
                 errors.append("EDGE_BYBIT_API_SECRET must be set")
         else:
-            if not (str(env.get("EDGE_BINANCE_API_KEY", "")).strip() or str(env.get("EDGE_API_KEY", "")).strip()):
+            if not (
+                str(env.get("EDGE_BINANCE_API_KEY", "")).strip()
+                or str(env.get("EDGE_API_KEY", "")).strip()
+            ):
                 errors.append("EDGE_BINANCE_API_KEY must be set")
-            if not (str(env.get("EDGE_BINANCE_API_SECRET", "")).strip() or str(env.get("EDGE_API_SECRET", "")).strip()):
+            if not (
+                str(env.get("EDGE_BINANCE_API_SECRET", "")).strip()
+                or str(env.get("EDGE_API_SECRET", "")).strip()
+            ):
                 errors.append("EDGE_BINANCE_API_SECRET must be set")
-
 
     if errors:
         raise LiveRuntimeConfigError("; ".join(errors))
@@ -420,15 +440,26 @@ def _resolve_bybit_api_credentials(environment: Dict[str, str]) -> Dict[str, str
     runtime_environment = str(environment.get("environment", "")).strip().lower()
     if runtime_environment == "paper":
         return {
-            "base_url": str(os.environ.get("EDGE_BYBIT_PAPER_API_BASE", "https://api-testnet.bybit.com")).strip(),
-            "api_key": str(os.environ.get("EDGE_BYBIT_PAPER_API_KEY", "") or os.environ.get("EDGE_API_KEY", "")).strip(),
-            "api_secret": str(os.environ.get("EDGE_BYBIT_PAPER_API_SECRET", "") or os.environ.get("EDGE_API_SECRET", "")).strip(),
+            "base_url": str(
+                os.environ.get("EDGE_BYBIT_PAPER_API_BASE", "https://api-testnet.bybit.com")
+            ).strip(),
+            "api_key": str(
+                os.environ.get("EDGE_BYBIT_PAPER_API_KEY", "") or os.environ.get("EDGE_API_KEY", "")
+            ).strip(),
+            "api_secret": str(
+                os.environ.get("EDGE_BYBIT_PAPER_API_SECRET", "")
+                or os.environ.get("EDGE_API_SECRET", "")
+            ).strip(),
             "expected_host": "api-testnet.bybit.com",
         }
     return {
         "base_url": str(os.environ.get("EDGE_BYBIT_API_BASE", "https://api.bybit.com")).strip(),
-        "api_key": str(os.environ.get("EDGE_BYBIT_API_KEY", "") or os.environ.get("EDGE_API_KEY", "")).strip(),
-        "api_secret": str(os.environ.get("EDGE_BYBIT_API_SECRET", "") or os.environ.get("EDGE_API_SECRET", "")).strip(),
+        "api_key": str(
+            os.environ.get("EDGE_BYBIT_API_KEY", "") or os.environ.get("EDGE_API_KEY", "")
+        ).strip(),
+        "api_secret": str(
+            os.environ.get("EDGE_BYBIT_API_SECRET", "") or os.environ.get("EDGE_API_SECRET", "")
+        ).strip(),
         "expected_host": "api.bybit.com",
     }
 
@@ -450,16 +481,18 @@ def normalize_bybit_account_snapshot(payload: Dict[str, Any]) -> Dict[str, Any]:
             qty = float(raw.get("totalPositionMM", 0.0) or 0.0)
             if qty == 0.0:
                 continue
-            positions.append({
-                "symbol": str(raw.get("coin", "")).upper(),
-                "quantity": qty,
-                "entry_price": 0.0,
-                "mark_price": 0.0,
-                "unrealized_pnl": float(raw.get("unrealisedPnl", 0.0) or 0.0),
-                "liquidation_price": None,
-                "leverage": 1.0,
-                "margin_type": "UNIFIED",
-            })
+            positions.append(
+                {
+                    "symbol": str(raw.get("coin", "")).upper(),
+                    "quantity": qty,
+                    "entry_price": 0.0,
+                    "mark_price": 0.0,
+                    "unrealized_pnl": float(raw.get("unrealisedPnl", 0.0) or 0.0),
+                    "liquidation_price": None,
+                    "leverage": 1.0,
+                    "margin_type": "UNIFIED",
+                }
+            )
 
     return {
         "wallet_balance": wallet_balance,
@@ -495,10 +528,13 @@ async def preflight_bybit_venue_connectivity(
     wallet_url = f"{base_url.rstrip('/')}/v5/account/wallet-balance?accountType=UNIFIED"
 
     import hashlib, hmac as hmac_mod
+
     timestamp = str(int(time.time() * 1000))
     recv_window = "5000"
     sign_str = timestamp + api_key + recv_window + "accountType=UNIFIED"
-    signature = hmac_mod.new(api_secret.encode("utf-8"), sign_str.encode("utf-8"), hashlib.sha256).hexdigest()
+    signature = hmac_mod.new(
+        api_secret.encode("utf-8"), sign_str.encode("utf-8"), hashlib.sha256
+    ).hexdigest()
     headers = {
         "X-BAPI-API-KEY": api_key,
         "X-BAPI-TIMESTAMP": timestamp,
@@ -509,15 +545,21 @@ async def preflight_bybit_venue_connectivity(
     async with _sf(timeout_seconds=timeout_seconds) as session:
         async with session.get(server_time_url) as resp:
             if int(getattr(resp, "status", 0)) != 200:
-                raise VenueConnectivityError(f"Bybit server time check failed: {getattr(resp, 'status', 'unknown')}")
+                raise VenueConnectivityError(
+                    f"Bybit server time check failed: {getattr(resp, 'status', 'unknown')}"
+                )
         async with session.get(wallet_url, headers=headers) as resp:
             if int(getattr(resp, "status", 0)) != 200:
-                raise VenueConnectivityError(f"Bybit wallet preflight failed: {getattr(resp, 'status', 'unknown')}")
+                raise VenueConnectivityError(
+                    f"Bybit wallet preflight failed: {getattr(resp, 'status', 'unknown')}"
+                )
             payload = await resp.json()
 
     ret_code = payload.get("retCode", -1)
     if ret_code != 0:
-        raise VenueConnectivityError(f"Bybit wallet API error: retCode={ret_code} msg={payload.get('retMsg', '')}")
+        raise VenueConnectivityError(
+            f"Bybit wallet API error: retCode={ret_code} msg={payload.get('retMsg', '')}"
+        )
 
     return {
         "venue": "bybit",
@@ -543,10 +585,13 @@ async def fetch_bybit_account_snapshot(
         raise VenueConnectivityError("Bybit API credentials must be set for account snapshot")
 
     import hashlib, hmac as hmac_mod
+
     timestamp = str(int(time.time() * 1000))
     recv_window = "5000"
     sign_str = timestamp + api_key + recv_window + "accountType=UNIFIED"
-    signature = hmac_mod.new(api_secret.encode("utf-8"), sign_str.encode("utf-8"), hashlib.sha256).hexdigest()
+    signature = hmac_mod.new(
+        api_secret.encode("utf-8"), sign_str.encode("utf-8"), hashlib.sha256
+    ).hexdigest()
     headers = {
         "X-BAPI-API-KEY": api_key,
         "X-BAPI-TIMESTAMP": timestamp,
@@ -559,7 +604,9 @@ async def fetch_bybit_account_snapshot(
     async with _sf(timeout_seconds=timeout_seconds) as session:
         async with session.get(wallet_url, headers=headers) as resp:
             if int(getattr(resp, "status", 0)) != 200:
-                raise VenueConnectivityError(f"Bybit account snapshot failed: {getattr(resp, 'status', 'unknown')}")
+                raise VenueConnectivityError(
+                    f"Bybit account snapshot failed: {getattr(resp, 'status', 'unknown')}"
+                )
             payload = await resp.json()
 
     return normalize_bybit_account_snapshot(payload)
@@ -594,6 +641,7 @@ def build_live_runner(
         venue = str(environment.get("venue", "binance")).strip().lower()
         if venue == "bybit":
             from project.live.bybit_client import BybitDerivativesClient
+
             credentials = _resolve_bybit_api_credentials(environment)
             if credentials["base_url"] and credentials["api_key"] and credentials["api_secret"]:
                 order_manager = OrderManager(
@@ -605,6 +653,7 @@ def build_live_runner(
                 )
         else:
             from project.live.binance_client import BinanceFuturesClient
+
             credentials = _resolve_binance_api_credentials(environment)
             if credentials["base_url"] and credentials["api_key"] and credentials["api_secret"]:
                 order_manager = OrderManager(
@@ -638,9 +687,7 @@ def build_live_runner(
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Run the live engine with persistent state.")
-    parser.add_argument(
-        "--config", required=True, help="Live engine config YAML path."
-    )
+    parser.add_argument("--config", required=True, help="Live engine config YAML path.")
     parser.add_argument(
         "--symbols",
         default="",
@@ -654,12 +701,22 @@ def main(argv: list[str] | None = None) -> int:
         action="store_true",
         help="Print resolved session metadata as JSON and exit.",
     )
+    parser.add_argument(
+        "--run_id",
+        default="",
+        help="Override thesis_run_id in strategy_runtime and enable thesis-driven mode.",
+    )
     args = parser.parse_args(argv)
 
     symbols = [s.strip().lower() for s in str(args.symbols).split(",") if s.strip()]
     resolved_config_path = Path(args.config)
     resolved_snapshot_path = str(args.snapshot_path).strip() or None
     config = load_live_engine_config(resolved_config_path)
+    if args.run_id:
+        config.setdefault("strategy_runtime", {})["thesis_run_id"] = args.run_id.strip()
+        sr = config.setdefault("strategy_runtime", {})
+        if sr.get("implemented") is False:
+            sr["implemented"] = True
     runtime_mode = str(config.get("runtime_mode", "monitor_only")).strip().lower()
 
     if args.print_session_metadata:

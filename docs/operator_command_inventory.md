@@ -7,7 +7,7 @@ This inventory was re-audited against the current repository command surfaces:
 - `Makefile`
 - dedicated CLI modules such as `project/scripts/run_live_engine.py`, `project/research/cli/candidate_discovery_cli.py`, `project/research/cli/promotion_cli.py`, `project/apps/chatgpt/cli.py`, and `project/reliability/cli_smoke.py`
 
-Use this file for what can be invoked directly today. Use `docs/09_operator_runbook.md` for the recommended operator path.
+Use this file for what can be invoked directly today. Use `docs/operator_runbook.md` for the recommended operator path.
 
 ## Command layers
 

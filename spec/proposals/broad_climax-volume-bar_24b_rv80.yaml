@@ -1,0 +1,34 @@
+program_id: broad_climax_volume_bar_24b_rv80
+description: >
+  CLIMAX_VOLUME_BAR 24b, tighter vol filter rv_pct_17280 > 80.
+  Incrementally tighter than rv>75. Looking for t ≥ 2.0 while maintaining rob ≥ 0.70.
+run_mode: research
+objective_name: retail_profitability
+promotion_profile: research
+symbols:
+  - BTCUSDT
+timeframe: 5m
+start: "2023-01-01"
+end: "2024-12-31"
+instrument_classes:
+  - crypto
+search_spec:
+  path: spec/productive_search.yaml
+knobs:
+  - name: discovery_profile
+    value: synthetic
+hypothesis:
+  anchor:
+    type: event
+    event_id: CLIMAX_VOLUME_BAR
+  filters:
+    feature_predicates:
+      - feature: rv_pct_17280
+        operator: ">"
+        threshold: 80
+  sampling_policy:
+    entry_lag_bars: 1
+  template:
+    id: exhaustion_reversal
+  direction: long
+  horizon_bars: 24

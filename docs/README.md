@@ -7,22 +7,16 @@ This docset was rewritten from the current codebase, tests, specs, configs, and 
 1. `00_overview.md` — system model, lifecycle, invariants, and current mental model.
 2. `02_REPOSITORY_MAP.md` — where code lives, which package owns what, and which directories are generated versus authored.
 3. `operator_command_inventory.md` — current CLI, Make, and script entry points.
-4. `05_specs_and_domain.md` — how YAML specs become runtime/domain registries.
-5. `06_data_and_artifacts.md` — artifact layout, manifests, reports, memory stores, and live thesis packages.
-6. Stage guides:
+4. Stage guides:
    - `01_discover.md`
    - `02_validate.md`
    - `03_promote.md`
    - `04_deploy.md`
-7. Operator references:
-   - `08_runtime_config_reference.md`
-   - `09_operator_runbook.md`
-   - `10_regeneration_and_test_matrix.md`
-   - `11_proposal_authoring_and_campaigns.md`
-8. Repo constraints and extension guidance:
+5. Operator references:
+   - `operator_runbook.md`
+6. Repo constraints and extension guidance:
    - `90_architecture.md`
    - `92_assurance_and_benchmarks.md`
-   - `07_extension_guide.md`
 
 ## What this docset is trying to answer
 
@@ -36,17 +30,11 @@ This docset was rewritten from the current codebase, tests, specs, configs, and 
 
 ## Current repo shape
 
-- `project/` — 1442 Python files organized as packages with an architecture test enforcing allowed import directions.
-- `project/tests/` — 564 test files spanning pipelines, research, events, live runtime, contracts, scripts, regressions, and smoke coverage.
-- `spec/` — 397 YAML source specs plus supporting CSV assets.
+- `project/` — 1444 Python files organized as packages with an architecture test enforcing allowed import directions.
+- `project/tests/` — 565 test files spanning pipelines, research, events, live runtime, contracts, scripts, regressions, and smoke coverage.
+- `spec/` — 443 YAML source specs plus supporting CSV assets.
 - `docs/generated/` — generated audits, maps, and references; outputs, not authored guidance.
-- `docs/reference/` — code-derived inventories produced during this rewrite.
 
-## Reference appendices
+## Generated reference
 
-- `reference/package_inventory.md`
-- `reference/spec_inventory.md`
-- `reference/test_inventory.md`
-- `reference/script_inventory.md`
-- `reference/command_audit.md`
-- `generated/README.md`
+- `generated/` — code-derived audits, maps, and inventories

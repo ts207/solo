@@ -119,4 +119,4 @@ In the Edge lifecycle architecture, the abstraction boundary is strictly defined
 - **Experiment**: the compiled executable run config derived specifically from that proposal.
 - **Campaign**: a higher-level multi-run controller/container over related proposals/runs.
 
-See `docs/11_proposal_authoring_and_campaigns.md` for authoring structures.
+See `spec/proposals/` for proposal authoring examples.

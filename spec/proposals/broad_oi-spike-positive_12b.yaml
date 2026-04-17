@@ -1,0 +1,34 @@
+program_id: broad_oi_spike_positive_12b
+description: >
+  OI_SPIKE_POSITIVE horizon sweep: 12b. Base 48b has t=1.65, rob=0.65.
+  Testing shorter horizon for initial OI spike momentum.
+run_mode: research
+objective_name: retail_profitability
+promotion_profile: research
+symbols:
+  - BTCUSDT
+timeframe: 5m
+start: "2023-01-01"
+end: "2024-12-31"
+instrument_classes:
+  - crypto
+search_spec:
+  path: spec/productive_search.yaml
+knobs:
+  - name: discovery_profile
+    value: synthetic
+hypothesis:
+  anchor:
+    type: event
+    event_id: OI_SPIKE_POSITIVE
+  filters:
+    feature_predicates:
+      - feature: rv_pct_17280
+        operator: ">"
+        threshold: 70
+  sampling_policy:
+    entry_lag_bars: 1
+  template:
+    id: exhaustion_reversal
+  direction: long
+  horizon_bars: 12
