@@ -4,78 +4,88 @@ Campaign scope: systematic discovery across all events, BTC 2023-2024, rv_pct_17
 
 ---
 
+# Part I — Technical / Repository
+
 ## The silent failure pattern is dangerous
 
-The template incompatibility check drops hypotheses at plan time with no visible error — just a warning buried in logs. If the root cause investigation hadn't been triggered, VOL_SPIKE would have been accepted as a dead signal. The t=3.59 result (strongest in the campaign) was sitting one template swap away the entire time.
+The template incompatibility check (`check_hypothesis_feasibility`) drops hypotheses at plan time with no visible error — just a warning buried in logs. If the root cause investigation hadn't been triggered, VOL_SPIKE would have been accepted as a dead signal. The t=3.59 result (strongest in the campaign) was sitting one template swap away the entire time.
 
-The lesson generalises: any "no signal" result from a proposal run needs a sanity check on `estimated_hypothesis_count` in `validated_plan.json` before it can be trusted. The pipeline is silent about a lot. Similarly, FAILED_CONTINUATION's `not_executed_or_missing_data` label in the campaign ledger was a reporting artifact — the pipeline ran and found t=-0.81, but the framework couldn't locate the result parquet. Trust the phase2 diagnostics over the campaign summary when they conflict.
+The lesson generalises: any "no signal" result from a proposal run needs a sanity check on `estimated_hypothesis_count` in `validated_plan.json` before it can be trusted. Similarly, FAILED_CONTINUATION's `not_executed_or_missing_data` label in the campaign ledger was a reporting artifact — the pipeline ran and found t=-0.81, but the framework couldn't locate the result parquet because the same `run_id` was used for multiple sequential proposals, each overwriting the shared phase2 directory.
 
-**Rule going forward:** Verify `estimated_hypothesis_count > 0` before concluding an event has no edge.
+**Rules going forward:**
+- Verify `estimated_hypothesis_count > 0` before concluding an event has no edge.
+- When running multiple proposals against the same `run_id`, each overwrites phase2 results — check per-experiment `campaign_summary.json` or `event_statistics.parquet`, not the shared phase2 dir, for individual results.
+- Trust phase2 diagnostics over campaign summary when they conflict.
 
----
+## Template-family contracts need documentation at the event level
 
-## The signal landscape has a ceiling
+The `spec/events/*.yaml` files specify a `detector` but not which templates are compatible. A researcher writing a proposal has no way to know that `exhaustion_reversal` is invalid for VOLATILITY_EXPANSION events without running the code. This caused the entire VOLATILITY_TRANSITION family to go unevaluated across batch4_vol and the broad sweep.
 
-After exhaustive tuning — horizon sweeps, vol filter sweeps, date range extensions — the results cluster into three groups:
+The compatible template groups are:
+- VOLATILITY_EXPANSION / VOLATILITY_TRANSITION: `mean_reversion`, `continuation`, `impulse_continuation`, `vol_breakout`
+- TREND_FAILURE_EXHAUSTION / FORCED_FLOW_AND_EXHAUSTION: `exhaustion_reversal`
+- TREND_STRUCTURE: `exhaustion_reversal`, `mean_reversion`, `impulse_continuation`
 
-**Strong (promoted):**
-| Event | Horizon | t | rob | Template |
-|-------|---------|---|-----|----------|
-| VOL_SPIKE long | 24b | 3.59 | 0.62 | mean_reversion |
-| OI_SPIKE_NEGATIVE long | 48b | 2.37 | 0.87 | exhaustion_reversal |
-| LIQUIDATION_CASCADE long | 24b | 1.78 | 0.82 | exhaustion_reversal |
+Adding this to event specs or a quick-reference table would prevent the same class of error.
 
-**Below bridge gate (real but capped):**
-| Event | Best horizon | t | rob |
-|-------|-------------|---|-----|
-| CLIMAX_VOLUME_BAR | 24b | 1.95 | 0.79 |
-| POST_DELEVERAGING_REBOUND | 48b | 1.95 | 0.68 |
-| OI_SPIKE_POSITIVE | 48b | 1.65 | 0.65 |
-| FORCED_FLOW_EXHAUSTION | 48b | 1.40 | 0.60 |
+## The run_id reuse pattern creates result trapping
 
-**No edge:** VOL_SHOCK, TREND_EXHAUSTION_TRIGGER, FAILED_CONTINUATION (long), and all batch4_vol events tested with wrong template.
-
-The cluster of below-gate discoveries isn't random noise — these are real effects. But no single-feature conditioning (regime, vol, trend) or horizon adjustment can push them over both gates simultaneously. That boundary appears structural rather than tuning-dependent.
-
----
-
-## 2022 is a structural break
-
-Every extension to include 2022 data weakened the signal. CLIMAX_VOLUME_BAR 24b dropped from t=1.95 (2023-2024) to t=1.17 (2022-2024). The 2022 bear market doesn't just add noise — it actively opposes the effect direction. This isn't a sample size problem; it's a regime break.
-
-Implication: all discovered signals are bull-market conditional. The robustness metric captures fold stability within the tested window, but not regime stability across cycles. Live trading depends on the 2023-2024 regime persisting. That risk is not fully reflected in the reported statistics.
-
----
-
-## The strongest signals have clear mechanisms
-
-VOL_SPIKE mean-reversion: a vol spike overshoots, short-covering drives a bounce, price reverts within 2 hours. OI_SPIKE_NEGATIVE: a sudden drop in open interest (forced position closure) creates a directional imbalance that persists for 4 hours. LIQUIDATION_CASCADE: forced liquidation at extremes creates a brief dislocation that reverts at 24b.
-
-The events with no signal tend to fire at the wrong point in the cycle (VOL_SHOCK fires during relaxation, not the shock itself) or have no consistent directional consequence (FAILED_CONTINUATION can fail in either direction). Mechanistic plausibility is a better prior than statistical fishing.
-
----
+Using `--run_id` to reuse a cached lake is efficient, but when multiple proposals share the same run_id, each sequential run overwrites the phase2 outputs. The campaign framework only surfaces the last run's result in the shared directory. Results from earlier runs in the sequence survive only in the per-experiment artifacts. This is not obvious and cost several "no results" false negatives.
 
 ## Gate calibration appears correct
 
-The bridge gate (t ≥ 2.0, rob ≥ 0.70) is doing its job. Most below-gate events cluster just under one threshold but clear the other — suggesting the gates are tight but not arbitrary. The few that clear both (OI_SPIKE_NEGATIVE, VOL_SPIKE) are genuinely distinguishable from the pack in both signal strength and fold stability.
-
-VOL_SPIKE's robustness of 0.62 is the weak point — it clears phase2 gate but not bridge gate. The high t=3.59 partially compensates, but the cross-fold instability is real and warrants careful position sizing.
+The bridge gate (t ≥ 2.0, rob ≥ 0.70) is doing its job. Most below-gate events cluster just under one threshold while clearing the other — suggesting the gates are tight but not arbitrary. The few that clear both (OI_SPIKE_NEGATIVE, VOL_SPIKE) are genuinely distinguishable from the pack in both signal strength and fold stability. The gate has genuine discriminative power.
 
 ---
 
-## Diminishing returns on further discovery
+# Part II — Trading Research
 
-The 6 remaining batch4_vol events (BREAKOUT_TRIGGER, RANGE_COMPRESSION_END, VOL_CLUSTER_SHIFT, etc.) are queued with correct templates and cached lake. Worth running — they're fast. But VOL_SHOCK (most similar to VOL_SPIKE) showed nothing, which is a weak prior.
+## The signal landscape has a hard ceiling
 
-The real upside at this stage is probably deployment rather than more discovery:
-1. VOL_SPIKE is the strongest signal found and isn't live yet
-2. OI_SPIKE_NEGATIVE is running on testnet but needs USDT funding
-3. Paper data will be more informative than additional backtests on the same 2023-2024 window
+After exhaustive tuning — horizon sweeps, vol filter sweeps, date range extensions — the results cluster into three groups:
 
----
+**Promoted:**
+| Event | Horizon | t | rob | Template | Mechanism |
+|-------|---------|---|-----|----------|-----------|
+| VOL_SPIKE long | 24b | 3.59 | 0.62 | mean_reversion | Spike overshoots → short-covering bounce over 2h |
+| OI_SPIKE_NEGATIVE long | 48b | 2.37 | 0.87 | exhaustion_reversal | Forced OI unwind → directional imbalance over 4h |
+| LIQUIDATION_CASCADE long | 24b | 1.78 | 0.82 | exhaustion_reversal | Liquidation dislocation → reversion over 2h |
 
-## What would change the picture
+**Real but capped (below bridge gate):**
+| Event | Best horizon | t | rob | Notes |
+|-------|-------------|---|-----|-------|
+| CLIMAX_VOLUME_BAR | 24b | 1.95 | 0.79 | Structural t ceiling ~1.95 |
+| POST_DELEVERAGING_REBOUND | 48b | 1.95 | 0.68 | Rob ceiling 0.68 |
+| OI_SPIKE_POSITIVE | 48b | 1.65 | 0.65 | Confirmed live H2-2024 |
+| FORCED_FLOW_EXHAUSTION | 48b | 1.40 | 0.60 | Hard floor on both gates |
 
-- **Multi-feature regime classifier**: the below-gate cluster (CVB, PDR, OI_SPIKE_POS) all show real effects that no single feature can concentrate. A learned regime label might unlock them.
-- **Post-2024 data**: extending the lake forward as 2025 data accumulates will either confirm or break the 2023-2024 regime signals.
-- **Cross-asset**: ETH signals are largely absent (OI_SPIKE_NEGATIVE ETH t=0.94, no others tested) — the BTC-only constraint may be worth revisiting with more data.
+**No edge:** VOL_SHOCK, TREND_EXHAUSTION_TRIGGER, FAILED_CONTINUATION (long), entire VOLATILITY_TRANSITION batch (BREAKOUT_TRIGGER, RANGE_COMPRESSION_END, VOL_CLUSTER_SHIFT, VOL_REGIME_SHIFT_EVENT, VOL_RELAXATION_START, BETA_SPIKE_EVENT).
+
+The below-gate cluster is not noise — these are real effects. But no single-feature conditioning or horizon adjustment can push them over both gates simultaneously. The ceiling appears structural.
+
+## 2022 is a regime break, not just a different sample
+
+Every extension to include 2022 data weakened the signal. CLIMAX_VOLUME_BAR 24b dropped from t=1.95 (2023-2024) to t=1.17 (2022-2024). The bear market doesn't just add noise — it actively opposes the effect direction. Adding more samples made signals weaker, which means the mechanism itself doesn't operate in bear regimes.
+
+The implication is stark: all three promoted signals are bull-market conditional. The robustness metric measures fold stability within the tested window, not regime stability across market cycles. A regime shift to sustained bearish or choppy conditions could extinguish these effects entirely. That risk is not captured in the reported statistics and needs to inform position sizing and kill-switch design.
+
+## The clearest signals have the simplest mechanisms
+
+VOL_SPIKE: a volatility spike in a high-vol regime overshoots, triggering short-covering, and prices bounce back within two hours. OI_SPIKE_NEGATIVE: forced position closure creates a directional imbalance that the market takes four hours to absorb. LIQUIDATION_CASCADE: forced liquidation at extremes creates a brief dislocation that reverts over two hours.
+
+All three are microstructure-driven. They don't require a view on fundamentals or macro — they exploit the mechanical consequence of forced flows. This is the right hunting ground for event-driven signals on perpetual futures.
+
+The events with no signal mostly fire at the wrong point in the cycle. VOL_SHOCK fires during the relaxation phase, after the directional move is done. VOL_CLUSTER_SHIFT detects a regime change that has already occurred. These are descriptive labels for market states, not precursors to predictable moves.
+
+## The below-gate cluster may unlock with multi-feature conditioning
+
+The four below-gate events (CVB, PDR, OI_SPIKE_POS, FFE) all show t in the range 1.4–1.95 and robustness 0.60–0.79. No single feature (rv, trend, funding) concentrates these effects enough to clear the gate. But they share a common structure: they're all forced-flow or exhaustion events that tend to cluster together in time. A multi-feature regime label combining rv + funding extreme + OI regime might identify the specific market conditions where all four are predictive simultaneously. That's the most plausible path to unlocking further edge from the existing event universe.
+
+## The discovery campaign is effectively exhausted
+
+The full event universe has been tested with correct templates. The signal picture is unlikely to change materially with more single-event proposal runs on the same 2023-2024 data. What would genuinely change the picture:
+
+- **More recent data**: 2025 data will either confirm the 2023-2024 signals or show regime decay. This is the highest-value input at this stage.
+- **Multi-feature regime classifier**: the below-gate cluster is the most accessible target.
+- **ETH signals**: ETH OI_SPIKE_NEGATIVE was t=0.94 (no signal) — likely needs the liquidation ingest to be done properly before retesting.
+- **Cross-event sequences**: the promoted events (OI_SPIKE_NEGATIVE, VOL_SPIKE, LIQUIDATION_CASCADE) sometimes co-occur. Sequence or conjunction hypotheses may yield higher-confidence entries.
