@@ -1,40 +1,60 @@
-# Edge documentation index
+# Edge — documentation
 
-This docset was rewritten from the current codebase, tests, specs, configs, and entry points. It is organized around the repo’s real boundaries rather than the older narrative structure.
+## Navigation
 
-## Reading order
+### Start here
 
-1. `00_overview.md` — system model, lifecycle, invariants, and current mental model.
-2. `02_REPOSITORY_MAP.md` — where code lives, which package owns what, and which directories are generated versus authored.
-3. `operator_command_inventory.md` — current CLI, Make, and script entry points.
-4. Stage guides:
-   - `01_discover.md`
-   - `02_validate.md`
-   - `03_promote.md`
-   - `04_deploy.md`
-5. Operator references:
-   - `operator_runbook.md`
-6. Repo constraints and extension guidance:
-   - `90_architecture.md`
-   - `92_assurance_and_benchmarks.md`
+- **[lifecycle/overview.md](lifecycle/overview.md)** — system model, four-stage lifecycle, repo-wide invariants
 
-## What this docset is trying to answer
+### Lifecycle guides
 
-- How a structured proposal becomes a pipeline run.
-- How proposal fields outside the hypothesis block affect discover, experiments, and campaigns.
-- Which files are authoritative versus generated.
-- Which artifacts each lifecycle stage reads and writes.
-- How promoted theses are exported and consumed by the live stack.
-- Which commands and tests should be run after a structural change.
-- Where to place new logic without violating the package DAG.
+| Stage | File | What it covers |
+|-------|------|----------------|
+| Discover | [lifecycle/discover.md](lifecycle/discover.md) | Proposal authoring, pipeline execution, discovery artifacts |
+| Validate | [lifecycle/validate.md](lifecycle/validate.md) | Candidate validation, robustness testing, artifact contract |
+| Promote | [lifecycle/promote.md](lifecycle/promote.md) | Thesis packaging, live export, deployment states |
+| Deploy | [lifecycle/deploy.md](lifecycle/deploy.md) | Live/paper runtime, config contract, environment setup |
 
-## Current repo shape
+### Reference
 
-- `project/` — 1444 Python files organized as packages with an architecture test enforcing allowed import directions.
-- `project/tests/` — 565 test files spanning pipelines, research, events, live runtime, contracts, scripts, regressions, and smoke coverage.
-- `spec/` — 443 YAML source specs plus supporting CSV assets.
-- `docs/generated/` — generated audits, maps, and references; outputs, not authored guidance.
+| File | What it covers |
+|------|----------------|
+| [reference/repository_map.md](reference/repository_map.md) | Package layout, ownership, generated vs authored files |
+| [reference/architecture.md](reference/architecture.md) | Package dependency DAG, design decisions, extension guidance |
+| [reference/commands.md](reference/commands.md) | All CLI commands, Make targets, and direct scripts |
+| [reference/spec_authoring.md](reference/spec_authoring.md) | How to write proposals, event specs, and templates |
+| [reference/assurance.md](reference/assurance.md) | Test surface, minimum green gate, governance, benchmarks |
 
-## Generated reference
+### Operations
 
-- `generated/` — code-derived audits, maps, and inventories
+| File | What it covers |
+|------|----------------|
+| [operator/runbook.md](operator/runbook.md) | Paper engine bring-up, startup certification, failure handling |
+
+### Research
+
+| File | What it covers |
+|------|----------------|
+| [research/results.md](research/results.md) | All hypothesis results — auto-generated after every run |
+| [research/campaign_results.md](research/campaign_results.md) | Organized results by event with horizon/filter detail |
+| [research/reflections.md](research/reflections.md) | Observations + auto-detected patterns (ceiling, incompatibility, regime breaks) |
+| [research/narrative.md](research/narrative.md) | Written reflections: technical and trading research |
+
+### Generated reference
+
+`generated/` contains code-derived audits (event contracts, ontology mappings, detector coverage). These are outputs — do not edit them. Run `make governance` to regenerate.
+
+---
+
+## What the repo does
+
+Edge is a research-to-runtime trading system. A structured YAML proposal enters at `edge discover`, passes through statistical evaluation, promotion gating, and thesis export, and exits as a live/paper runtime config bound to a governed thesis package. The codebase spans a pipeline DAG (~1400 Python files), a compiled spec/domain model (~440 YAML specs), a backtest and live execution stack, and a comprehensive test suite (~560 test files).
+
+## Finding things quickly
+
+- **Where does X live in the code?** → `reference/repository_map.md`
+- **What commands are available?** → `reference/commands.md`
+- **How do I write a proposal?** → `reference/spec_authoring.md`
+- **What do the current research results show?** → `research/results.md`
+- **How do I bring up the paper engine?** → `operator/runbook.md`
+- **What does "bridge gate" mean?** → `lifecycle/overview.md` (gates section)

@@ -25,7 +25,7 @@ import pandas as pd
 warnings.filterwarnings("ignore")
 
 ROOT = Path(__file__).resolve().parents[2]
-REFLECTIONS_PATH = ROOT / "docs" / "reflections.md"
+REFLECTIONS_PATH = ROOT / "docs" / "research" / "reflections.md"
 AUTO_MARKER = "<!-- AUTO-GENERATED: do not edit below this line -->"
 
 PROMOTED_PROGS = {

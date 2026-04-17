@@ -13,7 +13,7 @@ import pandas as pd
 warnings.filterwarnings("ignore")
 
 ROOT = Path(__file__).resolve().parents[2]
-OUT_PATH = ROOT / "docs" / "all_results_2026-04-17.md"
+OUT_PATH = ROOT / "docs" / "research" / "results.md"
 
 KEY_COLS = [
     "event_type", "direction", "horizon", "template_id",
