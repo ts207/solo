@@ -10,7 +10,6 @@ import pandas as pd
 
 from project import PROJECT_ROOT
 from project.core.config import get_data_root
-from project.core.coercion import as_bool, safe_int
 from project.core.exceptions import ArtifactReadError
 from project.io.parquet_compat import read_parquet_compat
 from project.io.utils import ensure_dir, read_parquet, write_parquet
@@ -142,7 +141,7 @@ def _load_bridge_metrics(bridge_root: Path, symbol: str | None = None) -> pd.Dat
     fallback_csv_files = [
         path for path in bridge_root.rglob("*.csv") if path not in versioned_files
     ]
-    ordered_files = [*versioned_files, *parquet_files, *fallback_csv_files]
+    ordered_files = [*parquet_files, *versioned_files, *fallback_csv_files]
     if not ordered_files:
         return pd.DataFrame()
     frames = [read_parquet(path) for path in ordered_files]

@@ -88,7 +88,8 @@ def _evaluate_hypotheses(
     """Evaluate a hypothesis list and return bridge candidates.
 
     Reuses run_distributed_search → hypotheses_to_bridge_candidates.
-    Returns empty DataFrame on any failure.
+    Raises on evaluation failures so hierarchical runs do not silently report
+    missing candidates as a negative result.
     """
     if not hypotheses or features is None or features.empty:
         return pd.DataFrame()
@@ -133,8 +134,8 @@ def _evaluate_hypotheses(
         return candidates if candidates is not None else pd.DataFrame()
 
     except Exception as exc:
-        log.warning("Hierarchical evaluation failed: %s", exc, exc_info=True)
-        return pd.DataFrame()
+        log.error("Hierarchical evaluation failed: %s", exc, exc_info=True)
+        raise RuntimeError("Hierarchical evaluation failed") from exc
 
 
 def _apply_v2_scoring(
@@ -173,7 +174,10 @@ def _apply_v2_scoring(
 
         return out
     except Exception as exc:
-        log.debug("V2 scoring failed/skipped in hierarchical stage: %s", exc)
+        if data_root is not None and run_id is not None:
+            log.error("V2 scoring failed in hierarchical stage: %s", exc, exc_info=True)
+            raise RuntimeError("Hierarchical v2/ledger scoring failed") from exc
+        log.warning("V2 scoring skipped in hierarchical stage: %s", exc)
         return candidates
 
 

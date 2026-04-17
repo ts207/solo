@@ -1,4 +1,3 @@
-import numpy as np
 import pandas as pd
 from project.research.services.candidate_discovery_scoring import (
     annotate_discovery_v2_scores,
@@ -98,6 +97,23 @@ def test_fold_stability_scoring():
     assert penalty_s == 0.0
     assert bonus_s > 0.0
     assert len(flags_s) == 0
+
+
+def test_fold_stability_penalizes_zero_valid_oos_folds():
+    from project.research.services.candidate_discovery_scoring import score_fold_stability_precheck
+
+    row = pd.Series({
+        "fold_count": 3,
+        "fold_valid_count": 0,
+        "fold_sign_consistency": 0.0,
+        "fold_fail_ratio": 1.0,
+    })
+
+    bonus, penalty, flags = score_fold_stability_precheck(row, {})
+
+    assert bonus == 0.0
+    assert penalty >= 2.5
+    assert "no_valid_oos_folds" in flags
 
 
 def test_annotate_discovery_v2_scores_assigns_overlap_cluster_counts():

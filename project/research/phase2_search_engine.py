@@ -31,10 +31,7 @@ from project.specs.manifest import finalize_manifest, start_manifest
 from project.specs.gates import load_gates_spec, select_bridge_gate_spec, select_phase2_gate_spec
 from project.research.search.profile import resolve_search_profile
 from project.research.search.generator import generate_hypotheses_with_audit
-from project.research.search.evaluator import (
-    evaluate_hypothesis_batch,
-    evaluated_records_from_metrics,
-)
+from project.research.search.evaluator import evaluated_records_from_metrics
 from project.research.search.bridge_adapter import (
     canonical_bridge_event_type,
     hypotheses_to_bridge_candidates,
@@ -932,6 +929,85 @@ def _load_diversification_config(search_spec_doc: dict) -> dict:
     return block if isinstance(block, dict) else {}
 
 
+def _build_required_walkforward_folds(
+    features: pd.DataFrame,
+    config_path: Path | None = None,
+) -> list[Any] | None:
+    """Build repeated walk-forward folds, failing closed when validation is enabled."""
+    val_config_path = (
+        config_path
+        if config_path is not None
+        else PROJECT_ROOT.parent / "project" / "configs" / "discovery_validation.yaml"
+    )
+    if not val_config_path.exists():
+        return None
+
+    try:
+        with val_config_path.open(encoding="utf-8") as f:
+            vconfig = yaml.safe_load(f) or {}
+    except Exception as exc:
+        raise RuntimeError(
+            f"Discovery validation config could not be loaded: {val_config_path}"
+        ) from exc
+
+    rw = vconfig.get("discovery_validation", {}).get("repeated_walkforward", {})
+    if not isinstance(rw, dict) or not rw.get("enabled"):
+        return None
+    if "timestamp" not in features.columns:
+        raise RuntimeError(
+            "Required repeated walk-forward fold construction failed: missing timestamp column"
+        )
+
+    try:
+        from project.research.validation.splits import build_repeated_walkforward_splits
+
+        folds = build_repeated_walkforward_splits(
+            features["timestamp"],
+            train_bars=rw.get("train_bars", 2000),
+            validation_bars=rw.get("validation_bars", 500),
+            test_bars=rw.get("test_bars", 500),
+            step_bars=rw.get("step_bars", 500),
+            min_folds=rw.get("min_folds", 3),
+            max_folds=rw.get("max_folds", None),
+            purge_bars=rw.get("purge_bars", 0),
+            embargo_bars=rw.get("embargo_bars", 0),
+        )
+    except Exception as exc:
+        raise RuntimeError("Required repeated walk-forward fold construction failed") from exc
+
+    if not folds:
+        raise RuntimeError("Required repeated walk-forward fold construction produced 0 folds")
+    log.info("Built %d repeated walk-forward folds", len(folds))
+    return folds
+
+
+def _ensure_diversification_fallback_columns(
+    candidates: pd.DataFrame,
+    reason: str,
+) -> pd.DataFrame:
+    """Make diversification degradation visible in candidate artifacts."""
+    out = candidates.copy()
+    fallback_defaults: Mapping[str, Any] = {
+        "overlap_cluster_id": None,
+        "cluster_size": 1,
+        "cluster_density": 0.0,
+        "is_duplicate_like": False,
+        "novelty_score": 1.0,
+        "crowding_penalty": 0.0,
+        "cluster_rank": 1,
+        "selected_into_diversified_shortlist": False,
+        "shortlist_rank": 0,
+        "selection_score": np.nan,
+        "selection_reason": "",
+    }
+    for col, default in fallback_defaults.items():
+        if col not in out.columns:
+            out[col] = default
+    out["_diversification_error"] = True
+    out["_diversification_error_reason"] = reason
+    return out
+
+
 def run(
     run_id: str,
     symbols: str,
@@ -1210,36 +1286,8 @@ def run(
             )
             continue
 
-        # 2.5 Walk-Forward Folds config
-        folds = None
-        try:
-            import yaml
-
-            val_config_path = (
-                PROJECT_ROOT.parent / "project" / "configs" / "discovery_validation.yaml"
-            )
-            if val_config_path.exists():
-                with val_config_path.open() as f:
-                    vconfig = yaml.safe_load(f)
-                    rw = vconfig.get("discovery_validation", {}).get("repeated_walkforward", {})
-                    if rw.get("enabled"):
-                        from project.research.validation.splits import (
-                            build_repeated_walkforward_splits,
-                        )
-
-                        folds = build_repeated_walkforward_splits(
-                            features["timestamp"],
-                            train_bars=rw.get("train_bars", 2000),
-                            validation_bars=rw.get("validation_bars", 500),
-                            test_bars=rw.get("test_bars", 500),
-                            step_bars=rw.get("step_bars", 500),
-                            min_folds=rw.get("min_folds", 3),
-                            max_folds=rw.get("max_folds", None),
-                            purge_bars=rw.get("purge_bars", 0),
-                            embargo_bars=rw.get("embargo_bars", 0),
-                        )
-        except Exception as e:
-            log.warning(f"Failed to build folds: {e}")
+        # 2.5 Walk-forward validation is mandatory when enabled in config.
+        folds = _build_required_walkforward_folds(features)
 
         # ── Phase 4: hierarchical vs flat mode selection ────────────────────────
         # Load search spec doc once so we can check for hierarchical config.
@@ -1608,7 +1656,7 @@ def run(
         config_path = PROJECT_ROOT.parent / "project" / "configs" / "discovery_scoring_v2.yaml"
         if config_path.exists():
             try:
-                with config_path.open("r") as f:
+                with config_path.open("r", encoding="utf-8") as f:
                     yaml_data = yaml.safe_load(f)
                     if yaml_data and "v2_scoring" in yaml_data:
                         config.update(yaml_data["v2_scoring"])
@@ -1622,8 +1670,8 @@ def run(
 
             final_df = annotate_discovery_v2_scores(final_df, config)
         except Exception as e:
-            log.error("Failed to apply discovery v2 scoring: %s", e)
-            final_df["_v2_scoring_error"] = True
+            log.critical("Failed to apply discovery v2 scoring: %s", e, exc_info=True)
+            raise RuntimeError("Phase 2 discovery v2 scoring failed") from e
 
         try:
             from project.research.services.candidate_discovery_scoring import (
@@ -1634,8 +1682,8 @@ def run(
                 final_df, data_root=data_root, current_run_id=run_id
             )
         except Exception as e:
-            log.error("Failed to apply ledger multiplicity correction: %s", e)
-            final_df["_ledger_correction_error"] = True
+            log.critical("Failed to apply ledger multiplicity correction: %s", e, exc_info=True)
+            raise RuntimeError("Phase 3 ledger multiplicity correction failed") from e
 
         try:
             final_df = _sort_final_candidates(
@@ -1666,10 +1714,15 @@ def run(
                 timeframe=timeframe,
             )
             if not ledger_records.empty:
-                append_concept_ledger(ledger_records, default_ledger_path(data_root))
+                append_concept_ledger(
+                    ledger_records,
+                    default_ledger_path(data_root),
+                    raise_on_error=True,
+                )
                 log.info("Phase 3: wrote %d concept ledger records", len(ledger_records))
         except Exception as _ledger_exc:
-            log.warning("Phase 3 ledger write failed: %s", _ledger_exc)
+            log.critical("Phase 3 ledger write failed: %s", _ledger_exc, exc_info=True)
+            raise RuntimeError("Phase 3 concept ledger write failed") from _ledger_exc
 
     # 6. Write output
     write_parquet(final_df, output_path)
@@ -1720,7 +1773,7 @@ def run(
     # Phase 5 — Discovery-time diversification
     # Appends overlap/novelty columns to final_df and optionally writes
     # phase2_diversified_shortlist.parquet and phase2_candidate_overlap_metrics.parquet.
-    # This block is non-fatal; any exception is logged and skipped.
+    # This block is non-fatal; failures are visible as fallback columns.
     if not final_df.empty:
         try:
             from project.research.services.candidate_diversification import (
@@ -1772,7 +1825,12 @@ def run(
                 log.info("Phase 5: wrote diversified shortlist (%d rows)", len(_shortlist_df))
 
         except Exception as _div_exc:
-            log.warning("Phase 5 diversification failed (non-fatal): %s", _div_exc)
+            log.error("Phase 5 diversification failed (non-fatal): %s", _div_exc, exc_info=True)
+            final_df = _ensure_diversification_fallback_columns(final_df, str(_div_exc))
+
+        # Persist the final annotated candidate frame. This intentionally rewrites
+        # the baseline candidate artifact written before downstream side artifacts.
+        write_parquet(final_df, output_path)
 
     main_diag = build_search_engine_diagnostics(
         run_id=run_id,

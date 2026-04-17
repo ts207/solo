@@ -150,6 +150,33 @@ def test_load_bridge_metrics_reads_bridge_evaluation_parquet(tmp_path):
     assert float(out.iloc[0]["bridge_validation_after_cost_bps"]) == 9.5
 
 
+def test_load_bridge_metrics_prefers_canonical_parquet_over_stale_versioned_csv(tmp_path):
+    bridge_root = tmp_path / "bridge_eval"
+    event_dir = bridge_root / "VOL_SHOCK"
+    event_dir.mkdir(parents=True, exist_ok=True)
+    (event_dir / "phase2_candidates_bridge_eval_v1.csv").write_text(
+        "candidate_id,event_type,gate_bridge_tradable,bridge_validation_after_cost_bps\n"
+        "c1,VOL_SHOCK,0,-3.0\n",
+        encoding="utf-8",
+    )
+    pd.DataFrame(
+        [
+            {
+                "candidate_id": "c1",
+                "event_type": "VOL_SHOCK",
+                "gate_bridge_tradable": True,
+                "bridge_validation_after_cost_bps": 9.5,
+            }
+        ]
+    ).to_parquet(event_dir / "bridge_evaluation.parquet", index=False)
+
+    out = _load_bridge_metrics(bridge_root)
+
+    assert len(out) == 1
+    assert bool(out.iloc[0]["gate_bridge_tradable"]) is True
+    assert float(out.iloc[0]["bridge_validation_after_cost_bps"]) == 9.5
+
+
 def test_merge_bridge_metrics_overrides_phase2_bridge_fields():
     phase2_df = pd.DataFrame(
         [

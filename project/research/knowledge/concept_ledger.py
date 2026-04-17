@@ -21,10 +21,11 @@ import hashlib
 import logging
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Iterable, Sequence
+from typing import Sequence
 
 import numpy as np
 import pandas as pd
+
 from project.io.utils import read_parquet, write_parquet
 
 log = logging.getLogger(__name__)
@@ -256,11 +257,13 @@ def _coerce_ledger_types(df: pd.DataFrame) -> pd.DataFrame:
     return out
 
 
-def load_concept_ledger(path: str | Path) -> pd.DataFrame:
+def load_concept_ledger(path: str | Path, *, raise_on_error: bool = False) -> pd.DataFrame:
     """Load the concept ledger from *path*.
 
     Returns an empty DataFrame with the correct schema when the file does
-    not exist or cannot be read.
+    not exist. By default, unreadable ledgers are logged and treated as
+    empty for legacy best-effort callers. Set ``raise_on_error=True`` when
+    missing history would corrupt multiplicity accounting.
     """
     resolved = Path(path)
     if not resolved.exists():
@@ -274,10 +277,17 @@ def load_concept_ledger(path: str | Path) -> pd.DataFrame:
         return _coerce_ledger_types(df.reindex(columns=CONCEPT_LEDGER_COLUMNS))
     except Exception as exc:
         log.warning("Could not read concept ledger at %s: %s", resolved, exc)
+        if raise_on_error:
+            raise
         return _empty_ledger()
 
 
-def append_concept_ledger(records: pd.DataFrame, path: str | Path) -> None:
+def append_concept_ledger(
+    records: pd.DataFrame,
+    path: str | Path,
+    *,
+    raise_on_error: bool = False,
+) -> None:
     """Append *records* to the concept ledger at *path*.
 
     The file is created on first write. Appends are done by reading the
@@ -285,10 +295,10 @@ def append_concept_ledger(records: pd.DataFrame, path: str | Path) -> None:
     batch sizes in this pipeline. De-duplication by ``ledger_id`` is
     applied so repeated writes of the same run are idempotent.
 
-    Raises
-    ------
-    Nothing — all exceptions are logged at WARNING level so a ledger
-    failure never aborts a discovery run.
+    By default, exceptions are logged at WARNING level for legacy callers
+    that treat the ledger as best-effort. Set ``raise_on_error=True`` for
+    outcome-critical discovery paths where missing ledger history would
+    corrupt future multiplicity accounting.
     """
     if records is None or (isinstance(records, pd.DataFrame) and records.empty):
         return
@@ -319,6 +329,8 @@ def append_concept_ledger(records: pd.DataFrame, path: str | Path) -> None:
         )
     except Exception as exc:
         log.warning("Failed to append concept ledger at %s: %s", resolved, exc)
+        if raise_on_error:
+            raise
 
 
 # ---------------------------------------------------------------------------

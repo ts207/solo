@@ -10,9 +10,6 @@ Covers:
 """
 
 import logging
-import warnings
-from pathlib import Path
-from unittest.mock import patch
 
 import pandas as pd
 import pytest
@@ -263,6 +260,52 @@ class TestWalkForwardSplitsDiagnostics:
         assert "min_folds" in all_warnings
         assert "5" in all_warnings  # the actual min_folds value
 
+    def test_phase2_fold_builder_fails_closed_when_required_folds_are_empty(self, tmp_path):
+        from project.research.phase2_search_engine import _build_required_walkforward_folds
+
+        config_path = tmp_path / "discovery_validation.yaml"
+        config_path.write_text(
+            yaml.safe_dump(
+                {
+                    "discovery_validation": {
+                        "repeated_walkforward": {
+                            "enabled": True,
+                            "train_bars": 2000,
+                            "validation_bars": 500,
+                            "test_bars": 500,
+                            "step_bars": 500,
+                            "min_folds": 3,
+                            "max_folds": 6,
+                            "purge_bars": 0,
+                            "embargo_bars": 0,
+                        }
+                    }
+                }
+            ),
+            encoding="utf-8",
+        )
+        features = pd.DataFrame({"timestamp": self._timestamps(100)})
+
+        with pytest.raises(RuntimeError, match="produced 0 folds"):
+            _build_required_walkforward_folds(features, config_path)
+
+
+class TestPhase2DiversificationFallback:
+    def test_fallback_columns_make_diversification_failure_observable(self):
+        from project.research.phase2_search_engine import (
+            _ensure_diversification_fallback_columns,
+        )
+
+        candidates = pd.DataFrame({"candidate_id": ["cand_1"], "t_stat": [2.1]})
+        result = _ensure_diversification_fallback_columns(candidates, "boom")
+
+        assert result.loc[0, "overlap_cluster_id"] is None
+        assert result.loc[0, "cluster_size"] == 1
+        assert result.loc[0, "novelty_score"] == pytest.approx(1.0)
+        assert bool(result.loc[0, "selected_into_diversified_shortlist"]) is False
+        assert bool(result.loc[0, "_diversification_error"]) is True
+        assert result.loc[0, "_diversification_error_reason"] == "boom"
+
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Tier 6: TriggerFeatureColumns non-mutation contract
@@ -272,7 +315,7 @@ class TestTriggerFeatureColumnsContract:
     def _make_features(self) -> pd.DataFrame:
         import numpy as np
         ts = pd.date_range("2024-01-01", periods=200, freq="5min")
-        rng = __import__("numpy").random.default_rng(0)
+        rng = np.random.default_rng(0)
         return pd.DataFrame({
             "timestamp": ts,
             "realized_vol_30": rng.uniform(0.001, 0.05, 200),
@@ -281,7 +324,6 @@ class TestTriggerFeatureColumnsContract:
 
     def test_apply_to_features_does_not_mutate_original(self):
         from project.research.trigger_discovery.candidate_generation import TriggerFeatureColumns
-        import pandas as pd
 
         features = self._make_features()
         original_cols = set(features.columns)

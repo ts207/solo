@@ -1,7 +1,5 @@
 import pytest
-import json
 import pandas as pd
-from pathlib import Path
 from project.research.services.candidate_discovery_diagnostics import (
     build_false_discovery_diagnostics,
 )
@@ -155,3 +153,40 @@ def test_hierarchical_search_contract():
     out = hierarchical_search._apply_v2_scoring(df)
     assert not out.empty
     assert "discovery_quality_score" in out.columns
+
+
+def test_hierarchical_scoring_failure_raises_when_context_is_required(monkeypatch, tmp_path):
+    from project.research.search import hierarchical_search
+    from project.research.services import candidate_discovery_scoring
+
+    def _boom(df, config):
+        raise RuntimeError("scoring unavailable")
+
+    monkeypatch.setattr(candidate_discovery_scoring, "annotate_discovery_v2_scores", _boom)
+    df = pd.DataFrame([{"event_type": "E1", "t_stat": 2.0}])
+
+    with pytest.raises(RuntimeError, match="Hierarchical v2/ledger scoring failed"):
+        hierarchical_search._apply_v2_scoring(df, data_root=tmp_path, run_id="run_1")
+
+
+def test_hierarchical_evaluation_failure_raises(monkeypatch):
+    from project.research.search import hierarchical_search
+    from project.research.search import distributed_runner
+
+    def _boom(*_args, **_kwargs):
+        raise RuntimeError("evaluation unavailable")
+
+    monkeypatch.setattr(distributed_runner, "run_distributed_search", _boom)
+
+    with pytest.raises(RuntimeError, match="Hierarchical evaluation failed"):
+        hierarchical_search._evaluate_hypotheses(
+            [object()],
+            pd.DataFrame({"close": [1.0, 2.0], "timestamp": pd.date_range("2024-01-01", periods=2)}),
+            chunk_size=1,
+            min_n=1,
+            use_context_quality=True,
+            folds=None,
+            min_t_stat=1.5,
+            symbol="BTCUSDT",
+            bridge_gates={},
+        )

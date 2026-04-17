@@ -4,6 +4,7 @@ import asyncio
 import json
 import logging
 import uuid
+from dataclasses import replace
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Awaitable, Callable, Dict, List, Mapping, Optional
@@ -988,20 +989,25 @@ class LiveEngineRunner:
         premium_result, open_interest_result = await asyncio.gather(
             premium_task, open_interest_task, return_exceptions=True
         )
-        if isinstance(premium_result, Exception):
-            _LOG.debug("Runtime premium-index fetch failed for %s: %s", symbol, premium_result)
+        premium_failed = isinstance(premium_result, Exception)
+        open_interest_failed = isinstance(open_interest_result, Exception)
+        if premium_failed:
+            _LOG.warning("Runtime premium-index fetch failed for %s: %s", symbol, premium_result)
         elif isinstance(premium_result, dict):
             premium_payload = premium_result
         elif isinstance(premium_result, list) and premium_result:
             first = premium_result[0]
             if isinstance(first, dict):
                 premium_payload = first
-        if isinstance(open_interest_result, Exception):
-            _LOG.debug(
+        if open_interest_failed:
+            _LOG.warning(
                 "Runtime open-interest fetch failed for %s: %s", symbol, open_interest_result
             )
         elif isinstance(open_interest_result, dict):
             open_interest_payload = open_interest_result
+
+        if premium_failed and open_interest_failed:
+            raise RuntimeError(f"runtime market-feature REST fetch failed for {symbol}")
 
         snapshot: Dict[str, Any] = {}
         if premium_payload is not None:
@@ -1057,6 +1063,10 @@ class LiveEngineRunner:
             if not isinstance(raw, Mapping):
                 self._latest_runtime_market_features_by_symbol.pop(normalized, None)
                 continue
+            if not raw:
+                _LOG.warning("Runtime market-feature refresh returned no fields for %s", normalized)
+                self._latest_runtime_market_features_by_symbol.pop(normalized, None)
+                continue
             previous = dict(self._latest_runtime_market_features_by_symbol.get(normalized, {}))
             merged = dict(raw)
             merged["refreshed_at"] = datetime.now(timezone.utc).isoformat()
@@ -1080,8 +1090,14 @@ class LiveEngineRunner:
                 if delta_fraction is not None:
                     try:
                         merged["open_interest_delta_fraction"] = float(delta_fraction)
-                    except Exception:
-                        pass
+                    except Exception as exc:
+                        _LOG.warning(
+                            "Invalid open_interest_delta_fraction for %s; preserving NaN: %r (%s)",
+                            normalized,
+                            delta_fraction,
+                            exc,
+                        )
+                        merged["open_interest_delta_fraction"] = float("nan")
                 if current_oi is not None:
                     merged["open_interest"] = float(current_oi)
             if "funding_rate" in merged:
@@ -1431,10 +1447,6 @@ class LiveEngineRunner:
                 top_thesis.thesis_id, health.health_state, health.actions_taken
             )
 
-        self._decision_outcomes.append(outcome)
-        self._decision_outcomes = self._decision_outcomes[-100:]
-        self._record_live_decision_episode(outcome)
-
         # Sprint 6: Risk Enforcer check
         if outcome.trade_intent.action != "reject":
             thesis_id = outcome.trade_intent.thesis_id
@@ -1445,14 +1457,28 @@ class LiveEngineRunner:
                     thesis_id,
                     thesis_state.state,
                 )
-                # Overwrite intent
-                # (Normally we'd use a more formal way to update the immutable TradeIntent)
-                pass
+                rejected_intent = outcome.trade_intent.model_copy(
+                    update={
+                        "action": "reject",
+                        "side": "flat",
+                        "size_fraction": 0.0,
+                        "confidence_band": "none",
+                        "reasons_against": [
+                            *list(outcome.trade_intent.reasons_against),
+                            f"thesis_state_{thesis_state.state}",
+                        ],
+                    }
+                )
+                outcome = replace(outcome, trade_intent=rejected_intent)
             else:
                 # Apply risk caps
                 await self._submit_trade_intent_if_enabled(
                     outcome=outcome, market_state=market_state
                 )
+
+        self._decision_outcomes.append(outcome)
+        self._decision_outcomes = self._decision_outcomes[-100:]
+        self._record_live_decision_episode(outcome)
 
         self.persist_runtime_metrics_snapshot()
 
@@ -1673,7 +1699,7 @@ class LiveEngineRunner:
                 await self.order_manager.flatten_all_positions(self.state_store)
             await self._shutdown_runtime()
         except Exception as exc:
-            _LOG.error("Kill-switch actuation failed: %s", exc)
+            _LOG.critical("Kill-switch actuation failed: %s", exc, exc_info=True)
         self.persist_runtime_metrics_snapshot()
 
     async def _consume_klines(self):

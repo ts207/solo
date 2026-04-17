@@ -214,8 +214,6 @@ def _build_confirmatory_evidence(
             "pass_random_entry_placebo": False,
             "pass_direction_reversal_placebo": False,
             "control_pass_rate": 1.0,
-            "funding_carry_eval_coverage": 0.0,
-            "mean_funding_carry_bps": 0.0,
         }
 
     labels = _split_labels(return_frame)
@@ -1116,10 +1114,14 @@ def score_fold_stability_precheck(row: object, config: dict) -> tuple[float, flo
     evidence_bonus = 0.0
 
     fold_valid_count = _row_get(row, "fold_valid_count", np.nan)
-    if not _row_has(row, "fold_valid_count") or pd.isna(fold_valid_count) or fold_valid_count < 1:
+    if not _row_has(row, "fold_valid_count") or pd.isna(fold_valid_count):
         return 0.0, 0.0, []
 
     valid_folds = int(fold_valid_count)
+    if valid_folds < 1:
+        flags.append("no_valid_oos_folds")
+        return 0.0, 2.5, flags
+
     sign_consistency = float(_row_get(row, "fold_sign_consistency", 0.0))
     fail_ratio = float(_row_get(row, "fold_fail_ratio", 1.0))
 
@@ -1367,7 +1369,7 @@ def apply_ledger_multiplicity_correction(
     )
 
     ledger_path = default_ledger_path(data_root)
-    ledger = load_concept_ledger(ledger_path)
+    ledger = load_concept_ledger(ledger_path, raise_on_error=True)
 
     # Filter out records from the *current* run so we don't count ourselves
     if not ledger.empty and "run_id" in ledger.columns:

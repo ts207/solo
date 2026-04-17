@@ -11,11 +11,8 @@ Covers:
 """
 from __future__ import annotations
 
-import tempfile
 from datetime import datetime, timedelta, timezone
-from pathlib import Path
 
-import numpy as np
 import pandas as pd
 import pytest
 
@@ -224,6 +221,20 @@ class TestLedgerStorage:
         for col in CONCEPT_LEDGER_COLUMNS:
             assert col in ledger.columns
 
+    def test_load_strict_mode_raises_on_read_failure(self, tmp_path, monkeypatch):
+        import project.research.knowledge.concept_ledger as concept_ledger
+
+        path = tmp_path / "ledger.parquet"
+        path.write_bytes(b"not parquet")
+
+        def _fail_read(*_args, **_kwargs):
+            raise RuntimeError("corrupt ledger")
+
+        monkeypatch.setattr(concept_ledger, "read_parquet", _fail_read)
+
+        with pytest.raises(RuntimeError, match="corrupt ledger"):
+            load_concept_ledger(path, raise_on_error=True)
+
     def test_append_exception_does_not_raise(self, tmp_path):
         """append_concept_ledger must never propagate exceptions (safe for runs)."""
         bad_path = tmp_path / "no_dir" / "no_subdir" / "ledger.parquet"
@@ -233,6 +244,18 @@ class TestLedgerStorage:
             append_concept_ledger(row, bad_path)
         except Exception:
             pytest.fail("append_concept_ledger raised an exception")
+
+    def test_append_strict_mode_raises_on_write_failure(self, tmp_path, monkeypatch):
+        import project.research.knowledge.concept_ledger as concept_ledger
+
+        def _fail_write(*_args, **_kwargs):
+            raise RuntimeError("disk full")
+
+        monkeypatch.setattr(concept_ledger, "write_parquet", _fail_write)
+        row = pd.DataFrame([_make_ledger_row("KEY:A")])
+
+        with pytest.raises(RuntimeError, match="disk full"):
+            append_concept_ledger(row, tmp_path / "ledger.parquet", raise_on_error=True)
 
     def test_default_ledger_path(self, tmp_path):
         path = default_ledger_path(tmp_path)
@@ -367,7 +390,6 @@ class TestLedgerScoring:
         from project.research.services.candidate_discovery_scoring import (
             apply_ledger_multiplicity_correction,
         )
-        from project.research.knowledge.concept_ledger import build_concept_lineage_key
         candidates = self._make_candidates_df()
         result = apply_ledger_multiplicity_correction(
             candidates,
@@ -670,15 +692,6 @@ class TestIntegrationLedgerAccumulation:
         rows = [_make_ledger_row(key, run_id=f"r{i}", is_discovery=False) for i in range(20)]
         pd.DataFrame(rows).reindex(columns=CONCEPT_LEDGER_COLUMNS).to_parquet(ledger_path, index=False)
 
-        other_candidate_row = {
-            'event_type': 'LIQUIDATION_CASCADE',
-            'event_family': 'LIQUIDATION_CASCADE',
-            'rule_template': 'mean_reversion',
-            'direction': '1.0',
-            'timeframe': '5m',
-            'horizon_bars': 24,
-            'symbol': 'BTCUSDT',
-        }
         candidates = pd.DataFrame([_make_candidate(
             event_type='LIQUIDATION_CASCADE',
             event_family='LIQUIDATION_CASCADE',

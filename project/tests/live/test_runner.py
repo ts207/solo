@@ -2,6 +2,8 @@ from __future__ import annotations
 
 import asyncio
 import json
+import logging
+import math
 from types import SimpleNamespace
 
 import pandas as pd
@@ -12,7 +14,7 @@ from project.core.exceptions import CompatibilityRequiredError
 from project.engine.exchange_constraints import SymbolConstraints
 from project.engine.strategy_executor import StrategyResult, calculate_strategy_returns
 from project.live.execution_attribution import build_execution_attribution_record
-from project.live.ingest.parsers import BookTickerEvent, KlineEvent
+from project.live.ingest.parsers import KlineEvent
 from project.live.kill_switch import KillSwitchReason
 from project.live.oms import OrderManager, OrderType, OrderSubmissionBlocked
 from project.live.runner import LiveEngineRunner
@@ -51,6 +53,14 @@ class _FailingOrderManager(_DummyOrderManager):
     async def cancel_all_orders(self) -> None:
         self.cancel_calls += 1
         raise RuntimeError("cancel failed")
+
+
+class _FailingMarketFeatureRestClient:
+    async def get_premium_index(self, symbol: str):
+        raise RuntimeError(f"premium outage for {symbol}")
+
+    async def get_open_interest(self, symbol: str):
+        raise RuntimeError(f"open-interest outage for {symbol}")
 
 
 def test_live_runner_exposes_persistent_session_metadata(tmp_path) -> None:
@@ -268,7 +278,7 @@ def test_live_runner_actuates_kill_switch_shutdown_and_unwind() -> None:
     assert order_manager.flatten_calls == 1
 
 
-def test_live_runner_does_not_shutdown_if_kill_switch_unwind_fails() -> None:
+def test_live_runner_does_not_shutdown_if_kill_switch_unwind_fails(caplog) -> None:
     data_manager = _DummyDataManager()
     order_manager = _FailingOrderManager()
     runner = LiveEngineRunner(
@@ -285,12 +295,17 @@ def test_live_runner_does_not_shutdown_if_kill_switch_unwind_fails() -> None:
         assert runner._kill_switch_task is not None
         await runner._kill_switch_task
 
-    asyncio.run(_exercise())
+    with caplog.at_level(logging.CRITICAL, logger="project.live.runner"):
+        asyncio.run(_exercise())
 
     assert runner._running is False
     assert data_manager.stop_calls == 0
     assert order_manager.cancel_calls == 1
     assert order_manager.flatten_calls == 0
+    assert any(
+        record.levelno == logging.CRITICAL and "Kill-switch actuation failed" in record.message
+        for record in caplog.records
+    )
 
 
 def test_reconcile_thesis_batch_reports_degraded_state_in_monitor_only(monkeypatch) -> None:
@@ -1077,7 +1092,6 @@ def test_live_runner_start_rejects_unimplemented_trading_runtime() -> None:
 
 def test_stale_data_triggers_kill_switch() -> None:
     """STALE_DATA kill-switch fires when data health monitor reports unhealthy."""
-    import time
     from unittest.mock import patch
 
     runner = LiveEngineRunner(
@@ -1328,7 +1342,41 @@ def test_live_runner_refreshes_runtime_market_features_and_computes_open_interes
     asyncio.run(_exercise())
 
 
-def test_live_runner_clears_runtime_market_features_after_refresh_failure() -> None:
+def test_live_runner_preserves_invalid_open_interest_delta_as_nan(caplog) -> None:
+    async def _fetch_market_features(symbol: str):
+        assert symbol == "BTCUSDT"
+        return {
+            "funding_rate": 0.0010,
+            "open_interest": 1000.0,
+            "open_interest_delta_fraction": "bad-delta",
+        }
+
+    runner = LiveEngineRunner(
+        ["btcusdt"],
+        data_manager=_DummyDataManager(),
+        strategy_runtime={
+            "implemented": True,
+            "supported_event_ids": ["LIQUIDATION_CASCADE"],
+        },
+        market_feature_fetcher=_fetch_market_features,
+    )
+    runner._thesis_store = object()
+
+    async def _exercise() -> None:
+        await runner._refresh_runtime_market_features_once()
+
+    with caplog.at_level(logging.WARNING, logger="project.live.runner"):
+        asyncio.run(_exercise())
+
+    snapshot = runner._latest_runtime_market_features_by_symbol["BTCUSDT"]
+    assert math.isnan(snapshot["open_interest_delta_fraction"])
+    assert any(
+        "Invalid open_interest_delta_fraction" in record.message
+        for record in caplog.records
+    )
+
+
+def test_live_runner_clears_runtime_market_features_after_refresh_failure(caplog) -> None:
     responses = iter(
         [
             {"funding_rate": 0.0010, "open_interest": 1000.0, "mark_price": 101.0},
@@ -1358,8 +1406,13 @@ def test_live_runner_clears_runtime_market_features_after_refresh_failure() -> N
         assert runner._latest_runtime_market_features_by_symbol["BTCUSDT"][
             "funding_rate"
         ] == pytest.approx(0.0010)
-        await runner._refresh_runtime_market_features_once()
+        with caplog.at_level(logging.WARNING, logger="project.live.runner"):
+            await runner._refresh_runtime_market_features_once()
         assert "BTCUSDT" not in runner._latest_runtime_market_features_by_symbol
+        assert any(
+            "Runtime market-feature refresh failed for BTCUSDT" in record.message
+            for record in caplog.records
+        )
 
         snapshot = runner._current_market_snapshot(
             symbol="BTCUSDT",
@@ -1373,6 +1426,32 @@ def test_live_runner_clears_runtime_market_features_after_refresh_failure() -> N
         assert snapshot["open_interest_delta_fraction"] == pytest.approx(0.0)
 
     asyncio.run(_exercise())
+
+
+def test_live_runner_rest_market_feature_total_outage_is_warning_and_clears_state(caplog) -> None:
+    runner = LiveEngineRunner(
+        ["btcusdt"],
+        data_manager=_DummyDataManager(),
+        strategy_runtime={
+            "implemented": True,
+            "supported_event_ids": ["LIQUIDATION_CASCADE"],
+        },
+    )
+    runner.rest_client = _FailingMarketFeatureRestClient()
+    runner._thesis_store = object()
+    runner._latest_runtime_market_features_by_symbol["BTCUSDT"] = {"open_interest": 1000.0}
+
+    async def _exercise() -> None:
+        with caplog.at_level(logging.WARNING, logger="project.live.runner"):
+            await runner._refresh_runtime_market_features_once()
+
+    asyncio.run(_exercise())
+
+    assert "BTCUSDT" not in runner._latest_runtime_market_features_by_symbol
+    messages = [record.message for record in caplog.records]
+    assert any("Runtime premium-index fetch failed for BTCUSDT" in msg for msg in messages)
+    assert any("Runtime open-interest fetch failed for BTCUSDT" in msg for msg in messages)
+    assert any("Runtime market-feature refresh failed for BTCUSDT" in msg for msg in messages)
 
 
 def test_live_runner_persists_runtime_metrics_snapshot_with_market_state_and_decisions(

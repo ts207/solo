@@ -219,6 +219,37 @@ def test_apply_sample_quality_gates_demotes_weak_multiplicity_survivor():
     assert dropped["sample_quality_fail_reason"] == "min_validation_n_obs"
 
 
+def test_concept_ledger_write_failure_aborts_discovery_path(monkeypatch, tmp_path):
+    import project.research.knowledge.concept_ledger as concept_ledger
+
+    def _fail_append(*_args, **_kwargs):
+        raise RuntimeError("ledger unavailable")
+
+    monkeypatch.setattr(concept_ledger, "append_concept_ledger", _fail_append)
+    candidates = pd.DataFrame(
+        [
+            {
+                "candidate_id": "cand_1",
+                "event_type": "VOL_SHOCK",
+                "event_family": "VOL_SHOCK",
+                "template_id": "continuation",
+                "direction": "long",
+                "timeframe": "5m",
+                "horizon_bars": 24,
+                "symbol": "BTCUSDT",
+            }
+        ]
+    )
+
+    with pytest.raises(RuntimeError, match="Concept ledger write failed"):
+        svc._write_concept_ledger_records(
+            candidates,
+            data_root=tmp_path,
+            run_id="run_ledger_failure",
+            program_id="program_1",
+        )
+
+
 def test_run_candidate_discovery_service_records_sample_quality_gate_thresholds(
     monkeypatch, tmp_path
 ):

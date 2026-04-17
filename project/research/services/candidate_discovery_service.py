@@ -5,13 +5,11 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-import numpy as np
 import pandas as pd
 
 from project import PROJECT_ROOT
-from project.core.config import get_data_root
+from project.core.config import get_data_root  # noqa: F401 - retained for test/plugin monkeypatch compatibility
 from project.core.execution_costs import resolve_execution_costs
-from project.core.timeframes import normalize_timeframe, timeframe_to_minutes
 from project.domain.compiled_registry import get_domain_registry
 from project.events.event_specs import EVENT_REGISTRY_SPECS
 from project.io.utils import ensure_dir
@@ -213,8 +211,9 @@ def _write_concept_ledger_records(
     """Append tested concept records to the global concept ledger.
 
     Called unconditionally after discovery scoring — history accumulates
-    regardless of whether ledger-adjusted scoring is enabled.  All
-    exceptions are caught so a ledger failure never aborts a run.
+    regardless of whether ledger-adjusted scoring is enabled.  Ledger write
+    failure aborts discovery because missing records corrupt future
+    multiplicity accounting.
     """
     try:
         from project.research.knowledge.concept_ledger import (
@@ -230,11 +229,12 @@ def _write_concept_ledger_records(
         )
         if not records.empty:
             ledger_path = default_ledger_path(data_root)
-            append_concept_ledger(records, ledger_path)
+            append_concept_ledger(records, ledger_path, raise_on_error=True)
     except Exception as exc:
-        logging.getLogger(__name__).warning(
+        logging.getLogger(__name__).critical(
             "Concept ledger write failed for run %s: %s", run_id, exc
         )
+        raise RuntimeError("Concept ledger write failed") from exc
 
 
 def execute_candidate_discovery(config: CandidateDiscoveryConfig) -> CandidateDiscoveryResult:
