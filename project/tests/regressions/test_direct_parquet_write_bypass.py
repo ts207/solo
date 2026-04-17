@@ -8,6 +8,8 @@ from project.tests.conftest import REPO_ROOT
 ALLOWED = {
     Path("project/io/utils.py"),
     Path("project/scripts/generate_synthetic_milestone_data.py"),
+    Path("project/scripts/generate_vol_spike_fixtures.py"),
+    Path("project/scripts/generate_benchmark_fixtures.py"),
 }
 
 

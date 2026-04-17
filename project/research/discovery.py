@@ -59,6 +59,22 @@ def bars_to_timeframe(horizon_bars: int) -> str:
     return f"{horizon_bars}b"
 
 
+def _infer_bar_duration_ns(ts_series: pd.Series) -> int:
+    """Infer bar duration in nanoseconds from a series of timestamps."""
+    if len(ts_series) < 2:
+        # Default to 5 minutes in nanoseconds
+        return int(pd.Timedelta(minutes=5).asm8.view(np.int64))
+    
+    # Use median difference to be robust against gaps
+    diffs = ts_series.sort_values().diff().dropna()
+    if diffs.empty:
+        return int(pd.Timedelta(minutes=5).asm8.view(np.int64))
+        
+    median_diff = diffs.median()
+    return int(median_diff.asm8.view(np.int64))
+
+
+
 def direction_token_to_float(value: object) -> float:
     """Convert direction tokens (1, -1, 'long', etc.) to float."""
     if value is None:
@@ -448,38 +464,53 @@ def _synthesize_experiment_hypotheses(
                 trigger_mask &= False
 
         elif t.trigger_type == "sequence":
-            # Sequence: [E1, E2, ...]
-            # We evaluate at the timestamp of the LAST event in the sequence
+            # Sequence: [E1, E2, ..., En]
+            # We evaluate at the timestamp of the LAST event (En) in the sequence
             if not t.events or t.events[-1] != event_type:
                 trigger_mask &= False
             else:
-                # Simple lookback check for sequences of length 2
-                if len(t.events) == 2:
-                    e1, e2 = t.events[0], t.events[1]
-                    gap = t.max_gap[0] if t.max_gap else 1
+                if len(t.events) >= 2:
+                    is_active = (working["event_type"] == t.events[-1]).values
+                    target_ts_vals = working["enter_ts"].values.astype(np.int64)
+                    bar_duration_ns = _infer_bar_duration_ns(working["enter_ts"])
 
-                    # Vectorized searchsorted implementation to avoid O(n^2) behavior
-                    e1_times = working[working["event_type"] == e1]["enter_ts"].sort_values()
-                    if e1_times.empty:
-                        trigger_mask &= False
-                    else:
-                        e1_ts_vals = e1_times.values.astype(np.int64)
-                        bar_ts_vals = working["enter_ts"].values.astype(np.int64)
-                        gap_ns = int(pd.Timedelta(minutes=gap * 5).asm8.view(np.int64))
+                    # Iterate backwards from E[n-1] down to E[0]
+                    # Note: TriggerSpec.events contains [E1, ..., En]
+                    # We start at i = n-2 (event E[n-1]) and find e previous to target
+                    for i in range(len(t.events) - 2, -1, -1):
+                        prev_e = t.events[i]
+                        gap = t.max_gap[i] if (hasattr(t, "max_gap") and t.max_gap and len(t.max_gap) > i) else 1
+                        
+                        # gap == 0 implies unlimited lookback (or use a large default)
+                        if gap <= 0:
+                            gap_ns = int(1e18) # ~31 years
+                        else:
+                            gap_ns = int(gap * bar_duration_ns)
 
-                        # Find index of largest e1_time < current_time
-                        idx = np.searchsorted(e1_ts_vals, bar_ts_vals, side="left") - 1
+                        prev_times = working[working["event_type"] == prev_e]["enter_ts"].sort_values()
+                        if prev_times.empty:
+                            is_active = np.zeros_like(is_active, dtype=bool)
+                            break
 
-                        # Validate index and gap
-                        has_e1 = (idx >= 0) & (
-                            (bar_ts_vals - e1_ts_vals[np.maximum(idx, 0)]) <= gap_ns
-                        )
-                        trigger_mask &= pd.Series(
-                            has_e1 & (working["event_type"] == e2).values, index=working.index
-                        )
+                        prev_ts_vals = prev_times.values.astype(np.int64)
+                        # Find latest prev_e timestamp <= current target timestamp
+                        idx = np.searchsorted(prev_ts_vals, target_ts_vals, side="left") - 1
+
+                        # Proper sequence requires E[i] to happen STRICTLY BEFORE E[i+1]? 
+                        # Usually researchers mean 'happened before or at same bar' in discovery.
+                        # We use searchsorted with side='left' - 1 which finds latest timestamp < target_ts.
+                        # If we want <= target_ts, side='right' - 1. 
+                        # Canonical discovery uses < (strictly before) into the same event.
+                        has_prev = (idx >= 0) & ((target_ts_vals - prev_ts_vals[np.maximum(idx, 0)]) <= gap_ns)
+                        is_active &= has_prev
+
+                        # Set target_ts_vals to the matched previous event's timestamp for the next iteration
+                        target_ts_vals = np.where(has_prev, prev_ts_vals[np.maximum(idx, 0)], target_ts_vals)
+
+                    trigger_mask &= pd.Series(is_active, index=working.index)
                 else:
-                    # TODO: Support longer sequences
-                    trigger_mask &= False
+                    # Single event sequence: invalid or just matches itself
+                    trigger_mask &= (working["event_type"] == t.events[0]) if t.events else False
 
         elif t.trigger_type == "interaction":
             # Interaction: Left OP Right
@@ -498,8 +529,30 @@ def _synthesize_experiment_hypotheses(
                         active_mask.update(bool_mask_from_series(working[f"market_state_{side}"]))
 
                 trigger_mask &= is_left_active & is_right_active
+            elif t.op in ("confirm", "exclude"):
+                is_right_active = (working["event_type"] == t.right).values
+                left_times = working[working["event_type"] == t.left]["enter_ts"].sort_values()
+                if left_times.empty:
+                    has_left = np.zeros(len(working), dtype=bool)
+                else:
+                    left_ts_vals = left_times.values.astype(np.int64)
+                    bar_ts_vals = working["enter_ts"].values.astype(np.int64)
+                    bar_duration_ns = _infer_bar_duration_ns(working["enter_ts"])
+                    
+                    lag_bars = t.lag if hasattr(t, "lag") and t.lag is not None else 1
+                    if lag_bars <= 0:
+                        lag_ns = int(1e18) # Unlimited
+                    else:
+                        lag_ns = int(lag_bars * bar_duration_ns)
+
+                    idx = np.searchsorted(left_ts_vals, bar_ts_vals, side="left") - 1
+                    has_left = (idx >= 0) & ((bar_ts_vals - left_ts_vals[np.maximum(idx, 0)]) <= lag_ns)
+
+                if t.op == "confirm":
+                    trigger_mask &= pd.Series(is_right_active & has_left, index=working.index)
+                else:
+                    trigger_mask &= pd.Series(is_right_active & ~has_left, index=working.index)
             else:
-                # TODO: Support CONFIRM/EXCLUDE
                 trigger_mask &= False
 
         # 3. Evaluate Context

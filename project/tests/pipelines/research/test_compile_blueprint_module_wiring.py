@@ -163,6 +163,9 @@ def test_main_compilation_loop_accepts_record_dicts(monkeypatch, tmp_path):
     monkeypatch.setattr(compiler, "_load_operator_registry", lambda: {})
     monkeypatch.setattr(compiler, "start_manifest", lambda *args, **kwargs: {})
     monkeypatch.setattr(compiler, "finalize_manifest", lambda *args, **kwargs: None)
+    monkeypatch.setattr(
+        "project.research.live_export.export_promoted_theses_for_run", lambda *args, **kwargs: None
+    )
 
     def _fake_compile_blueprint(**kwargs):
         row = kwargs["merged_row"]

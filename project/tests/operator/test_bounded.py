@@ -7,7 +7,7 @@ from pathlib import Path
 import pandas as pd
 
 from project.operator.bounded import validate_bounded_proposal
-from project.research.agent_io.proposal_schema import load_agent_proposal
+from project.research.agent_io.proposal_schema import load_operator_proposal
 from project.research.knowledge.memory import ensure_memory_store, write_memory_table
 
 
@@ -17,12 +17,15 @@ def _proposal(end: str, *, bounded: bool = False) -> dict:
         "start": "2021-01-01",
         "end": end,
         "symbols": ["BTCUSDT"],
-        "trigger_space": {"allowed_trigger_types": ["EVENT"], "events": {"include": ["VOL_SHOCK"]}},
-        "templates": ["mean_reversion"],
-        "horizons_bars": [12, 24],
-        "directions": ["short"],
-        "entry_lags": [1],
-        "search_spec": "spec/search_space.yaml",
+        "timeframe": "5m",
+        "hypothesis": {
+            "anchor": {"type": "event", "event_id": "VOL_SHOCK"},
+            "template": {"id": "mean_reversion"},
+            "direction": "short",
+            "horizon_bars": 12,
+            "entry_lag_bars": 1,
+        },
+        "search_spec": {},
     }
     if bounded:
         payload["bounded"] = {
@@ -45,7 +48,7 @@ def test_bounded_validation_accepts_single_allowed_change(tmp_path):
     write_memory_table('prog1', 'proposals', pd.DataFrame([{
         'proposal_id': 'proposal::base_run', 'program_id': 'prog1', 'run_id': 'base_run', 'proposal_path': str(baseline_path)
     }]), data_root=data_root)
-    current = load_agent_proposal(_proposal('2022-12-31', bounded=True))
+    current = load_operator_proposal(_proposal('2022-12-31', bounded=True))
     result = validate_bounded_proposal(current, data_root=data_root)
     assert result is not None
     assert result.changed_fields == ['end']
@@ -62,8 +65,8 @@ def test_bounded_validation_rejects_scope_expansion(tmp_path):
         'proposal_id': 'proposal::base_run', 'program_id': 'prog1', 'run_id': 'base_run', 'proposal_path': str(baseline_path)
     }]), data_root=data_root)
     payload = _proposal('2022-12-31', bounded=True)
-    payload['horizons_bars'] = [12]
-    current = load_agent_proposal(payload)
+    payload['hypothesis']['horizon_bars'] = 24
+    current = load_operator_proposal(payload)
     try:
         validate_bounded_proposal(current, data_root=data_root)
     except ValueError as exc:

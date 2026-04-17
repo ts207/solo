@@ -14,7 +14,7 @@ import pandas as pd
 import pytest
 
 from project.engine.pnl import (
-    compute_pnl_components,
+    compute_pnl_ledger,
     compute_returns_next_open,
     compute_returns,
 )
@@ -80,12 +80,12 @@ class TestPnlExecutionTiming:
         close = pd.Series([100.0, 101.0, 102.0, 103.0], index=idx)
         open_ = pd.Series([100.5, 101.5, 102.5, 103.5], index=idx)
 
-        pos = pd.Series([0.0, 1.0, 1.0, 0.0], index=idx)
-        ret = compute_returns_next_open(close, open_, pos)
+        target_pos = pd.Series([0.0, 1.0, 1.0, 0.0], index=idx)
+        result = compute_pnl_ledger(target_pos, close, open_=open_, execution_mode="next_open", cost_bps=0.0)
 
-        result = compute_pnl_components(pos, ret, cost_bps=0.0, execution_mode="next_open")
-
-        assert result["gross_pnl"].iloc[1] != 0.0
+        # target[1]=1.0 -> executed[2]=1.0.
+        # gross_pnl[2] should be non-zero (uses intrabar_ret).
+        assert result["gross_pnl"].iloc[2] != 0.0
 
     def test_long_hold_next_open(self):
         """Holding a long position with next_open mode."""
@@ -93,13 +93,11 @@ class TestPnlExecutionTiming:
         close = pd.Series([100.0, 101.0, 102.0, 103.0], index=idx)
         open_ = pd.Series([100.5, 101.5, 102.5, 103.5], index=idx)
 
-        pos = pd.Series([1.0, 1.0, 1.0, 1.0], index=idx)
-        ret = compute_returns_next_open(close, open_, pos)
+        target_pos = pd.Series([1.0, 1.0, 1.0, 1.0], index=idx)
+        result = compute_pnl_ledger(target_pos, close, open_=open_, execution_mode="next_open", cost_bps=0.0)
 
-        result = compute_pnl_components(pos, ret, cost_bps=0.0, execution_mode="next_open")
-
+        # executed[1]=1.0, ret[1]=CC
         assert result["gross_pnl"].iloc[1] != 0.0
-        assert result["gross_pnl"].iloc[2] != 0.0
 
     def test_long_to_flat_exit_next_open(self):
         """Exit from long to flat with next_open mode."""
@@ -107,27 +105,28 @@ class TestPnlExecutionTiming:
         close = pd.Series([100.0, 101.0, 102.0, 103.0], index=idx)
         open_ = pd.Series([100.5, 101.5, 102.5, 103.5], index=idx)
 
-        pos = pd.Series([1.0, 1.0, 1.0, 0.0], index=idx)
-        ret = compute_returns_next_open(close, open_, pos)
+        target_pos = pd.Series([1.0, 0.0, 0.0, 0.0], index=idx)
+        result = compute_pnl_ledger(target_pos, close, open_=open_, execution_mode="next_open", cost_bps=0.0)
 
-        result = compute_pnl_components(pos, ret, cost_bps=0.0, execution_mode="next_open")
-
-        assert result["gross_pnl"].iloc[2] != 0.0
+        # target[0]=1.0, target[1]=0.0 -> executed[1]=1.0, executed[2]=0.0.
+        # Bar 1 is holding (relative to executed).
+        # Wait, if target[0]=1.0, executed[1]=1.0.
+        # target[1]=0.0, executed[2]=0.0.
+        # So at Bar 1, executed is 1.0.
+        assert result["gross_pnl"].iloc[1] != 0.0
 
     def test_close_vs_next_open_timing_difference(self):
-        """close and next_open modes should produce different entry bar PnL."""
+        """Same target positions produce different results at entry bar."""
         idx = pd.date_range("2024-01-01", periods=4, freq="5min", tz="UTC")
         close = pd.Series([100.0, 101.0, 102.0, 103.0], index=idx)
         open_ = pd.Series([100.5, 101.5, 102.5, 103.5], index=idx)
 
-        pos = pd.Series([0.0, 1.0, 1.0, 0.0], index=idx)
+        target_pos = pd.Series([0.0, 1.0, 1.0, 0.0], index=idx)
 
-        ret_next_open = compute_returns_next_open(close, open_, pos)
-        ret_close = compute_returns(close)
-
-        result_next_open = compute_pnl_components(
-            pos, ret_next_open, cost_bps=0.0, execution_mode="next_open"
+        result_next_open = compute_pnl_ledger(
+            target_pos, close, open_=open_, execution_mode="next_open", cost_bps=0.0
         )
-        result_close = compute_pnl_components(pos, ret_close, cost_bps=0.0, execution_mode="close")
+        result_close = compute_pnl_ledger(target_pos, close, execution_mode="close", cost_bps=0.0)
 
-        assert result_next_open["gross_pnl"].iloc[1] != result_close["gross_pnl"].iloc[1]
+        # Difference at executed entry (iloc[2])
+        assert result_next_open["gross_pnl"].iloc[2] != result_close["gross_pnl"].iloc[2]

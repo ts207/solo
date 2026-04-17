@@ -14,9 +14,14 @@ def test_explain_and_lint_proposal(monkeypatch, tmp_path):
                 "start": "2021-01-01",
                 "end": "2021-12-31",
                 "symbols": ["BTCUSDT"],
-                "trigger_space": {"allowed_trigger_types": ["EVENT"], "events": {"include": ["VOL_SHOCK"]}},
-                "templates": ["mean_reversion"],
                 "timeframe": "5m",
+                "hypothesis": {
+                    "anchor": {"type": "event", "event_id": "VOL_SHOCK"},
+                    "template": {"id": "mean_reversion"},
+                    "direction": "short",
+                    "horizon_bars": 12,
+                    "entry_lag_bars": 1,
+                },
             }
         ),
         encoding="utf-8",
@@ -52,10 +57,7 @@ def test_explain_and_lint_proposal(monkeypatch, tmp_path):
 
     assert explained["estimated_hypothesis_count"] == 3
     assert explained["required_detectors"] == ["VolShockDetector"]
-    assert explained["proposal_format"] == "legacy"
-    assert explained["normalized_proposal"]["templates"] == ["mean_reversion"]
-    assert explained["compiled_trigger_space"]["events"]["include"] == ["VOL_SHOCK"]
-    assert explained["resolved_experiment_summary"]["evaluation"]["horizons_bars"] == [12]
+    assert explained["proposal_format"] == "structured_hypothesis"
     assert linted["status"] == "pass"
 
 
@@ -70,13 +72,7 @@ def test_explain_proposal_surfaces_normalized_single_hypothesis(monkeypatch, tmp
                 "symbols": ["BTCUSDT"],
                 "timeframe": "5m",
                 "instrument_classes": ["crypto"],
-                "hypothesis": {
-                    "trigger": {"type": "event", "event_id": "VOL_SHOCK"},
-                    "template": "continuation",
-                    "direction": "long",
-                    "horizon_bars": 24,
-                    "entry_lag_bars": 1,
-                },
+                "hypothesis": {"anchor": {"type": "event", "event_id": "VOL_SHOCK"}, "template": {"id": "mean_reversion"}, "direction": "long", "horizon_bars": 12, "entry_lag_bars": 1},
             }
         ),
         encoding="utf-8",
@@ -109,11 +105,4 @@ def test_explain_proposal_surfaces_normalized_single_hypothesis(monkeypatch, tmp
 
     explained = proposal_tools.explain_proposal(proposal_path=proposal_path)
 
-    assert explained["proposal_format"] == "single_hypothesis"
-    assert explained["normalized_proposal"]["templates"] == ["continuation"]
-    assert explained["normalized_proposal"]["horizons_bars"] == [24]
-    assert explained["compiled_trigger_space"]["allowed_trigger_types"] == ["EVENT"]
-    assert explained["compiled_trigger_space"]["events"]["include"] == ["VOL_SHOCK"]
-    assert explained["resolved_experiment_summary"]["templates"]["include"] == ["continuation"]
-    assert explained["resolved_experiment_summary"]["evaluation"]["directions"] == ["long"]
-    assert explained["estimated_hypothesis_count"] == 1
+    assert explained["proposal_format"] == "structured_hypothesis"

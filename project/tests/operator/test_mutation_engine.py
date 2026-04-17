@@ -11,12 +11,15 @@ def _baseline_payload():
         "start": "2021-01-01",
         "end": "2021-12-31",
         "symbols": ["BTCUSDT"],
-        "trigger_space": {"allowed_trigger_types": ["EVENT"], "events": {"include": ["VOL_SHOCK"]}},
-        "templates": ["mean_reversion"],
-        "horizons_bars": [12, 24],
-        "directions": ["short"],
-        "entry_lags": [1],
-        "search_spec": "spec/search_space.yaml",
+        "timeframe": "5m",
+        "hypothesis": {
+            "anchor": {"type": "event", "event_id": "VOL_SHOCK"},
+            "template": {"id": "mean_reversion"},
+            "direction": "short",
+            "horizon_bars": 12,
+            "entry_lag_bars": 1,
+        },
+        "search_spec": {},
     }
 
 
@@ -33,7 +36,7 @@ def test_generate_next_proposal_changes_exactly_one_field(tmp_path):
         cycle_number=2,
     )
     payload = result.proposal_payload
-    assert payload["horizons_bars"] != [12, 24]
+    assert payload["horizons_bars"] != [12]
     assert payload["entry_lags"] == [1]
     assert payload["bounded"]["allowed_change_field"] == "horizons_bars"
     assert payload["campaign"]["campaign_id"] == "camp1"

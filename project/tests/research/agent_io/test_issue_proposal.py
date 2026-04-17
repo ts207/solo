@@ -34,7 +34,7 @@ def _write_registry(reg_dir: Path) -> None:
     (reg_dir / "features.yaml").write_text(yaml.dump({"features": {}}))
     (reg_dir / "templates.yaml").write_text(
         yaml.dump(
-            {"templates": {"continuation": {"enabled": False, "supports_trigger_types": ["FEATURE_PREDICATE"]}}}
+            {"templates": {"continuation": {"enabled": False, "supports_trigger_types": ["FEATURE_PREDICATE", "STATISTICAL_DISLOCATION"]}}}
         )
     )
     (reg_dir / "contexts.yaml").write_text(
