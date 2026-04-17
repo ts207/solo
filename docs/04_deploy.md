@@ -30,9 +30,12 @@ The launcher implementation lives in `project/scripts/run_live_engine.py`.
 
 `edge deploy inspect-thesis --run_id <run_id>` reads the exported package for that run directly.
 
-`edge deploy paper --run_id <run_id>` and `edge deploy live --run_id <run_id>` do **not** pass that run ID through to the live engine as thesis selection state. In the current code, `run_id` is used for deployment gating: the CLI confirms that `data/live/theses/<run_id>/promoted_theses.json` exists and that the batch contains the right deployment states.
+`edge deploy paper --run_id <run_id>` and `edge deploy live --run_id <run_id>` use `run_id` in two places:
 
-The live engine still loads theses from the config file through `strategy_runtime.thesis_run_id` or `strategy_runtime.thesis_path`. If the config is monitor-only and `strategy_runtime.implemented=false`, the runner starts without thesis-driven strategy execution even if the CLI `--run_id` points at an exported run.
+- deployment gating: the CLI confirms that `data/live/theses/<run_id>/promoted_theses.json` exists and that the batch contains the right deployment states
+- runtime selection: the launcher forwards `run_id` into the live engine by overriding `strategy_runtime.thesis_run_id` and forcing `strategy_runtime.implemented=true`
+
+The config file still matters. `runtime_mode` remains whatever the config declares, and `strategy_runtime.thesis_path` inside the file still wins when you launch the engine directly without the deploy wrapper. If the config is monitor-only, `edge deploy ... --run_id <run_id>` still runs a monitor-only session; use a thesis-ready trading config when you want thesis-driven paper or live execution.
 
 ### Config contract
 
@@ -105,7 +108,7 @@ edge deploy status
 
 ## Operational cautions
 
-- Do not assume `edge deploy ... --run_id <run_id>` makes the runner consume that run’s theses. Thesis selection still comes from the config file.
+- `edge deploy ... --run_id <run_id>` now overrides `strategy_runtime.thesis_run_id` for that launch, but it does not change `runtime_mode`; a monitor-only config stays monitor-only.
 - Do not treat bundle-only export as the default deployment path; the CLI text explicitly labels that as compatibility behavior.
 - Do not run `trading` mode without a validated config, a non-placeholder thesis source, and a full environment-variable check.
 - If you change thesis-store schemas, update `live_export.py`, live-store readers, and the tests together.

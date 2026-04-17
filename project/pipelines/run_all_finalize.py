@@ -271,17 +271,16 @@ def finalize_successful_run(
     # Run Validation Stage
     if data_root is not None:
         try:
-            from project.research.services.evaluation_service import ValidationService
+            from project.research.services.evaluation_service import (
+                ValidationService,
+                select_stage_candidate_table,
+            )
             
             val_svc = ValidationService(data_root=data_root)
             tables = val_svc.load_candidate_tables(run_id)
             
-            # Prefer edge_candidates or promotion_audit for validation
-            candidates_df = pd.DataFrame()
-            for source in ("edge_candidates", "promotion_audit", "phase2_candidates"):
-                if not tables[source].empty:
-                    candidates_df = tables[source]
-                    break
+            # Validation should consume upstream stage candidates, not promotion artifacts.
+            candidates_df = select_stage_candidate_table(tables)
             
             if not candidates_df.empty:
                 bundle = val_svc.run_validation_stage(

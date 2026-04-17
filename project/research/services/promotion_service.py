@@ -1171,7 +1171,10 @@ def execute_promotion(config: PromotionConfig) -> PromotionServiceResult:
     try:
         # Require canonical validation before promotion.
         from project.research.validation.result_writer import load_validation_bundle
-        from project.research.services.evaluation_service import ValidationService
+        from project.research.services.evaluation_service import (
+            ValidationService,
+            select_stage_candidate_table,
+        )
         from project.research.validation.contracts import PromotionReasonCodes
 
         diagnostics["compat_mode_used"] = False
@@ -1290,11 +1293,7 @@ def execute_promotion(config: PromotionConfig) -> PromotionServiceResult:
 
             validation_svc = ValidationService(data_root=data_root)
             source_tables = validation_svc.load_candidate_tables(config.run_id)
-            source_candidates_df = pd.DataFrame()
-            for source in ("edge_candidates", "promotion_audit", "phase2_candidates"):
-                if not source_tables[source].empty:
-                    source_candidates_df = source_tables[source]
-                    break
+            source_candidates_df = select_stage_candidate_table(source_tables)
 
             if source_candidates_df.empty:
                 raise IncompleteLineageError(

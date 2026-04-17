@@ -59,6 +59,21 @@ class EvaluationSummaryService:
         return EvaluationSummaryResult(run_id, "", "", {}, [], [], 0, 0, 0.0, [], {}, {})
 
 
+STAGE_CANDIDATE_SOURCES = ("edge_candidates", "phase2_candidates")
+
+
+def select_stage_candidate_table(
+    tables: dict[str, pd.DataFrame],
+    *,
+    sources: tuple[str, ...] = STAGE_CANDIDATE_SOURCES,
+) -> pd.DataFrame:
+    for source in sources:
+        table = tables.get(source, pd.DataFrame())
+        if not table.empty:
+            return table.copy()
+    return pd.DataFrame()
+
+
 class ValidationService:
     def __init__(self, data_root: Optional[Path] = None):
         self.data_root = data_root or get_data_root()

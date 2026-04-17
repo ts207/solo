@@ -179,6 +179,66 @@ def test_promotion_uses_canonical_validated_candidates(mock_data_root):
                         assert list(passed_df['candidate_id']) == ["cand_1"]
 
 
+def test_promotion_ignores_promotion_audit_as_source_candidate_table(mock_data_root):
+    run_id = "test_run"
+    bundle = ValidationBundle(
+        run_id=run_id,
+        created_at="2026-01-01",
+        validated_candidates=[
+            ValidatedCandidateRecord(
+                candidate_id="cand_1",
+                decision=ValidationDecision(status="validated", candidate_id="cand_1", run_id=run_id),
+                metrics=ValidationMetrics(sample_count=100),
+            )
+        ],
+    )
+
+    from project.research.validation.result_writer import write_validation_bundle, write_validated_candidate_tables
+
+    write_validation_bundle(bundle, base_dir=mock_data_root / "reports" / "validation" / run_id)
+    write_validated_candidate_tables(
+        bundle, base_dir=mock_data_root / "reports" / "validation" / run_id
+    )
+
+    promotion_audit_dir = mock_data_root / "reports" / "promotions" / run_id
+    promotion_audit_dir.mkdir(parents=True, exist_ok=True)
+    pd.DataFrame(
+        [
+            {
+                "candidate_id": "cand_1",
+                "event_type": "VOL_SHOCK",
+                "family": "VOL_SHOCK",
+                "n_events": 100,
+                "stability_score": 0.9,
+                "sign_consistency": 0.9,
+                "cost_survival_ratio": 0.9,
+                "q_value": 0.01,
+                "net_expectancy_bps": 8.0,
+            }
+        ]
+    ).to_parquet(promotion_audit_dir / "promotion_statistical_audit.parquet")
+
+    config = PromotionConfig(
+        run_id=run_id, symbols="BTC", out_dir=None, max_q_value=0.05, min_events=20,
+        min_stability_score=0.5, min_sign_consistency=0.5, min_cost_survival_ratio=0.5,
+        max_negative_control_pass_rate=0.05, min_tob_coverage=0.5,
+        require_hypothesis_audit=False, allow_missing_negative_controls=True,
+        require_multiplicity_diagnostics=False, min_dsr=0.0, max_overlap_ratio=1.0,
+        max_profile_correlation=1.0, allow_discovery_promotion=True,
+        program_id="test_program", retail_profile="default", objective_name="default",
+        objective_spec=None, retail_profiles_spec=None
+    )
+
+    with patch("project.research.services.promotion_service.get_data_root", return_value=mock_data_root):
+        with patch("project.research.validation.result_writer.get_data_root", return_value=mock_data_root):
+            with patch("project.research.services.promotion_service.load_run_manifest", return_value={"run_mode": "confirmatory"}):
+                with patch("project.research.services.promotion_service.resolve_objective_profile_contract") as mock_contract:
+                    mock_contract.return_value = MagicMock()
+                    result = execute_promotion(config)
+                    assert result.exit_code != 0
+                    assert "no source candidate tables" in result.diagnostics.get("error", "").lower()
+
+
 def test_promoted_result_contains_maturity_fields(mock_data_root):
     # This tests the output of _assemble_promotion_result via execute_promotion
     run_id = "test_run"

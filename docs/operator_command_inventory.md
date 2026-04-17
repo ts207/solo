@@ -140,10 +140,10 @@ Key flags:
 
 Important runtime semantics:
 
-- `edge deploy paper|live --run_id <run_id>` uses `run_id` as a deployment-gating and inspection input
+- `edge deploy paper|live --run_id <run_id>` uses `run_id` both for deployment gating and as a live-engine override for `strategy_runtime.thesis_run_id`
 - `deploy paper` strictly selects only the theses within the exported batch holding a `paper_only` or `live_enabled` deployment state.
 - deploy flows reliably remain **BLOCKED** and safely exit without crashing when no eligible theses remain in the targeted batch.
-- the live engine still loads its thesis source from `strategy_runtime.thesis_run_id` or `strategy_runtime.thesis_path` inside the config file
+- the config file still controls `runtime_mode`; `--run_id` does not turn a monitor-only config into a trading config
 - use the direct `edge-live-engine` CLI when you need explicit runtime-launch control outside the stage wrapper
 
 ### `edge ingest`

@@ -81,13 +81,29 @@ def load_live_engine_config(path: Path) -> Dict[str, Any]:
     return config
 
 
+def _resolve_live_engine_config(
+    *, config_path: Path, config: Dict[str, Any] | None = None
+) -> Dict[str, Any]:
+    if config is None:
+        return load_live_engine_config(config_path)
+    if not isinstance(config, dict):
+        raise ValueError(f"Live engine config must be a mapping: {config_path}")
+    normalized = dict(config)
+    normalized["runtime_mode"] = _normalize_runtime_mode(normalized, config_path=config_path)
+    normalized["strategy_runtime"] = _normalize_strategy_runtime(
+        normalized, config_path=config_path
+    )
+    return normalized
+
+
 def resolve_live_engine_session_metadata(
     *,
     config_path: Path,
+    config: Dict[str, Any] | None = None,
     symbols: list[str] | None = None,
     snapshot_path: str | None = None,
 ) -> Dict[str, Any]:
-    config = load_live_engine_config(config_path)
+    config = _resolve_live_engine_config(config_path=config_path, config=config)
     resolved_symbols = symbols or [
         str(item.get("symbol", "")).strip().lower()
         for item in list(config.get("freshness_streams", []))
@@ -162,10 +178,11 @@ def _path_matches_expected(actual: str, expected: str | Path) -> bool:
 def validate_live_runtime_environment(
     *,
     config_path: Path,
+    config: Dict[str, Any] | None = None,
     snapshot_path: str | None = None,
     environ: Dict[str, str] | None = None,
 ) -> Dict[str, str]:
-    config = load_live_engine_config(config_path)
+    config = _resolve_live_engine_config(config_path=config_path, config=config)
     runtime_mode = str(config.get("runtime_mode", "monitor_only")).strip().lower()
     strategy_runtime = config.get("strategy_runtime", {})
     if runtime_mode == "trading" and not bool(strategy_runtime.get("implemented", False)):
@@ -622,15 +639,17 @@ def _default_aiohttp_session_factory(*, timeout_seconds: float):
 def build_live_runner(
     *,
     config_path: Path,
+    config: Dict[str, Any] | None = None,
     symbols: list[str] | None = None,
     snapshot_path: str | None = None,
     environment: Dict[str, str] | None = None,
 ):
     from project.live.runner import LiveEngineRunner
 
-    config = load_live_engine_config(config_path)
+    config = _resolve_live_engine_config(config_path=config_path, config=config)
     session_metadata = resolve_live_engine_session_metadata(
         config_path=config_path,
+        config=config,
         symbols=symbols,
         snapshot_path=snapshot_path,
     )
@@ -725,6 +744,7 @@ def main(argv: list[str] | None = None) -> int:
             json.dumps(
                 resolve_live_engine_session_metadata(
                     config_path=resolved_config_path,
+                    config=config,
                     symbols=symbols or None,
                     snapshot_path=resolved_snapshot_path,
                 ),
@@ -738,10 +758,12 @@ def main(argv: list[str] | None = None) -> int:
     if runtime_mode == "trading":
         runtime_environment = validate_live_runtime_environment(
             config_path=resolved_config_path,
+            config=config,
             snapshot_path=resolved_snapshot_path,
         )
     runner = build_live_runner(
         config_path=resolved_config_path,
+        config=config,
         symbols=symbols or None,
         snapshot_path=resolved_snapshot_path,
         environment=runtime_environment if runtime_mode == "trading" else None,

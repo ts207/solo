@@ -119,6 +119,42 @@ def test_run_live_engine_print_session_metadata(capsys, tmp_path: Path) -> None:
     assert out["strategy_runtime_implemented"] is False
 
 
+def test_run_live_engine_print_session_metadata_applies_run_id_override(
+    capsys, tmp_path: Path
+) -> None:
+    config_path = tmp_path / "live_config.yaml"
+    config_path.write_text(
+        "\n".join(
+            [
+                "runtime_mode: monitor_only",
+                "freshness_streams:",
+                "  - symbol: BTCUSDT",
+                "    stream: kline_5m",
+                "strategy_runtime:",
+                "  implemented: false",
+            ]
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+
+    assert (
+        run_live_engine.main(
+            [
+                "--config",
+                str(config_path),
+                "--run_id",
+                "run_override_001",
+                "--print_session_metadata",
+            ]
+        )
+        == 0
+    )
+    out = json.loads(capsys.readouterr().out)
+    assert out["runtime_mode"] == "monitor_only"
+    assert out["strategy_runtime_implemented"] is True
+
+
 def test_validate_live_runtime_environment_accepts_paper_contract() -> None:
     out = run_live_engine.validate_live_runtime_environment(
         config_path=Path("project/configs/live_paper.yaml"),
@@ -412,6 +448,57 @@ def test_run_live_engine_start_validates_runtime_environment_before_start(
 
     assert run_live_engine.main(["--config", str(config_path)]) == 0
     assert called["count"] == 1
+    assert dummy_runner.started is True
+
+
+def test_run_live_engine_run_id_override_reaches_runner(monkeypatch, tmp_path: Path) -> None:
+    captured: dict[str, object] = {}
+
+    class _DummyStateStore:
+        def update_from_exchange_snapshot(self, snapshot) -> None:
+            self.snapshot = snapshot
+
+    class _DummyRunner:
+        def __init__(self) -> None:
+            self.started = False
+            self.state_store = _DummyStateStore()
+
+        async def start(self) -> None:
+            self.started = True
+
+    dummy_runner = _DummyRunner()
+
+    def _build_runner(**kwargs):
+        captured["config"] = kwargs["config"]
+        return dummy_runner
+
+    monkeypatch.setattr(run_live_engine, "build_live_runner", _build_runner)
+
+    config_path = tmp_path / "live_monitor_only.yaml"
+    config_path.write_text(
+        "\n".join(
+            [
+                "runtime_mode: monitor_only",
+                "freshness_streams:",
+                "  - symbol: BTCUSDT",
+                "    stream: kline_5m",
+                "strategy_runtime:",
+                "  implemented: false",
+            ]
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+
+    assert (
+        run_live_engine.main(
+            ["--config", str(config_path), "--run_id", "run_override_002"]
+        )
+        == 0
+    )
+    strategy_runtime = captured["config"]["strategy_runtime"]
+    assert strategy_runtime["implemented"] is True
+    assert strategy_runtime["thesis_run_id"] == "run_override_002"
     assert dummy_runner.started is True
 
 
