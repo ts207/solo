@@ -833,19 +833,65 @@ def _write_hypothesis_registry(candidates: pd.DataFrame, out_dir: Path) -> None:
     """Write hypothesis_registry.parquet for promote_candidates audit chain validation."""
     if candidates.empty or "hypothesis_id" not in candidates.columns:
         return
+    registry_candidates = candidates.copy()
+    if "plan_row_id" not in registry_candidates.columns:
+        registry_candidates["plan_row_id"] = ""
     rows = [
         {
-            "hypothesis_id": str(hyp_id),
-            "plan_row_id": str(hyp_id),
+            "hypothesis_id": str(row.get("hypothesis_id", "")).strip(),
+            "plan_row_id": (
+                str(row.get("plan_row_id", "")).strip() or str(row.get("hypothesis_id", "")).strip()
+            ),
             "executed": True,
             "statuses": json.dumps(["candidate_discovery"]),
         }
-        for hyp_id in candidates["hypothesis_id"].dropna().unique()
-        if str(hyp_id).strip()
+        for row in registry_candidates[["hypothesis_id", "plan_row_id"]]
+        .drop_duplicates()
+        .to_dict(orient="records")
+        if str(row.get("hypothesis_id", "")).strip()
     ]
     if rows:
         write_parquet(pd.DataFrame(rows), out_dir / "hypothesis_registry.parquet")
         log.info("Wrote hypothesis_registry.parquet (%d rows) to %s", len(rows), out_dir)
+
+
+def _sort_final_candidates(
+    final_df: pd.DataFrame,
+    *,
+    enable_discovery_v2_scoring: bool,
+) -> pd.DataFrame:
+    if final_df.empty:
+        return final_df
+
+    if enable_discovery_v2_scoring:
+        if "discovery_quality_score_v3" in final_df.columns:
+            rank_col = "discovery_quality_score_v3"
+        elif "discovery_quality_score" in final_df.columns:
+            rank_col = "discovery_quality_score"
+        else:
+            rank_col = "t_stat"
+
+        if rank_col in final_df.columns and "is_discovery" in final_df.columns:
+            return final_df.sort_values(
+                ["is_discovery", rank_col],
+                ascending=[False, False],
+            ).reset_index(drop=True)
+        if rank_col in final_df.columns:
+            return final_df.sort_values(rank_col, ascending=False).reset_index(drop=True)
+        return final_df
+
+    fallback_rank_col = "t_stat" if "t_stat" in final_df.columns else "discovery_quality_score"
+    if fallback_rank_col in final_df.columns and "is_discovery" in final_df.columns:
+        return final_df.sort_values(
+            ["is_discovery", fallback_rank_col],
+            ascending=[False, False],
+        ).reset_index(drop=True)
+    if fallback_rank_col in final_df.columns:
+        return final_df.sort_values(
+            fallback_rank_col,
+            ascending=False,
+        ).reset_index(drop=True)
+    return final_df
 
 
 def _load_hierarchical_config(search_spec_doc: dict) -> dict | None:
@@ -1201,8 +1247,8 @@ def run(
         _h_spec_doc: dict = {}
         try:
             _h_spec_doc = _load_search_spec_doc(resolved_search_spec)
-        except Exception:
-            pass
+        except Exception as _h_exc:
+            log.warning("Failed to load search spec for hierarchical config: %s", _h_exc)
         _h_config = _load_hierarchical_config(_h_spec_doc) if not experiment_plan else None
 
         if _h_config is not None:
@@ -1552,67 +1598,57 @@ def run(
     final_df = _annotate_promotion_gate_fields(final_df)
 
     if not final_df.empty:
+        import yaml
+
+        config = {
+            "default_turnover_penalty_thresh": 0.8,
+            "default_coverage_thresh": 0.01,
+            "min_acceptable_regime_support_ratio": 0.4,
+        }
+        config_path = PROJECT_ROOT.parent / "project" / "configs" / "discovery_scoring_v2.yaml"
+        if config_path.exists():
+            try:
+                with config_path.open("r") as f:
+                    yaml_data = yaml.safe_load(f)
+                    if yaml_data and "v2_scoring" in yaml_data:
+                        config.update(yaml_data["v2_scoring"])
+            except Exception as e:
+                log.warning(f"Failed to load V2 scoring config: {e}")
+
         try:
-            import yaml
             from project.research.services.candidate_discovery_scoring import (
                 annotate_discovery_v2_scores,
+            )
+
+            final_df = annotate_discovery_v2_scores(final_df, config)
+        except Exception as e:
+            log.error("Failed to apply discovery v2 scoring: %s", e)
+            final_df["_v2_scoring_error"] = True
+
+        try:
+            from project.research.services.candidate_discovery_scoring import (
                 apply_ledger_multiplicity_correction,
             )
 
-            config = {
-                "default_turnover_penalty_thresh": 0.8,
-                "default_coverage_thresh": 0.01,
-                "min_acceptable_regime_support_ratio": 0.4,
-            }
-            config_path = PROJECT_ROOT.parent / "project" / "configs" / "discovery_scoring_v2.yaml"
-            if config_path.exists():
-                try:
-                    with config_path.open("r") as f:
-                        yaml_data = yaml.safe_load(f)
-                        if yaml_data and "v2_scoring" in yaml_data:
-                            config.update(yaml_data["v2_scoring"])
-                except Exception as e:
-                    log.warning(f"Failed to load V2 scoring config: {e}")
-
-            # TICKET-015: Decomposition components are now ALWAYS computed for diagnostics
-            final_df = annotate_discovery_v2_scores(final_df, config)
-
-            # Phase 3: Ledger-adjusted scoring (v3) — also ALWAYS computed (if enabled in yaml)
             final_df = apply_ledger_multiplicity_correction(
                 final_df, data_root=data_root, current_run_id=run_id
             )
-
-            if enable_discovery_v2_scoring:
-                # Rank by V3 if available, otherwise V2, otherwise legacy
-                if "discovery_quality_score_v3" in final_df.columns:
-                    rank_col = "discovery_quality_score_v3"
-                elif "discovery_quality_score" in final_df.columns:
-                    rank_col = "discovery_quality_score"
-                else:
-                    rank_col = "t_stat"  # fallback
-
-                if "is_discovery" in final_df.columns:
-                    final_df = final_df.sort_values(
-                        ["is_discovery", rank_col], ascending=[False, False]
-                    ).reset_index(drop=True)
-                else:
-                    final_df = final_df.sort_values(rank_col, ascending=False).reset_index(
-                        drop=True
-                    )
-                log.info("Sorted candidates by %s (V2 stabilization)", rank_col)
-            else:
-                # Default legacy sorting (abs(t_stat))
-                if "is_discovery" in final_df.columns:
-                    final_df = final_df.sort_values(
-                        [
-                            "is_discovery",
-                            "t_stat" if "t_stat" in final_df.columns else "discovery_quality_score",
-                        ],  # fallback
-                        ascending=[False, False],
-                    ).reset_index(drop=True)
-
         except Exception as e:
-            log.error("Failed to apply stabilization scoring: %s", e)
+            log.error("Failed to apply ledger multiplicity correction: %s", e)
+            final_df["_ledger_correction_error"] = True
+
+        try:
+            final_df = _sort_final_candidates(
+                final_df,
+                enable_discovery_v2_scoring=enable_discovery_v2_scoring,
+            )
+        except Exception as e:
+            log.error("Failed to sort final candidates (falling back to t_stat): %s", e)
+            fallback_col = "t_stat" if "t_stat" in final_df.columns else None
+            if fallback_col:
+                final_df = final_df.sort_values(fallback_col, ascending=False).reset_index(
+                    drop=True
+                )
 
     # Phase 3 — Write concept ledger records (unconditional; always accumulates history)
     if not final_df.empty:
@@ -1695,8 +1731,10 @@ def run(
             _div_spec_doc: dict = {}
             try:
                 _div_spec_doc = _load_search_spec_doc(resolved_search_spec)
-            except Exception:
-                pass
+            except Exception as _div_spec_exc:
+                log.warning(
+                    "Failed to load search spec for diversification config: %s", _div_spec_exc
+                )
             _div_config = _load_diversification_config(_div_spec_doc)
 
             final_df, _shortlist_df = annotate_candidates_with_diversification(

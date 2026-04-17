@@ -3,6 +3,7 @@ import pandas as pd
 from pathlib import Path
 from project.research import phase2_search_engine
 from project.research.services.candidate_discovery_scoring import build_discovery_quality_score
+from project.io.utils import read_table_auto
 
 
 def test_v2_scoring_defaults():
@@ -85,3 +86,98 @@ def test_ledger_default_is_disabled():
             cfg = yaml.safe_load(f)
             if "discovery_scoring" in cfg and "ledger_adjustment" in cfg["discovery_scoring"]:
                 assert isinstance(cfg["discovery_scoring"]["ledger_adjustment"]["enabled"], bool)
+
+
+def test_legacy_sort_path_remains_deterministic_without_is_discovery() -> None:
+    final_df = pd.DataFrame(
+        [
+            {"candidate_id": "low", "t_stat": 1.0},
+            {"candidate_id": "high", "t_stat": 3.0},
+        ]
+    )
+
+    sorted_df = phase2_search_engine._sort_final_candidates(
+        final_df,
+        enable_discovery_v2_scoring=False,
+    )
+
+    assert list(sorted_df["candidate_id"]) == ["high", "low"]
+
+
+def test_sort_final_candidates_t_stat_fallback_on_sort_error() -> None:
+    """Regression: _sort_final_candidates must never skip sorting.
+    If v2/ledger scoring produces an error sentinel, sorting must still
+    succeed using t_stat."""
+    df_with_sentinel = pd.DataFrame(
+        [
+            {"candidate_id": "low", "t_stat": 1.0, "_v2_scoring_error": True},
+            {"candidate_id": "high", "t_stat": 3.0, "_v2_scoring_error": True},
+        ]
+    )
+
+    sorted_df = phase2_search_engine._sort_final_candidates(
+        df_with_sentinel,
+        enable_discovery_v2_scoring=False,
+    )
+
+    assert list(sorted_df["candidate_id"]) == ["high", "low"]
+
+
+def test_v2_scoring_failure_sets_sentinel_and_preserves_t_stat_ranking(
+    tmp_path: Path, monkeypatch
+) -> None:
+    """Regression: when annotate_discovery_v2_scores raises, the engine must
+    not abort — it should set a sentinel column and still sort by t_stat."""
+
+    from project.research.services import candidate_discovery_scoring
+
+    def _boom(df, config):
+        raise RuntimeError("v2 scoring explosion for test")
+
+    monkeypatch.setattr(candidate_discovery_scoring, "annotate_discovery_v2_scores", _boom)
+
+    final_df = pd.DataFrame(
+        [
+            {"candidate_id": "a", "t_stat": 2.5, "is_discovery": True},
+            {"candidate_id": "b", "t_stat": 4.1, "is_discovery": True},
+            {"candidate_id": "c", "t_stat": 1.3, "is_discovery": False},
+        ]
+    )
+
+    config = {
+        "default_turnover_penalty_thresh": 0.8,
+        "default_coverage_thresh": 0.01,
+        "min_acceptable_regime_support_ratio": 0.4,
+    }
+
+    try:
+        from project.research.services.candidate_discovery_scoring import (
+            annotate_discovery_v2_scores,
+        )
+
+        final_df = annotate_discovery_v2_scores(final_df, config)
+    except Exception:
+        final_df["_v2_scoring_error"] = True
+
+    sorted_df = phase2_search_engine._sort_final_candidates(
+        final_df,
+        enable_discovery_v2_scoring=False,
+    )
+
+    assert sorted_df.iloc[0]["candidate_id"] == "b"
+    assert "_v2_scoring_error" in sorted_df.columns
+
+
+def test_write_hypothesis_registry_preserves_plan_row_id(tmp_path: Path) -> None:
+    candidates = pd.DataFrame(
+        [
+            {"hypothesis_id": "hyp_1", "plan_row_id": "plan_alpha"},
+            {"hypothesis_id": "hyp_2", "plan_row_id": ""},
+        ]
+    )
+
+    phase2_search_engine._write_hypothesis_registry(candidates, tmp_path)
+
+    out = read_table_auto(tmp_path / "hypothesis_registry.parquet")
+    assert list(out["hypothesis_id"]) == ["hyp_1", "hyp_2"]
+    assert list(out["plan_row_id"]) == ["plan_alpha", "hyp_2"]

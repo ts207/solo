@@ -207,6 +207,50 @@ def test_get_operator_dashboard_surfaces_invalid_run_manifest(tmp_path) -> None:
     assert any(run["status"] == "invalid_manifest" for run in payload["recent_runs"])
 
 
+def test_get_operator_dashboard_program_filter_scans_beyond_default_recent_cap(tmp_path) -> None:
+    target_program = "PROG_TARGET"
+    other_program = "PROG_OTHER"
+    runs_root = tmp_path / "runs"
+    runs_root.mkdir(parents=True)
+
+    for i in range(101):
+        run_id = f"run_other_{i:03d}"
+        run_root = runs_root / run_id
+        run_root.mkdir(parents=True)
+        (run_root / "run_manifest.json").write_text(
+            json.dumps(
+                {
+                    "run_id": run_id,
+                    "program_id": other_program,
+                    "status": "success",
+                    "finished_at": f"2026-04-01T00:{i % 60:02d}:00+00:00",
+                    "normalized_symbols": ["BTCUSDT"],
+                }
+            ),
+            encoding="utf-8",
+        )
+
+    target_run_root = runs_root / "run_target_001"
+    target_run_root.mkdir(parents=True)
+    (target_run_root / "run_manifest.json").write_text(
+        json.dumps(
+            {
+                "run_id": "run_target_001",
+                "program_id": target_program,
+                "status": "success",
+                "finished_at": "2026-04-02T00:00:00+00:00",
+                "normalized_symbols": ["ETHUSDT"],
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    payload = get_operator_dashboard(program_id=target_program, data_root=str(tmp_path), limit=5)
+
+    assert payload["active_program_id"] == target_program
+    assert payload["recent_runs"][0]["run_id"] == "run_target_001"
+
+
 def test_render_operator_summary_normalizes_json_and_loose_shapes() -> None:
     rendered = render_operator_summary(
         title="Edge Operator",

@@ -636,6 +636,44 @@ def _default_aiohttp_session_factory(*, timeout_seconds: float):
     return aiohttp.ClientSession(timeout=timeout)
 
 
+def _build_trading_order_manager(environment: Dict[str, str]) -> tuple[str, Any | None]:
+    from project.live.oms import OrderManager
+
+    venue = str(environment.get("venue", "binance")).strip().lower()
+    if venue == "bybit":
+        from project.live.bybit_client import BybitDerivativesClient
+
+        credentials = _resolve_bybit_api_credentials(environment)
+        if credentials["base_url"] and credentials["api_key"] and credentials["api_secret"]:
+            return (
+                venue,
+                OrderManager(
+                    exchange_client=BybitDerivativesClient(
+                        credentials["api_key"],
+                        credentials["api_secret"],
+                        base_url=credentials["base_url"],
+                    )
+                ),
+            )
+        return venue, None
+
+    from project.live.binance_client import BinanceFuturesClient
+
+    credentials = _resolve_binance_api_credentials(environment)
+    if credentials["base_url"] and credentials["api_key"] and credentials["api_secret"]:
+        return (
+            "binance",
+            OrderManager(
+                exchange_client=BinanceFuturesClient(
+                    credentials["api_key"],
+                    credentials["api_secret"],
+                    base_url=credentials["base_url"],
+                )
+            ),
+        )
+    return "binance", None
+
+
 def build_live_runner(
     *,
     config_path: Path,
@@ -656,33 +694,7 @@ def build_live_runner(
     order_manager = None
     venue = "binance"
     if environment is not None and session_metadata["runtime_mode"] == "trading":
-        from project.live.oms import OrderManager
-
-        venue = str(environment.get("venue", "binance")).strip().lower()
-        if venue == "bybit":
-            from project.live.bybit_client import BybitDerivativesClient
-
-            credentials = _resolve_bybit_api_credentials(environment)
-            if credentials["base_url"] and credentials["api_key"] and credentials["api_secret"]:
-                order_manager = OrderManager(
-                    exchange_client=BybitDerivativesClient(
-                        credentials["api_key"],
-                        credentials["api_secret"],
-                        base_url=credentials["base_url"],
-                    )
-                )
-        else:
-            from project.live.binance_client import BinanceFuturesClient
-
-            credentials = _resolve_binance_api_credentials(environment)
-            if credentials["base_url"] and credentials["api_key"] and credentials["api_secret"]:
-                order_manager = OrderManager(
-                    exchange_client=BinanceFuturesClient(
-                        credentials["api_key"],
-                        credentials["api_secret"],
-                        base_url=credentials["base_url"],
-                    )
-                )
+        venue, order_manager = _build_trading_order_manager(environment)
     return LiveEngineRunner(
         session_metadata["symbols"],
         exchange=venue,
@@ -703,6 +715,29 @@ def build_live_runner(
         runtime_mode=session_metadata["runtime_mode"],
         strategy_runtime=dict(config.get("strategy_runtime", {})),
     )
+
+
+async def _fetch_trading_start_snapshot(environment: Dict[str, str]) -> Dict[str, Any]:
+    venue = str(environment.get("venue", "binance")).strip().lower()
+    if venue == "bybit":
+        await preflight_bybit_venue_connectivity(environment=environment)
+        return await fetch_bybit_account_snapshot(environment=environment)
+
+    preflight = await preflight_binance_venue_connectivity(environment=environment)
+    validate_binance_account_preflight(preflight)
+    return await fetch_binance_futures_account_snapshot(environment=environment)
+
+
+def configure_runner_for_trading_start(*, runner: Any, environment: Dict[str, str]) -> None:
+    venue = str(environment.get("venue", "binance")).strip().lower()
+    if venue == "bybit":
+        runner.account_snapshot_fetcher = lambda: fetch_bybit_account_snapshot(environment=environment)
+    else:
+        runner.account_snapshot_fetcher = (
+            lambda: fetch_binance_futures_account_snapshot(environment=environment)
+        )
+    initial_account_snapshot = asyncio.run(_fetch_trading_start_snapshot(environment))
+    runner.state_store.update_from_exchange_snapshot(initial_account_snapshot)
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -772,29 +807,7 @@ def main(argv: list[str] | None = None) -> int:
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s %(message)s")
     try:
         if runtime_mode == "trading":
-            venue = str(runtime_environment.get("venue", "binance")).strip().lower()
-            if venue == "bybit":
-                runner.account_snapshot_fetcher = lambda: fetch_bybit_account_snapshot(
-                    environment=runtime_environment
-                )
-                preflight = asyncio.run(
-                    preflight_bybit_venue_connectivity(environment=runtime_environment)
-                )
-                initial_account_snapshot = asyncio.run(
-                    fetch_bybit_account_snapshot(environment=runtime_environment)
-                )
-            else:
-                runner.account_snapshot_fetcher = lambda: fetch_binance_futures_account_snapshot(
-                    environment=runtime_environment
-                )
-                preflight = asyncio.run(
-                    preflight_binance_venue_connectivity(environment=runtime_environment)
-                )
-                validate_binance_account_preflight(preflight)
-                initial_account_snapshot = asyncio.run(
-                    fetch_binance_futures_account_snapshot(environment=runtime_environment)
-                )
-            runner.state_store.update_from_exchange_snapshot(initial_account_snapshot)
+            configure_runner_for_trading_start(runner=runner, environment=runtime_environment)
         asyncio.run(runner.start())
     except KeyboardInterrupt:
         return 0

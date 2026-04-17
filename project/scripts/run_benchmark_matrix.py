@@ -25,20 +25,117 @@ CANONICAL_SYMBOL_RE = re.compile(r"^[A-Z0-9]+USDT$")
 SLICE_REQUIRED_FIELDS = ["id", "label", "symbols", "timeframe", "start", "end", "search_spec"]
 
 
-def write_run_matrix_summary_report(*args, **kwargs):
-    pass
+def write_run_matrix_summary_report(
+    *,
+    out_dir: str | Path,
+    baseline_run_id: str,
+    candidate_run_ids: List[str] | None = None,
+    data_root: Path | None = None,
+    thresholds: Dict[str, Any] | None = None,
+    drift_mode: str = "warn",
+) -> Path:
+    from project.research.services.run_comparison_service import (
+        write_run_matrix_summary_report as _write_run_matrix_summary_report,
+    )
+
+    resolved_out_dir = Path(out_dir)
+    resolved_out_dir.mkdir(parents=True, exist_ok=True)
+    resolved_data_root = Path(data_root) if data_root is not None else DATA_ROOT
+    candidate_ids = [
+        str(run_id).strip()
+        for run_id in (candidate_run_ids or [])
+        if str(run_id).strip() and str(run_id).strip() != str(baseline_run_id).strip()
+    ]
+    if baseline_run_id != "base" and candidate_ids:
+        try:
+            return _write_run_matrix_summary_report(
+                data_root=resolved_data_root,
+                baseline_run_id=baseline_run_id,
+                candidate_run_ids=candidate_ids,
+                out_dir=resolved_out_dir,
+                thresholds=thresholds,
+                drift_mode=drift_mode,
+            )
+        except FileNotFoundError:
+            logger.warning("Benchmark matrix summary fallback triggered for baseline %s", baseline_run_id)
+
+    payload = {
+        "baseline_run_id": str(baseline_run_id),
+        "candidate_run_ids": candidate_ids,
+        "drift_mode": str(drift_mode),
+        "status": "comparison_unavailable",
+    }
+    out_path = resolved_out_dir / "research_run_matrix_summary.json"
+    out_path.write_text(json.dumps(payload, indent=2), encoding="utf-8")
+    (resolved_out_dir / "research_run_matrix_summary.md").write_text(
+        "# Research Run Matrix Summary\n\n"
+        f"- baseline_run_id: `{baseline_run_id}`\n"
+        f"- candidate_run_count: `{len(candidate_ids)}`\n"
+        "- status: `comparison_unavailable`\n",
+        encoding="utf-8",
+    )
+    return out_path
 
 
-def write_live_data_foundation_report(*args, **kwargs):
-    pass
+def write_live_data_foundation_report(
+    *,
+    run_id: str,
+    symbol: str,
+    timeframe: str,
+    data_root: Path | None = None,
+    market: str = "perp",
+    feature_schema_version: str = "v2",
+    config_path: str | Path | None = None,
+    out_dir: str | Path | None = None,
+) -> Path:
+    from project.research.services.live_data_foundation_service import (
+        write_live_data_foundation_report as _write_live_data_foundation_report,
+    )
+
+    return _write_live_data_foundation_report(
+        data_root=Path(data_root) if data_root is not None else DATA_ROOT,
+        run_id=run_id,
+        symbol=symbol,
+        timeframe=timeframe,
+        market=market,
+        feature_schema_version=feature_schema_version,
+        config_path=Path(config_path) if config_path else None,
+        out_dir=Path(out_dir) if out_dir else None,
+    )
 
 
-def build_context_mode_comparison_payload(*args, **kwargs):
-    return {}
+def build_context_mode_comparison_payload(
+    *,
+    run_id: str,
+    symbols: List[str],
+    timeframe: str,
+    data_root: Path | None = None,
+    min_sample_size: int = 30,
+    search_space_path: str | Path | None = None,
+) -> Dict[str, Any]:
+    from project.research.services.context_mode_comparison_service import (
+        build_context_mode_comparison_payload as _build_context_mode_comparison_payload,
+    )
+
+    return _build_context_mode_comparison_payload(
+        data_root=Path(data_root) if data_root is not None else DATA_ROOT,
+        run_id=run_id,
+        symbols=symbols,
+        timeframe=timeframe,
+        min_sample_size=min_sample_size,
+        search_space_path=Path(search_space_path) if search_space_path else None,
+    )
 
 
-def write_context_mode_comparison_report(*args, **kwargs):
-    pass
+def write_context_mode_comparison_report(*, out_path: str | Path, comparison: Dict[str, Any]) -> Path:
+    from project.research.services.context_mode_comparison_service import (
+        write_context_mode_comparison_report as _write_context_mode_comparison_report,
+    )
+
+    return _write_context_mode_comparison_report(
+        out_path=Path(out_path),
+        comparison=comparison,
+    )
 
 
 def load_yaml(path: Path) -> Dict[str, Any]:
@@ -345,20 +442,26 @@ def _run_matrix_mode(args) -> int:
         job["command"] = f"--run_id {job['run_id']}"
 
         if post_reports and job["status"] == "success":
-            if "write_live_data_foundation_report" in globals():
+            live_foundation_cfg = dict(post_reports.get("live_foundation", {}) or {})
+            if live_foundation_cfg.get("enabled"):
                 path = write_live_data_foundation_report(
                     run_id=job["run_id"],
                     symbol=job["symbols"],
                     timeframe=job["timeframe"],
+                    data_root=DATA_ROOT,
+                    config_path=live_foundation_cfg.get("config"),
                 )
                 if path:
                     job["generated_reports"]["live_foundation"] = str(path)
 
-            if "build_context_mode_comparison_payload" in globals():
+            context_comparison_cfg = dict(post_reports.get("context_comparison", {}) or {})
+            if context_comparison_cfg.get("enabled"):
                 comparison = build_context_mode_comparison_payload(
                     run_id=job["run_id"],
                     symbols=[job["symbols"]],
                     timeframe=job["timeframe"],
+                    data_root=DATA_ROOT,
+                    search_space_path=context_comparison_cfg.get("search_space_path"),
                 )
                 if comparison:
                     comp_path = out_dir / f"context_{job['run_id']}.json"
@@ -369,8 +472,12 @@ def _run_matrix_mode(args) -> int:
 
     manifest = _write_outputs(out_dir, matrix_id, execute, results)
 
-    if "write_run_matrix_summary_report" in globals():
-        write_run_matrix_summary_report(out_dir=str(out_dir), baseline_run_id="base")
+    write_run_matrix_summary_report(
+        out_dir=out_dir,
+        baseline_run_id="base",
+        candidate_run_ids=[result["run_id"] for result in results],
+        data_root=DATA_ROOT,
+    )
 
     return 0 if manifest["certification_passed"] or not execute else 1
 

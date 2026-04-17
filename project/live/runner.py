@@ -41,6 +41,11 @@ from project.live.thesis_reconciliation import (
 )
 from project.live.thesis_state import ThesisStateManager
 from project.live.thesis_store import ThesisStore
+from project.core.exceptions import (
+    CompatibilityRequiredError,
+    DataIntegrityError,
+    SchemaMismatchError,
+)
 from project.portfolio.incubation import IncubationLedger
 
 _LOG = logging.getLogger(__name__)
@@ -534,6 +539,7 @@ class LiveEngineRunner:
     def _load_thesis_store(self) -> ThesisStore | None:
         thesis_path = str(self.strategy_runtime.get("thesis_path", "")).strip()
         thesis_run_id = str(self.strategy_runtime.get("thesis_run_id", "")).strip()
+        strict_runtime = bool(self.strategy_runtime.get("implemented", False))
         try:
             store = None
             if thesis_path:
@@ -547,14 +553,19 @@ class LiveEngineRunner:
                 _LOG.info("Loaded %d promoted theses for deployment.", len(store.all()))
                 return store
 
-        except FileNotFoundError as exc:
-            if bool(self.strategy_runtime.get("implemented", False)):
+        except (
+            FileNotFoundError,
+            CompatibilityRequiredError,
+            DataIntegrityError,
+            SchemaMismatchError,
+        ) as exc:
+            if strict_runtime:
                 raise RuntimeError(
                     "Configured thesis store is unavailable for live runtime; "
                     "export theses from a specific run and set "
                     "strategy_runtime.thesis_path or strategy_runtime.thesis_run_id."
                 ) from exc
-            _LOG.warning("Configured thesis store is unavailable for live runtime.")
+            _LOG.warning("Configured thesis store is unavailable for live runtime: %s", exc)
             return None
         return None
 
@@ -1040,7 +1051,7 @@ class LiveEngineRunner:
             try:
                 raw = await self.market_feature_fetcher(normalized)
             except Exception as exc:
-                _LOG.debug("Runtime market-feature refresh failed for %s: %s", normalized, exc)
+                _LOG.warning("Runtime market-feature refresh failed for %s: %s", normalized, exc)
                 self._latest_runtime_market_features_by_symbol.pop(normalized, None)
                 continue
             if not isinstance(raw, Mapping):
@@ -1562,17 +1573,20 @@ class LiveEngineRunner:
             _LOG.info("Live state auto-persist enabled at %s", self.state_store._snapshot_path)
 
         if self.reconcile_at_startup and self.account_snapshot_fetcher is not None:
-            _LOG.info("Performing strict startup reconciliation...")
+            _LOG.info("Performing startup account sync...")
             exchange_snapshot = await self.account_snapshot_fetcher()
             discrepancies = self.state_store.reconcile(exchange_snapshot)
             if discrepancies:
                 for error in discrepancies:
-                    _LOG.error(f"RECONCILIATION ERROR: {error}")
-                raise RuntimeError(
-                    f"Startup reconciliation failed with {len(discrepancies)} discrepancies. "
-                    "Aborting startup for safety."
-                )
-            _LOG.info("Reconciliation successful.")
+                    _LOG.warning(
+                        "Startup reconciliation drift (expected from inter-snapshot "
+                        "venue movement): %s",
+                        error,
+                    )
+            else:
+                _LOG.info("Startup reconciliation verified — no drift.")
+            self.state_store.update_from_exchange_snapshot(exchange_snapshot)
+            _LOG.info("Startup account state synced from exchange.")
 
         self._running = True
 

@@ -8,6 +8,7 @@ import pandas as pd
 import pytest
 
 from project import PROJECT_ROOT
+from project.core.exceptions import CompatibilityRequiredError
 from project.engine.exchange_constraints import SymbolConstraints
 from project.engine.strategy_executor import StrategyResult, calculate_strategy_returns
 from project.live.execution_attribution import build_execution_attribution_record
@@ -102,6 +103,32 @@ def test_live_runner_fails_closed_for_missing_explicit_thesis_store(tmp_path) ->
                 "thesis_path": str(missing_path),
             },
         )
+
+
+def test_live_runner_monitor_only_ignores_invalid_optional_thesis_store(
+    monkeypatch, tmp_path
+) -> None:
+    broken_path = tmp_path / "broken_promoted_theses.json"
+    broken_path.write_text("{}", encoding="utf-8")
+
+    monkeypatch.setattr(
+        "project.live.runner.ThesisStore.from_path",
+        lambda _path: (_ for _ in ()).throw(
+            CompatibilityRequiredError("legacy_but_interpretable artifact")
+        ),
+    )
+
+    runner = LiveEngineRunner(
+        ["btcusdt"],
+        data_manager=_DummyDataManager(),
+        strategy_runtime={
+            "implemented": False,
+            "thesis_path": str(broken_path),
+        },
+    )
+
+    assert runner._thesis_store is None
+    assert runner.session_metadata["strategy_runtime_implemented"] is False
 
 
 def test_live_runner_periodic_account_sync_updates_state() -> None:
@@ -302,6 +329,55 @@ def test_reconcile_thesis_batch_raises_typed_error_for_trading_runtime(monkeypat
         runner._reconcile_thesis_batch()
 
     assert excinfo.type.__name__ == "ThesisBatchReconciliationError"
+
+
+def test_startup_reconciliation_does_not_abort_on_minor_venue_drift() -> None:
+    """Regression: launcher seeds state from snapshot A, then start() fetches
+    snapshot B.  Even when drift exceeds tolerances (e.g. fill between
+    snapshots), startup must not abort — it updates state and logs warnings."""
+    from project.live.state import LiveStateStore
+
+    state_store = LiveStateStore()
+    state_store.update_from_exchange_snapshot(
+        {
+            "wallet_balance": 10000.0,
+            "margin_balance": 10000.0,
+            "available_balance": 9800.0,
+            "positions": [
+                {
+                    "symbol": "BTCUSDT",
+                    "quantity": 0.5,
+                    "entry_price": 60000.0,
+                    "unrealized_pnl": 100.0,
+                },
+            ],
+        }
+    )
+
+    drift_snapshot = {
+        "wallet_balance": 10000.50,
+        "margin_balance": 10000.50,
+        "available_balance": 9800.50,
+        "positions": [
+            {
+                "symbol": "BTCUSDT",
+                "quantity": 0.51,
+                "entry_price": 60000.0,
+                "unrealized_pnl": 110.0,
+            },
+        ],
+    }
+
+    discrepancies = state_store.reconcile(drift_snapshot)
+    assert len(discrepancies) > 0, "drift must exceed tolerances for this test"
+
+    state_store.update_from_exchange_snapshot(drift_snapshot)
+    assert state_store.account.wallet_balance == pytest.approx(10000.50)
+    assert state_store.account.positions["BTCUSDT"].quantity == pytest.approx(0.51)
+
+    state_store.update_from_exchange_snapshot(drift_snapshot)
+    discrepancies_after = state_store.reconcile(drift_snapshot)
+    assert len(discrepancies_after) == 0, "after update, no discrepancies"
 
 
 def test_live_runner_monitor_only_kill_switch_does_not_mutate_venue() -> None:
@@ -1202,10 +1278,12 @@ def test_live_runner_monitor_only_processes_thesis_runtime_events(tmp_path) -> N
 
 
 def test_live_runner_refreshes_runtime_market_features_and_computes_open_interest_delta() -> None:
-    responses = iter([
-        {"funding_rate": 0.0010, "open_interest": 1000.0, "mark_price": 101.0},
-        {"funding_rate": 0.0015, "open_interest": 900.0, "mark_price": 102.0},
-    ])
+    responses = iter(
+        [
+            {"funding_rate": 0.0010, "open_interest": 1000.0, "mark_price": 101.0},
+            {"funding_rate": 0.0015, "open_interest": 900.0, "mark_price": 102.0},
+        ]
+    )
 
     async def _fetch_market_features(symbol: str):
         assert symbol == "BTCUSDT"
@@ -1277,9 +1355,9 @@ def test_live_runner_clears_runtime_market_features_after_refresh_failure() -> N
 
     async def _exercise() -> None:
         await runner._refresh_runtime_market_features_once()
-        assert runner._latest_runtime_market_features_by_symbol["BTCUSDT"]["funding_rate"] == pytest.approx(
-            0.0010
-        )
+        assert runner._latest_runtime_market_features_by_symbol["BTCUSDT"][
+            "funding_rate"
+        ] == pytest.approx(0.0010)
         await runner._refresh_runtime_market_features_once()
         assert "BTCUSDT" not in runner._latest_runtime_market_features_by_symbol
 
@@ -1297,7 +1375,9 @@ def test_live_runner_clears_runtime_market_features_after_refresh_failure() -> N
     asyncio.run(_exercise())
 
 
-def test_live_runner_persists_runtime_metrics_snapshot_with_market_state_and_decisions(tmp_path) -> None:
+def test_live_runner_persists_runtime_metrics_snapshot_with_market_state_and_decisions(
+    tmp_path,
+) -> None:
     thesis_dir = tmp_path / "live" / "theses" / "run_metrics"
     thesis_dir.mkdir(parents=True, exist_ok=True)
     (thesis_dir / "promoted_theses.json").write_text(
@@ -1360,10 +1440,12 @@ def test_live_runner_persists_runtime_metrics_snapshot_with_market_state_and_dec
         ),
         encoding="utf-8",
     )
-    responses = iter([
-        {"funding_rate": 0.0010, "open_interest": 1000.0, "mark_price": 101.0},
-        {"funding_rate": 0.0015, "open_interest": 900.0, "mark_price": 102.0},
-    ])
+    responses = iter(
+        [
+            {"funding_rate": 0.0010, "open_interest": 1000.0, "mark_price": 101.0},
+            {"funding_rate": 0.0015, "open_interest": 900.0, "mark_price": 102.0},
+        ]
+    )
 
     async def _fetch_market_features(symbol: str):
         assert symbol == "BTCUSDT"

@@ -18,6 +18,7 @@ from project.research.validation.contracts import (
     ValidationReasonCodes,
 )
 from project.research.validation.result_writer import (
+    load_validation_bundle,
     write_validation_bundle,
     write_validated_candidate_tables,
 )
@@ -50,13 +51,184 @@ class EvaluationSummaryResult:
 
 
 class EvaluationSummaryService:
-    def __init__(self):
-        self.data_root = get_data_root()
+    def __init__(self, data_root: Optional[Path] = None):
+        self.data_root = data_root or get_data_root()
 
     def summarize_run(
         self, run_id: str, config: Optional[EvaluationSummaryConfig] = None
     ) -> EvaluationSummaryResult:
-        return EvaluationSummaryResult(run_id, "", "", {}, [], [], 0, 0, 0.0, [], {}, {})
+        resolved = config or EvaluationSummaryConfig(run_id=run_id)
+        phase2_root = resolved.phase2_root or self.data_root / "reports" / "phase2" / run_id
+        validation_root = self.data_root / "reports" / "validation" / run_id
+        validation_bundle = None
+        try:
+            validation_bundle = load_validation_bundle(run_id, base_dir=validation_root)
+        except Exception:
+            validation_bundle = None
+
+        tables = ValidationService(data_root=self.data_root).load_candidate_tables(run_id)
+        candidates_df = select_stage_candidate_table(tables)
+        promotion_ready_df = self._read_optional_table(validation_root / "promotion_ready_candidates.parquet")
+        rejection_df = self._read_optional_table(validation_root / "rejection_reasons.parquet")
+
+        primary_event_col = self._first_present_column(
+            candidates_df, "primary_event_id", "event_type", "event_id"
+        )
+        family_col = self._first_present_column(
+            candidates_df, "family", "event_family", "research_family"
+        )
+
+        total_candidates = int(len(candidates_df))
+        gate_pass_count = (
+            int(len(promotion_ready_df))
+            if not promotion_ready_df.empty
+            else int(len(getattr(validation_bundle, "validated_candidates", [])))
+        )
+        gate_pass_rate = float(gate_pass_count / total_candidates) if total_candidates else 0.0
+
+        primary_event_ids = self._sorted_unique_values(candidates_df, primary_event_col)
+        event_families = self._sorted_unique_values(candidates_df, family_col)
+
+        source_files = {
+            "phase2_root": str(phase2_root),
+            "validation_root": str(validation_root),
+        }
+        for label, path in {
+            "edge_candidates": self.data_root / "reports" / "edge_candidates" / run_id / "edge_candidates_normalized.parquet",
+            "phase2_candidates": phase2_root / "phase2_candidates.parquet",
+            "promotion_ready_candidates": validation_root / "promotion_ready_candidates.parquet",
+            "rejection_reasons": validation_root / "rejection_reasons.parquet",
+            "validation_bundle": validation_root / "validation_bundle.json",
+        }.items():
+            if path.exists():
+                source_files[label] = str(path)
+
+        result = EvaluationSummaryResult(
+            run_id=run_id,
+            generated_at=datetime.now().isoformat(),
+            phase2_root=str(phase2_root),
+            source_files=source_files,
+            primary_event_ids=primary_event_ids,
+            event_families=event_families,
+            total_candidates=total_candidates,
+            gate_pass_count=gate_pass_count,
+            gate_pass_rate=gate_pass_rate,
+            top_fail_reasons=self._top_fail_reasons(rejection_df, limit=resolved.top_fail_reasons),
+            by_primary_event_id=self._group_counts(
+                candidates_df,
+                promotion_ready_df,
+                key_col=primary_event_col,
+            ),
+            by_event_family=self._group_counts(
+                candidates_df,
+                promotion_ready_df,
+                key_col=family_col,
+            ),
+            funnel_payload=self._build_funnel_payload(
+                total_candidates=total_candidates,
+                promotion_ready_df=promotion_ready_df,
+                rejection_df=rejection_df,
+                validation_bundle=validation_bundle,
+            ),
+        )
+
+        if resolved.out_path is not None:
+            resolved.out_path.parent.mkdir(parents=True, exist_ok=True)
+            resolved.out_path.write_text(json.dumps(result.__dict__, indent=2), encoding="utf-8")
+        if resolved.funnel_out_path is not None:
+            resolved.funnel_out_path.parent.mkdir(parents=True, exist_ok=True)
+            resolved.funnel_out_path.write_text(
+                json.dumps(result.funnel_payload, indent=2),
+                encoding="utf-8",
+            )
+        return result
+
+    def _read_optional_table(self, path: Path) -> pd.DataFrame:
+        try:
+            return read_table_auto(path)
+        except Exception:
+            return pd.DataFrame()
+
+    def _first_present_column(self, frame: pd.DataFrame, *columns: str) -> str | None:
+        for column in columns:
+            if column in frame.columns:
+                return column
+        return None
+
+    def _sorted_unique_values(self, frame: pd.DataFrame, column: str | None) -> List[str]:
+        if column is None or frame.empty:
+            return []
+        values = (
+            frame[column]
+            .dropna()
+            .astype(str)
+            .map(str.strip)
+        )
+        return sorted(value for value in values.unique().tolist() if value)
+
+    def _top_fail_reasons(self, rejection_df: pd.DataFrame, *, limit: int) -> List[Dict[str, Any]]:
+        if rejection_df.empty:
+            return []
+        counts: dict[str, int] = {}
+        reason_col = "reason_codes" if "reason_codes" in rejection_df.columns else "validation_reason_codes"
+        if reason_col not in rejection_df.columns:
+            return []
+        for raw in rejection_df[reason_col].dropna().astype(str):
+            for token in raw.split("|"):
+                reason = token.strip()
+                if not reason:
+                    continue
+                counts[reason] = counts.get(reason, 0) + 1
+        ranked = sorted(counts.items(), key=lambda item: (-item[1], item[0]))
+        return [
+            {"reason": reason, "count": count}
+            for reason, count in ranked[: max(0, int(limit))]
+        ]
+
+    def _group_counts(
+        self,
+        candidates_df: pd.DataFrame,
+        promotion_ready_df: pd.DataFrame,
+        *,
+        key_col: str | None,
+    ) -> Dict[str, Dict[str, Any]]:
+        if key_col is None or candidates_df.empty:
+            return {}
+        promoted_ids = set(
+            promotion_ready_df.get("candidate_id", pd.Series(dtype="object"))
+            .dropna()
+            .astype(str)
+            .tolist()
+        )
+        grouped: Dict[str, Dict[str, Any]] = {}
+        for key, group in candidates_df.groupby(key_col):
+            label = str(key).strip()
+            if not label:
+                continue
+            candidate_ids = set(group.get("candidate_id", pd.Series(dtype="object")).astype(str).tolist())
+            grouped[label] = {
+                "candidate_count": int(len(group)),
+                "gate_pass_count": int(len(candidate_ids & promoted_ids)),
+            }
+        return grouped
+
+    def _build_funnel_payload(
+        self,
+        *,
+        total_candidates: int,
+        promotion_ready_df: pd.DataFrame,
+        rejection_df: pd.DataFrame,
+        validation_bundle: Any,
+    ) -> Dict[str, Any]:
+        if validation_bundle is not None and hasattr(validation_bundle, "summary_stats"):
+            payload = dict(getattr(validation_bundle, "summary_stats", {}) or {})
+        else:
+            payload = {}
+        payload.setdefault("total", int(total_candidates))
+        payload.setdefault("validated", int(len(promotion_ready_df)))
+        payload.setdefault("rejected", int(len(rejection_df)))
+        payload.setdefault("inconclusive", 0)
+        return payload
 
 
 STAGE_CANDIDATE_SOURCES = ("edge_candidates", "phase2_candidates")

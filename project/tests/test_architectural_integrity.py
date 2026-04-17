@@ -9,145 +9,193 @@ from project import PROJECT_ROOT
 
 # --- Dependency Matrix Definition ---
 
-ALLOWED_DEPENDENCIES = {
-    "project.core": ["project.spec_registry", "project.artifacts", "project.specs", "project.io"],
-    "project.io": ["project.core", "project.artifacts"],
-    "project.specs": [
-        "project.core",
-        "project.io",
-        "project.spec_registry",
-        "project.schemas",
-        "project.artifacts",
-    ],
-    "project.domain": ["project.core", "project.specs", "project.spec_registry", "project.events"],
-    "project.runtime": ["project.core", "project.specs"],
-    "project.events": [
-        "project.core",
-        "project.io",
+_PACKAGE_DEPENDENCY_ROWS = [
+    ("project.core", ["project.spec_registry", "project.artifacts", "project.specs", "project.io"]),
+    ("project.io", ["project.core", "project.artifacts"]),
+    (
         "project.specs",
-        "project.spec_registry",
-        "project.research",
+        [
+            "project.core",
+            "project.io",
+            "project.spec_registry",
+            "project.schemas",
+            "project.artifacts",
+        ],
+    ),
+    ("project.domain", ["project.core", "project.specs", "project.spec_registry", "project.events"]),
+    ("project.runtime", ["project.core", "project.specs"]),
+    (
+        "project.events",
+        [
+            "project.core",
+            "project.io",
+            "project.specs",
+            "project.spec_registry",
+            "project.research",
+            "project.features",
+            "project.artifacts",
+            "project.contracts",
+            "project.domain",
+            "project.spec_validation",
+        ],
+    ),
+    (
         "project.features",
-        "project.artifacts",
-        "project.contracts",
-        "project.domain",
-    ],
-    "project.features": [
-        "project.core",
-        "project.io",
-        "project.events",
-        "project.spec_registry",
-        "project.artifacts",
-        "project.contracts",
-    ],
-    "project.strategy": [
-        "project.compilers",
-        "project.core",
+        [
+            "project.core",
+            "project.io",
+            "project.events",
+            "project.spec_registry",
+            "project.artifacts",
+            "project.contracts",
+        ],
+    ),
+    (
+        "project.strategy",
+        [
+            "project.compilers",
+            "project.core",
+            "project.strategy.runtime",
+            "project.events",
+            "project.domain",
+            "project.engine",
+            "project.schemas",
+        ],
+    ),
+    (
         "project.strategy.runtime",
-        "project.events",
-        "project.domain",
+        [
+            "project.core",
+            "project.strategy",
+            "project.events",
+            "project.compilers",
+        ],
+    ),
+    (
         "project.engine",
-        "project.schemas",
-    ],
-    "project.strategy.runtime": [
-        "project.core",
-        "project.strategy",
-        "project.events",
+        [
+            "project.core",
+            "project.io",
+            "project.events",
+            "project.features",
+            "project.strategy.runtime",
+            "project.strategy",
+            "project.portfolio",
+        ],
+    ),
+    (
         "project.compilers",
-    ],
-    "project.engine": [
-        "project.core",
-        "project.io",
-        "project.events",
-        "project.features",
-        "project.strategy.runtime",
-        "project.strategy",
+        [
+            "project.core",
+            "project.specs",
+            "project.events",
+            "project.domain",
+            "project.strategy",
+            "project.schemas",
+        ],
+    ),
+    (
         "project.portfolio",
-    ],
-    "project.compilers": [
-        "project.core",
-        "project.specs",
-        "project.events",
-        "project.domain",
-        "project.strategy",
-        "project.schemas",
-    ],
-    "project.portfolio": [
-        "project.core",
-        "project.specs",
-        "project.strategy",
+        [
+            "project.core",
+            "project.specs",
+            "project.strategy",
+            "project.live",
+            "project.research",
+        ],
+    ),
+    (
+        "project.research",
+        [
+            "project.core",
+            "project.io",
+            "project.specs",
+            "project.runtime",
+            "project.events",
+            "project.features",
+            "project.strategy",
+            "project.strategy.runtime",
+            "project.engine",
+            "project.eval",
+            "project.spec_registry",
+            "project.artifacts",
+            "project.schemas",
+            "project.spec_validation",
+            "project.contracts",
+            "project.domain",
+            "project.compilers",
+            "project.portfolio",
+            "project.live",
+            "project.operator",
+            "project.episodes",
+        ],
+    ),
+    (
+        "project.pipelines",
+        [
+            "project.research",
+            "project.engine",
+            "project.events",
+            "project.core",
+            "project.io",
+            "project.specs",
+            "project.contracts",
+            "project.domain",
+            "project.features",
+            "project.schemas",
+            "project.eval",
+            "project.runtime",
+            "project.spec_registry",
+            "project.experiments",
+            "project.operator",
+        ],
+    ),
+    ("project.operator", ["project.core", "project.research", "project.specs", "project.io"]),
+    (
         "project.live",
-        "project.research",
-    ],
-    "project.research": [
-        "project.core",
-        "project.io",
-        "project.specs",
-        "project.runtime",
-        "project.events",
-        "project.features",
-        "project.strategy",
-        "project.strategy.runtime",
-        "project.engine",
-        "project.eval",
-        "project.spec_registry",
-        "project.artifacts",
-        "project.schemas",
-        "project.spec_validation",
-        "project.contracts",
-        "project.domain",
-        "project.compilers",
-        "project.portfolio",
-        "project.live",
-        "project.operator",
-        "project.episodes",
-    ],
-    "project.pipelines": [
-        "project.research",
-        "project.engine",
-        "project.events",
-        "project.core",
-        "project.io",
-        "project.specs",
-        "project.contracts",
-        "project.domain",
-        "project.features",
-        "project.schemas",
-        "project.eval",
-        "project.runtime",
-        "project.spec_registry",
-        "project.experiments",
-        "project.operator",
-    ],
-    "project.events": [
-        "project.core",
-        "project.io",
-        "project.specs",
-        "project.spec_registry",
-        "project.research",
-        "project.features",
-        "project.artifacts",
-        "project.contracts",
-        "project.domain",
-        "project.spec_validation",
-    ],
-    "project.operator": ["project.core", "project.research", "project.specs", "project.io"],
-    "project.live": [
-        "project.core",
-        "project.events",
-        "project.features",
-        "project.strategy",
-        "project.strategy.runtime",
-        "project.portfolio",
-        "project.episodes",
-        "project.io",
-        "project.engine",
-        "project.research",
-        "project.artifacts",
-        "project.domain",
-    ],
-    "project.episodes": ["project.core", "project.specs", "project.spec_registry"],
-}
+        [
+            "project.core",
+            "project.events",
+            "project.features",
+            "project.strategy",
+            "project.strategy.runtime",
+            "project.portfolio",
+            "project.episodes",
+            "project.io",
+            "project.engine",
+            "project.research",
+            "project.artifacts",
+            "project.domain",
+        ],
+    ),
+    ("project.episodes", ["project.core", "project.specs", "project.spec_registry"]),
+]
+
+
+def _build_allowed_dependencies(
+    rows: list[tuple[str, list[str]]],
+) -> dict[str, list[str]]:
+    seen: set[str] = set()
+    mapping: dict[str, list[str]] = {}
+    duplicates: list[str] = []
+    for package, allowed in rows:
+        if package in seen:
+            duplicates.append(package)
+            continue
+        seen.add(package)
+        mapping[package] = list(allowed)
+    if duplicates:
+        raise ValueError(f"duplicate package dependency declarations: {sorted(set(duplicates))}")
+    return mapping
+
+
+ALLOWED_DEPENDENCIES = _build_allowed_dependencies(_PACKAGE_DEPENDENCY_ROWS)
+
+
+def test_dependency_registry_has_no_duplicate_package_entries() -> None:
+    packages = [package for package, _ in _PACKAGE_DEPENDENCY_ROWS]
+    duplicates = sorted({package for package in packages if packages.count(package) > 1})
+    assert not duplicates, f"duplicate package dependency declarations: {duplicates}"
 
 
 def get_package_name(file_path: Path) -> str:
