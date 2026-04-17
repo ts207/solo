@@ -1,8 +1,7 @@
-program_id: broad_vol_spike
+program_id: broad_vol_spike_short
 description: >
-  Broad discovery: VOL_SPIKE long continuation 48b, rv_pct_17280 > 70, 2023-2024.
-  NOTE: exhaustion_reversal is incompatible with VOLATILITY_EXPANSION family (plan drops it silently).
-  Using continuation — the correct template for shock-phase events.
+  VOL_SPIKE SHORT continuation 48b, rv_pct_17280 > 70, 2023-2024.
+  Long direction has t=-1.08 (price falls after vol spike). Testing short.
 run_mode: research
 objective_name: retail_profitability
 promotion_profile: research
@@ -31,5 +30,5 @@ hypothesis:
     entry_lag_bars: 1
   template:
     id: continuation
-  direction: long
+  direction: short
   horizon_bars: 48
