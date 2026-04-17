@@ -1,0 +1,17 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 -c \"\nimport json,sys,re\nd=json.load(sys.stdin)\ncmd=d.get('tool_input',{}).get('command','')\nif re.search(r'project\\.cli (discover|promote) run|project\\.pipelines\\.run_all', cmd):\n    import subprocess,os\n    os.chdir('/home/irene/Edge')\n    subprocess.run(['python3','project/scripts/update_results_index.py'],env={**os.environ,'PYTHONPATH':'.'},check=False)\n\" 2>/dev/null || true",
+            "async": true,
+            "statusMessage": "Updating results index..."
+          }
+        ]
+      }
+    ]
+  }
+}
