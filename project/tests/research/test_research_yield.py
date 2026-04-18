@@ -13,23 +13,22 @@ log = logging.getLogger(__name__)
 @pytest.mark.integration
 class TestResearchYield:
     """
-    Guards against pipeline drift by ensuring that at least one highly productive 
-    historical proposal (the Golden Path) retains the ability to navigate 
-    the full 4-stage lifecycle (Discover -> Validate -> Promote -> Deploy) 
-    and output a candidate that completes validation successfully.
+    Guards against pipeline drift by ensuring that one canonical research proposal
+    can navigate the supported lifecycle:
+    Discover -> Validate -> Promote -> Export.
     """
 
-    def test_productive_golden_path_yields_deployable_thesis(self, tmp_path: Path):
+    def test_canonical_research_path_yields_exportable_thesis(self, tmp_path: Path):
         """
-        Executes the canonical golden path proposal end-to-end.
+        Executes the canonical research path end-to-end.
         """
-        golden_path_proposal = Path("spec/proposals/productive_golden_path.yaml")
-        assert golden_path_proposal.exists(), "Productive Golden Path proposal missing from spec directory."
+        canonical_path_proposal = Path("spec/proposals/campaign_pe_oi-spike-negative.yaml")
+        assert canonical_path_proposal.exists(), "Canonical research proposal missing from spec directory."
 
         # Stage 1: Discover
         # Executes the event search, metric evaluation, and bridge gates.
         discover_result = discover.run(
-            proposal_path=golden_path_proposal,
+            proposal_path=canonical_path_proposal,
             registry_root=Path("project/configs/registries"),
             check=True,
             plan_only=False,
@@ -47,12 +46,17 @@ class TestResearchYield:
                 diagnostics = json.loads(diagnostics_path.read_text())
 
         candidates_written = diagnostics.get("gate_funnel", {}).get("phase2_candidates_written", 0)
-        assert candidates_written > 0, "Regression: Golden path failed to yield any feasible candidates from phase 2."
+        assert candidates_written > 0, (
+            "Regression: canonical research path failed to yield any feasible candidates from phase 2."
+        )
 
         # Stage 2: Validate
         # Evaluates time-slicing stability and cross-regime consistency.
         validate_result = validate.run(run_id=run_id)
-        assert validate_result.exit_code == 0, f"Validation stage failed for {run_id}"
+        assert validate_result.run_id == run_id, f"Validation stage returned the wrong run_id for {run_id}"
+        assert validate_result.summary_stats.get("validated", 0) > 0, (
+            f"Validation stage produced no validated candidates for {run_id}"
+        )
         
         val_bundle_path = Path(f"data/reports/validation/{run_id}/validation_bundle.json")
         assert val_bundle_path.exists(), "Validation bundle missing."
@@ -60,7 +64,9 @@ class TestResearchYield:
         
         # Verify that we actually validated at least one candidate
         stats = bundle.get("summary_stats", {})
-        assert stats.get("validated", 0) > 0, "Regression: No golden path candidates survived OOS and validation checks."
+        assert stats.get("validated", 0) > 0, (
+            "Regression: no canonical path candidates survived OOS and validation checks."
+        )
         
         # Stage 3: Promote
         # Formats the validated candidate and confirms final statistics prior to export.

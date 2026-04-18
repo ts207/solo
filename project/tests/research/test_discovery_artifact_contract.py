@@ -37,18 +37,7 @@ def test_diagnostics_json_contract():
 def test_benchmark_output_contract(tmp_path):
     from project.research.benchmarks.discovery_benchmark import summarize_case_comparison
 
-    legacy_df = pd.DataFrame(
-        [
-            {
-                "event_type": "E1",
-                "horizon": "1h",
-                "direction": "long",
-                "t_stat": 2.0,
-                "is_discovery": True,
-            }
-        ]
-    )
-    v2_df = pd.DataFrame(
+    canonical_df = pd.DataFrame(
         [
             {
                 "event_type": "E1",
@@ -61,16 +50,14 @@ def test_benchmark_output_contract(tmp_path):
         ]
     )
 
-    case_results = {"A": legacy_df, "B": v2_df}
+    case_results = {"D": canonical_df}
     summarize_case_comparison("test_case", case_results, tmp_path)
 
     assert (tmp_path / "rank_comparison.csv").exists()
-    assert (tmp_path / "rank_movers.csv").exists()
 
     merged = pd.read_csv(tmp_path / "rank_comparison.csv")
     assert "comp_key" in merged.columns
-    assert "A_rank" in merged.columns
-    assert "B_rank" in merged.columns
+    assert "D_rank" in merged.columns
 
 
 def test_decomposition_artifact_contract(tmp_path):
@@ -82,20 +69,24 @@ def test_decomposition_artifact_contract(tmp_path):
         {
             "candidate_id": ["c1", "c2"],
             "comp_key": ["K1", "K2"],
-            "A_rank": [1, 2],
-            "B_rank": [2, 1],
-            "rank_delta_A_to_B": [-1, 1],
+            "D_rank": [1, 2],
             "discovery_quality_score": [0.5, 0.8],
             "significance_component": [0.6, 0.9],
             "support_component": [1.0, 1.0],
             "falsification_component": [1.0, 1.0],
             "tradability_component": [1.0, 1.0],
             "novelty_component": [1.0, 1.0],
+            "fragility_penalty": [0.0, 0.0],
             "fold_stability_component": [1.0, 1.0],
+            "ledger_penalty": [0.0, 0.0],
             "rank_primary_reason": ["stable", "stable"],
+            "demotion_reason_codes": ["none", "none"],
+            "falsification_reason": ["none", "none"],
+            "tradability_reason": ["none", "none"],
             "overlap_penalty": [1.0, 1.0],
             "overlap_reason": ["none", "none"],
             "fold_reason": ["none", "none"],
+            "ledger_reason": ["none", "none"],
         }
     )
 
@@ -108,15 +99,16 @@ def test_decomposition_artifact_contract(tmp_path):
     df = pd.read_csv(tmp_path / "score_decomposition.csv")
     cols = df.columns.tolist()
     expected_cols = [
-        "A_rank",
-        "B_rank",
-        "rank_delta_A_to_B",
+        "D_rank",
         "significance_component",
         "support_component",
         "falsification_component",
         "tradability_component",
         "novelty_component",
+        "overlap_penalty",
+        "fragility_penalty",
         "fold_stability_component",
+        "ledger_penalty",
         "discovery_quality_score",
         "rank_primary_reason",
     ]
@@ -129,10 +121,10 @@ def test_decomposition_artifact_contract(tmp_path):
 
     headers = [
         "# Score Decomposition",
-        "## Biggest Positive Movers",
-        "## Biggest Negative Movers",
-        "## Highest A-to-B Promotions",
-        "## Highest A-to-B Demotions",
+        "## Canonical D Ranking",
+        "## Support-Driven Survivors",
+        "## Overlap-Penalized Candidates",
+        "## Fold-Instability Demotions",
     ]
     for h in headers:
         assert h in md_content, f"Markdown artifact missing header: {h}"

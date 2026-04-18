@@ -42,6 +42,7 @@ def _sample_features(n: int = 640) -> pd.DataFrame:
             "oi_notional": 1_000_000.0 + np.random.default_rng(37).normal(0.0, 2_000.0, n).cumsum(),
             "oi_delta_1h": np.random.default_rng(41).normal(0.0, 1_000.0, n),
             "liquidation_notional": np.random.default_rng(43).exponential(30.0, n),
+            "depth_usd": np.random.default_rng(44).normal(1_000_000.0, 20_000.0, n),
             "range_96": np.abs(np.random.default_rng(47).normal(1.0, 0.2, n)),
             "range_med_2880": np.abs(np.random.default_rng(53).normal(1.2, 0.1, n)),
             "spread_bps": spread_bps,

@@ -85,6 +85,32 @@ class LiquidationCascadeDetectorV2(EpisodeBaseDetectorV2):
     def _resolve_liq_window(params: dict[str, Any]) -> int:
         return int(params.get('liq_median_window', params.get('median_window', 288)))
 
+    @staticmethod
+    def _resolve_liq_abs_floor(params: dict[str, Any]) -> float:
+        return float(params.get('liq_vol_th', 0.0) or 0.0)
+
+    @staticmethod
+    def _resolve_oi_thresholds(params: dict[str, Any]) -> tuple[float, float | None]:
+        pct_value = params.get('oi_drop_pct_th')
+        abs_value = params.get('oi_drop_abs_th')
+        legacy = params.get('oi_drop_th')
+        if pct_value is None and legacy is not None:
+            try:
+                legacy_f = float(legacy)
+            except (TypeError, ValueError):
+                legacy_f = 0.0
+            if abs(legacy_f) < 1.0:
+                pct_value = abs(legacy_f)
+            else:
+                abs_value = legacy_f
+        pct_threshold = (
+            float(pct_value)
+            if pct_value is not None
+            else LiquidationCascadeDetectorV2.default_oi_drop_pct_threshold
+        )
+        abs_threshold = float(abs_value) if abs_value is not None else None
+        return pct_threshold, abs_threshold
+
     def prepare_features(self, df: pd.DataFrame, **params: Any) -> Mapping[str, pd.Series]:
         liq_window = self._resolve_liq_window(params)
         min_periods = int(params.get('min_periods', min(liq_window, 24)))
@@ -106,12 +132,19 @@ class LiquidationCascadeDetectorV2(EpisodeBaseDetectorV2):
         }
 
     def compute_raw_mask(self, df: pd.DataFrame, *, features: Mapping[str, pd.Series], **params: Any) -> pd.Series:
-        pct_threshold = float(params.get('oi_drop_pct_th', self.default_oi_drop_pct_threshold))
+        pct_threshold, abs_threshold = self._resolve_oi_thresholds(params)
+        liq_abs_floor = self._resolve_liq_abs_floor(params)
         liq = features['liquidation_notional']
         liq_th = features['liq_th']
         oi_delta = features['oi_delta_1h']
         oi_notional = features['oi_notional']
-        return ((liq > liq_th) & (liq > 0) & (oi_delta < -(oi_notional * pct_threshold))).fillna(False)
+        liq_mask = (liq > liq_th) & (liq > 0)
+        if liq_abs_floor > 0:
+            liq_mask = liq_mask & (liq >= liq_abs_floor)
+        oi_mask = oi_delta < -(oi_notional * pct_threshold)
+        if abs_threshold is not None:
+            oi_mask = oi_mask & (oi_delta <= abs_threshold)
+        return (liq_mask & oi_mask).fillna(False)
 
     def compute_intensity(self, df: pd.DataFrame, *, features: Mapping[str, pd.Series], **params: Any) -> pd.Series:
         baseline = features['liq_th'].replace(0.0, np.nan)

@@ -75,6 +75,32 @@ def _run_discover(args: argparse.Namespace) -> int:
     return _result_exit_code(result)
 
 
+def _run_discover_list_artifacts(args: argparse.Namespace) -> int:
+    data_root = _path_or_none(args.data_root) or PROJECT_ROOT.parent / "data"
+    run_id = str(args.run_id)
+    phase2_root = data_root / "reports" / "phase2" / run_id
+    artifact_names = {
+        "phase2_candidates.parquet",
+        "phase2_candidates.csv",
+        "phase2_diagnostics.json",
+        "hypothesis_registry.parquet",
+        "search_burden_summary.json",
+    }
+    artifacts = (
+        sorted(path for path in phase2_root.rglob("*") if path.is_file() and path.name in artifact_names)
+        if phase2_root.exists()
+        else []
+    )
+    if not artifacts:
+        print(f"No discovery artifacts found for run {run_id}")
+        return 0
+
+    print(f"Artifacts for discovery run {run_id}:")
+    for path in artifacts:
+        print(path.relative_to(data_root).as_posix())
+    return 0
+
+
 def _run_trigger_discovery(args: argparse.Namespace) -> int:
     from project.core.config import get_data_root
 
@@ -223,6 +249,14 @@ def build_parser() -> argparse.ArgumentParser:
         action_parser.add_argument("--dry_run", type=int, default=0)
         action_parser.add_argument("--check", type=int, default=0)
         action_parser.set_defaults(func=_run_discover)
+
+    discover_list = discover_subparsers.add_parser(
+        "list-artifacts",
+        help="List canonical discovery artifacts for a completed run.",
+    )
+    discover_list.add_argument("--run_id", required=True)
+    discover_list.add_argument("--data_root", default=None)
+    discover_list.set_defaults(func=_run_discover_list_artifacts)
 
     triggers = discover_subparsers.add_parser(
         "triggers",
