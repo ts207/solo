@@ -19,6 +19,7 @@ from project.events.detectors.desync_base import (
 from project.events.registries.regime import (
     REGIME_DETECTORS,
     ensure_regime_detectors_registered,
+    get_regime_detectors,
 )
 
 
@@ -240,23 +241,16 @@ class BetaSpikeDetector(CompositeDetector):
         return features["ret_abs"] + features["basis_abs"] + features["rv_96"]
 
 
-_DETECTORS = {
-    "VOL_REGIME_SHIFT": VolRegimeShiftDetector,
-    "VOL_REGIME_SHIFT_EVENT": VolRegimeShiftDetector,
-    "TREND_TO_CHOP_SHIFT": TrendToChopDetector,
-    "CHOP_TO_TREND_SHIFT": ChopToTrendDetector,
-}
+_PAIR_COLUMNS = ("pair_close", "close_pair", "component_close", "reference_close")
+from project.events.detectors.registry import get_detector
+
+ensure_regime_detectors_registered()
+
+_DETECTORS = get_regime_detectors()
 _LEGACY_DETECTORS = {
     "CORRELATION_BREAKDOWN_EVENT": CorrelationBreakdownDetector,
     "BETA_SPIKE_EVENT": BetaSpikeDetector,
 }
-_PAIR_COLUMNS = ("pair_close", "close_pair", "component_close", "reference_close")
-from project.events.detectors.registry import get_detector, register_detector
-
-for et, cls in _DETECTORS.items():
-    register_detector(et, cls)
-ensure_regime_detectors_registered()
-_DETECTORS.update(REGIME_DETECTORS)
 
 
 def _has_pair_inputs(df: pd.DataFrame) -> bool:

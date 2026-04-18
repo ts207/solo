@@ -8,6 +8,7 @@ from project.events.detectors.registry import get_detector
 from project.events.detectors.sequence import EventSequenceDetector
 from project.events.registries.sequence import (
     ensure_sequence_detectors_registered,
+    get_sequence_detectors,
 )
 from project.events.shared import EVENT_COLUMNS
 from project.research.analyzers import run_analyzer_suite
@@ -30,12 +31,7 @@ class SeqVolCompThenBreakoutDetector(EventSequenceDetector):
 
 ensure_sequence_detectors_registered()
 
-_DETECTORS = {
-    "SEQ_FND_EXTREME_THEN_BREAKOUT": SeqFndExtremeThenBreakoutDetector,
-    "SEQ_LIQ_VACUUM_THEN_DEPTH_RECOVERY": SeqLiqVacuumThenDepthRecoveryDetector,
-    "SEQ_OI_SPIKEPOS_THEN_VOL_SPIKE": SeqOiSpikeposThenVolSpikeDetector,
-    "SEQ_VOL_COMP_THEN_BREAKOUT": SeqVolCompThenBreakoutDetector,
-}
+_DETECTORS = get_sequence_detectors()
 
 
 def detect_sequence_family(

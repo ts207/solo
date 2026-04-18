@@ -19,6 +19,7 @@ from project.events.detectors.desync_base import (
 from project.events.registries.desync import (
     DESYNC_DETECTORS,
     ensure_desync_detectors_registered,
+    get_desync_detectors,
 )
 from project.events.detectors.registry import get_detector
 
@@ -163,11 +164,7 @@ class CrossAssetDesyncDetector(ThresholdDetector):
 
 ensure_desync_detectors_registered()
 
-_DETECTORS = {
-    "INDEX_COMPONENT_DIVERGENCE": IndexComponentDivergenceDetectorV2,
-    "LEAD_LAG_BREAK": LeadLagBreakDetectorV2,
-    "CROSS_ASSET_DESYNC_EVENT": CrossAssetDesyncDetectorV2,
-}
+_DETECTORS = get_desync_detectors()
 
 _LEGACY_DETECTORS = {
     "INDEX_COMPONENT_DIVERGENCE": IndexComponentDivergenceDetector,
@@ -223,4 +220,3 @@ def analyze_desync_family(
 IndexComponentDivergenceDetector = IndexComponentDivergenceDetectorV2
 LeadLagBreakDetector = LeadLagBreakDetectorV2
 CrossAssetDesyncDetector = CrossAssetDesyncDetectorV2
-_DETECTORS.update(DESYNC_DETECTORS)

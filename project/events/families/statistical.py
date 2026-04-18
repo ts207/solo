@@ -12,6 +12,7 @@ from project.events.detectors.threshold import ThresholdDetector
 from project.events.detectors.composite import CompositeDetector
 from project.events.registries.statistical import (
     ensure_statistical_detectors_registered,
+    get_statistical_detectors,
 )
 from project.events.shared import EVENT_COLUMNS, emit_event, format_event_id
 from project.events.sparsify import sparsify_mask
@@ -212,12 +213,7 @@ class GapOvershootDetector(StatisticalBase):
 
 ensure_statistical_detectors_registered()
 
-_DETECTORS = {
-    "ZSCORE_STRETCH": ZScoreStretchDetector,
-    "BAND_BREAK": BandBreakDetector,
-    "OVERSHOOT_AFTER_SHOCK": OvershootDetector,
-    "GAP_OVERSHOOT": GapOvershootDetector,
-}
+_DETECTORS = get_statistical_detectors()
 
 
 def detect_statistical_family(

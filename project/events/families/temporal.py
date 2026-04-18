@@ -584,20 +584,15 @@ class CopulaPairsTradingDetector(ThresholdDetector):
         }
 
 
-from project.events.detectors.registry import get_detector, register_family_detectors
+from project.events.detectors.registry import get_detector
+from project.events.registries.temporal import (
+    ensure_temporal_detectors_registered,
+    get_temporal_detectors,
+)
 
-_DETECTORS = {
-    "SESSION_OPEN_EVENT": SessionOpenDetector,
-    "SESSION_CLOSE_EVENT": SessionCloseDetector,
-    "FUNDING_TIMESTAMP_EVENT": FundingTimestampDetector,
-    "SCHEDULED_NEWS_WINDOW_EVENT": ScheduledNewsDetector,
-    "SPREAD_REGIME_WIDENING_EVENT": SpreadRegimeWideningDetector,
-    "SLIPPAGE_SPIKE_EVENT": SlippageSpikeDetector,
-    "FEE_REGIME_CHANGE_EVENT": FeeRegimeChangeDetector,
-    "COPULA_PAIRS_TRADING": CopulaPairsTradingDetector,
-}
+ensure_temporal_detectors_registered()
 
-register_family_detectors(_DETECTORS)
+_DETECTORS = get_temporal_detectors()
 
 
 def detect_temporal_family(

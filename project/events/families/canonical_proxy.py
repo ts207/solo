@@ -5,7 +5,6 @@ from typing import Any
 import numpy as np
 import pandas as pd
 
-from project.events.detectors.registry import register_detector
 from project.events.detectors.threshold import ThresholdDetector
 from project.events.shared import EVENT_COLUMNS, emit_event, format_event_id
 from project.events.sparsify import sparsify_mask
@@ -635,19 +634,14 @@ class OrderflowImbalanceShockDetector(PriceVolImbalanceProxyDetector):
         ) / 2.0
 
 
-_DETECTORS = {
-    "PRICE_VOL_IMBALANCE_PROXY": PriceVolImbalanceProxyDetector,
-    "WICK_REVERSAL_PROXY": WickReversalProxyDetector,
-    "ABSORPTION_PROXY": AbsorptionProxyDetector,
-    "DEPTH_STRESS_PROXY": DepthStressProxyDetector,
-    "ORDERFLOW_IMBALANCE_SHOCK": OrderflowImbalanceShockDetector,
-    "SWEEP_STOPRUN": SweepStopRunDetector,
-    "DEPTH_COLLAPSE": DepthCollapseDetector,
-}
+from project.events.registries.canonical_proxy import (
+    ensure_canonical_proxy_detectors_registered,
+    get_canonical_proxy_detectors,
+)
 
+ensure_canonical_proxy_detectors_registered()
 
-for et, cls in _DETECTORS.items():
-    register_detector(et, cls)
+_DETECTORS = get_canonical_proxy_detectors()
 
 
 def detect_canonical_proxy_family(
