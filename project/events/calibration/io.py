@@ -16,8 +16,12 @@ def load_calibration_artifact(path: Path) -> DetectorCalibrationArtifact:
         calibration_mode=str(payload.get("calibration_mode", "")).strip(),
         symbol_group=str(payload.get("symbol_group", "default")).strip(),
         timeframe_group=str(payload.get("timeframe_group", "default")).strip(),
+        dataset_lineage=dict(payload.get("dataset_lineage", {}) or {}),
+        training_period=dict(payload.get("training_period", {}) or {}),
+        validation_period=dict(payload.get("validation_period", {}) or {}),
         parameters=dict(payload.get("parameters", {}) or {}),
         robustness=dict(payload.get("robustness", {}) or {}),
+        failure_notes=tuple(str(item) for item in payload.get("failure_notes", []) or []),
         notes=str(payload.get("notes", "")),
         path=path,
     )
@@ -35,8 +39,12 @@ def save_calibration_artifact(path: Path, artifact: DetectorCalibrationArtifact)
         "calibration_mode": artifact.calibration_mode,
         "symbol_group": artifact.symbol_group,
         "timeframe_group": artifact.timeframe_group,
+        "dataset_lineage": dict(artifact.dataset_lineage),
+        "training_period": dict(artifact.training_period),
+        "validation_period": dict(artifact.validation_period),
         "parameters": dict(artifact.parameters),
         "robustness": dict(artifact.robustness),
+        "failure_notes": list(artifact.failure_notes),
         "notes": artifact.notes,
     }
     path.write_text(json.dumps(payload, indent=2, sort_keys=True), encoding="utf-8")

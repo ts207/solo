@@ -24,6 +24,7 @@ class DetectorContract:
     evidence_mode: str
     role: str
     maturity: str
+    detector_band: str
 
     planning_default: bool
     runtime_default: bool
@@ -66,6 +67,7 @@ class DetectorContract:
     )
     _VALID_ROLES = frozenset({"trigger", "context", "composite", "research_only", "filter", "sequence_component"})
     _VALID_MATURITY = frozenset({"production", "specialized", "standard", "deprecated"})
+    _VALID_BANDS = frozenset({"deployable_core", "research_trigger", "context_only", "composite_or_fragile"})
 
     def __post_init__(self) -> None:
         if not self.event_name.strip():
@@ -80,6 +82,24 @@ class DetectorContract:
             raise DetectorContractError(f"{self.event_name}: invalid role {self.role!r}")
         if self.maturity not in self._VALID_MATURITY:
             raise DetectorContractError(f"{self.event_name}: invalid maturity {self.maturity!r}")
+        if self.detector_band not in self._VALID_BANDS:
+            raise DetectorContractError(f"{self.event_name}: invalid detector_band {self.detector_band!r}")
+        if self.detector_band == "deployable_core" and not self.runtime_default:
+            raise DetectorContractError(
+                f"{self.event_name}: deployable_core detectors must default to runtime execution"
+            )
+        if self.detector_band == "context_only" and not self.context_only and self.role != "context":
+            raise DetectorContractError(
+                f"{self.event_name}: context_only band must use a context role"
+            )
+        if self.detector_band == "context_only" and self.primary_anchor_eligible:
+            raise DetectorContractError(
+                f"{self.event_name}: context_only detectors cannot be primary anchors"
+            )
+        if self.detector_band == "composite_or_fragile" and self.runtime_default:
+            raise DetectorContractError(
+                f"{self.event_name}: composite_or_fragile detectors cannot default to runtime execution"
+            )
         if self.context_only and self.primary_anchor_eligible:
             raise DetectorContractError(
                 f"{self.event_name}: context_only detectors cannot be primary anchors"

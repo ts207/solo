@@ -7,7 +7,11 @@ import numpy as np
 import pandas as pd
 
 from project.events.detector_contract import DetectorLogicContract
-from project.events.event_output_schema import DetectedEvent
+from project.events.event_output_schema import (
+    DetectedEvent,
+    empty_event_output_frame,
+    normalize_event_output_frame,
+)
 from project.events.registry import get_detector_contract
 from project.events.sparsify import sparsify_mask
 
@@ -173,7 +177,7 @@ class BaseDetectorV2(DetectorLogicContract):
     def detect_events(self, df: pd.DataFrame, params: dict) -> pd.DataFrame:
         self.check_required_columns(df)
         if df.empty:
-            return pd.DataFrame()
+            return empty_event_output_frame()
 
         work = df.copy().reset_index(drop=True)
         work['timestamp'] = pd.to_datetime(work['timestamp'], utc=True, errors='coerce')
@@ -206,7 +210,7 @@ class BaseDetectorV2(DetectorLogicContract):
                 cooldown_until=cooldown_until,
             )
             rows.append(event.as_dict())
-        return pd.DataFrame(rows)
+        return normalize_event_output_frame(pd.DataFrame(rows))
 
 
 FamilyBaseDetector = BaseDetectorV2

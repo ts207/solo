@@ -1,9 +1,14 @@
 from __future__ import annotations
 
+from project import PROJECT_ROOT
+
 import pytest
 
 from project.tests.synthetic_truth.scenarios.registry import SCENARIO_REGISTRY
 from project.tests.synthetic_truth.scenarios.factory import ScenarioFactory
+
+
+REPO_ROOT = PROJECT_ROOT.parent
 
 
 @pytest.fixture

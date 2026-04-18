@@ -24,7 +24,8 @@ class FakeRegistry:
 
 
 def test_event_alias_resolution_handles_known_and_unknown_values():
-    assert resolve_event_alias("depth_collapse") == "DEPTH_STRESS_PROXY"
+    assert resolve_event_alias("basis_dislocation") == "BASIS_DISLOC"
+    assert resolve_event_alias("depth_collapse") == "DEPTH_COLLAPSE"
     assert resolve_event_alias("custom_event") == "CUSTOM_EVENT"
     assert EVENT_ALIASES["ABSORPTION_EVENT"] == "ABSORPTION_PROXY"
 

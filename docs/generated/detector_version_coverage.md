@@ -1,0 +1,9 @@
+# Detector Version Coverage
+
+| Version | Count | Runtime Eligible | Promotion Eligible |
+|---|---|---|---|
+| v1 | 44 | 0 | 0 |
+| v2 | 27 | 9 | 23 |
+
+Runtime eligible non-v2 detectors: **0**
+Runtime eligible v2 detectors: **9**

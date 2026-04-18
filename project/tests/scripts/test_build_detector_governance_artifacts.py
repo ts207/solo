@@ -16,6 +16,11 @@ def test_build_detector_governance_artifacts(tmp_path: Path):
     summary = json.loads((out_dir / 'detector_governance_summary.json').read_text(encoding='utf-8'))
     assert summary['governed_detectors'] == 71
     assert summary['runtime_non_v2'] == 0
-    assert summary['runtime_v2'] == 16
+    assert summary['runtime_v2'] == 9
+    assert summary['alias_count'] == 3
+    assert summary['band_counts']['deployable_core'] == 9
+    assert summary['band_counts']['context_only'] == 5
     assert (out_dir / 'detector_version_coverage.md').exists()
+    assert (out_dir / 'detector_alias_policy.md').exists()
+    assert (out_dir / 'detector_alias_policy.json').exists()
     assert (out_dir / 'legacy_detector_retirement.md').exists()

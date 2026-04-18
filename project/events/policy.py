@@ -1,32 +1,20 @@
 from __future__ import annotations
 
-LIVE_SAFE_EVENT_TYPES = frozenset(
+DEPLOYABLE_CORE_EVENT_TYPES = frozenset(
     {
         "BASIS_DISLOC",
-        "CROSS_VENUE_DESYNC",
         "FND_DISLOC",
-        "SPOT_PERP_BASIS_SHOCK",
-        "VOL_SPIKE",
-        "VOL_RELAXATION_START",
-        "VOL_CLUSTER_SHIFT",
-        "RANGE_COMPRESSION_END",
-        "BREAKOUT_TRIGGER",
-        "VOL_SHOCK",
-        "LIQUIDITY_STRESS_DIRECT",
-        "LIQUIDITY_STRESS_PROXY",
-        "LIQUIDITY_GAP_PRINT",
-        "LIQUIDITY_VACUUM",
-        "OI_SPIKE_POSITIVE",
-        "OI_SPIKE_NEGATIVE",
-        "OI_FLUSH",
-        "DELEVERAGING_WAVE",
         "LIQUIDATION_CASCADE",
-        "RANGE_BREAKOUT",
-        "FALSE_BREAKOUT",
-        "PULLBACK_PIVOT",
-        "SUPPORT_RESISTANCE_BREAK",
+        "LIQUIDITY_SHOCK",
+        "LIQUIDITY_STRESS_DIRECT",
+        "LIQUIDITY_VACUUM",
+        "SPOT_PERP_BASIS_SHOCK",
+        "VOL_SHOCK",
+        "VOL_SPIKE",
     }
 )
+
+LIVE_SAFE_EVENT_TYPES = DEPLOYABLE_CORE_EVENT_TYPES
 
 RETROSPECTIVE_EVENT_TYPES = frozenset(
     {
@@ -63,6 +51,7 @@ def is_legacy_event_type(event_type: str) -> bool:
 
 
 __all__ = [
+    "DEPLOYABLE_CORE_EVENT_TYPES",
     "LEGACY_EVENT_TYPES",
     "LIVE_SAFE_EVENT_TYPES",
     "RETROSPECTIVE_EVENT_TYPES",

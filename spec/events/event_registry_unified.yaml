@@ -370,6 +370,11 @@ events:
     research_only: false
     strategy_only: false
     default_executable: true
+    detector_band: composite_or_fragile
+    planning_eligible: false
+    runtime_eligible: false
+    promotion_eligible: false
+    primary_anchor_eligible: false
     deconflict_priority: 0
     notes: 'Hybrid liquidity-stress evidence: direct imbalance-stall confirmation
       combined with spread and RV stress.'
@@ -444,6 +449,11 @@ events:
     research_only: false
     strategy_only: false
     default_executable: true
+    detector_band: research_trigger
+    planning_eligible: true
+    runtime_eligible: false
+    promotion_eligible: false
+    primary_anchor_eligible: false
     deconflict_priority: 0
     notes: Statistical band escape; retained as subtype under stretch/overshoot.
     maturity: ''
@@ -513,6 +523,11 @@ events:
     research_only: false
     strategy_only: false
     default_executable: true
+    detector_band: deployable_core
+    planning_eligible: true
+    runtime_eligible: true
+    promotion_eligible: true
+    primary_anchor_eligible: true
     deconflict_priority: 0
     notes: Canonical basis dislocation surface.
     maturity: ''
@@ -578,6 +593,11 @@ events:
     research_only: false
     strategy_only: false
     default_executable: true
+    detector_band: research_trigger
+    planning_eligible: true
+    runtime_eligible: false
+    promotion_eligible: true
+    primary_anchor_eligible: true
     deconflict_priority: 0
     notes: Cross-asset transition evidence via beta instability.
     maturity: ''
@@ -648,6 +668,11 @@ events:
     research_only: false
     strategy_only: false
     default_executable: true
+    detector_band: research_trigger
+    planning_eligible: true
+    runtime_eligible: false
+    promotion_eligible: false
+    primary_anchor_eligible: false
     deconflict_priority: 0
     notes: Compression-release bridge event; not a standalone canonical regime.
     maturity: ''
@@ -723,6 +748,11 @@ events:
     research_only: false
     strategy_only: false
     default_executable: true
+    detector_band: research_trigger
+    planning_eligible: true
+    runtime_eligible: false
+    promotion_eligible: false
+    primary_anchor_eligible: false
     deconflict_priority: 0
     notes: Transition from choppy to directional conditions.
     maturity: ''
@@ -794,6 +824,11 @@ events:
     research_only: false
     strategy_only: false
     default_executable: true
+    detector_band: research_trigger
+    planning_eligible: true
+    runtime_eligible: false
+    promotion_eligible: false
+    primary_anchor_eligible: false
     deconflict_priority: 0
     notes: Exhaustion marker rather than standalone family.
     maturity: ''
@@ -871,6 +906,11 @@ events:
     research_only: false
     strategy_only: true
     default_executable: false
+    detector_band: composite_or_fragile
+    planning_eligible: false
+    runtime_eligible: false
+    promotion_eligible: false
+    primary_anchor_eligible: false
     deconflict_priority: 0
     notes: Relative-value strategy/search construct, not a canonical market event.
     maturity: ''
@@ -940,6 +980,11 @@ events:
     research_only: false
     strategy_only: false
     default_executable: true
+    detector_band: research_trigger
+    planning_eligible: true
+    runtime_eligible: false
+    promotion_eligible: true
+    primary_anchor_eligible: true
     deconflict_priority: 0
     notes: Cross-asset regime transition via correlation instability.
     maturity: ''
@@ -1010,6 +1055,11 @@ events:
     research_only: false
     strategy_only: false
     default_executable: true
+    detector_band: context_only
+    planning_eligible: true
+    runtime_eligible: false
+    promotion_eligible: false
+    primary_anchor_eligible: false
     deconflict_priority: 0
     notes: First-class cross-asset desynchronization regime.
     maturity: ''
@@ -1133,6 +1183,11 @@ events:
     research_only: false
     strategy_only: false
     default_executable: true
+    detector_band: research_trigger
+    planning_eligible: true
+    runtime_eligible: false
+    promotion_eligible: true
+    primary_anchor_eligible: true
     deconflict_priority: 0
     notes: Cross-venue basis persistence folded into basis/funding dislocation.
     maturity: standard
@@ -1273,6 +1328,11 @@ events:
     research_only: false
     strategy_only: false
     default_executable: true
+    detector_band: research_trigger
+    planning_eligible: true
+    runtime_eligible: false
+    promotion_eligible: false
+    primary_anchor_eligible: false
     deconflict_priority: 0
     notes: Positioning unwind regime with explicit deleveraging dynamics.
     maturity: ''
@@ -1363,6 +1423,11 @@ events:
     research_only: false
     strategy_only: false
     default_executable: true
+    detector_band: research_trigger
+    planning_eligible: true
+    runtime_eligible: false
+    promotion_eligible: true
+    primary_anchor_eligible: false
     deconflict_priority: 0
     notes: Direct depth failure evidence for liquidity stress.
     maturity: standard
@@ -1439,6 +1504,11 @@ events:
     research_only: false
     strategy_only: false
     default_executable: true
+    detector_band: composite_or_fragile
+    planning_eligible: false
+    runtime_eligible: false
+    promotion_eligible: false
+    primary_anchor_eligible: false
     deconflict_priority: 0
     notes: 'Hybrid liquidity-stress evidence: direct micro-depth depletion combined
       with spread and RV stress.'
@@ -1517,6 +1587,11 @@ events:
     research_only: false
     strategy_only: false
     default_executable: true
+    detector_band: research_trigger
+    planning_eligible: true
+    runtime_eligible: false
+    promotion_eligible: false
+    primary_anchor_eligible: false
     deconflict_priority: 0
     notes: Trend-follow signal failure belongs in exhaustion/failure regime.
     maturity: ''
@@ -1589,6 +1664,11 @@ events:
     research_only: false
     strategy_only: false
     default_executable: true
+    detector_band: research_trigger
+    planning_eligible: true
+    runtime_eligible: false
+    promotion_eligible: false
+    primary_anchor_eligible: false
     deconflict_priority: 0
     notes: Breakout failure surface under trend failure/exhaustion.
     maturity: ''
@@ -1663,6 +1743,11 @@ events:
     research_only: false
     strategy_only: false
     default_executable: true
+    detector_band: research_trigger
+    planning_eligible: true
+    runtime_eligible: false
+    promotion_eligible: false
+    primary_anchor_eligible: false
     deconflict_priority: 0
     notes: Execution-cost regime shift.
     maturity: ''
@@ -1731,6 +1816,11 @@ events:
     research_only: false
     strategy_only: false
     default_executable: true
+    detector_band: composite_or_fragile
+    planning_eligible: false
+    runtime_eligible: false
+    promotion_eligible: false
+    primary_anchor_eligible: false
     deconflict_priority: 0
     notes: 'Hybrid exhaustion evidence: liquidation and OI unwind confirmation combined
       with price and volatility exhaustion.'
@@ -1818,6 +1908,11 @@ events:
     research_only: false
     strategy_only: false
     default_executable: true
+    detector_band: deployable_core
+    planning_eligible: true
+    runtime_eligible: true
+    promotion_eligible: true
+    primary_anchor_eligible: true
     deconflict_priority: 0
     notes: Funding dislocation folded into basis/funding regime.
     maturity: ''
@@ -1887,6 +1982,11 @@ events:
     research_only: false
     strategy_only: false
     default_executable: true
+    detector_band: research_trigger
+    planning_eligible: true
+    runtime_eligible: false
+    promotion_eligible: false
+    primary_anchor_eligible: false
     deconflict_priority: 0
     notes: Exhaustion regime with forced-flow mechanics.
     maturity: standard
@@ -1976,6 +2076,11 @@ events:
     research_only: false
     strategy_only: false
     default_executable: true
+    detector_band: research_trigger
+    planning_eligible: true
+    runtime_eligible: false
+    promotion_eligible: true
+    primary_anchor_eligible: true
     deconflict_priority: 0
     notes: Funding extreme onset under basis/funding dislocation.
     maturity: standard
@@ -2146,6 +2251,11 @@ events:
     research_only: false
     strategy_only: false
     default_executable: true
+    detector_band: research_trigger
+    planning_eligible: true
+    runtime_eligible: false
+    promotion_eligible: true
+    primary_anchor_eligible: true
     deconflict_priority: 0
     notes: Funding sign inversion as subtype metadata.
     maturity: ''
@@ -2224,6 +2334,11 @@ events:
     research_only: false
     strategy_only: false
     default_executable: true
+    detector_band: research_trigger
+    planning_eligible: true
+    runtime_eligible: false
+    promotion_eligible: true
+    primary_anchor_eligible: false
     deconflict_priority: 0
     notes: Normalization phase of funding dislocation.
     maturity: ''
@@ -2324,6 +2439,11 @@ events:
     research_only: false
     strategy_only: false
     default_executable: true
+    detector_band: research_trigger
+    planning_eligible: true
+    runtime_eligible: false
+    promotion_eligible: true
+    primary_anchor_eligible: true
     deconflict_priority: 0
     notes: Persistence phase of funding dislocation.
     maturity: ''
@@ -2426,6 +2546,11 @@ events:
     research_only: false
     strategy_only: false
     default_executable: false
+    detector_band: context_only
+    planning_eligible: true
+    runtime_eligible: false
+    promotion_eligible: false
+    primary_anchor_eligible: false
     deconflict_priority: 0
     notes: Mechanical funding window context; not a canonical regime.
     maturity: ''
@@ -2509,6 +2634,11 @@ events:
     research_only: false
     strategy_only: false
     default_executable: true
+    detector_band: research_trigger
+    planning_eligible: true
+    runtime_eligible: false
+    promotion_eligible: false
+    primary_anchor_eligible: false
     deconflict_priority: 0
     notes: Gap-extension overshoot state.
     maturity: ''
@@ -2579,6 +2709,11 @@ events:
     research_only: false
     strategy_only: false
     default_executable: true
+    detector_band: research_trigger
+    planning_eligible: true
+    runtime_eligible: false
+    promotion_eligible: true
+    primary_anchor_eligible: true
     deconflict_priority: 0
     notes: Cross-asset divergence between index and components.
     maturity: ''
@@ -2651,6 +2786,11 @@ events:
     research_only: false
     strategy_only: false
     default_executable: true
+    detector_band: research_trigger
+    planning_eligible: true
+    runtime_eligible: false
+    promotion_eligible: true
+    primary_anchor_eligible: true
     deconflict_priority: 0
     notes: Lead/lag structure break.
     maturity: ''
@@ -2723,6 +2863,11 @@ events:
     research_only: false
     strategy_only: false
     default_executable: true
+    detector_band: deployable_core
+    planning_eligible: true
+    runtime_eligible: true
+    promotion_eligible: true
+    primary_anchor_eligible: true
     deconflict_priority: 0
     notes: Structurally distinct canonical cascade regime.
     maturity: ''
@@ -2797,6 +2942,11 @@ events:
     research_only: false
     strategy_only: false
     default_executable: true
+    detector_band: composite_or_fragile
+    planning_eligible: false
+    runtime_eligible: false
+    promotion_eligible: false
+    primary_anchor_eligible: false
     deconflict_priority: 0
     notes: Use when liquidation_notional data is unavailable (e.g., Bybit native data
       without cross-exchange liquidation feed). Expected to have lower precision than
@@ -2950,6 +3100,11 @@ events:
     research_only: false
     strategy_only: false
     default_executable: true
+    detector_band: research_trigger
+    planning_eligible: true
+    runtime_eligible: false
+    promotion_eligible: false
+    primary_anchor_eligible: false
     deconflict_priority: 0
     notes: Reversal after forced liquidation exhaustion.
     maturity: ''
@@ -3045,6 +3200,11 @@ events:
     research_only: false
     strategy_only: false
     default_executable: true
+    detector_band: research_trigger
+    planning_eligible: true
+    runtime_eligible: false
+    promotion_eligible: false
+    primary_anchor_eligible: false
     deconflict_priority: 0
     notes: Gap print inside liquidity-stress regime.
     maturity: ''
@@ -3121,6 +3281,11 @@ events:
     research_only: false
     strategy_only: false
     default_executable: true
+    detector_band: deployable_core
+    planning_eligible: true
+    runtime_eligible: true
+    promotion_eligible: true
+    primary_anchor_eligible: true
     deconflict_priority: 0
     notes: High-level liquidity stress onset.
     maturity: ''
@@ -3192,6 +3357,11 @@ events:
     research_only: false
     strategy_only: false
     default_executable: true
+    detector_band: deployable_core
+    planning_eligible: true
+    runtime_eligible: true
+    promotion_eligible: true
+    primary_anchor_eligible: true
     deconflict_priority: 0
     notes: Direct evidence mode for liquidity stress.
     maturity: ''
@@ -3259,6 +3429,11 @@ events:
     research_only: false
     strategy_only: false
     default_executable: true
+    detector_band: composite_or_fragile
+    planning_eligible: false
+    runtime_eligible: false
+    promotion_eligible: false
+    primary_anchor_eligible: false
     deconflict_priority: 0
     notes: 'Hybrid liquidity-stress evidence: direct book stress when available plus
       bar-range expansion and optional trade-flow collapse confirmation.'
@@ -3329,6 +3504,11 @@ events:
     research_only: false
     strategy_only: false
     default_executable: true
+    detector_band: deployable_core
+    planning_eligible: true
+    runtime_eligible: true
+    promotion_eligible: true
+    primary_anchor_eligible: true
     deconflict_priority: 0
     notes: Thin-book vacuum regime.
     maturity: ''
@@ -3491,6 +3671,11 @@ events:
     research_only: false
     strategy_only: false
     default_executable: true
+    detector_band: research_trigger
+    planning_eligible: true
+    runtime_eligible: false
+    promotion_eligible: false
+    primary_anchor_eligible: false
     deconflict_priority: 0
     notes: Divergence-based exhaustion signal.
     maturity: ''
@@ -3565,6 +3750,11 @@ events:
     research_only: false
     strategy_only: false
     default_executable: true
+    detector_band: research_trigger
+    planning_eligible: true
+    runtime_eligible: false
+    promotion_eligible: true
+    primary_anchor_eligible: true
     deconflict_priority: 0
     notes: OI flush folded into unwind/deleveraging regime.
     maturity: ''
@@ -3641,6 +3831,11 @@ events:
     research_only: false
     strategy_only: false
     default_executable: true
+    detector_band: research_trigger
+    planning_eligible: true
+    runtime_eligible: false
+    promotion_eligible: true
+    primary_anchor_eligible: true
     deconflict_priority: 0
     notes: Direction stays in subtype; canonical regime is positioning expansion.
     maturity: ''
@@ -3714,6 +3909,11 @@ events:
     research_only: false
     strategy_only: false
     default_executable: true
+    detector_band: research_trigger
+    planning_eligible: true
+    runtime_eligible: false
+    promotion_eligible: true
+    primary_anchor_eligible: true
     deconflict_priority: 0
     notes: Direction stays in subtype; canonical regime is positioning expansion.
     maturity: ''
@@ -3786,6 +3986,11 @@ events:
     research_only: false
     strategy_only: false
     default_executable: true
+    detector_band: research_trigger
+    planning_eligible: true
+    runtime_eligible: false
+    promotion_eligible: false
+    primary_anchor_eligible: false
     deconflict_priority: 0
     notes: Orderflow imbalance is treated as a liquidity-stress subtype.
     maturity: standard
@@ -3866,6 +4071,11 @@ events:
     research_only: false
     strategy_only: false
     default_executable: true
+    detector_band: research_trigger
+    planning_eligible: true
+    runtime_eligible: false
+    promotion_eligible: false
+    primary_anchor_eligible: false
     deconflict_priority: 0
     notes: Statistical overshoot conditional on preceding shock.
     maturity: ''
@@ -3937,6 +4147,11 @@ events:
     research_only: false
     strategy_only: false
     default_executable: true
+    detector_band: research_trigger
+    planning_eligible: true
+    runtime_eligible: false
+    promotion_eligible: false
+    primary_anchor_eligible: false
     deconflict_priority: 0
     notes: Recovery phase following deleveraging wave.
     maturity: ''
@@ -4025,6 +4240,11 @@ events:
     research_only: false
     strategy_only: false
     default_executable: true
+    detector_band: composite_or_fragile
+    planning_eligible: false
+    runtime_eligible: false
+    promotion_eligible: false
+    primary_anchor_eligible: false
     deconflict_priority: 0
     notes: Hybrid liquidity-stress evidence via synchronized return, realized-volatility,
       volume, and flow-pressure imbalance.
@@ -4103,6 +4323,11 @@ events:
     research_only: false
     strategy_only: false
     default_executable: true
+    detector_band: research_trigger
+    planning_eligible: true
+    runtime_eligible: false
+    promotion_eligible: false
+    primary_anchor_eligible: false
     deconflict_priority: 0
     notes: Pullback continuation setup.
     maturity: ''
@@ -4175,6 +4400,11 @@ events:
     research_only: false
     strategy_only: false
     default_executable: true
+    detector_band: research_trigger
+    planning_eligible: true
+    runtime_eligible: false
+    promotion_eligible: false
+    primary_anchor_eligible: false
     deconflict_priority: 0
     notes: Directional breakout retained under trend continuation.
     maturity: ''
@@ -4248,6 +4478,11 @@ events:
     research_only: false
     strategy_only: false
     default_executable: true
+    detector_band: research_trigger
+    planning_eligible: true
+    runtime_eligible: false
+    promotion_eligible: false
+    primary_anchor_eligible: false
     deconflict_priority: 0
     notes: Compression-release subtype rather than standalone family.
     maturity: ''
@@ -4320,6 +4555,11 @@ events:
     research_only: false
     strategy_only: false
     default_executable: false
+    detector_band: context_only
+    planning_eligible: true
+    runtime_eligible: false
+    promotion_eligible: false
+    primary_anchor_eligible: false
     deconflict_priority: 0
     notes: Context gate for scheduled news windows.
     maturity: ''
@@ -4406,6 +4646,11 @@ events:
     research_only: true
     strategy_only: false
     default_executable: false
+    detector_band: composite_or_fragile
+    planning_eligible: false
+    runtime_eligible: false
+    promotion_eligible: false
+    primary_anchor_eligible: false
     deconflict_priority: 0
     notes: Composite research hypothesis, not a canonical event.
     maturity: ''
@@ -4479,6 +4724,11 @@ events:
     research_only: true
     strategy_only: false
     default_executable: false
+    detector_band: composite_or_fragile
+    planning_eligible: false
+    runtime_eligible: false
+    promotion_eligible: false
+    primary_anchor_eligible: false
     deconflict_priority: 0
     notes: Composite liquidity repair motif.
     maturity: ''
@@ -4550,6 +4800,11 @@ events:
     research_only: true
     strategy_only: false
     default_executable: false
+    detector_band: composite_or_fragile
+    planning_eligible: false
+    runtime_eligible: false
+    promotion_eligible: false
+    primary_anchor_eligible: false
     deconflict_priority: 0
     notes: Composite positioning/volatility hypothesis.
     maturity: ''
@@ -4623,6 +4878,11 @@ events:
     research_only: true
     strategy_only: false
     default_executable: false
+    detector_band: composite_or_fragile
+    planning_eligible: false
+    runtime_eligible: false
+    promotion_eligible: false
+    primary_anchor_eligible: false
     deconflict_priority: 0
     notes: Composite compression-release hypothesis.
     maturity: ''
@@ -4693,6 +4953,11 @@ events:
     research_only: false
     strategy_only: false
     default_executable: false
+    detector_band: context_only
+    planning_eligible: true
+    runtime_eligible: false
+    promotion_eligible: false
+    primary_anchor_eligible: false
     deconflict_priority: 0
     notes: Session close context tag.
     maturity: ''
@@ -4767,6 +5032,11 @@ events:
     research_only: false
     strategy_only: false
     default_executable: false
+    detector_band: context_only
+    planning_eligible: true
+    runtime_eligible: false
+    promotion_eligible: false
+    primary_anchor_eligible: false
     deconflict_priority: 0
     notes: Session open context tag.
     maturity: ''
@@ -4841,6 +5111,11 @@ events:
     research_only: false
     strategy_only: false
     default_executable: true
+    detector_band: research_trigger
+    planning_eligible: true
+    runtime_eligible: false
+    promotion_eligible: false
+    primary_anchor_eligible: false
     deconflict_priority: 0
     notes: Execution friction shock.
     maturity: ''
@@ -4910,6 +5185,11 @@ events:
     research_only: false
     strategy_only: false
     default_executable: true
+    detector_band: deployable_core
+    planning_eligible: true
+    runtime_eligible: true
+    promotion_eligible: true
+    primary_anchor_eligible: true
     deconflict_priority: 0
     notes: Spot/perp basis shock is a basis/funding subtype.
     maturity: ''
@@ -4986,6 +5266,11 @@ events:
     research_only: false
     strategy_only: false
     default_executable: true
+    detector_band: research_trigger
+    planning_eligible: true
+    runtime_eligible: false
+    promotion_eligible: false
+    primary_anchor_eligible: false
     deconflict_priority: 0
     notes: Spread blowout retained as liquidity-stress subtype.
     maturity: ''
@@ -5084,6 +5369,11 @@ events:
     research_only: false
     strategy_only: false
     default_executable: true
+    detector_band: research_trigger
+    planning_eligible: true
+    runtime_eligible: false
+    promotion_eligible: false
+    primary_anchor_eligible: false
     deconflict_priority: 0
     notes: Persistent execution-friction regime widening.
     maturity: ''
@@ -5156,6 +5446,11 @@ events:
     research_only: false
     strategy_only: false
     default_executable: true
+    detector_band: research_trigger
+    planning_eligible: true
+    runtime_eligible: false
+    promotion_eligible: false
+    primary_anchor_eligible: false
     deconflict_priority: 0
     notes: Structural breakout subtype within trend continuation.
     maturity: ''
@@ -5228,6 +5523,11 @@ events:
     research_only: false
     strategy_only: false
     default_executable: true
+    detector_band: research_trigger
+    planning_eligible: true
+    runtime_eligible: false
+    promotion_eligible: false
+    primary_anchor_eligible: false
     deconflict_priority: 0
     notes: Stop-run style liquidity stress.
     maturity: standard
@@ -5303,6 +5603,11 @@ events:
     research_only: false
     strategy_only: false
     default_executable: true
+    detector_band: research_trigger
+    planning_eligible: true
+    runtime_eligible: false
+    promotion_eligible: false
+    primary_anchor_eligible: false
     deconflict_priority: 0
     notes: Continuation regime with accelerating trend.
     maturity: ''
@@ -5375,6 +5680,11 @@ events:
     research_only: false
     strategy_only: false
     default_executable: true
+    detector_band: research_trigger
+    planning_eligible: true
+    runtime_eligible: false
+    promotion_eligible: false
+    primary_anchor_eligible: false
     deconflict_priority: 0
     notes: Deceleration belongs with trend failure/exhaustion.
     maturity: ''
@@ -5447,6 +5757,11 @@ events:
     research_only: false
     strategy_only: false
     default_executable: true
+    detector_band: research_trigger
+    planning_eligible: true
+    runtime_eligible: false
+    promotion_eligible: false
+    primary_anchor_eligible: false
     deconflict_priority: 0
     notes: Canonical exhaustion onset.
     maturity: ''
@@ -5537,6 +5852,11 @@ events:
     research_only: false
     strategy_only: false
     default_executable: true
+    detector_band: research_trigger
+    planning_eligible: true
+    runtime_eligible: false
+    promotion_eligible: false
+    primary_anchor_eligible: false
     deconflict_priority: 0
     notes: Transition from directional to choppy conditions.
     maturity: ''
@@ -5608,6 +5928,11 @@ events:
     research_only: false
     strategy_only: false
     default_executable: true
+    detector_band: research_trigger
+    planning_eligible: true
+    runtime_eligible: false
+    promotion_eligible: false
+    primary_anchor_eligible: false
     deconflict_priority: 0
     notes: Volatility cluster migration under expansion regime.
     maturity: ''
@@ -5680,6 +6005,11 @@ events:
     research_only: false
     strategy_only: false
     default_executable: true
+    detector_band: research_trigger
+    planning_eligible: true
+    runtime_eligible: false
+    promotion_eligible: false
+    primary_anchor_eligible: false
     deconflict_priority: 0
     notes: Regime transition expressed through volatility-state change.
     maturity: ''
@@ -5751,6 +6081,11 @@ events:
     research_only: false
     strategy_only: false
     default_executable: true
+    detector_band: research_trigger
+    planning_eligible: true
+    runtime_eligible: false
+    promotion_eligible: true
+    primary_anchor_eligible: false
     deconflict_priority: 0
     notes: Start of volatility normalization after expansion.
     maturity: ''
@@ -5823,6 +6158,11 @@ events:
     research_only: false
     strategy_only: false
     default_executable: true
+    detector_band: deployable_core
+    planning_eligible: true
+    runtime_eligible: true
+    promotion_eligible: true
+    primary_anchor_eligible: true
     deconflict_priority: 0
     notes: Canonical volatility shock; current detector implementation also models
       relaxation boundary.
@@ -5962,6 +6302,11 @@ events:
     research_only: false
     strategy_only: false
     default_executable: true
+    detector_band: deployable_core
+    planning_eligible: true
+    runtime_eligible: true
+    promotion_eligible: true
+    primary_anchor_eligible: true
     deconflict_priority: 0
     notes: Canonical realized-volatility expansion onset.
     maturity: ''
@@ -6034,6 +6379,11 @@ events:
     research_only: false
     strategy_only: false
     default_executable: true
+    detector_band: composite_or_fragile
+    planning_eligible: false
+    runtime_eligible: false
+    promotion_eligible: false
+    primary_anchor_eligible: false
     deconflict_priority: 0
     notes: 'Hybrid liquidity-stress recovery evidence: wick and reclaim structure
       confirmed by realized-volume expansion.'
@@ -6105,6 +6455,11 @@ events:
     research_only: false
     strategy_only: false
     default_executable: true
+    detector_band: research_trigger
+    planning_eligible: true
+    runtime_eligible: false
+    promotion_eligible: false
+    primary_anchor_eligible: false
     deconflict_priority: 0
     notes: Canonical stretch/overshoot event.
     maturity: ''

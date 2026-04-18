@@ -86,7 +86,7 @@ _TIER_BASELINE_SCORES: dict[str, dict[str, int]] = {
 
 
 def allowed_runtime_aliases() -> tuple[str, ...]:
-    aliases = set(EVENT_ALIASES.keys()) | set(EXECUTABLE_EVENT_ALIASES.values())
+    aliases = set(EVENT_ALIASES.keys()) | set(EXECUTABLE_EVENT_ALIASES.keys())
     return tuple(sorted(str(alias).strip().upper() for alias in aliases if str(alias).strip()))
 
 

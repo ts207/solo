@@ -1,0 +1,48 @@
+{
+  "calibration_mode": "rolling_quantile",
+  "dataset_lineage": {
+    "artifact_class": "packaged_baseline",
+    "calibration_input_dataset": "synthetic_and_spec_seeded_v2_baseline",
+    "source": "repo_packaged_governance_fixture",
+    "symbol_set": [
+      "BTCUSDT",
+      "ETHUSDT",
+      "major_crypto"
+    ],
+    "timeframe_set": [
+      "5m"
+    ]
+  },
+  "event_name": "SPOT_PERP_BASIS_SHOCK",
+  "event_version": "v2",
+  "failure_notes": [
+    "Baseline fixture only; empirical dataset lineage must replace it before threshold promotion.",
+    "Do not infer live threshold quality from this artifact."
+  ],
+  "notes": "Packaged baseline calibration artifact for detector governance tests; production recalibration should replace this with dataset-lineage output.",
+  "parameters": {
+    "min_basis_bps": 5.0,
+    "shock_change_floor": 0.75,
+    "shock_change_quantile": 0.9,
+    "threshold_quantile": 0.985,
+    "z_threshold": 3.0
+  },
+  "robustness": {
+    "min_event_count_policy": "replace with detector-specific empirical threshold before live promotion changes",
+    "robustness_summary": "Packaged baseline for governance and schema validation; not a live empirical recalibration.",
+    "status": "baseline_fixture"
+  },
+  "symbol_group": "major_crypto",
+  "threshold_version": "2.0",
+  "timeframe_group": "5m",
+  "training_period": {
+    "end": "2024-12-31",
+    "kind": "baseline_reference_window",
+    "start": "2023-01-01"
+  },
+  "validation_period": {
+    "end": "2025-12-31",
+    "kind": "baseline_holdout_window",
+    "start": "2025-01-01"
+  }
+}

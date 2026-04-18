@@ -49,6 +49,7 @@ from project.events.event_specs import (
     assert_event_specs_available,
     expected_event_types_for_spec,
 )
+from project.events.policy import DEPLOYABLE_CORE_EVENT_TYPES
 
 __all__ = [
     "DetectorContract",
@@ -198,6 +199,19 @@ def _resolve_maturity(row: dict) -> str:
     return "standard"
 
 
+def _resolve_detector_band(row: dict, event_name: str, role: str, context_only: bool, composite: bool) -> str:
+    raw = str(row.get("detector_band") or "").strip().lower()
+    if raw in {"deployable_core", "research_trigger", "context_only", "composite_or_fragile"}:
+        return raw
+    if event_name in DEPLOYABLE_CORE_EVENT_TYPES:
+        return "deployable_core"
+    if role == "context" or context_only:
+        return "context_only"
+    if role in {"composite", "research_only", "sequence_component"} or composite or event_name.startswith("SEQ_") or "PROXY" in event_name:
+        return "composite_or_fragile"
+    return "research_trigger"
+
+
 
 def _parameters(row: dict) -> dict:
     params = row.get("parameters")
@@ -276,6 +290,7 @@ def get_detector_contract(event_name: str) -> DetectorContract:
         "LIQUIDITY_GAP_PRINT": {"runtime_default": False, "promotion_eligible": False, "primary_anchor_eligible": False},
         "DEPTH_COLLAPSE": {"runtime_default": False, "promotion_eligible": True, "primary_anchor_eligible": False},
         "LIQUIDATION_CASCADE_PROXY": {"runtime_default": False, "promotion_eligible": False, "primary_anchor_eligible": False},
+        "VOL_RELAXATION_START": {"runtime_default": False, "promotion_eligible": True, "primary_anchor_eligible": False},
         "FUNDING_EXTREME_ONSET": {"runtime_default": False, "promotion_eligible": True, "primary_anchor_eligible": True},
         "FUNDING_FLIP": {"runtime_default": False, "promotion_eligible": True, "primary_anchor_eligible": True},
         "FUNDING_PERSISTENCE_TRIGGER": {"runtime_default": False, "promotion_eligible": True, "primary_anchor_eligible": True},
@@ -283,7 +298,12 @@ def get_detector_contract(event_name: str) -> DetectorContract:
         "OI_SPIKE_POSITIVE": {"runtime_default": False, "promotion_eligible": True, "primary_anchor_eligible": True},
         "OI_SPIKE_NEGATIVE": {"runtime_default": False, "promotion_eligible": True, "primary_anchor_eligible": True},
         "OI_FLUSH": {"runtime_default": False, "promotion_eligible": True, "primary_anchor_eligible": True},
-        "CROSS_ASSET_DESYNC_EVENT": {"runtime_default": True, "promotion_eligible": False, "primary_anchor_eligible": False},
+        "CROSS_VENUE_DESYNC": {"runtime_default": False, "promotion_eligible": True, "primary_anchor_eligible": True},
+        "CROSS_ASSET_DESYNC_EVENT": {"runtime_default": False, "promotion_eligible": False, "primary_anchor_eligible": False},
+        "CORRELATION_BREAKDOWN_EVENT": {"runtime_default": False, "promotion_eligible": True, "primary_anchor_eligible": True},
+        "INDEX_COMPONENT_DIVERGENCE": {"runtime_default": False, "promotion_eligible": True, "primary_anchor_eligible": True},
+        "LEAD_LAG_BREAK": {"runtime_default": False, "promotion_eligible": True, "primary_anchor_eligible": True},
+        "BETA_SPIKE_EVENT": {"runtime_default": False, "promotion_eligible": True, "primary_anchor_eligible": True},
     }
     DETECTOR_CLASS_OVERRIDES = {
         "BASIS_DISLOC": "BasisDislocationDetectorV2",
@@ -319,8 +339,9 @@ def get_detector_contract(event_name: str) -> DetectorContract:
     context_only = _bool_from_row(row, "context_only", "is_context_tag", default=role == "context")
     composite = _bool_from_row(row, "composite", "is_composite", default=role == "composite")
     research_only = _bool_from_row(row, "research_only", default=role in {"composite", "research_only"})
-    runtime_default = _bool_from_row(row, "runtime_default", "default_executable", default=False)
-    planning_default = _bool_from_row(row, "planning_default", "default_executable", default=False)
+    detector_band = _resolve_detector_band(row, canonical_name, role, context_only, composite)
+    runtime_default = _bool_from_row(row, "runtime_default", "runtime_eligible", "default_executable", default=False)
+    planning_default = _bool_from_row(row, "planning_default", "planning_eligible", "default_executable", default=False)
     promotion_eligible = _bool_from_row(
         row,
         "promotion_eligible",
@@ -335,6 +356,8 @@ def get_detector_contract(event_name: str) -> DetectorContract:
         runtime_default = False
         promotion_eligible = False
         primary_anchor_eligible = False
+    elif canonical_name not in DEPLOYABLE_CORE_EVENT_TYPES:
+        runtime_default = False
     if canonical_name in DETECTOR_POLICY_OVERRIDES:
         override = DETECTOR_POLICY_OVERRIDES[canonical_name]
         runtime_default = bool(override.get("runtime_default", runtime_default))
@@ -356,6 +379,7 @@ def get_detector_contract(event_name: str) -> DetectorContract:
             evidence_mode=str(row.get("evidence_mode", "direct")).strip().lower(),
             role=role,
             maturity=_resolve_maturity(row),
+            detector_band=detector_band,
             planning_default=planning_default,
             runtime_default=runtime_default,
             promotion_eligible=promotion_eligible,
@@ -433,6 +457,7 @@ def build_detector_version_inventory_rows() -> list[dict[str, object]]:
                 "event_version": contract.event_version,
                 "role": contract.role,
                 "maturity": contract.maturity,
+                "detector_band": contract.detector_band,
                 "planning_default": contract.planning_default,
                 "runtime_default": contract.runtime_default,
                 "promotion_eligible": contract.promotion_eligible,

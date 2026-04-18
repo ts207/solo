@@ -6,6 +6,7 @@ import numpy as np
 import pandas as pd
 
 from project.events.detectors.base_v2 import BaseDetectorV2
+from project.events.event_output_schema import empty_event_output_frame, normalize_event_output_frame
 from project.events.episodes import build_episodes
 
 
@@ -34,7 +35,7 @@ class EpisodeBaseDetectorV2(BaseDetectorV2):
     def detect_events(self, df: pd.DataFrame, params: dict) -> pd.DataFrame:
         self.check_required_columns(df)
         if df.empty:
-            return pd.DataFrame()
+            return empty_event_output_frame()
         work = df.copy().reset_index(drop=True)
         work['timestamp'] = pd.to_datetime(work['timestamp'], utc=True, errors='coerce')
         features = self.prepare_features(work, **params)
@@ -67,7 +68,7 @@ class EpisodeBaseDetectorV2(BaseDetectorV2):
                 cooldown_until=cooldown_until,
             )
             rows.append(event.as_dict())
-        return pd.DataFrame(rows)
+        return normalize_event_output_frame(pd.DataFrame(rows))
 
 
 class LiquidationCascadeDetectorV2(EpisodeBaseDetectorV2):

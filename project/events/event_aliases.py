@@ -1,17 +1,64 @@
 from __future__ import annotations
 
-EVENT_ALIASES = {
-    "BASIS_DISLOCATION": "BASIS_DISLOC",
-    "VOL_REGIME_SHIFT": "VOL_REGIME_SHIFT_EVENT",
-    "DEPTH_COLLAPSE": "DEPTH_STRESS_PROXY",
-    "ABSORPTION_EVENT": "ABSORPTION_PROXY",
-}
-EXECUTABLE_EVENT_ALIASES = {
-    "ABSORPTION_PROXY": "ABSORPTION_EVENT",
-    "DEPTH_STRESS_PROXY": "DEPTH_COLLAPSE",
-    "LIQUIDITY_STRESS_DIRECT": "LIQUIDITY_SHOCK",
-    "LIQUIDITY_STRESS_PROXY": "LIQUIDITY_SHOCK",
-}
+from functools import lru_cache
+from pathlib import Path
+from typing import Any
+
+import yaml
+
+
+REPO_ROOT = Path(__file__).resolve().parents[2]
+ALIAS_POLICY_PATH = REPO_ROOT / "spec" / "events" / "event_alias_policy.yaml"
+
+
+@lru_cache(maxsize=1)
+def load_event_alias_policy() -> dict[str, Any]:
+    payload = yaml.safe_load(ALIAS_POLICY_PATH.read_text(encoding="utf-8")) or {}
+    return dict(payload) if isinstance(payload, dict) else {}
+
+
+def _load_compatibility_aliases() -> dict[str, str]:
+    aliases = load_event_alias_policy().get("aliases", {})
+    if not isinstance(aliases, dict):
+        return {}
+    out: dict[str, str] = {}
+    for alias, row in aliases.items():
+        if not isinstance(row, dict):
+            continue
+        canonical = str(row.get("canonical_event_type", "")).strip().upper()
+        token = str(alias).strip().upper()
+        if token and canonical:
+            out[token] = canonical
+    return out
+
+
+EVENT_ALIASES = _load_compatibility_aliases()
+EXECUTABLE_EVENT_ALIASES = dict(EVENT_ALIASES)
+
+
+def compatibility_event_aliases() -> tuple[str, ...]:
+    return tuple(sorted(EVENT_ALIASES))
+
+
+def event_alias_policy_rows() -> tuple[dict[str, object], ...]:
+    rows = []
+    aliases = load_event_alias_policy().get("aliases", {})
+    if isinstance(aliases, dict):
+        for alias, row in aliases.items():
+            if not isinstance(row, dict):
+                continue
+            rows.append(
+                {
+                    "alias": str(alias).strip().upper(),
+                    "canonical_event_type": str(row.get("canonical_event_type", "")).strip().upper(),
+                    "scope": str(row.get("scope", "")).strip(),
+                    "planning_identity": bool(row.get("planning_identity", False)),
+                    "runtime_identity": bool(row.get("runtime_identity", False)),
+                    "promotion_identity": bool(row.get("promotion_identity", False)),
+                    "reason": str(row.get("reason", "")).strip(),
+                }
+            )
+    return tuple(sorted(rows, key=lambda row: str(row["alias"])))
 
 
 def resolve_event_alias(event_type: str) -> str:

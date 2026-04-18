@@ -16,11 +16,11 @@ def test_wave3_governance_policy_is_applied() -> None:
     trigger = get_detector_contract('CROSS_VENUE_DESYNC')
     context = get_detector_contract('CROSS_ASSET_DESYNC_EVENT')
     regime = get_detector_contract('CORRELATION_BREAKDOWN_EVENT')
-    assert trigger.runtime_default is True
+    assert trigger.runtime_default is False
     assert trigger.promotion_eligible is True
     assert context.role == 'context'
-    assert context.runtime_default is True
+    assert context.runtime_default is False
     assert context.promotion_eligible is False
     assert context.primary_anchor_eligible is False
-    assert regime.runtime_default is True
+    assert regime.runtime_default is False
     assert regime.promotion_eligible is True

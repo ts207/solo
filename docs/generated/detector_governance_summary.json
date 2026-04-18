@@ -1,0 +1,25 @@
+{
+  "alias_count": 3,
+  "band_counts": {
+    "composite_or_fragile": 12,
+    "context_only": 5,
+    "deployable_core": 9,
+    "research_trigger": 45
+  },
+  "governed_detectors": 71,
+  "legacy_detectors": 44,
+  "legacy_retired_safe": 44,
+  "role_counts": {
+    "composite": 4,
+    "context": 5,
+    "research_only": 1,
+    "trigger": 61
+  },
+  "runtime_non_v2": 0,
+  "runtime_v2": 9,
+  "v2_detectors": 27,
+  "version_counts": {
+    "v1": 44,
+    "v2": 27
+  }
+}

@@ -781,6 +781,7 @@ def test_support_resistance_break_is_implemented():
 
 
 def test_detector_policy_sets_are_explicit():
-    assert "SUPPORT_RESISTANCE_BREAK" in LIVE_SAFE_EVENT_TYPES
+    assert "LIQUIDITY_STRESS_DIRECT" in LIVE_SAFE_EVENT_TYPES
+    assert "SUPPORT_RESISTANCE_BREAK" not in LIVE_SAFE_EVENT_TYPES
     assert "FUNDING_FLIP" in RETROSPECTIVE_EVENT_TYPES
     assert is_legacy_event_type("BASIS_SNAPBACK")
