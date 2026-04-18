@@ -10,8 +10,8 @@ def test_benchmark_preset_loading():
     preset = load_yaml(preset_path)
     assert "benchmark_modes" in preset
     assert "slices" in preset
-    assert "A" in preset["benchmark_modes"]
-    assert preset["benchmark_modes"]["A"]["label"] == "baseline_flat"
+    assert list(preset["benchmark_modes"]) == ["D"]
+    assert preset["benchmark_modes"]["D"]["label"] == "hierarchical_v2_with_folds"
 
 def test_summary_schema(tmp_path):
     summary = {
@@ -19,7 +19,7 @@ def test_summary_schema(tmp_path):
         "preset_name": "core_v1",
         "generated_at": "2026-04-04T12:00:00Z",
         "slice_id": "m0_strong_event",
-        "mode_name": "baseline_flat",
+        "mode_name": "hierarchical_v2_with_folds",
         "candidate_count_generated": 100,
         "top_n_median_after_cost_expectancy_bps": 2.5
     }
@@ -33,26 +33,9 @@ def test_baseline_comparison():
     assert delta == 1.0
 
 def test_threshold_evaluation():
-    thresholds = {
-        "thresholds": {
-            "min_final_candidates": 5
-        }
-    }
+    thresholds = {"min_final_candidates": 5}
     mode_results_pass = {
-        "A": {
-            "emergence": True,
-            "candidate_count": 10,
-            "top10": {
-                "promotion_density": 0.3,
-                "placebo_fail_rate": 0.1,
-                "rank_diversity_score": 0.8,
-                "median_after_cost_expectancy_bps": 1.0,
-                "median_cost_survival_ratio": 0.9,
-            },
-            "median_discovery_quality_score": 0.7,
-            "median_falsification_component": 0.8,
-        },
-        "B": {
+        "D": {
             "emergence": True,
             "candidate_count": 10,
             "top10": {
@@ -67,23 +50,11 @@ def test_threshold_evaluation():
         },
     }
     res_pass = evaluate_thresholds(mode_results=mode_results_pass, thresholds=thresholds)
-    assert "B" in res_pass["scorecard"]
+    assert "D" in res_pass["scorecard"]
+    assert res_pass["components"]["canonical_d"] == "promote"
 
     mode_results_fail = {
-        "A": {
-            "emergence": True,
-            "candidate_count": 2,
-            "top10": {
-                "promotion_density": 0.3,
-                "placebo_fail_rate": 0.1,
-                "rank_diversity_score": 0.8,
-                "median_after_cost_expectancy_bps": 1.0,
-                "median_cost_survival_ratio": 0.9,
-            },
-            "median_discovery_quality_score": 0.7,
-            "median_falsification_component": 0.8,
-        },
-        "B": {
+        "D": {
             "emergence": True,
             "candidate_count": 2,
             "top10": {
@@ -98,7 +69,8 @@ def test_threshold_evaluation():
         },
     }
     res_fail = evaluate_thresholds(mode_results=mode_results_fail, thresholds=thresholds)
-    assert "B" in res_fail["scorecard"]
+    assert "D" in res_fail["scorecard"]
+    assert res_fail["components"]["canonical_d"] == "hold"
 
 def test_history_append(tmp_path):
     import pandas as pd

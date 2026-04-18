@@ -1,121 +1,27 @@
 version: 1
 kind: benchmark_governance_spec
-# ─────────────────────────────────────────────────────────────────────────────
-# Benchmark Mode Isolation Matrix
-#
-# Purpose: define a mode progression where EXACTLY ONE variable changes per
-# step relative to the baseline. This makes it possible to attribute performance
-# differences to specific features rather than to combinations.
-#
-# Current state: modes A and B are immediately runnable with canonical events.
-# Modes C–F require walk-forward fold data, ledger history, or hierarchical
-# search infrastructure to be validated.
-# ─────────────────────────────────────────────────────────────────────────────
 
-isolation_matrix:
-  - mode_id: A
-    label: "baseline_flat"
-    status: RUNNABLE
-    description: >
-      Flat search, v1 scoring (legacy abs t-stat ranking).
-      This is the reference baseline. All other modes are measured against it.
-    config_overrides:
-      search_topology: flat
-      scoring_version: v1
-      fold_validation: disabled
-      ledger_adjustment: disabled
-      shortlist_selection: disabled
-    variable_changed_vs_previous: null  # baseline — no previous
+canonical_path:
+  mode_id: D
+  label: hierarchical_v2_with_folds
+  status: STABLE
+  description: >
+    Single operator-facing discovery path: hierarchical search with v2 scoring
+    and repeated walk-forward folds. Ledger adjustment and diversified shortlist
+    are disabled.
+  config_overrides:
+    search_topology: hierarchical
+    scoring_version: v2
+    fold_validation: enabled
+    ledger_adjustment: disabled
+    shortlist_selection: disabled
 
-  - mode_id: B
-    label: "flat_v2_scoring"
-    status: RUNNABLE
-    description: >
-      Flat search + v2 quality scoring (Significance, Tradability, Novelty,
-      Falsification components). Only scoring version changes vs. mode A.
-      Use this to isolate the pure contribution of v2 scoring.
-    config_overrides:
-      search_topology: flat
-      scoring_version: v2
-      fold_validation: disabled
-      ledger_adjustment: disabled
-      shortlist_selection: disabled
-    variable_changed_vs_previous: scoring_version  # A → B: v1 → v2
+retired_modes: []
 
-  - mode_id: C
-    label: "flat_v2_with_folds"
-    status: FUTURE  # requires validated walk-forward windows (train_bars >= 20000)
-    description: >
-      Flat search + v2 scoring + repeated walk-forward fold validation.
-      Only fold validation changes vs. mode B. Use to isolate the contribution
-      of fold-based stability scoring.
-    config_overrides:
-      search_topology: flat
-      scoring_version: v2
-      fold_validation: enabled
-      ledger_adjustment: disabled
-      shortlist_selection: disabled
-    variable_changed_vs_previous: fold_validation  # B → C: disabled → enabled
-
-  - mode_id: D
-    label: "hierarchical_v2_with_folds"
-    status: FUTURE
-    description: >
-      Hierarchical search (stages A–D) + v2 scoring + folds. Only search
-      topology changes vs. mode C. Use to isolate the contribution of
-      hierarchical stage-based pruning.
-    config_overrides:
-      search_topology: hierarchical
-      scoring_version: v2
-      fold_validation: enabled
-      ledger_adjustment: disabled
-      shortlist_selection: disabled
-    variable_changed_vs_previous: search_topology  # C → D: flat → hierarchical
-
-  - mode_id: E
-    label: "hierarchical_v2_folds_ledger"
-    status: FUTURE  # requires >=180 days of ledger history
-    description: >
-      Mode D + concept ledger multiplicity correction (v3 scoring). Only ledger
-      adjustment changes vs. mode D. Use to isolate the contribution of cross-
-      lineage multiplicity penalty.
-    config_overrides:
-      search_topology: hierarchical
-      scoring_version: v2
-      fold_validation: enabled
-      ledger_adjustment: enabled
-      shortlist_selection: disabled
-    variable_changed_vs_previous: ledger_adjustment  # D → E: disabled → enabled
-
-  - mode_id: F
-    label: "hierarchical_v2_folds_ledger_diversified"
-    status: FUTURE
-    description: >
-      Mode E + diversified MMR shortlist selection. Only shortlist selection
-      changes vs. mode E. Use to isolate the contribution of portfolio-aware
-      candidate selection.
-    config_overrides:
-      search_topology: hierarchical
-      scoring_version: v2
-      fold_validation: enabled
-      ledger_adjustment: enabled
-      shortlist_selection: enabled
-    variable_changed_vs_previous: shortlist_selection  # E → F: disabled → enabled
-
-# ─────────────────────────────────────────────────────────────────────────────
-# Re-classification gates
-# ─────────────────────────────────────────────────────────────────────────────
 reclassification:
-  v2_stable_internal:
-    requires_modes: [A, B]
+  canonical_path_locked:
+    requires_modes: [D]
     success_criterion: >
-      Mode B shows improvement over mode A in >=3 of 5 benchmark cases on
-      both promotion_density and median_after_cost_expectancy_bps (top-10).
-    current_status: BLOCKED  # pending valid benchmark run — see stabilization_report.md
-
-  ledger_stable_internal:
-    requires_modes: [A, B, C, D, E]
-    success_criterion: >
-      Mode E shows improvement over mode D in >=3 of 5 cases without
-      introducing ledger over-penalisation (shortlist Jaccard E vs D >= 0.6).
-    current_status: FUTURE  # requires ledger history accumulation
+      Core benchmark preset executes only mode D for every non-negative-control
+      slice, with no ledger or shortlist overlay.
+    current_status: STABLE

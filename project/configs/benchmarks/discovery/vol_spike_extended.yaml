@@ -1,40 +1,12 @@
 benchmark_modes:
-  A:
-    scoring_version: v1
-    search_topology: flat
-    fold_validation: disabled
-    ledger_adjustment: disabled
-    shortlist_selection: disabled
-  B:
-    scoring_version: v2
-    search_topology: flat
-    fold_validation: disabled
-    ledger_adjustment: disabled
-    shortlist_selection: disabled
-  C:
-    scoring_version: v2
-    search_topology: flat
-    fold_validation: enabled
-    ledger_adjustment: disabled
-    shortlist_selection: disabled
   D:
+    mode_id: D
+    label: hierarchical_v2_with_folds
     scoring_version: v2
     search_topology: hierarchical
     fold_validation: enabled
     ledger_adjustment: disabled
     shortlist_selection: disabled
-  E:
-    scoring_version: v2
-    search_topology: hierarchical
-    fold_validation: enabled
-    ledger_adjustment: enabled
-    shortlist_selection: disabled
-  F:
-    scoring_version: v2
-    search_topology: hierarchical
-    fold_validation: enabled
-    ledger_adjustment: enabled
-    shortlist_selection: diversified
 
 slices:
   - vol_spike_2022_05.yaml

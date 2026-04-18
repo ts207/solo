@@ -3,8 +3,8 @@ from __future__ import annotations
 import importlib.util
 import json
 import sys
-from pathlib import Path
 from datetime import datetime, timezone
+from pathlib import Path
 
 from project.tests.conftest import PROJECT_ROOT
 
@@ -133,7 +133,10 @@ def test_benchmark_matrix_execute_records_success(tmp_path, monkeypatch):
     def fake_matrix_report(**kwargs):
         out_path = Path(kwargs["out_dir"]) / "research_run_matrix_summary.json"
         out_path.parent.mkdir(parents=True, exist_ok=True)
-        out_path.write_text(json.dumps({"baseline_run_id": kwargs["baseline_run_id"]}), encoding="utf-8")
+        out_path.write_text(
+            json.dumps({"baseline_run_id": kwargs["baseline_run_id"]}),
+            encoding="utf-8",
+        )
         (out_path.parent / "research_run_matrix_summary.md").write_text(
             "# Research Run Matrix Summary\n",
             encoding="utf-8",
@@ -175,6 +178,41 @@ def test_benchmark_matrix_execute_records_success(tmp_path, monkeypatch):
     )
     assert (out_dir / "research_run_matrix_summary.json").exists()
     assert (out_dir / "research_run_matrix_summary.md").exists()
+    assert (out_dir / "canonical_path_report.json").exists()
+    assert (out_dir / "canonical_path_report.md").exists()
+
+
+def test_canonical_path_report_uses_artifact_candidate_counts():
+    module = _load_runner_module()
+
+    report = module.build_canonical_path_report(
+        matrix_id="unit",
+        results=[
+            {
+                "run_id": "slice_D",
+                "slice_id": "slice",
+                "mode_id": "D",
+                "status": "success",
+                "benchmark_metrics": {
+                    "candidate_count": 0,
+                    "candidate_count_basis": "phase2_candidates_parquet",
+                    "phase2_diagnostics": {
+                        "candidate_count": 14,
+                        "candidate_count_basis": "phase2_diagnostics_fallback",
+                    },
+                    "top10": {"promotion_density": 0.0},
+                },
+            },
+        ],
+    )
+
+    row = report["slices"][0]
+    assert row["mode_id"] == "D"
+    assert row["candidate_count"] == 0
+    assert row["candidate_count_basis"] == "phase2_candidates_parquet"
+    assert row["has_phase2_diagnostics"] is True
+    assert row["verdict"] == "canonical_no_final_candidates"
+    assert report["summary"]["noncanonical_mode_slices"] == 0
 
 
 def test_benchmark_matrix_execute_emits_post_run_reports(tmp_path, monkeypatch):
@@ -191,6 +229,7 @@ def test_benchmark_matrix_execute_emits_post_run_reports(tmp_path, monkeypatch):
         "    start: 2024-01-01\n"
         "    end: 2024-01-02\n"
         "    timeframe: 5m\n"
+        "    fixture_event_registry: tmp/fixture_events.parquet\n"
         "    post_reports:\n"
         "      live_foundation:\n"
         "        enabled: true\n"
@@ -209,7 +248,10 @@ def test_benchmark_matrix_execute_emits_post_run_reports(tmp_path, monkeypatch):
     def fake_matrix_report(**kwargs):
         out_path = Path(kwargs["out_dir"]) / "research_run_matrix_summary.json"
         out_path.parent.mkdir(parents=True, exist_ok=True)
-        out_path.write_text(json.dumps({"baseline_run_id": kwargs["baseline_run_id"]}), encoding="utf-8")
+        out_path.write_text(
+            json.dumps({"baseline_run_id": kwargs["baseline_run_id"]}),
+            encoding="utf-8",
+        )
         (out_path.parent / "research_run_matrix_summary.md").write_text(
             "# Research Run Matrix Summary\n",
             encoding="utf-8",
@@ -234,6 +276,7 @@ def test_benchmark_matrix_execute_emits_post_run_reports(tmp_path, monkeypatch):
         return path
 
     def fake_context_payload(**kwargs):
+        assert kwargs["event_registry_override"] == "tmp/fixture_events.parquet"
         return {
             "schema_version": "context_mode_comparison_v1",
             "run_id": kwargs["run_id"],
@@ -319,7 +362,10 @@ def test_benchmark_matrix_execute_failed_runs_still_emit_matrix_summary(tmp_path
     def fake_matrix_report(**kwargs):
         out_path = Path(kwargs["out_dir"]) / "research_run_matrix_summary.json"
         out_path.parent.mkdir(parents=True, exist_ok=True)
-        out_path.write_text(json.dumps({"baseline_run_id": kwargs["baseline_run_id"]}), encoding="utf-8")
+        out_path.write_text(
+            json.dumps({"baseline_run_id": kwargs["baseline_run_id"]}),
+            encoding="utf-8",
+        )
         (out_path.parent / "research_run_matrix_summary.md").write_text(
             "# Research Run Matrix Summary\n",
             encoding="utf-8",

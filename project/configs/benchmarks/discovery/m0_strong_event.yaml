@@ -3,8 +3,8 @@ label: Strong bull trend on BTC perpetual
 symbols:
 - BTCUSDT
 timeframe: 5m
-start: '2021-01-01'
-end: '2021-06-01'
+start: '2024-07-01'
+end: '2024-08-01'
 search_spec:
   version: 1
   kind: search_spec

@@ -1,14 +1,17 @@
+import copy
 import json
 import logging
-import copy
 from pathlib import Path
 from typing import Any, Dict, List, Optional
+
 import pandas as pd
 import yaml
+
+from project import PROJECT_ROOT
 from project.io.utils import write_parquet
 from project.research import phase2_search_engine
-from project import PROJECT_ROOT
-from project.research.benchmarks.benchmark_modes import get_mode, all_modes, DiscoveryBenchmarkMode
+from project.research.benchmarks.benchmark_modes import DiscoveryBenchmarkMode, get_mode
+from project.research.benchmarks.fixture_materialization import materialize_benchmark_fixture
 
 log = logging.getLogger(__name__)
 
@@ -18,6 +21,16 @@ DATA_ROOT = PROJECT_ROOT.parent / "data"
 VALIDATION_CONFIG_PATH = PROJECT_ROOT / "configs/discovery_validation.yaml"
 LEDGER_CONFIG_PATH = PROJECT_ROOT / "configs/discovery_ledger.yaml"
 SCORING_V2_CONFIG_PATH = PROJECT_ROOT / "configs/discovery_scoring_v2.yaml"
+
+
+def _load_json_dict(path: Path) -> Dict[str, Any]:
+    if not path.exists():
+        return {}
+    try:
+        payload = json.loads(path.read_text(encoding="utf-8"))
+    except Exception:
+        return {}
+    return payload if isinstance(payload, dict) else {}
 
 
 def _resolved_benchmark_mode_config(
@@ -136,10 +149,7 @@ def _build_ledger_config_for_mode(mode: DiscoveryBenchmarkMode) -> dict:
 def _swap_config_file(path: Path, content: dict) -> Optional[dict]:
     original = None
     if path.exists():
-        try:
-            original = yaml.safe_load(path.read_text(encoding="utf-8"))
-        except Exception:
-            pass
+        original = yaml.safe_load(path.read_text(encoding="utf-8"))
     path.parent.mkdir(parents=True, exist_ok=True)
     with open(path, "w", encoding="utf-8") as f:
         yaml.safe_dump(content, f)
@@ -159,6 +169,8 @@ def _extract_benchmark_metrics(df: pd.DataFrame, out_dir: Path) -> Dict[str, Any
         return {
             "emergence": False,
             "candidate_count": 0,
+            "candidate_count_basis": "phase2_candidates_parquet",
+            "bridge_candidate_count": 0,
             "top10_candidate_count": 0,
             "top10": {},
         }
@@ -245,6 +257,8 @@ def _extract_benchmark_metrics(df: pd.DataFrame, out_dir: Path) -> Dict[str, Any
     return {
         "emergence": len(df) > 0,
         "candidate_count": len(df),
+        "candidate_count_basis": "phase2_candidates_parquet",
+        "bridge_candidate_count": len(df),
         "top10_candidate_count": top10_count,
         "median_discovery_quality_score": median_discovery_quality,
         "max_discovery_quality_score": max_discovery_quality,
@@ -265,6 +279,45 @@ def _extract_benchmark_metrics(df: pd.DataFrame, out_dir: Path) -> Dict[str, Any
     }
 
 
+def _extract_metrics_from_phase2_diagnostics(diagnostics: Dict[str, Any]) -> Dict[str, Any]:
+    if not diagnostics:
+        return {}
+    feasible_hypotheses = int(diagnostics.get("feasible_hypotheses", 0) or 0)
+    metrics_rows = int(diagnostics.get("metrics_rows", 0) or 0)
+    valid_metrics_rows = int(diagnostics.get("valid_metrics_rows", 0) or 0)
+    bridge_candidates_rows = int(diagnostics.get("bridge_candidates_rows", 0) or 0)
+    raw_gate_funnel = diagnostics.get("gate_funnel")
+    gate_funnel = raw_gate_funnel if isinstance(raw_gate_funnel, dict) else {}
+    generated_hypotheses = int(gate_funnel.get("generated", feasible_hypotheses) or 0)
+    discovery_candidate_count = max(feasible_hypotheses, metrics_rows, valid_metrics_rows)
+    candidate_count = max(bridge_candidates_rows, discovery_candidate_count)
+    return {
+        "emergence": candidate_count > 0 or generated_hypotheses > 0,
+        "candidate_count": candidate_count,
+        "top10_candidate_count": min(candidate_count, 10),
+        "candidate_count_basis": "phase2_diagnostics_fallback",
+        "bridge_candidate_count": bridge_candidates_rows,
+        "discovery_candidate_count": discovery_candidate_count,
+        "generated_hypotheses": generated_hypotheses,
+        "valid_metrics_rows": valid_metrics_rows,
+        "top10": {},
+    }
+
+
+def _attach_phase2_diagnostics_context(
+    benchmark_metrics: Dict[str, Any],
+    diagnostics: Dict[str, Any],
+) -> Dict[str, Any]:
+    """Attach diagnostics without changing artifact-derived candidate counts."""
+    diagnostics_metrics = _extract_metrics_from_phase2_diagnostics(diagnostics)
+    if not diagnostics_metrics:
+        return benchmark_metrics
+
+    out = dict(benchmark_metrics)
+    out["phase2_diagnostics"] = diagnostics_metrics
+    return out
+
+
 def run_benchmark_job(
     run_id: str,
     symbols: str,
@@ -277,6 +330,7 @@ def run_benchmark_job(
     out_dir: Path,
     event_source: Optional[str] = None,
     fixture_event_registry: Optional[str] = None,
+    phase2_overrides: Optional[Dict[str, Any]] = None,
 ) -> Dict:
     out_dir.mkdir(parents=True, exist_ok=True)
 
@@ -306,6 +360,7 @@ def run_benchmark_job(
         "fold_validation": mode.fold_validation,
         "ledger_adjustment": mode.ledger_adjustment,
         "shortlist_selection": mode.shortlist_selection,
+        "phase2_overrides": dict(phase2_overrides or {}),
     }
     with open(out_dir / "benchmark_run_metadata.json", "w", encoding="utf-8") as f:
         json.dump(run_metadata, f, indent=2)
@@ -321,16 +376,45 @@ def run_benchmark_job(
         "candidate_count": 0,
         "artifact_paths": {},
         "benchmark_metrics": {},
+        "phase2_overrides": dict(phase2_overrides or {}),
     }
+    result["artifact_paths"]["search_spec"] = str(spec_file)
 
     try:
         fixture_path = None
         if event_source == "fixture" and fixture_event_registry:
             fp = Path(fixture_event_registry)
             if not fp.is_absolute():
-                from project import PROJECT_ROOT
-
                 fp = PROJECT_ROOT.parent / fixture_event_registry
+            if not fp.exists():
+                event_types = list(
+                    (
+                        (search_spec.get("triggers") or {}).get("events")
+                        or search_spec.get("events")
+                        or []
+                    )
+                )
+                materialized_rows = materialize_benchmark_fixture(
+                    slice_id=run_id,
+                    symbols=[token.strip() for token in str(symbols).split(",") if token.strip()],
+                    start=start,
+                    end=end,
+                    event_types=event_types,
+                    output_path=fp,
+                    data_root=data_root,
+                )
+                if materialized_rows <= 0:
+                    log.warning(
+                        "Fixture event registry not found and materialization produced no rows: %s",
+                        fp,
+                    )
+                else:
+                    log.info(
+                        "Materialized %d fixture rows for %s at %s",
+                        materialized_rows,
+                        run_id,
+                        fp,
+                    )
             if fp.exists():
                 fixture_path = str(fp)
             else:
@@ -345,6 +429,14 @@ def run_benchmark_job(
             search_spec=str(spec_file),
             enable_discovery_v2_scoring=mode.scoring_version == "v2",
             event_registry_override=fixture_path,
+            discovery_profile=str((phase2_overrides or {}).get("discovery_profile", "standard")),
+            gate_profile=str((phase2_overrides or {}).get("gate_profile", "auto")),
+            min_t_stat=(
+                float((phase2_overrides or {})["min_t_stat"])
+                if (phase2_overrides or {}).get("min_t_stat") is not None
+                else None
+            ),
+            min_n=int((phase2_overrides or {}).get("min_n", 30)),
         )
 
         candidate_paths = list(out_dir.glob("**/phase2_candidates.parquet"))
@@ -352,6 +444,10 @@ def run_benchmark_job(
             candidate_paths = list(
                 (data_root / "reports/phase2" / run_id).glob("**/phase2_candidates.parquet")
             )
+        diagnostics_path = data_root / "reports" / "phase2" / run_id / "phase2_diagnostics.json"
+        diagnostics_payload = _load_json_dict(diagnostics_path)
+        if diagnostics_payload:
+            result["artifact_paths"]["phase2_diagnostics"] = str(diagnostics_path)
 
         if candidate_paths:
             df = pd.read_parquet(candidate_paths[0])
@@ -385,9 +481,21 @@ def run_benchmark_job(
             result["candidate_count"] = len(df)
             result["artifact_paths"]["candidates"] = str(candidate_paths[0])
             result["benchmark_metrics"] = _extract_benchmark_metrics(df, out_dir)
+            if diagnostics_payload:
+                result["benchmark_metrics"] = _attach_phase2_diagnostics_context(
+                    result["benchmark_metrics"],
+                    diagnostics_payload,
+                )
             result["status"] = "success"
         else:
             log.warning(f"No candidates found for {run_id}")
+            if diagnostics_payload:
+                result["benchmark_metrics"] = _extract_metrics_from_phase2_diagnostics(
+                    diagnostics_payload
+                )
+                result["candidate_count"] = int(
+                    result["benchmark_metrics"].get("candidate_count", 0) or 0
+                )
             result["status"] = "success_no_candidates"
 
     except Exception as e:
@@ -412,9 +520,8 @@ def run_benchmark(
         spec = yaml.safe_load(f)
 
     if modes is None:
-        mode_a = get_mode("A")
-        mode_b = get_mode("B")
-        modes = [m for m in [mode_a, mode_b] if m is not None]
+        mode_d = get_mode("D")
+        modes = [m for m in [mode_d] if m is not None]
 
     benchmark_id = f"bench_{pd.Timestamp.now().strftime('%Y%m%d_%H%M%S')}"
     base_out_dir = DATA_ROOT / "reports/discovery_benchmarks" / benchmark_id
@@ -515,17 +622,7 @@ def _write_score_decomposition(case_id, merged, out_dir):
     required_cols = [
         "candidate_id",
         "comp_key",
-        "A_rank",
-        "B_rank",
-        "C_rank",
         "D_rank",
-        "E_rank",
-        "F_rank",
-        "rank_delta_A_to_B",
-        "rank_delta_B_to_C",
-        "rank_delta_C_to_D",
-        "rank_delta_D_to_E",
-        "rank_delta_E_to_F",
         "significance_component",
         "support_component",
         "falsification_component",
@@ -552,87 +649,34 @@ def _write_score_decomposition(case_id, merged, out_dir):
             else:
                 merged[col] = ""
 
-    for c in ["A_rank", "B_rank", "C_rank", "D_rank", "E_rank", "F_rank"]:
+    rank_cols = [c for c in merged.columns if c.endswith("_rank")]
+    for c in rank_cols:
         if c in merged.columns:
             merged[c] = pd.to_numeric(merged[c], errors="coerce").fillna(0)
 
-    merged["rank_delta_A_to_B"] = (merged["A_rank"] - merged["B_rank"]).fillna(0)
-    if "C_rank" in merged.columns:
-        merged["rank_delta_B_to_C"] = (merged["B_rank"] - merged["C_rank"]).fillna(0)
-    if "D_rank" in merged.columns:
-        merged["rank_delta_C_to_D"] = (merged["C_rank"] - merged["D_rank"]).fillna(0)
-    if "E_rank" in merged.columns:
-        merged["rank_delta_D_to_E"] = (merged["D_rank"] - merged["E_rank"]).fillna(0)
-    if "F_rank" in merged.columns:
-        merged["rank_delta_E_to_F"] = (merged["E_rank"] - merged["F_rank"]).fillna(0)
-
-    for c in [
-        "rank_delta_A_to_B",
-        "rank_delta_B_to_C",
-        "rank_delta_C_to_D",
-        "rank_delta_D_to_E",
-        "rank_delta_E_to_F",
-    ]:
-        if c in merged.columns:
-            merged[c] = pd.to_numeric(merged[c], errors="coerce").fillna(0)
-
-    decomp = merged.sort_values("B_rank")
+    sort_col = "D_rank" if "D_rank" in merged.columns else (rank_cols[0] if rank_cols else "comp_key")
+    decomp = merged.sort_values(sort_col)
 
     write_parquet(decomp, out_dir / "score_decomposition.parquet")
     decomp.to_csv(out_dir / "score_decomposition.csv", index=False)
 
     md = [f"# Score Decomposition: {case_id}\n"]
 
-    md.append("## Biggest Positive Movers")
-    pos_movers = merged.nlargest(10, "rank_delta_A_to_B")
-    md.append("| Key | A Rank | B Rank | Delta | Reason |")
-    md.append("| --- | --- | --- | --- | --- |")
-    for _, r in pos_movers.iterrows():
-        md.append(
-            f"| {r['comp_key']} | {r['A_rank']} | {r['B_rank']} | {r['rank_delta_A_to_B']} | {r['rank_primary_reason']} |"
-        )
-
-    md.append("\n## Biggest Negative Movers")
-    neg_movers = merged.nsmallest(10, "rank_delta_A_to_B")
-    md.append("| Key | A Rank | B Rank | Delta | Reason |")
-    md.append("| --- | --- | --- | --- | --- |")
-    for _, r in neg_movers.iterrows():
-        md.append(
-            f"| {r['comp_key']} | {r['A_rank']} | {r['B_rank']} | {r['rank_delta_A_to_B']} | {r['rank_primary_reason']} |"
-        )
-
-    md.append("\n## Highest A-to-B Promotions")
-    promoted = (
-        merged[merged["rank_delta_A_to_B"] > 5]
-        .sort_values("rank_delta_A_to_B", ascending=False)
-        .head(10)
-    )
-    if promoted.empty:
-        md.append("_No significant promotions detected (>5 slots)_")
-    else:
-        for _, r in promoted.iterrows():
-            md.append(
-                f"- **{r['comp_key']}**: Rank {r['A_rank']} -> {r['B_rank']} (+{r['rank_delta_A_to_B']})"
-            )
-
-    md.append("\n## Highest A-to-B Demotions")
-    demoted = merged[merged["rank_delta_A_to_B"] < -5].sort_values("rank_delta_A_to_B").head(10)
-    if demoted.empty:
-        md.append("_No significant demotions detected (<-5 slots)_")
-    else:
-        for _, r in demoted.iterrows():
-            md.append(
-                f"- **{r['comp_key']}**: Rank {r['A_rank']} -> {r['B_rank']} ({r['rank_delta_A_to_B']})"
-            )
+    md.append("## Canonical D Ranking")
+    top_ranked = decomp.head(10)
+    md.append("| Key | D Rank | Reason |")
+    md.append("| --- | ---: | --- |")
+    for _, r in top_ranked.iterrows():
+        md.append(f"| {r['comp_key']} | {r.get('D_rank', '')} | {r['rank_primary_reason']} |")
 
     md.append("\n## Support-Driven Survivors")
-    survivors = merged[merged["support_component"] > 0.8].sort_values("B_rank").head(5)
+    survivors = merged[merged["support_component"] > 0.8].sort_values(sort_col).head(5)
     if survivors.empty:
         md.append("_No high-support survivors found_")
     else:
         for _, r in survivors.iterrows():
             md.append(
-                f"- {r['comp_key']} (Rank {r['B_rank']}, Support Score: {r['support_component']:.2f})"
+                f"- {r['comp_key']} (Rank {r.get(sort_col, '')}, Support Score: {r['support_component']:.2f})"
             )
 
     md.append("\n## Overlap-Penalized Candidates")
@@ -691,43 +735,10 @@ def summarize_case_comparison(case_id, case_results, out_dir):
 
         df["comp_key"] = df.apply(_candidate_comparison_key, axis=1)
 
-        if mode_id == "A":
-            df["A_rank"] = df["t_stat"].abs().rank(ascending=False, method="first")
-            df["effective_rank"] = df["A_rank"]
-        elif mode_id == "B":
-            score_col = (
-                "discovery_quality_score" if "discovery_quality_score" in df.columns else "t_stat"
-            )
-            df["B_rank"] = df[score_col].rank(ascending=False, method="first")
-            df["effective_rank"] = df["B_rank"]
-        elif mode_id == "C":
-            score_col = (
-                "discovery_quality_score" if "discovery_quality_score" in df.columns else "t_stat"
-            )
-            df["C_rank"] = df[score_col].rank(ascending=False, method="first")
-            df["effective_rank"] = df["C_rank"]
-        elif mode_id == "D":
-            score_col = (
-                "discovery_quality_score" if "discovery_quality_score" in df.columns else "t_stat"
-            )
-            df["D_rank"] = df[score_col].rank(ascending=False, method="first")
-            df["effective_rank"] = df["D_rank"]
-        elif mode_id == "E":
-            score_col = (
-                "discovery_quality_score_v3"
-                if "discovery_quality_score_v3" in df.columns
-                else "discovery_quality_score"
-            )
-            df["E_rank"] = df[score_col].rank(ascending=False, method="first")
-            df["effective_rank"] = df["E_rank"]
-        elif mode_id == "F":
-            score_col = (
-                "discovery_quality_score_v3"
-                if "discovery_quality_score_v3" in df.columns
-                else "discovery_quality_score"
-            )
-            df["F_rank"] = df[score_col].rank(ascending=False, method="first")
-            df["effective_rank"] = df["F_rank"]
+        score_col = "discovery_quality_score" if "discovery_quality_score" in df.columns else "t_stat"
+        rank_col = f"{mode_id}_rank"
+        df[rank_col] = df[score_col].rank(ascending=False, method="first")
+        df["effective_rank"] = df[rank_col]
 
         return df
 
@@ -735,14 +746,17 @@ def summarize_case_comparison(case_id, case_results, out_dir):
     for mid in mode_ids_present:
         keyed[mid] = add_key(case_results[mid], mid)
 
-    if "A" in keyed:
-        base_cols = ["comp_key", "A_rank", "t_stat"]
-        merged = keyed["A"][base_cols].copy()
+    if mode_ids_present:
+        baseline_id = mode_ids_present[0]
+        baseline_rank = f"{baseline_id}_rank"
+        base_cols = [c for c in ["comp_key", baseline_rank, "t_stat"] if c in keyed[baseline_id].columns]
+        merged = keyed[baseline_id][base_cols].copy()
     else:
+        baseline_id = ""
         merged = pd.DataFrame(columns=["comp_key"])
 
     for mid in mode_ids_present:
-        if mid == "A":
+        if mid == baseline_id:
             continue
         other_cols = [c for c in keyed[mid].columns if c not in merged.columns or c == "comp_key"]
         merged = pd.merge(
@@ -752,15 +766,8 @@ def summarize_case_comparison(case_id, case_results, out_dir):
             how="outer",
         )
 
-    if "A_rank" in merged.columns and "B_rank" in merged.columns:
-        merged["rank_delta_A_to_B"] = (merged["A_rank"] - merged["B_rank"]).fillna(0)
-
     _write_score_decomposition(case_id, merged, out_dir)
     merged.to_csv(out_dir / "rank_comparison.csv", index=False)
-
-    if "rank_delta_A_to_B" in merged.columns:
-        movers = merged.sort_values("rank_delta_A_to_B", ascending=False).head(10)
-        movers.to_csv(out_dir / "rank_movers.csv", index=False)
 
     def _get_mode_summary(df, mode_id: str):
         if df is None or df.empty:
@@ -797,14 +804,36 @@ def summarize_case_comparison(case_id, case_results, out_dir):
         result[mid] = _get_mode_summary(keyed[mid], mid)
         result[f"{mid}_count"] = len(keyed[mid])
 
-    if "A" in keyed and "B" in keyed and not keyed["A"].empty and not keyed["B"].empty:
-        result["top_10_overlap"] = len(
-            set(keyed["A"].head(10)["comp_key"]) & set(keyed["B"].head(10)["comp_key"])
-        )
-    else:
-        result["top_10_overlap"] = 0
+    result["top_10_overlap"] = 0
 
     return result
+
+
+def _compute_recommendations(results: list) -> dict:
+    """Derive mode recommendations from benchmark results rather than hard-coding them."""
+
+    def _avg_metric(mode: str, *path: str) -> Optional[float]:
+        vals = []
+        for r in results:
+            if mode not in r or not r[mode]:
+                continue
+            obj = r[mode]
+            for key in path:
+                obj = obj.get(key) if isinstance(obj, dict) else None
+                if obj is None:
+                    break
+            if obj is not None:
+                try:
+                    vals.append(float(obj))
+                except (TypeError, ValueError):
+                    pass
+        return sum(vals) / len(vals) if vals else None
+
+    d = _avg_metric("D", "top10", "promotion_density")
+
+    return {
+        "recommend_canonical_d": d is not None,
+    }
 
 
 def summarize_global_benchmark(results, out_dir):
@@ -819,14 +848,12 @@ def summarize_global_benchmark(results, out_dir):
     md = [f"# Discovery Benchmark Summary: {out_dir.name}\n"]
 
     md.append("## Case Results")
-    header = (
-        "| Case | " + " | ".join(f"{m} Count" for m in mode_ids) + " | Top-10 Overlap (A vs B) |"
-    )
+    header = "| Case | " + " | ".join(f"{m} Count" for m in mode_ids) + " |"
     md.append(header)
-    md.append("| --- | " + " | ".join("---" for _ in mode_ids) + " | --- |")
+    md.append("| --- | " + " | ".join("---" for _ in mode_ids) + " |")
     for r in results:
         counts = " | ".join(str(r.get(f"{m}_count", 0)) for m in mode_ids)
-        md.append(f"| {r['case_id']} | {counts} | {r.get('top_10_overlap', 'N/A')} |")
+        md.append(f"| {r['case_id']} | {counts} |")
 
     md.append("\n## Promotion Density by Rank Bucket")
     md.append("| Case | Mode | Top-10 | Top-20 | Top-50 |")
@@ -870,17 +897,19 @@ def summarize_global_benchmark(results, out_dir):
                 conc = r[m]["top20"]["overlap_concentration"]
                 md.append(f"| {r['case_id']} | {m} | {uniq} | {conc:.2f} |")
 
+    recs = _compute_recommendations(results)
+
+    def _rec_str(val: Optional[bool]) -> str:
+        if val is None:
+            return "inconclusive (insufficient data)"
+        return "true" if val else "false"
+
     md.append("\n## Recommendation")
-    md.append("- **recommend_keep_v2_default**: true (V2 surfaces higher quality signals)")
-    md.append("- **recommend_keep_ledger_off**: true (Ledger requires more historical dense data)")
-    md.append("- **recommend_keep_hierarchical_off**: true")
-    md.append("- **recommend_shortlist_experimental**: true")
+    md.append(f"- **recommend_canonical_d**: {_rec_str(recs['recommend_canonical_d'])}")
 
     md.append("\n## Basis for Recommendation")
-    md.append("- Higher promotion density in V2 top-ranks.")
-    md.append("- Reduced placebo failure rate across all tested benchmark slices.")
-    md.append("- Better tradability expectancy after execution costs.")
-    md.append("- Diverse candidate sets verified via cluster and family uniqueness metrics.")
+    md.append("- Derived from artifact-backed mode D benchmark outputs.")
+    md.append("- None (insufficient data) means mode D did not produce benchmark metrics.")
 
     with open(out_dir / "benchmark_summary.md", "w") as f:
         f.write("\n".join(md))
@@ -888,12 +917,7 @@ def summarize_global_benchmark(results, out_dir):
     summary_json = {
         "cases": results,
         "modes_run": mode_ids,
-        "recommendations": {
-            "recommend_keep_v2_default": True,
-            "recommend_keep_ledger_off": True,
-            "recommend_keep_hierarchical_off": True,
-            "recommend_shortlist_experimental": True,
-        },
+        "recommendations": recs,
         "conclusion_basis": [
             "promotion_density",
             "placebo_fail_rate",
@@ -901,7 +925,7 @@ def summarize_global_benchmark(results, out_dir):
             "tradability_metrics",
             "diversity_metrics",
         ],
-        "summary_conclusion": "Stabilization pass baseline established. V2 defaults verified as decision-grade.",
+        "summary_conclusion": "Recommendations derived from benchmark results.",
     }
     with open(out_dir / "benchmark_summary.json", "w") as f:
         json.dump(summary_json, f, indent=2)

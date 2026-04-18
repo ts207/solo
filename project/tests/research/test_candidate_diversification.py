@@ -731,8 +731,9 @@ class TestRegression:
         if spec_path.exists():
             doc = yaml.safe_load(spec_path.read_text())
             assert "discovery_selection" in doc
-            assert doc["discovery_selection"]["mode"] == "greedy"
+            assert doc["discovery_selection"]["mode"] == "off"
             assert "shortlist" in doc["discovery_selection"]
+            assert doc["discovery_selection"]["shortlist"]["enabled"] is False
 
     def test_diversification_module_no_circular_imports(self):
         import importlib

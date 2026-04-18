@@ -69,11 +69,11 @@ def test_search_space_defaults_are_stable():
     spec_path = PROJECT_ROOT.parent / "spec/search_space.yaml"
     with open(spec_path, "r") as f:
         spec = yaml.safe_load(f)
-        # Assert flat mode is official default
-        assert spec["discovery_search"]["mode"] == "flat"
-        # Assert diversified shortlist is off by default
-        if "discovery_selection" in spec and "shortlist" in spec["discovery_selection"]:
-            assert isinstance(spec["discovery_selection"]["shortlist"]["enabled"], bool)
+        # Assert benchmark mode D is the official default:
+        # hierarchical search, no selection overlay.
+        assert spec["discovery_search"]["mode"] == "hierarchical"
+        assert spec["discovery_selection"]["mode"] == "off"
+        assert spec["discovery_selection"]["shortlist"]["enabled"] is False
 
 
 def test_ledger_default_is_disabled():
@@ -85,7 +85,7 @@ def test_ledger_default_is_disabled():
         with open(config_path, "r") as f:
             cfg = yaml.safe_load(f)
             if "discovery_scoring" in cfg and "ledger_adjustment" in cfg["discovery_scoring"]:
-                assert isinstance(cfg["discovery_scoring"]["ledger_adjustment"]["enabled"], bool)
+                assert cfg["discovery_scoring"]["ledger_adjustment"]["enabled"] is False
 
 
 def test_legacy_sort_path_remains_deterministic_without_is_discovery() -> None:

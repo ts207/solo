@@ -597,15 +597,14 @@ class TestDeterministicRanking:
 
 
 # ---------------------------------------------------------------------------
-# Regression: flat mode default
+# Regression: canonical mode D default
 # ---------------------------------------------------------------------------
 
-class TestFlatModeRegression:
-    def test_flat_mode_config_unchanged(self):
-        """Changing spec to flat must not trigger hierarchical engine."""
+class TestCanonicalModeDRegression:
+    def test_search_space_uses_hierarchical_default(self):
+        """Canonical spec/search_space.yaml uses benchmark mode D topology."""
         from project.research.phase2_search_engine import _load_hierarchical_config
 
-        # The actual spec/search_space.yaml has mode: flat
         import yaml
         from project import PROJECT_ROOT
 
@@ -613,10 +612,8 @@ class TestFlatModeRegression:
         if spec_path.exists():
             doc = yaml.safe_load(spec_path.read_text())
             cfg = _load_hierarchical_config(doc)
-            assert cfg is None, (
-                "spec/search_space.yaml has mode=hierarchical — "
-                "flat mode is the default and must remain flat unless explicitly changed"
-            )
+            assert cfg is not None
+            assert cfg["mode"] == "hierarchical"
 
     def test_search_space_yaml_parses(self):
         import yaml

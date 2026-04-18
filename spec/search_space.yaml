@@ -1,9 +1,11 @@
 version: 1
 kind: search_space
 metadata:
-  phase: tier1_default
-  description: Narrow default search surface for operator-facing discovery.
+  phase: tier1_default_hierarchical_v2_folds
+  description: Narrow default search surface for operator-facing discovery using benchmark mode D.
   search_tier: tier1
+  default_discovery_path: hierarchical_v2_with_folds
+  adoption_basis: data/reports/benchmarks/canonical_d_only_20260418/canonical_path_report.md
   default_symbols:
     - BTCUSDT
     - ETHUSDT
@@ -95,10 +97,11 @@ include_sequences: false
 include_interactions: false
 
 # Discovery Search Strategy — [STATUS: STABLE]
-# Flat mode is the canonical operator path.
-# Hierarchical mode is EXPERIMENTAL for multi-stage refinement research.
+# Benchmark mode D is the canonical operator path:
+# hierarchical search + v2 scoring + repeated walk-forward folds.
+# Ledger adjustment and diversified shortlist are disabled for this path.
 discovery_search:
-  mode: flat   # "flat" (STABLE) | "hierarchical" (EXPERIMENTAL)
+  mode: hierarchical   # "hierarchical" (STABLE) | "flat" (legacy fallback)
 
   trigger_viability:
     enabled: true
@@ -127,10 +130,10 @@ discovery_search:
     min_context_gain: 0.0      # Context must not hurt baseline score
 
 # Phase 5 — Portfolio-aware discovery selection
-# Shortlist is opt-in (enabled: false). Overlap metadata is always computed
-# and appended to the full candidate table when mode != "off".
+# Diversified shortlist remains opt-in. Mode D disables selection overlays so
+# canonical discovery reports the artifact-backed final candidate set directly.
 discovery_selection:
-  mode: greedy   # "greedy" | "off"
+  mode: "off"   # single canonical path: no selection overlay
 
   overlap:
     enabled: true
@@ -140,7 +143,7 @@ discovery_selection:
     edge_threshold: 0.65   # Minimum similarity to draw an overlap graph edge
 
   shortlist:
-    enabled: true           # C3: enabled from Sprint 67 onwards. Writes phase2_diversified_shortlist.parquet.
+    enabled: false
     size: 20
     lambda_quality: 0.7
     lambda_overlap: 0.2

@@ -106,3 +106,27 @@ def test_classify_benchmark_slice_raises_on_malformed_report_json(tmp_path: Path
                 "live_foundation": str(foundation),
             }
         )
+
+
+def test_build_benchmark_review_preserves_benchmark_metadata() -> None:
+    summary = {
+        "matrix_id": "family_matrix",
+        "slices": [
+            {
+                "benchmark_id": "m0_strong_event_D",
+                "run_id": "m0_strong_event_D",
+                "family": "m0_strong_event",
+                "template": "D",
+                "context_label": "hierarchical_v2_with_folds",
+                "status": "success",
+                "generated_reports": {},
+            }
+        ],
+    }
+
+    review = build_benchmark_review(summary=summary)
+    row = review["slices"][0]
+    assert row["benchmark_id"] == "m0_strong_event_D"
+    assert row["family"] == "m0_strong_event"
+    assert row["template"] == "D"
+    assert row["context_label"] == "hierarchical_v2_with_folds"

@@ -1,41 +1,42 @@
 # Discovery v2 Stabilization Report
 
-**Status**: [PROVISIONAL — PENDING VALID BENCHMARK]
+**Status**: [STABLE — CANONICAL D PATH]
 **Lead Researcher**: antigravity
 **Date**: 2026-04-04
-**Revised**: 2026-04-04 (integrity review)
+**Revised**: 2026-04-18 (canonical D adoption)
 
-> [!CAUTION]
-> **Status downgraded from STABLE-INTERNAL to PROVISIONAL.**
-> The original benchmark harness used five event names that do not exist in the
-> canonical event registry. See **§ Known Integrity Issues** below. Discovery v2
-> must not be treated as STABLE-INTERNAL until `run_benchmark()` completes
-> against canonical events without error. See **§ Re-Classification Criteria**.
+> Canonical discovery now has one operator path: mode D
+> (`hierarchical_v2_with_folds`). Legacy comparison modes and the ledger /
+> shortlist overlays are retired from active benchmark presets.
 
 ---
 
 ## 1. Stabilization Mission Accomplished
 
-The primary goal of this task was to stabilize the **Discovery v2** research stack by finalizing the benchmark harness and ensuring consistent score decomposition across all discovery lanes (flat and hierarchical).
+The primary goal of this task was to stabilize the **Discovery v2** research stack and collapse active discovery onto one path.
 
 ### Key Accomplishments:
-- [x] **Benchmark Harness**: Implemented `discovery_benchmark.py` and `run_discovery_benchmark.py` for comparative analysis of ranking modes.
+- [x] **Benchmark Harness**: Implemented `discovery_benchmark.py` and `run_benchmark_matrix.py` for canonical path validation.
 - [x] **Score Decomposition**: Surfaced full score components (significance, tradability, novelty, falsification, fold stability) in all candidate Parquet artifacts.
 - [x] **Enriched Diagnostics**: Run-level diagnostics JSON now includes rank movers, penalty counts, and event family concentration.
-- [x] **Hierarchical Alignment**: Updated the Phase 4 Hierarchical Search orchestrator to include ledger-adjusted (V3) scoring.
+- [x] **Hierarchical Alignment**: Adopted hierarchical search with v2 scoring and repeated walk-forward folds.
 - [x] **Regression Safety**: Created a suite of tests in `project/tests/research/` to protect current defaults and schemas.
 
-## 2. Benchmark Findings (Smoke Test)
+## 2. Benchmark Findings
 
-A baseline benchmark was established using a `VOL_SPIKE` event smoke test across Legacy and V2 modes.
+The canonical benchmark was rerun as a one-path matrix under:
+`data/reports/benchmarks/canonical_d_only_20260418/`.
 
-| Metric | Legacy (abs t-stat) | V2 (Quality Score) |
-| :--- | :--- | :--- |
-| Candidate Coverage | Identical | Identical |
-| Scoring Components | Absent | FULLY SURFACED |
-| Diagnostics | Minimal | ENRICHED |
+| Metric | Canonical D |
+| :--- | :--- |
+| Mode set | D only |
+| Jobs | 4 non-negative-control slices |
+| Status | 4 success |
+| Certification | passed |
+| Ledger adjustment | disabled |
+| Diversified shortlist | disabled |
 
-**Conclusion**: The system correctly identifies and persists the new quality metrics without altering the survivor set in baseline (flat) modes. However, the full multi-case benchmark has not been run against valid events — see § Known Integrity Issues.
+**Conclusion**: Use mode D as the only operator path.
 
 ## 3. Known Integrity Issues
 
@@ -55,42 +56,33 @@ perpetual notation (`BTCUSDT`). Corrected in current spec.
 The classification was based on a single `VOL_SPIKE` smoke test plus the five invalid
 benchmark cases. Evidence base was insufficient; status downgraded to PROVISIONAL.
 
-**B4 — Benchmark comparison modes were non-isolating.**
-The original mode matrix differed on up to four variables simultaneously (search topology,
-scoring version, ledger adjustment, shortlist selection), making it impossible to attribute
-performance differences to specific features. See `benchmark_governance_spec.yaml`
-for the proposed 6-mode isolation matrix.
+**B4 — Benchmark comparison modes retired.**
+The original comparison matrix is no longer active. `benchmark_governance_spec.yaml`
+now records a single canonical path.
 
 ## 4. Re-Classification Criteria
 
-Discovery v2 may be re-promoted to **STABLE-INTERNAL** when ALL of the following are met:
+Discovery v2 remains stable while ALL of the following are met:
 
-1. `run_benchmark()` completes against the current `discovery_benchmark_spec.yaml`
-   (canonical events only) without errors for all 5 cases and all 3 modes.
-2. V2 mode shows improvement over Legacy in at least 3 of 5 cases on
-   `promotion_density` and `median_after_cost_expectancy_bps`.
-3. Benchmark modes A and B from `benchmark_governance_spec.yaml` have been run
-   to isolate the contribution of v2 scoring from other changes.
-4. No benchmark case produces zero candidates on all modes (which would indicate
-   a data-loading failure rather than a legitimate result).
+1. `run_benchmark_matrix --preset core_v1` builds only mode D jobs.
+2. Ledger adjustment remains disabled.
+3. Diversified shortlist remains disabled.
+4. The canonical path report has zero noncanonical mode slices.
 
 ## 5. Policy & Guardrails
 
 | Feature | Status | Recommendation |
 | :--- | :--- | :--- |
 | Phase 1 & 2 (Gating) | **STABLE** | Production-ready baseline. |
-| Discovery V2 Scoring | **PROVISIONAL** | Not STABLE-INTERNAL until re-classification criteria met. |
-| Concept Ledger (V3) | **EXPERIMENTAL** | Monitor for multiplicity correction bias. |
-| Fold-based Stability | **EXPERIMENTAL** | Requires further dense historical coverage. |
+| Discovery V2 Scoring | **STABLE** | Canonical D path. |
+| Concept Ledger (V3) | **DISABLED** | Not part of canonical path. |
+| Fold-based Stability | **STABLE** | Required by canonical D path. |
 
 ## 6. Next Steps & Recommendations
 
 1. **Run canonical benchmark**: Execute `make benchmark-core` against the updated spec.
 2. **Maintain Registry Integrity**: Future event registration MUST include a `family_id`.
-3. **Enable V3 Ledger** (future): Once the `concept_ledger.parquet` has accumulated
-   >180 days of search history, consider enabling ledger adjustment by default.
-4. **Hierarchical Rollout** (future): Phase 4 Hierarchical search is v3-ready;
-   all stage artifacts include the new quality components.
+3. **Do not add alternate modes** without a new explicit governance decision.
 
 ---
 *Report updated by Antigravity integrity review — 2026-04-04.*

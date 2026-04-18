@@ -1,7 +1,7 @@
 discovery_scoring:
   ledger_adjustment:
     crowded_lineage_threshold: 20
-    enabled: true
+    enabled: false
     high_recent_test_density_threshold: 10
     lineage_mode: v1
     lookback_days: 365
@@ -11,4 +11,4 @@ discovery_scoring:
     min_prior_tests_for_penalty: 3
     recent_window_days: 90
     repeated_family_failure_threshold: 0.9
-  version: v3
+  version: v2

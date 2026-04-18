@@ -6,12 +6,7 @@ from typing import Dict, List, Optional
 
 
 class ModeId(str, Enum):
-    A = "A"
-    B = "B"
-    C = "C"
     D = "D"
-    E = "E"
-    F = "F"
 
 
 @dataclass(frozen=True)
@@ -30,33 +25,6 @@ class DiscoveryBenchmarkMode:
 
 
 _MODES: Dict[str, DiscoveryBenchmarkMode] = {
-    "A": DiscoveryBenchmarkMode(
-        mode_id="A",
-        label="baseline_flat",
-        search_topology="flat",
-        scoring_version="v1",
-        fold_validation="disabled",
-        ledger_adjustment="disabled",
-        shortlist_selection="disabled",
-    ),
-    "B": DiscoveryBenchmarkMode(
-        mode_id="B",
-        label="flat_v2_scoring",
-        search_topology="flat",
-        scoring_version="v2",
-        fold_validation="disabled",
-        ledger_adjustment="disabled",
-        shortlist_selection="disabled",
-    ),
-    "C": DiscoveryBenchmarkMode(
-        mode_id="C",
-        label="flat_v2_with_folds",
-        search_topology="flat",
-        scoring_version="v2",
-        fold_validation="enabled",
-        ledger_adjustment="disabled",
-        shortlist_selection="disabled",
-    ),
     "D": DiscoveryBenchmarkMode(
         mode_id="D",
         label="hierarchical_v2_with_folds",
@@ -65,24 +33,6 @@ _MODES: Dict[str, DiscoveryBenchmarkMode] = {
         fold_validation="enabled",
         ledger_adjustment="disabled",
         shortlist_selection="disabled",
-    ),
-    "E": DiscoveryBenchmarkMode(
-        mode_id="E",
-        label="hierarchical_v2_folds_ledger",
-        search_topology="hierarchical",
-        scoring_version="v2",
-        fold_validation="enabled",
-        ledger_adjustment="enabled",
-        shortlist_selection="disabled",
-    ),
-    "F": DiscoveryBenchmarkMode(
-        mode_id="F",
-        label="hierarchical_v2_folds_ledger_diversified",
-        search_topology="hierarchical",
-        scoring_version="v2",
-        fold_validation="enabled",
-        ledger_adjustment="enabled",
-        shortlist_selection="enabled",
     ),
 }
 
@@ -107,7 +57,7 @@ def runnable_modes() -> List[DiscoveryBenchmarkMode]:
 
 def validate_mode_progression() -> bool:
     modes = all_modes()
-    if len(modes) != 6:
+    if len(modes) != 1:
         return False
-    expected_order = ["A", "B", "C", "D", "E", "F"]
+    expected_order = ["D"]
     return [m.mode_id for m in modes] == expected_order
