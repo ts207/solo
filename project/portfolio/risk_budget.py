@@ -65,9 +65,11 @@ def calculate_cluster_risk_multiplier(
     # Inverse square root scaling for clusters (1 -> 1.0, 2 -> 0.707, 3 -> 0.577)
     # This ensures the total risk of the cluster grows sub-linearly.
     multiplier = 1.0 / np.sqrt(count)
-    
-    # Hard cap on cluster headcount
+
+    # Smooth exponential decay beyond the cluster cap (replaces hard 0.5 step).
+    # At cap+1: ~0.70×, at cap+2: ~0.50×, at cap+3: ~0.35× — avoids cliff effects.
     if count > max_strategies_per_cluster:
-        multiplier *= 0.5  # Heavy penalty for exceeding cluster cap
-        
+        excess = count - max_strategies_per_cluster
+        multiplier *= float(np.exp(-0.35 * excess))
+
     return float(np.clip(multiplier, 0.1, 1.0))

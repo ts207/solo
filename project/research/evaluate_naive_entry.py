@@ -26,7 +26,7 @@ from project.events.registry import (
 )
 from project.events.event_normalizer import filter_phase1_rows_for_event_type
 from project.research._family_event_utils import load_features
-from project.research.phase2_search_engine import _normalize_search_feature_columns
+from project.research.search.search_feature_utils import normalize_search_feature_columns as _normalize_search_feature_columns
 
 NUMERIC_CONDITION_PATTERN = re.compile(r"^([a-zA-Z0-9_]+)\s*([><!=]=?)\s*([0-9.-]+)$")
 

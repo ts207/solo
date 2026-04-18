@@ -51,3 +51,55 @@ class IncubationLedger:
             self._data["strategies"][strategy_id]["status"] = "live"
             self._data["strategies"][strategy_id]["graduation_time"] = datetime.now(timezone.utc).isoformat()
             self.save()
+
+
+from dataclasses import dataclass
+from typing import Optional
+
+
+@dataclass(frozen=True)
+class IncubationEvidence:
+    """Evidence inputs used to determine whether a strategy is ready to graduate.
+
+    Combines the time dimension (already tracked by IncubationLedger) with
+    live performance evidence so graduation is not purely calendar-driven.
+    """
+    strategy_id: str
+    days_elapsed: float
+    days_required: float
+    realized_pnl_usd: float = 0.0
+    n_trades: int = 0
+    hit_rate: Optional[float] = None
+    max_drawdown_pct: Optional[float] = None
+    drawdown_limit_pct: float = 0.15
+
+    @property
+    def time_complete(self) -> bool:
+        return self.days_elapsed >= self.days_required
+
+    @property
+    def drawdown_breach(self) -> bool:
+        if self.max_drawdown_pct is None:
+            return False
+        return abs(self.max_drawdown_pct) > self.drawdown_limit_pct
+
+    @property
+    def has_trade_sample(self) -> bool:
+        return self.n_trades >= 5
+
+    def evaluate_graduation(self) -> tuple[bool, str]:
+        """Return (should_graduate, reason).
+
+        Graduation requires:
+          - time complete
+          - no drawdown breach
+          - at least a minimal trade sample (5 trades)
+        """
+        if not self.time_complete:
+            remaining = self.days_required - self.days_elapsed
+            return False, f"time_incomplete:{remaining:.1f}d_remaining"
+        if self.drawdown_breach:
+            return False, f"drawdown_breach:{abs(self.max_drawdown_pct or 0):.1%}>{self.drawdown_limit_pct:.1%}"
+        if not self.has_trade_sample:
+            return False, f"insufficient_trade_sample:{self.n_trades}<5"
+        return True, "evidence_and_time_complete"

@@ -2,11 +2,13 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
+from types import SimpleNamespace
 
 import pandas as pd
 import yaml
 
 import project.research.phase2_search_engine as search_engine
+import project.research.search.hierarchical_search as hierarchical_search
 from project.core.column_registry import ColumnRegistry
 from project.domain.hypotheses import HypothesisSpec, TriggerSpec
 from project.events.event_specs import EVENT_REGISTRY_SPECS
@@ -14,9 +16,11 @@ from project.research.knowledge.schemas import canonical_json, region_key, stabl
 from project.research.phase2_search_engine import (
     _attach_candidate_run_lineage,
     _build_gate_funnel,
+    _expected_event_ids_from_search_spec_doc,
     _classify_metrics_counts,
     _expected_event_ids_from_hypotheses,
     _filter_previously_tested_hypotheses,
+    _latest_hierarchical_stage_frame,
     _materialize_interaction_trigger_columns,
     _materialize_sequence_trigger_columns,
     _resolve_search_min_t_stat,
@@ -151,6 +155,115 @@ def test_build_gate_funnel_tracks_cumulative_survivors() -> None:
     }
 
 
+def test_latest_hierarchical_stage_frame_prefers_latest_non_empty_stage() -> None:
+    trigger = pd.DataFrame([{"hypothesis_id": "h_a"}])
+    execution = pd.DataFrame([{"hypothesis_id": "h_c"}])
+
+    observed = _latest_hierarchical_stage_frame(
+        {
+            "trigger_viability": trigger,
+            "template_refinement": pd.DataFrame(),
+            "execution_refinement": execution,
+            "context_refinement": pd.DataFrame(),
+        }
+    )
+
+    assert len(observed) == 1
+    assert observed.iloc[0]["hypothesis_id"] == "h_c"
+
+
+def test_hierarchical_diagnostics_keep_stage_counts_when_all_candidates_fail_gate(
+    tmp_path: Path, monkeypatch
+) -> None:
+    features = pd.DataFrame(
+        {
+            "timestamp": pd.date_range("2024-01-01", periods=8, freq="5min", tz="UTC"),
+            "symbol": ["BTCUSDT"] * 8,
+            "close": [100.0, 100.2, 100.4, 100.1, 99.9, 100.0, 100.1, 100.2],
+        }
+    )
+    stage_frame = pd.DataFrame(
+        {
+            "candidate_id": [f"cand_{idx}" for idx in range(6)],
+            "gate_search_min_t_stat": [False] * 6,
+            "t_stat": [-0.28, 0.29, -0.14, 0.18, -0.11, 0.09],
+        }
+    )
+    hypothesis = HypothesisSpec(
+        trigger=TriggerSpec.event("PULLBACK_PIVOT"),
+        direction="long",
+        horizon="12b",
+        template_id="continuation",
+    )
+
+    monkeypatch.setattr(search_engine, "load_features", lambda **_: features.copy())
+    monkeypatch.setattr(
+        search_engine,
+        "generate_hypotheses_with_audit",
+        lambda *args, **kwargs: (
+            [hypothesis],
+            {
+                "counts": {"generated": 1, "feasible": 1, "rejected": 0},
+                "rejection_reason_counts": {},
+            },
+        ),
+    )
+    monkeypatch.setattr(search_engine, "_build_required_walkforward_folds", lambda _features: [])
+    monkeypatch.setattr(
+        search_engine,
+        "_load_search_spec_doc",
+        lambda _path: {"triggers": {"events": ["PULLBACK_PIVOT"]}},
+    )
+    monkeypatch.setattr(search_engine, "_load_hierarchical_config", lambda _doc: {"enabled": True})
+    monkeypatch.setattr(
+        "project.spec_validation.expand_triggers",
+        lambda doc: {"events": list((doc.get("triggers") or {}).get("events") or [])},
+    )
+    monkeypatch.setattr(
+        hierarchical_search,
+        "run_hierarchical_search",
+        lambda **_: SimpleNamespace(
+            final_candidates=stage_frame.copy(),
+            stage_artifacts={
+                "trigger_viability": pd.DataFrame(),
+                "template_refinement": pd.DataFrame(),
+                "execution_refinement": pd.DataFrame(),
+                "context_refinement": stage_frame.copy(),
+            },
+            candidates_evaluated_total=len(stage_frame),
+        ),
+    )
+
+    search_spec_path = tmp_path / "search_spec.yaml"
+    search_spec_path.write_text("triggers:\n  events:\n    - PULLBACK_PIVOT\n", encoding="utf-8")
+
+    rc = search_engine.run(
+        run_id="hierarchical_gate_rejects",
+        symbols="BTCUSDT",
+        data_root=tmp_path,
+        out_dir=tmp_path / "out",
+        timeframe="5m",
+        search_spec=str(search_spec_path),
+        min_t_stat=1.5,
+        min_n=30,
+    )
+
+    assert rc == 0
+    diagnostics = json.loads(
+        search_engine.phase2_diagnostics_path(
+            run_id="hierarchical_gate_rejects", data_root=tmp_path
+        ).read_text(encoding="utf-8")
+    )
+    assert diagnostics["metrics_rows"] == 6
+    assert diagnostics["valid_metrics_rows"] == 6
+    assert diagnostics["rejected_by_min_t_stat"] == 6
+    assert diagnostics["bridge_candidates_rows"] == 0
+    assert diagnostics["symbol_diagnostics"][0]["metrics_rows"] == 6
+    assert diagnostics["symbol_diagnostics"][0]["rejected_by_min_t_stat"] == 6
+    assert diagnostics["symbol_diagnostics"][0]["gate_funnel"]["bridge_candidate_universe"] == 6
+    assert diagnostics["symbol_diagnostics"][0]["gate_funnel"]["phase2_candidates_written"] == 0
+
+
 def test_materialize_sequence_trigger_columns_builds_expected_mask() -> None:
     features = pd.DataFrame(
         {
@@ -239,6 +352,23 @@ def test_expected_event_ids_from_hypotheses_includes_interaction_event_component
     ]
 
     assert _expected_event_ids_from_hypotheses(hypotheses) == ["BREAKOUT_TRIGGER", "VOL_SPIKE"]
+
+
+def test_expected_event_ids_from_search_spec_doc_includes_expanded_event_triggers() -> None:
+    payload = {
+        "version": 1,
+        "kind": "search_spec",
+        "search_mode": "subset",
+        "triggers": {
+            "events": ["vol_spike", "TREND_DECELERATION", "VOL_SPIKE"],
+        },
+        "expression_templates": ["continuation"],
+    }
+
+    assert set(_expected_event_ids_from_search_spec_doc(payload)) == {
+        "VOL_SPIKE",
+        "TREND_DECELERATION",
+    }
 
 
 def test_materialize_interaction_trigger_columns_builds_confirm_mask() -> None:

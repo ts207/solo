@@ -247,3 +247,44 @@ def test_refresh_domain_registry_can_explicitly_rebuild_from_sources(monkeypatch
 
     assert refreshed is registry
     assert called["n"] == 1
+
+
+def test_domain_graph_digest_returns_stable_hex_string():
+    from project.domain.registry_loader import domain_graph_digest
+    digest = domain_graph_digest()
+    assert len(digest) == 64
+    assert all(c in "0123456789abcdef" for c in digest)
+    assert domain_graph_digest() == digest
+
+
+def test_spec_sources_digest_returns_stable_hex_string():
+    from project.domain.registry_loader import spec_sources_digest
+    digest = spec_sources_digest()
+    assert len(digest) == 64
+    assert all(c in "0123456789abcdef" for c in digest)
+
+
+def test_domain_init_exposes_compiled_registry_api():
+    import project.domain as domain
+    assert callable(domain.get_domain_registry)
+    assert callable(domain.domain_graph_digest)
+    assert callable(domain.spec_sources_digest)
+    registry = domain.get_domain_registry()
+    assert isinstance(registry, domain.DomainRegistry)
+
+
+def test_events_contracts_delegates_to_compiled_domain():
+    from project.events.contracts import get_event_spec, get_event_type_from_signal, is_registry_backed_signal
+    from project.domain.models import EventDefinition
+
+    spec = get_event_spec("VOL_SPIKE")
+    assert spec is not None
+    assert isinstance(spec, EventDefinition)
+    assert spec.signal_column
+
+    assert get_event_spec("NONEXISTENT_XYZ_999") is None
+
+    signal = spec.signal_column
+    assert get_event_type_from_signal(signal) == "VOL_SPIKE"
+    assert is_registry_backed_signal(signal) is True
+    assert is_registry_backed_signal("not_a_real_signal_xyz") is False

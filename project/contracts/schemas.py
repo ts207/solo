@@ -6,12 +6,16 @@ from typing import Dict, Iterable, List
 import pandas as pd
 
 
+_VALID_STRICTNESS = frozenset({"strict", "transitional", "legacy_compatible", "advisory"})
+
+
 @dataclass(frozen=True)
 class DataFrameSchemaContract:
     name: str
     required_columns: tuple[str, ...]
     optional_columns: tuple[str, ...] = ()
     schema_version: str = "phase5_schema_v1"
+    strictness: str = "strict"
 
 
 _SCHEMA_REGISTRY: Dict[str, DataFrameSchemaContract] = {
@@ -266,3 +270,52 @@ def validate_dataframe_for_schema(
                     "candidate_id must differ from hypothesis_id for current-format artifacts"
                 )
     return out
+
+
+def validate_schema_at_producer(
+    df: "pd.DataFrame",
+    schema_name: str,
+    *,
+    context: str = "",
+) -> list[str]:
+    """Enforce schema contract at the producer boundary.
+
+    Behaviour is governed by the schema's strictness level:
+      strict            — raises ContractViolationError on first violation
+      transitional      — logs warnings but does not raise
+      legacy_compatible — collects issues and returns them without raising
+      advisory          — returns issues only, no side-effects
+
+    Returns a (possibly empty) list of issue strings.
+    """
+    import logging
+    from project.core.exceptions import ContractViolationError
+
+    schema = get_schema_contract(schema_name)
+    issues: list[str] = []
+
+    if df is None:
+        issues.append(f"[{schema_name}] producer passed None instead of DataFrame")
+    else:
+        missing = [c for c in schema.required_columns if c not in df.columns]
+        if missing:
+            issues.append(f"[{schema_name}] missing required columns: {missing}")
+        if not df.empty:
+            all_null = [c for c in schema.required_columns if c in df.columns and df[c].isna().all()]
+            if all_null:
+                issues.append(f"[{schema_name}] all-null required columns: {all_null}")
+
+    if not issues:
+        return []
+
+    tag = f" ({context})" if context else ""
+    msg = "; ".join(issues) + tag
+
+    if schema.strictness == "strict":
+        raise ContractViolationError(msg)
+    if schema.strictness == "transitional":
+        logging.getLogger(__name__).warning("schema contract violation: %s", msg)
+    elif schema.strictness == "legacy_compatible":
+        logging.getLogger(__name__).debug("schema contract violation (legacy_compatible): %s", msg)
+
+    return issues

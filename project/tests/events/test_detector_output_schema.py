@@ -41,6 +41,10 @@ from project.events.detectors.positioning_base import (
     OISpikePositiveDetectorV2,
 )
 from project.events.detectors.volatility_base import (
+    BreakoutTriggerDetectorV2,
+    RangeCompressionDetectorV2,
+    VolClusterShiftDetectorV2,
+    VolRegimeShiftDetectorV2,
     VolRelaxationStartDetectorV2,
     VolShockDetectorV2,
     VolSpikeDetectorV2,
@@ -244,6 +248,41 @@ def _vol_shock_df(n: int = 3200) -> pd.DataFrame:
     )
 
 
+def _volatility_transition_df(n: int = 3200) -> pd.DataFrame:
+    ts = pd.date_range("2024-01-01", periods=n, freq="5min", tz="UTC")
+    close = np.full(n, 100.0)
+    high = np.full(n, 100.2)
+    low = np.full(n, 99.8)
+    rv = np.full(n, 0.01)
+    range_96 = np.full(n, 0.02)
+    range_med_2880 = np.full(n, 0.02)
+
+    rv[-60:-30] = 0.002
+    rv[-30:] = 0.05
+    rv[-20:] = [0.01] * 10 + [0.25, 0.26, 0.27, 0.28, 0.29, 0.30, 0.31, 0.32, 0.33, 0.34]
+
+    range_96[-20:-3] = 0.008
+    range_96[-3:] = [0.008, 0.021, 0.023]
+    close[-3:] = [100.0, 105.0, 108.0]
+    high[-3:] = [100.2, 105.5, 108.5]
+    low[-3:] = [99.8, 99.9, 104.0]
+
+    return pd.DataFrame(
+        {
+            "timestamp": ts,
+            "close": close,
+            "high": high,
+            "low": low,
+            "rv_96": rv,
+            "range_96": range_96,
+            "range_med_2880": range_med_2880,
+            "ms_vol_state": np.full(n, 2.0),
+            "ms_vol_confidence": np.full(n, 1.0),
+            "ms_vol_entropy": np.zeros(n),
+        }
+    )
+
+
 def _basis_core_df(n: int = 3200) -> pd.DataFrame:
     ts = pd.date_range("2024-01-01", periods=n, freq="5min", tz="UTC")
     close_spot = np.full(n, 100.0)
@@ -390,6 +429,10 @@ ALL_V2_SCHEMA_CASES = [
     (DepthCollapseDetectorV2(), _liquidity_misc_df(), {"symbol": "BTCUSDT", "timeframe": "5m"}),
     (LiquidityGapDetectorV2(), _liquidity_misc_df(), {"symbol": "BTCUSDT", "timeframe": "5m"}),
     (LiquidationCascadeProxyDetectorV2(), _liquidation_proxy_df(), {"symbol": "BTCUSDT", "timeframe": "5m"}),
+    (VolClusterShiftDetectorV2(), _volatility_transition_df(), {"symbol": "BTCUSDT", "timeframe": "5m", "shift_quantile": 0.95}),
+    (RangeCompressionDetectorV2(), _volatility_transition_df(), {"symbol": "BTCUSDT", "timeframe": "5m", "compression_ratio_max": 0.8, "compression_ratio_min": 0.95}),
+    (BreakoutTriggerDetectorV2(), _volatility_transition_df(), {"symbol": "BTCUSDT", "timeframe": "5m", "compression_ratio_max": 0.8, "min_breakout_distance": 0.0015, "expansion_quantile": 0.8, "vol_lookback_window": 96, "threshold_window": 2880}),
+    (VolRegimeShiftDetectorV2(), _volatility_transition_df(), {"symbol": "BTCUSDT", "timeframe": "5m", "regime_window": 120, "rv_low_quantile": 0.33, "rv_high_quantile": 0.66}),
     (VolRelaxationStartDetectorV2(), _vol_shock_df(), {"symbol": "BTCUSDT", "timeframe": "5m"}),
     (FundingExtremeOnsetDetectorV2(), _funding_df(), {"symbol": "BTCUSDT", "timeframe": "5m"}),
     (FundingPersistenceDetectorV2(), _funding_df(), {"symbol": "BTCUSDT", "timeframe": "5m"}),

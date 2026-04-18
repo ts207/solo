@@ -160,24 +160,18 @@ def load_milestone_event_registry() -> dict[str, dict]:
 
 
 def get_event_definition(event_type: str) -> dict | None:
+    from project.domain.compiled_registry import get_domain_registry
     normalized = str(event_type).strip().upper()
-    registry = load_milestone_event_registry()
-    row = registry.get(normalized)
-    return dict(row) if isinstance(row, dict) else None
+    row = get_domain_registry().event_row(normalized)
+    return row if row else None
 
 
 def list_events_by_family(family: str) -> list[dict]:
-    normalized = str(family).strip().upper()
-    rows = []
-    for row in load_milestone_event_registry().values():
-        family_tokens = {
-            str(row.get("family", "")).strip().upper(),
-            str(row.get("canonical_regime", row.get("canonical_family", ""))).strip().upper(),
-        }
-        if normalized in family_tokens:
-            rows.append(dict(row))
-    rows.sort(key=lambda item: str(item.get("event_type", "")))
-    return rows
+    from project.domain.compiled_registry import get_domain_registry
+    registry = get_domain_registry()
+    event_ids = registry.get_event_ids_for_family(family)
+    rows = [registry.event_row(eid) for eid in event_ids]
+    return [r for r in rows if r]
 
 from project.events.detector_contract import (
     DetectorContract,
@@ -370,9 +364,25 @@ def validate_detector_registry_implementation_parity(
 
 def get_detector_contract(event_name: str) -> DetectorContract:
     canonical_name = resolve_event_alias(event_name)
-    row = get_event_definition(canonical_name)
-    if not row:
+    compiled_row = get_event_definition(canonical_name) or {}
+    governance_row = load_milestone_event_registry().get(canonical_name) or {}
+    if not compiled_row and not governance_row:
         raise DetectorContractError(f"Event {event_name} not found in registry")
+
+    row = dict(compiled_row)
+    if governance_row:
+        row.update(governance_row)
+        compiled_detector = (
+            compiled_row.get("detector", {}) if isinstance(compiled_row.get("detector"), dict) else {}
+        )
+        governance_detector = (
+            governance_row.get("detector", {})
+            if isinstance(governance_row.get("detector"), dict)
+            else {}
+        )
+        if compiled_detector or governance_detector:
+            row["detector"] = {**compiled_detector, **governance_detector}
+
     params = _parameters(row)
     _, detector_metadata = _registered_detector_metadata(canonical_name, row)
     role = detector_metadata.role

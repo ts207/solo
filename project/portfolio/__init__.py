@@ -1,5 +1,10 @@
 """Portfolio allocation, sizing, and risk-budget helpers."""
 
+from project.portfolio.engine import (
+    PortfolioCapitalDecision,
+    PortfolioDecisionEngine,
+    ThesisIntent,
+)
 from project.portfolio.admission_policy import AdmissionResult, PortfolioAdmissionPolicy
 from project.portfolio.allocation_spec import ALLOCATION_SPEC_VERSION, AllocationSpec
 from project.portfolio.risk_budget import (
@@ -12,6 +17,9 @@ from project.portfolio.sizing import (
 )
 
 __all__ = [
+    "PortfolioCapitalDecision",
+    "PortfolioDecisionEngine",
+    "ThesisIntent",
     "AdmissionResult",
     "PortfolioAdmissionPolicy",
     "ALLOCATION_SPEC_VERSION",

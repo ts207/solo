@@ -2,8 +2,8 @@ from __future__ import annotations
 
 import pandas as pd
 
-from project.research.search.bridge_adapter import hypotheses_to_bridge_candidates
 from project.research.multiplicity import make_family_id
+from project.research.search.bridge_adapter import hypotheses_to_bridge_candidates
 
 
 def test_hypotheses_to_bridge_candidates_respects_configured_bridge_thresholds():
@@ -114,6 +114,54 @@ def test_hypotheses_to_bridge_candidates_can_keep_min_t_failures_for_multiplicit
     assert len(universe) == 1
     assert bool(universe.iloc[0]["gate_search_min_sample_size"]) is True
     assert bool(universe.iloc[0]["gate_search_min_t_stat"]) is False
+
+
+def test_hypotheses_to_bridge_candidates_uses_absolute_t_stat_for_short_candidates():
+    metrics = pd.DataFrame(
+        [
+            {
+                "hypothesis_id": "hyp_short_abs",
+                "trigger_type": "event",
+                "trigger_key": "event:VOL_SHOCK",
+                "direction": "short",
+                "horizon": "60m",
+                "template_id": "continuation",
+                "n": 64,
+                "train_n_obs": 30,
+                "validation_n_obs": 16,
+                "test_n_obs": 18,
+                "validation_samples": 16,
+                "test_samples": 18,
+                "mean_return_bps": -8.5,
+                "t_stat": -1.9,
+                "sharpe": 1.2,
+                "hit_rate": 0.55,
+                "cost_adjusted_return_bps": 6.5,
+                "p_value_raw": 0.04,
+                "p_value_for_fdr": 0.04,
+                "mae_mean_bps": -12.0,
+                "mfe_mean_bps": 23.0,
+                "robustness_score": 0.8,
+                "stress_score": 0.8,
+                "kill_switch_count": 0,
+                "capacity_proxy": 1.0,
+                "valid": True,
+                "invalid_reason": None,
+            }
+        ]
+    )
+
+    observed = hypotheses_to_bridge_candidates(
+        metrics,
+        bridge_min_t_stat=1.8,
+        bridge_min_robustness_score=0.7,
+        bridge_min_regime_stability_score=0.7,
+        bridge_min_stress_survival=0.7,
+    )
+
+    assert len(observed) == 1
+    assert bool(observed.iloc[0]["gate_search_min_t_stat"]) is True
+    assert bool(observed.iloc[0]["gate_bridge_tradable"]) is True
 
 
 def test_hypotheses_to_bridge_candidates_preserves_event_labels_with_nonconsecutive_indices():
@@ -231,7 +279,11 @@ def test_hypotheses_to_bridge_candidates_preserves_event_labels_with_nonconsecut
         index=[24, 28, 72, 76],
     )
 
-    universe = hypotheses_to_bridge_candidates(metrics, symbol="ETHUSDT", prefilter_min_t_stat=False)
+    universe = hypotheses_to_bridge_candidates(
+        metrics,
+        symbol="ETHUSDT",
+        prefilter_min_t_stat=False,
+    )
     by_hypothesis = universe.set_index("hypothesis_id")
 
     assert by_hypothesis.loc["gap_cont_12", "event_type"] == "LIQUIDITY_GAP_PRINT"

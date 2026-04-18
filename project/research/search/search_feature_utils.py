@@ -7,10 +7,10 @@ from typing import Iterable, Optional
 import pandas as pd
 
 from project.core.column_registry import ColumnRegistry
-from project.events.shared import direction_to_sign
 from project.events.event_flags import load_registry_flags
 from project.events.event_repository import load_registry_events
 from project.events.event_specs import EVENT_REGISTRY_SPECS
+from project.events.shared import direction_to_sign
 from project.research.phase2 import load_features as load_features_impl
 from project.research.validation import assign_split_labels
 from project.specs.ontology import MATERIALIZED_STATE_COLUMNS_BY_ID
@@ -159,7 +159,10 @@ def prepare_search_features_for_symbol(
 
     features = normalize_search_feature_columns(features)
 
-    log.debug("prepare_search_features_for_symbol: event_registry_override=%s", event_registry_override)
+    log.debug(
+        "prepare_search_features_for_symbol: event_registry_override=%s",
+        event_registry_override,
+    )
 
     if event_registry_override:
         fixture_events = pd.read_parquet(event_registry_override)
@@ -231,6 +234,8 @@ def load_search_feature_frame(
     symbols: Iterable[str],
     timeframe: str,
     data_root: Path,
+    expected_event_ids: Iterable[str] | None = None,
+    event_registry_override: Optional[str] = None,
 ) -> pd.DataFrame:
     parts: list[pd.DataFrame] = []
     for raw_symbol in symbols:
@@ -242,6 +247,8 @@ def load_search_feature_frame(
             symbol=symbol,
             timeframe=timeframe,
             data_root=data_root,
+            expected_event_ids=expected_event_ids,
+            event_registry_override=event_registry_override,
         )
         if not features.empty:
             parts.append(features)

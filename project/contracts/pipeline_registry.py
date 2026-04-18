@@ -28,6 +28,9 @@ class StageFamilyContract:
     script_patterns: tuple[str, ...]
 
 
+_VALID_STRICTNESS = frozenset({"strict", "transitional", "legacy_compatible", "advisory"})
+
+
 @dataclass(frozen=True)
 class StageArtifactContract:
     stage_patterns: tuple[str, ...]
@@ -35,6 +38,13 @@ class StageArtifactContract:
     optional_inputs: tuple[str, ...] = ()
     outputs: tuple[str, ...] = ()
     external_inputs: tuple[str, ...] = ()
+    strictness: str = "strict"
+
+    def __post_init__(self) -> None:
+        if self.strictness not in _VALID_STRICTNESS:
+            raise ValueError(
+                f"StageArtifactContract strictness {self.strictness!r} must be one of {sorted(_VALID_STRICTNESS)}"
+            )
 
 
 @dataclass(frozen=True)

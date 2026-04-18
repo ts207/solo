@@ -11,19 +11,19 @@ Canonical model terms: **Anchor** (trigger specification), **Filter** (condition
 
 This docset was rewritten from the current repository state, not from the previous markdown set. The repo currently contains:
 
-- 1444 Python modules under `project/`
-- 565 test files under `project/tests/`
-- 443 YAML spec files under `spec/`
+- 1517 Python modules under `project/`
+- 678 test files under `project/tests/`
+- 463 YAML spec files under `spec/`
 - canonical console entry points defined in `pyproject.toml`
 - a contract-enforced package DAG in `project/tests/test_architectural_integrity.py`
 
 ## Start here
 
 - `docs/README.md` — docset index and reading order
-- `docs/00_overview.md` — system model, invariants, and top-level flow
-- `docs/02_REPOSITORY_MAP.md` — package-by-package repo map
-- `docs/operator_command_inventory.md` — re-audited commands, scripts, and regeneration entry points
-- `docs/operator_runbook.md` — end-to-end operator workflow from proposal to runtime
+- `docs/lifecycle/overview.md` — system model, invariants, and top-level flow
+- `docs/reference/repository_map.md` — package-by-package repo map
+- `docs/reference/commands.md` — CLI commands, scripts, and Make targets
+- `docs/operator/runbook.md` — end-to-end operator workflow from proposal to runtime
 
 ## Canonical commands
 

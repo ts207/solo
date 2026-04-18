@@ -6,12 +6,11 @@ maps them into the 40+ column schema expected by bridge evaluation and
 blueprint compilation.
 """
 
-from __future__ import annotations
-
-import re
 import logging
-import pandas as pd
+import re
+
 import numpy as np
+import pandas as pd
 
 from project.domain.compiled_registry import get_domain_registry
 from project.research.discovery import candidate_id_from_hypothesis
@@ -145,9 +144,10 @@ def hypotheses_to_bridge_candidates(
     out["sample_size"] = out["n"]
     out["n_events"] = out["n"]
     out["gate_search_min_sample_size"] = out["n"] >= int(min_n)
-    out["gate_search_min_t_stat"] = pd.to_numeric(filtered["t_stat"], errors="coerce").fillna(
-        0.0
-    ) >= float(min_t_stat)
+    out["gate_search_min_t_stat"] = (
+        pd.to_numeric(filtered["t_stat"], errors="coerce").fillna(0.0).abs()
+        >= float(min_t_stat)
+    )
     for source_col in (
         "train_n_obs",
         "validation_n_obs",
@@ -203,8 +203,9 @@ def hypotheses_to_bridge_candidates(
     # Overall Tradability
     # A candidate is "tradable" if it passes t-stat, n, OOS score,
     # and survives at least 50% of stress scenarios.
+    tradable_t_stat = pd.to_numeric(out["t_stat"], errors="coerce").fillna(0.0).abs()
     out["gate_bridge_tradable"] = (
-        (out["t_stat"] >= float(bridge_min_t_stat))
+        (tradable_t_stat >= float(bridge_min_t_stat))
         & (out["gate_after_cost_stressed_positive"])
         & (out["gate_oos_validation"])
         & (out["stress_test_survival"] >= float(bridge_min_stress_survival))
@@ -267,7 +268,10 @@ def hypotheses_to_bridge_candidates(
             if not exec_templates:
                 if family:
                     log.warning(
-                        "No execution templates resolved for family %r (event_id=%r); keeping as 'base'",
+                        (
+                            "No execution templates resolved for family %r "
+                            "(event_id=%r); keeping as 'base'"
+                        ),
                         family,
                         row.get("event_type", ""),
                     )
@@ -298,7 +302,7 @@ def split_bridge_candidates(
 
     valid_mask = metrics_df["valid"].fillna(False)
     min_n_mask = pd.to_numeric(metrics_df["n"], errors="coerce").fillna(0) >= int(min_n)
-    min_t_mask = pd.to_numeric(metrics_df["t_stat"], errors="coerce").fillna(0.0) >= float(
+    min_t_mask = pd.to_numeric(metrics_df["t_stat"], errors="coerce").fillna(0.0).abs() >= float(
         min_t_stat
     )
     pass_mask = valid_mask.copy()
@@ -319,9 +323,8 @@ def split_bridge_candidates(
             else:
                 if int(pd.to_numeric(row.get("n", 0), errors="coerce") or 0) < int(min_n):
                     row_reasons.append("min_sample_size")
-                if float(pd.to_numeric(row.get("t_stat", 0.0), errors="coerce") or 0.0) < float(
-                    min_t_stat
-                ):
+                row_t_stat = float(pd.to_numeric(row.get("t_stat", 0.0), errors="coerce") or 0.0)
+                if abs(row_t_stat) < float(min_t_stat):
                     row_reasons.append("min_t_stat")
             if not row_reasons:
                 row_reasons = ["filtered_out"]

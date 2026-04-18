@@ -454,8 +454,7 @@ def _load_interaction_definitions() -> tuple[Dict[str, Any], ...]:
     return tuple(out)
 
 
-def _load_operators(unified: Dict[str, Any]) -> Dict[str, TemplateOperatorDefinition]:
-    del unified
+def _load_operators() -> Dict[str, TemplateOperatorDefinition]:
     template_registry = load_template_registry()
     operators = template_registry.get("operators", {})
     out: Dict[str, TemplateOperatorDefinition] = {}
@@ -683,7 +682,7 @@ def _build_domain_registry_from_sources() -> DomainRegistry:
     family_registry_payload = _load_family_registry_payload(template_registry_payload)
     event_definitions = _merge_event_rows(unified)
     state_definitions = _load_states()
-    template_operator_definitions = _load_operators(unified)
+    template_operator_definitions = _load_operators()
     regime_definitions = _load_regimes()
     thesis_definitions = _load_theses()
     context_state_map = _load_context_state_map()
@@ -1308,3 +1307,38 @@ def compile_domain_registry(*, allow_source_fallback: bool = False) -> DomainReg
     if allow_source_fallback:
         return _build_domain_registry_from_sources()
     raise AssertionError("unreachable: required graph load must raise before this point")
+
+
+def domain_graph_digest() -> str:
+    """Return a deterministic SHA-256 hex digest of the compiled domain graph file.
+
+    Use this to detect whether the graph is stale relative to spec sources, or to
+    record the exact compiled snapshot pinned by a run artifact.
+    """
+    import hashlib
+    path = domain_graph_path()
+    if not path.exists():
+        return ""
+    h = hashlib.sha256()
+    with open(path, "rb") as fh:
+        for chunk in iter(lambda: fh.read(65536), b""):
+            h.update(chunk)
+    return h.hexdigest()
+
+
+def spec_sources_digest() -> str:
+    """Return a deterministic SHA-256 hex digest over all authored spec YAML files.
+
+    Comparing this against the digest stored in domain_graph.yaml metadata detects
+    whether the graph needs a rebuild after spec edits.
+    """
+    import hashlib
+    from project.spec_registry import iter_spec_yaml_files
+    h = hashlib.sha256()
+    for path in sorted(iter_spec_yaml_files()):
+        rel = _repo_relative_path(path)
+        h.update(rel.encode())
+        with open(path, "rb") as fh:
+            for chunk in iter(lambda: fh.read(65536), b""):
+                h.update(chunk)
+    return h.hexdigest()

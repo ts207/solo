@@ -5,10 +5,33 @@ from pathlib import Path
 from typing import Any, Dict, Sequence
 
 import pandas as pd
+import yaml
 
-from project.research.search.search_feature_utils import load_search_feature_frame
-from project.research.search.generator import generate_hypotheses_with_audit
+from project.domain.compiled_registry import get_domain_registry
 from project.research.search.evaluator import evaluate_hypothesis_batch
+from project.research.search.generator import generate_hypotheses_with_audit
+from project.research.search.search_feature_utils import load_search_feature_frame
+
+
+def _load_search_space_doc(search_space_path: Path | None) -> Dict[str, Any]:
+    if search_space_path is None or not Path(search_space_path).exists():
+        return {}
+    payload = yaml.safe_load(Path(search_space_path).read_text(encoding="utf-8"))
+    return payload if isinstance(payload, dict) else {}
+
+
+def _expected_event_ids_from_search_space_doc(search_space_doc: Dict[str, Any]) -> list[str]:
+    from project.spec_validation import expand_triggers
+
+    expanded = expand_triggers(dict(search_space_doc or {}))
+    expected: list[str] = []
+    seen: set[str] = set()
+    for raw_event_id in list(expanded.get("events", []) or []):
+        event_id = str(raw_event_id or "").strip().upper()
+        if event_id and event_id not in seen and get_domain_registry().has_event(event_id):
+            expected.append(event_id)
+            seen.add(event_id)
+    return expected
 
 
 def _first_valid_row(metrics: pd.DataFrame) -> Dict[str, Any]:
@@ -27,6 +50,29 @@ def compare_context_modes(
     features: pd.DataFrame,
     min_sample_size: int = 30,
 ) -> Dict[str, Any]:
+    if not hypotheses or features.empty or "close" not in features.columns:
+        return {
+            "schema_version": "context_mode_comparison_v1",
+            "hard_label": {
+                "evaluated_rows": 0,
+                "selected": {},
+            },
+            "confidence_aware": {
+                "evaluated_rows": 0,
+                "selected": {},
+            },
+            "delta": {
+                "n": 0.0,
+                "validation_n_obs": 0.0,
+                "test_n_obs": 0.0,
+                "t_stat": 0.0,
+                "robustness_score": 0.0,
+                "stress_score": 0.0,
+            },
+            "selection_changed": False,
+            "selection_outcome_changed": False,
+        }
+
     hard_metrics = evaluate_hypothesis_batch(
         list(hypotheses),
         features,
@@ -93,13 +139,18 @@ def build_context_mode_comparison_payload(
     timeframe: str = "5m",
     min_sample_size: int = 30,
     search_space_path: Path | None = None,
+    event_registry_override: str | None = None,
 ) -> Dict[str, Any]:
     normalized_symbols = [str(symbol).strip().upper() for symbol in symbols if str(symbol).strip()]
+    search_space_doc = _load_search_space_doc(search_space_path)
+    expected_event_ids = _expected_event_ids_from_search_space_doc(search_space_doc)
     features = load_search_feature_frame(
         run_id=run_id,
         symbols=normalized_symbols,
         timeframe=str(timeframe),
         data_root=data_root,
+        expected_event_ids=expected_event_ids,
+        event_registry_override=event_registry_override,
     )
     hypotheses, _ = generate_hypotheses_with_audit(
         search_space_path=search_space_path,
@@ -115,6 +166,8 @@ def build_context_mode_comparison_payload(
     payload["timeframe"] = str(timeframe)
     if search_space_path is not None:
         payload["search_space_path"] = str(search_space_path)
+    if event_registry_override:
+        payload["event_registry_override"] = str(event_registry_override)
     return payload
 
 

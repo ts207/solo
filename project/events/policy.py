@@ -59,3 +59,28 @@ __all__ = [
     "is_live_safe_event_type",
     "is_retrospective_event_type",
 ]
+
+
+def runtime_eligible_event_ids_from_domain() -> frozenset[str]:
+    """Return the runtime-eligible event set derived from the compiled domain registry.
+
+    This is the authoritative source for runtime eligibility. The hardcoded
+    DEPLOYABLE_CORE_EVENT_TYPES set above should match this set; use
+    assert_policy_domain_parity() in tests to enforce it.
+    """
+    from project.domain.compiled_registry import get_domain_registry
+    return frozenset(get_domain_registry().runtime_eligible_event_ids())
+
+
+def assert_policy_domain_parity() -> list[str]:
+    """Return issues where DEPLOYABLE_CORE_EVENT_TYPES diverges from compiled domain.
+
+    An empty list means the hardcoded policy set and the domain are in sync.
+    """
+    domain_set = runtime_eligible_event_ids_from_domain()
+    issues: list[str] = []
+    for event_type in sorted(DEPLOYABLE_CORE_EVENT_TYPES - domain_set):
+        issues.append(f"policy has {event_type} but domain does not mark it runtime_eligible")
+    for event_type in sorted(domain_set - DEPLOYABLE_CORE_EVENT_TYPES):
+        issues.append(f"domain marks {event_type} runtime_eligible but policy does not")
+    return issues

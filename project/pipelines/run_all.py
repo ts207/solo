@@ -56,7 +56,6 @@ from project.pipelines.run_all_finalize import (
     handle_runtime_postflight,
 )
 from project.research.services.run_comparison_service import write_run_comparison_report
-from project.pipelines.pipeline_provenance import write_run_manifest as _write_run_manifest
 from project.events.phase2 import PHASE2_EVENT_CHAIN
 from project.events.event_specs import EVENT_REGISTRY_SPECS
 from project.pipelines.run_all_provenance import (
@@ -81,11 +80,6 @@ from project.pipelines.pipeline_summary import (
 from project.specs.utils import get_spec_hashes
 from project.specs.ontology import ontology_spec_hash
 from project.specs.invariants import validate_runtime_invariants_specs
-
-_git_commit = git_commit
-_refresh_runtime_lineage_fields = refresh_runtime_lineage_fields
-_run_runtime_postflight_audit = run_runtime_postflight_audit
-_data_fingerprint_impl = compute_data_fingerprint
 
 
 def _validate_phase2_event_chain():
@@ -138,7 +132,7 @@ def _run_all_impl(raw_argv: List[str] | None = None) -> int:
     parser = build_parser()
 
     def write_run_manifest_internal(run_id: str, manifest: Dict[str, Any]) -> None:
-        _write_run_manifest(run_id, manifest)
+        write_run_manifest(run_id, manifest)
 
     args, resolved_config, experiment_id, experiment_results_dir = resolve_experiment_context(
         parser,
@@ -338,8 +332,8 @@ def _run_all_impl(raw_argv: List[str] | None = None) -> int:
         stage_execution=stage_execution,
         stage_timings=stage_timings,
         stage_instance_timings=stage_instance_timings,
-        refresh_runtime_lineage_fields=_refresh_runtime_lineage_fields,
-        run_runtime_postflight_audit=_run_runtime_postflight_audit,
+        refresh_runtime_lineage_fields=refresh_runtime_lineage_fields,
+        run_runtime_postflight_audit=run_runtime_postflight_audit,
         apply_runtime_postflight_to_manifest=apply_runtime_postflight_to_manifest,
         enforce_runtime_postflight=enforce_runtime_postflight,
         emit_failure_messages=emit_failure_messages,

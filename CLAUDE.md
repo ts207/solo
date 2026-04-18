@@ -168,17 +168,17 @@ Startup certification (no credentials needed): `PYTHONPATH=. python3 project/scr
 
 ---
 
-## Current research state (2026-04-17)
+## Current research state (2026-04-18)
 
 ### Promoted theses (paper-only)
 
 | Event | Dir | Horizon | Template | t | rob | run_id |
 |-------|-----|---------|----------|---|-----|--------|
 | VOL_SPIKE | long | 24b | mean_reversion | 3.59 | 0.62 | `broad_vol_spike_20260416T210045Z_68e0020707` |
-| OI_SPIKE_NEGATIVE | long | 24b | exhaustion_reversal | 2.28 | 0.85 | `campaign_pe_oi_spike_neg_20260416T092104Z_f6e6885923` |
-| LIQUIDATION_CASCADE | long | 24b | exhaustion_reversal | 1.78 | 0.82 | `liquidation_std_gate_2yr_20260416T090207Z_84e1c40190` |
+| OI_SPIKE_NEGATIVE | long | 24b | exhaustion_reversal | 2.74 | 0.93 | `campaign_pe_oi_spike_neg_20260416T092104Z_f6e6885923` |
+| LIQUIDATION_CASCADE | long | 8b | mean_reversion | 3.07 | 0.61 | `liq_direct_edge_2021_2024_20260413` |
 
-OI_SPIKE_NEGATIVE is running on Bybit testnet. VOL_SPIKE and LIQUIDATION_CASCADE are promoted but not deployed.
+All three are deployed to paper (Bybit testnet). VOL_SPIKE and LIQUIDATION_CASCADE deployed after refactor.
 
 Paper config: `project/configs/live_paper_campaign_pe_oi_spike_neg_20260416T092104Z_f6e6885923.yaml`
 
@@ -187,6 +187,22 @@ Paper config: `project/configs/live_paper_campaign_pe_oi_spike_neg_20260416T0921
 - Long only, BTC only, high-vol only (rv_pct_17280 > 70), 2023-2024 only (2022 dilutes all signals)
 - Full campaign results: `docs/research/results.md`
 - Research reflections: `docs/research/reflections.md`, `docs/research/narrative.md`
+
+### Apr 17 sweep results (VOLATILITY_TRANSITION family)
+
+New events tested after VOL_SPIKE promotion — all came back below gate or no signal:
+
+| Event | t | rob | Notes |
+|-------|---|-----|-------|
+| VOL_SHOCK | — | — | 0 eval results (pipeline failure or too few fires) |
+| BREAKOUT_TRIGGER | 0.79 | 0.46 | Below gate |
+| VOL_CLUSTER_SHIFT | — | — | 0 eval results |
+| VOL_REGIME_SHIFT_EVENT | — | — | 0 eval results |
+| VOL_RELAXATION_START | — | — | 0 eval results |
+| RANGE_COMPRESSION_END | — | — | 0 eval results |
+| BETA_SPIKE_EVENT | — | — | 0 eval results |
+
+Events with 0 eval results likely have too few fires in 2023-2024 BTC high-vol window to evaluate.
 
 ### Cached lake runs (for `--run_id` reuse)
 
@@ -199,6 +215,6 @@ Paper config: `project/configs/live_paper_campaign_pe_oi_spike_neg_20260416T0921
 
 ### Next actions
 
-1. Deploy VOL_SPIKE to paper: `edge deploy bind-config --run_id broad_vol_spike_20260416T210045Z_68e0020707`
-2. Fund Bybit testnet USDT for OI_SPIKE_NEGATIVE paper engine
-3. Multi-feature regime classifier — only remaining path to unlock below-gate cluster (CLIMAX_VOLUME_BAR, POST_DELEVERAGING_REBOUND, OI_SPIKE_POSITIVE)
+1. **Diagnose 0-eval events** — VOL_SHOCK, VOL_CLUSTER_SHIFT, VOL_REGIME_SHIFT_EVENT etc. ran 1 hypothesis each but produced no `evaluation_results.parquet`. Check fire counts against lake before running full campaigns.
+2. **LIQUIDATION_CASCADE robustness** — best result is t=3.07/rob=0.61 at 8b (phase2 gate only). Rob gap is 0.09. Try additional horizon/filter combos to push over 0.70.
+3. **Multi-feature regime classifier** — only remaining path to unlock below-gate cluster (CLIMAX_VOLUME_BAR t=2.09/rob=0.52, POST_DELEVERAGING_REBOUND t=1.95/rob=0.68, OI_SPIKE_POSITIVE t=1.65/rob=0.65). No single feature concentrates the effect.

@@ -25,7 +25,6 @@ from project.core.column_registry import ColumnRegistry
 from project.core.logging_utils import build_stage_log_handlers
 from project.domain.compiled_registry import get_domain_registry
 from project.domain.hypotheses import TriggerType
-from project.events.event_specs import EVENT_REGISTRY_SPECS
 from project.spec_registry import load_yaml_path
 from project.specs.manifest import finalize_manifest, start_manifest
 from project.specs.gates import load_gates_spec, select_bridge_gate_spec, select_phase2_gate_spec
@@ -272,8 +271,9 @@ def _first_present_column(columns: list[str], available_columns: pd.Index) -> st
 
 
 def _event_signal_candidates(event_id: str) -> list[str]:
-    event_spec = EVENT_REGISTRY_SPECS.get(str(event_id or "").strip().upper())
-    signal_col = event_spec.signal_column if event_spec is not None else None
+    from project.domain.compiled_registry import get_domain_registry
+    event_def = get_domain_registry().get_event(str(event_id or "").strip().upper())
+    signal_col = event_def.signal_column if event_def is not None else None
     return ColumnRegistry.event_cols(str(event_id or "").strip().upper(), signal_col=signal_col)
 
 
@@ -547,6 +547,21 @@ def _build_gate_funnel(
     return funnel
 
 
+def _latest_hierarchical_stage_frame(stage_artifacts: dict[str, pd.DataFrame] | None) -> pd.DataFrame:
+    if not stage_artifacts:
+        return pd.DataFrame()
+    for stage_name in (
+        "context_refinement",
+        "execution_refinement",
+        "template_refinement",
+        "trigger_viability",
+    ):
+        frame = stage_artifacts.get(stage_name)
+        if frame is not None and not frame.empty:
+            return frame.copy()
+    return pd.DataFrame()
+
+
 # Phase 4.2 — regime-conditional candidate discovery signal columns
 _REGIME_CANDIDATE_COLUMNS = [
     "hypothesis_id",
@@ -673,9 +688,23 @@ def _expected_event_ids_from_hypotheses(hypotheses) -> list[str]:
         ):
             for component_id in (getattr(trigger, "left", ""), getattr(trigger, "right", "")):
                 token = str(component_id or "").strip().upper()
-                if token in EVENT_REGISTRY_SPECS and token not in seen:
+                if get_domain_registry().has_event(token) and token not in seen:
                     expected.append(token)
                     seen.add(token)
+    return expected
+
+
+def _expected_event_ids_from_search_spec_doc(search_spec_doc: Mapping[str, Any]) -> list[str]:
+    from project.spec_validation import expand_triggers
+
+    expanded = expand_triggers(dict(search_spec_doc or {}))
+    expected: list[str] = []
+    seen: set[str] = set()
+    for raw_event_id in list(expanded.get("events", []) or []):
+        event_id = str(raw_event_id or "").strip().upper()
+        if event_id and event_id not in seen and get_domain_registry().has_event(event_id):
+            expected.append(event_id)
+            seen.add(event_id)
     return expected
 
 
@@ -776,10 +805,6 @@ def _write_evaluation_artifacts(
         evaluated_records_from_metrics(metrics), audit_dir / "evaluated_hypotheses.parquet"
     )
     write_parquet(gate_failures, audit_dir / "gate_failures.parquet")
-
-
-def _normalize_search_feature_columns(features: pd.DataFrame) -> pd.DataFrame:
-    return normalize_search_feature_columns(features)
 
 
 def _annotate_promotion_gate_fields(df: pd.DataFrame) -> pd.DataFrame:
@@ -1110,6 +1135,7 @@ def run(
     # Load experiment plan if provided
     experiment_plan = None
     avoid_region_keys: set[str] = set()
+    resolved_search_spec_doc: dict[str, Any] = {}
     if experiment_config:
         from project.research.experiment_engine import (
             build_experiment_plan,
@@ -1124,6 +1150,11 @@ def run(
         }
         experiment_plan = build_experiment_plan(Path(experiment_config), Path(registry_root))
         log.info("Loaded experiment plan with %d hypotheses", len(experiment_plan.hypotheses))
+    else:
+        try:
+            resolved_search_spec_doc = _load_search_spec_doc(resolved_search_spec)
+        except Exception as exc:
+            log.warning("Failed to load search spec for expected-event materialization: %s", exc)
 
     for symbol in symbols_requested:
         log.info("Processing symbol %s...", symbol)
@@ -1132,7 +1163,7 @@ def run(
         preloaded_expected_event_ids = (
             _expected_event_ids_from_hypotheses(experiment_plan.hypotheses)
             if experiment_plan is not None
-            else None
+            else _expected_event_ids_from_search_spec_doc(resolved_search_spec_doc)
         )
         features = prepare_search_features_for_symbol(
             run_id=run_id,
@@ -1145,6 +1176,9 @@ def run(
         )
         if features.empty:
             log.warning("Empty feature table for %s", symbol)
+            symbol_diagnostics.append(
+                {"run_id": run_id, "primary_symbol": symbol, "skip_reason": "empty_feature_table"}
+            )
             continue
 
         # 2. Generate hypotheses
@@ -1292,11 +1326,12 @@ def run(
         # ── Phase 4: hierarchical vs flat mode selection ────────────────────────
         # Load search spec doc once so we can check for hierarchical config.
         # The spec has already been resolved above (resolved_search_spec).
-        _h_spec_doc: dict = {}
-        try:
-            _h_spec_doc = _load_search_spec_doc(resolved_search_spec)
-        except Exception as _h_exc:
-            log.warning("Failed to load search spec for hierarchical config: %s", _h_exc)
+        _h_spec_doc: dict = dict(resolved_search_spec_doc)
+        if not _h_spec_doc:
+            try:
+                _h_spec_doc = _load_search_spec_doc(resolved_search_spec)
+            except Exception as _h_exc:
+                log.warning("Failed to load search spec for hierarchical config: %s", _h_exc)
         _h_config = _load_hierarchical_config(_h_spec_doc) if not experiment_plan else None
 
         if _h_config is not None:
@@ -1326,6 +1361,23 @@ def run(
             )
 
             candidates = h_result.final_candidates
+            h_candidate_universe = _latest_hierarchical_stage_frame(h_result.stage_artifacts)
+            h_metrics_for_funnel = h_candidate_universe.copy()
+            if not h_metrics_for_funnel.empty and "valid" not in h_metrics_for_funnel.columns:
+                h_metrics_for_funnel["valid"] = True
+            h_valid_metrics_rows = int(len(h_metrics_for_funnel))
+            h_rejected_by_min_t_stat = 0
+            if (
+                not h_candidate_universe.empty
+                and "gate_search_min_t_stat" in h_candidate_universe.columns
+            ):
+                h_rejected_by_min_t_stat = int(
+                    (
+                        ~h_candidate_universe["gate_search_min_t_stat"]
+                        .fillna(False)
+                        .astype(bool)
+                    ).sum()
+                )
             if not candidates.empty:
                 if "gate_search_min_t_stat" in candidates.columns:
                     gate_mask = candidates["gate_search_min_t_stat"].fillna(False).astype(bool)
@@ -1334,17 +1386,23 @@ def run(
                         log.warning(
                             "All hierarchical candidates filtered by gate_search_min_t_stat"
                         )
-                        continue
-                if "candidate_id" in candidates.columns:
+                if not candidates.empty and "candidate_id" in candidates.columns:
                     candidates = candidates.copy()
                     candidates["candidate_id"] = (
                         symbol + "::" + candidates["candidate_id"].astype(str)
                     )
-                all_candidates.append(candidates)
+                if not candidates.empty:
+                    all_candidates.append(candidates)
 
             total_metrics_rows += h_result.candidates_evaluated_total
             total_feasible_hypotheses += h_result.candidates_evaluated_total
+            total_valid_metrics_rows += h_valid_metrics_rows
+            total_rejected_by_min_t_stat += h_rejected_by_min_t_stat
             total_bridge_candidates_rows += len(candidates)
+            if not h_metrics_for_funnel.empty:
+                metrics_frames.append(h_metrics_for_funnel.copy())
+            if not h_candidate_universe.empty:
+                candidate_universe_frames.append(h_candidate_universe.copy())
 
             # Accumulate stage artifacts for combined write after the loop
             if not hasattr(run, "_h_stage_artifacts"):
@@ -1377,10 +1435,10 @@ def run(
                     rejected_hypotheses=0,
                     rejection_reason_counts={},
                     metrics_rows=h_result.candidates_evaluated_total,
-                    valid_metrics_rows=len(candidates),
+                    valid_metrics_rows=h_valid_metrics_rows,
                     rejected_invalid_metrics=0,
                     rejected_by_min_n=0,
-                    rejected_by_min_t_stat=0,
+                    rejected_by_min_t_stat=h_rejected_by_min_t_stat,
                     bridge_candidates_rows=len(candidates),
                     multiplicity_discoveries=0,
                     min_t_stat=resolved_min_t_stat,
@@ -1390,8 +1448,8 @@ def run(
                     gate_funnel=_build_gate_funnel(
                         hypotheses_generated=h_result.candidates_evaluated_total,
                         feasible_hypotheses=h_result.candidates_evaluated_total,
-                        metrics=pd.DataFrame(),
-                        candidate_universe=pd.DataFrame(),
+                        metrics=h_metrics_for_funnel,
+                        candidate_universe=h_candidate_universe,
                         written_candidates=candidates,
                         min_n=resolved_min_n,
                     ),
@@ -2018,20 +2076,20 @@ def main(argv=None) -> int:
                 ):
                     if key in diagnostics_payload:
                         stats[key] = diagnostics_payload[key]
-            except Exception:
-                pass
+            except Exception as exc:
+                log.warning("Could not read diagnostics for manifest stats: %s", exc)
         if candidate_path.exists():
             try:
                 stats["candidate_rows"] = int(len(read_parquet(candidate_path)))
-            except Exception:
-                pass
+            except Exception as exc:
+                log.warning("Could not read candidate parquet for manifest stats: %s", exc)
         if regime_candidates_path.exists():
             try:
                 stats["regime_conditional_candidate_rows"] = int(
                     len(read_parquet(regime_candidates_path))
                 )
-            except Exception:
-                pass
+            except Exception as exc:
+                log.warning("Could not read regime candidates for manifest stats: %s", exc)
         finalize_manifest(manifest, "success" if rc == 0 else "failed", stats=stats)
         return rc
     except Exception as exc:

@@ -96,3 +96,85 @@ def test_schema_normalization_and_validation() -> None:
     assert {"candidate_id", "event_type", "promotion_decision", "promotion_track"}.issubset(
         set(empty.columns)
     )
+
+
+# --- Phase 2: strictness ---
+
+def test_stage_artifact_contract_default_strictness_is_strict() -> None:
+    from project.contracts.pipeline_registry import StageArtifactContract
+    c = StageArtifactContract(stage_patterns=("some_stage",), outputs=("out.parquet",))
+    assert c.strictness == "strict"
+
+
+def test_stage_artifact_contract_rejects_invalid_strictness() -> None:
+    import pytest
+    from project.contracts.pipeline_registry import StageArtifactContract
+    with pytest.raises(ValueError, match="strictness"):
+        StageArtifactContract(stage_patterns=("s",), strictness="unknown")
+
+
+def test_dataframe_schema_contract_default_strictness_is_strict() -> None:
+    from project.contracts.schemas import DataFrameSchemaContract
+    c = DataFrameSchemaContract(name="x", required_columns=("a",))
+    assert c.strictness == "strict"
+
+
+def test_validate_schema_at_producer_strict_raises() -> None:
+    import pandas as pd
+    import pytest
+    from project.contracts.schemas import validate_schema_at_producer, DataFrameSchemaContract, _SCHEMA_REGISTRY
+    _SCHEMA_REGISTRY["_test_strict"] = DataFrameSchemaContract(
+        name="_test_strict", required_columns=("req_col",), strictness="strict"
+    )
+    try:
+        with pytest.raises(Exception, match="missing required columns"):
+            validate_schema_at_producer(pd.DataFrame({"other": [1]}), "_test_strict")
+    finally:
+        del _SCHEMA_REGISTRY["_test_strict"]
+
+
+def test_validate_schema_at_producer_advisory_does_not_raise() -> None:
+    import pandas as pd
+    from project.contracts.schemas import validate_schema_at_producer, DataFrameSchemaContract, _SCHEMA_REGISTRY
+    _SCHEMA_REGISTRY["_test_advisory"] = DataFrameSchemaContract(
+        name="_test_advisory", required_columns=("req_col",), strictness="advisory"
+    )
+    try:
+        issues = validate_schema_at_producer(pd.DataFrame({"other": [1]}), "_test_advisory")
+        assert issues
+        assert "missing required columns" in issues[0]
+    finally:
+        del _SCHEMA_REGISTRY["_test_advisory"]
+
+
+def test_contracts_init_exposes_validate_schema_at_producer() -> None:
+    import project.contracts as contracts
+    assert callable(contracts.validate_schema_at_producer)
+    assert callable(contracts.validate_schema_at_producer)
+
+
+# --- Phase 3: registry delegation to compiled domain ---
+
+def test_get_event_definition_delegates_to_compiled_domain() -> None:
+    from project.events.registry import get_event_definition
+    from project.domain.compiled_registry import get_domain_registry
+    row = get_event_definition("VOL_SPIKE")
+    assert row is not None
+    assert row["signal_column"] == get_domain_registry().get_event("VOL_SPIKE").signal_column
+
+
+def test_get_event_definition_returns_none_for_unknown() -> None:
+    from project.events.registry import get_event_definition
+    assert get_event_definition("NONEXISTENT_XYZ_999") is None
+
+
+def test_list_events_by_family_delegates_to_compiled_domain() -> None:
+    from project.events.registry import list_events_by_family
+    rows = list_events_by_family("VOLATILITY_TRANSITION")
+    assert any(r.get("event_type") == "VOL_SPIKE" for r in rows)
+
+
+def test_policy_domain_parity() -> None:
+    from project.events.policy import assert_policy_domain_parity
+    issues = assert_policy_domain_parity()
+    assert issues == [], f"DEPLOYABLE_CORE_EVENT_TYPES diverges from compiled domain: {issues}"

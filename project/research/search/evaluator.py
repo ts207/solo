@@ -22,7 +22,6 @@ from project.core.timeframes import bars_per_year, normalize_timeframe, timefram
 from project.domain.hypotheses import HypothesisSpec, TriggerType
 from project.research.helpers.shrinkage import _time_decay_weights, _effective_sample_size
 from project.core.column_registry import ColumnRegistry
-from project.events.event_specs import EVENT_REGISTRY_SPECS
 
 # Robustness framework imports
 from project.research.robustness.regime_evaluator import evaluate_by_regime
