@@ -7,15 +7,17 @@ from project.events.adapters.liquidity_analysis import (
 from project.events.detectors.liquidity import (
     AbsorptionDetector,
     BaseLiquidityStressDetector,
-    DepthCollapseDetector,
-    DirectLiquidityStressDetector,
     LIQUIDITY_FAMILY_DETECTORS,
-    LiquidityGapDetector,
     LiquidityStressDetector,
-    LiquidityVacuumDetector,
     OrderflowImbalanceDetector,
-    ProxyLiquidityStressDetector,
     SpreadBlowoutDetector,
+)
+from project.events.detectors.liquidity_base import (
+    DepthCollapseDetectorV2,
+    DirectLiquidityStressDetectorV2,
+    LiquidityGapDetectorV2,
+    LiquidityVacuumDetectorV2,
+    ProxyLiquidityStressDetectorV2,
 )
 from project.events.registries.liquidity import ensure_liquidity_detectors_registered
 
@@ -27,13 +29,13 @@ _LIQUIDITY_DETECTORS = LIQUIDITY_FAMILY_DETECTORS
 __all__ = [
     "AbsorptionDetector",
     "BaseLiquidityStressDetector",
-    "DepthCollapseDetector",
-    "DirectLiquidityStressDetector",
-    "LiquidityGapDetector",
+    "DepthCollapseDetectorV2",
+    "DirectLiquidityStressDetectorV2",
+    "LiquidityGapDetectorV2",
     "LiquidityStressDetector",
-    "LiquidityVacuumDetector",
+    "LiquidityVacuumDetectorV2",
     "OrderflowImbalanceDetector",
-    "ProxyLiquidityStressDetector",
+    "ProxyLiquidityStressDetectorV2",
     "SpreadBlowoutDetector",
     "detect_liquidity_family",
     "analyze_liquidity_family",

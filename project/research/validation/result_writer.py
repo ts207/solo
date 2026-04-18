@@ -54,6 +54,12 @@ PROMOTION_READY_COLUMNS = (
     "metric_time_slice_support_score",
     "metric_negative_control_score",
     "metric_max_drawdown",
+    "source_event_name",
+    "source_event_version",
+    "source_detector_class",
+    "source_evidence_mode",
+    "source_threshold_version",
+    "source_calibration_artifact",
 )
 
 
@@ -165,6 +171,8 @@ def write_validated_candidate_tables(bundle: ValidationBundle, base_dir: Optiona
                 metrics_dict = c.metrics.to_dict()
                 for k, v in metrics_dict.items():
                     row[f"metric_{k}"] = v
+                for k, v in c.detector_lineage.items():
+                    row[k] = v
                 flat_data.append(row)
             flat_df = pd.DataFrame(flat_data)
 
@@ -204,6 +212,8 @@ def write_promotion_ready_candidates(bundle: ValidationBundle, base_dir: Optiona
         metrics_dict = c.metrics.to_dict()
         for k, v in metrics_dict.items():
             row[f"metric_{k}"] = v
+        for k, v in c.detector_lineage.items():
+            row[k] = v
         flat_data.append(row)
     
     flat_df = pd.DataFrame(flat_data, columns=PROMOTION_READY_COLUMNS)

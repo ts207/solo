@@ -56,6 +56,50 @@ def _execution_quality_score(context: LiveTradeContext) -> tuple[float, list[str
     return score, reasons_for, reasons_against
 
 
+
+
+def _event_quality_adjustment(context: LiveTradeContext) -> tuple[float, float, list[str], list[str]]:
+    reasons_for: list[str] = []
+    reasons_against: list[str] = []
+    additive = 0.0
+    penalty = 0.0
+    confidence = _finite_metric(context.event_confidence, 0.0) if context.event_confidence is not None else 0.0
+    severity = _finite_metric(context.event_severity, 0.0) if context.event_severity is not None else 0.0
+    quality = str(context.data_quality_flag or "ok").strip().lower()
+    evidence_mode = str(getattr(context, "event_evidence_mode", "") or "").strip().lower()
+    event_role = str(getattr(context, "event_role", "trigger") or "trigger").strip().lower()
+    if quality == "invalid":
+        penalty += 1.0
+        reasons_against.append("event_quality_invalid")
+        return additive, penalty, reasons_for, reasons_against
+    if quality == "degraded":
+        penalty += 0.15
+        reasons_against.append("event_quality_degraded")
+    elif quality == "ok":
+        additive += 0.03
+        reasons_for.append("event_quality_ok")
+    if confidence >= 0.80:
+        additive += 0.07
+        reasons_for.append("event_confidence_high")
+    elif confidence >= 0.60:
+        additive += 0.03
+        reasons_for.append("event_confidence_medium")
+    elif 0.0 < confidence < 0.40:
+        penalty += 0.08
+        reasons_against.append("event_confidence_low")
+    if severity >= 0.80:
+        additive += 0.04
+        reasons_for.append("event_severity_high")
+    if evidence_mode == "proxy":
+        penalty += 0.10
+        reasons_against.append("proxy_evidence_penalty")
+    elif evidence_mode in {"direct", "hybrid", "statistical"}:
+        additive += 0.01
+    if event_role in {"context", "filter", "composite", "research_only"}:
+        penalty += 0.35
+        reasons_against.append("event_role_not_primary_trigger")
+    return additive, penalty, reasons_for, reasons_against
+
 def build_decision_score(match: ThesisMatch, context: LiveTradeContext) -> DecisionScore:
     setup_match_score = max(0.0, min(1.0, match.support_score))
     execution_quality_score, exec_for, exec_against = _execution_quality_score(context)
@@ -96,6 +140,10 @@ def build_decision_score(match: ThesisMatch, context: LiveTradeContext) -> Decis
 
     reasons_for.extend(exec_for)
     reasons_against.extend(exec_against)
+    quality_add, quality_penalty, quality_for, quality_against = _event_quality_adjustment(context)
+    reasons_for.extend(quality_for)
+    reasons_against.extend(quality_against)
+    execution_quality_score = max(0.0, min(1.0, execution_quality_score + quality_add))
 
     # Hard gate: setup match is the triggering condition. Non-zero execution quality
     # and thesis strength must not compensate for a missing event match.
@@ -115,6 +163,7 @@ def build_decision_score(match: ThesisMatch, context: LiveTradeContext) -> Decis
             reasons_against=reasons_against,
         )
 
+    contradiction_penalty = max(0.0, min(1.0, contradiction_penalty + quality_penalty))
     total_score = (
         (0.45 * setup_match_score)
         + execution_quality_score

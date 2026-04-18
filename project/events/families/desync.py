@@ -11,6 +11,11 @@ from project.features.rolling_thresholds import lagged_rolling_quantile
 from project.events.shared import EVENT_COLUMNS, emit_event, format_event_id
 from project.events.thresholding import rolling_mean_std_zscore
 from project.research.analyzers import run_analyzer_suite
+from project.events.detectors.desync_base import (
+    CrossAssetDesyncDetectorV2,
+    IndexComponentDivergenceDetectorV2,
+    LeadLagBreakDetectorV2,
+)
 
 
 class IndexComponentDivergenceDetector(CompositeDetector):
@@ -195,3 +200,20 @@ def analyze_desync_family(
     market = df[["timestamp", "close"]].copy() if not df.empty and "close" in df.columns else None
     analyzer_results = run_analyzer_suite(events, market=market) if not events.empty else {}
     return events, analyzer_results
+
+
+# Wave 3 v2 overrides
+IndexComponentDivergenceDetector = IndexComponentDivergenceDetectorV2
+LeadLagBreakDetector = LeadLagBreakDetectorV2
+CrossAssetDesyncDetector = CrossAssetDesyncDetectorV2
+_DETECTORS.update({
+    "INDEX_COMPONENT_DIVERGENCE": IndexComponentDivergenceDetectorV2,
+    "LEAD_LAG_BREAK": LeadLagBreakDetectorV2,
+    "CROSS_ASSET_DESYNC_EVENT": CrossAssetDesyncDetectorV2,
+})
+for _et, _cls in {
+    "INDEX_COMPONENT_DIVERGENCE": IndexComponentDivergenceDetectorV2,
+    "LEAD_LAG_BREAK": LeadLagBreakDetectorV2,
+    "CROSS_ASSET_DESYNC_EVENT": CrossAssetDesyncDetectorV2,
+}.items():
+    register_detector(_et, _cls)

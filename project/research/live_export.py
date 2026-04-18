@@ -147,6 +147,19 @@ def _fallback_authored_definition_for_event(*event_tokens: str):
     return None
 
 
+def _resolve_detector_lineage(bundle: Mapping[str, Any], promoted_row: Mapping[str, Any]) -> dict[str, str]:
+    source = dict(promoted_row or {})
+    metadata = dict(bundle.get("metadata", {})) if isinstance(bundle, Mapping) else {}
+    return {
+        "source_event_name": str(source.get("source_event_name") or source.get("event_type") or metadata.get("event_type") or "").strip(),
+        "source_event_version": str(source.get("source_event_version") or metadata.get("source_event_version") or "").strip(),
+        "source_detector_class": str(source.get("source_detector_class") or metadata.get("source_detector_class") or "").strip(),
+        "source_evidence_mode": str(source.get("source_evidence_mode") or source.get("evidence_mode") or metadata.get("evidence_mode") or "").strip(),
+        "source_threshold_version": str(source.get("source_threshold_version") or metadata.get("source_threshold_version") or "").strip(),
+        "source_calibration_artifact": str(source.get("source_calibration_artifact") or metadata.get("source_calibration_artifact") or "").strip(),
+    }
+
+
 def _utc_now() -> str:
     return datetime.now(timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z")
 
@@ -1005,6 +1018,8 @@ def _build_thesis(
     generated_at = _utc_now()
     batch_id = f"batch::{run_id}::{generated_at}"
 
+    detector_lineage = _resolve_detector_lineage(bundle, promoted_row)
+
     thesis = PromotedThesis(
         thesis_id=f"thesis::{run_id}::{candidate_id}",
         promotion_class=promo_class,
@@ -1076,6 +1091,12 @@ def _build_thesis(
             export_generated_at=generated_at,
             source_run_id=run_id,
             thesis_version="1.0.0",
+            source_event_name=detector_lineage.get("source_event_name", ""),
+            source_event_version=detector_lineage.get("source_event_version", ""),
+            source_detector_class=detector_lineage.get("source_detector_class", ""),
+            source_evidence_mode=detector_lineage.get("source_evidence_mode", ""),
+            source_threshold_version=detector_lineage.get("source_threshold_version", ""),
+            source_calibration_artifact=detector_lineage.get("source_calibration_artifact", ""),
         ),
         governance=ThesisGovernance(
             readiness_status=str(promoted_row.get("readiness_status", "")),

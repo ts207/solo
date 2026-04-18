@@ -34,35 +34,71 @@ def _clean_token(value: Any) -> str:
 @lru_cache(maxsize=256)
 def get_event_governance_metadata(event_type: str) -> dict[str, Any]:
     token = resolve_event_alias(_clean_token(event_type).upper())
-    contract = load_active_event_contracts().get(token, {})
-    role = _clean_token(contract.get("operational_role")).lower()
-    tier = _clean_token(contract.get("tier")).upper()
-    disposition = _clean_token(contract.get("deployment_disposition")).lower()
-    runtime_category = _clean_token(contract.get("runtime_category")) or "active_runtime_event"
-    evidence_mode = _clean_token(contract.get("evidence_mode")).lower()
-    asset_scope = _clean_token(contract.get("asset_scope")).lower()
+    contract_row = load_active_event_contracts().get(token, {})
+    role = _clean_token(contract_row.get("operational_role")).lower()
+    tier = _clean_token(contract_row.get("tier")).upper()
+    disposition = _clean_token(contract_row.get("deployment_disposition")).lower()
+    runtime_category = _clean_token(contract_row.get("runtime_category")) or "active_runtime_event"
+    evidence_mode = _clean_token(contract_row.get("evidence_mode")).lower()
+    asset_scope = _clean_token(contract_row.get("asset_scope")).lower()
+
+    detector_contract = None
+    try:
+        from project.events.registry import get_detector_contract
+
+        detector_contract = get_detector_contract(token)
+    except Exception:
+        detector_contract = None
+
+    if detector_contract is not None:
+        role = str(detector_contract.role).lower()
+        evidence_mode = str(detector_contract.evidence_mode).lower()
+        runtime_category = "active_runtime_event" if detector_contract.runtime_default else "gated_event"
 
     role_blocked = role in PROMOTION_BLOCKING_ROLES
     tier_blocked = tier in {"C", "D", "X"}
     disposition_blocked = disposition in PROMOTION_BLOCKING_DISPOSITIONS
     runtime_blocked = runtime_category != "active_runtime_event"
-    trade_trigger_eligible = not (role_blocked or tier_blocked or disposition_blocked or runtime_blocked)
 
-    descriptive_only = role in {"context", "filter", "research_only", "sequence_component"}
+    descriptive_only = role in {"context", "filter", "research_only", "sequence_component", "composite"}
     requires_stronger_evidence = bool(
         descriptive_only
-        or evidence_mode in {"proxy", "indirect", "derived", "inferred"}
+        or evidence_mode in {"proxy", "indirect", "derived", "inferred", "inferred_cross_asset"}
         or "cross_asset" in asset_scope
     )
 
-    if runtime_blocked:
+    trade_trigger_eligible = not (role_blocked or tier_blocked or disposition_blocked or runtime_blocked)
+    if detector_contract is not None:
+        descriptive_only = bool(
+            detector_contract.context_only
+            or detector_contract.composite
+            or detector_contract.research_only
+            or detector_contract.role in {"context", "research_only", "composite"}
+        )
+        requires_stronger_evidence = bool(
+            descriptive_only
+            or evidence_mode in {"proxy", "indirect", "derived", "inferred", "inferred_cross_asset"}
+            or "cross_asset" in asset_scope
+            or detector_contract.event_version != "v2"
+        )
+        trade_trigger_eligible = bool(
+            detector_contract.role == "trigger"
+            and (detector_contract.promotion_eligible or detector_contract.primary_anchor_eligible)
+        )
+        runtime_blocked = not bool(detector_contract.runtime_default)
+
+    if detector_contract is not None and detector_contract.event_version != "v2":
+        block_reason = "legacy_v1_retired"
+    elif runtime_blocked:
         block_reason = f"runtime_category={runtime_category}"
     elif disposition_blocked:
         block_reason = f"deployment_disposition={disposition}"
-    elif role_blocked:
+    elif role_blocked or descriptive_only:
         block_reason = f"operational_role={role or 'unspecified'}"
     elif tier_blocked:
         block_reason = f"tier={tier or 'unspecified'}"
+    elif detector_contract is not None and not trade_trigger_eligible:
+        block_reason = "detector_contract_not_eligible"
     else:
         block_reason = ""
 
@@ -73,8 +109,10 @@ def get_event_governance_metadata(event_type: str) -> dict[str, Any]:
         rank_penalty += 1.0
     if requires_stronger_evidence:
         rank_penalty += 0.5
+    if detector_contract is not None and detector_contract.event_version != "v2":
+        rank_penalty += 1.0
 
-    return {
+    payload = {
         "event_type": token,
         "tier": tier or "D",
         "operational_role": role or "trigger",
@@ -89,6 +127,16 @@ def get_event_governance_metadata(event_type: str) -> dict[str, Any]:
         "promotion_block_reason": block_reason,
         "rank_penalty": rank_penalty,
     }
+    if detector_contract is not None:
+        payload.update(
+            {
+                "event_version": detector_contract.event_version,
+                "runtime_default": detector_contract.runtime_default,
+                "promotion_eligible": detector_contract.promotion_eligible,
+                "primary_anchor_eligible": detector_contract.primary_anchor_eligible,
+            }
+        )
+    return payload
 
 
 def event_matches_filters(

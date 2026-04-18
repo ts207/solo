@@ -1,20 +1,20 @@
 from __future__ import annotations
 
-from project.events.detectors.funding import (
-    FundingDetector,
-    FundingExtremeOnsetDetector,
-    FundingFlipDetector,
-    FundingNormalizationDetector,
-    FundingPersistenceDetector,
+from project.events.detectors.funding import FundingDetector
+from project.events.detectors.positioning_base import (
+    FundingExtremeOnsetDetectorV2,
+    FundingFlipDetectorV2,
+    FundingNormalizationDetectorV2,
+    FundingPersistenceDetectorV2,
 )
 from project.events.detectors.registry import register_detector
 
 
 FUNDING_DETECTORS = {
-    "FUNDING_EXTREME_ONSET": FundingExtremeOnsetDetector,
-    "FUNDING_PERSISTENCE_TRIGGER": FundingPersistenceDetector,
-    "FUNDING_NORMALIZATION_TRIGGER": FundingNormalizationDetector,
-    "FUNDING_FLIP": FundingFlipDetector,
+    "FUNDING_EXTREME_ONSET": FundingExtremeOnsetDetectorV2,
+    "FUNDING_PERSISTENCE_TRIGGER": FundingPersistenceDetectorV2,
+    "FUNDING_NORMALIZATION_TRIGGER": FundingNormalizationDetectorV2,
+    "FUNDING_FLIP": FundingFlipDetectorV2,
 }
 
 

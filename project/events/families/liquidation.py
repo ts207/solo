@@ -359,13 +359,14 @@ class LiquidationCascadeProxyDetector(EpisodeDetector):
 
 
 from project.events.detectors.registry import register_detector
+from project.events.detectors.liquidation_base import LiquidationCascadeDetectorV2, LiquidationCascadeProxyDetectorV2
 
-register_detector("LIQUIDATION_CASCADE", LiquidationCascadeDetector)
-register_detector("LIQUIDATION_CASCADE_PROXY", LiquidationCascadeProxyDetector)
+register_detector("LIQUIDATION_CASCADE", LiquidationCascadeDetectorV2)
+register_detector("LIQUIDATION_CASCADE_PROXY", LiquidationCascadeProxyDetectorV2)
 
 
 def detect_liquidation_family(df: pd.DataFrame, symbol: str, **params: Any) -> pd.DataFrame:
-    detector = LiquidationCascadeDetector()
+    detector = LiquidationCascadeDetectorV2()
     return detector.detect(df, symbol=symbol, **params)
 
 

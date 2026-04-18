@@ -44,6 +44,7 @@ from project.specs.gates import load_gates_spec as _load_gates_spec
 from project.specs.manifest import finalize_manifest, load_run_manifest, start_manifest
 from project.specs.objective import resolve_objective_profile_contract
 from project.specs.ontology import ontology_spec_hash
+from project.events.registry import get_detector_contract
 
 
 @dataclass(frozen=True)
@@ -319,6 +320,74 @@ _derive_cost_survival_ratio_from_bridge_flags = (
 _hydrate_canonical_promotion_aliases = _promotion_inputs._hydrate_canonical_promotion_aliases
 _diagnose_missing_fields = _promotion_inputs._diagnose_missing_fields
 
+
+
+
+def _apply_detector_governance_policy(promoted_df: pd.DataFrame) -> tuple[pd.DataFrame, dict[str, int]]:
+    if promoted_df.empty:
+        return promoted_df, {"paper_only_overrides": 0, "blocked_primary_anchor": 0}
+    frame = promoted_df.copy()
+    paper_only_overrides = 0
+    blocked_primary_anchor = 0
+    source_names = []
+    for _, row in frame.iterrows():
+        token = str(row.get("source_event_name") or row.get("event_type") or row.get("primary_event_id") or "").strip().upper()
+        source_names.append(token)
+    roles = []
+    maturities = []
+    evidence_modes = []
+    runtime_defaults = []
+    promotion_eligibles = []
+    primary_anchors = []
+    promotion_classes = []
+    deployment_states = []
+    requires_stronger = []
+    for idx, token in enumerate(source_names):
+        contract = None
+        if token:
+            try:
+                contract = get_detector_contract(token)
+            except Exception:
+                contract = None
+        role = str(getattr(contract, "role", "trigger") or "trigger").strip().lower()
+        maturity = str(getattr(contract, "maturity", "standard") or "standard").strip().lower()
+        evidence_mode = str(getattr(contract, "evidence_mode", frame.iloc[idx].get("source_evidence_mode", "")) or frame.iloc[idx].get("source_evidence_mode", "")).strip().lower()
+        runtime_default = bool(getattr(contract, "runtime_default", True))
+        promotion_eligible = bool(getattr(contract, "promotion_eligible", True))
+        primary_anchor = bool(getattr(contract, "primary_anchor_eligible", role == "trigger"))
+        promotion_class = str(frame.iloc[idx].get("promotion_class") or "paper_promoted")
+        deployment_state = str(frame.iloc[idx].get("deployment_state") or "paper_only")
+        stronger = False
+        if role != "trigger" or not promotion_eligible:
+            promotion_class = "paper_promoted"
+            deployment_state = "paper_only"
+            blocked_primary_anchor += 1
+        elif maturity != "production" or evidence_mode == "proxy" or not runtime_default:
+            promotion_class = "paper_promoted"
+            deployment_state = "paper_only"
+            stronger = True
+            paper_only_overrides += 1
+        roles.append(role)
+        maturities.append(maturity)
+        evidence_modes.append(evidence_mode)
+        runtime_defaults.append(runtime_default)
+        promotion_eligibles.append(promotion_eligible)
+        primary_anchors.append(primary_anchor)
+        promotion_classes.append(promotion_class)
+        deployment_states.append(deployment_state)
+        requires_stronger.append(stronger)
+    frame["source_detector_role"] = roles
+    frame["source_detector_maturity"] = maturities
+    frame["source_evidence_mode"] = evidence_modes
+    frame["source_runtime_default"] = runtime_defaults
+    frame["source_promotion_eligible"] = promotion_eligibles
+    frame["source_primary_anchor_eligible"] = primary_anchors
+    if "promotion_class" in frame.columns:
+        frame["promotion_class"] = promotion_classes
+    if "deployment_state" in frame.columns:
+        frame["deployment_state"] = deployment_states
+    frame["requires_stronger_evidence"] = requires_stronger
+    return frame, {"paper_only_overrides": paper_only_overrides, "blocked_primary_anchor": blocked_primary_anchor}
 
 def execute_promotion(config: PromotionConfig) -> PromotionServiceResult:
     data_root = get_data_root()
@@ -662,6 +731,8 @@ def execute_promotion(config: PromotionConfig) -> PromotionServiceResult:
             audit_df=audit_df,
         ).copy()
         promoted_df = annotate_regime_metadata(promoted_df)
+        promoted_df, detector_governance_stats = _apply_detector_governance_policy(promoted_df)
+        diagnostics["detector_governance_policy"] = detector_governance_stats
 
         evidence_bundles = []
         invalid_promoted_rows: list[str] = []

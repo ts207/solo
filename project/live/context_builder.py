@@ -5,6 +5,7 @@ from typing import Any, Dict, Mapping
 from project.episodes import infer_live_episode_matches
 from project.live.contracts.live_trade_context import LiveTradeContext
 from project.live.event_detector import DetectedEvent
+from project.events.registry import get_detector_contract
 
 
 def _unique_tokens(*groups: object) -> list[str]:
@@ -98,6 +99,16 @@ def build_live_trade_context(
         "activation_mode": "heuristic_live_runtime",
     }
 
+    detector_contract = None
+    try:
+        detector_contract = get_detector_contract(primary_event_id or compat_event_family)
+    except Exception:
+        detector_contract = None
+
+    threshold_snapshot = market_features.get("threshold_snapshot", {})
+    if not isinstance(threshold_snapshot, dict):
+        threshold_snapshot = {}
+
     return LiveTradeContext(
         timestamp=str(timestamp),
         symbol=str(symbol).upper(),
@@ -111,6 +122,9 @@ def build_live_trade_context(
         data_quality_flag=detected_event.data_quality_flag,
         event_version=detected_event.event_version,
         threshold_version=detected_event.threshold_version,
+        event_evidence_mode=(str(getattr(detector_contract, "evidence_mode", "") or market_features.get("event_evidence_mode", "")).strip().lower()),
+        event_role=(str(getattr(detector_contract, "role", "trigger")).strip().lower() or "trigger"),
+        threshold_snapshot=threshold_snapshot,
         live_features=dict(market_features),
         regime_snapshot=regime_snapshot,
         execution_env=dict(execution_env),

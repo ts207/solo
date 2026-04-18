@@ -1,19 +1,22 @@
-"""Canonical umbrella namespace for strategy models, DSL, runtime, and templates."""
+"""Canonical umbrella namespace for research-time strategy templates."""
 
-__all__ = ["Blueprint", "ExecutableStrategySpec", "dsl", "runtime", "templates"]
+from project.strategy.templates.compiler import compile_positions
+from project.strategy.templates.data_bundle import DataBundle
+from project.strategy.templates.evaluate import evaluate_candidates
+from project.strategy.templates.generator import generate_candidates, generate_from_concept
+from project.strategy.templates.spec import StrategySpec
+from project.strategy.templates.validation import check_closed_left_rolling, validate_pit_invariants
 
+evaluate = evaluate_candidates
 
-def __getattr__(name: str):
-    if name == "Blueprint":
-        from project.strategy.models.blueprint import Blueprint
-
-        return Blueprint
-    if name == "ExecutableStrategySpec":
-        from project.strategy.models.executable_strategy_spec import ExecutableStrategySpec
-
-        return ExecutableStrategySpec
-    if name in {"dsl", "runtime", "templates"}:
-        import importlib
-
-        return importlib.import_module(f"project.strategy.{name}")
-    raise AttributeError(name)
+__all__ = [
+    "DataBundle",
+    "StrategySpec",
+    "check_closed_left_rolling",
+    "compile_positions",
+    "evaluate",
+    "evaluate_candidates",
+    "generate_candidates",
+    "generate_from_concept",
+    "validate_pit_invariants",
+]

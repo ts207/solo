@@ -64,6 +64,7 @@ class ValidatedCandidateRecord:
     direction: str = ""
     horizon_bars: int = 0
     artifact_refs: List[ValidationArtifactRef] = field(default_factory=list)
+    detector_lineage: Dict[str, Any] = field(default_factory=dict)
     validation_stage_version: str = "v1"
 
     def to_dict(self) -> Dict[str, Any]:
@@ -76,6 +77,7 @@ class ValidatedCandidateRecord:
             "direction": self.direction,
             "horizon_bars": self.horizon_bars,
             "artifact_refs": [ref.to_dict() for ref in self.artifact_refs],
+            "detector_lineage": dict(self.detector_lineage),
             "validation_stage_version": self.validation_stage_version,
         }
 

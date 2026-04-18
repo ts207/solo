@@ -5,19 +5,21 @@ from project.events.detectors.volatility import (
     BreakoutTriggerDetector,
     RangeCompressionDetector,
     VolClusterShiftDetector,
-    VolRelaxationDetector,
-    VolShockRelaxationDetector,
-    VolSpikeDetector,
+)
+from project.events.detectors.volatility_base import (
+    VolRelaxationStartDetectorV2,
+    VolShockDetectorV2,
+    VolSpikeDetectorV2,
 )
 
 
 VOLATILITY_DETECTORS = {
-    "VOL_SPIKE": VolSpikeDetector,
-    "VOL_RELAXATION_START": VolRelaxationDetector,
+    "VOL_SPIKE": VolSpikeDetectorV2,
+    "VOL_RELAXATION_START": VolRelaxationStartDetectorV2,
     "VOL_CLUSTER_SHIFT": VolClusterShiftDetector,
     "RANGE_COMPRESSION_END": RangeCompressionDetector,
     "BREAKOUT_TRIGGER": BreakoutTriggerDetector,
-    "VOL_SHOCK": VolShockRelaxationDetector,
+    "VOL_SHOCK": VolShockDetectorV2,
 }
 
 

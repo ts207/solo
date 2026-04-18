@@ -24,6 +24,32 @@ from project.research.validation.result_writer import (
 )
 
 
+
+_DETECTOR_LINEAGE_COLUMNS = {
+    "source_event_name",
+    "source_event_version",
+    "source_detector_class",
+    "source_evidence_mode",
+    "source_threshold_version",
+    "source_calibration_artifact",
+}
+
+
+def extract_detector_lineage(row: pd.Series | Dict[str, Any]) -> Dict[str, Any]:
+    payload = dict(row) if isinstance(row, dict) else row.to_dict()
+    event_name = str(payload.get("source_event_name") or payload.get("event_type") or payload.get("anchor_event") or "").strip()
+    evidence_mode = str(payload.get("source_evidence_mode") or payload.get("evidence_mode") or "").strip()
+    out = {
+        "source_event_name": event_name,
+        "source_event_version": str(payload.get("source_event_version", "")).strip(),
+        "source_detector_class": str(payload.get("source_detector_class", "")).strip(),
+        "source_evidence_mode": evidence_mode,
+        "source_threshold_version": str(payload.get("source_threshold_version", "")).strip(),
+        "source_calibration_artifact": str(payload.get("source_calibration_artifact", "")).strip(),
+    }
+    return {key: value for key, value in out.items() if value not in {"", None}}
+
+
 @dataclass
 class EvaluationSummaryConfig:
     run_id: str
@@ -379,6 +405,7 @@ class ValidationService:
             template_id=str(row.get("rule_template", row.get("template_id", ""))),
             direction=str(row.get("direction", "")),
             horizon_bars=int(str(row.get("horizon", row.get("horizon_bars", 0))).replace("b", "")),
+            detector_lineage=extract_detector_lineage(row),
             validation_stage_version="v1"
         )
 

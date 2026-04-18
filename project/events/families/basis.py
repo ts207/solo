@@ -6,6 +6,12 @@ import numpy as np
 import pandas as pd
 
 from project.events.detectors.dislocation import DislocationDetector
+from project.events.detectors.dislocation_base import (
+    BasisDislocationDetectorV2,
+    FndDislocDetectorV2,
+    SpotPerpBasisShockDetectorV2,
+)
+from project.events.detectors.desync_base import CrossVenueDesyncDetectorV2
 from project.events.shared import EVENT_COLUMNS, emit_event, format_event_id
 from project.events.sparsify import sparsify_mask
 from project.events.thresholding import (
@@ -330,10 +336,10 @@ def _merge_perp_spot(perp_df: pd.DataFrame, spot_df: pd.DataFrame) -> pd.DataFra
 from project.events.detectors.registry import register_detector
 
 _DETECTORS = {
-    "BASIS_DISLOC": BasisDislocationDetector,
+    "BASIS_DISLOC": BasisDislocationDetectorV2,
     "CROSS_VENUE_DESYNC": CrossVenueDesyncDetector,
-    "FND_DISLOC": FndDislocDetector,
-    "SPOT_PERP_BASIS_SHOCK": SpotPerpBasisShockDetector,
+    "FND_DISLOC": FndDislocDetectorV2,
+    "SPOT_PERP_BASIS_SHOCK": SpotPerpBasisShockDetectorV2,
 }
 
 for et, cls in _DETECTORS.items():
@@ -415,3 +421,9 @@ def analyze_basis_family(
         else {}
     )
     return events, analyzer_results
+
+
+# Wave 3 v2 override: preserve legacy import name while routing to v2 implementation.
+CrossVenueDesyncDetector = CrossVenueDesyncDetectorV2
+_DETECTORS["CROSS_VENUE_DESYNC"] = CrossVenueDesyncDetectorV2
+register_detector("CROSS_VENUE_DESYNC", CrossVenueDesyncDetectorV2)

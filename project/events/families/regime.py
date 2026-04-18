@@ -12,6 +12,10 @@ from project.features.rolling_thresholds import lagged_rolling_quantile
 from project.events.shared import EVENT_COLUMNS, emit_event, format_event_id
 from project.events.thresholding import rolling_mean_std_zscore
 from project.research.analyzers import run_analyzer_suite
+from project.events.detectors.desync_base import (
+    BetaSpikeDetectorV2,
+    CorrelationBreakdownDetectorV2,
+)
 
 
 class VolRegimeShiftDetector(TransitionDetector):
@@ -263,3 +267,17 @@ def analyze_regime_family(
     market = df[["timestamp", "close"]].copy() if not df.empty and "close" in df.columns else None
     analyzer_results = run_analyzer_suite(events, market=market) if not events.empty else {}
     return events, analyzer_results
+
+
+# Wave 3 v2 overrides
+CorrelationBreakdownDetector = CorrelationBreakdownDetectorV2
+BetaSpikeDetector = BetaSpikeDetectorV2
+_DETECTORS.update({
+    "CORRELATION_BREAKDOWN_EVENT": CorrelationBreakdownDetectorV2,
+    "BETA_SPIKE_EVENT": BetaSpikeDetectorV2,
+})
+for _et, _cls in {
+    "CORRELATION_BREAKDOWN_EVENT": CorrelationBreakdownDetectorV2,
+    "BETA_SPIKE_EVENT": BetaSpikeDetectorV2,
+}.items():
+    register_detector(_et, _cls)

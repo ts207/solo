@@ -53,11 +53,69 @@ class DetectorContract:
     aliases: tuple[str, ...] = ()
     notes: str = ""
 
+    _VALID_EVIDENCE = frozenset(
+        {
+            "direct",
+            "hybrid",
+            "statistical",
+            "proxy",
+            "inferred_cross_asset",
+            "contextual",
+            "sequence_confirmed",
+        }
+    )
+    _VALID_ROLES = frozenset({"trigger", "context", "composite", "research_only", "filter", "sequence_component"})
+    _VALID_MATURITY = frozenset({"production", "specialized", "standard", "deprecated"})
+
+    def __post_init__(self) -> None:
+        if not self.event_name.strip():
+            raise DetectorContractError("event_name must be non-empty")
+        if not self.detector_class.strip():
+            raise DetectorContractError(f"{self.event_name}: detector_class must be non-empty")
+        if self.evidence_mode not in self._VALID_EVIDENCE:
+            raise DetectorContractError(
+                f"{self.event_name}: invalid evidence_mode {self.evidence_mode!r}"
+            )
+        if self.role not in self._VALID_ROLES:
+            raise DetectorContractError(f"{self.event_name}: invalid role {self.role!r}")
+        if self.maturity not in self._VALID_MATURITY:
+            raise DetectorContractError(f"{self.event_name}: invalid maturity {self.maturity!r}")
+        if self.context_only and self.primary_anchor_eligible:
+            raise DetectorContractError(
+                f"{self.event_name}: context_only detectors cannot be primary anchors"
+            )
+        if self.role in {"context", "filter"} and self.primary_anchor_eligible:
+            raise DetectorContractError(
+                f"{self.event_name}: context/filter detectors cannot be primary anchors"
+            )
+        if self.research_only and self.runtime_default:
+            raise DetectorContractError(
+                f"{self.event_name}: research_only detectors cannot default to runtime execution"
+            )
+        if self.role in {"composite", "sequence_component"} and self.runtime_default:
+            raise DetectorContractError(
+                f"{self.event_name}: composite/sequence detectors cannot default to runtime execution"
+            )
+        if self.runtime_default and not self.emits_quality_flag:
+            raise DetectorContractError(
+                f"{self.event_name}: runtime detectors must emit a data quality flag"
+            )
+        if self.runtime_default and not self.supports_confidence:
+            raise DetectorContractError(
+                f"{self.event_name}: runtime detectors must expose confidence"
+            )
+        if self.role == "trigger" and not self.allowed_templates:
+            raise DetectorContractError(
+                f"{self.event_name}: trigger detectors must define allowed_templates"
+            )
+        if self.merge_gap_bars < 0 or self.cooldown_bars < 0:
+            raise DetectorContractError(
+                f"{self.event_name}: merge_gap_bars and cooldown_bars must be >= 0"
+            )
+
 
 class DetectorLogicContract(ABC):
-    """
-    Protocol that every event detector must satisfy.
-    """
+    """Protocol that every event detector must satisfy."""
 
     required_columns: ClassVar[List[str]] = []
     lookback_bars: ClassVar[int] = 0
@@ -82,12 +140,12 @@ class DetectorLogicContract(ABC):
 
     @abstractmethod
     def compute_signal(self, df: pd.DataFrame) -> pd.Series:
-        pass
+        raise NotImplementedError
 
     @abstractmethod
     def detect_events(self, df: pd.DataFrame, params: dict) -> pd.DataFrame:
-        pass
+        raise NotImplementedError
 
     @abstractmethod
     def validate_no_lookahead(self, df: pd.DataFrame, event_frame: pd.DataFrame) -> None:
-        pass
+        raise NotImplementedError

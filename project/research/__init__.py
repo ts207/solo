@@ -1,38 +1,86 @@
-from __future__ import annotations
-
-from project.core.coercion import safe_float, safe_int, as_bool
-from project.events.shared import EVENT_COLUMNS, emit_event, format_event_id
-from project.research.research_core import (
-    CANONICAL_CANDIDATE_COLUMNS,
-    ensure_candidate_schema,
-    StructuralEdgeComponents,
-    structural_edge_components,
-    edge_id_from_components,
-    edge_id_from_row,
-    load_research_features,
-    normalize_research_dataframe,
-    sparsify_event_mask,
-    rolling_z_score,
+from project.research.validation.schemas import (
+    ValidationSplit,
+    EffectEstimate,
+    MultiplicityResult,
+    StabilityResult,
+    FalsificationResult,
+    EvidenceBundle,
+    PromotionDecision,
 )
-
-from project.research.analyzers import (
-    AnalyzerResult,
-    BaseEventAnalyzer,
-    EdgeAnalyzer,
-    IntegrityAnalyzer,
-    MorphologyAnalyzer,
-    OverlapAnalyzer,
-    StabilityAnalyzer,
-    run_analyzer_suite,
+from project.research.validation.splits import (
+    assign_split_labels,
+    build_validation_splits,
+    resolve_split_scheme,
+    serialize_splits,
+)
+from project.research.validation.purging import (
+    compute_event_windows,
+    purge_overlapping_events,
+    apply_embargo,
+)
+from project.research.validation.estimators import estimate_effect, estimate_effect_from_frame
+from project.research.validation.multiple_testing import (
+    assign_test_families,
+    adjust_pvalues_bh,
+    adjust_pvalues_by,
+    adjust_pvalues_holm,
+    apply_multiple_testing,
+)
+from project.research.validation.regime_tests import (
+    compute_regime_labels,
+    evaluate_by_regime,
+    evaluate_cross_symbol_stability,
+    rolling_stability_metrics,
+    build_stability_result_from_row,
+)
+from project.research.validation.falsification import (
+    generate_placebo_events,
+    run_permutation_test,
+    evaluate_negative_controls,
+)
+from project.research.validation.evidence_bundle import (
+    PromotionPolicy,
+    build_evidence_bundle,
+    validate_evidence_bundle,
+    evaluate_promotion_bundle,
+    bundle_to_flat_record,
+    serialize_evidence_bundles,
 )
 
 __all__ = [
-    "AnalyzerResult",
-    "BaseEventAnalyzer",
-    "IntegrityAnalyzer",
-    "MorphologyAnalyzer",
-    "EdgeAnalyzer",
-    "StabilityAnalyzer",
-    "OverlapAnalyzer",
-    "run_analyzer_suite",
+    "ValidationSplit",
+    "EffectEstimate",
+    "MultiplicityResult",
+    "StabilityResult",
+    "FalsificationResult",
+    "EvidenceBundle",
+    "PromotionDecision",
+    "assign_split_labels",
+    "build_validation_splits",
+    "resolve_split_scheme",
+    "serialize_splits",
+    "compute_event_windows",
+    "purge_overlapping_events",
+    "apply_embargo",
+    "estimate_effect",
+    "estimate_effect_from_frame",
+    "assign_test_families",
+    "adjust_pvalues_bh",
+    "adjust_pvalues_by",
+    "adjust_pvalues_holm",
+    "apply_multiple_testing",
+    "compute_regime_labels",
+    "evaluate_by_regime",
+    "evaluate_cross_symbol_stability",
+    "rolling_stability_metrics",
+    "build_stability_result_from_row",
+    "generate_placebo_events",
+    "run_permutation_test",
+    "evaluate_negative_controls",
+    "PromotionPolicy",
+    "build_evidence_bundle",
+    "validate_evidence_bundle",
+    "evaluate_promotion_bundle",
+    "bundle_to_flat_record",
+    "serialize_evidence_bundles",
 ]

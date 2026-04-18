@@ -14,6 +14,11 @@ from project.research.analyzers import run_analyzer_suite
 
 
 from project.events.detectors.base import MarketEventDetector
+from project.events.detectors.positioning_base import (
+    OIFlushDetectorV2,
+    OISpikeNegativeDetectorV2,
+    OISpikePositiveDetectorV2,
+)
 
 
 class BaseOIShockDetector(ThresholdDetector, MarketEventDetector):
@@ -275,9 +280,9 @@ class DeleveragingWaveDetector(ThresholdDetector):
 from project.events.detectors.registry import get_detector, register_family_detectors
 
 _DETECTORS = {
-    "OI_SPIKE_POSITIVE": OISpikePositiveDetector,
-    "OI_SPIKE_NEGATIVE": OISpikeNegativeDetector,
-    "OI_FLUSH": OIFlushDetector,
+    "OI_SPIKE_POSITIVE": OISpikePositiveDetectorV2,
+    "OI_SPIKE_NEGATIVE": OISpikeNegativeDetectorV2,
+    "OI_FLUSH": OIFlushDetectorV2,
     "DELEVERAGING_WAVE": DeleveragingWaveDetector,
 }
 

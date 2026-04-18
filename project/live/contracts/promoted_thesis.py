@@ -132,6 +132,12 @@ class ThesisLineage(BaseModel):
     export_generated_at: str = ""
     source_run_id: str = ""
     thesis_version: str = "1.0.0"
+    source_event_name: str = ""
+    source_event_version: str = ""
+    source_detector_class: str = ""
+    source_evidence_mode: str = ""
+    source_threshold_version: str = ""
+    source_calibration_artifact: str = ""
 
 
 class ThesisGovernance(BaseModel):

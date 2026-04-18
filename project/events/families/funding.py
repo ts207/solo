@@ -7,7 +7,12 @@ from project.events.adapters.funding_analysis import (
 from project.events.detectors.funding import (
     FUNDING_EVENT_TYPES,
     FundingDetector,
-    FundingFlipDetector,
+)
+from project.events.detectors.positioning_base import (
+    FundingExtremeOnsetDetectorV2,
+    FundingFlipDetectorV2,
+    FundingNormalizationDetectorV2,
+    FundingPersistenceDetectorV2,
 )
 from project.events.registries.funding import (
     FUNDING_DETECTORS,
@@ -22,7 +27,10 @@ _DETECTORS = FUNDING_DETECTORS
 __all__ = [
     "FUNDING_EVENT_TYPES",
     "FundingDetector",
-    "FundingFlipDetector",
+    "FundingExtremeOnsetDetectorV2",
+    "FundingPersistenceDetectorV2",
+    "FundingNormalizationDetectorV2",
+    "FundingFlipDetectorV2",
     "detect_funding_family",
     "analyze_funding_family",
 ]
