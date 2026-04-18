@@ -16,6 +16,11 @@ from project.events.detectors.desync_base import (
     IndexComponentDivergenceDetectorV2,
     LeadLagBreakDetectorV2,
 )
+from project.events.registries.desync import (
+    DESYNC_DETECTORS,
+    ensure_desync_detectors_registered,
+)
+from project.events.detectors.registry import get_detector
 
 
 class IndexComponentDivergenceDetector(CompositeDetector):
@@ -156,23 +161,37 @@ class CrossAssetDesyncDetector(ThresholdDetector):
         return "down" if basis > 0 else "up" if basis < 0 else "non_directional"
 
 
-from project.events.detectors.registry import register_detector
+ensure_desync_detectors_registered()
 
 _DETECTORS = {
+    "INDEX_COMPONENT_DIVERGENCE": IndexComponentDivergenceDetectorV2,
+    "LEAD_LAG_BREAK": LeadLagBreakDetectorV2,
+    "CROSS_ASSET_DESYNC_EVENT": CrossAssetDesyncDetectorV2,
+}
+
+_LEGACY_DETECTORS = {
     "INDEX_COMPONENT_DIVERGENCE": IndexComponentDivergenceDetector,
     "LEAD_LAG_BREAK": LeadLagBreakDetector,
     "CROSS_ASSET_DESYNC_EVENT": CrossAssetDesyncDetector,
 }
 
-for et, cls in _DETECTORS.items():
-    register_detector(et, cls)
+_PAIR_COLUMNS = ("pair_close", "close_pair", "component_close", "reference_close")
+
+
+def _has_pair_inputs(df: pd.DataFrame) -> bool:
+    return any(col in df.columns for col in _PAIR_COLUMNS)
 
 
 def detect_desync_family(
     df: pd.DataFrame, symbol: str, event_type: str = "INDEX_COMPONENT_DIVERGENCE", **params: Any
 ) -> pd.DataFrame:
-    detector_cls = _DETECTORS.get(event_type)
-    if detector_cls is None:
+    detector = get_detector(event_type)
+    if detector is not None:
+        if event_type not in _LEGACY_DETECTORS or _has_pair_inputs(df):
+            return detector.detect(df, symbol=symbol, **params)
+        legacy_detector_cls = _LEGACY_DETECTORS[event_type]
+        return legacy_detector_cls().detect(df, symbol=symbol, **params)
+    if detector is None:
         # Fallback to BasisDislocationDetector if it's BASIS related
         from project.events.families.basis import BasisDislocationDetector
 
@@ -190,7 +209,6 @@ def detect_desync_family(
                 ]  # Should not happen if canonical feature building is correct
             return BasisDislocationDetector().detect(work, symbol=symbol, **params)
         raise ValueError(f"Unknown desync event type: {event_type}")
-    return detector_cls().detect(df, symbol=symbol, **params)
 
 
 def analyze_desync_family(
@@ -202,18 +220,7 @@ def analyze_desync_family(
     return events, analyzer_results
 
 
-# Wave 3 v2 overrides
 IndexComponentDivergenceDetector = IndexComponentDivergenceDetectorV2
 LeadLagBreakDetector = LeadLagBreakDetectorV2
 CrossAssetDesyncDetector = CrossAssetDesyncDetectorV2
-_DETECTORS.update({
-    "INDEX_COMPONENT_DIVERGENCE": IndexComponentDivergenceDetectorV2,
-    "LEAD_LAG_BREAK": LeadLagBreakDetectorV2,
-    "CROSS_ASSET_DESYNC_EVENT": CrossAssetDesyncDetectorV2,
-})
-for _et, _cls in {
-    "INDEX_COMPONENT_DIVERGENCE": IndexComponentDivergenceDetectorV2,
-    "LEAD_LAG_BREAK": LeadLagBreakDetectorV2,
-    "CROSS_ASSET_DESYNC_EVENT": CrossAssetDesyncDetectorV2,
-}.items():
-    register_detector(_et, _cls)
+_DETECTORS.update(DESYNC_DETECTORS)

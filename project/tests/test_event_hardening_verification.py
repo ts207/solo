@@ -107,5 +107,15 @@ def test_desync_hardening():
     assert "INDEX_COMPONENT_DIVERGENCE" in events["event_type"].values
 
 
+def test_regime_family_legacy_shape_compatibility():
+    df = create_mock_df()
+    df.loc[400:405, "basis_zscore"] = 10.0
+    df.loc[400:405, "spread_zscore"] = 10.0
+    df.loc[400:405, "close"] = df["close"].shift(1) * 0.95
+    events = detect_regime_family(df, "TEST", event_type="CORRELATION_BREAKDOWN_EVENT")
+    assert not events.empty
+    assert "CORRELATION_BREAKDOWN_EVENT" in events["event_type"].values
+
+
 if __name__ == "__main__":
     pytest.main([__file__])

@@ -7,6 +7,7 @@ import pandas as pd
 
 from project.events.detectors.episode import EpisodeDetector
 from project.events.episodes import build_episodes
+from project.events.registries.liquidation import ensure_liquidation_detectors_registered
 from project.events.shared import EVENT_COLUMNS, emit_event, format_event_id
 from project.research.analyzers import run_analyzer_suite
 
@@ -358,11 +359,9 @@ class LiquidationCascadeProxyDetector(EpisodeDetector):
         return pd.DataFrame(rows) if rows else pd.DataFrame(columns=EVENT_COLUMNS)
 
 
-from project.events.detectors.registry import register_detector
 from project.events.detectors.liquidation_base import LiquidationCascadeDetectorV2, LiquidationCascadeProxyDetectorV2
 
-register_detector("LIQUIDATION_CASCADE", LiquidationCascadeDetectorV2)
-register_detector("LIQUIDATION_CASCADE_PROXY", LiquidationCascadeProxyDetectorV2)
+ensure_liquidation_detectors_registered()
 
 
 def detect_liquidation_family(df: pd.DataFrame, symbol: str, **params: Any) -> pd.DataFrame:

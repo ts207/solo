@@ -61,6 +61,8 @@ __all__ = [
     "list_governed_detectors",
     "list_legacy_detectors",
     "list_v2_detectors",
+    "build_detector_eligibility_matrix_rows",
+    "build_detector_migration_ledger_rows",
     "build_detector_version_inventory_rows",
     "resolve_event_alias",
     "AGGREGATE_EVENT_TYPE_UNIONS",
@@ -176,7 +178,11 @@ def list_events_by_family(family: str) -> list[dict]:
     rows.sort(key=lambda item: str(item.get("event_type", "")))
     return rows
 
-from project.events.detector_contract import DetectorContract, DetectorContractError
+from project.events.detector_contract import (
+    DetectorContract,
+    DetectorContractError,
+    NormalizedDetectorMetadata,
+)
 
 
 def _normalize_role(row: dict) -> str:
@@ -189,6 +195,9 @@ def _normalize_role(row: dict) -> str:
 
 
 def _resolve_maturity(row: dict) -> str:
+    explicit = str(row.get("maturity") or "").strip().lower()
+    if explicit:
+        return explicit
     tier = str(row.get("tier", "")).strip().upper()
     if str(row.get("deprecated", False)).strip().lower() == "true":
         return "deprecated"
@@ -237,6 +246,120 @@ def resolve_event_alias(event_name: str) -> str:
     return normalized
 
 
+def _normalize_columns(values: object) -> tuple[str, ...]:
+    if isinstance(values, (list, tuple)):
+        return tuple(str(item).strip() for item in values if str(item).strip())
+    return ()
+
+
+def _registered_detector_metadata(
+    canonical_name: str, row: dict
+) -> tuple[type[object] | None, NormalizedDetectorMetadata]:
+    from project.events.detectors.registry import get_detector_metadata
+
+    detector_cls, metadata = get_detector_metadata(canonical_name, row)
+    if metadata is None:
+        raise DetectorContractError(
+            f"Detector metadata unavailable for registered event {canonical_name}"
+        )
+    return detector_cls, metadata
+
+
+def validate_detector_contract_implementation_parity() -> dict[str, dict[str, dict[str, object]]]:
+    mismatches: dict[str, dict[str, dict[str, object]]] = {}
+    for contract in list_governed_detectors():
+        row = get_event_definition(contract.event_name) or {}
+        _, metadata = _registered_detector_metadata(contract.event_name, row)
+        contract_mismatches = {
+            "required_columns": {
+                "contract": contract.required_columns,
+                "implementation": metadata.required_columns,
+            },
+            "supports_confidence": {
+                "contract": contract.supports_confidence,
+                "implementation": metadata.supports_confidence,
+            },
+            "supports_severity": {
+                "contract": contract.supports_severity,
+                "implementation": metadata.supports_severity,
+            },
+            "supports_quality_flag": {
+                "contract": contract.supports_quality_flag,
+                "implementation": metadata.supports_quality_flag,
+            },
+            "cooldown_semantics": {
+                "contract": contract.cooldown_semantics,
+                "implementation": metadata.cooldown_semantics,
+            },
+            "merge_key_strategy": {
+                "contract": contract.merge_key_strategy,
+                "implementation": metadata.merge_key_strategy,
+            },
+        }
+        contract_mismatches = {
+            field: payload
+            for field, payload in contract_mismatches.items()
+            if payload["contract"] != payload["implementation"]
+        }
+        if contract_mismatches:
+            mismatches[contract.event_name] = contract_mismatches
+    return mismatches
+
+
+def validate_detector_registry_implementation_parity(
+    registry_rows: dict[str, dict] | None = None,
+) -> dict[str, dict[str, dict[str, object]]]:
+    rows = registry_rows or load_milestone_event_registry()
+    mismatches: dict[str, dict[str, dict[str, object]]] = {}
+    for event_name, row in rows.items():
+        _, metadata = _registered_detector_metadata(event_name, row)
+        row_mismatches: dict[str, dict[str, object]] = {}
+
+        authored_required_columns = _normalize_columns(
+            row.get("required_columns")
+            or (row.get("detector", {}) if isinstance(row.get("detector"), dict) else {}).get(
+                "required_columns", []
+            )
+        )
+        if authored_required_columns and authored_required_columns != metadata.required_columns:
+            row_mismatches["required_columns"] = {
+                "registry": authored_required_columns,
+                "implementation": metadata.required_columns,
+            }
+
+        authored_fields = {
+            "supports_confidence": row.get("supports_confidence"),
+            "supports_severity": row.get("supports_severity"),
+            "supports_quality_flag": row.get("supports_quality_flag", row.get("emits_quality_flag")),
+            "cooldown_semantics": row.get("cooldown_semantics"),
+            "merge_key_strategy": row.get("merge_key_strategy"),
+        }
+        implementation_fields = {
+            "supports_confidence": metadata.supports_confidence,
+            "supports_severity": metadata.supports_severity,
+            "supports_quality_flag": metadata.supports_quality_flag,
+            "cooldown_semantics": metadata.cooldown_semantics,
+            "merge_key_strategy": metadata.merge_key_strategy,
+        }
+        for field, authored_value in authored_fields.items():
+            if authored_value is None:
+                continue
+            normalized_authored = (
+                str(authored_value).strip()
+                if field in {"cooldown_semantics", "merge_key_strategy"}
+                else bool(authored_value)
+            )
+            if normalized_authored != implementation_fields[field]:
+                row_mismatches[field] = {
+                    "registry": normalized_authored,
+                    "implementation": implementation_fields[field],
+                }
+
+        if row_mismatches:
+            mismatches[event_name] = row_mismatches
+    return mismatches
+
+
 
 def get_detector_contract(event_name: str) -> DetectorContract:
     canonical_name = resolve_event_alias(event_name)
@@ -244,85 +367,14 @@ def get_detector_contract(event_name: str) -> DetectorContract:
     if not row:
         raise DetectorContractError(f"Event {event_name} not found in registry")
     params = _parameters(row)
-    role = _normalize_role(row)
+    _, detector_metadata = _registered_detector_metadata(canonical_name, row)
+    role = detector_metadata.role
     aliases = tuple(str(alias).strip().upper() for alias in row.get("aliases", []) if str(alias).strip())
     templates = tuple(str(item).strip() for item in row.get("templates", []) if str(item).strip())
     horizons = tuple(str(item).strip() for item in row.get("horizons", []) if str(item).strip())
-    required_columns = tuple(str(item).strip() for item in row.get("required_columns", []) if str(item).strip())
+    required_columns = detector_metadata.required_columns
     optional_columns = tuple(str(item).strip() for item in row.get("optional_columns", []) if str(item).strip())
     source_dependencies = tuple(str(item).strip() for item in row.get("source_dependencies", []) if str(item).strip())
-    WAVE1_V2_EVENTS = {
-        "LIQUIDITY_SHOCK",
-        "LIQUIDITY_STRESS_DIRECT",
-        "LIQUIDITY_STRESS_PROXY",
-        "DEPTH_COLLAPSE",
-        "LIQUIDITY_GAP_PRINT",
-        "LIQUIDITY_VACUUM",
-        "LIQUIDATION_CASCADE",
-        "LIQUIDATION_CASCADE_PROXY",
-        "VOL_SPIKE",
-        "VOL_SHOCK",
-        "VOL_RELAXATION_START",
-    }
-    WAVE2_V2_EVENTS = {
-        "BASIS_DISLOC",
-        "FND_DISLOC",
-        "SPOT_PERP_BASIS_SHOCK",
-        "FUNDING_EXTREME_ONSET",
-        "FUNDING_FLIP",
-        "FUNDING_NORMALIZATION_TRIGGER",
-        "FUNDING_PERSISTENCE_TRIGGER",
-        "OI_FLUSH",
-        "OI_SPIKE_NEGATIVE",
-        "OI_SPIKE_POSITIVE",
-    }
-    WAVE3_V2_EVENTS = {
-        "CROSS_VENUE_DESYNC",
-        "CROSS_ASSET_DESYNC_EVENT",
-        "CORRELATION_BREAKDOWN_EVENT",
-        "INDEX_COMPONENT_DIVERGENCE",
-        "LEAD_LAG_BREAK",
-        "BETA_SPIKE_EVENT",
-    }
-    V2_EVENTS = WAVE1_V2_EVENTS | WAVE2_V2_EVENTS | WAVE3_V2_EVENTS
-    DETECTOR_POLICY_OVERRIDES = {
-        "LIQUIDITY_STRESS_PROXY": {"runtime_default": False, "promotion_eligible": False, "primary_anchor_eligible": False},
-        "LIQUIDITY_GAP_PRINT": {"runtime_default": False, "promotion_eligible": False, "primary_anchor_eligible": False},
-        "DEPTH_COLLAPSE": {"runtime_default": False, "promotion_eligible": True, "primary_anchor_eligible": False},
-        "LIQUIDATION_CASCADE_PROXY": {"runtime_default": False, "promotion_eligible": False, "primary_anchor_eligible": False},
-        "VOL_RELAXATION_START": {"runtime_default": False, "promotion_eligible": True, "primary_anchor_eligible": False},
-        "FUNDING_EXTREME_ONSET": {"runtime_default": False, "promotion_eligible": True, "primary_anchor_eligible": True},
-        "FUNDING_FLIP": {"runtime_default": False, "promotion_eligible": True, "primary_anchor_eligible": True},
-        "FUNDING_PERSISTENCE_TRIGGER": {"runtime_default": False, "promotion_eligible": True, "primary_anchor_eligible": True},
-        "FUNDING_NORMALIZATION_TRIGGER": {"runtime_default": False, "promotion_eligible": True, "primary_anchor_eligible": False},
-        "OI_SPIKE_POSITIVE": {"runtime_default": False, "promotion_eligible": True, "primary_anchor_eligible": True},
-        "OI_SPIKE_NEGATIVE": {"runtime_default": False, "promotion_eligible": True, "primary_anchor_eligible": True},
-        "OI_FLUSH": {"runtime_default": False, "promotion_eligible": True, "primary_anchor_eligible": True},
-        "CROSS_VENUE_DESYNC": {"runtime_default": False, "promotion_eligible": True, "primary_anchor_eligible": True},
-        "CROSS_ASSET_DESYNC_EVENT": {"runtime_default": False, "promotion_eligible": False, "primary_anchor_eligible": False},
-        "CORRELATION_BREAKDOWN_EVENT": {"runtime_default": False, "promotion_eligible": True, "primary_anchor_eligible": True},
-        "INDEX_COMPONENT_DIVERGENCE": {"runtime_default": False, "promotion_eligible": True, "primary_anchor_eligible": True},
-        "LEAD_LAG_BREAK": {"runtime_default": False, "promotion_eligible": True, "primary_anchor_eligible": True},
-        "BETA_SPIKE_EVENT": {"runtime_default": False, "promotion_eligible": True, "primary_anchor_eligible": True},
-    }
-    DETECTOR_CLASS_OVERRIDES = {
-        "BASIS_DISLOC": "BasisDislocationDetectorV2",
-        "FND_DISLOC": "FndDislocDetectorV2",
-        "SPOT_PERP_BASIS_SHOCK": "SpotPerpBasisShockDetectorV2",
-        "FUNDING_EXTREME_ONSET": "FundingExtremeOnsetDetectorV2",
-        "FUNDING_FLIP": "FundingFlipDetectorV2",
-        "FUNDING_NORMALIZATION_TRIGGER": "FundingNormalizationDetectorV2",
-        "FUNDING_PERSISTENCE_TRIGGER": "FundingPersistenceDetectorV2",
-        "OI_FLUSH": "OIFlushDetectorV2",
-        "OI_SPIKE_NEGATIVE": "OISpikeNegativeDetectorV2",
-        "OI_SPIKE_POSITIVE": "OISpikePositiveDetectorV2",
-        "CROSS_VENUE_DESYNC": "CrossVenueDesyncDetectorV2",
-        "CROSS_ASSET_DESYNC_EVENT": "CrossAssetDesyncDetectorV2",
-        "INDEX_COMPONENT_DIVERGENCE": "IndexComponentDivergenceDetectorV2",
-        "LEAD_LAG_BREAK": "LeadLagBreakDetectorV2",
-        "CORRELATION_BREAKDOWN_EVENT": "CorrelationBreakdownDetectorV2",
-        "BETA_SPIKE_EVENT": "BetaSpikeDetectorV2",
-    }
 
     def _load_calibration_defaults(name: str, version_hint: str) -> tuple[str | None, str | None]:
         try:
@@ -334,45 +386,22 @@ def get_detector_contract(event_name: str) -> DetectorContract:
             return None, None
         return artifact.calibration_mode, artifact.threshold_version
 
-    version_hint = "v2" if canonical_name in V2_EVENTS else "v1"
-    event_version = str(row.get("version") or row.get("event_version") or version_hint)
+    event_version = detector_metadata.event_version
     context_only = _bool_from_row(row, "context_only", "is_context_tag", default=role == "context")
     composite = _bool_from_row(row, "composite", "is_composite", default=role == "composite")
     research_only = _bool_from_row(row, "research_only", default=role in {"composite", "research_only"})
-    detector_band = _resolve_detector_band(row, canonical_name, role, context_only, composite)
-    runtime_default = _bool_from_row(row, "runtime_default", "runtime_eligible", "default_executable", default=False)
-    planning_default = _bool_from_row(row, "planning_default", "planning_eligible", "default_executable", default=False)
-    promotion_eligible = _bool_from_row(
-        row,
-        "promotion_eligible",
-        default=(role == "trigger" and not context_only and not composite and runtime_default),
-    )
-    primary_anchor_eligible = _bool_from_row(
-        row,
-        "primary_anchor_eligible",
-        default=(role == "trigger" and str(row.get("tier", "")).strip().upper() in {"A", "B"}),
-    )
-    if event_version != "v2":
-        runtime_default = False
-        promotion_eligible = False
-        primary_anchor_eligible = False
-    elif canonical_name not in DEPLOYABLE_CORE_EVENT_TYPES:
-        runtime_default = False
-    if canonical_name in DETECTOR_POLICY_OVERRIDES:
-        override = DETECTOR_POLICY_OVERRIDES[canonical_name]
-        runtime_default = bool(override.get("runtime_default", runtime_default))
-        promotion_eligible = bool(override.get("promotion_eligible", promotion_eligible))
-        primary_anchor_eligible = bool(override.get("primary_anchor_eligible", primary_anchor_eligible))
-    v2_capability_default = event_version == "v2" and (runtime_default or role == "trigger")
-    supports_confidence = _bool_from_row(row, "supports_confidence", default=v2_capability_default)
-    supports_severity = _bool_from_row(row, "supports_severity", default=v2_capability_default)
-    emits_quality_flag = _bool_from_row(row, "emits_quality_flag", default=v2_capability_default)
+    detector_band = detector_metadata.detector_band
+    runtime_default = detector_metadata.runtime_default
+    planning_default = detector_metadata.planning_default
+    promotion_eligible = detector_metadata.promotion_eligible
+    primary_anchor_eligible = detector_metadata.primary_anchor_eligible
     calibration_mode_default, threshold_version_default = _load_calibration_defaults(canonical_name, event_version)
     try:
         return DetectorContract(
             event_name=canonical_name,
             event_version=event_version,
-            detector_class=str(DETECTOR_CLASS_OVERRIDES.get(canonical_name) or row.get("detector_name", row.get("detector_class", ""))).strip(),
+            detector_class=detector_metadata.detector_class
+            or str(row.get("detector_name", row.get("detector_class", ""))).strip(),
             canonical_family=str(row.get("canonical_family") or row.get("canonical_regime") or "").strip().upper(),
             subtype=str(row.get("subtype") or row.get("group") or canonical_name.lower()).strip(),
             phase=str(row.get("phase", "")).strip().lower() or "onset",
@@ -392,13 +421,15 @@ def get_detector_contract(event_name: str) -> DetectorContract:
             source_dependencies=source_dependencies,
             allowed_templates=templates,
             allowed_horizons=horizons,
-            calibration_mode=str(row.get("calibration_mode") or calibration_mode_default or ("rolling_quantile" if canonical_name in V2_EVENTS else "fixed")).strip(),
-            threshold_schema_version=str(row.get("threshold_schema_version") or threshold_version_default or ("2.0" if canonical_name in V2_EVENTS else "1.0")),
+            calibration_mode=str(row.get("calibration_mode") or calibration_mode_default or ("rolling_quantile" if event_version == "v2" else "fixed")).strip(),
+            threshold_schema_version=str(row.get("threshold_schema_version") or threshold_version_default or ("2.0" if event_version == "v2" else "1.0")),
             merge_gap_bars=int(params.get("merge_gap_bars", row.get("merge_gap_bars", 0)) or 0),
             cooldown_bars=int(params.get("cooldown_bars", row.get("cooldown_bars", 0)) or 0),
-            supports_confidence=supports_confidence,
-            supports_severity=supports_severity,
-            emits_quality_flag=emits_quality_flag,
+            cooldown_semantics=detector_metadata.cooldown_semantics,
+            merge_key_strategy=detector_metadata.merge_key_strategy,
+            supports_confidence=detector_metadata.supports_confidence,
+            supports_severity=detector_metadata.supports_severity,
+            supports_quality_flag=detector_metadata.supports_quality_flag,
             aliases=aliases,
             notes=str(row.get("notes", "")).strip(),
         )
@@ -448,6 +479,104 @@ def list_v2_detectors() -> list[DetectorContract]:
     return _list_detectors_by_filter(lambda c: c.event_version == "v2")
 
 
+def build_detector_eligibility_matrix_rows() -> list[dict[str, object]]:
+    rows: list[dict[str, object]] = []
+    for contract in list_governed_detectors():
+        rows.append(
+            {
+                "event_name": contract.event_name,
+                "event_version": contract.event_version,
+                "role": contract.role,
+                "detector_band": contract.detector_band,
+                "maturity": contract.maturity,
+                "planning": contract.planning_default,
+                "promotion": contract.promotion_eligible,
+                "runtime": contract.runtime_default,
+                "anchor": contract.primary_anchor_eligible,
+            }
+        )
+    return rows
+
+
+def _migration_policy_for_contract(contract: DetectorContract) -> dict[str, str]:
+    if contract.runtime_default:
+        return {
+            "migration_bucket": "runtime_core_first",
+            "target_state": "migrate_to_v2",
+            "owner": "workstream_c",
+            "rationale": "deployable core runtime detector; keep fully v2 and contract-complete",
+        }
+    if contract.promotion_eligible:
+        return {
+            "migration_bucket": "promotion_eligible_middle_layer",
+            "target_state": "migrate_to_v2",
+            "owner": "workstream_c",
+            "rationale": "promotion-eligible detector; keep on the governed v2 migration path",
+        }
+    if contract.role == "context":
+        return {
+            "migration_bucket": "research_perimeter",
+            "target_state": "wrap_v1" if contract.event_version != "v2" else "demote",
+            "owner": "workstream_b",
+            "rationale": "context marker; keep behind adapter boundaries and out of runtime/promotion",
+        }
+    if contract.role in {"composite", "research_only"}:
+        return {
+            "migration_bucket": "research_perimeter",
+            "target_state": "wrap_v1" if contract.event_version != "v2" else "demote",
+            "owner": "workstream_b",
+            "rationale": "composite or research-only construct; do not expand migration scope blindly",
+        }
+    if contract.detector_band == "composite_or_fragile":
+        return {
+            "migration_bucket": "research_perimeter",
+            "target_state": "wrap_v1" if contract.event_version != "v2" else "demote",
+            "owner": "workstream_b",
+            "rationale": "fragile or proxy-heavy detector; preserve via adapters or demotion only",
+        }
+    if contract.event_version != "v2" and contract.planning_default:
+        return {
+            "migration_bucket": "research_perimeter",
+            "target_state": "keep_v1",
+            "owner": "workstream_b",
+            "rationale": "legacy research trigger still available for planning but not promoted to v2 yet",
+        }
+    if contract.event_version != "v2":
+        return {
+            "migration_bucket": "research_perimeter",
+            "target_state": "retire",
+            "owner": "workstream_b",
+            "rationale": "legacy detector outside the default planning surface; retire instead of migrating",
+        }
+    return {
+        "migration_bucket": "promotion_eligible_middle_layer",
+        "target_state": "migrate_to_v2",
+        "owner": "workstream_c",
+        "rationale": "v2 research trigger retained on the governed migration path",
+    }
+
+
+def build_detector_migration_ledger_rows() -> list[dict[str, object]]:
+    rows: list[dict[str, object]] = []
+    for contract in list_governed_detectors():
+        policy = _migration_policy_for_contract(contract)
+        rows.append(
+            {
+                "event_name": contract.event_name,
+                "event_version": contract.event_version,
+                "role": contract.role,
+                "detector_band": contract.detector_band,
+                "maturity": contract.maturity,
+                "planning_default": contract.planning_default,
+                "promotion_eligible": contract.promotion_eligible,
+                "runtime_default": contract.runtime_default,
+                "primary_anchor_eligible": contract.primary_anchor_eligible,
+                **policy,
+            }
+        )
+    return rows
+
+
 def build_detector_version_inventory_rows() -> list[dict[str, object]]:
     rows: list[dict[str, object]] = []
     for contract in list_governed_detectors():
@@ -467,7 +596,10 @@ def build_detector_version_inventory_rows() -> list[dict[str, object]]:
                 "research_only": contract.research_only,
                 "supports_confidence": contract.supports_confidence,
                 "supports_severity": contract.supports_severity,
+                "supports_quality_flag": contract.supports_quality_flag,
                 "emits_quality_flag": contract.emits_quality_flag,
+                "cooldown_semantics": contract.cooldown_semantics,
+                "merge_key_strategy": contract.merge_key_strategy,
                 "threshold_schema_version": contract.threshold_schema_version,
                 "calibration_mode": contract.calibration_mode,
                 "legacy_retired_safe": contract.event_version != "v2"

@@ -2,9 +2,11 @@ from project.events.policy import DEPLOYABLE_CORE_EVENT_TYPES
 from project.events.event_aliases import EVENT_ALIASES
 from project.events.governance import default_planning_event_ids, get_event_governance_metadata
 from project.events.registry import (
+    build_detector_migration_ledger_rows,
     build_detector_version_inventory_rows,
     list_governed_detectors,
     list_legacy_detectors,
+    list_promotion_eligible_detectors,
     list_v2_detectors,
     load_milestone_event_registry,
 )
@@ -75,3 +77,47 @@ def test_detector_version_inventory_helpers_cover_registry():
     v2 = list_v2_detectors()
     assert len(governed) == len(legacy) + len(v2)
     assert len(governed) == 71
+
+
+def test_detector_migration_ledger_covers_runtime_and_perimeter_policy():
+    rows = build_detector_migration_ledger_rows()
+    assert len(rows) == 71
+
+    runtime_rows = [row for row in rows if row["runtime_default"]]
+    assert runtime_rows
+    assert {row["migration_bucket"] for row in runtime_rows} == {"runtime_core_first"}
+    assert {row["target_state"] for row in runtime_rows} == {"migrate_to_v2"}
+    assert {row["owner"] for row in runtime_rows} == {"workstream_c"}
+
+    promotion_rows = [
+        row for row in rows if row["promotion_eligible"] and not row["runtime_default"]
+    ]
+    assert promotion_rows
+    assert {row["migration_bucket"] for row in promotion_rows} == {
+        "promotion_eligible_middle_layer"
+    }
+    assert {row["target_state"] for row in promotion_rows} == {"migrate_to_v2"}
+
+    context_rows = [row for row in rows if row["role"] == "context"]
+    assert context_rows
+    assert all(row["migration_bucket"] == "research_perimeter" for row in context_rows)
+    assert all(row["target_state"] in {"wrap_v1", "demote"} for row in context_rows)
+
+
+def test_research_perimeter_detectors_are_not_runtime_default():
+    rows = build_detector_migration_ledger_rows()
+    perimeter = [row for row in rows if row["migration_bucket"] == "research_perimeter"]
+    assert perimeter
+    assert all(row["runtime_default"] is False for row in perimeter)
+
+
+def test_promotion_eligible_detectors_have_complete_contract_fields():
+    promotion_contracts = list_promotion_eligible_detectors()
+    assert promotion_contracts
+    for contract in promotion_contracts:
+        assert contract.required_columns
+        assert contract.supports_confidence is True
+        assert contract.supports_severity is True
+        assert contract.supports_quality_flag is True
+        assert contract.cooldown_semantics
+        assert contract.merge_key_strategy

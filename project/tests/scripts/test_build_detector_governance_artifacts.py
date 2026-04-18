@@ -20,7 +20,14 @@ def test_build_detector_governance_artifacts(tmp_path: Path):
     assert summary['alias_count'] == 3
     assert summary['band_counts']['deployable_core'] == 9
     assert summary['band_counts']['context_only'] == 5
+    assert summary['migration_bucket_counts']['runtime_core_first'] == 9
+    assert summary['migration_target_counts']['migrate_to_v2'] == 24
+    assert summary['migration_owner_counts']['workstream_c'] == 24
     assert (out_dir / 'detector_version_coverage.md').exists()
     assert (out_dir / 'detector_alias_policy.md').exists()
     assert (out_dir / 'detector_alias_policy.json').exists()
+    assert (out_dir / 'detector_eligibility_matrix.md').exists()
+    assert (out_dir / 'detector_eligibility_matrix.json').exists()
+    assert (out_dir / 'detector_migration_ledger.md').exists()
+    assert (out_dir / 'detector_migration_ledger.json').exists()
     assert (out_dir / 'legacy_detector_retirement.md').exists()

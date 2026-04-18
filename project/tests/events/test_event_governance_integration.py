@@ -63,18 +63,18 @@ def test_default_planning_event_set_excludes_context_and_repair_only_events() ->
     assert "FUNDING_TIMESTAMP_EVENT" not in planning
 
 
-def test_default_planning_event_set_includes_all_hybridized_compatibility_events() -> None:
+def test_default_planning_event_set_excludes_hybridized_compatibility_events() -> None:
     registry = get_domain_registry()
     planning = set(default_planning_event_ids(registry.default_executable_event_ids()))
 
-    assert "LIQUIDITY_STRESS_PROXY" in planning
-    assert "WICK_REVERSAL_PROXY" in planning
-    assert "PRICE_VOL_IMBALANCE_PROXY" in planning
-    assert "ABSORPTION_PROXY" in planning
-    assert "DEPTH_STRESS_PROXY" in planning
-    assert "FLOW_EXHAUSTION_PROXY" in planning
-    assert "ORDERFLOW_IMBALANCE_SHOCK" in planning
-    assert "SWEEP_STOPRUN" in planning
+    assert "LIQUIDITY_STRESS_PROXY" not in planning
+    assert "WICK_REVERSAL_PROXY" not in planning
+    assert "PRICE_VOL_IMBALANCE_PROXY" not in planning
+    assert "ABSORPTION_PROXY" not in planning
+    assert "DEPTH_STRESS_PROXY" not in planning
+    assert "FLOW_EXHAUSTION_PROXY" not in planning
+    assert "ORDERFLOW_IMBALANCE_SHOCK" not in planning
+    assert "SWEEP_STOPRUN" not in planning
 
 
 def test_governance_filters_can_request_context_events_explicitly() -> None:

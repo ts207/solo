@@ -7,8 +7,12 @@ import pandas as pd
 from project.domain.compiled_registry import get_domain_registry
 from project.spec_registry import load_event_spec
 
+from project.events.detectors.registry import get_detector
 from project.events.detectors.threshold import ThresholdDetector
 from project.events.detectors.composite import CompositeDetector
+from project.events.registries.statistical import (
+    ensure_statistical_detectors_registered,
+)
 from project.events.shared import EVENT_COLUMNS, emit_event, format_event_id
 from project.events.sparsify import sparsify_mask
 from project.events.thresholding import rolling_mean_std_zscore
@@ -206,8 +210,7 @@ class GapOvershootDetector(StatisticalBase):
     ) -> pd.Series:
         return features["ret_abs"] * 10000.0  # bps
 
-
-from project.events.detectors.registry import register_detector
+ensure_statistical_detectors_registered()
 
 _DETECTORS = {
     "ZSCORE_STRETCH": ZScoreStretchDetector,
@@ -216,17 +219,14 @@ _DETECTORS = {
     "GAP_OVERSHOOT": GapOvershootDetector,
 }
 
-for et, cls in _DETECTORS.items():
-    register_detector(et, cls)
-
 
 def detect_statistical_family(
     df: pd.DataFrame, symbol: str, event_type: str, **params: Any
 ) -> pd.DataFrame:
-    detector_cls = _DETECTORS.get(event_type)
-    if detector_cls is None:
+    detector = get_detector(event_type)
+    if detector is None:
         raise ValueError(f"Unknown statistical event type: {event_type}")
-    return detector_cls().detect(df, symbol=symbol, **params)
+    return detector.detect(df, symbol=symbol, **params)
 
 
 def analyze_statistical_family(

@@ -16,6 +16,10 @@ from project.events.detectors.desync_base import (
     BetaSpikeDetectorV2,
     CorrelationBreakdownDetectorV2,
 )
+from project.events.registries.regime import (
+    REGIME_DETECTORS,
+    ensure_regime_detectors_registered,
+)
 
 
 class VolRegimeShiftDetector(TransitionDetector):
@@ -236,28 +240,41 @@ class BetaSpikeDetector(CompositeDetector):
         return features["ret_abs"] + features["basis_abs"] + features["rv_96"]
 
 
-from project.events.detectors.registry import register_detector
-
 _DETECTORS = {
     "VOL_REGIME_SHIFT": VolRegimeShiftDetector,
     "VOL_REGIME_SHIFT_EVENT": VolRegimeShiftDetector,
     "TREND_TO_CHOP_SHIFT": TrendToChopDetector,
     "CHOP_TO_TREND_SHIFT": ChopToTrendDetector,
+}
+_LEGACY_DETECTORS = {
     "CORRELATION_BREAKDOWN_EVENT": CorrelationBreakdownDetector,
     "BETA_SPIKE_EVENT": BetaSpikeDetector,
 }
+_PAIR_COLUMNS = ("pair_close", "close_pair", "component_close", "reference_close")
+from project.events.detectors.registry import get_detector, register_detector
 
 for et, cls in _DETECTORS.items():
     register_detector(et, cls)
+ensure_regime_detectors_registered()
+_DETECTORS.update(REGIME_DETECTORS)
+
+
+def _has_pair_inputs(df: pd.DataFrame) -> bool:
+    return any(col in df.columns for col in _PAIR_COLUMNS)
 
 
 def detect_regime_family(
     df: pd.DataFrame, symbol: str, event_type: str = "VOL_REGIME_SHIFT_EVENT", **params: Any
 ) -> pd.DataFrame:
+    detector = get_detector(event_type)
+    if detector is not None:
+        if event_type not in _LEGACY_DETECTORS or _has_pair_inputs(df):
+            return detector.detect(df, symbol=symbol, **params)
+        return _LEGACY_DETECTORS[event_type]().detect(df, symbol=symbol, **params)
     detector_cls = _DETECTORS.get(event_type)
-    if detector_cls is None:
-        raise ValueError(f"Unknown regime event type: {event_type}")
-    return detector_cls().detect(df, symbol=symbol, **params)
+    if detector_cls is not None:
+        return detector_cls().detect(df, symbol=symbol, **params)
+    raise ValueError(f"Unknown regime event type: {event_type}")
 
 
 def analyze_regime_family(
@@ -268,16 +285,5 @@ def analyze_regime_family(
     analyzer_results = run_analyzer_suite(events, market=market) if not events.empty else {}
     return events, analyzer_results
 
-
-# Wave 3 v2 overrides
 CorrelationBreakdownDetector = CorrelationBreakdownDetectorV2
 BetaSpikeDetector = BetaSpikeDetectorV2
-_DETECTORS.update({
-    "CORRELATION_BREAKDOWN_EVENT": CorrelationBreakdownDetectorV2,
-    "BETA_SPIKE_EVENT": BetaSpikeDetectorV2,
-})
-for _et, _cls in {
-    "CORRELATION_BREAKDOWN_EVENT": CorrelationBreakdownDetectorV2,
-    "BETA_SPIKE_EVENT": BetaSpikeDetectorV2,
-}.items():
-    register_detector(_et, _cls)

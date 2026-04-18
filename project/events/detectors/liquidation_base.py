@@ -13,6 +13,8 @@ from project.events.episodes import build_episodes
 class EpisodeBaseDetectorV2(BaseDetectorV2):
     max_gap = 0
     anchor_rule = 'peak'
+    cooldown_semantics = "episode_end_plus_cooldown_bars"
+    merge_key_strategy = "episode_id"
 
     def _episode_anchor_idx(self, episode: Any, anchor_rule: str | None) -> int:
         rule = str(anchor_rule or self.anchor_rule).strip().lower()

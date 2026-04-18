@@ -20,7 +20,13 @@ class BaseDetectorV2(DetectorLogicContract):
     """Shared v2 detector base with uniform DetectedEvent emission."""
 
     event_name: str = "UNKNOWN"
+    event_version: str = "v2"
     required_columns: tuple[str, ...] = ("timestamp",)
+    supports_confidence: bool = True
+    supports_severity: bool = True
+    supports_quality_flag: bool = True
+    cooldown_semantics: str = "event_timestamp_plus_cooldown_bars"
+    merge_key_strategy: str = "symbol_plus_cluster_id"
 
     def __init__(self, **_: Any) -> None:
         self._contract = get_detector_contract(self.event_name)
@@ -135,7 +141,7 @@ class BaseDetectorV2(DetectorLogicContract):
             source_features=self.compute_source_features(idx, features, **params),
             detector_metadata={"event_idx": int(idx), **dict(detector_metadata or {})},
             required_context_present=True,
-            data_quality_flag=quality_flag if self._contract.emits_quality_flag else 'ok',
+            data_quality_flag=quality_flag if self._contract.supports_quality_flag else 'ok',
             merge_key=merge_key,
             cooldown_until=cooldown_until,
         )

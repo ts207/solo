@@ -12,7 +12,12 @@ if str(REPO_ROOT) not in sys.path:
 
 from project.events.calibration.registry import latest_calibration_artifact
 from project.events.event_aliases import event_alias_policy_rows
-from project.events.registry import build_detector_version_inventory_rows, list_governed_detectors
+from project.events.registry import (
+    build_detector_eligibility_matrix_rows,
+    build_detector_migration_ledger_rows,
+    build_detector_version_inventory_rows,
+    list_governed_detectors,
+)
 
 
 def _md_table(headers: list[str], rows: list[list[object]]) -> str:
@@ -48,11 +53,73 @@ def build_governance_artifacts(output_dir: Path) -> dict[str, object]:
         "version_counts": dict(Counter(str(r["event_version"]) for r in inventory_rows)),
     }
 
-    runtime_rows = [[r["event_name"], r["event_version"], r["detector_band"], r["role"], r["maturity"], r["runtime_default"], r["promotion_eligible"], r["supports_confidence"], r["emits_quality_flag"]] for r in inventory_rows]
-    (output_dir / 'detector_runtime_matrix.md').write_text('# Detector Runtime Matrix\n\n' + _md_table(['Event','Version','Band','Role','Maturity','Runtime Eligible','Promotion Eligible','Confidence','Quality Flag'], runtime_rows) + '\n', encoding='utf-8')
+    runtime_rows = [[r["event_name"], r["event_version"], r["detector_band"], r["role"], r["maturity"], r["runtime_default"], r["promotion_eligible"], r["supports_confidence"], r["supports_quality_flag"], r["cooldown_semantics"], r["merge_key_strategy"]] for r in inventory_rows]
+    (output_dir / 'detector_runtime_matrix.md').write_text('# Detector Runtime Matrix\n\n' + _md_table(['Event','Version','Band','Role','Maturity','Runtime Eligible','Promotion Eligible','Confidence','Quality Flag','Cooldown Semantics','Merge Key Strategy'], runtime_rows) + '\n', encoding='utf-8')
 
     promotion_rows = [[r["event_name"], r["event_version"], r["detector_band"], r["maturity"], r["primary_anchor_eligible"], r["runtime_default"], r["promotion_eligible"]] for r in inventory_rows]
     (output_dir / 'detector_promotion_matrix.md').write_text('# Detector Promotion Matrix\n\n' + _md_table(['Event','Version','Band','Maturity','Primary Anchor','Runtime Eligible','Promotion Eligible'], promotion_rows) + '\n', encoding='utf-8')
+
+    eligibility_rows = build_detector_eligibility_matrix_rows()
+    eligibility_rows.sort(key=lambda row: str(row["event_name"]))
+    eligibility_table = [
+        [
+            row["event_name"],
+            row["event_version"],
+            row["role"],
+            row["detector_band"],
+            row["maturity"],
+            row["planning"],
+            row["promotion"],
+            row["runtime"],
+            row["anchor"],
+        ]
+        for row in eligibility_rows
+    ]
+    (output_dir / 'detector_eligibility_matrix.md').write_text(
+        '# Detector Eligibility Matrix\n\n'
+        + _md_table(
+            ['Event', 'Version', 'Role', 'Band', 'Maturity', 'Planning', 'Promotion', 'Runtime', 'Anchor'],
+            eligibility_table,
+        )
+        + '\n',
+        encoding='utf-8',
+    )
+    (output_dir / 'detector_eligibility_matrix.json').write_text(
+        json.dumps(eligibility_rows, indent=2, sort_keys=True),
+        encoding='utf-8',
+    )
+
+    migration_rows = build_detector_migration_ledger_rows()
+    migration_rows.sort(key=lambda row: str(row["event_name"]))
+    summary["migration_bucket_counts"] = dict(Counter(str(r["migration_bucket"]) for r in migration_rows))
+    summary["migration_target_counts"] = dict(Counter(str(r["target_state"]) for r in migration_rows))
+    summary["migration_owner_counts"] = dict(Counter(str(r["owner"]) for r in migration_rows))
+    migration_table = [
+        [
+            row["event_name"],
+            row["event_version"],
+            row["role"],
+            row["detector_band"],
+            row["migration_bucket"],
+            row["target_state"],
+            row["owner"],
+            row["rationale"],
+        ]
+        for row in migration_rows
+    ]
+    (output_dir / 'detector_migration_ledger.md').write_text(
+        '# Detector Migration Ledger\n\n'
+        + _md_table(
+            ['Event', 'Version', 'Role', 'Band', 'Migration Bucket', 'Target State', 'Owner', 'Rationale'],
+            migration_table,
+        )
+        + '\n',
+        encoding='utf-8',
+    )
+    (output_dir / 'detector_migration_ledger.json').write_text(
+        json.dumps(migration_rows, indent=2, sort_keys=True),
+        encoding='utf-8',
+    )
 
     calibration_rows = []
     for c in contracts:

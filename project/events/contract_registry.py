@@ -461,6 +461,13 @@ def build_event_contract(event_type: str) -> dict[str, Any]:
         else {}
     )
     semantics = row.get("semantics", {}) if isinstance(row.get("semantics"), Mapping) else {}
+    detector_contract = None
+    try:
+        from project.events.registry import get_detector_contract
+
+        detector_contract = get_detector_contract(token)
+    except Exception:
+        detector_contract = None
 
     runtime_category = str(row.get("runtime_category", "")).strip()
     if not runtime_category:
@@ -516,6 +523,7 @@ def build_event_contract(event_type: str) -> dict[str, Any]:
             row.get("required_features"),
             params.get("required_features"),
             detector.get("required_columns"),
+            detector_contract.required_columns if detector_contract is not None else (),
         )
         or ["timestamp"],
         "threshold_method": _infer_threshold_method(params, row),

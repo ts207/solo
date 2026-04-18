@@ -6,6 +6,7 @@ from typing import Any, Mapping
 import numpy as np
 import pandas as pd
 
+from project.events.detector_contract import detector_metadata_from_class
 from project.events.shared import emit_event, format_event_id, EVENT_COLUMNS
 
 
@@ -15,15 +16,33 @@ class BaseEventDetector(ABC):
     """
 
     event_type: str = "UNKNOWN"
+    event_version: str = "v1"
     required_columns: tuple[str, ...] = ("timestamp",)
     timeframe_minutes: int = 5
     default_severity: str = "moderate"
     causal: bool = True
+    supports_confidence: bool = False
+    supports_severity: bool = False
+    supports_quality_flag: bool = False
+    cooldown_semantics: str = "not_supported"
+    merge_key_strategy: str = "legacy_event_id"
+    role: str = "trigger"
+    evidence_mode: str = "direct"
+    maturity: str = "standard"
+    detector_band: str = "research_trigger"
+    planning_default: bool = False
+    promotion_eligible: bool = False
+    runtime_default: bool = False
+    primary_anchor_eligible: bool = False
 
     def check_required_columns(self, df: pd.DataFrame) -> None:
         missing = [column for column in self.required_columns if column not in df.columns]
         if missing:
             raise ValueError(f"{self.__class__.__name__} missing required columns: {missing}")
+
+    @classmethod
+    def detector_metadata(cls, *, event_name: str | None = None):
+        return detector_metadata_from_class(cls, event_name=event_name)
 
     def prepare_features(self, df: pd.DataFrame, **params: Any) -> Mapping[str, pd.Series]:
         """Prepare any intermediate features needed for detection."""
