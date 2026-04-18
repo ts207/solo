@@ -56,6 +56,7 @@ __all__ = [
     "get_detector_contract",
     "list_trigger_detectors",
     "list_context_detectors",
+    "list_planning_eligible_detectors",
     "list_runtime_eligible_detectors",
     "list_promotion_eligible_detectors",
     "list_governed_detectors",
@@ -312,7 +313,13 @@ def validate_detector_registry_implementation_parity(
     rows = registry_rows or load_milestone_event_registry()
     mismatches: dict[str, dict[str, dict[str, object]]] = {}
     for event_name, row in rows.items():
-        _, metadata = _registered_detector_metadata(event_name, row)
+        from project.events.detectors.registry import get_detector_metadata
+
+        _, metadata = get_detector_metadata(event_name)
+        if metadata is None:
+            raise DetectorContractError(
+                f"Detector metadata unavailable for registered event {event_name}"
+            )
         row_mismatches: dict[str, dict[str, object]] = {}
 
         authored_required_columns = _normalize_columns(
@@ -455,6 +462,10 @@ def list_trigger_detectors() -> list[DetectorContract]:
 
 def list_context_detectors() -> list[DetectorContract]:
     return _list_detectors_by_filter(lambda c: c.role == "context")
+
+
+def list_planning_eligible_detectors() -> list[DetectorContract]:
+    return _list_detectors_by_filter(lambda c: c.planning_default)
 
 
 

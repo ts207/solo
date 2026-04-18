@@ -12,7 +12,7 @@ from project.core.config import get_data_root
 from project.core.exceptions import DataIntegrityError
 from project.io.utils import read_parquet
 from project.domain.compiled_registry import get_domain_registry
-from project.events.governance import default_planning_event_ids, event_matches_filters
+from project.events.governance import governed_default_planning_event_ids, event_matches_filters
 from project.research.experiment_engine import RegistryBundle
 from project.research.knowledge.memory import (
     ensure_memory_store,
@@ -247,7 +247,7 @@ def _build_frontier(
             )
         ]
     else:
-        enabled_events = list(default_planning_event_ids(domain_registry.default_executable_event_ids()))
+        enabled_events = list(governed_default_planning_event_ids())
     tested_events = {
         str(event_id).strip()
         for event_id in tested_regions.get("event_type", pd.Series(dtype="object")).astype(str).unique()

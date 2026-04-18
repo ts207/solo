@@ -334,6 +334,7 @@ def _apply_detector_governance_policy(promoted_df: pd.DataFrame) -> tuple[pd.Dat
         token = str(row.get("source_event_name") or row.get("event_type") or row.get("primary_event_id") or "").strip().upper()
         source_names.append(token)
     roles = []
+    detector_bands = []
     maturities = []
     evidence_modes = []
     runtime_defaults = []
@@ -350,6 +351,7 @@ def _apply_detector_governance_policy(promoted_df: pd.DataFrame) -> tuple[pd.Dat
             except Exception:
                 contract = None
         role = str(getattr(contract, "role", "trigger") or "trigger").strip().lower()
+        detector_band = str(getattr(contract, "detector_band", "research_trigger") or "research_trigger").strip().lower()
         maturity = str(getattr(contract, "maturity", "standard") or "standard").strip().lower()
         evidence_mode = str(getattr(contract, "evidence_mode", frame.iloc[idx].get("source_evidence_mode", "")) or frame.iloc[idx].get("source_evidence_mode", "")).strip().lower()
         runtime_default = bool(getattr(contract, "runtime_default", True))
@@ -358,7 +360,7 @@ def _apply_detector_governance_policy(promoted_df: pd.DataFrame) -> tuple[pd.Dat
         promotion_class = str(frame.iloc[idx].get("promotion_class") or "paper_promoted")
         deployment_state = str(frame.iloc[idx].get("deployment_state") or "paper_only")
         stronger = False
-        if role != "trigger" or not promotion_eligible:
+        if detector_band in {"context_only", "composite_or_fragile"} or role != "trigger" or not promotion_eligible:
             promotion_class = "paper_promoted"
             deployment_state = "paper_only"
             blocked_primary_anchor += 1
@@ -368,6 +370,7 @@ def _apply_detector_governance_policy(promoted_df: pd.DataFrame) -> tuple[pd.Dat
             stronger = True
             paper_only_overrides += 1
         roles.append(role)
+        detector_bands.append(detector_band)
         maturities.append(maturity)
         evidence_modes.append(evidence_mode)
         runtime_defaults.append(runtime_default)
@@ -377,6 +380,7 @@ def _apply_detector_governance_policy(promoted_df: pd.DataFrame) -> tuple[pd.Dat
         deployment_states.append(deployment_state)
         requires_stronger.append(stronger)
     frame["source_detector_role"] = roles
+    frame["source_detector_band"] = detector_bands
     frame["source_detector_maturity"] = maturities
     frame["source_evidence_mode"] = evidence_modes
     frame["source_runtime_default"] = runtime_defaults

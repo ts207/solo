@@ -87,11 +87,21 @@ minimum-green-gate:
 	PYTHONPATH=. PYTHONPYCACHEPREFIX=$(PY_CACHE_PREFIX) $(PYTHON) project/scripts/detector_coverage_audit.py --md-out docs/generated/detector_coverage.md --json-out docs/generated/detector_coverage.json --check
 	PYTHONPATH=. PYTHONPYCACHEPREFIX=$(PY_CACHE_PREFIX) $(PYTHON) project/scripts/ontology_consistency_audit.py --output docs/generated/ontology_audit.json --check
 	PYTHONPATH=. PYTHONPYCACHEPREFIX=$(PY_CACHE_PREFIX) $(PYTHON) project/scripts/build_event_contract_artifacts.py --check
+	PYTHONPATH=. PYTHONPYCACHEPREFIX=$(PY_CACHE_PREFIX) $(PYTHON) project/scripts/check_calibration_version_bumps.py
+	PYTHONPATH=. PYTHONPYCACHEPREFIX=$(PY_CACHE_PREFIX) $(PYTHON) project/scripts/check_deployable_core_replay_baseline.py
+	PYTHONPATH=. PYTHONPYCACHEPREFIX=$(PY_CACHE_PREFIX) $(PYTHON) project/scripts/check_known_episode_replay_baseline.py
+	PYTHONPATH=. PYTHONPYCACHEPREFIX=$(PY_CACHE_PREFIX) $(PYTHON) project/scripts/check_deployable_core_truth_review.py
+	PYTHONPATH=. PYTHONPYCACHEPREFIX=$(PY_CACHE_PREFIX) $(PYTHON) project/scripts/check_historical_exchange_replay_baseline.py
 	PYTHONPATH=. PYTHONPYCACHEPREFIX=$(PY_CACHE_PREFIX) $(PYTHON) project/scripts/event_ontology_audit.py --check
 	PYTHONPATH=. PYTHONPYCACHEPREFIX=$(PY_CACHE_PREFIX) $(PYTHON) project/scripts/build_event_ontology_artifacts.py --check
 	PYTHONPATH=. PYTHONPYCACHEPREFIX=$(PY_CACHE_PREFIX) $(PYTHON) project/scripts/build_system_map.py --check
 	PYTHONPATH=. PYTHONPYCACHEPREFIX=$(PY_CACHE_PREFIX) $(PYTHON) project/scripts/build_architecture_metrics.py --check
 	PYTHONPATH=. PYTHONPYCACHEPREFIX=$(PY_CACHE_PREFIX) $(PYTHON) -m pytest -q \
+		project/tests/events/test_deployable_core_validation_gate.py \
+		project/tests/events/test_deployable_core_replay_baseline.py \
+		project/tests/events/test_deployable_core_known_episode_replay.py \
+		project/tests/events/test_deployable_core_truth_review.py \
+		project/tests/events/test_deployable_core_historical_exchange_replay.py \
 		project/tests/regressions/test_monitor_only_venue_immutability.py \
 		project/tests/regressions/test_run_success_requires_outputs.py \
 		project/tests/regressions/test_stage_registry_path_validity.py

@@ -20,7 +20,7 @@ from project.events.detectors.registry import (
 )
 from project.events.event_aliases import EVENT_ALIASES, EXECUTABLE_EVENT_ALIASES
 from project.events.event_specs import EVENT_REGISTRY_SPECS
-from project.events.governance import default_planning_event_ids, get_event_governance_metadata
+from project.events.governance import governed_default_planning_event_ids, get_event_governance_metadata
 from project.events.ontology_mapping import ontology_rows_by_event
 from project.scripts.detector_coverage_audit import run_audit as run_detector_audit
 from project.scripts.event_ontology_audit import run_audit as run_ontology_audit
@@ -64,7 +64,9 @@ def _build_tasks() -> list[dict[str, Any]]:
 
     active_event_ids = sorted(contracts)
     default_executable_event_ids = sorted(registry.default_executable_event_ids())
-    planning_event_ids = list(default_planning_event_ids(default_executable_event_ids))
+    planning_event_ids = list(governed_default_planning_event_ids())
+    runtime_event_ids = sorted(registry.runtime_eligible_event_ids())
+    promotion_event_ids = sorted(registry.promotion_eligible_event_ids())
     detector_rows = list(detector_report["detectors"])
     proxy_evidence_event_ids = sorted(
         row["event_type"]
@@ -186,6 +188,8 @@ def _build_tasks() -> list[dict[str, Any]]:
                 "active_event_count": len(active_event_ids),
                 "default_executable_event_count": len(default_executable_event_ids),
                 "planning_event_count": len(planning_event_ids),
+                "runtime_eligible_event_count": len(runtime_event_ids),
+                "promotion_eligible_event_count": len(promotion_event_ids),
                 "registered_detector_entry_count": int(
                     detector_report["summary"]["registered_detector_entry_count"]
                 ),
@@ -197,6 +201,9 @@ def _build_tasks() -> list[dict[str, Any]]:
                 ),
                 "default_executable_but_not_planning": sorted(
                     set(default_executable_event_ids) - set(planning_event_ids)
+                ),
+                "planning_not_default_executable": sorted(
+                    set(planning_event_ids) - set(default_executable_event_ids)
                 ),
                 "source_audits": [
                     "docs/generated/event_ontology_audit.json",

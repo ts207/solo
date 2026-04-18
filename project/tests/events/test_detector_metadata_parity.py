@@ -69,6 +69,20 @@ def test_v1_detector_metadata_adapter_applies_registry_governance_fields() -> No
     assert metadata.primary_anchor_eligible is False
 
 
+def test_detector_metadata_adapter_does_not_fall_back_to_default_executable() -> None:
+    row = deepcopy(load_milestone_event_registry()["SESSION_OPEN_EVENT"])
+    row.pop("planning_eligible", None)
+    row.pop("runtime_eligible", None)
+    row["default_executable"] = True
+
+    adapter_cls = get_detector_metadata_adapter_class("SESSION_OPEN_EVENT", row)
+    assert adapter_cls is not None
+
+    metadata = adapter_cls.detector_metadata(event_name="SESSION_OPEN_EVENT")
+    assert metadata.planning_default is False
+    assert metadata.runtime_default is False
+
+
 def test_registry_parity_detects_required_columns_drift() -> None:
     rows = deepcopy(load_milestone_event_registry())
     rows["VOL_SPIKE"]["detector"] = {

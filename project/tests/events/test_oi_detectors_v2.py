@@ -8,6 +8,7 @@ from project.events.detectors.positioning_base import (
     OISpikeNegativeDetectorV2,
     OISpikePositiveDetectorV2,
 )
+from project.events.detectors.registry import get_detector, load_all_detectors
 from project.events.registry import get_detector_contract
 
 
@@ -47,4 +48,6 @@ def test_oi_wave2_detectors_emit() -> None:
     assert flush.iloc[-1]['event_name'] == 'OI_FLUSH'
     contract = get_detector_contract('OI_FLUSH')
     assert contract.event_version == 'v2'
-    assert contract.detector_class == 'OIFlushDetectorV2'
+    assert contract.detector_class == 'OIFlushDetectorV2MetadataAdapter'
+    load_all_detectors()
+    assert get_detector('OI_FLUSH').__class__.__name__ == 'OIFlushDetectorV2'

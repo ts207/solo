@@ -35,6 +35,11 @@ class EventDefinition:
     runtime_category: str = "active_runtime_event"
     maturity: str = ""
     default_executable: bool = True
+    detector_band: str = ""
+    planning_eligible: bool = False
+    runtime_eligible: bool = False
+    promotion_eligible: bool = False
+    primary_anchor_eligible: bool = False
     enabled: bool = True
     detector_name: str = ""
     instrument_classes: tuple[str, ...] = ()
@@ -391,6 +396,46 @@ class DomainRegistry:
                 for event_type, spec in self.event_definitions.items()
                 if spec.default_executable
                 and spec.runtime_category == "active_runtime_event"
+                and not spec.is_composite
+                and not spec.is_context_tag
+                and not spec.is_strategy_construct
+            )
+        )
+
+    def planning_eligible_event_ids(self) -> tuple[str, ...]:
+        return tuple(
+            sorted(
+                event_type
+                for event_type, spec in self.event_definitions.items()
+                if spec.planning_eligible
+                and spec.runtime_category == "active_runtime_event"
+                and not spec.is_composite
+                and not spec.is_context_tag
+                and not spec.is_strategy_construct
+            )
+        )
+
+    def runtime_eligible_event_ids(self) -> tuple[str, ...]:
+        return tuple(
+            sorted(
+                event_type
+                for event_type, spec in self.event_definitions.items()
+                if spec.runtime_eligible
+                and spec.detector_band == "deployable_core"
+                and spec.runtime_category == "active_runtime_event"
+                and not spec.is_composite
+                and not spec.is_context_tag
+                and not spec.is_strategy_construct
+            )
+        )
+
+    def promotion_eligible_event_ids(self) -> tuple[str, ...]:
+        return tuple(
+            sorted(
+                event_type
+                for event_type, spec in self.event_definitions.items()
+                if spec.promotion_eligible
+                and spec.detector_band in {"deployable_core", "research_trigger"}
                 and not spec.is_composite
                 and not spec.is_context_tag
                 and not spec.is_strategy_construct

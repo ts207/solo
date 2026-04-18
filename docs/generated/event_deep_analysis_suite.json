@@ -1,26 +1,58 @@
 {
   "summary": {
-    "attention_task_count": 1,
+    "attention_task_count": 3,
     "overall_status": "attention",
-    "passed_task_count": 9,
+    "passed_task_count": 7,
     "task_count": 10
   },
   "tasks": [
     {
       "details": {
         "default_executable_but_not_planning": [
+          "ABSORPTION_PROXY",
+          "BAND_BREAK",
+          "BREAKOUT_TRIGGER",
+          "CHOP_TO_TREND_SHIFT",
+          "CLIMAX_VOLUME_BAR",
           "CROSS_ASSET_DESYNC_EVENT",
-          "DEPTH_COLLAPSE",
-          "LIQUIDATION_CASCADE_PROXY"
+          "DELEVERAGING_WAVE",
+          "DEPTH_STRESS_PROXY",
+          "FAILED_CONTINUATION",
+          "FALSE_BREAKOUT",
+          "FEE_REGIME_CHANGE_EVENT",
+          "FLOW_EXHAUSTION_PROXY",
+          "FORCED_FLOW_EXHAUSTION",
+          "GAP_OVERSHOOT",
+          "LIQUIDATION_CASCADE_PROXY",
+          "LIQUIDATION_EXHAUSTION_REVERSAL",
+          "LIQUIDITY_GAP_PRINT",
+          "LIQUIDITY_STRESS_PROXY",
+          "MOMENTUM_DIVERGENCE_TRIGGER",
+          "ORDERFLOW_IMBALANCE_SHOCK",
+          "OVERSHOOT_AFTER_SHOCK",
+          "POST_DELEVERAGING_REBOUND",
+          "PRICE_VOL_IMBALANCE_PROXY",
+          "PULLBACK_PIVOT",
+          "RANGE_BREAKOUT",
+          "RANGE_COMPRESSION_END",
+          "SLIPPAGE_SPIKE_EVENT",
+          "SPREAD_BLOWOUT",
+          "SPREAD_REGIME_WIDENING_EVENT",
+          "SUPPORT_RESISTANCE_BREAK",
+          "SWEEP_STOPRUN",
+          "TREND_ACCELERATION",
+          "TREND_DECELERATION",
+          "TREND_EXHAUSTION_TRIGGER",
+          "TREND_TO_CHOP_SHIFT",
+          "VOL_CLUSTER_SHIFT",
+          "VOL_REGIME_SHIFT_EVENT",
+          "WICK_REVERSAL_PROXY",
+          "ZSCORE_STRETCH"
         ],
+        "planning_not_default_executable": [],
         "runtime_aliases": [
           "ABSORPTION_EVENT",
-          "ABSORPTION_PROXY",
           "BASIS_DISLOCATION",
-          "DEPTH_COLLAPSE",
-          "DEPTH_STRESS_PROXY",
-          "LIQUIDITY_STRESS_DIRECT",
-          "LIQUIDITY_STRESS_PROXY",
           "VOL_REGIME_SHIFT"
         ],
         "source_audits": [
@@ -32,10 +64,12 @@
       "status": "passed",
       "summary": {
         "active_event_count": 71,
-        "alias_count": 8,
+        "alias_count": 6,
         "default_executable_event_count": 62,
-        "planning_event_count": 59,
-        "registered_detector_entry_count": 73
+        "planning_event_count": 23,
+        "promotion_eligible_event_count": 23,
+        "registered_detector_entry_count": 73,
+        "runtime_eligible_event_count": 9
       },
       "title": "Audit event universe",
       "verification_commands": [
@@ -74,11 +108,53 @@
           "sequence_confirmed": 4,
           "statistical": 9
         },
-        "issues": [],
+        "issues": [
+          {
+            "check_id": "detector_hardcoded_params",
+            "message": "Detector implementation has hardcoded numerical thresholds: BASIS_DISLOC",
+            "path": "project/events/detectors/dislocation_base.py",
+            "severity": "warning"
+          },
+          {
+            "check_id": "detector_hardcoded_params",
+            "message": "Detector implementation has hardcoded numerical thresholds: CROSS_ASSET_DESYNC_EVENT",
+            "path": "project/events/detectors/desync_base.py",
+            "severity": "warning"
+          },
+          {
+            "check_id": "detector_hardcoded_params",
+            "message": "Detector implementation has hardcoded numerical thresholds: CROSS_VENUE_DESYNC",
+            "path": "project/events/detectors/desync_base.py",
+            "severity": "warning"
+          },
+          {
+            "check_id": "detector_hardcoded_params",
+            "message": "Detector implementation has hardcoded numerical thresholds: FUNDING_EXTREME_ONSET",
+            "path": "project/events/detectors/positioning_base.py",
+            "severity": "warning"
+          },
+          {
+            "check_id": "detector_hardcoded_params",
+            "message": "Detector implementation has hardcoded numerical thresholds: FUNDING_NORMALIZATION_TRIGGER",
+            "path": "project/events/detectors/positioning_base.py",
+            "severity": "warning"
+          },
+          {
+            "check_id": "detector_hardcoded_params",
+            "message": "Detector implementation has hardcoded numerical thresholds: FUNDING_PERSISTENCE_TRIGGER",
+            "path": "project/events/detectors/positioning_base.py",
+            "severity": "warning"
+          },
+          {
+            "check_id": "detector_hardcoded_params",
+            "message": "Detector implementation has hardcoded numerical thresholds: LIQUIDITY_GAP_PRINT",
+            "path": "project/events/detectors/liquidity_base.py",
+            "severity": "warning"
+          }
+        ],
         "maturity_counts": {
-          "production": 6,
-          "specialized": 4,
-          "standard": 61
+          "production": 9,
+          "standard": 62
         },
         "source_artifacts": [
           "docs/generated/detector_coverage.json",
@@ -86,12 +162,12 @@
         ]
       },
       "id": "03_detector_fidelity",
-      "status": "passed",
+      "status": "attention",
       "summary": {
         "active_event_count": 71,
         "error_count": 0,
-        "issue_count": 0,
-        "warning_count": 0
+        "issue_count": 7,
+        "warning_count": 7
       },
       "title": "Inspect detector fidelity",
       "verification_commands": [
@@ -101,24 +177,60 @@
     {
       "details": {
         "non_planning_active_events": [
+          "ABSORPTION_PROXY",
+          "BAND_BREAK",
+          "BREAKOUT_TRIGGER",
+          "CHOP_TO_TREND_SHIFT",
+          "CLIMAX_VOLUME_BAR",
           "COPULA_PAIRS_TRADING",
           "CROSS_ASSET_DESYNC_EVENT",
-          "DEPTH_COLLAPSE",
+          "DELEVERAGING_WAVE",
+          "DEPTH_STRESS_PROXY",
+          "FAILED_CONTINUATION",
+          "FALSE_BREAKOUT",
+          "FEE_REGIME_CHANGE_EVENT",
+          "FLOW_EXHAUSTION_PROXY",
+          "FORCED_FLOW_EXHAUSTION",
           "FUNDING_TIMESTAMP_EVENT",
+          "GAP_OVERSHOOT",
           "LIQUIDATION_CASCADE_PROXY",
+          "LIQUIDATION_EXHAUSTION_REVERSAL",
+          "LIQUIDITY_GAP_PRINT",
+          "LIQUIDITY_STRESS_PROXY",
+          "MOMENTUM_DIVERGENCE_TRIGGER",
+          "ORDERFLOW_IMBALANCE_SHOCK",
+          "OVERSHOOT_AFTER_SHOCK",
+          "POST_DELEVERAGING_REBOUND",
+          "PRICE_VOL_IMBALANCE_PROXY",
+          "PULLBACK_PIVOT",
+          "RANGE_BREAKOUT",
+          "RANGE_COMPRESSION_END",
           "SCHEDULED_NEWS_WINDOW_EVENT",
           "SEQ_FND_EXTREME_THEN_BREAKOUT",
           "SEQ_LIQ_VACUUM_THEN_DEPTH_RECOVERY",
           "SEQ_OI_SPIKEPOS_THEN_VOL_SPIKE",
           "SEQ_VOL_COMP_THEN_BREAKOUT",
           "SESSION_CLOSE_EVENT",
-          "SESSION_OPEN_EVENT"
+          "SESSION_OPEN_EVENT",
+          "SLIPPAGE_SPIKE_EVENT",
+          "SPREAD_BLOWOUT",
+          "SPREAD_REGIME_WIDENING_EVENT",
+          "SUPPORT_RESISTANCE_BREAK",
+          "SWEEP_STOPRUN",
+          "TREND_ACCELERATION",
+          "TREND_DECELERATION",
+          "TREND_EXHAUSTION_TRIGGER",
+          "TREND_TO_CHOP_SHIFT",
+          "VOL_CLUSTER_SHIFT",
+          "VOL_REGIME_SHIFT_EVENT",
+          "WICK_REVERSAL_PROXY",
+          "ZSCORE_STRETCH"
         ],
         "planning_default_tiers": [
           "A",
           "B"
         ],
-        "planning_event_count": 59,
+        "planning_event_count": 23,
         "source_artifacts": [
           "docs/generated/event_maturity_matrix.csv",
           "docs/generated/event_tiers.md"
@@ -188,7 +300,7 @@
           "Calibrate GAP_OVERSHOOT by tuning band_z_threshold, return_quantile to maximize mean-reversion or continuation separation after statistical stretch; require stability across assets and rolling windows while preserving minimum event counts.": 1,
           "Calibrate INDEX_COMPONENT_DIVERGENCE by tuning desync_z_threshold to maximize convergence or repricing separation after desynchronization; require stability across assets, venues, and sessions while preserving minimum event counts.": 1,
           "Calibrate LEAD_LAG_BREAK by tuning desync_z_threshold to maximize convergence or repricing separation after desynchronization; require stability across assets, venues, and sessions while preserving minimum event counts.": 1,
-          "Calibrate LIQUIDATION_CASCADE by tuning detector thresholds to maximize post-extreme unwind or normalization separation; require stability across assets, funding regimes, and rolling windows while preserving minimum event counts.": 1,
+          "Calibrate LIQUIDATION_CASCADE by tuning oi_drop_pct_th to maximize post-extreme unwind or normalization separation; require stability across assets, funding regimes, and rolling windows while preserving minimum event counts.": 1,
           "Calibrate LIQUIDATION_EXHAUSTION_REVERSAL by tuning spread_quantile, liquidation_quantile, oi_drop_quantile to maximize exhaustion-to-reversal separation after forced-flow shocks; require stability across volatility regimes and rolling splits while preserving minimum event counts.": 1,
           "Calibrate LIQUIDITY_GAP_PRINT by tuning z_threshold, min_volume_quantile to maximize post-shock response separation versus normal conditions; require stability across liquidity buckets, venues, and rolling windows while preserving minimum event counts.": 1,
           "Calibrate LIQUIDITY_SHOCK by tuning detector thresholds to maximize post-shock response separation versus normal conditions; require stability across liquidity buckets, venues, and rolling windows while preserving minimum event counts.": 1,
@@ -320,34 +432,38 @@
       "details": {
         "events_missing_required_columns": [],
         "top_required_columns": {
-          "close": 48,
+          "close": 49,
           "close_perp": 4,
           "close_spot": 4,
           "funding_abs": 3,
           "funding_abs_pct": 3,
-          "high": 18,
+          "high": 17,
           "liquidation_notional": 5,
-          "low": 18,
+          "low": 17,
+          "oi_delta_1h": 7,
+          "oi_notional": 5,
+          "range_96": 6,
+          "range_med_2880": 6,
+          "rv_96": 21,
+          "timestamp": 71,
+          "volume": 4
+        },
+        "top_required_features": {
+          "close": 49,
+          "close_perp": 4,
+          "close_spot": 4,
+          "high": 17,
+          "liquidation_notional": 5,
+          "low": 17,
+          "ms_oi_confidence": 3,
+          "ms_oi_state": 3,
           "oi_delta_1h": 7,
           "oi_notional": 5,
           "range_96": 5,
           "range_med_2880": 5,
-          "rv_96": 21,
+          "rv_96": 20,
           "timestamp": 71,
-          "volume": 6
-        },
-        "top_required_features": {
-          "close": 4,
-          "close_perp": 1,
-          "close_spot": 1,
-          "funding_rate": 1,
-          "high": 2,
-          "low": 2,
-          "oi_delta_1h": 1,
-          "oi_notional": 1,
-          "pair_close": 1,
-          "timestamp": 71,
-          "volume": 2
+          "volume": 5
         }
       },
       "id": "08_data_dependencies",
@@ -356,7 +472,7 @@
         "events_missing_required_columns": 0,
         "events_with_required_features": 71,
         "unique_required_column_count": 22,
-        "unique_required_feature_count": 11
+        "unique_required_feature_count": 24
       },
       "title": "Validate data dependencies",
       "verification_commands": [
@@ -377,18 +493,14 @@
           "project/tests/scripts/test_detector_coverage_audit.py",
           "project/tests/scripts/test_event_deep_analysis_suite.py"
         ],
-        "workflow_paths": [
-          ".github/workflows/tier1.yml",
-          ".github/workflows/tier2.yml",
-          ".github/workflows/tier3.yml"
-        ]
+        "workflow_paths": []
       },
       "id": "09_ci_event_guards",
       "status": "attention",
       "summary": {
         "configured_guard_path_count": 9,
         "expected_guard_path_count": 11,
-        "workflow_file_count": 3
+        "workflow_file_count": 0
       },
       "title": "Test CI event guards",
       "verification_commands": [
@@ -432,10 +544,10 @@
         ]
       },
       "id": "10_synthesis",
-      "status": "passed",
+      "status": "attention",
       "summary": {
-        "critical_issue_count": 1,
-        "overall_status": "passed",
+        "critical_issue_count": 2,
+        "overall_status": "attention",
         "residual_priority_count": 1
       },
       "title": "Synthesize event findings",

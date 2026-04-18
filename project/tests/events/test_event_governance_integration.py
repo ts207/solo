@@ -6,6 +6,7 @@ from project.domain.compiled_registry import get_domain_registry
 from project.events.governance import (
     default_planning_event_ids,
     get_event_governance_metadata,
+    governed_default_planning_event_ids,
 )
 from project.research.candidates.ranking import candidate_rank_key
 from project.research.experiment_engine import (
@@ -56,16 +57,16 @@ def _request(*, trigger_space: TriggerSpace) -> AgentExperimentRequest:
 
 def test_default_planning_event_set_excludes_context_and_repair_only_events() -> None:
     registry = get_domain_registry()
-    planning = set(default_planning_event_ids(registry.default_executable_event_ids()))
+    planning = set(governed_default_planning_event_ids())
 
     assert "BASIS_DISLOC" in planning
     assert "CROSS_ASSET_DESYNC_EVENT" not in planning
     assert "FUNDING_TIMESTAMP_EVENT" not in planning
+    assert planning <= set(registry.planning_eligible_event_ids())
 
 
 def test_default_planning_event_set_excludes_hybridized_compatibility_events() -> None:
-    registry = get_domain_registry()
-    planning = set(default_planning_event_ids(registry.default_executable_event_ids()))
+    planning = set(governed_default_planning_event_ids())
 
     assert "LIQUIDITY_STRESS_PROXY" not in planning
     assert "WICK_REVERSAL_PROXY" not in planning
@@ -75,6 +76,14 @@ def test_default_planning_event_set_excludes_hybridized_compatibility_events() -
     assert "FLOW_EXHAUSTION_PROXY" not in planning
     assert "ORDERFLOW_IMBALANCE_SHOCK" not in planning
     assert "SWEEP_STOPRUN" not in planning
+
+
+def test_default_planning_ignores_legacy_default_executable_input() -> None:
+    planning = set(default_planning_event_ids(["ABSORPTION_PROXY", "SESSION_OPEN_EVENT", "BASIS_DISLOC"]))
+
+    assert "BASIS_DISLOC" in planning
+    assert "ABSORPTION_PROXY" not in planning
+    assert "SESSION_OPEN_EVENT" not in planning
 
 
 def test_governance_filters_can_request_context_events_explicitly() -> None:

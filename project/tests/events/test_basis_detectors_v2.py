@@ -8,6 +8,7 @@ from project.events.detectors.dislocation_base import (
     FndDislocDetectorV2,
     SpotPerpBasisShockDetectorV2,
 )
+from project.events.detectors.registry import get_detector, load_all_detectors
 from project.events.registry import get_detector_contract
 
 
@@ -43,4 +44,6 @@ def test_basis_wave2_detectors_emit_and_contracts_are_v2() -> None:
     assert shock_events.iloc[-1]['event_name'] == 'SPOT_PERP_BASIS_SHOCK'
     contract = get_detector_contract('BASIS_DISLOC')
     assert contract.event_version == 'v2'
-    assert contract.detector_class == 'BasisDislocationDetectorV2'
+    assert contract.detector_class == 'BasisDislocationDetectorV2MetadataAdapter'
+    load_all_detectors()
+    assert get_detector('BASIS_DISLOC').__class__.__name__ == 'BasisDislocationDetectorV2'

@@ -58,7 +58,9 @@ def test_desync_wave3_detectors_emit_and_contracts_are_v2() -> None:
     assert not divergence.empty
     assert not lead_lag.empty
     assert get_detector_contract('CROSS_ASSET_DESYNC_EVENT').event_version == 'v2'
-    assert get_detector_contract('CROSS_VENUE_DESYNC').detector_class == 'CrossVenueDesyncDetectorV2'
+    assert get_detector_contract('CROSS_VENUE_DESYNC').detector_class == 'CrossVenueDesyncDetectorV2MetadataAdapter'
+    load_all_detectors()
+    assert get_detector('CROSS_VENUE_DESYNC').__class__.__name__ == 'CrossVenueDesyncDetectorV2'
 
 
 def test_wave3_family_modules_register_v2_detectors_under_legacy_names() -> None:

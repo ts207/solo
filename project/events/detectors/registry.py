@@ -12,7 +12,7 @@ from project.events.detectors.base import BaseEventDetector
 from project.events.detectors.catalog import load_detector_family_modules
 
 _DETECTORS: Dict[str, type[Any]] = {}
-_METADATA_ADAPTERS: Dict[tuple[str, type[Any]], type[Any]] = {}
+_METADATA_ADAPTERS: Dict[tuple[str, type[Any], object], type[Any]] = {}
 
 
 def register_detector(event_type: str, detector_cls: type[Any]) -> None:
@@ -74,6 +74,16 @@ def _coerce_bool(value: object, default: bool) -> bool:
     return default if value is None else bool(value)
 
 
+def _freeze_cache_value(value: object) -> object:
+    if isinstance(value, dict):
+        return tuple(
+            sorted((str(key), _freeze_cache_value(item)) for key, item in value.items())
+        )
+    if isinstance(value, (list, tuple, set)):
+        return tuple(_freeze_cache_value(item) for item in value)
+    return value
+
+
 def _resolve_role(row: dict[str, Any], default: str) -> str:
     role = str(row.get("operational_role") or row.get("role") or default).strip().lower()
     return {
@@ -131,7 +141,7 @@ def get_detector_metadata_adapter_class(
         return detector_cls
 
     token = str(event_type).strip().upper()
-    cache_key = (token, detector_cls)
+    cache_key = (token, detector_cls, _freeze_cache_value(governance_row))
     if cache_key in _METADATA_ADAPTERS:
         return _METADATA_ADAPTERS[cache_key]
 
@@ -193,14 +203,14 @@ def get_detector_metadata_adapter_class(
             default=class_metadata.detector_band,
         ),
         "planning_default": _coerce_bool(
-            governance_row.get("planning_default", governance_row.get("planning_eligible", governance_row.get("default_executable"))),
+            governance_row.get("planning_default", governance_row.get("planning_eligible")),
             class_metadata.planning_default,
         ),
         "promotion_eligible": _coerce_bool(
             governance_row.get("promotion_eligible"), class_metadata.promotion_eligible
         ),
         "runtime_default": _coerce_bool(
-            governance_row.get("runtime_default", governance_row.get("runtime_eligible", governance_row.get("default_executable"))),
+            governance_row.get("runtime_default", governance_row.get("runtime_eligible")),
             class_metadata.runtime_default,
         ),
         "primary_anchor_eligible": _coerce_bool(

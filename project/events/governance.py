@@ -23,6 +23,7 @@ PROMOTION_BLOCKING_DISPOSITIONS: frozenset[str] = frozenset(
 PLANNING_DEFAULT_TIERS: tuple[str, ...] = ("A", "B")
 PLANNING_DEFAULT_ROLES: tuple[str, ...] = ("trigger", "confirm")
 PLANNING_EXCLUDED_EVIDENCE_MODES: frozenset[str] = frozenset({"proxy", "indirect", "derived", "inferred"})
+PLANNING_EXCLUDED_BANDS: frozenset[str] = frozenset({"context_only", "composite_or_fragile"})
 
 _TIER_RANK: dict[str, int] = {"A": 0, "B": 1, "C": 2, "D": 3, "X": 4}
 
@@ -54,6 +55,9 @@ def get_event_governance_metadata(event_type: str) -> dict[str, Any]:
         role = str(detector_contract.role).lower()
         evidence_mode = str(detector_contract.evidence_mode).lower()
         runtime_category = "active_runtime_event" if detector_contract.runtime_default else "gated_event"
+        detector_band = str(detector_contract.detector_band).lower()
+    else:
+        detector_band = ""
 
     role_blocked = role in PROMOTION_BLOCKING_ROLES
     tier_blocked = tier in {"C", "D", "X"}
@@ -74,6 +78,7 @@ def get_event_governance_metadata(event_type: str) -> dict[str, Any]:
             or detector_contract.composite
             or detector_contract.research_only
             or detector_contract.role in {"context", "research_only", "composite"}
+            or detector_contract.detector_band in {"context_only", "composite_or_fragile"}
         )
         requires_stronger_evidence = bool(
             descriptive_only
@@ -131,11 +136,15 @@ def get_event_governance_metadata(event_type: str) -> dict[str, Any]:
         payload.update(
             {
                 "event_version": detector_contract.event_version,
+                "detector_band": detector_contract.detector_band,
+                "planning_default": detector_contract.planning_default,
                 "runtime_default": detector_contract.runtime_default,
                 "promotion_eligible": detector_contract.promotion_eligible,
                 "primary_anchor_eligible": detector_contract.primary_anchor_eligible,
             }
         )
+    elif detector_band:
+        payload["detector_band"] = detector_band
     return payload
 
 
@@ -188,17 +197,32 @@ def filter_event_ids_by_governance(
 
 
 def default_planning_event_ids(event_ids: Iterable[str]) -> tuple[str, ...]:
-    base = filter_event_ids_by_governance(
-        event_ids,
-        tiers=PLANNING_DEFAULT_TIERS,
-        roles=PLANNING_DEFAULT_ROLES,
-        trade_trigger_eligible=True,
-    )
-    return tuple(
-        event_id
-        for event_id in base
-        if str(get_event_governance_metadata(event_id).get("evidence_mode", "")).lower()
-        not in PLANNING_EXCLUDED_EVIDENCE_MODES
+    out: list[str] = []
+    for event_id in event_ids:
+        token = resolve_event_alias(_clean_token(event_id).upper())
+        meta = get_event_governance_metadata(token)
+        if not bool(meta.get("planning_default", False)):
+            continue
+        if str(meta.get("detector_band", "")).lower() in PLANNING_EXCLUDED_BANDS:
+            continue
+        if str(meta.get("evidence_mode", "")).lower() in PLANNING_EXCLUDED_EVIDENCE_MODES:
+            continue
+        if not event_matches_filters(
+            token,
+            tiers=PLANNING_DEFAULT_TIERS,
+            roles=PLANNING_DEFAULT_ROLES,
+            trade_trigger_eligible=True,
+        ):
+            continue
+        out.append(token)
+    return tuple(sorted(dict.fromkeys(out)))
+
+
+def governed_default_planning_event_ids() -> tuple[str, ...]:
+    from project.events.registry import list_planning_eligible_detectors
+
+    return default_planning_event_ids(
+        contract.event_name for contract in list_planning_eligible_detectors()
     )
 
 

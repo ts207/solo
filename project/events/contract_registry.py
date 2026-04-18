@@ -446,6 +446,11 @@ def _merged_row(event_type: str) -> dict[str, Any]:
     row.setdefault("operational_role", event_def.operational_role)
     row.setdefault("deployment_disposition", event_def.deployment_disposition)
     row.setdefault("runtime_category", event_def.runtime_category)
+    row.setdefault("detector_band", event_def.detector_band)
+    row.setdefault("planning_eligible", event_def.planning_eligible)
+    row.setdefault("runtime_eligible", event_def.runtime_eligible)
+    row.setdefault("promotion_eligible", event_def.promotion_eligible)
+    row.setdefault("primary_anchor_eligible", event_def.primary_anchor_eligible)
     return row
 
 
@@ -500,6 +505,27 @@ def build_event_contract(event_type: str) -> dict[str, Any]:
         "asset_scope": _coalesce_text(row.get("asset_scope"), default="single_asset"),
         "venue_scope": _coalesce_text(row.get("venue_scope"), default="single_venue"),
         "runtime_category": runtime_category,
+        "detector_band": _coalesce_text(
+            getattr(detector_contract, "detector_band", ""),
+            row.get("detector_band"),
+            default="research_trigger",
+        ),
+        "planning_eligible": bool(
+            getattr(detector_contract, "planning_default", row.get("planning_eligible", False))
+        ),
+        "runtime_eligible": bool(
+            getattr(detector_contract, "runtime_default", row.get("runtime_eligible", False))
+        ),
+        "promotion_eligible": bool(
+            getattr(detector_contract, "promotion_eligible", row.get("promotion_eligible", False))
+        ),
+        "primary_anchor_eligible": bool(
+            getattr(
+                detector_contract,
+                "primary_anchor_eligible",
+                row.get("primary_anchor_eligible", False),
+            )
+        ),
         "description": _coalesce_text(
             row.get("description"),
             semantics.get("summary"),
@@ -624,7 +650,10 @@ def active_runtime_event_ids() -> tuple[str, ...]:
     contracts = load_active_event_contracts()
     return tuple(
         sorted(
-            k for k, v in contracts.items() if v.get("runtime_category") == "active_runtime_event"
+            k
+            for k, v in contracts.items()
+            if bool(v.get("runtime_eligible", False))
+            and str(v.get("detector_band", "")).strip().lower() == "deployable_core"
         )
     )
 

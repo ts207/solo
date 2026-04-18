@@ -4,6 +4,7 @@ import numpy as np
 import pandas as pd
 
 from project.events.detectors.desync_base import BetaSpikeDetectorV2, CorrelationBreakdownDetectorV2
+from project.events.detectors.registry import get_detector, load_all_detectors
 from project.events.registry import get_detector_contract
 
 
@@ -40,4 +41,6 @@ def test_regime_transition_wave3_detectors_emit() -> None:
     assert corr.iloc[-1]['event_name'] == 'CORRELATION_BREAKDOWN_EVENT'
     assert beta.iloc[-1]['event_name'] == 'BETA_SPIKE_EVENT'
     assert get_detector_contract('CORRELATION_BREAKDOWN_EVENT').event_version == 'v2'
-    assert get_detector_contract('BETA_SPIKE_EVENT').detector_class == 'BetaSpikeDetectorV2'
+    assert get_detector_contract('BETA_SPIKE_EVENT').detector_class == 'BetaSpikeDetectorV2MetadataAdapter'
+    load_all_detectors()
+    assert get_detector('BETA_SPIKE_EVENT').__class__.__name__ == 'BetaSpikeDetectorV2'

@@ -1,6 +1,6 @@
 import pandas as pd
 import pytest
-from project.events.detector_contract import DetectorContract, DetectorContractError
+from project.events.detector_contract import DetectorContractError, DetectorLogicContract
 
 
 def _minimal_df():
@@ -16,7 +16,7 @@ def _minimal_df():
     )
 
 
-class _GoodDetector(DetectorContract):
+class _GoodDetector(DetectorLogicContract):
     required_columns = ["close", "high", "low", "volume"]
     lookback_bars = 5
     warmup_bars = 5
@@ -59,4 +59,4 @@ def test_detect_events_returns_dataframe():
 
 def test_bar_type_is_valid():
     d = _GoodDetector()
-    assert d.bar_type in DetectorContract._VALID_BAR_TYPES
+    assert d.bar_type in DetectorLogicContract._VALID_BAR_TYPES

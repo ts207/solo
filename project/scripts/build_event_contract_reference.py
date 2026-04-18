@@ -23,6 +23,11 @@ def _csv_text(rows: Iterable[Mapping[str, Any]]) -> str:
         "canonical_regime",
         "canonical_family",
         "default_executable",
+        "detector_band",
+        "planning_eligible",
+        "runtime_eligible",
+        "promotion_eligible",
+        "primary_anchor_eligible",
         "detector",
         "enabled",
         "tags",
@@ -51,7 +56,7 @@ def _csv_text(rows: Iterable[Mapping[str, Any]]) -> str:
         "threshold_parameters",
     ]
     buffer = StringIO()
-    writer = csv.DictWriter(buffer, fieldnames=fieldnames)
+    writer = csv.DictWriter(buffer, fieldnames=fieldnames, lineterminator="\n")
     writer.writeheader()
     for row in rows:
         writer.writerow(
@@ -82,6 +87,11 @@ def _csv_wide_text(rows: Iterable[Mapping[str, Any]]) -> str:
         "canonical_regime",
         "canonical_family",
         "default_executable",
+        "detector_band",
+        "planning_eligible",
+        "runtime_eligible",
+        "promotion_eligible",
+        "primary_anchor_eligible",
         "detector",
         "enabled",
         "tags",
@@ -110,7 +120,7 @@ def _csv_wide_text(rows: Iterable[Mapping[str, Any]]) -> str:
     ]
     fieldnames = [*base_fieldnames, *threshold_columns]
     buffer = StringIO()
-    writer = csv.DictWriter(buffer, fieldnames=fieldnames)
+    writer = csv.DictWriter(buffer, fieldnames=fieldnames, lineterminator="\n")
     writer.writeheader()
     for row in normalized_rows:
         thresholds = dict(row.get("threshold_parameters", {}) or {})
@@ -192,7 +202,6 @@ def _threshold_parameters(parameters: Mapping[str, Any]) -> Dict[str, Any]:
     return out
 def _rows() -> list[Dict[str, Any]]:
     registry = get_domain_registry()
-    default_executable = set(registry.default_executable_event_ids())
 
     rows: list[Dict[str, Any]] = []
     for event_type in registry.event_ids:
@@ -203,7 +212,12 @@ def _rows() -> list[Dict[str, Any]]:
                 "event_type": event_type,
                 "canonical_regime": event.canonical_regime,
                 "canonical_family": event.canonical_family,
-                "default_executable": event.default_executable or event_type in default_executable,
+                "default_executable": event.default_executable,
+                "detector_band": event.detector_band,
+                "planning_eligible": event.planning_eligible,
+                "runtime_eligible": event.runtime_eligible,
+                "promotion_eligible": event.promotion_eligible,
+                "primary_anchor_eligible": event.primary_anchor_eligible,
                 "detector": event.detector_name,
                 "enabled": event.enabled,
                 "tags": list(event.runtime_tags),
@@ -259,7 +273,10 @@ def _render_markdown(rows: list[Mapping[str, Any]]) -> str:
             lines.append(f"### {row['event_type']}")
             lines.append("")
             lines.append(
-                f"- Detector: `{row['detector'] or 'unwired'}` | enabled=`{row['enabled']}` | default_executable=`{row['default_executable']}`"
+                f"- Detector: `{row['detector'] or 'unwired'}` | enabled=`{row['enabled']}` | band=`{row['detector_band']}`"
+            )
+            lines.append(
+                f"- Eligibility: planning=`{row['planning_eligible']}` | runtime=`{row['runtime_eligible']}` | promotion=`{row['promotion_eligible']}` | primary_anchor=`{row['primary_anchor_eligible']}` | legacy_default_executable=`{row['default_executable']}`"
             )
             lines.append(
                 f"- Family: canonical=`{row['canonical_family']}`"

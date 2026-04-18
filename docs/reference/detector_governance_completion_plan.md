@@ -105,13 +105,13 @@ The runtime-default detector set is now the deployable core:
 1. Source spec still carries legacy compatibility fields
 
 - The governed runtime view is now narrow and source YAML has explicit eligibility fields.
-- The older `default_executable` field remains for compatibility and is no longer sufficient to determine runtime eligibility.
-- Required next action: migrate consumers away from `default_executable` toward `runtime_eligible` and `planning_eligible`, then deprecate the ambiguous field.
+- The older `default_executable` field remains for compatibility artifacts, but detector planning/runtime/promotion policy now reads the explicit `planning_eligible`, `runtime_eligible`, `promotion_eligible`, `primary_anchor_eligible`, and `detector_band` fields.
+- Required next action: deprecate `default_executable` from authored docs and generated legacy reports after external consumers are confirmed clear.
 
 2. Band classification needs downstream enforcement
 
-- Band classification is now present in source and generated artifacts.
-- Runtime, proposal generation, promotion, and docs should consume `detector_band` directly instead of inferring from role/maturity/name patterns.
+- Band classification is now present in source, compiled domain registry rows, active event contracts, event reference artifacts, planning defaults, runtime eligibility, and promotion governance.
+- Required next action: audit any older ad hoc scripts outside the tested governance path for role/name-based inference and move them to the contract helpers.
 
 3. Detector output schema is not fully enforced across all implementations
 
@@ -128,7 +128,12 @@ The runtime-default detector set is now the deployable core:
 5. Validation harness is not complete
 
 - Unit and synthetic fixture coverage exists for important families.
-- Replay, perturbation, invariance, false-positive/false-negative review, and baseline comparison gates are not yet complete promotion requirements.
+- Deployable-core replay stability, perturbation, future-bar invariance, sparse missing-data, and required-column fail-closed checks now run as a minimum-green-gate test.
+- Deployable-core deterministic replay outputs now have a checked-in baseline comparison gate covering event counts, timing, phase/quality distribution, numeric summaries, and stable event signatures.
+- Deployable-core known-episode replay now has reproducible market-slice fixtures for basis/funding dislocation and liquidity/liquidation/volatility cascade scenarios, with expected-present and expected-absent detector sets enforced.
+- Deployable-core truth review now enforces false-negative, false-positive, event-explosion, confidence, and severity gates over reproducible known-episode fixtures.
+- Deployable-core historical exchange-data replay now has one checked-in Bybit BTCUSDT 5m market-context feature slice covering real liquidation and volatility behavior from 2024-01-01 through 2024-01-03.
+- Historical exchange-data coverage is still narrow: the pinned slice does not validate spot/perp basis or funding-dislocation behavior because the source feature artifact lacks usable spot coverage for that interval.
 
 6. Generated docs are incomplete for the target state
 
@@ -162,6 +167,8 @@ Actions:
 - Done: add explicit detector band for all 71 detectors: deployable_core, research_trigger, context_only, composite_or_fragile.
 - Done: split planning eligible, runtime eligible, promotion eligible, and primary-anchor eligible into distinct fields.
 - Done: keep aliases as load-time compatibility shims only.
+- Done: move default planning and runtime eligibility consumers off `default_executable`.
+- Done: expose eligibility fields through the compiled domain registry, active event contracts, generated event contract reference, and promotion governance.
 - Done: regenerate governance artifacts and assert:
   - runtime-default set is exactly the nine deployable-core detectors.
   - context detectors are never primary anchors.
@@ -205,11 +212,11 @@ Actions:
 - Done: fill calibration artifacts for all 27 v2 detectors.
 - Done: enforce lookup by event name, detector version, symbol group, and timeframe group.
 - Done: add artifact validation for dataset lineage, training/validation periods, parameter vector, robustness summary, and failure notes.
-- Add CI checks that threshold changes require detector or threshold version changes.
+- Done: add a minimum-green-gate check that threshold-affecting calibration artifact changes require `detector_version` or `threshold_version` movement.
 
 Stop condition:
 
-- Partially met: calibration matrix has no missing rows for v2 detectors.
+- Partially met: calibration matrix has no missing rows for v2 detectors, and threshold-affecting artifact edits now require a version bump.
 - Remaining stop condition: replace packaged baseline fixtures with empirical calibration artifacts before live threshold promotion.
 
 ### Phase 4: Validation harness gates
@@ -223,8 +230,13 @@ Owner files:
 
 Actions:
 
+- Done: add a minimum-green-gate validation test for all 9 deployable-core detectors covering replay stability, irrelevant feature perturbation, appended future-bar invariance, sparse inert NaNs, and missing required-column fail-closed behavior.
+- Done: add a checked-in deterministic replay baseline and minimum-green-gate checker for all 9 deployable-core detectors.
+- Done: add known-episode replay baselines for reproducibly materialized deployable-core market slices and enforce expected-present/expected-absent detector behavior.
+- Done: add deployable-core truth review gates for known episodes covering false negatives, false positives, event explosions, confidence floors, and severity floors.
+- Done: add a pinned real historical exchange-data replay baseline for a Bybit BTCUSDT 5m market-context feature slice, enforcing expected-present liquidation/volatility detections and expected-absent deployable-core detectors.
 - Add synthetic generators for liquidity cliff, liquidation cascade, vol shock then relaxation, funding extreme onset, cross-venue desync, and chop-to-trend shift.
-- Add replay comparison tests for known historical episodes.
+- Extend historical exchange-data replay coverage to spot/perp basis and additional venues/symbols once suitable pinned feature slices include the required counterpart series.
 - Add perturbation tests for delayed data, missing counterpart series, sparse volumes, stale timestamps, duplicated rows, and outlier spikes.
 - Add invariance tests for bucket-boundary changes, tiny timestamp shifts, single-row omissions, and non-material feature noise.
 

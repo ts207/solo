@@ -23,4 +23,5 @@ expression_templates:
 - mean_reversion
 - breakout_followthrough
 - pullback_entry
+filter_templates:
 - only_if_trend

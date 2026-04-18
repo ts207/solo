@@ -9,6 +9,7 @@ from project.events.detectors.positioning_base import (
     FundingNormalizationDetectorV2,
     FundingPersistenceDetectorV2,
 )
+from project.events.detectors.registry import get_detector, load_all_detectors
 from project.events.registry import get_detector_contract
 
 
@@ -59,6 +60,8 @@ def test_funding_wave2_detectors_emit() -> None:
     assert flip.iloc[-1]['event_name'] == 'FUNDING_FLIP'
     contract = get_detector_contract('FUNDING_FLIP')
     assert contract.event_version == 'v2'
-    assert contract.detector_class == 'FundingFlipDetectorV2'
+    assert contract.detector_class == 'FundingFlipDetectorV2MetadataAdapter'
+    load_all_detectors()
+    assert get_detector('FUNDING_FLIP').__class__.__name__ == 'FundingFlipDetectorV2'
     assert contract.runtime_default is False
     assert contract.promotion_eligible is True
