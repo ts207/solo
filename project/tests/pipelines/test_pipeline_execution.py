@@ -4,6 +4,8 @@ import os
 from pathlib import Path
 
 from project.pipelines import pipeline_execution
+from project.pipelines.pipeline_planning import build_contract_backed_execution_plan
+from project.pipelines.planner import StageDefinition
 
 
 def test_run_stage_does_not_mutate_parent_stage_env(monkeypatch):
@@ -59,3 +61,67 @@ def test_execute_pipeline_stages_returns_checklist_decision(monkeypatch):
 
     assert stage_execution["status"] == "ok"
     assert stage_execution["checklist_decision"] == "KEEP_RESEARCH"
+
+
+def test_build_contract_backed_execution_plan_derives_stage_families_and_obligations():
+    args = type(
+        "Args",
+        (),
+        {
+            "mode": "research",
+            "symbols": "BTCUSDT",
+            "timeframes": "5m",
+            "experiment_config": "",
+            "registry_root": "project/configs/registries",
+        },
+    )()
+    stages = {
+        "phase2_search_engine": StageDefinition(
+            name="phase2_search_engine",
+            script_path=Path("research/phase2_search_engine.py"),
+            args=["--run_id", "r1"],
+        ),
+        "promote_candidates": StageDefinition(
+            name="promote_candidates",
+            script_path=Path("research/cli/promotion_cli.py"),
+            args=["--run_id", "r1"],
+        ),
+    }
+    artifact_contracts = {
+        "phase2_search_engine": type(
+            "Resolved",
+            (),
+            {
+                "inputs": (),
+                "optional_inputs": (),
+                "outputs": ("phase2.candidates",),
+                "external_inputs": (),
+            },
+        )(),
+        "promote_candidates": type(
+            "Resolved",
+            (),
+            {
+                "inputs": ("validation.bundle",),
+                "optional_inputs": (),
+                "outputs": ("promotion.bundle",),
+                "external_inputs": (),
+            },
+        )(),
+    }
+
+    plan = build_contract_backed_execution_plan(
+        run_id="r1",
+        args=args,
+        stages=stages,
+        artifact_contracts=artifact_contracts,
+        planned_at="2026-04-18T00:00:00Z",
+    )
+
+    assert [stage.stage_family for stage in plan.stages] == ["phase2_discovery", "promotion"]
+    assert {item.contract_id for item in plan.artifact_obligations} >= {
+        "run_manifest",
+        "discovery_phase2_candidates",
+        "promoted_theses",
+        "live_thesis_index",
+    }

@@ -6,7 +6,8 @@ from pathlib import Path
 from typing import Any, Dict, List
 
 from project import PROJECT_ROOT
-from project.contracts.artifacts import build_artifact_specs
+from project.contracts.artifacts import build_artifact_specs, list_artifact_contracts
+from project.contracts.pipeline_registry import ARTIFACT_STAGE_FAMILY_REGISTRY
 from project.contracts.stage_dag import build_stage_specs
 
 SYSTEM_MAP_SCHEMA_VERSION = "system_map_v1"
@@ -102,6 +103,10 @@ def build_system_map_payload() -> Dict[str, Any]:
 
     stage_families = [_json_ready(asdict(spec)) for spec in build_stage_specs()]
     artifact_contracts = [_json_ready(asdict(spec)) for spec in build_artifact_specs()]
+    typed_artifact_contracts = [_json_ready(asdict(spec)) for spec in list_artifact_contracts()]
+    artifact_stage_families = [
+        _json_ready(asdict(spec)) for spec in ARTIFACT_STAGE_FAMILY_REGISTRY
+    ]
     canonical_entrypoints = [
         _json_ready(asdict(surface)) for surface in build_canonical_entrypoints()
     ]
@@ -113,6 +118,8 @@ def build_system_map_payload() -> Dict[str, Any]:
         "canonical_entrypoints": canonical_entrypoints,
         "stage_families": stage_families,
         "artifact_contracts": artifact_contracts,
+        "typed_artifact_contracts": typed_artifact_contracts,
+        "artifact_stage_families": artifact_stage_families,
         "compatibility_surfaces": compatibility_surfaces,
     }
     return payload
@@ -166,6 +173,24 @@ def render_system_map_markdown(payload: Dict[str, Any]) -> str:
                 f"- Optional inputs: {optional_inputs}",
                 f"- Outputs: {outputs}",
                 f"- External inputs: {external_inputs}",
+                "",
+            ]
+        )
+
+    lines.extend(["## Typed Artifact Contracts", ""])
+    for item in payload["typed_artifact_contracts"]:
+        consumers = ", ".join(f"`{v}`" for v in item["consumer_stage_families"])
+        aliases = ", ".join(f"`{v}`" for v in item["legacy_aliases"]) or "_none_"
+        lines.extend(
+            [
+                f"### `{item['contract_id']}`",
+                "",
+                f"- Producer family: `{item['producer_stage_family']}`",
+                f"- Consumer families: {consumers}",
+                f"- Schema: `{item['schema_id']}` @ `{item['schema_version']}`",
+                f"- Path pattern: `{item['path_pattern']}`",
+                f"- Strictness: `{item['strictness']}`",
+                f"- Legacy aliases: {aliases}",
                 "",
             ]
         )

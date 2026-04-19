@@ -34,6 +34,17 @@ def test_system_map_has_no_compatibility_surfaces() -> None:
     assert payload["compatibility_surfaces"] == []
 
 
+def test_system_map_includes_typed_artifact_contracts() -> None:
+    payload = build_system_map_payload()
+    contract_ids = {item["contract_id"] for item in payload["typed_artifact_contracts"]}
+    assert "run_manifest" in contract_ids
+    assert "promoted_theses" in contract_ids
+
+    markdown = render_system_map_markdown(payload)
+    assert "## Typed Artifact Contracts" in markdown
+    assert "`run_manifest`" in markdown
+
+
 def test_system_map_artifact_contract_fields_render_as_lists_of_strings() -> None:
     payload = build_system_map_payload()
     for contract in payload["artifact_contracts"]:

@@ -20,7 +20,10 @@ from project.live.bybit_client import BybitDerivativesClient
 from project.live.context_builder import build_live_trade_context
 from project.live.decay import DecayMonitor, DecayRule, default_decay_rules as _default_decay_rules
 from project.live.decision import DecisionOutcome, decide_trade_intent
-from project.live.event_detector import detect_live_event
+from project.live.event_detector import (
+    GovernedRuntimeCoreEventDetectionAdapter,
+    build_live_event_detection_adapter,
+)
 from project.live.execution_attribution import summarize_execution_attribution_by
 from project.live.health_checks import DataHealthMonitor
 from project.live.kill_switch import KillSwitchManager, KillSwitchReason
@@ -33,6 +36,7 @@ from project.live.oms import (
     build_live_order_from_strategy_result,
 )
 from project.live.order_planner import build_order_plan
+from project.live.policy import build_live_decision_trace
 from project.live.risk import RiskEnforcer, RuntimeRiskCaps
 from project.live.state import LiveStateStore
 from project.live.thesis_reconciliation import (
@@ -144,6 +148,9 @@ class LiveEngineRunner:
         else:
             self.order_manager = OrderManager()
         self.strategy_runtime = dict(strategy_runtime or {})
+        self._event_detector = build_live_event_detection_adapter(
+            self.strategy_runtime.get("event_detector", {})
+        )
 
         self.execution_quality_report_path = (
             Path(execution_quality_report_path)
@@ -265,6 +272,9 @@ class LiveEngineRunner:
             ),
             "runtime_mode": self.runtime_mode,
             "strategy_runtime_implemented": bool(self.strategy_runtime.get("implemented", False)),
+            "event_detection_adapter": getattr(
+                self._event_detector, "adapter_id", self._event_detector.__class__.__name__
+            ),
             "thesis_runtime_loaded": bool(self._thesis_store is not None),
             "thesis_count_loaded": (
                 len(self._thesis_store.all()) if self._thesis_store is not None else 0
@@ -290,6 +300,12 @@ class LiveEngineRunner:
                 .strip()
                 .upper()
             )
+        decision_trace = build_live_decision_trace(
+            context=outcome.context,
+            ranked_matches=outcome.ranked_matches,
+            trade_intent=outcome.trade_intent,
+            top_score=outcome.top_score,
+        )
         return {
             "timestamp": str(outcome.context.timestamp),
             "symbol": str(outcome.context.symbol),
@@ -319,6 +335,13 @@ class LiveEngineRunner:
             "top_thesis_net_expectancy_bps": float(
                 thesis.evidence.net_expectancy_bps if thesis is not None else 0.0
             ),
+            "event_detection_adapter": str(
+                self.session_metadata.get(
+                    "event_detection_adapter",
+                    getattr(self._event_detector, "adapter_id", ""),
+                )
+            ),
+            "decision_trace": decision_trace,
         }
 
     def _latest_market_state_by_symbol(self) -> Dict[str, Dict[str, Any]]:
@@ -975,9 +998,18 @@ class LiveEngineRunner:
         return self._supported_event_ids()
 
     def _requires_runtime_market_features(self) -> bool:
-        return self._strategy_runtime_enabled() and "LIQUIDATION_CASCADE" in set(
-            self._supported_event_ids()
-        )
+        if not self._strategy_runtime_enabled():
+            return False
+        supported = set(self._supported_event_ids())
+        if isinstance(self._event_detector, GovernedRuntimeCoreEventDetectionAdapter):
+            governed_runtime_inputs = {
+                "BASIS_DISLOC",
+                "FND_DISLOC",
+                "LIQUIDATION_CASCADE",
+                "SPOT_PERP_BASIS_SHOCK",
+            }
+            return bool(supported.intersection(governed_runtime_inputs))
+        return "LIQUIDATION_CASCADE" in supported
 
     async def _fetch_runtime_market_features_from_rest(self, symbol: str) -> Dict[str, Any]:
         if self.rest_client is None:
@@ -1140,11 +1172,29 @@ class LiveEngineRunner:
         spread_bps = 0.0
         mid_price = float(close)
         mark_price = float(runtime_features.get("mark_price", 0.0) or 0.0)
+        spread_bps_source = "missing"
         if bid > 0.0 and ask > 0.0:
             mid_price = (bid + ask) / 2.0
             spread_bps = ((ask - bid) / mid_price) * 10_000.0 if mid_price > 0.0 else 0.0
+            spread_bps_source = "book_ticker"
         elif mark_price > 0.0:
             mid_price = mark_price
+        depth_usd = float(
+            self.strategy_runtime.get("default_depth_usd", 50_000.0) or 50_000.0
+        )
+        depth_usd_source = "configured_default"
+        funding_rate_source = "runtime_market_features" if "funding_rate" in runtime_features else "missing"
+        open_interest_source = (
+            "runtime_market_features" if "open_interest" in runtime_features else "missing"
+        )
+        mark_price_source = "runtime_market_features" if "mark_price" in runtime_features else "current_close_fallback"
+        liquidation_source = (
+            "data_manager"
+            if hasattr(self.data_manager, "get_liquidation_notional")
+            else "runtime_market_features"
+            if "liquidation_notional_usd" in runtime_features
+            else "missing"
+        )
         regime_info = _classify_canonical_regime(
             move_bps=move_bps,
             rv_pct=runtime_features.get("rv_pct"),
@@ -1156,10 +1206,11 @@ class LiveEngineRunner:
             "last_price": float(close),
             "mid_price": float(mid_price),
             "mark_price": float(mark_price or close),
+            "mark_price_source": mark_price_source,
             "spread_bps": float(spread_bps),
-            "depth_usd": float(
-                self.strategy_runtime.get("default_depth_usd", 50_000.0) or 50_000.0
-            ),
+            "spread_bps_source": spread_bps_source,
+            "depth_usd": depth_usd,
+            "depth_usd_source": depth_usd_source,
             "tob_coverage": float(self.strategy_runtime.get("default_tob_coverage", 0.95) or 0.95),
             "canonical_regime": regime_info["canonical_regime"],
             "regime_mode": regime_info["regime_mode"],
@@ -1170,8 +1221,10 @@ class LiveEngineRunner:
                 self.strategy_runtime.get("default_expected_cost_bps", 3.0) or 3.0
             ),
             "funding_rate": float(runtime_features.get("funding_rate", 0.0) or 0.0),
+            "funding_rate_source": funding_rate_source,
             "funding_timestamp": str(runtime_features.get("funding_timestamp", "") or ""),
             "open_interest": float(runtime_features.get("open_interest", 0.0) or 0.0),
+            "open_interest_source": open_interest_source,
             "open_interest_delta_fraction": float(
                 runtime_features.get("open_interest_delta_fraction", 0.0) or 0.0
             ),
@@ -1183,6 +1236,7 @@ class LiveEngineRunner:
                 if hasattr(self.data_manager, "get_liquidation_notional")
                 else runtime_features.get("liquidation_notional_usd", 0.0)
             ),
+            "liquidation_notional_source": liquidation_source,
         }
 
     def _record_live_decision_episode(self, outcome: DecisionOutcome) -> None:
@@ -1361,6 +1415,9 @@ class LiveEngineRunner:
             return
 
         close = float(self._event_value(event, "close", 0.0) or 0.0)
+        open_price = float(self._event_value(event, "open", close) or close)
+        high = float(self._event_value(event, "high", close) or close)
+        low = float(self._event_value(event, "low", close) or close)
         volume = float(
             self._event_value(event, "quote_volume", self._event_value(event, "volume", 0.0)) or 0.0
         )
@@ -1383,7 +1440,14 @@ class LiveEngineRunner:
             timestamp=str(timestamp),
             move_bps=float(provisional_move_bps),
         )
-        detector = detect_live_event(
+        market_state = market_state | {
+            "open": float(open_price),
+            "high": float(high),
+            "low": float(low),
+            "close": float(close),
+            "volume": float(volume),
+        }
+        detected_events = self._event_detector.detect_events(
             symbol=symbol,
             timeframe=timeframe,
             current_close=close,
@@ -1391,12 +1455,12 @@ class LiveEngineRunner:
             volume=volume,
             market_features=market_state,
             supported_event_ids=supported,
-            detector_config=self.strategy_runtime.get("event_detector", {}),
         )
         self._latest_final_kline_by_key[(symbol, timeframe)] = {
             "close": close,
             "timestamp": timestamp,
         }
+        detector = detected_events[0] if detected_events else None
         if detector is None:
             return
 

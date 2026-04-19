@@ -27,12 +27,14 @@ from project.pipelines.pipeline_provenance import (
     config_digest,
     build_initial_run_manifest,
     resolve_existing_manifest_state,
+    write_execution_reports,
 )
 from project.pipelines.pipeline_planning import (
     build_parser,
     resolve_experiment_context,
     prepare_run_preflight,
     compute_stage_instance_ids,
+    build_contract_backed_execution_plan,
 )
 from project.pipelines.run_all_bootstrap import build_run_bootstrap_state
 from project.pipelines.effective_config import (
@@ -40,6 +42,7 @@ from project.pipelines.effective_config import (
     write_effective_config,
 )
 from project.pipelines.pipeline_execution import (
+    ExecutionRunner,
     execute_pipeline_stages,
     seed_run_manifest,
     finalize_run_manifest,
@@ -163,6 +166,12 @@ def _run_all_impl(raw_argv: List[str] | None = None) -> int:
     planned_stage_instances = compute_stage_instance_ids(stages)
     runtime_invariants_mode = str(preflight["runtime_invariants_mode"])
     effective_behavior = dict(preflight.get("effective_behavior", {}))
+    execution_plan = build_contract_backed_execution_plan(
+        run_id=run_id,
+        args=args,
+        stages=stages,
+        artifact_contracts=preflight.get("artifact_contracts", {}),
+    )
 
     if bool(args.plan_only):
         print(f"Plan for run {run_id}:")
@@ -186,6 +195,8 @@ def _run_all_impl(raw_argv: List[str] | None = None) -> int:
             )
         for s in planned_stage_instances:
             print(f" - {s}")
+        print("")
+        print(execution_plan.explain())
         return 0
 
     # Initialize state
@@ -216,6 +227,12 @@ def _run_all_impl(raw_argv: List[str] | None = None) -> int:
     run_manifest = bootstrap.run_manifest
     if effective_behavior:
         run_manifest["effective_behavior"] = effective_behavior
+    run_manifest["execution_plan_stage_families"] = sorted(
+        {stage.stage_family for stage in execution_plan.active_stages if stage.stage_family}
+    )
+    run_manifest["execution_plan_artifact_contract_ids"] = [
+        obligation.contract_id for obligation in execution_plan.artifact_obligations
+    ]
     _export_runtime_mode_env(run_manifest)
 
     seed_run_manifest(
@@ -283,9 +300,15 @@ def _run_all_impl(raw_argv: List[str] | None = None) -> int:
 
     execution_requested = bool(preflight.get("execution_requested", True))
     last_stage_cache_meta = run_manifest.get("stage_cache_meta", {})
+    execution_runner = ExecutionRunner(
+        feature_schema_version=feature_schema_version,
+        current_pipeline_session_id=pipeline_session_id,
+        run_stage_fn=_run_stage,
+    )
 
     # Unified DAG Execution (handles parallelism, dependencies, and timing)
-    stage_execution = execute_pipeline_stages(
+    stage_execution = execution_runner.execute(
+        plan=execution_plan,
         args=args,
         run_id=run_id,
         stages=stages,
@@ -300,9 +323,6 @@ def _run_all_impl(raw_argv: List[str] | None = None) -> int:
         apply_run_terminal_audit=apply_run_terminal_audit,
         load_checklist_decision=load_checklist_decision,
         last_stage_cache_meta=last_stage_cache_meta,
-        feature_schema_version=feature_schema_version,
-        current_pipeline_session_id=pipeline_session_id,
-        run_stage_fn=_run_stage,
     )
 
     if str(stage_execution.get("status")) != "ok":
@@ -320,6 +340,28 @@ def _run_all_impl(raw_argv: List[str] | None = None) -> int:
             non_production_overrides=list(stage_execution.get("non_production_overrides", [])),
             failed_stage=stage_execution.get("failed_stage"),
             failed_stage_instance=stage_execution.get("failed_stage_instance"),
+        )
+        write_run_manifest_internal(run_id, run_manifest)
+        verification_report = execution_runner.build_verification_report(
+            plan=execution_plan,
+            run_manifest=run_manifest,
+            data_root=DATA_ROOT,
+        )
+        execution_report_paths = write_execution_reports(
+            run_id=run_id,
+            plan=execution_plan,
+            verification_report=verification_report,
+            data_root=DATA_ROOT,
+        )
+        run_manifest["execution_report_paths"] = execution_report_paths
+        run_manifest["contract_conformance_status"] = (
+            "pass" if verification_report.passed else "fail"
+        )
+        run_manifest["contract_conformance_stage_mismatch_count"] = len(
+            verification_report.mismatches
+        )
+        run_manifest["contract_conformance_artifact_mismatch_count"] = len(
+            verification_report.artifact_mismatches
         )
         write_run_manifest_internal(run_id, run_manifest)
         return 1
@@ -343,7 +385,7 @@ def _run_all_impl(raw_argv: List[str] | None = None) -> int:
     if postflight_exit is not None:
         return int(postflight_exit)
 
-    return finalize_successful_run(
+    exit_code = finalize_successful_run(
         run_manifest=run_manifest,
         run_id=run_id,
         preflight=preflight,
@@ -359,6 +401,27 @@ def _run_all_impl(raw_argv: List[str] | None = None) -> int:
         write_run_comparison_report=write_run_comparison_report,
         data_root=DATA_ROOT,
     )
+    verification_report = execution_runner.build_verification_report(
+        plan=execution_plan,
+        run_manifest=read_run_manifest(run_id) or run_manifest,
+        data_root=DATA_ROOT,
+    )
+    execution_report_paths = write_execution_reports(
+        run_id=run_id,
+        plan=execution_plan,
+        verification_report=verification_report,
+        data_root=DATA_ROOT,
+    )
+    run_manifest["execution_report_paths"] = execution_report_paths
+    run_manifest["contract_conformance_status"] = "pass" if verification_report.passed else "fail"
+    run_manifest["contract_conformance_stage_mismatch_count"] = len(
+        verification_report.mismatches
+    )
+    run_manifest["contract_conformance_artifact_mismatch_count"] = len(
+        verification_report.artifact_mismatches
+    )
+    write_run_manifest_internal(run_id, run_manifest)
+    return exit_code
 
 
 def main(argv: List[str] | None = None) -> int:

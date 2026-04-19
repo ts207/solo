@@ -6,6 +6,13 @@ from pathlib import Path
 import pytest
 
 from project.core.exceptions import DataIntegrityError
+from project.pipelines.execution_plan import (
+    ArtifactVerificationResult,
+    ExecutionPlan,
+    ExecutionVerificationReport,
+    PlannedArtifactObligation,
+    PlannedStage,
+)
 from project.pipelines import pipeline_provenance as prov
 
 
@@ -188,3 +195,65 @@ def test_objective_and_profile_metadata_raise_on_malformed_specs(tmp_path: Path)
     retail_path.write_text("profiles:\n  sample: [", encoding="utf-8")
     with pytest.raises(DataIntegrityError):
         prov.retail_profile_metadata("sample", str(retail_path))
+
+
+def test_write_execution_reports_materializes_explain_plan_and_conformance(tmp_path: Path) -> None:
+    plan = ExecutionPlan(
+        run_id="run-1",
+        planned_at="2026-04-18T00:00:00Z",
+        stages=(
+            PlannedStage(
+                stage_name="phase2_search_engine",
+                script_path="research/phase2_search_engine.py",
+                reason_code="selected",
+                stage_family="phase2_discovery",
+                owner_service="project.research.services.candidate_discovery_service",
+            ),
+        ),
+        artifact_obligations=(
+            PlannedArtifactObligation(
+                contract_id="discovery_phase2_candidates",
+                producer_stage_family="phase2_discovery",
+                schema_id="phase2_candidates",
+                schema_version="phase2_candidates_v1",
+                strictness="strict",
+                required=True,
+                expected_path="reports/phase2/run-1/phase2_candidates.parquet",
+            ),
+        ),
+    )
+    report = ExecutionVerificationReport(
+        run_id="run-1",
+        verified_at="2026-04-18T01:00:00Z",
+        plan_stage_count=1,
+        actual_stage_count=1,
+        results=(),
+        artifact_results=(
+            ArtifactVerificationResult(
+                contract_id="discovery_phase2_candidates",
+                expected_path="reports/phase2/run-1/phase2_candidates.parquet",
+                producer_stage_family="phase2_discovery",
+                schema_id="phase2_candidates",
+                schema_version="phase2_candidates_v1",
+                strictness="strict",
+                required=True,
+                status="conformant",
+                actual_path=str(tmp_path / "reports" / "phase2" / "run-1" / "phase2_candidates.parquet"),
+            ),
+        ),
+        final_status="success",
+    )
+
+    paths = prov.write_execution_reports(
+        run_id="run-1",
+        plan=plan,
+        verification_report=report,
+        data_root=tmp_path,
+    )
+
+    assert Path(paths["explain_plan_json"]).exists()
+    assert Path(paths["contract_conformance_json"]).exists()
+    assert "Explain Plan" in Path(paths["explain_plan_markdown"]).read_text(encoding="utf-8")
+    assert "Contract Conformance" in Path(paths["contract_conformance_markdown"]).read_text(
+        encoding="utf-8"
+    )

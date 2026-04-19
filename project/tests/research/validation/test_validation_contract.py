@@ -14,6 +14,7 @@ from project.research.validation.contracts import (
 )
 from project.research.validation.result_writer import (
     write_validation_bundle,
+    write_promotion_ready_candidates,
     write_validated_candidate_tables,
     load_validation_bundle,
 )
@@ -133,3 +134,33 @@ def test_strict_validation_bundle_accepts_current_contract_with_companion(tmp_pa
 
     loaded = load_validation_bundle(run_id, base_dir=tmp_path, strict=True)
     assert loaded.run_id == run_id
+
+
+def test_write_promotion_ready_candidates_backfills_canonical_defaults(tmp_path):
+    bundle = ValidationBundle(
+        run_id="bad_promotion_ready",
+        created_at=datetime.now().isoformat(),
+        validated_candidates=[
+            ValidatedCandidateRecord(
+                candidate_id="cand_bad",
+                decision=ValidationDecision(
+                    status="validated",
+                    candidate_id="cand_bad",
+                    run_id="bad_promotion_ready",
+                    reason_codes=[],
+                ),
+                metrics=ValidationMetrics(sample_count=25, expectancy=0.05),
+                template_id="tpl_bad",
+                direction="long",
+                horizon_bars=8,
+            )
+        ],
+        summary_stats={},
+    )
+
+    path = write_promotion_ready_candidates(bundle, base_dir=tmp_path)
+    payload = __import__("pandas").read_parquet(path)
+    assert payload.iloc[0]["validation_program_id"] == ""
+    assert float(payload.iloc[0]["metric_q_value"]) == 1.0
+    assert float(payload.iloc[0]["metric_stability_score"]) == 0.0
+    assert float(payload.iloc[0]["metric_net_expectancy"]) == 0.05

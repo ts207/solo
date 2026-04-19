@@ -13,6 +13,7 @@ from pathlib import Path
 from typing import Any, Dict
 
 from project import PROJECT_ROOT
+from project.live.policy import normalize_live_event_detector_config
 from project.spec_registry import load_yaml_path
 
 
@@ -68,6 +69,12 @@ def _normalize_strategy_runtime(config: Dict[str, Any], *, config_path: Path) ->
         normalized["thesis_run_id"] = thesis_run_id
     else:
         normalized.pop("thesis_run_id", None)
+    try:
+        normalized["event_detector"] = normalize_live_event_detector_config(
+            normalized.get("event_detector", {})
+        )
+    except ValueError as exc:
+        raise LiveRuntimeConfigError(f"{exc}: {config_path}") from exc
     return normalized
 
 
@@ -148,6 +155,13 @@ def resolve_live_engine_session_metadata(
         "runtime_mode": runtime_mode,
         "strategy_runtime_implemented": bool(
             isinstance(strategy_runtime, dict) and strategy_runtime.get("implemented", False)
+        ),
+        "event_detection_adapter": str(
+            (
+                strategy_runtime.get("event_detector", {})
+                if isinstance(strategy_runtime, dict)
+                else {}
+            ).get("adapter", "governed_runtime_core")
         ),
     }
 

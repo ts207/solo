@@ -14,6 +14,12 @@ from project.core.exceptions import (
     MissingArtifactError,
     SchemaMismatchError,
 )
+from project.contracts.schemas import (
+    normalize_dataframe_for_schema,
+    validate_dataframe_for_schema,
+    validate_payload_for_schema,
+    validate_schema_at_producer,
+)
 from project.io.utils import atomic_write_json, write_parquet
 from project.research.contracts.historical_trust import (
     HISTORICAL_TRUST_LEGACY,
@@ -69,6 +75,7 @@ def _validate_mapping_payload(payload: Any, *, artifact_name: str) -> None:
 
 
 def _validate_validation_bundle_payload(payload: Any) -> None:
+    validate_payload_for_schema(payload, "validation_bundle")
     _validate_mapping_payload(payload, artifact_name="validation_bundle.json")
     required = {
         "run_id": str,
@@ -217,6 +224,45 @@ def write_promotion_ready_candidates(bundle: ValidationBundle, base_dir: Optiona
         flat_data.append(row)
     
     flat_df = pd.DataFrame(flat_data, columns=PROMOTION_READY_COLUMNS)
+    flat_df = normalize_dataframe_for_schema(flat_df, "promotion_ready_candidates")
+    if not flat_df.empty:
+        if "validation_program_id" in flat_df.columns:
+            flat_df["validation_program_id"] = (
+                flat_df["validation_program_id"].fillna("").astype(str)
+            )
+        if "metric_net_expectancy" in flat_df.columns:
+            fallback = pd.to_numeric(
+                flat_df.get("metric_expectancy", pd.Series(0.0, index=flat_df.index)),
+                errors="coerce",
+            ).fillna(0.0)
+            metric_net_expectancy = pd.to_numeric(
+                flat_df["metric_net_expectancy"],
+                errors="coerce",
+            )
+            flat_df["metric_net_expectancy"] = metric_net_expectancy.where(
+                ~metric_net_expectancy.isna(),
+                fallback,
+            ).fillna(0.0)
+        if "metric_q_value" in flat_df.columns:
+            flat_df["metric_q_value"] = pd.to_numeric(
+                flat_df["metric_q_value"],
+                errors="coerce",
+            ).fillna(1.0)
+        if "metric_stability_score" in flat_df.columns:
+            flat_df["metric_stability_score"] = pd.to_numeric(
+                flat_df["metric_stability_score"],
+                errors="coerce",
+            ).fillna(0.0)
+    validate_schema_at_producer(
+        flat_df,
+        "promotion_ready_candidates",
+        context="write_promotion_ready_candidates",
+    )
+    flat_df = validate_dataframe_for_schema(
+        flat_df,
+        "promotion_ready_candidates",
+        allow_empty=True,
+    )
     path = base_dir / "promotion_ready_candidates.parquet"
     write_parquet(flat_df, path)
     return path

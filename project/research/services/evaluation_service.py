@@ -9,6 +9,7 @@ from typing import Any, Dict, List, Optional
 import pandas as pd
 
 from project.core.config import get_data_root
+from project.core.exceptions import MissingArtifactError
 from project.io.utils import read_table_auto
 from project.research.validation.contracts import (
     ValidationBundle,
@@ -422,8 +423,22 @@ class ValidationService:
             write_validated_candidate_tables,
         )
         base_dir = self.data_root / "reports" / "validation" / run_id
-        write_validation_bundle(bundle, base_dir=base_dir)
-        write_validated_candidate_tables(bundle, base_dir=base_dir)
+        bundle_path = write_validation_bundle(bundle, base_dir=base_dir)
+        table_paths = write_validated_candidate_tables(bundle, base_dir=base_dir)
+        required_outputs = {
+            "validation_bundle": bundle_path,
+            "promotion_ready_candidates": table_paths.get("promotion_ready_candidates"),
+        }
+        missing_outputs = [
+            name
+            for name, path in required_outputs.items()
+            if path is None or not Path(path).exists()
+        ]
+        if missing_outputs:
+            raise MissingArtifactError(
+                "validation stage failed to materialize canonical outputs: "
+                + ", ".join(sorted(missing_outputs))
+            )
         
         # Sprint 7: Artifact manifest
         from project.research.validation.manifest import RunArtifactManifest

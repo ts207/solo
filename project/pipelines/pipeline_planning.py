@@ -29,6 +29,14 @@ from project.specs.ontology import ontology_spec_hash
 from project.pipelines.planner import build_pipeline_plan
 from project.events.phase2 import PHASE2_EVENT_CHAIN
 from project.pipelines.effective_config import resolve_effective_args
+from project.contracts.artifacts import list_artifact_contracts
+from project.contracts.pipeline_registry import resolve_stage_family_contract
+from project.pipelines.execution_plan import (
+    ExecutionPlan,
+    PlannedArtifactObligation,
+    PlannedStage,
+)
+from project.pipelines.pipeline_defaults import utc_now_iso
 
 
 _SPOT_PIPELINE_EVENT_HINTS = {
@@ -484,6 +492,87 @@ def resolve_pipeline_artifact_contracts(
         if contract_issues:
             issues.extend(contract_issues)
     return resolved, issues
+
+
+def build_contract_backed_execution_plan(
+    *,
+    run_id: str,
+    args: argparse.Namespace,
+    stages: Mapping[str, Any],
+    artifact_contracts: Mapping[str, ResolvedStageArtifactContract],
+    planned_at: str | None = None,
+) -> ExecutionPlan:
+    selected_stage_families: dict[str, list[str]] = {"run_orchestration": ["run_manifest"]}
+    plan_stages: list[PlannedStage] = []
+
+    for stage_name, stage_def in stages.items():
+        family_contract = resolve_stage_family_contract(stage_name)
+        family_name = family_contract.family if family_contract is not None else ""
+        if family_name:
+            selected_stage_families.setdefault(family_name, []).append(stage_name)
+        artifact_surface = artifact_contracts.get(stage_name)
+        required_artifact_contract_ids = tuple(
+            contract.contract_id
+            for contract in list_artifact_contracts()
+            if contract.producer_stage_family == family_name
+        )
+        plan_stages.append(
+            PlannedStage(
+                stage_name=str(stage_name),
+                stage_instance_id=str(stage_name),
+                script_path=str(getattr(stage_def, "script_path", "")),
+                base_args=tuple(str(arg) for arg in getattr(stage_def, "args", [])),
+                reason_code="selected",
+                stage_family=family_name,
+                owner_service=family_contract.owner_service if family_contract is not None else "",
+                artifact_inputs=artifact_surface.inputs if artifact_surface is not None else (),
+                artifact_optional_inputs=(
+                    artifact_surface.optional_inputs if artifact_surface is not None else ()
+                ),
+                artifact_outputs=artifact_surface.outputs if artifact_surface is not None else (),
+                artifact_external_inputs=(
+                    artifact_surface.external_inputs if artifact_surface is not None else ()
+                ),
+                required_artifact_contract_ids=required_artifact_contract_ids,
+            )
+        )
+
+    obligations: list[PlannedArtifactObligation] = []
+    for contract in list_artifact_contracts():
+        producing_stages = tuple(
+            selected_stage_families.get(contract.producer_stage_family, [])
+        )
+        if not producing_stages:
+            continue
+        obligations.append(
+            PlannedArtifactObligation(
+                contract_id=contract.contract_id,
+                producer_stage_family=contract.producer_stage_family,
+                schema_id=contract.schema_id,
+                schema_version=contract.schema_version,
+                strictness=contract.strictness,
+                required=contract.required,
+                expected_path=contract.path_pattern.format(run_id=run_id),
+                legacy_paths=tuple(
+                    alias.format(run_id=run_id) for alias in contract.legacy_aliases
+                ),
+                producing_stage_names=producing_stages,
+            )
+        )
+
+    timeframes = parse_timeframes_csv(getattr(args, "timeframes", "5m"))
+    return ExecutionPlan(
+        run_id=run_id,
+        planned_at=planned_at or utc_now_iso(),
+        stages=tuple(plan_stages),
+        run_mode=str(getattr(args, "mode", "research") or "research"),
+        symbols=tuple(parse_symbols_csv(getattr(args, "symbols", ""))),
+        timeframe=",".join(timeframes),
+        experiment_config=str(getattr(args, "experiment_config", "") or ""),
+        registry_root=str(getattr(args, "registry_root", "") or ""),
+        raw_args=dict(vars(args)),
+        artifact_obligations=tuple(obligations),
+    )
 
 
 def _negative_control_summary_path(*, data_root: Path, run_id: str) -> Path:

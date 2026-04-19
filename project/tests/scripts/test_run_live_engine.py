@@ -62,6 +62,11 @@ def test_build_live_runner_uses_snapshot_path_and_config_defaults(tmp_path: Path
                     isinstance(strategy_runtime, dict)
                     and strategy_runtime.get("implemented", False)
                 ),
+                "event_detection_adapter": str(
+                    (strategy_runtime or {}).get("event_detector", {}).get(
+                        "adapter", "governed_runtime_core"
+                    )
+                ),
             }
             self.order_manager = order_manager
 
@@ -84,6 +89,7 @@ def test_build_live_runner_uses_snapshot_path_and_config_defaults(tmp_path: Path
     assert runner.session_metadata["stale_threshold_sec"] == 60.0
     assert runner.session_metadata["runtime_mode"] == "monitor_only"
     assert runner.session_metadata["strategy_runtime_implemented"] is False
+    assert runner.session_metadata["event_detection_adapter"] == "governed_runtime_core"
 
 
 def test_run_live_engine_print_session_metadata(capsys, tmp_path: Path) -> None:
@@ -117,6 +123,7 @@ def test_run_live_engine_print_session_metadata(capsys, tmp_path: Path) -> None:
     assert out["stale_threshold_sec"] == 60.0
     assert out["runtime_mode"] == "monitor_only"
     assert out["strategy_runtime_implemented"] is False
+    assert out["event_detection_adapter"] == "governed_runtime_core"
 
 
 def test_run_live_engine_print_session_metadata_applies_run_id_override(
@@ -338,6 +345,60 @@ def test_load_live_engine_config_requires_explicit_thesis_source_when_enabled(
         raise AssertionError("expected LiveRuntimeConfigError")
 
     assert "requires explicit thesis input" in message
+
+
+def test_load_live_engine_config_defaults_runtime_event_detector_to_governed(
+    tmp_path: Path,
+) -> None:
+    config_path = tmp_path / "live_config.yaml"
+    config_path.write_text(
+        "\n".join(
+            [
+                "runtime_mode: monitor_only",
+                "freshness_streams:",
+                "  - symbol: BTCUSDT",
+                "    stream: kline_5m",
+                "strategy_runtime:",
+                "  implemented: false",
+            ]
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+
+    payload = run_live_engine.load_live_engine_config(config_path)
+    assert payload["strategy_runtime"]["event_detector"]["adapter"] == "governed_runtime_core"
+
+
+def test_load_live_engine_config_rejects_heuristic_runtime_without_legacy_flag(
+    tmp_path: Path,
+) -> None:
+    config_path = tmp_path / "live_config.yaml"
+    config_path.write_text(
+        "\n".join(
+            [
+                "runtime_mode: monitor_only",
+                "freshness_streams:",
+                "  - symbol: BTCUSDT",
+                "    stream: kline_5m",
+                "strategy_runtime:",
+                "  implemented: false",
+                "  event_detector:",
+                "    adapter: heuristic",
+            ]
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+
+    try:
+        run_live_engine.load_live_engine_config(config_path)
+    except run_live_engine.LiveRuntimeConfigError as exc:
+        message = str(exc)
+    else:
+        raise AssertionError("expected LiveRuntimeConfigError")
+
+    assert "legacy_heuristic_enabled=true" in message
 
 
 def test_run_live_engine_print_session_metadata_skips_runtime_env_validation(

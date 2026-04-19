@@ -25,6 +25,7 @@ class LiveTradeContext(BaseModel):
     event_evidence_mode: str = ""
     event_role: str = "trigger"
     threshold_snapshot: Dict[str, Any] = Field(default_factory=dict)
+    detector_input_status: Dict[str, Any] = Field(default_factory=dict)
     live_features: Dict[str, Any] = Field(default_factory=dict)
     regime_snapshot: Dict[str, Any] = Field(default_factory=dict)
     execution_env: Dict[str, Any] = Field(default_factory=dict)

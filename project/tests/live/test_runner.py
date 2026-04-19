@@ -92,6 +92,7 @@ def test_live_runner_exposes_persistent_session_metadata(tmp_path) -> None:
     assert runner.session_metadata["runtime_metrics_snapshot_path"] == str(metrics_path)
     assert runner.session_metadata["runtime_mode"] == "monitor_only"
     assert runner.session_metadata["strategy_runtime_implemented"] is False
+    assert runner.session_metadata["event_detection_adapter"] == "governed_runtime_core"
 
 
 def test_live_runner_uses_canonical_default_incubation_ledger_path() -> None:
@@ -1245,6 +1246,10 @@ def test_live_runner_monitor_only_processes_thesis_runtime_events(tmp_path) -> N
             "include_pending_theses": False,
             "auto_submit": False,
             "supported_event_ids": ["VOL_SHOCK"],
+            "event_detector": {
+                "adapter": "heuristic",
+                "legacy_heuristic_enabled": True,
+            },
             "memory_root": str(tmp_path / "memory"),
             "persist_dir": str(tmp_path / "live" / "persist"),
         },
@@ -1541,6 +1546,10 @@ def test_live_runner_persists_runtime_metrics_snapshot_with_market_state_and_dec
             "include_pending_theses": False,
             "auto_submit": False,
             "supported_event_ids": ["VOL_SHOCK", "LIQUIDATION_CASCADE"],
+            "event_detector": {
+                "adapter": "heuristic",
+                "legacy_heuristic_enabled": True,
+            },
             "memory_root": str(tmp_path / "memory"),
             "persist_dir": str(tmp_path / "live" / "persist"),
         },
@@ -1599,3 +1608,8 @@ def test_live_runner_persists_runtime_metrics_snapshot_with_market_state_and_dec
     assert payload["recent_decisions"][0]["canonical_regime"] == "VOLATILITY"
     assert payload["recent_decisions"][0]["compat_event_family"] == "VOL_SHOCK"
     assert payload["recent_decisions"][0]["thesis_canonical_regime"] == "VOLATILITY"
+    assert payload["recent_decisions"][0]["event_detection_adapter"] == "heuristic"
+    trace = payload["recent_decisions"][0]["decision_trace"]
+    assert trace["detected_event"]["event_id"] == "VOL_SHOCK"
+    assert trace["matched_thesis_ids"]
+    assert trace["trade_intent"]["action"] == payload["recent_decisions"][0]["action"]

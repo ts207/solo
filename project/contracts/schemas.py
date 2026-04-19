@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Dict, Iterable, List
+from typing import Any, Dict, Iterable, List
 
 import pandas as pd
 
@@ -16,6 +16,25 @@ class DataFrameSchemaContract:
     optional_columns: tuple[str, ...] = ()
     schema_version: str = "phase5_schema_v1"
     strictness: str = "strict"
+
+    @property
+    def schema_id(self) -> str:
+        return self.name
+
+
+@dataclass(frozen=True)
+class PayloadSchemaContract:
+    name: str
+    required_fields: tuple[tuple[str, type], ...]
+    optional_fields: tuple[tuple[str, type], ...] = ()
+    schema_version: str = "phase5_payload_schema_v1"
+    strictness: str = "strict"
+    version_field: str | None = None
+    version_value: Any = None
+
+    @property
+    def schema_id(self) -> str:
+        return self.name
 
 
 _SCHEMA_REGISTRY: Dict[str, DataFrameSchemaContract] = {
@@ -217,6 +236,99 @@ _SCHEMA_REGISTRY: Dict[str, DataFrameSchemaContract] = {
             "routing_profile_id",
         ),
     ),
+    "promotion_ready_candidates": DataFrameSchemaContract(
+        name="promotion_ready_candidates",
+        required_columns=(
+            "candidate_id",
+            "validation_status",
+            "validation_run_id",
+            "validation_program_id",
+            "metric_sample_count",
+            "metric_q_value",
+            "metric_stability_score",
+            "metric_net_expectancy",
+        ),
+        optional_columns=(
+            "anchor_summary",
+            "template_id",
+            "direction",
+            "horizon_bars",
+            "validation_stage_version",
+            "validation_reason_codes",
+            "metric_effective_sample_size",
+            "metric_expectancy",
+            "metric_hit_rate",
+            "metric_p_value",
+            "metric_cost_sensitivity",
+            "metric_turnover",
+            "metric_regime_support_score",
+            "metric_time_slice_support_score",
+            "metric_negative_control_score",
+            "metric_max_drawdown",
+            "source_event_name",
+            "source_event_version",
+            "source_detector_class",
+            "source_evidence_mode",
+            "source_threshold_version",
+            "source_calibration_artifact",
+        ),
+    ),
+}
+
+
+_PAYLOAD_SCHEMA_REGISTRY: Dict[str, PayloadSchemaContract] = {
+    "validation_bundle": PayloadSchemaContract(
+        name="validation_bundle",
+        required_fields=(
+            ("run_id", str),
+            ("created_at", str),
+            ("validated_candidates", list),
+            ("rejected_candidates", list),
+            ("inconclusive_candidates", list),
+            ("summary_stats", dict),
+            ("effect_stability_report", dict),
+        ),
+        schema_version="validation_bundle_v1",
+    ),
+    "promoted_theses_payload": PayloadSchemaContract(
+        name="promoted_theses_payload",
+        required_fields=(
+            ("schema_version", str),
+            ("run_id", str),
+            ("generated_at_utc", str),
+            ("thesis_count", int),
+            ("active_thesis_count", int),
+            ("pending_thesis_count", int),
+            ("theses", list),
+        ),
+        schema_version="promoted_theses_v1",
+        version_field="schema_version",
+        version_value="promoted_theses_v1",
+    ),
+    "live_thesis_index": PayloadSchemaContract(
+        name="live_thesis_index",
+        required_fields=(
+            ("schema_version", str),
+            ("latest_run_id", str),
+            ("default_resolution_disabled", bool),
+            ("runs", dict),
+        ),
+        schema_version="promoted_thesis_index_v1",
+        version_field="schema_version",
+        version_value="promoted_thesis_index_v1",
+    ),
+    "run_manifest": PayloadSchemaContract(
+        name="run_manifest",
+        required_fields=(("run_id", str),),
+        optional_fields=(
+            ("status", str),
+            ("started_at", str),
+            ("finished_at", str),
+            ("planned_stage_instances", list),
+            ("stage_timings_sec", dict),
+        ),
+        schema_version="run_manifest_v1",
+    ),
 }
 
 
@@ -225,6 +337,27 @@ def get_schema_contract(name: str) -> DataFrameSchemaContract:
         return _SCHEMA_REGISTRY[str(name)]
     except KeyError as exc:
         raise KeyError(f"unknown dataframe schema: {name}") from exc
+
+
+def get_payload_schema_contract(name: str) -> PayloadSchemaContract:
+    try:
+        return _PAYLOAD_SCHEMA_REGISTRY[str(name)]
+    except KeyError as exc:
+        raise KeyError(f"unknown payload schema: {name}") from exc
+
+
+def schema_contract_exists(name: str) -> bool:
+    token = str(name)
+    return token in _SCHEMA_REGISTRY or token in _PAYLOAD_SCHEMA_REGISTRY
+
+
+def get_any_schema_contract(name: str) -> DataFrameSchemaContract | PayloadSchemaContract:
+    token = str(name)
+    if token in _SCHEMA_REGISTRY:
+        return _SCHEMA_REGISTRY[token]
+    if token in _PAYLOAD_SCHEMA_REGISTRY:
+        return _PAYLOAD_SCHEMA_REGISTRY[token]
+    raise KeyError(f"unknown schema contract: {name}")
 
 
 def normalize_dataframe_for_schema(df: pd.DataFrame, schema_name: str) -> pd.DataFrame:
@@ -319,3 +452,34 @@ def validate_schema_at_producer(
         logging.getLogger(__name__).debug("schema contract violation (legacy_compatible): %s", msg)
 
     return issues
+
+
+def validate_payload_for_schema(
+    payload: Dict[str, Any],
+    schema_name: str,
+) -> Dict[str, Any]:
+    schema = get_payload_schema_contract(schema_name)
+    if not isinstance(payload, dict):
+        raise ValueError(f"payload for schema '{schema_name}' must be a mapping")
+    for field_name, field_type in schema.required_fields:
+        if field_name not in payload:
+            raise ValueError(f"payload for schema '{schema_name}' missing required field {field_name!r}")
+        if not isinstance(payload[field_name], field_type):
+            raise ValueError(
+                f"payload for schema '{schema_name}' field {field_name!r} must be {field_type.__name__}"
+            )
+    for field_name, field_type in schema.optional_fields:
+        if field_name in payload and payload[field_name] is not None and not isinstance(
+            payload[field_name], field_type
+        ):
+            raise ValueError(
+                f"payload for schema '{schema_name}' field {field_name!r} must be {field_type.__name__}"
+            )
+    if schema.version_field is not None:
+        actual = payload.get(schema.version_field)
+        if actual != schema.version_value:
+            raise ValueError(
+                f"payload for schema '{schema_name}' field {schema.version_field!r} "
+                f"must be {schema.version_value!r}"
+            )
+    return dict(payload)

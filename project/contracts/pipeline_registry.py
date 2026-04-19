@@ -26,6 +26,13 @@ class StageFamilyContract:
     family: str
     stage_patterns: tuple[str, ...]
     script_patterns: tuple[str, ...]
+    owner_service: str = "project.pipelines.run_all"
+
+
+@dataclass(frozen=True)
+class ArtifactStageFamilyContract:
+    family: str
+    description: str
 
 
 _VALID_STRICTNESS = frozenset({"strict", "transitional", "legacy_compatible", "advisory"})
@@ -61,6 +68,34 @@ class StageTimeframeArtifactMapping:
     script_path: str
     timeframe: str
     outputs: tuple[str, ...]
+
+
+ARTIFACT_STAGE_FAMILY_REGISTRY: tuple[ArtifactStageFamilyContract, ...] = (
+    ArtifactStageFamilyContract(
+        family="phase2_discovery",
+        description="Discovery-stage candidate artifacts produced from bounded phase-2 search.",
+    ),
+    ArtifactStageFamilyContract(
+        family="validation",
+        description="Validation-stage artifacts that formalize candidate quality and handoff.",
+    ),
+    ArtifactStageFamilyContract(
+        family="promotion",
+        description="Promotion-stage artifacts that package validated candidates into runtime-ready surfaces.",
+    ),
+    ArtifactStageFamilyContract(
+        family="deploy",
+        description="Deployment/runtime artifacts consumed by paper/live selection and execution.",
+    ),
+    ArtifactStageFamilyContract(
+        family="run_orchestration",
+        description="Run-level provenance and manifest artifacts maintained by pipeline orchestration.",
+    ),
+    ArtifactStageFamilyContract(
+        family="operator",
+        description="Operator/reporting consumers that inspect lifecycle artifacts without producing them.",
+    ),
+)
 
 
 def make_ingest_ohlcv_contract(timeframe: str) -> StageArtifactContract:
@@ -173,6 +208,7 @@ STAGE_FAMILY_REGISTRY: tuple[StageFamilyContract, ...] = (
             "pipelines/ingest/ingest_bybit_derivatives_funding.py",
             "pipelines/ingest/ingest_bybit_derivatives_open_interest.py",
         ),
+        owner_service="project.pipelines.stages.ingest",
     ),
     StageFamilyContract(
         family="core",
@@ -196,6 +232,7 @@ STAGE_FAMILY_REGISTRY: tuple[StageFamilyContract, ...] = (
             "pipelines/clean/validate_data_coverage.py",
             "pipelines/clean/validate_context_entropy.py",
         ),
+        owner_service="project.pipelines.stages.core",
     ),
     StageFamilyContract(
         family="runtime_invariants",
@@ -211,6 +248,7 @@ STAGE_FAMILY_REGISTRY: tuple[StageFamilyContract, ...] = (
             "pipelines/runtime/run_determinism_replay_checks.py",
             "pipelines/runtime/run_oms_replay_validation.py",
         ),
+        owner_service="project.pipelines.stages.core",
     ),
     StageFamilyContract(
         family="phase1_analysis",
@@ -219,6 +257,7 @@ STAGE_FAMILY_REGISTRY: tuple[StageFamilyContract, ...] = (
             "research/analyze_*.py",
             "research/phase1_correlation_clustering.py",
         ),
+        owner_service="project.research.services.candidate_discovery_service",
     ),
     StageFamilyContract(
         family="phase2_event_registry",
@@ -227,6 +266,7 @@ STAGE_FAMILY_REGISTRY: tuple[StageFamilyContract, ...] = (
             "research/build_event_registry.py",
             "research/canonicalize_event_episodes.py",
         ),
+        owner_service="project.research.services.candidate_discovery_service",
     ),
     StageFamilyContract(
         family="phase2_discovery",
@@ -242,6 +282,7 @@ STAGE_FAMILY_REGISTRY: tuple[StageFamilyContract, ...] = (
             "research/analyze_interaction_lift.py",
             "research/finalize_experiment.py",
         ),
+        owner_service="project.research.services.candidate_discovery_service",
     ),
     StageFamilyContract(
         family="promotion",
@@ -261,6 +302,7 @@ STAGE_FAMILY_REGISTRY: tuple[StageFamilyContract, ...] = (
             "research/update_campaign_memory.py",
             "research/export_edge_candidates.py",
         ),
+        owner_service="project.research.services.promotion_service",
     ),
     StageFamilyContract(
         family="research_quality",
@@ -274,6 +316,7 @@ STAGE_FAMILY_REGISTRY: tuple[StageFamilyContract, ...] = (
             "research/validate_expectancy_traps.py",
             "research/generate_recommendations_checklist.py",
         ),
+        owner_service="project.research.services.reporting_service",
     ),
     StageFamilyContract(
         family="strategy_packaging",
@@ -287,6 +330,7 @@ STAGE_FAMILY_REGISTRY: tuple[StageFamilyContract, ...] = (
             "research/build_strategy_candidates.py",
             "research/select_profitable_strategies.py",
         ),
+        owner_service="project.research.services.promotion_service",
     ),
 )
 
@@ -734,6 +778,23 @@ def _is_glob_pattern(value: str) -> bool:
     return "*" in value or "?" in value or "[" in value
 
 
+def list_artifact_stage_families() -> tuple[str, ...]:
+    return tuple(contract.family for contract in ARTIFACT_STAGE_FAMILY_REGISTRY)
+
+
+def validate_artifact_stage_family_names(families: Sequence[str]) -> List[str]:
+    known = set(list_artifact_stage_families())
+    issues: List[str] = []
+    for family in families:
+        token = str(family).strip()
+        if not token:
+            issues.append("artifact stage family cannot be blank")
+            continue
+        if token not in known:
+            issues.append(f"unknown artifact stage family '{token}'")
+    return issues
+
+
 def _to_rel_posix(path: Path, project_root: Path) -> str:
     try:
         rel = Path(path).resolve().relative_to(Path(project_root).resolve())
@@ -769,6 +830,13 @@ def _matching_family_contracts(stage_name: str) -> List[StageFamilyContract]:
         if any(fnmatch(stage_name, pattern) for pattern in contract.stage_patterns):
             matched.append(contract)
     return matched
+
+
+def resolve_stage_family_contract(stage_name: str) -> StageFamilyContract | None:
+    contracts = _matching_family_contracts(stage_name)
+    if not contracts:
+        return None
+    return contracts[0]
 
 
 def validate_stage_plan_contract(stages: Sequence[StageSpec], project_root: Path) -> List[str]:

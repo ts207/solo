@@ -4,12 +4,15 @@ import hashlib
 import json
 import os
 import subprocess
+from dataclasses import asdict
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, Iterable, List, Optional, Tuple
 
 from project import PROJECT_ROOT
 from project.core.exceptions import DataIntegrityError
+from project.io.utils import atomic_write_json, atomic_write_text
+from project.pipelines.execution_plan import ExecutionPlan, ExecutionVerificationReport
 from project.pipelines.pipeline_defaults import DATA_ROOT, utc_now_iso
 from project.pipelines.execution_engine_support import _manifest_declared_outputs_exist
 
@@ -203,6 +206,100 @@ def write_run_manifest(
     path.parent.mkdir(parents=True, exist_ok=True)
     with path.open("w", encoding="utf-8") as f:
         json.dump(manifest, f, indent=2, sort_keys=True)
+
+
+def execution_report_dir(
+    run_id: str,
+    *,
+    data_root: Path | None = None,
+) -> Path:
+    return Path(data_root or _get_data_root()) / "runs" / run_id / "execution"
+
+
+def render_execution_plan_markdown(plan: ExecutionPlan) -> str:
+    lines = [
+        "# Explain Plan",
+        "",
+        f"- Run ID: `{plan.run_id}`",
+        f"- Planned at: `{plan.planned_at}`",
+        f"- Mode: `{plan.run_mode}`",
+        f"- Symbols: `{', '.join(plan.symbols) or '(none)'}`",
+        f"- Timeframe: `{plan.timeframe}`",
+        "",
+        "## Selected Stages",
+        "",
+    ]
+    for stage in plan.stages:
+        reason = stage.reason_code if stage.reason_code != "selected" else "selected"
+        lines.append(
+            f"- `{stage.stage_name}` [{reason}] family=`{stage.stage_family or 'unknown'}` "
+            f"owner=`{stage.owner_service or 'unknown'}`"
+        )
+        if stage.artifact_outputs:
+            lines.append(f"  outputs: {', '.join(f'`{item}`' for item in stage.artifact_outputs)}")
+        if stage.artifact_inputs:
+            lines.append(f"  inputs: {', '.join(f'`{item}`' for item in stage.artifact_inputs)}")
+    if plan.artifact_obligations:
+        lines.extend(["", "## Artifact Obligations", ""])
+        for obligation in plan.artifact_obligations:
+            lines.append(
+                f"- `{obligation.contract_id}` -> `{obligation.expected_path}` "
+                f"(producer=`{obligation.producer_stage_family}`, schema=`{obligation.schema_id}`)"
+            )
+    return "\n".join(lines).strip() + "\n"
+
+
+def render_execution_verification_markdown(report: ExecutionVerificationReport) -> str:
+    lines = [
+        "# Contract Conformance",
+        "",
+        f"- Run ID: `{report.run_id}`",
+        f"- Verified at: `{report.verified_at}`",
+        f"- Final status: `{report.final_status}`",
+        f"- Stage mismatches: `{len(report.mismatches)}`",
+        f"- Artifact mismatches: `{len(report.artifact_mismatches)}`",
+        "",
+        "## Stage Verification",
+        "",
+    ]
+    for result in report.results:
+        lines.append(
+            f"- `{result.stage_name}` planned=`{result.planned_reason_code}` actual=`{result.actual_outcome}`"
+        )
+    if report.artifact_results:
+        lines.extend(["", "## Artifact Verification", ""])
+        for result in report.artifact_results:
+            suffix = f" actual=`{result.actual_path}`" if result.actual_path else ""
+            lines.append(
+                f"- `{result.contract_id}` status=`{result.status}` expected=`{result.expected_path}`{suffix}"
+            )
+    return "\n".join(lines).strip() + "\n"
+
+
+def write_execution_reports(
+    *,
+    run_id: str,
+    plan: ExecutionPlan,
+    verification_report: ExecutionVerificationReport,
+    data_root: Path | None = None,
+) -> Dict[str, str]:
+    out_dir = execution_report_dir(run_id, data_root=data_root)
+    explain_plan_json = out_dir / "explain_plan.json"
+    explain_plan_md = out_dir / "explain_plan.md"
+    conformance_json = out_dir / "contract_conformance.json"
+    conformance_md = out_dir / "contract_conformance.md"
+
+    atomic_write_json(explain_plan_json, asdict(plan))
+    atomic_write_text(explain_plan_md, render_execution_plan_markdown(plan))
+    atomic_write_json(conformance_json, asdict(verification_report))
+    atomic_write_text(conformance_md, render_execution_verification_markdown(verification_report))
+
+    return {
+        "explain_plan_json": str(explain_plan_json),
+        "explain_plan_markdown": str(explain_plan_md),
+        "contract_conformance_json": str(conformance_json),
+        "contract_conformance_markdown": str(conformance_md),
+    }
 
 
 def read_run_manifest(

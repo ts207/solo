@@ -4,9 +4,20 @@ import pandas as pd
 import pytest
 
 from project import PROJECT_ROOT
-from project.contracts.artifacts import build_artifact_specs, validate_artifact_registry_definitions
+from project.contracts.artifacts import (
+    build_artifact_specs,
+    get_artifact_contract,
+    list_artifact_contracts,
+    resolve_artifact_contract_for_path,
+    validate_artifact_registry_definitions,
+)
 from project.contracts.pipeline_registry import assert_stage_registry_contract
-from project.contracts.schemas import normalize_dataframe_for_schema, validate_dataframe_for_schema
+from project.contracts.schemas import (
+    get_any_schema_contract,
+    normalize_dataframe_for_schema,
+    validate_dataframe_for_schema,
+    validate_payload_for_schema,
+)
 from project.contracts.stage_dag import build_stage_specs
 
 
@@ -22,6 +33,42 @@ def test_phase5_artifact_contracts_nonempty() -> None:
     specs = build_artifact_specs()
     assert specs
     assert validate_artifact_registry_definitions() == []
+
+
+def test_typed_artifact_contracts_bind_to_known_schemas() -> None:
+    contracts = list_artifact_contracts()
+    assert contracts
+    for contract in contracts:
+        schema = get_any_schema_contract(contract.schema_id)
+        assert schema.schema_version == contract.schema_version
+
+
+def test_typed_artifact_contracts_cover_core_runtime_boundary_artifacts() -> None:
+    expected = {
+        "discovery_phase2_candidates",
+        "validation_bundle",
+        "promotion_ready_candidates",
+        "promoted_theses",
+        "live_thesis_index",
+        "run_manifest",
+    }
+    actual = {contract.contract_id for contract in list_artifact_contracts()}
+    assert expected.issubset(actual)
+
+
+def test_resolve_artifact_contract_for_canonical_paths() -> None:
+    assert (
+        resolve_artifact_contract_for_path("reports/validation/run_1/validation_bundle.json")
+        == get_artifact_contract("validation_bundle")
+    )
+    assert (
+        resolve_artifact_contract_for_path("live/theses/run_1/promoted_theses.json")
+        == get_artifact_contract("promoted_theses")
+    )
+    assert (
+        resolve_artifact_contract_for_path("runs/run_1/manifest.json")
+        == get_artifact_contract("run_manifest")
+    )
 
 
 def test_canonicalize_event_episodes_contract_fields_are_tuple_shaped() -> None:
@@ -96,6 +143,20 @@ def test_schema_normalization_and_validation() -> None:
     assert {"candidate_id", "event_type", "promotion_decision", "promotion_track"}.issubset(
         set(empty.columns)
     )
+
+
+def test_payload_schema_validation_for_promoted_theses() -> None:
+    payload = {
+        "schema_version": "promoted_theses_v1",
+        "run_id": "run_1",
+        "generated_at_utc": "2026-04-18T00:00:00Z",
+        "thesis_count": 0,
+        "active_thesis_count": 0,
+        "pending_thesis_count": 0,
+        "theses": [],
+    }
+    out = validate_payload_for_schema(payload, "promoted_theses_payload")
+    assert out["schema_version"] == "promoted_theses_v1"
 
 
 # --- Phase 2: strictness ---

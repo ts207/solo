@@ -20,22 +20,13 @@ class StageSpecContract:
     schema_version: str = "phase5_stage_contract_v1"
     is_legacy: bool = False
 
-
-def _owner_service_for_family(family: str) -> str:
-    mapping = {
-        "phase2_discovery": "project.research.services.candidate_discovery_service",
-        "promotion": "project.research.services.promotion_service",
-    }
-    return mapping.get(family, "project.pipelines.run_all")
-
-
 def build_stage_specs() -> tuple[StageSpecContract, ...]:
     return tuple(
         StageSpecContract(
             family=contract.family,
             stage_patterns=contract.stage_patterns,
             script_patterns=contract.script_patterns,
-            owner_service=_owner_service_for_family(contract.family),
+            owner_service=contract.owner_service,
         )
         for contract in STAGE_FAMILY_REGISTRY
     )

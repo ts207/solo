@@ -11,6 +11,7 @@ import numpy as np
 import pandas as pd
 
 from project.artifacts import live_thesis_index_path, promoted_theses_path
+from project.contracts.schemas import validate_payload_for_schema
 from project.core.coercion import safe_float, safe_int
 from project.core.config import get_data_root
 from project.core.exceptions import (
@@ -60,6 +61,7 @@ def _validate_object_payload(payload: Any, *, artifact_name: str) -> None:
 
 
 def _validate_exported_thesis_payload(payload: Any) -> None:
+    validate_payload_for_schema(payload, "promoted_theses_payload")
     _validate_object_payload(payload, artifact_name="promoted_theses.json")
     required = {
         "schema_version": str,
@@ -104,6 +106,7 @@ def _validate_exported_thesis_payload(payload: Any) -> None:
 
 
 def _validate_thesis_index_payload(payload: Any) -> None:
+    validate_payload_for_schema(payload, "live_thesis_index")
     _validate_object_payload(payload, artifact_name="index.json")
     required = {
         "schema_version": str,
