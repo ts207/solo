@@ -88,6 +88,7 @@ minimum-green-gate:
 	PYTHONPATH=. PYTHONPYCACHEPREFIX=$(PY_CACHE_PREFIX) $(PYTHON) project/scripts/ontology_consistency_audit.py --output docs/generated/ontology_audit.json --check
 	PYTHONPATH=. PYTHONPYCACHEPREFIX=$(PY_CACHE_PREFIX) $(PYTHON) project/scripts/build_event_contract_artifacts.py --check
 	PYTHONPATH=. PYTHONPYCACHEPREFIX=$(PY_CACHE_PREFIX) $(PYTHON) project/scripts/check_domain_graph_freshness.py
+	PYTHONPATH=. PYTHONPYCACHEPREFIX=$(PY_CACHE_PREFIX) $(PYTHON) project/scripts/check_markdown_links.py
 	PYTHONPATH=. PYTHONPYCACHEPREFIX=$(PY_CACHE_PREFIX) $(PYTHON) project/scripts/check_calibration_version_bumps.py
 	PYTHONPATH=. PYTHONPYCACHEPREFIX=$(PY_CACHE_PREFIX) $(PYTHON) project/scripts/check_deployable_core_replay_baseline.py
 	PYTHONPATH=. PYTHONPYCACHEPREFIX=$(PY_CACHE_PREFIX) $(PYTHON) project/scripts/check_known_episode_replay_baseline.py
