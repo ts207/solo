@@ -8,21 +8,22 @@ from __future__ import annotations
 
 import pandas as pd
 import pytest
+
+from project.engine.exchange_constraints import SymbolConstraints
+from project.engine.strategy_executor import calculate_strategy_returns
 from project.live.kill_switch import KillSwitchManager, KillSwitchReason
 from project.live.oms import (
-    OrderManager,
     LiveOrder,
+    OrderManager,
     OrderNeutralizationFailed,
-    OrderStatus,
     OrderSide,
-    OrderType,
+    OrderStatus,
     OrderSubmissionBlocked,
     OrderSubmissionFailed,
+    OrderType,
     build_live_order_from_strategy_result,
 )
 from project.live.state import LiveStateStore
-from project.engine.strategy_executor import calculate_strategy_returns
-from project.engine.exchange_constraints import SymbolConstraints
 
 
 class _DummyStrategy:
@@ -218,6 +219,34 @@ def test_submit_order_async_submits_to_venue():
     ]
     assert mgr.active_orders["order3c"].exchange_order_id == "venue-1"
     assert mgr.active_orders["order3c"].status == OrderStatus.NEW
+
+
+def test_submit_order_async_propagates_reduce_only_from_order_metadata():
+    class _DummyExchangeClient:
+        def __init__(self) -> None:
+            self.calls = []
+
+        async def create_market_order(self, **kwargs):
+            self.calls.append(kwargs)
+            return {"orderId": "venue-2"}
+
+    exchange_client = _DummyExchangeClient()
+    mgr = OrderManager(exchange_client=exchange_client)
+    order = LiveOrder(
+        "order3d",
+        "BTCUSDT",
+        OrderSide.SELL,
+        OrderType.MARKET,
+        0.5,
+        metadata={"reduce_only": True},
+    )
+
+    result = __import__("asyncio").run(mgr.submit_order_async(order))
+
+    assert result["accepted"] is True
+    assert exchange_client.calls == [
+        {"symbol": "BTCUSDT", "side": "SELL", "quantity": 0.5, "reduce_only": True}
+    ]
 
 
 def test_cancel_all_orders_raises_if_any_symbol_cannot_be_cancelled():

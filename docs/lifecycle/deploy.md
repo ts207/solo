@@ -1,5 +1,10 @@
 # Deploy stage
 
+> **⚠️ WARNING: DOCS FROZEN**
+> The live runtime and deployment surface are currently undergoing a major remediation (Phase 1).
+> These docs currently reflect the older, pre-remediation state and are out of sync with actual runtime behavior.
+> Please rely on the code in `project/cli.py` and `project/live/` until this warning is removed.
+
 The deploy stage launches the runtime against a promoted thesis batch.
 
 It answers this question:
@@ -9,12 +14,12 @@ It answers this question:
 ## CLI surface
 
 ```bash
-edge deploy list-theses
-edge deploy inspect-thesis  --run_id <run_id>
+edge deploy export          --run_id <run_id>
 edge deploy bind-config     --run_id <run_id>
-edge deploy paper           --run_id <run_id> --config <config.yaml>
-edge deploy live            --run_id <run_id> --config <config.yaml>
-edge deploy status
+edge deploy inspect         --run_id <run_id>
+edge deploy paper-run       --config <config.yaml>
+edge deploy live-run        --config <config.yaml>
+edge deploy status          --run_id <run_id>
 ```
 
 Use `list-theses` and `inspect-thesis` before startup to confirm that a thesis batch exists and that its deployment states match the intended mode.

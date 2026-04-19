@@ -5,6 +5,7 @@ from typing import Any, Dict, Mapping
 
 from project.live.contracts.trade_intent import TradeIntent
 from project.live.oms import LiveOrder, OrderSide, OrderType
+from project.live.venue_rules import VenueSymbolRules, check_and_normalize_order
 
 
 @dataclass(frozen=True)
@@ -40,6 +41,7 @@ def build_order_plan(
     portfolio_state: Mapping[str, Any],
     max_notional_fraction: float = 0.10,
     order_type: OrderType = OrderType.MARKET,
+    venue_rules: VenueSymbolRules | None = None,
 ) -> OrderPlan:
     if intent.action not in {"probe", "trade_small", "trade_normal"}:
         return OrderPlan(
@@ -83,6 +85,40 @@ def build_order_plan(
             blocked_by="zero_quantity",
         )
     side = OrderSide.BUY if intent.side == "buy" else OrderSide.SELL
+    reduce_only = bool(intent.metadata.get("reduce_only", False))
+    post_only = bool(intent.metadata.get("post_only", False))
+    price = entry_price if order_type == OrderType.LIMIT else None
+    venue_rule_diagnostics: Dict[str, Any] = {}
+    if venue_rules is not None:
+        venue_check = check_and_normalize_order(
+            rules=venue_rules,
+            order_type=order_type.name.lower(),
+            side=intent.side,
+            quantity=quantity,
+            reference_price=entry_price,
+            limit_price=price,
+            reduce_only=reduce_only,
+            post_only=post_only,
+        )
+        venue_rule_diagnostics = dict(venue_check.diagnostics or {})
+        if not venue_check.accepted:
+            return OrderPlan(
+                accepted=False,
+                client_order_id=client_order_id,
+                order=None,
+                plan={
+                    "entry_price": entry_price,
+                    "requested_quantity": quantity,
+                    "size_fraction": float(intent.size_fraction),
+                    "action": intent.action,
+                    "venue_rule_reasons": list(venue_check.reasons),
+                    "venue_rules": venue_rule_diagnostics,
+                },
+                blocked_by=venue_check.blocked_by,
+            )
+        quantity = float(venue_check.quantity)
+        price = venue_check.price if venue_check.price is not None else price
+
     metadata = {
         "strategy": str(intent.thesis_id or "promoted_thesis"),
         "signal_timestamp": str(market_state.get("timestamp", "")),
@@ -93,7 +129,9 @@ def build_order_plan(
             intent.metadata.get("expected_return_bps", market_state.get("expected_return_bps", 0.0))
         ),
         "expected_adverse_bps": float(
-            intent.metadata.get("expected_adverse_bps", market_state.get("expected_adverse_bps", 0.0))
+            intent.metadata.get(
+                "expected_adverse_bps", market_state.get("expected_adverse_bps", 0.0)
+            )
         ),
         "expected_cost_bps": float(market_state.get("expected_cost_bps", 0.0) or 0.0),
         "expected_net_edge_bps": float(market_state.get("expected_net_edge_bps", 0.0) or 0.0),
@@ -104,6 +142,9 @@ def build_order_plan(
         "governance_tier": str(intent.metadata.get("governance_tier", "")),
         "operational_role": str(intent.metadata.get("operational_role", "")),
         "active_episode_ids": list(intent.metadata.get("active_episode_ids", [])),
+        "reduce_only": reduce_only,
+        "post_only": post_only,
+        "venue_rules": venue_rule_diagnostics,
     }
     order = LiveOrder(
         client_order_id=client_order_id,
@@ -111,6 +152,7 @@ def build_order_plan(
         side=side,
         order_type=order_type,
         quantity=float(quantity),
+        price=price,
         metadata=metadata,
     )
     return OrderPlan(

@@ -13,10 +13,12 @@ from project import PROJECT_ROOT
 from project.core.exceptions import CompatibilityRequiredError
 from project.engine.exchange_constraints import SymbolConstraints
 from project.engine.strategy_executor import StrategyResult, calculate_strategy_returns
+from project.live.contracts.trade_intent import TradeIntent
+from project.live.event_detector import DetectedEvent
 from project.live.execution_attribution import build_execution_attribution_record
 from project.live.ingest.parsers import KlineEvent
 from project.live.kill_switch import KillSwitchReason
-from project.live.oms import OrderManager, OrderType, OrderSubmissionBlocked
+from project.live.oms import OrderManager, OrderSubmissionBlocked, OrderType
 from project.live.runner import LiveEngineRunner
 from project.portfolio.incubation import IncubationLedger
 
@@ -61,6 +63,21 @@ class _FailingMarketFeatureRestClient:
 
     async def get_open_interest(self, symbol: str):
         raise RuntimeError(f"open-interest outage for {symbol}")
+
+
+class _AlwaysDetectsVolShock:
+    adapter_id = "test_detector"
+
+    def detect_events(self, **kwargs):
+        return [
+            DetectedEvent(
+                event_id="VOL_SHOCK",
+                event_family="VOL_SHOCK",
+                canonical_regime="VOLATILITY",
+                event_side="long",
+                features={"move_bps": 100.0},
+            )
+        ]
 
 
 def test_live_runner_exposes_persistent_session_metadata(tmp_path) -> None:
@@ -1145,6 +1162,7 @@ def test_ws_reconnect_exhaustion_triggers_exchange_disconnect() -> None:
 def test_ws_client_calls_on_reconnect_exhausted_after_max_retries() -> None:
     """ws_client invokes on_reconnect_exhausted callback when retries are exhausted."""
     import asyncio
+
     from project.live.ingest.ws_client import BinanceWebSocketClient
 
     exhausted_calls = []
@@ -1256,7 +1274,9 @@ def test_live_runner_monitor_only_processes_thesis_runtime_events(tmp_path) -> N
     )
     runner._latest_book_ticker_by_symbol["BTCUSDT"] = {
         "best_bid_price": 99.99,
+        "best_bid_qty": 1_000.0,
         "best_ask_price": 100.01,
+        "best_ask_qty": 1_000.0,
         "timestamp": "2026-03-30T00:04:59Z",
     }
 
@@ -1376,8 +1396,7 @@ def test_live_runner_preserves_invalid_open_interest_delta_as_nan(caplog) -> Non
     snapshot = runner._latest_runtime_market_features_by_symbol["BTCUSDT"]
     assert math.isnan(snapshot["open_interest_delta_fraction"])
     assert any(
-        "Invalid open_interest_delta_fraction" in record.message
-        for record in caplog.records
+        "Invalid open_interest_delta_fraction" in record.message for record in caplog.records
     )
 
 
@@ -1431,6 +1450,199 @@ def test_live_runner_clears_runtime_market_features_after_refresh_failure(caplog
         assert snapshot["open_interest_delta_fraction"] == pytest.approx(0.0)
 
     asyncio.run(_exercise())
+
+
+def test_live_runner_market_snapshot_fails_closed_without_measured_depth() -> None:
+    runner = LiveEngineRunner(
+        ["btcusdt"],
+        data_manager=_DummyDataManager(),
+        strategy_runtime={
+            "implemented": True,
+            "default_depth_usd": 99_999_999.0,
+            "default_tob_coverage": 1.0,
+            "default_expected_cost_bps": 0.01,
+            "min_depth_usd": 25_000.0,
+        },
+    )
+    runner._latest_book_ticker_by_symbol["BTCUSDT"] = {
+        "best_bid_price": 99.99,
+        "best_ask_price": 100.01,
+        "timestamp": "2026-04-01T00:00:00+00:00",
+    }
+
+    snapshot = runner._current_market_snapshot(
+        symbol="BTCUSDT",
+        timeframe="5m",
+        close=100.0,
+        timestamp="2026-04-01T00:00:01+00:00",
+        move_bps=100.0,
+    )
+
+    assert snapshot["market_state_complete"] is False
+    assert snapshot["is_execution_tradable"] is False
+    assert "missing_book_quantities" in snapshot["non_tradable_reasons"]
+    assert snapshot["depth_usd"] is None
+    assert snapshot["depth_usd_source"] == "missing"
+    assert snapshot["tob_coverage"] is None
+    assert snapshot["tob_coverage_source"] == "missing"
+    assert snapshot["expected_cost_bps"] is None
+    assert snapshot["expected_cost_bps_source"] == "missing"
+
+
+def test_live_runner_market_snapshot_uses_measured_book_only_for_tradability() -> None:
+    runner = LiveEngineRunner(
+        ["btcusdt"],
+        data_manager=_DummyDataManager(),
+        strategy_runtime={
+            "implemented": True,
+            "min_depth_usd": 25_000.0,
+        },
+    )
+    runner._latest_book_ticker_by_symbol["BTCUSDT"] = {
+        "best_bid_price": 99.99,
+        "best_bid_qty": 1_000.0,
+        "best_ask_price": 100.01,
+        "best_ask_qty": 1_000.0,
+        "timestamp": "2026-04-01T00:00:00+00:00",
+    }
+
+    snapshot = runner._current_market_snapshot(
+        symbol="BTCUSDT",
+        timeframe="5m",
+        close=100.0,
+        timestamp="2026-04-01T00:00:01+00:00",
+        move_bps=100.0,
+    )
+
+    assert snapshot["market_state_complete"] is True
+    assert snapshot["is_execution_tradable"] is True
+    assert snapshot["spread_bps"] == pytest.approx(2.0)
+    assert snapshot["spread_bps_source"] == "book_ticker"
+    assert snapshot["depth_usd"] == pytest.approx(99_990.0)
+    assert snapshot["depth_usd_source"] == "book_ticker_tob"
+    assert snapshot["tob_coverage"] == pytest.approx(1.0)
+    assert snapshot["expected_cost_bps"] == pytest.approx(3.5)
+    assert snapshot["expected_cost_bps_source"] == "spread_derived"
+
+
+def test_live_runner_market_snapshot_fails_closed_for_stale_ticker() -> None:
+    runner = LiveEngineRunner(
+        ["btcusdt"],
+        data_manager=_DummyDataManager(),
+        strategy_runtime={
+            "implemented": True,
+            "max_ticker_stale_seconds": 10.0,
+        },
+    )
+    runner._latest_book_ticker_by_symbol["BTCUSDT"] = {
+        "best_bid_price": 99.99,
+        "best_bid_qty": 1_000.0,
+        "best_ask_price": 100.01,
+        "best_ask_qty": 1_000.0,
+        "timestamp": "2026-04-01T00:00:00+00:00",
+    }
+
+    snapshot = runner._current_market_snapshot(
+        symbol="BTCUSDT",
+        timeframe="5m",
+        close=100.0,
+        timestamp="2026-04-01T00:00:11+00:00",
+        move_bps=100.0,
+    )
+
+    assert snapshot["market_state_complete"] is False
+    assert snapshot["is_execution_tradable"] is False
+    assert snapshot["ticker_fresh"] is False
+    assert snapshot["ticker_age_seconds"] == pytest.approx(11.0)
+    assert "stale_ticker" in snapshot["non_tradable_reasons"]
+
+
+def test_live_runner_does_not_score_incomplete_market_state(monkeypatch) -> None:
+    runner = LiveEngineRunner(
+        ["btcusdt"],
+        data_manager=_DummyDataManager(),
+        strategy_runtime={
+            "implemented": True,
+            "supported_event_ids": ["VOL_SHOCK"],
+        },
+    )
+    runner._thesis_store = object()
+    runner._event_detector = _AlwaysDetectsVolShock()
+    runner._latest_book_ticker_by_symbol["BTCUSDT"] = {
+        "best_bid_price": 99.99,
+        "best_ask_price": 100.01,
+        "timestamp": "2026-04-01T00:00:00+00:00",
+    }
+
+    def _fail_if_scored(**kwargs):
+        raise AssertionError("decision scoring should not run with incomplete market state")
+
+    monkeypatch.setattr("project.live.runner.decide_trade_intent", _fail_if_scored)
+
+    event = KlineEvent(
+        symbol="BTCUSDT",
+        timeframe="5m",
+        timestamp=pd.Timestamp("2026-04-01T00:00:01Z"),
+        open=100.0,
+        high=101.0,
+        low=99.5,
+        close=100.0,
+        volume=10.0,
+        quote_volume=1000.0,
+        taker_base_volume=5.0,
+        is_final=True,
+    )
+
+    asyncio.run(runner._process_kline_for_thesis_runtime(event))
+
+    outcomes = runner.latest_trade_intents()
+    assert len(outcomes) == 1
+    assert outcomes[0].trade_intent.action == "watch"
+    assert outcomes[0].trade_intent.side == "flat"
+    assert "market_state_not_tradable" in outcomes[0].trade_intent.reasons_against
+    assert "missing_book_quantities" in outcomes[0].trade_intent.reasons_against
+
+
+def test_live_runner_auto_submit_blocks_when_venue_rules_are_missing() -> None:
+    runner = LiveEngineRunner(
+        ["btcusdt"],
+        data_manager=_DummyDataManager(),
+        runtime_mode="trading",
+        strategy_runtime={
+            "implemented": True,
+            "auto_submit": True,
+            "allowed_actions": ["probe"],
+        },
+    )
+    outcome = SimpleNamespace(
+        trade_intent=TradeIntent(
+            action="probe",
+            symbol="BTCUSDT",
+            side="buy",
+            thesis_id="thesis_1",
+            size_fraction=0.2,
+        )
+    )
+
+    result = asyncio.run(
+        runner._submit_trade_intent_if_enabled(
+            outcome=outcome,
+            market_state={
+                "market_state_complete": True,
+                "is_execution_tradable": True,
+                "mid_price": 100.0,
+                "spread_bps": 2.0,
+                "depth_usd": 100000.0,
+                "tob_coverage": 1.0,
+            },
+        )
+    )
+
+    assert result == {
+        "accepted": False,
+        "blocked_by": "missing_venue_rules",
+        "symbol": "BTCUSDT",
+    }
 
 
 def test_live_runner_rest_market_feature_total_outage_is_warning_and_clears_state(caplog) -> None:
@@ -1557,7 +1769,9 @@ def test_live_runner_persists_runtime_metrics_snapshot_with_market_state_and_dec
     )
     runner._latest_book_ticker_by_symbol["BTCUSDT"] = {
         "best_bid_price": 99.99,
+        "best_bid_qty": 1_000.0,
         "best_ask_price": 100.01,
+        "best_ask_qty": 1_000.0,
         "timestamp": "2026-03-30T00:04:59Z",
     }
 

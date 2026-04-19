@@ -16,12 +16,12 @@ from typing import Any, Dict, List, Optional
 import pandas as pd
 
 from project.engine.strategy_executor import StrategyResult, build_live_order_metadata
-from project.live.health_checks import evaluate_pretrade_microstructure_gate
 from project.live.execution_attribution import (
     ExecutionAttributionRecord,
     build_execution_attribution_record,
     summarize_execution_attribution,
 )
+from project.live.health_checks import evaluate_pretrade_microstructure_gate
 
 LOGGER = logging.getLogger(__name__)
 
@@ -201,11 +201,12 @@ class OrderManager:
 
     @staticmethod
     def _submit_market_order_kwargs(order: LiveOrder) -> Dict[str, Any]:
+        reduce_only = bool((order.metadata or {}).get("reduce_only", False))
         return {
             "symbol": order.symbol,
             "side": order.side.name,
             "quantity": order.quantity,
-            "reduce_only": False,
+            "reduce_only": reduce_only,
         }
 
     def _market_order_call_kwargs(self, order: LiveOrder) -> Dict[str, Any]:
@@ -315,12 +316,7 @@ class OrderManager:
             )
 
         try:
-            venue_kwargs = {
-                "symbol": order.symbol,
-                "side": order.side.name,
-                "quantity": order.quantity,
-                "reduce_only": False,
-            }
+            venue_kwargs = self._market_order_call_kwargs(order)
             try:
                 sig = inspect.signature(self.exchange_client.create_market_order)
                 params = sig.parameters
@@ -338,12 +334,15 @@ class OrderManager:
 
         exchange_order_id = None
         if isinstance(venue_response, dict):
-            exchange_order_id = str(
-                venue_response.get("orderId")
-                or venue_response.get("clientOrderId")
-                or venue_response.get("origClientOrderId")
-                or ""
-            ).strip() or None
+            exchange_order_id = (
+                str(
+                    venue_response.get("orderId")
+                    or venue_response.get("clientOrderId")
+                    or venue_response.get("origClientOrderId")
+                    or ""
+                ).strip()
+                or None
+            )
         self.add_order(order)
         order.update_status(OrderStatus.NEW, exchange_id=exchange_order_id)
         return {
@@ -373,8 +372,7 @@ class OrderManager:
                 failures.append(f"{sym}: {e}")
         if failures:
             raise OrderNeutralizationFailed(
-                "Failed to cancel all open orders during emergency unwind: "
-                + "; ".join(failures)
+                "Failed to cancel all open orders during emergency unwind: " + "; ".join(failures)
             )
 
     async def flatten_all_positions(self, state_store: Any, symbol: Optional[str] = None):
@@ -403,8 +401,7 @@ class OrderManager:
                 failures.append(f"{sym}: {e}")
         if failures:
             raise OrderNeutralizationFailed(
-                "Failed to flatten all positions during emergency unwind: "
-                + "; ".join(failures)
+                "Failed to flatten all positions during emergency unwind: " + "; ".join(failures)
             )
 
     def on_order_update(self, client_order_id: str, status: OrderStatus, **kwargs):
@@ -503,8 +500,7 @@ def _validate_live_strategy_result_provenance(result: StrategyResult) -> None:
     missing = sorted(_LIVE_STRATEGY_RESULT_REQUIRED_METADATA - set(metadata.keys()))
     if missing:
         raise OrderSubmissionBlocked(
-            "live trading requires validated runtime provenance fields: "
-            + ", ".join(missing)
+            "live trading requires validated runtime provenance fields: " + ", ".join(missing)
         )
 
     template = metadata.get("live_order_metadata_template")
@@ -524,13 +520,18 @@ def _validate_live_strategy_result_provenance(result: StrategyResult) -> None:
     provenance_source = str(metadata.get("runtime_provenance_source", "")).strip()
     is_dsl_runtime = str(getattr(result, "name", "")).startswith("dsl_interpreter_v1__")
     if contract_source == "dsl_blueprint" or (
-        is_dsl_runtime and not provenance_source and not bool(metadata.get("runtime_provenance_validated"))
+        is_dsl_runtime
+        and not provenance_source
+        and not bool(metadata.get("runtime_provenance_validated"))
     ):
         raise OrderSubmissionBlocked(
             "live trading requires executable_strategy_spec-backed provenance for DSL strategies"
         )
 
-    if provenance_source == "executable_strategy_spec" or contract_source == "executable_strategy_spec":
+    if (
+        provenance_source == "executable_strategy_spec"
+        or contract_source == "executable_strategy_spec"
+    ):
         missing_exec = sorted(_LIVE_EXECUTABLE_SPEC_REQUIRED_METADATA - set(metadata.keys()))
         if missing_exec:
             raise OrderSubmissionBlocked(

@@ -94,6 +94,7 @@ class BybitDerivativesClient:
 
         if method == "GET" and params:
             from urllib.parse import urlencode
+
             query_string = urlencode(params)
             url = f"{url}?{query_string}"
             payload = query_string
@@ -103,12 +104,14 @@ class BybitDerivativesClient:
         if signed:
             timestamp = str(int(time.time() * 1000))
             signature = self._sign(timestamp, recv_window, payload)
-            headers.update({
-                "X-BAPI-API-KEY": self.api_key,
-                "X-BAPI-TIMESTAMP": timestamp,
-                "X-BAPI-RECV-WINDOW": recv_window,
-                "X-BAPI-SIGN": signature,
-            })
+            headers.update(
+                {
+                    "X-BAPI-API-KEY": self.api_key,
+                    "X-BAPI-TIMESTAMP": timestamp,
+                    "X-BAPI-RECV-WINDOW": recv_window,
+                    "X-BAPI-SIGN": signature,
+                }
+            )
 
         await self._rate_limiter.acquire()
         session = await self._get_session()
@@ -127,7 +130,9 @@ class BybitDerivativesClient:
                 if _retry_count >= self._MAX_RETRIES:
                     _LOG.error(
                         "Bybit rate-limited on %s %s; max retries (%d) exhausted",
-                        method, path, self._MAX_RETRIES,
+                        method,
+                        path,
+                        self._MAX_RETRIES,
                     )
                     resp.raise_for_status()
                 # X-Bapi-Limit-Reset-Timestamp is epoch milliseconds
@@ -151,7 +156,11 @@ class BybitDerivativesClient:
         if rate_limited:
             _LOG.warning(
                 "Bybit rate-limited on %s %s; retrying in %.2fs (attempt %d/%d)",
-                method, path, wait_time, _retry_count + 1, self._MAX_RETRIES,
+                method,
+                path,
+                wait_time,
+                _retry_count + 1,
+                self._MAX_RETRIES,
             )
             await asyncio.sleep(wait_time)
             return await self._request(
@@ -201,6 +210,15 @@ class BybitDerivativesClient:
             params["symbol"] = symbol.upper()
         res = await self._request("GET", "/v5/market/tickers", params=params)
         return res.get("list", [])
+
+    async def get_instruments_info(
+        self, symbol: str | None = None, category: str = "linear"
+    ) -> Dict[str, Any]:
+        """GET /v5/market/instruments-info"""
+        params = {"category": category}
+        if symbol:
+            params["symbol"] = symbol.upper()
+        return await self._request("GET", "/v5/market/instruments-info", params=params)
 
     async def get_premium_index(self, symbol: str | None = None) -> Dict[str, Any]:
         """Return mark price and funding rate in the same schema the runner expects.
@@ -296,7 +314,7 @@ class BybitDerivativesClient:
             bybit_interval = "240"
         elif interval == "1d":
             bybit_interval = "D"
-            
+
         params = {
             "category": category,
             "symbol": symbol.upper(),
@@ -306,15 +324,21 @@ class BybitDerivativesClient:
         res = await self._request("GET", path, params=params)
         return res.get("list", [])
 
-    async def get_mark_price_klines_v2(self, symbol: str, interval: str, limit: int = 200) -> List[List[Any]]:
-        return await self._request_kline_variant("/v5/market/mark-price-kline", symbol, interval, limit)
+    async def get_mark_price_klines_v2(
+        self, symbol: str, interval: str, limit: int = 200
+    ) -> List[List[Any]]:
+        return await self._request_kline_variant(
+            "/v5/market/mark-price-kline", symbol, interval, limit
+        )
 
-    async def get_index_price_klines(self, symbol: str, interval: str, limit: int = 200) -> List[List[Any]]:
-        return await self._request_kline_variant("/v5/market/index-price-kline", symbol, interval, limit)
+    async def get_index_price_klines(
+        self, symbol: str, interval: str, limit: int = 200
+    ) -> List[List[Any]]:
+        return await self._request_kline_variant(
+            "/v5/market/index-price-kline", symbol, interval, limit
+        )
 
-    async def cancel_all_open_orders(
-        self, symbol: str, category: str = "linear"
-    ) -> Any:
+    async def cancel_all_open_orders(self, symbol: str, category: str = "linear") -> Any:
         """POST /v5/order/cancel-all"""
         params = {
             "category": category,

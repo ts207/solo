@@ -1,5 +1,10 @@
 # Edge documentation
 
+> **⚠️ WARNING: DOCS FROZEN**
+> The live runtime and deployment surface are currently undergoing a major remediation (Phase 1).
+> These docs currently reflect the older, pre-remediation state and are out of sync with actual runtime behavior.
+> Please rely on the code in `project/cli.py` and `project/live/` until this warning is removed.
+
 This docset is meant to stand on its own. Read it as the map of the repository, the lifecycle guide for the trading system, and the operator handbook for running it safely.
 
 ## Start here

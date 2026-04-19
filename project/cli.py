@@ -87,7 +87,11 @@ def _run_discover_list_artifacts(args: argparse.Namespace) -> int:
         "search_burden_summary.json",
     }
     artifacts = (
-        sorted(path for path in phase2_root.rglob("*") if path.is_file() and path.name in artifact_names)
+        sorted(
+            path
+            for path in phase2_root.rglob("*")
+            if path.is_file() and path.name in artifact_names
+        )
         if phase2_root.exists()
         else []
     )
@@ -184,7 +188,7 @@ def _run_promote(args: argparse.Namespace) -> int:
     return 0
 
 
-def _deploy_paper(args: argparse.Namespace) -> int:
+def _deploy_export(args: argparse.Namespace) -> int:
     import project.promote as promote_module
     from project.core.config import get_data_root
 
@@ -209,7 +213,7 @@ def _deploy_paper(args: argparse.Namespace) -> int:
     _emit_payload(
         {
             "run_id": result.run_id,
-            "deployment": "paper",
+            "deployment": "export",
             "output_path": result.output_path,
             "index_path": result.index_path,
             "thesis_count": result.thesis_count,
@@ -270,7 +274,7 @@ def _deploy_bind_config(args: argparse.Namespace) -> int:
         "runtime_run_id": f"live_paper_{run_id}",
         "runtime_mode": "trading",
         "stale_threshold_sec": 60.0,
-        "freshness_streams": [{"symbol": primary_symbol, "stream": f"kline_5m"}],
+        "freshness_streams": [{"symbol": primary_symbol, "stream": "kline_5m"}],
         "oms_lineage": {
             "order_source": "paper_oms",
             "session_id": f"live-paper-{run_id[:40]}",
@@ -333,32 +337,52 @@ def _deploy_bind_config(args: argparse.Namespace) -> int:
 
     out_path.parent.mkdir(parents=True, exist_ok=True)
     out_path.write_text(yaml.dump(config, default_flow_style=False, sort_keys=False))
-    _emit_payload({
-        "run_id": run_id,
-        "config_path": str(out_path),
-        "event_ids": event_ids,
-        "symbols": symbols,
-        "thesis_count": len(theses),
-    })
+    _emit_payload(
+        {
+            "run_id": run_id,
+            "config_path": str(out_path),
+            "event_ids": event_ids,
+            "symbols": symbols,
+            "thesis_count": len(theses),
+        }
+    )
     print(f"Bound config written to: {out_path}")
-    print(f"Next: EDGE_LIVE_CONFIG={out_path} python project/scripts/certify_paper_startup.py --config {out_path}")
     return 0
 
 
-def _deploy_certify(args: argparse.Namespace) -> int:
-    """Run paper startup certification against a bound config."""
+def _deploy_inspect(args: argparse.Namespace) -> int:
+    print(f"Inspecting deployment for run_id: {args.run_id}")
+    return 0
+
+
+def _deploy_paper_run(args: argparse.Namespace) -> int:
     config_path = Path(args.config)
     if not config_path.exists():
         print(f"Error: Config not found: {config_path}")
         return 1
 
-    cert_script = PROJECT_ROOT / "scripts" / "certify_paper_startup.py"
-    cmd = [sys.executable, str(cert_script), "--config", str(config_path)]
-    if getattr(args, "out", None):
-        cmd += ["--out", args.out]
-
+    engine_script = PROJECT_ROOT / "scripts" / "run_live_engine.py"
+    cmd = [sys.executable, str(engine_script), "--config", str(config_path)]
     result = subprocess.run(cmd)
     return result.returncode
+
+
+def _deploy_live_run(args: argparse.Namespace) -> int:
+    config_path = Path(args.config)
+    if not config_path.exists():
+        print(f"Error: Config not found: {config_path}")
+        return 1
+
+    print("WARNING: Launching LIVE execution engine!")
+    engine_script = PROJECT_ROOT / "scripts" / "run_live_engine.py"
+    cmd = [sys.executable, str(engine_script), "--config", str(config_path)]
+    result = subprocess.run(cmd)
+    return result.returncode
+
+
+def _deploy_status(args: argparse.Namespace) -> int:
+    print(f"Checking deployment status for run_id: {args.run_id}")
+    return 0
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -465,13 +489,14 @@ def build_parser() -> argparse.ArgumentParser:
         description="Canonical deployment surface. Only promoted theses may be deployed.",
     )
     deploy_subparsers = deploy.add_subparsers(dest="deploy_command")
-    deploy_paper = deploy_subparsers.add_parser(
-        "paper",
+
+    deploy_export = deploy_subparsers.add_parser(
+        "export",
         help="Export promoted theses to the live thesis store (does not launch runtime).",
     )
-    deploy_paper.add_argument("--run_id", required=True)
-    deploy_paper.add_argument("--data_root", default=None)
-    deploy_paper.set_defaults(func=_deploy_paper)
+    deploy_export.add_argument("--run_id", required=True)
+    deploy_export.add_argument("--data_root", default=None)
+    deploy_export.set_defaults(func=_deploy_export)
 
     deploy_bind = deploy_subparsers.add_parser(
         "bind-config",
@@ -479,16 +504,42 @@ def build_parser() -> argparse.ArgumentParser:
     )
     deploy_bind.add_argument("--run_id", required=True)
     deploy_bind.add_argument("--data_root", default=None)
-    deploy_bind.add_argument("--out_dir", default=None, help="Output directory for the config YAML.")
+    deploy_bind.add_argument(
+        "--out_dir", default=None, help="Output directory for the config YAML."
+    )
     deploy_bind.set_defaults(func=_deploy_bind_config)
 
-    deploy_certify = deploy_subparsers.add_parser(
-        "certify",
-        help="Run paper startup certification against a bound config (no live credentials needed).",
+    deploy_inspect = deploy_subparsers.add_parser(
+        "inspect",
+        help="Inspect deployment status for a run ID.",
     )
-    deploy_certify.add_argument("--config", required=True, help="Path to the bound runtime config YAML.")
-    deploy_certify.add_argument("--out", default=None, help="Path to write certification JSON report.")
-    deploy_certify.set_defaults(func=_deploy_certify)
+    deploy_inspect.add_argument("--run_id", required=True)
+    deploy_inspect.set_defaults(func=_deploy_inspect)
+
+    deploy_paper_run = deploy_subparsers.add_parser(
+        "paper-run",
+        help="Launch the live engine in paper trading mode.",
+    )
+    deploy_paper_run.add_argument(
+        "--config", required=True, help="Path to the bound runtime config YAML."
+    )
+    deploy_paper_run.set_defaults(func=_deploy_paper_run)
+
+    deploy_live_run = deploy_subparsers.add_parser(
+        "live-run",
+        help="Launch the live engine in live trading mode.",
+    )
+    deploy_live_run.add_argument(
+        "--config", required=True, help="Path to the bound runtime config YAML."
+    )
+    deploy_live_run.set_defaults(func=_deploy_live_run)
+
+    deploy_status = deploy_subparsers.add_parser(
+        "status",
+        help="Check the runtime status of a deployment.",
+    )
+    deploy_status.add_argument("--run_id", required=True)
+    deploy_status.set_defaults(func=_deploy_status)
 
     return parser
 

@@ -46,7 +46,11 @@ _RUNTIME_CORE_EVENT_INPUT_BINDINGS: dict[str, dict[str, dict[str, Any]]] = {
         "timestamp": {"mode": "direct"},
         "liquidation_notional": {
             "mode": "direct",
-            "accepted_sources": {"liquidation_notional", "liquidation_notional_usd", "data_manager"},
+            "accepted_sources": {
+                "liquidation_notional",
+                "liquidation_notional_usd",
+                "data_manager",
+            },
         },
         "oi_delta_1h": {"mode": "derived", "depends_on": ("oi_notional",)},
         "oi_notional": {
@@ -219,9 +223,7 @@ def build_runtime_core_detector_input_surface(
     )
     if close_spot_source == "missing":
         close_spot_source = (
-            "mark_price"
-            if "mark_price" in market_features
-            else "current_close_fallback"
+            "mark_price" if "mark_price" in market_features else "current_close_fallback"
         )
         close_spot = safe_float(
             market_features.get("mark_price", current_close_f),
@@ -254,7 +256,10 @@ def build_runtime_core_detector_input_surface(
         default=0.0,
     )
     if "liquidation_notional_source" in market_features:
-        liquidation_source = str(market_features.get("liquidation_notional_source") or "").strip() or liquidation_source
+        liquidation_source = (
+            str(market_features.get("liquidation_notional_source") or "").strip()
+            or liquidation_source
+        )
 
     if "spread_bps_source" in market_features:
         spread_source = str(market_features.get("spread_bps_source") or "").strip() or spread_source
@@ -263,16 +268,22 @@ def build_runtime_core_detector_input_surface(
     if "open_interest_source" in market_features:
         oi_source = str(market_features.get("open_interest_source") or "").strip() or oi_source
     if "funding_rate_source" in market_features:
-        funding_source = str(market_features.get("funding_rate_source") or "").strip() or funding_source
+        funding_source = (
+            str(market_features.get("funding_rate_source") or "").strip() or funding_source
+        )
     if "close_spot_source" in market_features:
-        close_spot_source = str(market_features.get("close_spot_source") or "").strip() or close_spot_source
+        close_spot_source = (
+            str(market_features.get("close_spot_source") or "").strip() or close_spot_source
+        )
 
     move_bps = (
         ((current_close_f / previous_close_f) - 1.0) * 10_000.0
         if previous_close_f is not None and previous_close_f > 0.0
         else 0.0
     )
-    range_bps = ((float(high) - float(low)) / current_close_f) * 10_000.0 if current_close_f > 0.0 else 0.0
+    range_bps = (
+        ((float(high) - float(low)) / current_close_f) * 10_000.0 if current_close_f > 0.0 else 0.0
+    )
 
     row = {
         "timestamp": _normalize_timestamp(market_features.get("timestamp")),
@@ -282,11 +293,15 @@ def build_runtime_core_detector_input_surface(
         "high": float(high),
         "low": float(low),
         "open": safe_float(
-            market_features.get("open", previous_close_f if previous_close_f is not None else current_close_f),
+            market_features.get(
+                "open", previous_close_f if previous_close_f is not None else current_close_f
+            ),
             previous_close_f if previous_close_f is not None else current_close_f,
         ),
         "volume": safe_float(volume, 0.0),
-        "quote_volume": safe_float(market_features.get("quote_volume", volume), safe_float(volume, 0.0)),
+        "quote_volume": safe_float(
+            market_features.get("quote_volume", volume), safe_float(volume, 0.0)
+        ),
         "close_perp": current_close_f,
         "close_spot": float(close_spot),
         "spread_bps": float(spread_bps),
@@ -301,13 +316,19 @@ def build_runtime_core_detector_input_surface(
         "range_bps": float(range_bps),
         "expected_cost_bps": safe_float(market_features.get("expected_cost_bps"), 0.0),
         "tob_coverage": safe_float(market_features.get("tob_coverage"), 0.0),
-        "mark_price": safe_float(market_features.get("mark_price", current_close_f), current_close_f),
+        "mark_price": safe_float(
+            market_features.get("mark_price", current_close_f), current_close_f
+        ),
         "ms_imbalance_24": safe_float(market_features.get("ms_imbalance_24"), 0.0),
         "ms_funding_state": safe_float(market_features.get("ms_funding_state"), float("nan")),
-        "ms_funding_confidence": safe_float(market_features.get("ms_funding_confidence"), float("nan")),
+        "ms_funding_confidence": safe_float(
+            market_features.get("ms_funding_confidence"), float("nan")
+        ),
         "ms_funding_entropy": safe_float(market_features.get("ms_funding_entropy"), float("nan")),
         "ms_spread_state": safe_float(market_features.get("ms_spread_state"), float("nan")),
-        "ms_spread_confidence": safe_float(market_features.get("ms_spread_confidence"), float("nan")),
+        "ms_spread_confidence": safe_float(
+            market_features.get("ms_spread_confidence"), float("nan")
+        ),
         "ms_spread_entropy": safe_float(market_features.get("ms_spread_entropy"), float("nan")),
     }
     source_map = {
@@ -344,13 +365,19 @@ def enrich_runtime_core_detector_history(frame: pd.DataFrame, *, timeframe: str)
     out["rv_96"] = returns.rolling(window=96, min_periods=24).std().fillna(0.0)
     out["range_96"] = range_bps.rolling(window=96, min_periods=24).mean().fillna(range_bps)
     out["range_med_2880"] = (
-        range_bps.rolling(window=2880, min_periods=24).median().fillna(range_bps.expanding().median())
+        range_bps.rolling(window=2880, min_periods=24)
+        .median()
+        .fillna(range_bps.expanding().median())
     )
     out["close_perp"] = pd.to_numeric(out["close_perp"], errors="coerce").fillna(close)
     out["close_spot"] = pd.to_numeric(out["close_spot"], errors="coerce").fillna(close)
-    out["funding_rate_scaled"] = pd.to_numeric(out["funding_rate_scaled"], errors="coerce").fillna(0.0)
+    out["funding_rate_scaled"] = pd.to_numeric(out["funding_rate_scaled"], errors="coerce").fillna(
+        0.0
+    )
     out["oi_notional"] = pd.to_numeric(out["oi_notional"], errors="coerce").fillna(0.0)
-    out["liquidation_notional"] = pd.to_numeric(out["liquidation_notional"], errors="coerce").fillna(0.0)
+    out["liquidation_notional"] = pd.to_numeric(
+        out["liquidation_notional"], errors="coerce"
+    ).fillna(0.0)
     bars_per_hour = max(1, round(60 / max(1, _timeframe_minutes(timeframe))))
     out["oi_delta_1h"] = out["oi_notional"] - out["oi_notional"].shift(bars_per_hour).fillna(
         out["oi_notional"]
@@ -397,7 +424,9 @@ def _build_detector_input_status(
     source_map: Mapping[str, str],
 ) -> dict[str, Any]:
     per_event: dict[str, Any] = {}
-    for event_id in [str(item).strip().upper() for item in supported_event_ids if str(item).strip()]:
+    for event_id in [
+        str(item).strip().upper() for item in supported_event_ids if str(item).strip()
+    ]:
         bindings = _RUNTIME_CORE_EVENT_INPUT_BINDINGS.get(event_id)
         if bindings is None:
             continue
@@ -418,12 +447,14 @@ def _build_detector_input_status(
                     is_missing = True
             elif mode == "derived":
                 if any(
-                    str(source_map.get(dep, "missing")).strip() in {"missing", "configured_default", "current_close_fallback"}
+                    str(source_map.get(dep, "missing")).strip()
+                    in {"missing", "configured_default", "current_close_fallback"}
                     for dep in depends_on
                 ):
                     is_missing = True
                 elif any(
-                    accepted_sources and str(source_map.get(dep, "")).strip() not in accepted_sources
+                    accepted_sources
+                    and str(source_map.get(dep, "")).strip() not in accepted_sources
                     for dep in depends_on
                 ):
                     is_approx = True
@@ -467,13 +498,21 @@ def build_live_trade_context(
         "canonical_regime": detected_regime or _canonical_regime_from_move(move_bps),
         "move_bps": move_bps,
     }
-    if "spread_bps" in market_features and float(market_features.get("spread_bps", 0.0) or 0.0) <= 5.0:
-        regime_snapshot["microstructure_regime"] = "healthy"
+    explicit_microstructure_regime = str(
+        market_features.get("microstructure_regime", "") or ""
+    ).strip()
+    if explicit_microstructure_regime:
+        regime_snapshot["microstructure_regime"] = explicit_microstructure_regime
     else:
-        regime_snapshot["microstructure_regime"] = "degraded"
+        spread_bps = safe_float(market_features.get("spread_bps"), float("nan"))
+        regime_snapshot["microstructure_regime"] = (
+            "healthy" if np.isfinite(spread_bps) and spread_bps <= 5.0 else "degraded"
+        )
 
     primary_event_id = str(detected_event.event_id or detected_event.event_family).strip().upper()
-    compat_event_family = str(detected_event.event_family or detected_event.event_id).strip().upper()
+    compat_event_family = (
+        str(detected_event.event_family or detected_event.event_id).strip().upper()
+    )
 
     active_event_ids = _unique_tokens(
         market_features.get("active_event_ids", []),
@@ -550,9 +589,13 @@ def build_live_trade_context(
             str(
                 getattr(detector_contract, "evidence_mode", "")
                 or market_features.get("event_evidence_mode", "")
-            ).strip().lower()
+            )
+            .strip()
+            .lower()
         ),
-        event_role=(str(getattr(detector_contract, "role", "trigger")).strip().lower() or "trigger"),
+        event_role=(
+            str(getattr(detector_contract, "role", "trigger")).strip().lower() or "trigger"
+        ),
         threshold_snapshot=threshold_snapshot,
         detector_input_status=detector_input_status,
         live_features=dict(market_features),

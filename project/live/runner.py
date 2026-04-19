@@ -10,6 +10,11 @@ from pathlib import Path
 from typing import Any, Awaitable, Callable, Dict, List, Mapping, Optional
 
 from project import PROJECT_ROOT
+from project.core.exceptions import (
+    CompatibilityRequiredError,
+    DataIntegrityError,
+    SchemaMismatchError,
+)
 from project.live.audit_log import (
     AuditLog,
     KillSwitchEvent,
@@ -18,7 +23,9 @@ from project.live.audit_log import (
 from project.live.binance_client import BinanceFuturesClient
 from project.live.bybit_client import BybitDerivativesClient
 from project.live.context_builder import build_live_trade_context
-from project.live.decay import DecayMonitor, DecayRule, default_decay_rules as _default_decay_rules
+from project.live.contracts.trade_intent import TradeIntent
+from project.live.decay import DecayMonitor, DecayRule
+from project.live.decay import default_decay_rules as _default_decay_rules
 from project.live.decision import DecisionOutcome, decide_trade_intent
 from project.live.event_detector import (
     GovernedRuntimeCoreEventDetectionAdapter,
@@ -27,6 +34,7 @@ from project.live.event_detector import (
 from project.live.execution_attribution import summarize_execution_attribution_by
 from project.live.health_checks import DataHealthMonitor
 from project.live.kill_switch import KillSwitchManager, KillSwitchReason
+from project.live.market_state import resolve_live_market_state
 from project.live.memory import append_live_episode
 from project.live.oms import (
     OrderManager,
@@ -46,10 +54,11 @@ from project.live.thesis_reconciliation import (
 )
 from project.live.thesis_state import ThesisStateManager
 from project.live.thesis_store import ThesisStore
-from project.core.exceptions import (
-    CompatibilityRequiredError,
-    DataIntegrityError,
-    SchemaMismatchError,
+from project.live.venue_rules import (
+    VenueSymbolRules,
+    fetch_exchange_venue_rules,
+    load_configured_venue_rules,
+    merge_venue_rule_sources,
 )
 from project.portfolio.incubation import IncubationLedger
 
@@ -201,6 +210,16 @@ class LiveEngineRunner:
         self._latest_final_kline_by_key: Dict[tuple[str, str], Dict[str, Any]] = {}
         self._decision_outcomes: List[DecisionOutcome] = []
         self._auto_order_sequence = 0
+        self._configured_venue_rules_by_symbol: Dict[str, VenueSymbolRules] = (
+            load_configured_venue_rules(
+                [str(symbol).upper() for symbol in self.symbols],
+                self.strategy_runtime,
+            )
+        )
+        self._venue_rules_by_symbol: Dict[str, VenueSymbolRules] = dict(
+            self._configured_venue_rules_by_symbol
+        )
+        self._venue_rules_hydrated = False
 
         # Sprint 6: Risk and Decay components
         family_budgets = self.strategy_runtime.get("family_risk_budgets", {})
@@ -214,6 +233,7 @@ class LiveEngineRunner:
 
         # Phase 5: Portfolio decision engine (overlap/family/cluster/correlation gating)
         from project.portfolio.engine import PortfolioDecisionEngine
+
         self._portfolio_engine = PortfolioDecisionEngine(
             family_budgets=dict(family_budgets) or None,
             max_gross_leverage=float(self.strategy_runtime.get("max_gross_leverage", 1.0) or 1.0),
@@ -288,6 +308,8 @@ class LiveEngineRunner:
             "thesis_count_loaded": (
                 len(self._thesis_store.all()) if self._thesis_store is not None else 0
             ),
+            "venue_rule_symbols": sorted(self._venue_rules_by_symbol),
+            "venue_rules_hydrated": bool(self._venue_rules_hydrated),
         }
 
     def _resolve_memory_root(self) -> Path | None:
@@ -641,7 +663,9 @@ class LiveEngineRunner:
                         "is_active": True,
                         "reason": "thesis_batch_reconciliation_failure",
                         "triggered_at": datetime.now(timezone.utc).isoformat(),
-                        "message": f"Batch reconciliation blocked: {'; '.join(result.blocked_reasons)}",
+                        "message": (
+                            f"Batch reconciliation blocked: {'; '.join(result.blocked_reasons)}"
+                        ),
                     }
                 )
             else:
@@ -682,13 +706,39 @@ class LiveEngineRunner:
             bool(self.strategy_runtime.get("implemented", False)) and self._thesis_store is not None
         )
 
+    def _requires_venue_rule_hydration(self) -> bool:
+        return (
+            bool(self.strategy_runtime.get("auto_submit", False)) or self.runtime_mode == "trading"
+        )
+
+    async def _hydrate_venue_rules_once(self) -> None:
+        if not self._requires_venue_rule_hydration():
+            return
+        if self.rest_client is None:
+            return
+        try:
+            exchange_rules = await fetch_exchange_venue_rules(
+                exchange=self.exchange,
+                rest_client=self.rest_client,
+                symbols=[str(symbol).upper() for symbol in self.symbols],
+            )
+        except Exception as exc:
+            _LOG.warning("Venue-rule hydration failed for %s: %s", self.exchange, exc)
+            return
+        self._venue_rules_by_symbol = merge_venue_rule_sources(
+            exchange_rules,
+            self._configured_venue_rules_by_symbol,
+        )
+        self._venue_rules_hydrated = any(rule.is_actionable for rule in exchange_rules.values())
+
     def latest_trade_intents(self) -> List[DecisionOutcome]:
         return list(self._decision_outcomes)
 
     def _ensure_runtime_mode_known(self) -> None:
         if self.runtime_mode not in {"monitor_only", "trading"}:
             raise RuntimeError(
-                f"Unsupported runtime_mode '{self.runtime_mode}'. Expected 'monitor_only' or 'trading'."
+                f"Unsupported runtime_mode '{self.runtime_mode}'. "
+                "Expected 'monitor_only' or 'trading'."
             )
 
     def _ensure_runtime_ready_for_start(self) -> None:
@@ -1177,47 +1227,24 @@ class LiveEngineRunner:
         normalized_symbol = str(symbol).upper()
         ticker = self._latest_book_ticker_by_symbol.get(normalized_symbol, {})
         runtime_features = self._fresh_runtime_market_features_for_symbol(normalized_symbol)
-        bid = float(ticker.get("best_bid_price", 0.0) or 0.0)
-        ask = float(ticker.get("best_ask_price", 0.0) or 0.0)
-        spread_bps = 0.0
-        mid_price = float(close)
-        mark_price = float(runtime_features.get("mark_price", 0.0) or 0.0)
-        spread_bps_source = "missing"
-        if bid > 0.0 and ask > 0.0:
-            mid_price = (bid + ask) / 2.0
-            spread_bps = ((ask - bid) / mid_price) * 10_000.0 if mid_price > 0.0 else 0.0
-            spread_bps_source = "book_ticker"
-        elif mark_price > 0.0:
-            mid_price = mark_price
-        bid_qty = float(ticker.get("best_bid_qty", 0.0) or 0.0)
-        ask_qty = float(ticker.get("best_ask_qty", 0.0) or 0.0)
-        _cfg_depth_usd = float(self.strategy_runtime.get("default_depth_usd", 50_000.0) or 50_000.0)
-        _cfg_tob_coverage = float(self.strategy_runtime.get("default_tob_coverage", 0.95) or 0.95)
-        _cfg_cost_bps = float(self.strategy_runtime.get("default_expected_cost_bps", 3.0) or 3.0)
-        if bid_qty > 0.0 and ask_qty > 0.0 and mid_price > 0.0:
-            tob_bid_usd = bid_qty * bid
-            tob_ask_usd = ask_qty * ask
-            depth_usd = min(tob_bid_usd, tob_ask_usd)
-            depth_usd_source = "book_ticker_tob"
-            tob_coverage = min(1.0, depth_usd / _cfg_depth_usd) if _cfg_depth_usd > 0.0 else 0.5
-            tob_coverage_source = "book_ticker_tob"
-        else:
-            depth_usd = _cfg_depth_usd
-            depth_usd_source = "configured_default"
-            tob_coverage = _cfg_tob_coverage
-            tob_coverage_source = "configured_default"
-        if spread_bps > 0.0:
-            _VENUE_TAKER_FEE_BPS = 2.5
-            expected_cost_bps = spread_bps / 2.0 + _VENUE_TAKER_FEE_BPS
-            expected_cost_bps_source = "spread_derived"
-        else:
-            expected_cost_bps = _cfg_cost_bps
-            expected_cost_bps_source = "configured_default"
-        funding_rate_source = "runtime_market_features" if "funding_rate" in runtime_features else "missing"
+        market_state = resolve_live_market_state(
+            symbol=normalized_symbol,
+            close=float(close),
+            timestamp=str(timestamp),
+            ticker=ticker,
+            runtime_features=runtime_features,
+            min_depth_usd=float(self.strategy_runtime.get("min_depth_usd", 25_000.0) or 25_000.0),
+            max_ticker_stale_seconds=float(
+                self.strategy_runtime.get("max_ticker_stale_seconds", 30.0) or 30.0
+            ),
+            taker_fee_bps=float(self.strategy_runtime.get("taker_fee_bps", 2.5) or 2.5),
+        )
+        funding_rate_source = (
+            "runtime_market_features" if "funding_rate" in runtime_features else "missing"
+        )
         open_interest_source = (
             "runtime_market_features" if "open_interest" in runtime_features else "missing"
         )
-        mark_price_source = "runtime_market_features" if "mark_price" in runtime_features else "current_close_fallback"
         liquidation_source = (
             "data_manager"
             if hasattr(self.data_manager, "get_liquidation_notional")
@@ -1230,26 +1257,12 @@ class LiveEngineRunner:
             rv_pct=runtime_features.get("rv_pct"),
             ms_trend_state=runtime_features.get("ms_trend_state"),
         )
-        return {
+        return market_state | {
             "timestamp": str(timestamp),
-            "close": float(close),
-            "last_price": float(close),
-            "mid_price": float(mid_price),
-            "mark_price": float(mark_price or close),
-            "mark_price_source": mark_price_source,
-            "spread_bps": float(spread_bps),
-            "spread_bps_source": spread_bps_source,
-            "depth_usd": depth_usd,
-            "depth_usd_source": depth_usd_source,
-            "tob_coverage": tob_coverage,
-            "tob_coverage_source": tob_coverage_source,
             "canonical_regime": regime_info["canonical_regime"],
             "regime_mode": regime_info["regime_mode"],
             "regime_confidence": regime_info["regime_confidence"],
             "regime_metadata": regime_info["regime_metadata"],
-            "microstructure_regime": "healthy" if spread_bps <= 5.0 else "degraded",
-            "expected_cost_bps": expected_cost_bps,
-            "expected_cost_bps_source": expected_cost_bps_source,
             "funding_rate": float(runtime_features.get("funding_rate", 0.0) or 0.0),
             "funding_rate_source": funding_rate_source,
             "funding_timestamp": str(runtime_features.get("funding_timestamp", "") or ""),
@@ -1319,6 +1332,49 @@ class LiveEngineRunner:
         }
         append_live_episode(self._thesis_memory_root, payload)
 
+    def _non_tradable_market_state_outcome(
+        self,
+        *,
+        context: Any,
+        market_state: Mapping[str, Any],
+    ) -> DecisionOutcome:
+        reasons = [
+            str(item) for item in market_state.get("non_tradable_reasons", []) if str(item).strip()
+        ]
+        if not reasons:
+            reason = str(market_state.get("non_tradable_reason", "") or "").strip()
+            reasons = [reason] if reason else ["market_state_incomplete"]
+        intent = TradeIntent(
+            action="watch",
+            symbol=context.symbol,
+            side="flat",
+            thesis_id="",
+            support_score=0.0,
+            contradiction_penalty=1.0,
+            confidence_band="none",
+            size_fraction=0.0,
+            reasons_for=[],
+            reasons_against=["market_state_not_tradable", *reasons],
+            metadata={
+                "primary_event_id": str(context.primary_event_id or context.event_family),
+                "canonical_regime": str(
+                    context.canonical_regime or context.regime_snapshot.get("canonical_regime", "")
+                ),
+                "active_event_ids": list(context.active_event_ids),
+                "compat_active_event_families": list(context.active_event_families),
+                "active_episode_ids": list(context.active_episode_ids),
+                "compat_event_family": str(context.event_family),
+                "market_state_complete": bool(market_state.get("market_state_complete", False)),
+                "non_tradable_reasons": reasons,
+            },
+        )
+        return DecisionOutcome(
+            context=context,
+            ranked_matches=[],
+            top_score=None,
+            trade_intent=intent,
+        )
+
     async def _submit_trade_intent_if_enabled(
         self,
         *,
@@ -1335,15 +1391,35 @@ class LiveEngineRunner:
                 "blocked_by": "action_not_enabled",
                 "action": outcome.trade_intent.action,
             }
+        if not bool(market_state.get("market_state_complete", False)) or not bool(
+            market_state.get("is_execution_tradable", False)
+        ):
+            return {
+                "accepted": False,
+                "blocked_by": "market_state_not_tradable",
+                "reasons": list(market_state.get("non_tradable_reasons", [])),
+            }
+        venue_rules = self._venue_rules_by_symbol.get(str(outcome.trade_intent.symbol).upper())
+        if venue_rules is None or not venue_rules.is_actionable:
+            return {
+                "accepted": False,
+                "blocked_by": "missing_venue_rules",
+                "symbol": str(outcome.trade_intent.symbol).upper(),
+            }
         # Phase 5: Portfolio decision engine — overlap/family/cluster gating + risk multipliers
         from project.portfolio.engine import ThesisIntent as PortfolioThesisIntent
+
         top_match = outcome.ranked_matches[0]
         family = top_match.thesis.event_family or top_match.thesis.primary_event_id
         mid_price = float(market_state.get("mid_price", 0.0))
         portfolio_state = outcome.context.portfolio_state
         available_balance = float(portfolio_state.get("available_balance", 0.0))
-        _max_notional_fraction = float(self.strategy_runtime.get("max_notional_fraction", 0.10) or 0.10)
-        raw_notional = available_balance * _max_notional_fraction * float(outcome.trade_intent.size_fraction)
+        _max_notional_fraction = float(
+            self.strategy_runtime.get("max_notional_fraction", 0.10) or 0.10
+        )
+        raw_notional = (
+            available_balance * _max_notional_fraction * float(outcome.trade_intent.size_fraction)
+        )
         overlap_group_id = top_match.thesis.overlap_group_id or ""
         _is_graduated = self.incubation_ledger.is_graduated(outcome.trade_intent.thesis_id)
         thesis_intent = PortfolioThesisIntent(
@@ -1375,7 +1451,9 @@ class LiveEngineRunner:
                 "reasons": list(portfolio_decision.reasons),
             }
         engine_allocated_notional = (
-            portfolio_decision.allocated_notional if portfolio_decision is not None else raw_notional
+            portfolio_decision.allocated_notional
+            if portfolio_decision is not None
+            else raw_notional
         )
 
         plan = build_order_plan(
@@ -1402,6 +1480,7 @@ class LiveEngineRunner:
             max_notional_fraction=float(
                 self.strategy_runtime.get("max_notional_fraction", 0.10) or 0.10
             ),
+            venue_rules=venue_rules,
         )
 
         if not plan.accepted or plan.order is None:
@@ -1567,14 +1646,24 @@ class LiveEngineRunner:
             active_groups=active_groups,
             family_budgets=self._family_budgets,
         )
-        outcome = decide_trade_intent(
-            context=context,
-            thesis_store=self._thesis_store,
-            policy_config=self.strategy_runtime.get("decision_policy", {}),
-            include_pending=bool(
-                self.strategy_runtime.get("include_pending_theses", self.runtime_mode != "trading")
-            ),
-        )
+        if not bool(market_state.get("market_state_complete", False)) or not bool(
+            market_state.get("is_execution_tradable", False)
+        ):
+            outcome = self._non_tradable_market_state_outcome(
+                context=context,
+                market_state=market_state,
+            )
+        else:
+            outcome = decide_trade_intent(
+                context=context,
+                thesis_store=self._thesis_store,
+                policy_config=self.strategy_runtime.get("decision_policy", {}),
+                include_pending=bool(
+                    self.strategy_runtime.get(
+                        "include_pending_theses", self.runtime_mode != "trading"
+                    )
+                ),
+            )
 
         # Sprint 6: Decay Monitor check
         if outcome.ranked_matches:
@@ -1747,6 +1836,7 @@ class LiveEngineRunner:
     async def start(self):
         _LOG.info("Starting Live Engine for %s", self.symbols)
         self._ensure_runtime_ready_for_start()
+        await self._hydrate_venue_rules_once()
         if self.state_store._snapshot_path is not None:
             _LOG.info("Live state auto-persist enabled at %s", self.state_store._snapshot_path)
 
@@ -1861,7 +1951,11 @@ class LiveEngineRunner:
                 event = await self.data_manager.kline_queue.get()
                 # Here we would update the live engine's feature state
                 _LOG.debug(
-                    f"Consumed kline: {event.symbol} {event.timeframe} close={event.close} final={event.is_final}"
+                    "Consumed kline: %s %s close=%s final=%s",
+                    event.symbol,
+                    event.timeframe,
+                    event.close,
+                    event.is_final,
                 )
                 self.health_monitor.on_event(event.symbol, f"kline:{event.timeframe}")
                 await self._process_kline_for_thesis_runtime(event)
@@ -1880,7 +1974,10 @@ class LiveEngineRunner:
                 event = await self.data_manager.ticker_queue.get()
                 # Here we would update order execution state, bid/ask spread, etc.
                 _LOG.debug(
-                    f"Consumed ticker: {event.symbol} bid={event.best_bid_price} ask={event.best_ask_price}"
+                    "Consumed ticker: %s bid=%s ask=%s",
+                    event.symbol,
+                    event.best_bid_price,
+                    event.best_ask_price,
                 )
                 self._latest_book_ticker_by_symbol[str(event.symbol).upper()] = {
                     "best_bid_price": float(event.best_bid_price),
