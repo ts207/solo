@@ -23,6 +23,19 @@ class TestPolicyDomainParity:
         ids = runtime_eligible_event_ids_from_domain()
         assert len(ids) > 0
 
+    def test_deployable_core_policy_is_domain_derived(self):
+        import inspect
+
+        import project.events.policy as policy
+
+        source = inspect.getsource(policy)
+        hardcoded = [
+            event_type
+            for event_type in policy.runtime_eligible_event_ids_from_domain()
+            if f'"{event_type}"' in source or f"'{event_type}'" in source
+        ]
+        assert hardcoded == []
+
 
 class TestDocLinks:
     """Verify that key file paths referenced in lifecycle docs resolve on disk."""

@@ -1,22 +1,5 @@
 from __future__ import annotations
 
-DEPLOYABLE_CORE_EVENT_TYPES: frozenset[str] = frozenset(
-    {
-        "BASIS_DISLOC",
-        "FND_DISLOC",
-        "LIQUIDATION_CASCADE",
-        "LIQUIDITY_SHOCK",
-        "LIQUIDITY_STRESS_DIRECT",
-        "LIQUIDITY_VACUUM",
-        "OI_SPIKE_NEGATIVE",
-        "SPOT_PERP_BASIS_SHOCK",
-        "VOL_SHOCK",
-        "VOL_SPIKE",
-    }
-)
-
-LIVE_SAFE_EVENT_TYPES = DEPLOYABLE_CORE_EVENT_TYPES
-
 RETROSPECTIVE_EVENT_TYPES = frozenset(
     {
         "FUNDING_FLIP",
@@ -39,16 +22,20 @@ LEGACY_EVENT_TYPES = frozenset(
 )
 
 
-def _domain_runtime_eligible_set() -> frozenset[str]:
+def runtime_eligible_event_ids_from_domain() -> frozenset[str]:
+    """Return the authoritative runtime-eligible event set from compiled domain."""
+
     from project.domain.compiled_registry import get_domain_registry
+
     return frozenset(get_domain_registry().runtime_eligible_event_ids())
 
 
+DEPLOYABLE_CORE_EVENT_TYPES: frozenset[str] = runtime_eligible_event_ids_from_domain()
+LIVE_SAFE_EVENT_TYPES = DEPLOYABLE_CORE_EVENT_TYPES
+
+
 def is_live_safe_event_type(event_type: str) -> bool:
-    domain_set = _domain_runtime_eligible_set()
-    if domain_set:
-        return str(event_type).strip().upper() in domain_set
-    return str(event_type).strip().upper() in LIVE_SAFE_EVENT_TYPES
+    return str(event_type).strip().upper() in runtime_eligible_event_ids_from_domain()
 
 
 def is_retrospective_event_type(event_type: str) -> bool:
@@ -67,24 +54,14 @@ __all__ = [
     "is_legacy_event_type",
     "is_live_safe_event_type",
     "is_retrospective_event_type",
+    "runtime_eligible_event_ids_from_domain",
 ]
 
 
-def runtime_eligible_event_ids_from_domain() -> frozenset[str]:
-    """Return the runtime-eligible event set derived from the compiled domain registry.
-
-    This is the authoritative source for runtime eligibility. The hardcoded
-    DEPLOYABLE_CORE_EVENT_TYPES set above should match this set; use
-    assert_policy_domain_parity() in tests to enforce it.
-    """
-    from project.domain.compiled_registry import get_domain_registry
-    return frozenset(get_domain_registry().runtime_eligible_event_ids())
-
-
 def assert_policy_domain_parity() -> list[str]:
-    """Return issues where DEPLOYABLE_CORE_EVENT_TYPES diverges from compiled domain.
+    """Return issues where compatibility aliases diverge from compiled domain.
 
-    An empty list means the hardcoded policy set and the domain are in sync.
+    An empty list means policy aliases are derived from the same runtime-eligible domain set.
     """
     domain_set = runtime_eligible_event_ids_from_domain()
     issues: list[str] = []
