@@ -264,6 +264,15 @@ def test_spec_sources_digest_returns_stable_hex_string():
     assert all(c in "0123456789abcdef" for c in digest)
 
 
+def test_domain_graph_records_current_spec_sources_digest():
+    import yaml
+    from project.domain.registry_loader import domain_graph_path, spec_sources_digest
+
+    payload = yaml.safe_load(domain_graph_path().read_text(encoding="utf-8"))
+    metadata = payload.get("metadata", {})
+    assert metadata.get("spec_sources_digest") == spec_sources_digest()
+
+
 def test_domain_init_exposes_compiled_registry_api():
     import project.domain as domain
     assert callable(domain.get_domain_registry)

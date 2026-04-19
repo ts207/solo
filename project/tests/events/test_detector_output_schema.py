@@ -418,6 +418,7 @@ DEPLOYABLE_CORE_CASES = [
     (LiquidityShockDetectorV2(), _liquidity_core_df(), {"symbol": "BTCUSDT", "timeframe": "5m"}),
     (LiquidityVacuumDetectorV2(), _liquidity_core_df(), {"symbol": "BTCUSDT", "timeframe": "5m"}),
     (LiquidationCascadeDetectorV2(), _liquidation_core_df(), {"symbol": "BTCUSDT", "timeframe": "5m", "liq_median_window": 20}),
+    (OISpikeNegativeDetectorV2(), _oi_df().iloc[:260].copy(), {"symbol": "BTCUSDT", "timeframe": "5m"}),
     (VolSpikeDetectorV2(), _vol_spike_df(), {"symbol": "BTCUSDT", "timeframe": "5m"}),
     (VolShockDetectorV2(), _vol_shock_df(), {"symbol": "BTCUSDT", "timeframe": "5m"}),
 ]

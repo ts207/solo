@@ -8,6 +8,7 @@ DEPLOYABLE_CORE_EVENT_TYPES: frozenset[str] = frozenset(
         "LIQUIDITY_SHOCK",
         "LIQUIDITY_STRESS_DIRECT",
         "LIQUIDITY_VACUUM",
+        "OI_SPIKE_NEGATIVE",
         "SPOT_PERP_BASIS_SHOCK",
         "VOL_SHOCK",
         "VOL_SPIKE",

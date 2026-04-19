@@ -339,11 +339,19 @@ def get_schema_contract(name: str) -> DataFrameSchemaContract:
         raise KeyError(f"unknown dataframe schema: {name}") from exc
 
 
+def list_schema_contracts() -> tuple[DataFrameSchemaContract, ...]:
+    return tuple(_SCHEMA_REGISTRY[key] for key in sorted(_SCHEMA_REGISTRY))
+
+
 def get_payload_schema_contract(name: str) -> PayloadSchemaContract:
     try:
         return _PAYLOAD_SCHEMA_REGISTRY[str(name)]
     except KeyError as exc:
         raise KeyError(f"unknown payload schema: {name}") from exc
+
+
+def list_payload_schema_contracts() -> tuple[PayloadSchemaContract, ...]:
+    return tuple(_PAYLOAD_SCHEMA_REGISTRY[key] for key in sorted(_PAYLOAD_SCHEMA_REGISTRY))
 
 
 def schema_contract_exists(name: str) -> bool:

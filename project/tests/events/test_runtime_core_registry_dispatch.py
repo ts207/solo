@@ -62,6 +62,26 @@ def _liquidation_df(n: int = 1000) -> pd.DataFrame:
     )
 
 
+def _oi_negative_df(n: int = 260) -> pd.DataFrame:
+    ts = pd.date_range("2024-01-01", periods=n, freq="5min", tz="UTC")
+    close = np.full(n, 100.0)
+    oi = np.linspace(10000.0, 10200.0, n)
+    close[180:204] = np.linspace(108.0, 95.0, 24)
+    oi[180:204] = np.concatenate(
+        [np.linspace(18000.0, 52000.0, 4), np.linspace(52000.0, 70000.0, 20)]
+    )
+    return pd.DataFrame(
+        {
+            "timestamp": ts,
+            "close": close,
+            "oi_notional": oi,
+            "ms_oi_state": np.full(n, 2.5),
+            "ms_oi_confidence": np.full(n, 1.0),
+            "ms_oi_entropy": np.zeros(n),
+        }
+    )
+
+
 def _vol_spike_df(n: int = 3000) -> pd.DataFrame:
     ts = pd.date_range("2024-01-01", periods=n, freq="5min", tz="UTC")
     rv = np.full(n, 0.01)
@@ -113,6 +133,8 @@ def _runtime_case(event_type: str) -> tuple[pd.DataFrame, dict[str, object]]:
         return _vol_spike_df(), {"symbol": "BTCUSDT", "timeframe": "5m"}
     if event_type == "VOL_SHOCK":
         return _vol_shock_df(), {"symbol": "BTCUSDT", "timeframe": "5m"}
+    if event_type == "OI_SPIKE_NEGATIVE":
+        return _oi_negative_df(), {"symbol": "BTCUSDT", "timeframe": "5m"}
     raise KeyError(event_type)
 
 

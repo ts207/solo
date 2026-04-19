@@ -913,6 +913,7 @@ def _domain_registry_payload(registry: DomainRegistry) -> Dict[str, Any]:
             "graph_role": "runtime_read_model",
             "schema_version": 2,
             "generated_at_utc": _generated_at_utc(),
+            "spec_sources_digest": spec_sources_digest(),
             "notes": "Compiled runtime read model. Semantic nodes are normalized for direct runtime/search loading.",
         },
         "events": {
@@ -1337,6 +1338,8 @@ def spec_sources_digest() -> str:
     h = hashlib.sha256()
     for path in sorted(iter_spec_yaml_files()):
         rel = _repo_relative_path(path)
+        if rel == _DOMAIN_GRAPH_RELATIVE_PATH:
+            continue
         h.update(rel.encode())
         with open(path, "rb") as fh:
             for chunk in iter(lambda: fh.read(65536), b""):

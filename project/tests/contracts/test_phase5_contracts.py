@@ -25,7 +25,7 @@ def test_phase5_stage_contracts_have_owner_services() -> None:
     specs = build_stage_specs()
     assert specs
     owners = {spec.family: spec.owner_service for spec in specs}
-    assert owners["phase2_discovery"].endswith("candidate_discovery_service")
+    assert owners["phase2_discovery"].endswith("phase2_search_engine")
     assert owners["promotion"].endswith("promotion_service")
 
 

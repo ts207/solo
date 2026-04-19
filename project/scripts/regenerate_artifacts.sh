@@ -23,6 +23,7 @@ PYTHONPATH="$REPO_ROOT" python3 "$REPO_ROOT/project/scripts/build_regime_registr
 
 echo "[domain] Rebuilding compiled domain graph..."
 PYTHONPATH="$REPO_ROOT" python3 "$REPO_ROOT/project/scripts/build_domain_graph.py"
+PYTHONPATH="$REPO_ROOT" python3 "$REPO_ROOT/project/scripts/check_domain_graph_freshness.py"
 
 echo "[runtime] Regenerating runtime event registry..."
 PYTHONPATH="$REPO_ROOT" python3 "$REPO_ROOT/project/scripts/build_runtime_event_registry.py"
@@ -46,6 +47,7 @@ fi
 
 echo "[2/6] Regenerating System Map..."
 PYTHONPATH="$REPO_ROOT" python3 "$REPO_ROOT/project/scripts/build_system_map.py"
+PYTHONPATH="$REPO_ROOT" python3 "$REPO_ROOT/project/scripts/build_contract_strictness_inventory.py"
 
 echo "[3/6] Regenerating Detector Coverage Report..."
 PYTHONPATH="$REPO_ROOT" python3 "$REPO_ROOT/project/scripts/detector_coverage_audit.py" \

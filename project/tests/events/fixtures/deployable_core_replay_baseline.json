@@ -49,7 +49,7 @@
           "threshold_snapshot": {
             "calibration_mode": "rolling_quantile",
             "cooldown_bars": 12,
-            "merge_gap_bars": 0,
+            "merge_gap_bars": 1,
             "version": "2.0"
           },
           "timeframe": "5m",
@@ -70,7 +70,7 @@
         "mean": 1.0,
         "min": 1.0
       },
-      "signature_digest": "57bfbe5fc64750eea730aa9756b840f06d432b0a3ee775d2c806ed5f8add75c0",
+      "signature_digest": "987555228bef02a17237ac379775825da04bdb037c72bc9b6b8af7be604642e3",
       "symbol": "BTCUSDT",
       "timeframe": "5m",
       "trigger_value": {
@@ -132,7 +132,7 @@
           "threshold_snapshot": {
             "calibration_mode": "rolling_quantile",
             "cooldown_bars": 12,
-            "merge_gap_bars": 0,
+            "merge_gap_bars": 1,
             "version": "2.0"
           },
           "timeframe": "5m",
@@ -153,7 +153,7 @@
         "mean": 1.0,
         "min": 1.0
       },
-      "signature_digest": "f75a793ccefafaff2ccff5681a974d30688ee3a14f776cda93c42614dc985b72",
+      "signature_digest": "27ae9f3c9b10e17985336c5958f32a9fdcbcb74b657709c2995a497e0d3063c0",
       "symbol": "BTCUSDT",
       "timeframe": "5m",
       "trigger_value": {
@@ -292,7 +292,7 @@
           "threshold_snapshot": {
             "calibration_mode": "rolling_quantile",
             "cooldown_bars": 0,
-            "merge_gap_bars": 0,
+            "merge_gap_bars": 1,
             "version": "2.0"
           },
           "timeframe": "5m",
@@ -335,7 +335,7 @@
           "threshold_snapshot": {
             "calibration_mode": "rolling_quantile",
             "cooldown_bars": 0,
-            "merge_gap_bars": 0,
+            "merge_gap_bars": 1,
             "version": "2.0"
           },
           "timeframe": "5m",
@@ -378,7 +378,7 @@
           "threshold_snapshot": {
             "calibration_mode": "rolling_quantile",
             "cooldown_bars": 0,
-            "merge_gap_bars": 0,
+            "merge_gap_bars": 1,
             "version": "2.0"
           },
           "timeframe": "5m",
@@ -421,7 +421,7 @@
           "threshold_snapshot": {
             "calibration_mode": "rolling_quantile",
             "cooldown_bars": 0,
-            "merge_gap_bars": 0,
+            "merge_gap_bars": 1,
             "version": "2.0"
           },
           "timeframe": "5m",
@@ -464,7 +464,7 @@
           "threshold_snapshot": {
             "calibration_mode": "rolling_quantile",
             "cooldown_bars": 0,
-            "merge_gap_bars": 0,
+            "merge_gap_bars": 1,
             "version": "2.0"
           },
           "timeframe": "5m",
@@ -507,7 +507,7 @@
           "threshold_snapshot": {
             "calibration_mode": "rolling_quantile",
             "cooldown_bars": 0,
-            "merge_gap_bars": 0,
+            "merge_gap_bars": 1,
             "version": "2.0"
           },
           "timeframe": "5m",
@@ -550,7 +550,7 @@
           "threshold_snapshot": {
             "calibration_mode": "rolling_quantile",
             "cooldown_bars": 0,
-            "merge_gap_bars": 0,
+            "merge_gap_bars": 1,
             "version": "2.0"
           },
           "timeframe": "5m",
@@ -593,7 +593,7 @@
           "threshold_snapshot": {
             "calibration_mode": "rolling_quantile",
             "cooldown_bars": 0,
-            "merge_gap_bars": 0,
+            "merge_gap_bars": 1,
             "version": "2.0"
           },
           "timeframe": "5m",
@@ -636,7 +636,7 @@
           "threshold_snapshot": {
             "calibration_mode": "rolling_quantile",
             "cooldown_bars": 0,
-            "merge_gap_bars": 0,
+            "merge_gap_bars": 1,
             "version": "2.0"
           },
           "timeframe": "5m",
@@ -679,7 +679,7 @@
           "threshold_snapshot": {
             "calibration_mode": "rolling_quantile",
             "cooldown_bars": 0,
-            "merge_gap_bars": 0,
+            "merge_gap_bars": 1,
             "version": "2.0"
           },
           "timeframe": "5m",
@@ -700,7 +700,7 @@
         "mean": 1.0,
         "min": 1.0
       },
-      "signature_digest": "62b342a2dde6a57deb417f5f051a308aeb0af50d277856baac1b9bdd40b24337",
+      "signature_digest": "ce190a373a45303b087b4455f53a5d87843b748d6311b5aa4b9f261152aa0538",
       "symbol": "BTCUSDT",
       "timeframe": "5m",
       "trigger_value": {
@@ -759,7 +759,7 @@
           "threshold_snapshot": {
             "calibration_mode": "rolling_quantile",
             "cooldown_bars": 0,
-            "merge_gap_bars": 0,
+            "merge_gap_bars": 1,
             "version": "2.0"
           },
           "timeframe": "5m",
@@ -803,7 +803,7 @@
           "threshold_snapshot": {
             "calibration_mode": "rolling_quantile",
             "cooldown_bars": 0,
-            "merge_gap_bars": 0,
+            "merge_gap_bars": 1,
             "version": "2.0"
           },
           "timeframe": "5m",
@@ -847,7 +847,7 @@
           "threshold_snapshot": {
             "calibration_mode": "rolling_quantile",
             "cooldown_bars": 0,
-            "merge_gap_bars": 0,
+            "merge_gap_bars": 1,
             "version": "2.0"
           },
           "timeframe": "5m",
@@ -891,7 +891,7 @@
           "threshold_snapshot": {
             "calibration_mode": "rolling_quantile",
             "cooldown_bars": 0,
-            "merge_gap_bars": 0,
+            "merge_gap_bars": 1,
             "version": "2.0"
           },
           "timeframe": "5m",
@@ -935,7 +935,7 @@
           "threshold_snapshot": {
             "calibration_mode": "rolling_quantile",
             "cooldown_bars": 0,
-            "merge_gap_bars": 0,
+            "merge_gap_bars": 1,
             "version": "2.0"
           },
           "timeframe": "5m",
@@ -979,7 +979,7 @@
           "threshold_snapshot": {
             "calibration_mode": "rolling_quantile",
             "cooldown_bars": 0,
-            "merge_gap_bars": 0,
+            "merge_gap_bars": 1,
             "version": "2.0"
           },
           "timeframe": "5m",
@@ -1023,7 +1023,7 @@
           "threshold_snapshot": {
             "calibration_mode": "rolling_quantile",
             "cooldown_bars": 0,
-            "merge_gap_bars": 0,
+            "merge_gap_bars": 1,
             "version": "2.0"
           },
           "timeframe": "5m",
@@ -1067,7 +1067,7 @@
           "threshold_snapshot": {
             "calibration_mode": "rolling_quantile",
             "cooldown_bars": 0,
-            "merge_gap_bars": 0,
+            "merge_gap_bars": 1,
             "version": "2.0"
           },
           "timeframe": "5m",
@@ -1111,7 +1111,7 @@
           "threshold_snapshot": {
             "calibration_mode": "rolling_quantile",
             "cooldown_bars": 0,
-            "merge_gap_bars": 0,
+            "merge_gap_bars": 1,
             "version": "2.0"
           },
           "timeframe": "5m",
@@ -1155,7 +1155,7 @@
           "threshold_snapshot": {
             "calibration_mode": "rolling_quantile",
             "cooldown_bars": 0,
-            "merge_gap_bars": 0,
+            "merge_gap_bars": 1,
             "version": "2.0"
           },
           "timeframe": "5m",
@@ -1176,7 +1176,7 @@
         "mean": 1.0,
         "min": 1.0
       },
-      "signature_digest": "5b6a2f70298116bc58dc576962f37d120c71cd3d4ff5952cd993d8e074745902",
+      "signature_digest": "add4a3e0fd35e37be033483d600dfce9a0cfab47afc947cad6c0ec039c371eef",
       "symbol": "BTCUSDT",
       "timeframe": "5m",
       "trigger_value": {
@@ -1318,7 +1318,7 @@
           "threshold_snapshot": {
             "calibration_mode": "rolling_quantile",
             "cooldown_bars": 0,
-            "merge_gap_bars": 0,
+            "merge_gap_bars": 1,
             "version": "2.0"
           },
           "timeframe": "5m",
@@ -1339,13 +1339,127 @@
         "mean": 1.0,
         "min": 1.0
       },
-      "signature_digest": "eafd5e76bd1cd5437562981df4465c22f6b7ae74c7ee30093b17a5a8f8ccd6d9",
+      "signature_digest": "4594ffe01cc2f3fe5451deb5f159927a22a7abd8cec34066f1c80ace31e78ae9",
       "symbol": "BTCUSDT",
       "timeframe": "5m",
       "trigger_value": {
         "max": 333.333333333333,
         "mean": 333.333333333333,
         "min": 333.333333333333
+      }
+    },
+    {
+      "confidence": {
+        "max": 0.85,
+        "mean": 0.85,
+        "min": 0.85
+      },
+      "data_quality_counts": {
+        "ok": 2
+      },
+      "detector_class": "OISpikeNegativeDetectorV2",
+      "event_count": 2,
+      "event_name": "OI_SPIKE_NEGATIVE",
+      "event_version": "v2",
+      "events": [
+        {
+          "confidence": 0.85,
+          "cooldown_until": null,
+          "data_quality_flag": "ok",
+          "detector_metadata": {
+            "close_ret": -0.005233494364,
+            "cluster_id": "positioning_oi",
+            "event_idx": 181,
+            "oi_pct_change": 0.62962962963,
+            "oi_z": 5.681005139184
+          },
+          "event_name": "OI_SPIKE_NEGATIVE",
+          "event_version": "v2",
+          "evidence_mode": "direct",
+          "family": "POSITIONING_EXTREMES",
+          "merge_key": "BTCUSDT:positioning_oi",
+          "phase": "expansion",
+          "required_context_present": true,
+          "severity": 1.0,
+          "source_features": {
+            "close_ret": -0.005233494364,
+            "mask": true,
+            "oi_pct_change": 0.62962962963,
+            "oi_z": 5.681005139184,
+            "signal_intensity": 5.681005139184
+          },
+          "subtype": "oi_spike_negative",
+          "symbol": "BTCUSDT",
+          "threshold_snapshot": {
+            "calibration_mode": "rolling_zscore",
+            "cooldown_bars": 0,
+            "merge_gap_bars": 1,
+            "version": "2.0"
+          },
+          "timeframe": "5m",
+          "trigger_value": 5.681005139184,
+          "ts_end": "2024-01-01T15:05:00+00:00",
+          "ts_start": "2024-01-01T15:05:00+00:00"
+        },
+        {
+          "confidence": 0.85,
+          "cooldown_until": null,
+          "data_quality_flag": "ok",
+          "detector_metadata": {
+            "close_ret": -0.005261027924,
+            "cluster_id": "positioning_oi",
+            "event_idx": 182,
+            "oi_pct_change": 0.386363636364,
+            "oi_z": 3.215484357027
+          },
+          "event_name": "OI_SPIKE_NEGATIVE",
+          "event_version": "v2",
+          "evidence_mode": "direct",
+          "family": "POSITIONING_EXTREMES",
+          "merge_key": "BTCUSDT:positioning_oi",
+          "phase": "expansion",
+          "required_context_present": true,
+          "severity": 1.0,
+          "source_features": {
+            "close_ret": -0.005261027924,
+            "mask": true,
+            "oi_pct_change": 0.386363636364,
+            "oi_z": 3.215484357027,
+            "signal_intensity": 3.215484357027
+          },
+          "subtype": "oi_spike_negative",
+          "symbol": "BTCUSDT",
+          "threshold_snapshot": {
+            "calibration_mode": "rolling_zscore",
+            "cooldown_bars": 0,
+            "merge_gap_bars": 1,
+            "version": "2.0"
+          },
+          "timeframe": "5m",
+          "trigger_value": 3.215484357027,
+          "ts_end": "2024-01-01T15:10:00+00:00",
+          "ts_start": "2024-01-01T15:10:00+00:00"
+        }
+      ],
+      "first_ts_end": "2024-01-01T15:05:00+00:00",
+      "first_ts_start": "2024-01-01T15:05:00+00:00",
+      "last_ts_end": "2024-01-01T15:10:00+00:00",
+      "last_ts_start": "2024-01-01T15:10:00+00:00",
+      "phase_counts": {
+        "expansion": 2
+      },
+      "severity": {
+        "max": 1.0,
+        "mean": 1.0,
+        "min": 1.0
+      },
+      "signature_digest": "2fd108479a7a9cf7513715eec74dfa0e7325ff4652b9abbfd8a55e49d1ea8edc",
+      "symbol": "BTCUSDT",
+      "timeframe": "5m",
+      "trigger_value": {
+        "max": 5.681005139184,
+        "mean": 4.448244748106,
+        "min": 3.215484357027
       }
     },
     {
@@ -1792,7 +1906,7 @@
           "threshold_snapshot": {
             "calibration_mode": "rolling_quantile",
             "cooldown_bars": 0,
-            "merge_gap_bars": 0,
+            "merge_gap_bars": 1,
             "version": "2.0"
           },
           "timeframe": "5m",
@@ -1834,7 +1948,7 @@
           "threshold_snapshot": {
             "calibration_mode": "rolling_quantile",
             "cooldown_bars": 0,
-            "merge_gap_bars": 0,
+            "merge_gap_bars": 1,
             "version": "2.0"
           },
           "timeframe": "5m",
@@ -1876,7 +1990,7 @@
           "threshold_snapshot": {
             "calibration_mode": "rolling_quantile",
             "cooldown_bars": 0,
-            "merge_gap_bars": 0,
+            "merge_gap_bars": 1,
             "version": "2.0"
           },
           "timeframe": "5m",
@@ -1918,7 +2032,7 @@
           "threshold_snapshot": {
             "calibration_mode": "rolling_quantile",
             "cooldown_bars": 0,
-            "merge_gap_bars": 0,
+            "merge_gap_bars": 1,
             "version": "2.0"
           },
           "timeframe": "5m",
@@ -1960,7 +2074,7 @@
           "threshold_snapshot": {
             "calibration_mode": "rolling_quantile",
             "cooldown_bars": 0,
-            "merge_gap_bars": 0,
+            "merge_gap_bars": 1,
             "version": "2.0"
           },
           "timeframe": "5m",
@@ -2002,7 +2116,7 @@
           "threshold_snapshot": {
             "calibration_mode": "rolling_quantile",
             "cooldown_bars": 0,
-            "merge_gap_bars": 0,
+            "merge_gap_bars": 1,
             "version": "2.0"
           },
           "timeframe": "5m",
@@ -2044,7 +2158,7 @@
           "threshold_snapshot": {
             "calibration_mode": "rolling_quantile",
             "cooldown_bars": 0,
-            "merge_gap_bars": 0,
+            "merge_gap_bars": 1,
             "version": "2.0"
           },
           "timeframe": "5m",
@@ -2086,7 +2200,7 @@
           "threshold_snapshot": {
             "calibration_mode": "rolling_quantile",
             "cooldown_bars": 0,
-            "merge_gap_bars": 0,
+            "merge_gap_bars": 1,
             "version": "2.0"
           },
           "timeframe": "5m",
@@ -2128,7 +2242,7 @@
           "threshold_snapshot": {
             "calibration_mode": "rolling_quantile",
             "cooldown_bars": 0,
-            "merge_gap_bars": 0,
+            "merge_gap_bars": 1,
             "version": "2.0"
           },
           "timeframe": "5m",
@@ -2170,7 +2284,7 @@
           "threshold_snapshot": {
             "calibration_mode": "rolling_quantile",
             "cooldown_bars": 0,
-            "merge_gap_bars": 0,
+            "merge_gap_bars": 1,
             "version": "2.0"
           },
           "timeframe": "5m",
@@ -2212,7 +2326,7 @@
           "threshold_snapshot": {
             "calibration_mode": "rolling_quantile",
             "cooldown_bars": 0,
-            "merge_gap_bars": 0,
+            "merge_gap_bars": 1,
             "version": "2.0"
           },
           "timeframe": "5m",
@@ -2254,7 +2368,7 @@
           "threshold_snapshot": {
             "calibration_mode": "rolling_quantile",
             "cooldown_bars": 0,
-            "merge_gap_bars": 0,
+            "merge_gap_bars": 1,
             "version": "2.0"
           },
           "timeframe": "5m",
@@ -2275,7 +2389,7 @@
         "mean": 0.45,
         "min": 0.45
       },
-      "signature_digest": "6d2be6bb9672a666606f83991aa1691f090e58ae5d7bd03fdb04c8b072bd5751",
+      "signature_digest": "f7af50aa3b15369c400626291861febdce582a0c920cf5a470df1444a6fff765",
       "symbol": "BTCUSDT",
       "timeframe": "5m",
       "trigger_value": {

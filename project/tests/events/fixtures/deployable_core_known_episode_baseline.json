@@ -29,7 +29,7 @@
             "mean": 1.0,
             "min": 1.0
           },
-          "signature_digest": "fff1278f5145b81523d7e86e6dd8d691780858abbd6408b45093622c33b92c80",
+          "signature_digest": "3e4deed66b30d95d3ec19376cc96f10c71d104e93233ee7f0af8435eab1e7246",
           "symbol": "BTCUSDT",
           "timeframe": "5m",
           "trigger_value": {
@@ -63,7 +63,7 @@
             "mean": 1.0,
             "min": 1.0
           },
-          "signature_digest": "51feb5d83e31b1b74495fe07da098cbe0fe7e9386f42270b32296657fe5983f8",
+          "signature_digest": "71aa00c2ed05001f6c835c7fd549887f9d445fed73f5b6bcad0c269098392971",
           "symbol": "BTCUSDT",
           "timeframe": "5m",
           "trigger_value": {
@@ -194,6 +194,36 @@
         },
         {
           "confidence": {
+            "max": null,
+            "mean": null,
+            "min": null
+          },
+          "data_quality_counts": {},
+          "detector_class": "OISpikeNegativeDetectorV2",
+          "event_count": 0,
+          "event_name": "OI_SPIKE_NEGATIVE",
+          "event_version": "v2",
+          "first_ts_end": null,
+          "first_ts_start": null,
+          "last_ts_end": null,
+          "last_ts_start": null,
+          "phase_counts": {},
+          "severity": {
+            "max": null,
+            "mean": null,
+            "min": null
+          },
+          "signature_digest": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+          "symbol": "BTCUSDT",
+          "timeframe": "5m",
+          "trigger_value": {
+            "max": null,
+            "mean": null,
+            "min": null
+          }
+        },
+        {
+          "confidence": {
             "max": 1.0,
             "mean": 1.0,
             "min": 1.0
@@ -293,6 +323,7 @@
         "LIQUIDITY_SHOCK",
         "LIQUIDITY_STRESS_DIRECT",
         "LIQUIDITY_VACUUM",
+        "OI_SPIKE_NEGATIVE",
         "VOL_SHOCK",
         "VOL_SPIKE"
       ],
@@ -301,7 +332,7 @@
         "FND_DISLOC",
         "SPOT_PERP_BASIS_SHOCK"
       ],
-      "frame_digest": "d99fa3aade0cbc27c8efbb63fb505bff9bcf24443ffb77fa5a9e4b67bdf4607c",
+      "frame_digest": "1a4e8e9c6fec7ad564c8af9ffa49020f6caaba8f847cfaf6a91a85732ede314e",
       "frame_end": "2024-02-12T02:35:00+00:00",
       "frame_rows": 3200,
       "frame_start": "2024-02-01T00:00:00+00:00",
@@ -398,7 +429,7 @@
             "mean": 1.0,
             "min": 1.0
           },
-          "signature_digest": "38cf30d5ac93270cb95a7ca162bd5ab8e32260b12697d2c54618aaf510b41420",
+          "signature_digest": "fb70acc53896cf0d7142d5c2435df1e0d00bcd712d6c2fd51b420d807779cff8",
           "symbol": "BTCUSDT",
           "timeframe": "5m",
           "trigger_value": {
@@ -432,7 +463,7 @@
             "mean": 1.0,
             "min": 1.0
           },
-          "signature_digest": "1a0a248f738e1da2303b066b016090597a08314a2fd5c4bd224efa766a4ff54a",
+          "signature_digest": "21464157a0ad8839ec60dda49a2dda7f72664cebf7efd10412a48eec8590db25",
           "symbol": "BTCUSDT",
           "timeframe": "5m",
           "trigger_value": {
@@ -466,7 +497,7 @@
             "mean": 1.0,
             "min": 1.0
           },
-          "signature_digest": "8322ca7b76fc3287424e76c4b8baebb630a066783141b7fdddfc7f2bd90a7645",
+          "signature_digest": "b5037adc58e40e57a625aff28cc0576c300e19608e21991e023d06ed1640195a",
           "symbol": "BTCUSDT",
           "timeframe": "5m",
           "trigger_value": {
@@ -507,6 +538,36 @@
             "max": 47.140452079103,
             "mean": 47.140452079103,
             "min": 47.140452079103
+          }
+        },
+        {
+          "confidence": {
+            "max": null,
+            "mean": null,
+            "min": null
+          },
+          "data_quality_counts": {},
+          "detector_class": "OISpikeNegativeDetectorV2",
+          "event_count": 0,
+          "event_name": "OI_SPIKE_NEGATIVE",
+          "event_version": "v2",
+          "first_ts_end": null,
+          "first_ts_start": null,
+          "last_ts_end": null,
+          "last_ts_start": null,
+          "phase_counts": {},
+          "severity": {
+            "max": null,
+            "mean": null,
+            "min": null
+          },
+          "signature_digest": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+          "symbol": "BTCUSDT",
+          "timeframe": "5m",
+          "trigger_value": {
+            "max": null,
+            "mean": null,
+            "min": null
           }
         },
         {
@@ -564,7 +625,7 @@
             "mean": 0.480555555556,
             "min": 0.45
           },
-          "signature_digest": "b17e97172b285fd98f88417f1279075e00d17030e9ea144a11de26f4a4a18a0a",
+          "signature_digest": "bd998493fd025565113edea7f9a8b703886cf26ed0ef9d82aa18ff162d1e9468",
           "symbol": "BTCUSDT",
           "timeframe": "5m",
           "trigger_value": {
@@ -612,6 +673,7 @@
       "expected_absent": [
         "BASIS_DISLOC",
         "FND_DISLOC",
+        "OI_SPIKE_NEGATIVE",
         "SPOT_PERP_BASIS_SHOCK"
       ],
       "expected_present": [
@@ -622,7 +684,7 @@
         "VOL_SPIKE",
         "VOL_SHOCK"
       ],
-      "frame_digest": "f1a1ed22cd2d26c7c1cfc5e6c8db6e27037045f77d760bd3b2d53a584c3fc6a1",
+      "frame_digest": "f5eed2b4cb9e55f6a8af04d39c0ea445ab9968069eaea0e61ffd113f510a38db",
       "frame_end": "2024-03-16T02:35:00+00:00",
       "frame_rows": 3200,
       "frame_start": "2024-03-05T00:00:00+00:00",

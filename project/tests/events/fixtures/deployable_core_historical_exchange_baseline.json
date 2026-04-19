@@ -91,7 +91,7 @@
             "mean": 0.55,
             "min": 0.5
           },
-          "signature_digest": "9bc6c11204ab52566dbc5fd13ced569ef05816ae249cd96c1b1eb2d54b451234",
+          "signature_digest": "655b50c52ba9c539a907f5a543eb836e56b85ce458b0c4709aa928d244c38875",
           "symbol": "BTCUSDT",
           "timeframe": "5m",
           "trigger_value": {
@@ -197,6 +197,36 @@
             "min": null
           },
           "data_quality_counts": {},
+          "detector_class": "OISpikeNegativeDetectorV2",
+          "event_count": 0,
+          "event_name": "OI_SPIKE_NEGATIVE",
+          "event_version": "v2",
+          "first_ts_end": null,
+          "first_ts_start": null,
+          "last_ts_end": null,
+          "last_ts_start": null,
+          "phase_counts": {},
+          "severity": {
+            "max": null,
+            "mean": null,
+            "min": null
+          },
+          "signature_digest": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+          "symbol": "BTCUSDT",
+          "timeframe": "5m",
+          "trigger_value": {
+            "max": null,
+            "mean": null,
+            "min": null
+          }
+        },
+        {
+          "confidence": {
+            "max": null,
+            "mean": null,
+            "min": null
+          },
+          "data_quality_counts": {},
           "detector_class": "SpotPerpBasisShockDetectorV2",
           "event_count": 0,
           "event_name": "SPOT_PERP_BASIS_SHOCK",
@@ -245,7 +275,7 @@
             "mean": 0.614285714286,
             "min": 0.45
           },
-          "signature_digest": "3e254c587896173ac98a396baae7bf2c84d71937e8564e560b7c2b46ff2bff76",
+          "signature_digest": "4e36d04af9fe4d05590aecbbcf9f1e04cdb326146e3a9eb357600bc119782bb5",
           "symbol": "BTCUSDT",
           "timeframe": "5m",
           "trigger_value": {
@@ -295,6 +325,7 @@
         "LIQUIDITY_SHOCK",
         "LIQUIDITY_STRESS_DIRECT",
         "LIQUIDITY_VACUUM",
+        "OI_SPIKE_NEGATIVE",
         "SPOT_PERP_BASIS_SHOCK"
       ],
       "expected_present": [

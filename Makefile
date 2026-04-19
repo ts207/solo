@@ -82,11 +82,12 @@ benchmark-maintenance:
 minimum-green-gate:
 	@echo "Running minimum green gate checks..."
 	PYTHONPATH=. PYTHONPYCACHEPREFIX=$(PY_CACHE_PREFIX) $(PYTHON) -m compileall -q project project/tests
-	PYTHONPATH=. PYTHONPYCACHEPREFIX=$(PY_CACHE_PREFIX) $(PYTHON) -m pytest project/tests/architecture
+	PYTHONPATH=. PYTHONPYCACHEPREFIX=$(PY_CACHE_PREFIX) $(PYTHON) -m pytest -s project/tests/architecture
 	PYTHONPATH=. PYTHONPYCACHEPREFIX=$(PY_CACHE_PREFIX) $(PYTHON) project/scripts/spec_qa_linter.py
 	PYTHONPATH=. PYTHONPYCACHEPREFIX=$(PY_CACHE_PREFIX) $(PYTHON) project/scripts/detector_coverage_audit.py --md-out docs/generated/detector_coverage.md --json-out docs/generated/detector_coverage.json --check
 	PYTHONPATH=. PYTHONPYCACHEPREFIX=$(PY_CACHE_PREFIX) $(PYTHON) project/scripts/ontology_consistency_audit.py --output docs/generated/ontology_audit.json --check
 	PYTHONPATH=. PYTHONPYCACHEPREFIX=$(PY_CACHE_PREFIX) $(PYTHON) project/scripts/build_event_contract_artifacts.py --check
+	PYTHONPATH=. PYTHONPYCACHEPREFIX=$(PY_CACHE_PREFIX) $(PYTHON) project/scripts/check_domain_graph_freshness.py
 	PYTHONPATH=. PYTHONPYCACHEPREFIX=$(PY_CACHE_PREFIX) $(PYTHON) project/scripts/check_calibration_version_bumps.py
 	PYTHONPATH=. PYTHONPYCACHEPREFIX=$(PY_CACHE_PREFIX) $(PYTHON) project/scripts/check_deployable_core_replay_baseline.py
 	PYTHONPATH=. PYTHONPYCACHEPREFIX=$(PY_CACHE_PREFIX) $(PYTHON) project/scripts/check_known_episode_replay_baseline.py
@@ -95,8 +96,9 @@ minimum-green-gate:
 	PYTHONPATH=. PYTHONPYCACHEPREFIX=$(PY_CACHE_PREFIX) $(PYTHON) project/scripts/event_ontology_audit.py --check
 	PYTHONPATH=. PYTHONPYCACHEPREFIX=$(PY_CACHE_PREFIX) $(PYTHON) project/scripts/build_event_ontology_artifacts.py --check
 	PYTHONPATH=. PYTHONPYCACHEPREFIX=$(PY_CACHE_PREFIX) $(PYTHON) project/scripts/build_system_map.py --check
+	PYTHONPATH=. PYTHONPYCACHEPREFIX=$(PY_CACHE_PREFIX) $(PYTHON) project/scripts/build_contract_strictness_inventory.py --check
 	PYTHONPATH=. PYTHONPYCACHEPREFIX=$(PY_CACHE_PREFIX) $(PYTHON) project/scripts/build_architecture_metrics.py --check
-	PYTHONPATH=. PYTHONPYCACHEPREFIX=$(PY_CACHE_PREFIX) $(PYTHON) -m pytest -q \
+	PYTHONPATH=. PYTHONPYCACHEPREFIX=$(PY_CACHE_PREFIX) $(PYTHON) -m pytest -s -q \
 		project/tests/events/test_deployable_core_validation_gate.py \
 		project/tests/events/test_deployable_core_replay_baseline.py \
 		project/tests/events/test_deployable_core_known_episode_replay.py \
