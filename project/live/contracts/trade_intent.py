@@ -14,6 +14,14 @@ class TradeIntent(BaseModel):
     thesis_id: str = ""
     support_score: float = 0.0
     contradiction_penalty: float = 0.0
+    probability_positive_post_cost: float = 0.0
+    expected_gross_edge_bps: float = 0.0
+    expected_net_edge_bps: float = 0.0
+    expected_downside_bps: float = 0.0
+    expected_net_pnl_bps: float = 0.0
+    fill_probability: float = 0.0
+    edge_confidence: float = 0.0
+    utility_score: float = 0.0
     confidence_band: Literal["none", "low", "medium", "high"] = "none"
     size_fraction: float = 0.0
     invalidation: Dict[str, Any] = Field(default_factory=dict)

@@ -110,8 +110,10 @@ def check_kill_switch_triggers(
             live_performance_expectancy < research_mean_expectancy and expectancy_ratio > 1.5
         )
     else:
-        expectancy_ratio = 0.0 if live_performance_expectancy == 0 else (
-            float("inf") if live_performance_expectancy > 0 else float("-inf")
+        expectancy_ratio = (
+            0.0
+            if live_performance_expectancy == 0
+            else (float("inf") if live_performance_expectancy > 0 else float("-inf"))
         )
         expectancy_kill = live_performance_expectancy < 0
 
@@ -259,4 +261,61 @@ def evaluate_pretrade_microstructure_gate(
         "max_spread_bps": float(max_spread_bps),
         "min_depth_usd": float(min_depth_usd),
         "min_tob_coverage": float(min_tob_coverage),
+    }
+
+
+def evaluate_market_state_components(
+    market_state: Dict[str, Any],
+    *,
+    max_ticker_stale_seconds: float,
+    runtime_feature_stale_after_seconds: float,
+) -> Dict[str, Any]:
+    stale_components: List[Dict[str, Any]] = []
+    missing_components: List[str] = []
+
+    if not bool(market_state.get("ticker_fresh", False)):
+        stale_components.append(
+            {
+                "component": "ticker",
+                "age_seconds": market_state.get("ticker_age_seconds"),
+                "max_age_seconds": float(max_ticker_stale_seconds),
+            }
+        )
+    for component, fresh_key, age_key in (
+        ("funding", "funding_fresh", "funding_age_seconds"),
+        ("open_interest", "open_interest_fresh", "open_interest_age_seconds"),
+    ):
+        source = str(market_state.get(f"{component}_source", "") or "")
+        if source == "missing":
+            missing_components.append(component)
+            continue
+        if fresh_key in market_state and not bool(market_state.get(fresh_key, False)):
+            stale_components.append(
+                {
+                    "component": component,
+                    "age_seconds": market_state.get(age_key),
+                    "max_age_seconds": float(runtime_feature_stale_after_seconds),
+                }
+            )
+
+    is_healthy = not stale_components and not missing_components
+    return {
+        "is_healthy": bool(is_healthy),
+        "freshness_status": "healthy" if is_healthy else "degraded",
+        "stale_components": stale_components,
+        "missing_components": missing_components,
+    }
+
+
+def evaluate_live_quality_degradation(
+    live_quality_result: Dict[str, Any],
+) -> Dict[str, Any]:
+    action = str(live_quality_result.get("action", "allow"))
+    degraded = action in {"downscale", "disable"}
+    return {
+        "is_healthy": not degraded,
+        "freshness_status": "degraded" if degraded else "healthy",
+        "quality_action": action,
+        "risk_scale": float(live_quality_result.get("risk_scale", 1.0)),
+        "reason_codes": list(live_quality_result.get("reason_codes", [])),
     }

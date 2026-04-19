@@ -9,7 +9,12 @@ from __future__ import annotations
 import asyncio
 
 import pytest
-from project.live.kill_switch import KillSwitchManager, KillSwitchReason, KillSwitchStatus, UnwindOrchestrator
+
+from project.live.kill_switch import (
+    KillSwitchManager,
+    KillSwitchReason,
+    UnwindOrchestrator,
+)
 from project.live.state import LiveStateStore, PositionState
 
 
@@ -61,6 +66,22 @@ def test_callback_triggered():
     # Should not trigger again if already active
     mgr.trigger(KillSwitchReason.FEATURE_DRIFT, "should not see this")
     assert triggered_count == 1
+
+
+def test_live_quality_gate_disable_can_trigger_kill_switch():
+    store = LiveStateStore()
+    mgr = KillSwitchManager(store)
+
+    result = mgr.check_live_quality_gate(
+        {
+            "action": "disable",
+            "reason_codes": ["edge_divergence_disable"],
+        }
+    )
+
+    assert result["triggered"] is True
+    assert mgr.status.is_active
+    assert mgr.status.reason == KillSwitchReason.LIVE_QUALITY_DEGRADATION
 
 
 def test_reset():

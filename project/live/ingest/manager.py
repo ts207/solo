@@ -37,6 +37,7 @@ class LiveDataManager:
         self._loop: asyncio.AbstractEventLoop | None = None
         # Rolling liquidation notional per symbol (reset on each bar by consumer)
         self._liquidation_notional_by_symbol: Dict[str, float] = {}
+        self._latest_ticker_by_symbol: Dict[str, Dict[str, Any]] = {}
         self.streams = self._build_streams()
 
         if self.exchange == "binance":
@@ -176,6 +177,20 @@ class LiveDataManager:
         else:
             _push()
 
+    def _record_latest_ticker(self, event: Any) -> None:
+        symbol = str(getattr(event, "symbol", "")).upper()
+        if not symbol:
+            return
+        self._latest_ticker_by_symbol[symbol] = {
+            "best_bid_price": float(getattr(event, "best_bid_price")),
+            "best_bid_qty": float(getattr(event, "best_bid_qty")),
+            "best_ask_price": float(getattr(event, "best_ask_price")),
+            "best_ask_qty": float(getattr(event, "best_ask_qty")),
+            "timestamp": event.timestamp.isoformat()
+            if hasattr(event.timestamp, "isoformat")
+            else str(event.timestamp),
+        }
+
     def _on_message(self, message: Dict[str, Any]):
         arrival_ts = pd.Timestamp.now(timezone.utc)
 
@@ -196,6 +211,7 @@ class LiveDataManager:
             elif "bookTicker" in stream_name or "b" in message.get("data", message):
                 event = parse_book_ticker_event(message, arrival_ts)
                 if event:
+                    self._record_latest_ticker(event)
                     self._enqueue_threadsafe(self.ticker_queue, event, "Ticker")
         elif self.exchange == "bybit":
             topic = message.get("topic", "")
@@ -206,6 +222,7 @@ class LiveDataManager:
             elif topic.startswith("tickers"):
                 event = parse_bybit_ticker_event(message, arrival_ts)
                 if event:
+                    self._record_latest_ticker(event)
                     self._enqueue_threadsafe(self.ticker_queue, event, "Ticker")
             elif topic.startswith("liquidation"):
                 event = parse_bybit_liquidation_event(message)
@@ -223,3 +240,6 @@ class LiveDataManager:
     def reset_liquidation_notional(self, symbol: str) -> None:
         """Reset the liquidation notional accumulator for a symbol (call once per bar)."""
         self._liquidation_notional_by_symbol.pop(str(symbol).upper(), None)
+
+    def latest_ticker(self, symbol: str) -> Dict[str, Any]:
+        return dict(self._latest_ticker_by_symbol.get(str(symbol).upper(), {}))

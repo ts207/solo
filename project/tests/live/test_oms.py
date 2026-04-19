@@ -249,6 +249,52 @@ def test_submit_order_async_propagates_reduce_only_from_order_metadata():
     ]
 
 
+def test_submit_order_async_accepts_exchange_backed_limit_order():
+    class _DummyExchangeClient:
+        def __init__(self) -> None:
+            self.calls = []
+
+        async def create_limit_order(self, **kwargs):
+            self.calls.append(kwargs)
+            return {"orderId": "venue-limit-1"}
+
+    exchange_client = _DummyExchangeClient()
+    mgr = OrderManager(exchange_client=exchange_client)
+    order = LiveOrder(
+        "order3e",
+        "BTCUSDT",
+        OrderSide.BUY,
+        OrderType.LIMIT,
+        0.5,
+        price=60000.0,
+        metadata={"post_only": True},
+    )
+
+    result = __import__("asyncio").run(
+        mgr.submit_order_async(
+            order,
+            market_state={"bid": 60000.0, "ask": 60001.0},
+        )
+    )
+
+    assert result["accepted"] is True
+    assert result["route"]["route_type"] == "post_only"
+    assert result["venue_submitted"] is True
+    assert exchange_client.calls == [
+        {
+            "symbol": "BTCUSDT",
+            "side": "BUY",
+            "quantity": 0.5,
+            "price": 60000.0,
+            "time_in_force": "GTX",
+            "reduce_only": False,
+            "post_only": True,
+        }
+    ]
+    assert mgr.active_orders["order3e"].exchange_order_id == "venue-limit-1"
+    assert mgr.active_orders["order3e"].status == OrderStatus.NEW
+
+
 def test_cancel_all_orders_raises_if_any_symbol_cannot_be_cancelled():
     class _DummyExchangeClient:
         async def cancel_all_open_orders(self, symbol):

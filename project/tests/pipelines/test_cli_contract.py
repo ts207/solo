@@ -1,10 +1,12 @@
 from __future__ import annotations
 
 import importlib.util
+import json
 import sys
 from pathlib import Path
 
 import pytest
+import yaml
 
 import project.discover as discover_module
 import project.promote as promote_module
@@ -183,3 +185,50 @@ def test_cli_operator_plan_alias_removed(monkeypatch, capsys):
 
     assert int(exc.value.code) == 2
     assert "invalid choice: 'operator'" in capsys.readouterr().err
+
+
+def test_cli_deploy_bind_config_does_not_inject_synthetic_microstructure_defaults(
+    monkeypatch,
+    tmp_path: Path,
+) -> None:
+    cli = _load_cli_module()
+    run_id = "unit_run"
+    data_root = tmp_path / "data"
+    thesis_dir = data_root / "live" / "theses" / run_id
+    thesis_dir.mkdir(parents=True)
+    (thesis_dir / "promoted_theses.json").write_text(
+        json.dumps(
+            {
+                "theses": [
+                    {
+                        "primary_event_id": "VOL_SHOCK",
+                        "thesis_id": f"thesis::{run_id}::BTCUSDT",
+                    }
+                ]
+            }
+        ),
+        encoding="utf-8",
+    )
+    out_dir = tmp_path / "configs"
+    monkeypatch.setattr(
+        sys,
+        "argv",
+        [
+            "backtest",
+            "deploy",
+            "bind-config",
+            "--run_id",
+            run_id,
+            "--data_root",
+            str(data_root),
+            "--out_dir",
+            str(out_dir),
+        ],
+    )
+
+    assert cli.main() == 0
+    payload = yaml.safe_load((out_dir / f"live_paper_{run_id}.yaml").read_text())
+    strategy_runtime = payload["strategy_runtime"]
+    assert "default_depth_usd" not in strategy_runtime
+    assert "default_tob_coverage" not in strategy_runtime
+    assert "default_expected_cost_bps" not in strategy_runtime

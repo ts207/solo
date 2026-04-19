@@ -1645,6 +1645,52 @@ def test_live_runner_auto_submit_blocks_when_venue_rules_are_missing() -> None:
     }
 
 
+def test_live_runner_auto_submit_skips_order_planning_when_market_state_incomplete(
+    monkeypatch,
+) -> None:
+    runner = LiveEngineRunner(
+        ["btcusdt"],
+        data_manager=_DummyDataManager(),
+        runtime_mode="trading",
+        strategy_runtime={
+            "implemented": True,
+            "auto_submit": True,
+            "allowed_actions": ["probe"],
+        },
+    )
+    outcome = SimpleNamespace(
+        trade_intent=TradeIntent(
+            action="probe",
+            symbol="BTCUSDT",
+            side="buy",
+            thesis_id="thesis_1",
+            size_fraction=0.2,
+        )
+    )
+
+    def _fail_order_planning(**kwargs):
+        raise AssertionError("order planning must not run with incomplete market state")
+
+    monkeypatch.setattr("project.live.runner.build_order_plan", _fail_order_planning)
+
+    result = asyncio.run(
+        runner._submit_trade_intent_if_enabled(
+            outcome=outcome,
+            market_state={
+                "market_state_complete": False,
+                "is_execution_tradable": False,
+                "non_tradable_reasons": ["missing_book_quantities"],
+            },
+        )
+    )
+
+    assert result == {
+        "accepted": False,
+        "blocked_by": "market_state_not_tradable",
+        "reasons": ["missing_book_quantities"],
+    }
+
+
 def test_live_runner_rest_market_feature_total_outage_is_warning_and_clears_state(caplog) -> None:
     runner = LiveEngineRunner(
         ["btcusdt"],

@@ -8,11 +8,12 @@ import json
 import logging
 import os
 import time
-from urllib.parse import urlencode
 from pathlib import Path
 from typing import Any, Dict
+from urllib.parse import urlencode
 
 from project import PROJECT_ROOT
+from project.live.deploy_status import reject_synthetic_microstructure_defaults
 from project.live.policy import normalize_live_event_detector_config
 from project.spec_registry import load_yaml_path
 
@@ -27,9 +28,10 @@ class VenueConnectivityError(RuntimeError):
 
 def _normalize_runtime_mode(config: Dict[str, Any], *, config_path: Path) -> str:
     runtime_mode = str(config.get("runtime_mode", "")).strip().lower()
-    if runtime_mode not in {"monitor_only", "trading"}:
+    if runtime_mode not in {"monitor_only", "trading", "simulation"}:
         raise LiveRuntimeConfigError(
-            f"Live engine config must set runtime_mode to 'monitor_only' or 'trading': {config_path}"
+            "Live engine config must set runtime_mode to 'monitor_only', 'simulation', "
+            f"or 'trading': {config_path}"
         )
     return runtime_mode
 
@@ -85,6 +87,14 @@ def load_live_engine_config(path: Path) -> Dict[str, Any]:
     config = dict(payload)
     config["runtime_mode"] = _normalize_runtime_mode(config, config_path=path)
     config["strategy_runtime"] = _normalize_strategy_runtime(config, config_path=path)
+    try:
+        reject_synthetic_microstructure_defaults(
+            runtime_mode=str(config["runtime_mode"]),
+            strategy_runtime=config["strategy_runtime"],
+            config_path=path,
+        )
+    except ValueError as exc:
+        raise LiveRuntimeConfigError(str(exc)) from exc
     return config
 
 
@@ -100,6 +110,14 @@ def _resolve_live_engine_config(
     normalized["strategy_runtime"] = _normalize_strategy_runtime(
         normalized, config_path=config_path
     )
+    try:
+        reject_synthetic_microstructure_defaults(
+            runtime_mode=str(normalized["runtime_mode"]),
+            strategy_runtime=normalized["strategy_runtime"],
+            config_path=config_path,
+        )
+    except ValueError as exc:
+        raise LiveRuntimeConfigError(str(exc)) from exc
     return normalized
 
 
@@ -205,7 +223,7 @@ def validate_live_runtime_environment(
         )
     env = dict(environ or os.environ)
     environment_name = _resolve_runtime_environment(config, config_path=config_path)
-    if runtime_mode == "monitor_only":
+    if runtime_mode in {"monitor_only", "simulation"}:
         return {
             "environment": environment_name,
             "venue": str(env.get("EDGE_VENUE", "")).strip().lower(),
@@ -399,8 +417,9 @@ async def preflight_binance_venue_connectivity(
                         detail = await account_response.text()
                     except Exception:
                         detail = ""
+                status = getattr(account_response, "status", "unknown")
                 raise VenueConnectivityError(
-                    f"Binance account preflight failed with status {getattr(account_response, 'status', 'unknown')}: {detail}".strip()
+                    f"Binance account preflight failed with status {status}: {detail}".strip()
                 )
             payload = await account_response.json()
 
@@ -459,8 +478,9 @@ async def fetch_binance_futures_account_snapshot(
                         detail = await account_response.text()
                     except Exception:
                         detail = ""
+                status = getattr(account_response, "status", "unknown")
                 raise VenueConnectivityError(
-                    f"Binance account snapshot fetch failed with status {getattr(account_response, 'status', 'unknown')}: {detail}".strip()
+                    f"Binance account snapshot fetch failed with status {status}: {detail}".strip()
                 )
             payload = await account_response.json()
 
@@ -558,7 +578,8 @@ async def preflight_bybit_venue_connectivity(
     server_time_url = f"{base_url.rstrip('/')}/v5/market/time"
     wallet_url = f"{base_url.rstrip('/')}/v5/account/wallet-balance?accountType=UNIFIED"
 
-    import hashlib, hmac as hmac_mod
+    import hashlib
+    import hmac as hmac_mod
 
     timestamp = str(int(time.time() * 1000))
     recv_window = "5000"
@@ -615,7 +636,8 @@ async def fetch_bybit_account_snapshot(
     if not base_url or not api_key or not api_secret:
         raise VenueConnectivityError("Bybit API credentials must be set for account snapshot")
 
-    import hashlib, hmac as hmac_mod
+    import hashlib
+    import hmac as hmac_mod
 
     timestamp = str(int(time.time() * 1000))
     recv_window = "5000"
@@ -745,10 +767,12 @@ async def _fetch_trading_start_snapshot(environment: Dict[str, str]) -> Dict[str
 def configure_runner_for_trading_start(*, runner: Any, environment: Dict[str, str]) -> None:
     venue = str(environment.get("venue", "binance")).strip().lower()
     if venue == "bybit":
-        runner.account_snapshot_fetcher = lambda: fetch_bybit_account_snapshot(environment=environment)
+        runner.account_snapshot_fetcher = lambda: fetch_bybit_account_snapshot(
+            environment=environment
+        )
     else:
-        runner.account_snapshot_fetcher = (
-            lambda: fetch_binance_futures_account_snapshot(environment=environment)
+        runner.account_snapshot_fetcher = lambda: fetch_binance_futures_account_snapshot(
+            environment=environment
         )
     initial_account_snapshot = asyncio.run(_fetch_trading_start_snapshot(environment))
     runner.state_store.update_from_exchange_snapshot(initial_account_snapshot)

@@ -1,9 +1,6 @@
 from __future__ import annotations
 
 import asyncio
-from types import SimpleNamespace
-
-import pandas as pd
 
 from project.live.ingest import manager as mgr
 
@@ -101,3 +98,29 @@ def test_on_message_routes_kline_and_ticker_events(monkeypatch) -> None:
     assert ld.ticker_queue.qsize() == 1
     assert ld.kline_queue.get_nowait()["kind"] == "kline"
     assert ld.ticker_queue.get_nowait()["kind"] == "ticker"
+
+
+def test_on_message_records_latest_measured_ticker(monkeypatch) -> None:
+    monkeypatch.setattr(mgr, "BinanceWebSocketClient", DummyClient)
+    ld = mgr.LiveDataManager(["BTCUSDT"])
+
+    ld._on_message(
+        {
+            "stream": "btcusdt@bookTicker",
+            "data": {
+                "s": "BTCUSDT",
+                "b": "99.9",
+                "B": "3.0",
+                "a": "100.1",
+                "A": "4.0",
+                "E": 1775001600000,
+            },
+        }
+    )
+
+    ticker = ld.latest_ticker("BTCUSDT")
+    assert ticker["best_bid_price"] == 99.9
+    assert ticker["best_bid_qty"] == 3.0
+    assert ticker["best_ask_price"] == 100.1
+    assert ticker["best_ask_qty"] == 4.0
+    assert ticker["timestamp"]

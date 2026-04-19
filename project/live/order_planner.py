@@ -4,7 +4,10 @@ from dataclasses import dataclass
 from typing import Any, Dict, Mapping
 
 from project.live.contracts.trade_intent import TradeIntent
+from project.live.execution_schedule import build_execution_schedule
 from project.live.oms import LiveOrder, OrderSide, OrderType
+from project.live.sizing_allocator import allocate_trade_size
+from project.live.trade_valuator import value_trade_intent
 from project.live.venue_rules import VenueSymbolRules, check_and_normalize_order
 
 
@@ -65,13 +68,53 @@ def build_order_plan(
         or market_state.get("close")
         or 0.0
     )
-    engine_notional = float(market_state.get("engine_allocated_notional", 0.0) or 0.0)
-    if engine_notional > 0.0 and entry_price > 0.0:
-        quantity = engine_notional / entry_price
+    available_balance = float(portfolio_state.get("available_balance", 0.0) or 0.0)
+    valuation = value_trade_intent(intent=intent, market_state=market_state)
+    if not valuation.should_trade:
+        return OrderPlan(
+            accepted=False,
+            client_order_id=client_order_id,
+            order=None,
+            plan={
+                "entry_price": entry_price,
+                "valuation": {
+                    "expected_gross_edge_bps": valuation.expected_gross_edge_bps,
+                    "expected_cost_bps": valuation.expected_cost_bps,
+                    "expected_net_edge_bps": valuation.expected_net_edge_bps,
+                    "expected_downside_bps": valuation.expected_downside_bps,
+                    "fill_probability": valuation.fill_probability,
+                    "edge_confidence": valuation.edge_confidence,
+                    "utility_score": valuation.utility_score,
+                    "reasons": list(valuation.reasons),
+                },
+            },
+            blocked_by="expected_value",
+        )
+
+    allocation = allocate_trade_size(
+        valuation=valuation,
+        market_state=market_state,
+        portfolio_state=portfolio_state,
+        base_size_fraction=float(intent.size_fraction),
+        max_notional_fraction=float(max_notional_fraction),
+    )
+    if not allocation.accepted:
+        return OrderPlan(
+            accepted=False,
+            client_order_id=client_order_id,
+            order=None,
+            plan={
+                "entry_price": entry_price,
+                "available_balance": available_balance,
+                "allocation_reasons": list(allocation.reasons),
+            },
+            blocked_by="allocation",
+        )
+    if entry_price > 0.0:
+        quantity = float(allocation.notional) / entry_price
     else:
-        available_balance = float(portfolio_state.get("available_balance", 0.0) or 0.0)
         quantity = _resolve_order_quantity(
-            size_fraction=float(intent.size_fraction),
+            size_fraction=float(allocation.size_fraction),
             entry_price=entry_price,
             available_balance=available_balance,
             max_notional_fraction=float(max_notional_fraction),
@@ -87,6 +130,14 @@ def build_order_plan(
     side = OrderSide.BUY if intent.side == "buy" else OrderSide.SELL
     reduce_only = bool(intent.metadata.get("reduce_only", False))
     post_only = bool(intent.metadata.get("post_only", False))
+    schedule = build_execution_schedule(
+        valuation=valuation,
+        notional=float(allocation.notional),
+        market_state=market_state,
+    )
+    if schedule.post_only:
+        post_only = True
+        order_type = OrderType.LIMIT
     price = entry_price if order_type == OrderType.LIMIT else None
     venue_rule_diagnostics: Dict[str, Any] = {}
     if venue_rules is not None:
@@ -134,7 +185,13 @@ def build_order_plan(
             )
         ),
         "expected_cost_bps": float(market_state.get("expected_cost_bps", 0.0) or 0.0),
-        "expected_net_edge_bps": float(market_state.get("expected_net_edge_bps", 0.0) or 0.0),
+        "expected_gross_edge_bps": valuation.expected_gross_edge_bps,
+        "expected_net_edge_bps": valuation.expected_net_edge_bps,
+        "expected_downside_bps": valuation.expected_downside_bps,
+        "expected_net_pnl_bps": valuation.expected_net_pnl_bps,
+        "fill_probability": valuation.fill_probability,
+        "edge_confidence": valuation.edge_confidence,
+        "utility_score": valuation.utility_score,
         "realized_fee_bps": 0.0,
         "thesis_id": str(intent.thesis_id),
         "trade_intent_action": intent.action,
@@ -144,6 +201,10 @@ def build_order_plan(
         "active_episode_ids": list(intent.metadata.get("active_episode_ids", [])),
         "reduce_only": reduce_only,
         "post_only": post_only,
+        "route_preference": schedule.route_preference,
+        "child_order_count": schedule.child_order_count,
+        "child_notional": schedule.child_notional,
+        "cancel_after_seconds": schedule.cancel_after_seconds,
         "venue_rules": venue_rule_diagnostics,
     }
     order = LiveOrder(
@@ -162,7 +223,21 @@ def build_order_plan(
         plan={
             "entry_price": entry_price,
             "quantity": quantity,
-            "size_fraction": float(intent.size_fraction),
+            "notional": allocation.notional,
+            "size_fraction": float(allocation.size_fraction),
+            "participation_fraction": allocation.participation_fraction,
+            "valuation": {
+                "expected_net_edge_bps": valuation.expected_net_edge_bps,
+                "expected_downside_bps": valuation.expected_downside_bps,
+                "fill_probability": valuation.fill_probability,
+                "edge_confidence": valuation.edge_confidence,
+                "utility_score": valuation.utility_score,
+            },
+            "execution_schedule": {
+                "route_preference": schedule.route_preference,
+                "child_order_count": schedule.child_order_count,
+                "cancel_after_seconds": schedule.cancel_after_seconds,
+            },
             "action": intent.action,
         },
     )

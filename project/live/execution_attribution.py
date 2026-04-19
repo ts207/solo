@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from dataclasses import dataclass, asdict
+from dataclasses import asdict, dataclass
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List
@@ -84,7 +84,9 @@ def build_execution_attribution_record(
         overlap_group_id=str(overlap_group_id),
         governance_tier=str(governance_tier),
         operational_role=str(operational_role),
-        active_episode_ids=[str(item).strip().upper() for item in (active_episode_ids or []) if str(item).strip()],
+        active_episode_ids=[
+            str(item).strip().upper() for item in (active_episode_ids or []) if str(item).strip()
+        ],
         volatility_regime=str(volatility_regime),
         microstructure_regime=str(microstructure_regime),
         side=side_norm,
@@ -126,7 +128,13 @@ def summarize_execution_attribution(records: List[ExecutionAttributionRecord]) -
     fees = [float(item.realized_fee_bps) for item in records]
     slippage = [float(item.realized_slippage_bps) for item in records]
     wins = sum(1 for item in records if item.realized_net_edge_bps >= 0.0)
-    overlap_group_count = len({str(item.overlap_group_id).strip() for item in records if str(item.overlap_group_id).strip()})
+    overlap_group_count = len(
+        {
+            str(item.overlap_group_id).strip()
+            for item in records
+            if str(item.overlap_group_id).strip()
+        }
+    )
     episode_count = len({episode for item in records for episode in item.active_episode_ids})
     return {
         "fills": count,
@@ -138,6 +146,30 @@ def summarize_execution_attribution(records: List[ExecutionAttributionRecord]) -
         "win_rate_vs_expected_edge": wins / count,
         "overlap_group_count": float(overlap_group_count),
         "episode_count": float(episode_count),
+    }
+
+
+def summarize_live_quality_inputs(
+    records: List[ExecutionAttributionRecord],
+    *,
+    expected_slippage_bps: float = 0.0,
+    submitted_orders: int | None = None,
+    stale_data_events: int = 0,
+    thesis_decay_rate: float = 0.0,
+) -> Dict[str, float]:
+    summary = summarize_execution_attribution(records)
+    fills = int(summary.get("fills", 0.0))
+    denominator = max(1, int(submitted_orders if submitted_orders is not None else fills))
+    avg_expected_edge = float(summary.get("avg_expected_net_edge_bps", 0.0))
+    avg_realized_edge = float(summary.get("avg_realized_net_edge_bps", 0.0))
+    avg_slippage = float(summary.get("avg_realized_slippage_bps", 0.0))
+    return {
+        "sample_count": float(fills),
+        "fill_rate": float(fills / denominator),
+        "slippage_drift_bps": max(0.0, avg_slippage - float(expected_slippage_bps)),
+        "edge_divergence_bps": max(0.0, avg_expected_edge - avg_realized_edge),
+        "stale_data_frequency": float(stale_data_events / denominator),
+        "thesis_decay_rate": max(0.0, float(thesis_decay_rate)),
     }
 
 
@@ -169,7 +201,15 @@ def write_attribution_summary(
         return
 
     by_key = {}
-    for key in ["symbol", "thesis_id", "overlap_group_id", "governance_tier", "operational_role", "volatility_regime", "microstructure_regime"]:
+    for key in [
+        "symbol",
+        "thesis_id",
+        "overlap_group_id",
+        "governance_tier",
+        "operational_role",
+        "volatility_regime",
+        "microstructure_regime",
+    ]:
         by_key[key] = summarize_execution_attribution_by(records, key)
 
     summaries = []

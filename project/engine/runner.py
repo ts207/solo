@@ -1,5 +1,4 @@
 from __future__ import annotations
-from project.core.config import get_data_root
 
 import json
 import logging
@@ -9,9 +8,16 @@ from typing import Any, Dict, Iterable, List, Optional, Tuple
 import numpy as np
 import pandas as pd
 
-from project.engine.data_loader import load_symbol_raw_data, load_universe_snapshots
+from project.core.config import get_data_root
+from project.core.constants import BARS_PER_YEAR_BY_TIMEFRAME
+from project.engine.artifacts import (
+    build_engine_run_manifest,
+    write_engine_dataframe,
+    write_engine_run_manifest,
+)
 from project.engine.context_assembler import assemble_symbol_context
-from project.engine.strategy_executor import calculate_strategy_returns, StrategyResult
+from project.engine.data_loader import load_symbol_raw_data, load_universe_snapshots
+from project.engine.pnl import compute_pnl_ledger
 from project.engine.portfolio_aggregator import (
     aggregate_strategy_results,
     build_strategy_contributions,
@@ -19,9 +25,14 @@ from project.engine.portfolio_aggregator import (
     combine_strategy_symbols,
 )
 from project.engine.reporting_summarizer import (
+    entry_count,
     summarize_pnl,
     summarize_portfolio_ledger,
-    entry_count,
+)
+from project.engine.risk_allocator import (
+    AllocationContract,
+    allocate_position_details,
+    build_allocation_contract,
 )
 from project.engine.schema import (
     PORTFOLIO_FRAME_SCHEMA_VERSION,
@@ -31,20 +42,9 @@ from project.engine.schema import (
     validate_strategy_frame_schema,
     validate_trace_schema,
 )
-from project.engine.pnl import compute_pnl_ledger
-from project.engine.risk_allocator import (
-    AllocationContract,
-    allocate_position_details,
-    build_allocation_contract,
-)
-from project.events.registry import load_registry_flags, build_event_feature_frame
-from project.core.constants import BARS_PER_YEAR_BY_TIMEFRAME
+from project.engine.strategy_executor import StrategyResult, calculate_strategy_returns
+from project.events.registry import build_event_feature_frame, load_registry_flags
 from project.io.utils import ensure_dir
-from project.engine.artifacts import (
-    build_engine_run_manifest,
-    write_engine_dataframe,
-    write_engine_run_manifest,
-)
 from project.strategy.runtime import get_strategy, is_dsl_strategy
 
 BARS_PER_YEAR = BARS_PER_YEAR_BY_TIMEFRAME
@@ -63,7 +63,9 @@ def _spec_metadata_payload(raw_spec: Any) -> Dict[str, Any]:
         return {}
     metadata = payload.get("metadata", {}) if isinstance(payload.get("metadata"), dict) else {}
     research_origin = (
-        payload.get("research_origin", {}) if isinstance(payload.get("research_origin"), dict) else {}
+        payload.get("research_origin", {})
+        if isinstance(payload.get("research_origin"), dict)
+        else {}
     )
     return {
         "proposal_id": str(metadata.get("proposal_id", "")).strip(),
@@ -81,6 +83,18 @@ def _spec_metadata_payload(raw_spec: Any) -> Dict[str, Any]:
         "source_path": str(research_origin.get("source_path", "")).strip(),
         "compiler_version": str(research_origin.get("compiler_version", "")).strip(),
     }
+
+
+def _execution_model_family(params: Dict[str, object]) -> str:
+    execution_model = params.get("execution_model", {})
+    if not isinstance(execution_model, dict):
+        return "legacy_static"
+    model = str(execution_model.get("cost_model", "")).strip().lower()
+    if model in {"execution_simulator_v2", "fill_model_v2"}:
+        return "execution_simulator_v2"
+    if model == "dynamic":
+        return "dynamic_cost_model_v1"
+    return "legacy_static"
 
 
 def run_engine_for_specs(
@@ -310,7 +324,11 @@ def run_engine(
     ensure_dir(engine_dir)
 
     strategy_frames: Dict[str, pd.DataFrame] = {}
-    metrics: Dict[str, object] = {"strategies": {}, "strategy_metadata": {}}
+    metrics: Dict[str, object] = {
+        "strategies": {},
+        "strategy_metadata": {},
+        "execution_model_family": _execution_model_family(params),
+    }
     event_flags_cache: Dict[Tuple[str, str], pd.DataFrame] = {}
     event_features_cache: Dict[Tuple[str, str], pd.DataFrame] = {}
 
@@ -587,4 +605,5 @@ def run_engine(
         "manifest": manifest,
         "manifest_path": manifest_path,
         "metrics_path": metrics_path,
+        "execution_model_family": _execution_model_family(params),
     }

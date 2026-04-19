@@ -4,7 +4,6 @@ from dataclasses import dataclass
 from datetime import timedelta
 from typing import List
 
-import numpy as np
 import pandas as pd
 
 
@@ -124,6 +123,43 @@ def build_time_splits_with_purge(
     return result
 
 
+def build_row_purged_split_labels(
+    df: pd.DataFrame,
+    *,
+    time_col: str,
+    train_frac: float = 0.6,
+    validation_frac: float = 0.2,
+    purge_bars: int = 0,
+    embargo_bars: int = 0,
+) -> pd.Series:
+    """Assign train/validation/test labels with exact row purge and embargo."""
+    if df.empty:
+        return pd.Series(dtype="object", index=df.index)
+    if not (0.0 < float(train_frac) < 1.0):
+        raise ValueError("train_frac must be in (0,1)")
+    if not (0.0 < float(validation_frac) < 1.0):
+        raise ValueError("validation_frac must be in (0,1)")
+    if float(train_frac) + float(validation_frac) >= 1.0:
+        raise ValueError("train_frac + validation_frac must be < 1")
+    order = pd.to_datetime(df[time_col], utc=True, errors="coerce").sort_values().index
+    labels = pd.Series("", index=df.index, dtype="object")
+    n_rows = len(order)
+    train_end_nominal = max(0, int(n_rows * float(train_frac)) - 1)
+    validation_start = train_end_nominal + 1 + max(0, int(embargo_bars))
+    validation_count = int(n_rows * float(validation_frac))
+    validation_end_nominal = min(n_rows - 1, validation_start + validation_count - 1)
+    test_start = validation_end_nominal + 1 + max(0, int(embargo_bars))
+    train_end = train_end_nominal - max(0, int(purge_bars))
+    validation_end = validation_end_nominal - max(0, int(purge_bars))
+    if train_end >= 0:
+        labels.loc[order[: train_end + 1]] = "train"
+    if validation_end >= validation_start:
+        labels.loc[order[validation_start : validation_end + 1]] = "validation"
+    if test_start < n_rows:
+        labels.loc[order[test_start:]] = "test"
+    return labels
+
+
 def build_repeated_walk_forward_folds(
     *,
     start: str | pd.Timestamp,
@@ -177,7 +213,26 @@ def build_walk_forward_split_labels(
     validation_frac: float = 0.2,
     embargo_days: float = 7.0,
 ) -> pd.Series:
-    """Assign deterministic time-ordered walk-forward labels (train/validation/test) using global timestamp cutoffs."""
+    """Assign row-aware time-ordered labels with embargo expressed in rows."""
+    return build_row_purged_split_labels(
+        df,
+        time_col=time_col,
+        train_frac=train_frac,
+        validation_frac=validation_frac,
+        embargo_bars=max(0, int(round(float(embargo_days)))),
+        purge_bars=0,
+    )
+
+
+def build_calendar_walk_forward_split_labels(
+    df: pd.DataFrame,
+    *,
+    time_col: str,
+    train_frac: float = 0.6,
+    validation_frac: float = 0.2,
+    embargo_days: float = 7.0,
+) -> pd.Series:
+    """Legacy calendar split labels kept for explicit calendar-based callers."""
     if df.empty:
         return pd.Series(dtype="object", index=df.index)
 

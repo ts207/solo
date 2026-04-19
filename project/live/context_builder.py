@@ -545,6 +545,14 @@ def build_live_trade_context(
     detector_input_status = market_features.get("detector_input_status", {})
     if not isinstance(detector_input_status, dict):
         detector_input_status = {}
+    market_state_quality = {
+        "market_state_complete": bool(market_features.get("market_state_complete", False)),
+        "is_execution_tradable": bool(market_features.get("is_execution_tradable", False)),
+        "non_tradable_reasons": list(market_features.get("non_tradable_reasons", []) or []),
+        "ticker_fresh": bool(market_features.get("ticker_fresh", False)),
+        "funding_fresh": bool(market_features.get("funding_fresh", False)),
+        "open_interest_fresh": bool(market_features.get("open_interest_fresh", False)),
+    }
 
     episode_snapshot = {
         "episode_ids": active_episode_ids,
@@ -599,7 +607,7 @@ def build_live_trade_context(
         threshold_snapshot=threshold_snapshot,
         detector_input_status=detector_input_status,
         live_features=dict(market_features),
-        regime_snapshot=regime_snapshot,
+        regime_snapshot=regime_snapshot | {"market_state_quality": market_state_quality},
         execution_env=dict(execution_env),
         portfolio_state=dict(portfolio_state),
         active_event_families=active_event_families,

@@ -14,6 +14,11 @@ from project.engine.risk_allocator_support import (
     _equity_curve_from_pnl,
 )
 from project.portfolio import AllocationSpec
+from project.portfolio.marginal_risk import estimate_marginal_risk, marginal_risk_multiplier
+from project.portfolio.risk_budget import (
+    calculate_edge_risk_multiplier,
+    calculate_execution_quality_multiplier,
+)
 
 ALLOCATION_CONTRACT_SCHEMA_VERSION = "allocation_contract_v1"
 ALLOCATION_DIAGNOSTICS_SCHEMA_VERSION = "allocation_diagnostics_v1"
@@ -40,6 +45,7 @@ def _drawdown_from_pnl(pnl: pd.Series, *, pnl_mode: Literal["dollar", "return"])
     drawdown_path = ((peak - equity_path) / peak).replace([np.inf, -np.inf], np.nan).fillna(0.0)
     return pd.Series(drawdown_path.iloc[1:].to_numpy(dtype=float), index=pnl.index)
 
+
 @dataclass(frozen=True)
 class RiskLimits:
     max_portfolio_gross: float = 1.0
@@ -54,21 +60,31 @@ class RiskLimits:
     # NEW: stress-conditional correlation limit — tighter limit applied when
     # regime_series contains a value in stressed_regime_values
     stressed_max_pairwise_correlation: float | None = None
-    stressed_regime_values: frozenset[str] = frozenset({
-        # Canonical labels
-        "stress", "crisis", "high_vol",
-        # Uppercase registry variants
-        "STRESS", "CRISIS", "HIGH_VOL",
-        # Additional regime-registry naming conventions
-        "SHOCK", "HIGH_VOL_REGIME", "high_vol_shock", "vol_shock",
-        "crisis_regime", "CRISIS_REGIME",
-    })
+    stressed_regime_values: frozenset[str] = frozenset(
+        {
+            # Canonical labels
+            "stress",
+            "crisis",
+            "high_vol",
+            # Uppercase registry variants
+            "STRESS",
+            "CRISIS",
+            "HIGH_VOL",
+            # Additional regime-registry naming conventions
+            "SHOCK",
+            "HIGH_VOL_REGIME",
+            "high_vol_shock",
+            "vol_shock",
+            "crisis_regime",
+            "CRISIS_REGIME",
+        }
+    )
     portfolio_max_drawdown: float | None = None
     symbol_max_exposure: float | None = None
     portfolio_max_exposure: float | None = None
     enable_correlation_allocation: bool = False
     pnl_mode: Literal["dollar", "return"] = "dollar"
-    
+
     # Safety: don't increase leverage by more than 1x based on vol alone unless opted in.
     allow_lever_up: bool = False
 
@@ -97,6 +113,7 @@ class AllocationPolicy:
     thesis_overlap_group_map: Dict[str, str] = field(default_factory=dict)
     overlap_group_risk_budgets: Dict[str, float] = field(default_factory=dict)
     thesis_evidence_multipliers: Dict[str, float] = field(default_factory=dict)
+    thesis_execution_quality_multipliers: Dict[str, float] = field(default_factory=dict)
     # NEW: Parity with live runtime
     overlap_mode: str = "budgeted"  # "budgeted" | "exclusive"
     thesis_ranking_data: Dict[str, Dict[str, float]] = field(default_factory=dict)
@@ -159,6 +176,12 @@ class AllocationContract:
                 "thesis_evidence_multipliers": {
                     str(key): float(value)
                     for key, value in sorted(self.policy.thesis_evidence_multipliers.items())
+                },
+                "thesis_execution_quality_multipliers": {
+                    str(key): float(value)
+                    for key, value in sorted(
+                        self.policy.thesis_execution_quality_multipliers.items()
+                    )
                 },
             },
             "limits": {
@@ -233,7 +256,11 @@ def _required_float(params: Mapping[str, object], key: str) -> float:
 
 
 def _lagged_for_vol_estimation(series: pd.Series, *, limits: RiskLimits) -> pd.Series:
-    lag_bars = max(1, int(limits.vol_window_bars // 2)) if limits.vol_estimator_mode == "rolling" else max(1, int(limits.vol_ewma_halflife_bars // 2))
+    lag_bars = (
+        max(1, int(limits.vol_window_bars // 2))
+        if limits.vol_estimator_mode == "rolling"
+        else max(1, int(limits.vol_ewma_halflife_bars // 2))
+    )
     return _as_float_series(series).shift(lag_bars)
 
 
@@ -261,7 +288,7 @@ def build_allocation_contract(params: Mapping[str, object]) -> AllocationContrac
         portfolio_max_drawdown=_optional_float(params.get("portfolio_max_drawdown")),
         symbol_max_exposure=_optional_float(params.get("max_symbol_exposure")),
         enable_correlation_allocation=bool(params.get("enable_correlation_allocation", False)),
-        pnl_mode=params.get("pnl_mode", "dollar"), # type: ignore
+        pnl_mode=params.get("pnl_mode", "dollar"),  # type: ignore
         allow_lever_up=bool(params.get("allow_lever_up", False)),
     )
     policy = AllocationPolicy(
@@ -274,7 +301,12 @@ def build_allocation_contract(params: Mapping[str, object]) -> AllocationContrac
         strategy_thesis_map=_coerce_string_mapping(params.get("strategy_thesis_map")),
         thesis_overlap_group_map=_coerce_string_mapping(params.get("thesis_overlap_group_map")),
         overlap_group_risk_budgets=_coerce_budget_mapping(params.get("overlap_group_risk_budgets")),
-        thesis_evidence_multipliers=_coerce_budget_mapping(params.get("thesis_evidence_multipliers")),
+        thesis_evidence_multipliers=_coerce_budget_mapping(
+            params.get("thesis_evidence_multipliers")
+        ),
+        thesis_execution_quality_multipliers=_coerce_budget_mapping(
+            params.get("thesis_execution_quality_multipliers")
+        ),
     )
     return AllocationContract(limits=limits, policy=policy)
 
@@ -335,6 +367,48 @@ def _apply_thesis_evidence_scaling(
         requested[key] = requested[key] * max(0.0, multiplier)
 
 
+def _apply_thesis_optimizer_scaling(
+    requested: Dict[str, pd.Series],
+    *,
+    ordered: list[str],
+    contract: AllocationContract,
+) -> Dict[str, float]:
+    multipliers: Dict[str, float] = {}
+    for key in ordered:
+        thesis_id = str(contract.policy.strategy_thesis_map.get(key, "")).strip()
+        if not thesis_id:
+            continue
+        rank_info = contract.policy.thesis_ranking_data.get(thesis_id, {})
+        if not rank_info and thesis_id not in contract.policy.thesis_execution_quality_multipliers:
+            continue
+        edge_multiplier = 1.0
+        if "expected_net_edge_bps" in rank_info:
+            edge_multiplier = calculate_edge_risk_multiplier(
+                expected_net_edge_bps=float(rank_info.get("expected_net_edge_bps", 0.0)),
+                expected_downside_bps=float(rank_info.get("expected_downside_bps", 100.0)),
+                fill_probability=float(rank_info.get("fill_probability", 1.0)),
+                edge_confidence=float(rank_info.get("edge_confidence", 1.0)),
+            )
+        risk_multiplier = marginal_risk_multiplier(
+            estimate_marginal_risk(
+                downside_bps=rank_info.get("expected_downside_bps"),
+                marginal_volatility=rank_info.get("marginal_volatility"),
+                marginal_drawdown_contribution=rank_info.get("marginal_drawdown_contribution"),
+            )
+        )
+        explicit_quality = contract.policy.thesis_execution_quality_multipliers.get(
+            thesis_id,
+            rank_info.get("execution_quality"),
+        )
+        execution_multiplier = calculate_execution_quality_multiplier(
+            explicit_quality=None if explicit_quality is None else float(explicit_quality)
+        )
+        multiplier = edge_multiplier * risk_multiplier * execution_multiplier
+        requested[key] = requested[key] * max(0.0, multiplier)
+        multipliers[thesis_id] = float(multiplier)
+    return multipliers
+
+
 def _apply_family_budget_caps(
     allocated: Dict[str, pd.Series],
     *,
@@ -388,7 +462,7 @@ def _apply_thesis_overlap_budget_caps(
     overlap_hits: Dict[str, int] = {}
     members_by_group: Dict[str, list[str]] = {}
     strategy_to_thesis: Dict[str, str] = {}
-    
+
     for key in ordered:
         thesis_id = str(contract.policy.strategy_thesis_map.get(key, "")).strip()
         if not thesis_id:
@@ -402,18 +476,19 @@ def _apply_thesis_overlap_budget_caps(
     if contract.policy.overlap_mode == "exclusive":
         # Parity with live: pick exactly one winner per group per timestamp
         from project.portfolio.admission_policy import PortfolioAdmissionPolicy
+
         policy = PortfolioAdmissionPolicy()
-        
+
         for group, members in members_by_group.items():
             group_frame = pd.DataFrame({m: allocated[m] for m in members}, index=aligned_index)
             # Find active members at each timestamp
             active_mask = group_frame.abs() > 1e-12
-            
+
             # If multiple members are active, we must pick one based on policy ranking
             multi_active = active_mask.sum(axis=1) > 1
             if not multi_active.any():
                 continue
-                
+
             # For each timestamp with a conflict, pick the winner
             for ts in aligned_index[multi_active]:
                 candidates = []
@@ -422,28 +497,32 @@ def _apply_thesis_overlap_budget_caps(
                         continue
                     thesis_id = strategy_to_thesis[m]
                     rank_info = contract.policy.thesis_ranking_data.get(thesis_id, {})
-                    candidates.append({
-                        "thesis_id": thesis_id,
-                        "strategy_key": m,
-                        "support_score": float(rank_info.get("support_score", 0.0)),
-                        "contradiction_penalty": float(rank_info.get("contradiction_penalty", 0.0)),
-                        "sample_size": int(rank_info.get("sample_size", 0)),
-                        "overlap_group_id": group
-                    })
-                
+                    candidates.append(
+                        {
+                            "thesis_id": thesis_id,
+                            "strategy_key": m,
+                            "support_score": float(rank_info.get("support_score", 0.0)),
+                            "contradiction_penalty": float(
+                                rank_info.get("contradiction_penalty", 0.0)
+                            ),
+                            "sample_size": int(rank_info.get("sample_size", 0)),
+                            "overlap_group_id": group,
+                        }
+                    )
+
                 # Policy selects the winners (in our case, just one winner for the group)
                 winners = policy.resolve_overlap_winners(candidates, active_groups=set())
                 winner_keys = {w["strategy_key"] for w in winners}
-                
+
                 # Suppress losers
                 for m in members:
                     if m not in winner_keys:
                         allocated[m].loc[ts] = 0.0
-            
+
             overlap_hits[group] = int(multi_active.sum())
             flag(f"overlap_exclusive_suppression:{group}", multi_active)
             flag("overlap_exclusive_suppression", multi_active)
-            
+
         return overlap_hits
 
     # Original "budgeted" mode (scaling)
@@ -451,11 +530,17 @@ def _apply_thesis_overlap_budget_caps(
         budget = contract.policy.overlap_group_risk_budgets.get(group)
         if budget is None:
             continue
-        group_frame = pd.DataFrame({member: allocated[member] for member in members}, index=aligned_index)
+        group_frame = pd.DataFrame(
+            {member: allocated[member] for member in members}, index=aligned_index
+        )
         group_gross = group_frame.abs().sum(axis=1)
         safe_group_gross = group_gross.replace(0.0, np.nan)
-        group_ratio = (float(max(0.0, budget)) / safe_group_gross).where(group_gross > float(budget), 1.0)
-        group_ratio = group_ratio.replace([np.inf, -np.inf], np.nan).fillna(1.0).clip(lower=0.0, upper=1.0)
+        group_ratio = (float(max(0.0, budget)) / safe_group_gross).where(
+            group_gross > float(budget), 1.0
+        )
+        group_ratio = (
+            group_ratio.replace([np.inf, -np.inf], np.nan).fillna(1.0).clip(lower=0.0, upper=1.0)
+        )
         group_mask = group_ratio < 0.999999
         if bool(group_mask.any()):
             overlap_hits[group] = int(group_mask.sum())
@@ -550,6 +635,11 @@ def allocate_position_details(
         for key in ordered:
             requested[key] = requested[key] * float(policy_weights.get(key, 0.0))
     _apply_thesis_evidence_scaling(requested, ordered=ordered, contract=resolved_contract)
+    optimizer_thesis_multipliers = _apply_thesis_optimizer_scaling(
+        requested,
+        ordered=ordered,
+        contract=resolved_contract,
+    )
 
     # NEW: Apply exclusive overlap suppression before correlation/scaling
     # so winners get their intended full weight.
@@ -583,7 +673,8 @@ def allocate_position_details(
         try:
             if not strategy_returns:
                 raise ValueError(
-                    "correlation allocation requires strategy_returns; position-change covariance is disabled"
+                    "correlation allocation requires strategy_returns; "
+                    "position-change covariance is disabled"
                 )
             df_req = pd.DataFrame(requested).fillna(0.0)
             df_ret = pd.DataFrame(strategy_returns).reindex(df_req.index).fillna(0.0)
@@ -665,9 +756,10 @@ def allocate_position_details(
         # In exclusive mode, we already flagged but didn't return hits count
         # We can re-check requested vs allocated if needed, but for stats:
         overlap_group_budget_hits = {
-            group: 1 for group in set(resolved_contract.policy.thesis_overlap_group_map.values())
-            if reason_flags.get(f"overlap_exclusive_suppression:{group}") is not None and 
-               reason_flags[f"overlap_exclusive_suppression:{group}"].any()
+            group: 1
+            for group in set(resolved_contract.policy.thesis_overlap_group_map.values())
+            if reason_flags.get(f"overlap_exclusive_suppression:{group}") is not None
+            and reason_flags[f"overlap_exclusive_suppression:{group}"].any()
         }
 
     if limits.max_correlated_gross is not None:
@@ -702,12 +794,22 @@ def allocate_position_details(
                 # to account for any strategy-level caps applied so far.
                 allocated_returns = {}
                 for key in ordered:
-                    raw_pos = _as_float_series(raw_positions_by_strategy[key]).reindex(aligned_index).fillna(0.0)
+                    raw_pos = (
+                        _as_float_series(raw_positions_by_strategy[key])
+                        .reindex(aligned_index)
+                        .fillna(0.0)
+                    )
                     # Avoid division by zero: where raw_pos is zero, scale is 1.0 (no change)
                     # but return would be zero anyway if pos is zero.
                     # We can use the ratio of allocated/raw_pos as the scale factor.
-                    scale_factor = (allocated[key] / raw_pos.replace(0.0, np.nan)).fillna(1.0).clip(lower=0.0, upper=1.0)
-                    allocated_returns[key] = strategy_returns[key].reindex(aligned_index).fillna(0.0) * scale_factor
+                    scale_factor = (
+                        (allocated[key] / raw_pos.replace(0.0, np.nan))
+                        .fillna(1.0)
+                        .clip(lower=0.0, upper=1.0)
+                    )
+                    allocated_returns[key] = (
+                        strategy_returns[key].reindex(aligned_index).fillna(0.0) * scale_factor
+                    )
                 df_alloc = pd.DataFrame(allocated_returns)
             else:
                 df_alloc = pd.DataFrame({k: v for k, v in allocated.items()})
@@ -718,17 +820,21 @@ def allocate_position_details(
             # Use a shorter rolling window so the clamp reacts to current
             # co-movement instead of anchoring on stale historical episodes.
             corr_window = min(len(df_alloc), 60)
-            
+
             # Calculate rolling pairwise correlation matrices
             # To avoid huge memory/compute for very long series, we only scale where needed
             # For backtest efficiency, we compute the max rolling correlation bar-by-bar
             # This is still O(N * K^2) but is necessary for time-varying protection
-            rolling_corr = df_alloc.rolling(window=corr_window, min_periods=max(20, corr_window // 4)).corr().abs()
-            
+            rolling_corr = (
+                df_alloc.rolling(window=corr_window, min_periods=max(20, corr_window // 4))
+                .corr()
+                .abs()
+            )
+
             # Extract max pairwise correlation at each bar (excluding self-correlation)
             # rolling_corr has a MultiIndex (timestamp, strategy)
             max_corr_series = pd.Series(0.0, index=aligned_index)
-            
+
             # Iterate through timestamps to find the max off-diagonal correlation
             # We use a vectorized approach by unstacking the second level
             unstacked = rolling_corr.unstack(level=1)
@@ -736,7 +842,7 @@ def allocate_position_details(
             for strategy in ordered:
                 if (strategy, strategy) in unstacked.columns:
                     unstacked[(strategy, strategy)] = np.nan
-            
+
             max_corr_series = unstacked.max(axis=1).fillna(0.0)
 
             # Determine effective limit — use stressed limit on stressed bars if provided
@@ -747,21 +853,25 @@ def allocate_position_details(
             ):
                 regime_aligned = regime_series.reindex(aligned_index).astype(str)
                 is_stressed = regime_aligned.isin(limits.stressed_regime_values)
-                
+
                 stressed_limit = float(limits.stressed_max_pairwise_correlation)
                 normal_limit = float(limits.max_pairwise_correlation)
-                
+
                 # Bar-by-bar scale factor
                 scale_series = pd.Series(1.0, index=aligned_index)
-                
+
                 # Stressed bars
-                stressed_mask = is_stressed & (max_corr_series > stressed_limit) & (max_corr_series > 0)
+                stressed_mask = (
+                    is_stressed & (max_corr_series > stressed_limit) & (max_corr_series > 0)
+                )
                 scale_series[stressed_mask] = stressed_limit / max_corr_series[stressed_mask]
-                
+
                 # Normal bars
-                normal_mask = (~is_stressed) & (max_corr_series > normal_limit) & (max_corr_series > 0)
+                normal_mask = (
+                    (~is_stressed) & (max_corr_series > normal_limit) & (max_corr_series > 0)
+                )
                 scale_series[normal_mask] = normal_limit / max_corr_series[normal_mask]
-                
+
                 scale_series = scale_series.clip(lower=0.0, upper=1.0)
                 _flag("max_pairwise_correlation", scale_series < 0.999999)
                 for key in ordered:
@@ -769,7 +879,11 @@ def allocate_position_details(
             else:
                 limit = float(limits.max_pairwise_correlation)
                 if limit > 0:
-                    scale_series = (limit / max_corr_series.replace(0.0, np.nan)).fillna(1.0).clip(lower=0.0, upper=1.0)
+                    scale_series = (
+                        (limit / max_corr_series.replace(0.0, np.nan))
+                        .fillna(1.0)
+                        .clip(lower=0.0, upper=1.0)
+                    )
                     _flag("max_pairwise_correlation", scale_series < 0.999999)
                     for key in ordered:
                         allocated[key] = allocated[key] * scale_series
@@ -789,7 +903,7 @@ def allocate_position_details(
     if limits.target_annual_vol is not None:
         target_vol = float(limits.target_annual_vol)
         bars_per_year = float(max(1.0, limits.bars_per_year))
-        
+
         if strategy_returns and len(ordered) > 0:
             # Per-strategy vol scaling before portfolio sum
             per_strategy_vol_scales = {}
@@ -806,13 +920,19 @@ def allocate_position_details(
                     ).std()
 
                 s_ann_vol = s_std * np.sqrt(bars_per_year)
-                # Scale each strategy to its share of the target portfolio vol (equal share as baseline)
-                # If we have K strategies, we might want each to have target_vol / sqrt(K) if they were independent.
+                # Scale each strategy to its share of the target portfolio vol.
+                # If K strategies were independent, each could use target_vol / sqrt(K).
                 # However, the requirement is to use per-strategy information.
-                # Let's scale each to the target_vol as if it were the only strategy, 
+                # Let's scale each to the target_vol as if it were the only strategy,
                 # then apply a portfolio correction.
-                s_scale = (target_vol / s_ann_vol.replace(0.0, np.nan)).replace([np.inf, -np.inf], np.nan).fillna(1.0)
-                per_strategy_vol_scales[key] = s_scale.clip(lower=0.0, upper=2.0 if limits.allow_lever_up else 1.0)
+                s_scale = (
+                    (target_vol / s_ann_vol.replace(0.0, np.nan))
+                    .replace([np.inf, -np.inf], np.nan)
+                    .fillna(1.0)
+                )
+                per_strategy_vol_scales[key] = s_scale.clip(
+                    lower=0.0, upper=2.0 if limits.allow_lever_up else 1.0
+                )
 
             # Portfolio correction pass: estimate portfolio vol from the post-cap
             # allocation that will actually be traded.
@@ -824,19 +944,33 @@ def allocate_position_details(
                 scaled_pnl_sum += pos_weighted_ret
 
             if limits.vol_estimator_mode == "ewma":
-                p_std = scaled_pnl_sum.ewm(halflife=limits.vol_ewma_halflife_bars, adjust=False).std()
+                p_std = scaled_pnl_sum.ewm(
+                    halflife=limits.vol_ewma_halflife_bars, adjust=False
+                ).std()
             else:
-                p_std = scaled_pnl_sum.rolling(window=limits.vol_window_bars, min_periods=min(288, limits.vol_window_bars)).std()
+                p_std = scaled_pnl_sum.rolling(
+                    window=limits.vol_window_bars, min_periods=min(288, limits.vol_window_bars)
+                ).std()
 
             p_ann_vol = p_std * np.sqrt(bars_per_year)
-            portfolio_correction = (target_vol / p_ann_vol.replace(0.0, np.nan)).replace([np.inf, -np.inf], np.nan).fillna(1.0)
-            portfolio_correction = portfolio_correction.clip(lower=0.0, upper=1.0)  # only scale down in correction
+            portfolio_correction = (
+                (target_vol / p_ann_vol.replace(0.0, np.nan))
+                .replace([np.inf, -np.inf], np.nan)
+                .fillna(1.0)
+            )
+            portfolio_correction = portfolio_correction.clip(
+                lower=0.0, upper=1.0
+            )  # only scale down in correction
 
             for key in ordered:
-                total_s_scale = (per_strategy_vol_scales[key] * portfolio_correction).fillna(1.0).clip(lower=0.0)
+                total_s_scale = (
+                    (per_strategy_vol_scales[key] * portfolio_correction)
+                    .fillna(1.0)
+                    .clip(lower=0.0)
+                )
                 allocated[key] = allocated[key] * total_s_scale
                 _flag("target_annual_vol", total_s_scale < 0.999999)
-        
+
         elif portfolio_pnl_series is not None:
             # Fallback to portfolio-level uniform scaling
             pnl = _lagged_for_vol_estimation(
@@ -985,6 +1119,7 @@ def allocate_position_details(
             "clipped_fraction": clipped_fraction,
             "allocator_mode": resolved_contract.policy.mode,
             "policy_weights": policy_weights,
+            "optimizer_thesis_multipliers": optimizer_thesis_multipliers,
             "family_budget_hits": family_budget_hits,
             "overlap_group_budget_hits": overlap_group_budget_hits,
             "overlap_exclusive_suppression": int(

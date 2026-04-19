@@ -12,6 +12,7 @@ from project.live.health_checks import (
     DataHealthMonitor,
     build_runtime_certification_manifest,
     check_kill_switch_triggers,
+    evaluate_market_state_components,
     evaluate_pretrade_microstructure_gate,
 )
 
@@ -124,6 +125,29 @@ def test_pretrade_microstructure_gate_passes_when_inputs_are_safe() -> None:
 
     assert gate["is_tradable"] is True
     assert gate["reasons"] == []
+
+
+def test_market_state_component_health_reports_stale_components() -> None:
+    report = evaluate_market_state_components(
+        {
+            "ticker_fresh": False,
+            "ticker_age_seconds": 45.0,
+            "funding_rate_source": "runtime_market_features",
+            "funding_fresh": False,
+            "funding_age_seconds": 120.0,
+            "open_interest_source": "runtime_market_features",
+            "open_interest_fresh": True,
+        },
+        max_ticker_stale_seconds=30.0,
+        runtime_feature_stale_after_seconds=60.0,
+    )
+
+    assert report["is_healthy"] is False
+    assert report["freshness_status"] == "degraded"
+    assert [item["component"] for item in report["stale_components"]] == [
+        "ticker",
+        "funding",
+    ]
 
 
 def test_kill_switch_does_not_fire_when_live_expectancy_is_less_negative_than_research() -> None:

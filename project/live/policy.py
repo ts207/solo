@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Any, Dict, Iterable, Mapping, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, Dict, Iterable, Mapping
 
 from project.live.contracts.trade_intent import TradeIntent
 from project.live.scoring import DecisionScore
@@ -92,7 +92,9 @@ def build_live_decision_trace(
             "data_quality_flag": str(context.data_quality_flag),
             "threshold_version": str(context.threshold_version),
         },
-        "matched_thesis_ids": [str(match.thesis.thesis_id) for match in matches if match.eligibility_passed],
+        "matched_thesis_ids": [
+            str(match.thesis.thesis_id) for match in matches if match.eligibility_passed
+        ],
         "blocked_theses": blocked,
         "trade_intent": {
             "action": str(trade_intent.action),
@@ -111,6 +113,14 @@ def build_live_decision_trace(
                 "thesis_strength_score": float(top_score.thesis_strength_score),
                 "regime_alignment_score": float(top_score.regime_alignment_score),
                 "contradiction_penalty": float(top_score.contradiction_penalty),
+                "probability_positive_post_cost": float(
+                    top_score.probability_positive_post_cost
+                ),
+                "expected_net_pnl_bps": float(top_score.expected_net_pnl_bps),
+                "expected_downside_bps": float(top_score.expected_downside_bps),
+                "fill_probability": float(top_score.fill_probability),
+                "regime_reliability": float(top_score.regime_reliability),
+                "utility_score": float(top_score.utility_score),
             }
             if top_score is not None
             else None
@@ -128,22 +138,29 @@ def score_to_action(
     thresholds: PolicyThresholds | None = None,
 ) -> TradeIntent:
     ladder = thresholds or PolicyThresholds()
+    probability = float(score.probability_positive_post_cost)
+    expected_net_pnl = float(score.expected_net_pnl_bps)
+    utility = float(score.utility_score)
     if score.contradiction_penalty >= ladder.max_contradiction_penalty:
         action = "reject"
         confidence_band = "none"
         size_fraction = 0.0
-    elif score.total_score >= ladder.normal_min:
+    elif utility <= 0.0 or expected_net_pnl <= 0.0:
+        action = "reject"
+        confidence_band = "none"
+        size_fraction = 0.0
+    elif probability >= 0.65 and expected_net_pnl >= 8.0 and utility >= 5.0:
         action = "trade_normal"
         confidence_band = "high"
-        size_fraction = 1.0
-    elif score.total_score >= ladder.small_min:
+        size_fraction = max(0.25, min(1.0, utility / max(1.0, score.expected_downside_bps)))
+    elif probability >= 0.55 and expected_net_pnl >= 3.0:
         action = "trade_small"
         confidence_band = "medium"
-        size_fraction = 0.50
-    elif score.total_score >= ladder.probe_min:
+        size_fraction = max(0.10, min(0.50, utility / max(1.0, score.expected_downside_bps)))
+    elif probability >= 0.45 and expected_net_pnl > 0.0:
         action = "probe"
         confidence_band = "medium"
-        size_fraction = 0.20
+        size_fraction = max(0.05, min(0.20, utility / max(1.0, score.expected_downside_bps)))
     elif score.total_score >= ladder.watch_min:
         action = "watch"
         confidence_band = "low"
@@ -159,6 +176,13 @@ def score_to_action(
         thesis_id=thesis_id,
         support_score=score.total_score,
         contradiction_penalty=score.contradiction_penalty,
+        probability_positive_post_cost=score.probability_positive_post_cost,
+        expected_net_edge_bps=score.expected_net_pnl_bps / max(score.fill_probability, 1e-9),
+        expected_downside_bps=score.expected_downside_bps,
+        expected_net_pnl_bps=score.expected_net_pnl_bps,
+        fill_probability=score.fill_probability,
+        edge_confidence=score.regime_reliability,
+        utility_score=score.utility_score,
         confidence_band=confidence_band,
         size_fraction=size_fraction,
         invalidation=dict(invalidation or {}),
@@ -169,5 +193,11 @@ def score_to_action(
             "execution_quality_score": score.execution_quality_score,
             "thesis_strength_score": score.thesis_strength_score,
             "regime_alignment_score": score.regime_alignment_score,
+            "probability_positive_post_cost": score.probability_positive_post_cost,
+            "expected_net_pnl_bps": score.expected_net_pnl_bps,
+            "expected_downside_bps": score.expected_downside_bps,
+            "fill_probability": score.fill_probability,
+            "regime_reliability": score.regime_reliability,
+            "utility_score": score.utility_score,
         },
     )

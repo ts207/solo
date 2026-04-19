@@ -32,9 +32,6 @@ strategy_runtime:
   max_spread_bps: 5.0
   min_depth_usd: 50000.0
   min_tob_coverage: 0.9
-  default_depth_usd: 75000.0
-  default_tob_coverage: 0.97
-  default_expected_cost_bps: 3.0
   memory_root: artifacts/live_memory/campaign_pe_oi_spike_neg_20260416T092104
   event_detector:
     vol_shock_min_abs_move_bps: 35.0

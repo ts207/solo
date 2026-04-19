@@ -11,6 +11,12 @@ def test_order_plan_does_not_turn_negative_capacity_inputs_into_positive_quantit
         symbol="BTCUSDT",
         side="buy",
         size_fraction=1.0,
+        metadata={
+            "expected_net_edge_bps": 20.0,
+            "expected_downside_bps": 10.0,
+            "fill_probability": 1.0,
+            "edge_confidence": 1.0,
+        },
     )
 
     plan = build_order_plan(
@@ -22,7 +28,7 @@ def test_order_plan_does_not_turn_negative_capacity_inputs_into_positive_quantit
     )
 
     assert plan.accepted is False
-    assert plan.blocked_by == "zero_quantity"
+    assert plan.blocked_by == "allocation"
 
 
 def test_order_plan_applies_venue_step_size_and_min_notional():
@@ -31,6 +37,12 @@ def test_order_plan_applies_venue_step_size_and_min_notional():
         symbol="BTCUSDT",
         side="buy",
         size_fraction=1.0,
+        metadata={
+            "expected_net_edge_bps": 20.0,
+            "expected_downside_bps": 10.0,
+            "fill_probability": 1.0,
+            "edge_confidence": 1.0,
+        },
     )
 
     plan = build_order_plan(
@@ -60,6 +72,12 @@ def test_order_plan_rejects_below_venue_min_notional_after_rounding():
         symbol="BTCUSDT",
         side="buy",
         size_fraction=1.0,
+        metadata={
+            "expected_net_edge_bps": 20.0,
+            "expected_downside_bps": 10.0,
+            "fill_probability": 1.0,
+            "edge_confidence": 1.0,
+        },
     )
 
     plan = build_order_plan(
@@ -88,7 +106,13 @@ def test_order_plan_rejects_unsupported_post_only_flag():
         symbol="BTCUSDT",
         side="buy",
         size_fraction=1.0,
-        metadata={"post_only": True},
+        metadata={
+            "post_only": True,
+            "expected_net_edge_bps": 20.0,
+            "expected_downside_bps": 10.0,
+            "fill_probability": 1.0,
+            "edge_confidence": 1.0,
+        },
     )
 
     plan = build_order_plan(
@@ -110,3 +134,30 @@ def test_order_plan_rejects_unsupported_post_only_flag():
     assert plan.accepted is False
     assert plan.blocked_by == "venue_rules"
     assert "post_only_not_supported" in plan.plan["venue_rule_reasons"]
+
+
+def test_order_plan_can_reject_valid_signal_with_negative_net_edge() -> None:
+    intent = TradeIntent(
+        action="trade_normal",
+        symbol="BTCUSDT",
+        side="buy",
+        size_fraction=1.0,
+        confidence_band="high",
+        metadata={
+            "expected_return_bps": 5.0,
+            "expected_cost_bps": 8.0,
+            "expected_downside_bps": 4.0,
+        },
+    )
+
+    plan = build_order_plan(
+        intent=intent,
+        client_order_id="cid_5",
+        market_state={"mid_price": 100.0, "spread_bps": 1.0, "depth_usd": 100000.0},
+        portfolio_state={"available_balance": 1000.0},
+        max_notional_fraction=0.10,
+    )
+
+    assert plan.accepted is False
+    assert plan.blocked_by == "expected_value"
+    assert "expected_net_edge_non_positive" in plan.plan["valuation"]["reasons"]

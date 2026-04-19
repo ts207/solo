@@ -9,16 +9,15 @@ from typing import Any, Iterable
 import numpy as np
 import pandas as pd
 
+from project.engine.risk_allocator import AllocationContract
 from project.engine.schema import (
     ENGINE_ARTIFACT_SCHEMA_VERSION,
     PORTFOLIO_FRAME_SCHEMA_VERSION,
     STRATEGY_FRAME_SCHEMA_VERSION,
     TRACE_SCHEMA_VERSION,
 )
-from project.engine.risk_allocator import AllocationContract
 from project.io.utils import write_parquet
 from project.portfolio import AllocationSpec
-
 
 ENGINE_RUN_MANIFEST_VERSION = "engine_run_manifest_v1"
 CAPITAL_MODEL_NAME = "equity_curve_from_net_pnl"
@@ -159,6 +158,9 @@ def build_engine_run_manifest(
         "execution": {
             "fill_modes": fill_modes,
             "input_cost_bps": float(cost_bps),
+            "execution_model_family": _json_safe(
+                metrics.get("execution_model_family", "legacy_static")
+            ),
             "start_ts": _json_safe(start_ts),
             "end_ts": _json_safe(end_ts),
         },

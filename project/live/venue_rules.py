@@ -205,7 +205,7 @@ def parse_binance_venue_rules(
                 "market_order_supported": "MARKET" in order_types,
                 "limit_order_supported": "LIMIT" in order_types,
                 "reduce_only_supported": True,
-                "post_only_supported": False,
+                "post_only_supported": True,
                 "source": "exchange:binance",
             },
         )

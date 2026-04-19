@@ -7,7 +7,7 @@ import uuid
 from dataclasses import replace
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Awaitable, Callable, Dict, List, Mapping, Optional
+from typing import Any, Awaitable, Callable, Dict, List, Mapping
 
 from project import PROJECT_ROOT
 from project.core.exceptions import (
@@ -31,10 +31,17 @@ from project.live.event_detector import (
     GovernedRuntimeCoreEventDetectionAdapter,
     build_live_event_detection_adapter,
 )
-from project.live.execution_attribution import summarize_execution_attribution_by
+from project.live.execution_attribution import (
+    summarize_execution_attribution_by,
+    summarize_live_quality_inputs,
+)
 from project.live.health_checks import DataHealthMonitor
 from project.live.kill_switch import KillSwitchManager, KillSwitchReason
-from project.live.market_state import resolve_live_market_state
+from project.live.live_quality_gate import evaluate_live_quality_gate
+from project.live.market_state_builder import (
+    MarketStateBuilderConfig,
+    build_measured_market_state,
+)
 from project.live.memory import append_live_episode
 from project.live.oms import (
     OrderManager,
@@ -47,6 +54,10 @@ from project.live.order_planner import build_order_plan
 from project.live.policy import build_live_decision_trace
 from project.live.risk import RiskEnforcer, RuntimeRiskCaps
 from project.live.state import LiveStateStore
+from project.live.thesis_disable_policy import (
+    apply_thesis_disable_decision,
+    decide_thesis_disable_policy,
+)
 from project.live.thesis_reconciliation import (
     RECONCILIATION_DEGRADED_EXCEPTIONS,
     ThesisBatchReconciliationError,
@@ -67,17 +78,12 @@ _LOG = logging.getLogger(__name__)
 
 def _classify_canonical_regime(
     move_bps: float,
-    rv_pct: Optional[float] = None,
-    ms_trend_state: Optional[float] = None,
+    rv_pct: float | None = None,
+    ms_trend_state: float | None = None,
 ) -> Dict[str, Any]:
-    """
-    Unified regime classification.
-    Calls shared project.core.regime_classifier logic.
-    """
     from project.core.regime_classifier import classify_regime
 
     result = classify_regime(move_bps=move_bps, rv_pct=rv_pct, ms_trend_state=ms_trend_state)
-
     return {
         "canonical_regime": result.regime.value,
         "regime_mode": result.mode.value,
@@ -735,10 +741,10 @@ class LiveEngineRunner:
         return list(self._decision_outcomes)
 
     def _ensure_runtime_mode_known(self) -> None:
-        if self.runtime_mode not in {"monitor_only", "trading"}:
+        if self.runtime_mode not in {"monitor_only", "simulation", "trading"}:
             raise RuntimeError(
                 f"Unsupported runtime_mode '{self.runtime_mode}'. "
-                "Expected 'monitor_only' or 'trading'."
+                "Expected 'monitor_only', 'simulation', or 'trading'."
             )
 
     def _ensure_runtime_ready_for_start(self) -> None:
@@ -751,7 +757,9 @@ class LiveEngineRunner:
     def _ensure_trading_enabled(self) -> None:
         self._ensure_runtime_ready_for_start()
         if self.runtime_mode != "trading":
-            raise RuntimeError("Order submission is disabled when runtime_mode='monitor_only'.")
+            raise RuntimeError(
+                f"Order submission is disabled when runtime_mode='{self.runtime_mode}'."
+            )
 
     def _assess_execution_degradation(self, order: Any) -> Dict[str, float | str]:
         metadata = dict(getattr(order, "metadata", {}) or {})
@@ -826,6 +834,7 @@ class LiveEngineRunner:
             order,
             kill_switch_manager=self.kill_switch,
             market_state=market_state,
+            venue_rules=self._venue_rules_by_symbol.get(str(order.symbol).upper()),
             max_spread_bps=max_spread_bps,
             min_depth_usd=min_depth_usd,
             min_tob_coverage=min_tob_coverage,
@@ -861,6 +870,7 @@ class LiveEngineRunner:
             order,
             kill_switch_manager=self.kill_switch,
             market_state=market_state,
+            venue_rules=self._venue_rules_by_symbol.get(str(order.symbol).upper()),
             max_spread_bps=max_spread_bps,
             min_depth_usd=min_depth_usd,
             min_tob_coverage=min_tob_coverage,
@@ -1227,24 +1237,6 @@ class LiveEngineRunner:
         normalized_symbol = str(symbol).upper()
         ticker = self._latest_book_ticker_by_symbol.get(normalized_symbol, {})
         runtime_features = self._fresh_runtime_market_features_for_symbol(normalized_symbol)
-        market_state = resolve_live_market_state(
-            symbol=normalized_symbol,
-            close=float(close),
-            timestamp=str(timestamp),
-            ticker=ticker,
-            runtime_features=runtime_features,
-            min_depth_usd=float(self.strategy_runtime.get("min_depth_usd", 25_000.0) or 25_000.0),
-            max_ticker_stale_seconds=float(
-                self.strategy_runtime.get("max_ticker_stale_seconds", 30.0) or 30.0
-            ),
-            taker_fee_bps=float(self.strategy_runtime.get("taker_fee_bps", 2.5) or 2.5),
-        )
-        funding_rate_source = (
-            "runtime_market_features" if "funding_rate" in runtime_features else "missing"
-        )
-        open_interest_source = (
-            "runtime_market_features" if "open_interest" in runtime_features else "missing"
-        )
         liquidation_source = (
             "data_manager"
             if hasattr(self.data_manager, "get_liquidation_notional")
@@ -1252,35 +1244,34 @@ class LiveEngineRunner:
             if "liquidation_notional_usd" in runtime_features
             else "missing"
         )
-        regime_info = _classify_canonical_regime(
-            move_bps=move_bps,
-            rv_pct=runtime_features.get("rv_pct"),
-            ms_trend_state=runtime_features.get("ms_trend_state"),
-        )
-        return market_state | {
-            "timestamp": str(timestamp),
-            "canonical_regime": regime_info["canonical_regime"],
-            "regime_mode": regime_info["regime_mode"],
-            "regime_confidence": regime_info["regime_confidence"],
-            "regime_metadata": regime_info["regime_metadata"],
-            "funding_rate": float(runtime_features.get("funding_rate", 0.0) or 0.0),
-            "funding_rate_source": funding_rate_source,
-            "funding_timestamp": str(runtime_features.get("funding_timestamp", "") or ""),
-            "open_interest": float(runtime_features.get("open_interest", 0.0) or 0.0),
-            "open_interest_source": open_interest_source,
-            "open_interest_delta_fraction": float(
-                runtime_features.get("open_interest_delta_fraction", 0.0) or 0.0
+        return build_measured_market_state(
+            symbol=normalized_symbol,
+            timeframe=timeframe,
+            close=float(close),
+            timestamp=str(timestamp),
+            move_bps=float(move_bps),
+            ticker=ticker,
+            runtime_features=runtime_features,
+            supported_event_ids=self._supported_event_ids(),
+            config=MarketStateBuilderConfig(
+                min_depth_usd=float(
+                    self.strategy_runtime.get("min_depth_usd", 25_000.0) or 25_000.0
+                ),
+                max_ticker_stale_seconds=float(
+                    self.strategy_runtime.get("max_ticker_stale_seconds", 30.0) or 30.0
+                ),
+                taker_fee_bps=float(self.strategy_runtime.get("taker_fee_bps", 2.5) or 2.5),
+                runtime_feature_stale_after_seconds=float(
+                    self.runtime_market_feature_stale_after_seconds
+                ),
             ),
-            "open_interest_timestamp": str(
-                runtime_features.get("open_interest_timestamp", "") or ""
-            ),
-            "liquidation_notional_usd": float(
+            liquidation_notional_usd=float(
                 self.data_manager.get_liquidation_notional(normalized_symbol)
                 if hasattr(self.data_manager, "get_liquidation_notional")
                 else runtime_features.get("liquidation_notional_usd", 0.0)
             ),
-            "liquidation_notional_source": liquidation_source,
-        }
+            liquidation_notional_source=liquidation_source,
+        )
 
     def _record_live_decision_episode(
         self,
@@ -1422,6 +1413,14 @@ class LiveEngineRunner:
         )
         overlap_group_id = top_match.thesis.overlap_group_id or ""
         _is_graduated = self.incubation_ledger.is_graduated(outcome.trade_intent.thesis_id)
+        ev_fields_present = any(
+            abs(float(value)) > 1e-12
+            for value in (
+                outcome.trade_intent.expected_net_edge_bps,
+                outcome.trade_intent.expected_downside_bps,
+                outcome.trade_intent.expected_net_pnl_bps,
+            )
+        )
         thesis_intent = PortfolioThesisIntent(
             thesis_id=outcome.trade_intent.thesis_id,
             symbol=outcome.trade_intent.symbol,
@@ -1429,6 +1428,20 @@ class LiveEngineRunner:
             overlap_group_id=overlap_group_id,
             requested_notional=raw_notional,
             support_score=float(outcome.trade_intent.support_score),
+            expected_net_edge_bps=(
+                float(outcome.trade_intent.expected_net_edge_bps) if ev_fields_present else None
+            ),
+            expected_downside_bps=(
+                float(outcome.trade_intent.expected_downside_bps) if ev_fields_present else None
+            ),
+            fill_probability=(
+                float(outcome.trade_intent.fill_probability) if ev_fields_present else None
+            ),
+            edge_confidence=(
+                float(outcome.trade_intent.edge_confidence) if ev_fields_present else None
+            ),
+            execution_quality=float(portfolio_state.get("execution_quality_multiplier", 1.0)),
+            overlap_score=float(outcome.trade_intent.metadata.get("overlap_score", 0.0) or 0.0),
             incubation_state="live" if _is_graduated else "incubating",
         )
         portfolio_decisions = self._portfolio_engine.decide(
@@ -1546,6 +1559,7 @@ class LiveEngineRunner:
             plan.order,
             kill_switch_manager=self.kill_switch,
             market_state=market_state,
+            venue_rules=venue_rules,
             max_spread_bps=float(self.strategy_runtime.get("max_spread_bps", 5.0) or 5.0),
             min_depth_usd=float(self.strategy_runtime.get("min_depth_usd", 25_000.0) or 25_000.0),
             min_tob_coverage=float(self.strategy_runtime.get("min_tob_coverage", 0.80) or 0.80),
@@ -1686,6 +1700,31 @@ class LiveEngineRunner:
             self.thesis_manager.update_health(
                 top_thesis.thesis_id, health.health_state, health.actions_taken
             )
+            records = [
+                item
+                for item in self.order_manager.execution_attribution
+                if item.thesis_id == top_thesis.thesis_id
+            ]
+            quality_metrics = summarize_live_quality_inputs(
+                records,
+                expected_slippage_bps=float(
+                    self.strategy_runtime.get("expected_slippage_bps", 0.0) or 0.0
+                ),
+                thesis_decay_rate=self.decay_monitor.thesis_decay_rate(top_thesis.thesis_id),
+            )
+            gate = evaluate_live_quality_gate(top_thesis.thesis_id, quality_metrics)
+            decision = decide_thesis_disable_policy(gate)
+            apply_thesis_disable_decision(self.thesis_manager, decision)
+            if decision.action == "disable" and bool(
+                self.strategy_runtime.get("kill_on_live_quality_disable", False)
+            ):
+                self.kill_switch.check_live_quality_gate(
+                    {
+                        "action": gate.action,
+                        "risk_scale": gate.risk_scale,
+                        "reason_codes": list(gate.reason_codes),
+                    }
+                )
 
         # Sprint 6: Risk Enforcer check
         oms_result: Dict[str, Any] | None = None
@@ -1711,6 +1750,21 @@ class LiveEngineRunner:
                     }
                 )
                 outcome = replace(outcome, trade_intent=rejected_intent)
+            elif thesis_state and thesis_state.state == "degraded":
+                scaled_intent = outcome.trade_intent.model_copy(
+                    update={
+                        "size_fraction": float(outcome.trade_intent.size_fraction)
+                        * float(thesis_state.size_scalar),
+                        "reasons_against": [
+                            *list(outcome.trade_intent.reasons_against),
+                            f"thesis_live_quality_downscaled_{thesis_state.size_scalar:.3f}",
+                        ],
+                    }
+                )
+                outcome = replace(outcome, trade_intent=scaled_intent)
+                oms_result = await self._submit_trade_intent_if_enabled(
+                    outcome=outcome, market_state=market_state
+                )
             else:
                 # Apply risk caps
                 oms_result = await self._submit_trade_intent_if_enabled(
@@ -1728,7 +1782,7 @@ class LiveEngineRunner:
         records = [
             r
             for r in self.order_manager.execution_attribution
-            if str(r.metadata.get("thesis_id", "")) == thesis_id
+            if str(getattr(r, "thesis_id", "")) == thesis_id
         ]
         if not records:
             return {

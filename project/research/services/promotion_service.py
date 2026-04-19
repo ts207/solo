@@ -174,7 +174,7 @@ class ResolvedPromotionPolicy:
 PROMOTION_CLASSES: tuple[str, ...] = ("paper_promoted", "production_promoted")
 DEFAULT_DEPLOYMENT_STATE_BY_PROMOTION_CLASS: dict[str, str] = {
     "paper_promoted": "paper_only",
-    "production_promoted": "live_enabled",
+    "production_promoted": "live_eligible",
 }
 
 
@@ -676,8 +676,13 @@ def execute_promotion(config: PromotionConfig) -> PromotionServiceResult:
             min_tob_coverage=config.min_tob_coverage,
             require_hypothesis_audit=config.require_hypothesis_audit,
             allow_missing_negative_controls=config.allow_missing_negative_controls,
-            require_multiplicity_diagnostics=config.require_multiplicity_diagnostics,
-            min_dsr=config.min_dsr,
+            require_multiplicity_diagnostics=(
+                config.require_multiplicity_diagnostics
+                or resolved_policy.promotion_profile == "deploy"
+            ),
+            min_dsr=max(float(config.min_dsr), 0.5)
+            if resolved_policy.promotion_profile == "deploy"
+            else float(config.min_dsr),
             max_overlap_ratio=config.max_overlap_ratio,
             max_profile_correlation=config.max_profile_correlation,
             promotion_profile=resolved_policy.promotion_profile,

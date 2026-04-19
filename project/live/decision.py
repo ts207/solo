@@ -5,6 +5,7 @@ from typing import Any, Dict, List
 
 from project.live.contracts.live_trade_context import LiveTradeContext
 from project.live.contracts.trade_intent import TradeIntent
+from project.live.decision_ranker import rank_decisions_by_expected_value
 from project.live.policy import score_to_action, thresholds_from_config
 from project.live.retriever import ThesisMatch, retrieve_ranked_theses
 from project.live.scoring import DecisionScore, build_decision_score
@@ -68,7 +69,14 @@ def decide_trade_intent(
             trade_intent=reject,
         )
 
-    top_match = matches[0]
+    ranked_ev = rank_decisions_by_expected_value(matches=matches, context=context)
+    if ranked_ev:
+        ev_ordered_ids = [item.match.thesis.thesis_id for item in ranked_ev]
+        by_id = {match.thesis.thesis_id: match for match in matches}
+        ineligible = [match for match in matches if not match.eligibility_passed]
+        matches = [by_id[item] for item in ev_ordered_ids if item in by_id] + ineligible
+
+    top_match = ranked_ev[0].match if ranked_ev else matches[0]
     if not top_match.eligibility_passed:
         reject = TradeIntent(
             action="reject",
@@ -101,6 +109,7 @@ def decide_trade_intent(
                 ),
                 "thesis_canonical_regime": _thesis_canonical_regime(top_match.thesis),
                 "meta_rank_score": float(top_match.thesis.evidence.rank_score or 0.0),
+                "ranking_model": "expected_value_v1",
             },
         )
         return DecisionOutcome(
@@ -134,7 +143,18 @@ def decide_trade_intent(
             "metadata": {
                 **dict(intent.metadata),
                 "expected_return_bps": float(top_match.thesis.evidence.estimate_bps or 0.0),
-                "expected_adverse_bps": float(abs(top_match.thesis.expected_response.get("stop_value", 0.0) or 0.0) * 10_000.0),
+                "expected_gross_edge_bps": float(top_match.thesis.evidence.estimate_bps or 0.0),
+                "expected_net_edge_bps": float(top_match.thesis.evidence.net_expectancy_bps or 0.0),
+                "expected_adverse_bps": float(
+                    abs(top_match.thesis.expected_response.get("stop_value", 0.0) or 0.0)
+                    * 10_000.0
+                ),
+                "expected_downside_bps": float(score.expected_downside_bps),
+                "expected_net_pnl_bps": float(score.expected_net_pnl_bps),
+                "fill_probability": float(score.fill_probability),
+                "edge_confidence": float(score.regime_reliability),
+                "utility_score": float(score.utility_score),
+                "probability_positive_post_cost": float(score.probability_positive_post_cost),
                 "overlap_group_id": str(top_match.thesis.governance.overlap_group_id or ""),
                 "governance_tier": str(top_match.thesis.governance.tier or ""),
                 "operational_role": str(top_match.thesis.governance.operational_role or ""),
@@ -153,6 +173,7 @@ def decide_trade_intent(
                 ),
                 "thesis_canonical_regime": _thesis_canonical_regime(top_match.thesis),
                 "meta_rank_score": float(top_match.thesis.evidence.rank_score or 0.0),
+                "ranking_model": "expected_value_v1",
             }
         }
     )

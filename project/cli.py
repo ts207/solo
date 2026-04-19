@@ -273,6 +273,7 @@ def _deploy_bind_config(args: argparse.Namespace) -> int:
         "golden_workflow_config": "project/configs/golden_workflow.yaml",
         "runtime_run_id": f"live_paper_{run_id}",
         "runtime_mode": "trading",
+        "execution_mode": "measured",
         "stale_threshold_sec": 60.0,
         "freshness_streams": [{"symbol": primary_symbol, "stream": "kline_5m"}],
         "oms_lineage": {
@@ -299,9 +300,6 @@ def _deploy_bind_config(args: argparse.Namespace) -> int:
             "max_spread_bps": 5.0,
             "min_depth_usd": 50000.0,
             "min_tob_coverage": 0.9,
-            "default_depth_usd": 75000.0,
-            "default_tob_coverage": 0.97,
-            "default_expected_cost_bps": 3.0,
             "memory_root": f"artifacts/live_memory/{run_id[:40]}",
             "event_detector": {
                 "vol_shock_min_abs_move_bps": 35.0,
@@ -351,12 +349,20 @@ def _deploy_bind_config(args: argparse.Namespace) -> int:
 
 
 def _deploy_inspect(args: argparse.Namespace) -> int:
-    print(f"Inspecting deployment for run_id: {args.run_id}")
+    from project.core.config import get_data_root
+    from project.live.deploy_status import inspect_deployment
+
+    payload = inspect_deployment(
+        str(args.run_id),
+        data_root=_path_or_none(getattr(args, "data_root", None)) or get_data_root(),
+        config_path=_path_or_none(getattr(args, "config", None)),
+    )
+    _emit_payload(payload)
     return 0
 
 
-def _deploy_paper_run(args: argparse.Namespace) -> int:
-    config_path = Path(args.config)
+def _run_live_engine_entry(config: str) -> int:
+    config_path = Path(config)
     if not config_path.exists():
         print(f"Error: Config not found: {config_path}")
         return 1
@@ -365,23 +371,29 @@ def _deploy_paper_run(args: argparse.Namespace) -> int:
     cmd = [sys.executable, str(engine_script), "--config", str(config_path)]
     result = subprocess.run(cmd)
     return result.returncode
+
+
+def _deploy_paper_run(args: argparse.Namespace) -> int:
+    return _run_live_engine_entry(args.config)
 
 
 def _deploy_live_run(args: argparse.Namespace) -> int:
-    config_path = Path(args.config)
-    if not config_path.exists():
-        print(f"Error: Config not found: {config_path}")
-        return 1
-
     print("WARNING: Launching LIVE execution engine!")
-    engine_script = PROJECT_ROOT / "scripts" / "run_live_engine.py"
-    cmd = [sys.executable, str(engine_script), "--config", str(config_path)]
-    result = subprocess.run(cmd)
-    return result.returncode
+    return _run_live_engine_entry(args.config)
 
 
 def _deploy_status(args: argparse.Namespace) -> int:
-    print(f"Checking deployment status for run_id: {args.run_id}")
+    from project.core.config import get_data_root
+    from project.live.deploy_status import deployment_status
+
+    payload = deployment_status(
+        str(args.run_id),
+        data_root=_path_or_none(getattr(args, "data_root", None)) or get_data_root(),
+        config_path=_path_or_none(getattr(args, "config", None)),
+        snapshot_path=_path_or_none(getattr(args, "snapshot_path", None)),
+        metrics_path=_path_or_none(getattr(args, "metrics_path", None)),
+    )
+    _emit_payload(payload)
     return 0
 
 
@@ -514,6 +526,8 @@ def build_parser() -> argparse.ArgumentParser:
         help="Inspect deployment status for a run ID.",
     )
     deploy_inspect.add_argument("--run_id", required=True)
+    deploy_inspect.add_argument("--data_root", default=None)
+    deploy_inspect.add_argument("--config", default=None)
     deploy_inspect.set_defaults(func=_deploy_inspect)
 
     deploy_paper_run = deploy_subparsers.add_parser(
@@ -539,6 +553,10 @@ def build_parser() -> argparse.ArgumentParser:
         help="Check the runtime status of a deployment.",
     )
     deploy_status.add_argument("--run_id", required=True)
+    deploy_status.add_argument("--data_root", default=None)
+    deploy_status.add_argument("--config", default=None)
+    deploy_status.add_argument("--snapshot_path", default=None)
+    deploy_status.add_argument("--metrics_path", default=None)
     deploy_status.set_defaults(func=_deploy_status)
 
     return parser

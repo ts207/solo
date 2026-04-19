@@ -22,6 +22,8 @@ from project.live.execution_attribution import (
     summarize_execution_attribution,
 )
 from project.live.health_checks import evaluate_pretrade_microstructure_gate
+from project.live.order_normalizer import normalize_order_for_venue
+from project.live.venue_rules import VenueSymbolRules
 
 LOGGER = logging.getLogger(__name__)
 
@@ -226,6 +228,7 @@ class OrderManager:
         *,
         kill_switch_manager: Any | None = None,
         market_state: Optional[Dict[str, float]] = None,
+        venue_rules: VenueSymbolRules | None = None,
         max_spread_bps: float = 5.0,
         min_depth_usd: float = 25_000.0,
         min_tob_coverage: float = 0.80,
@@ -262,12 +265,27 @@ class OrderManager:
                 "before reporting acceptance"
             )
 
+        normalization = normalize_order_for_venue(
+            order,
+            venue_rules=venue_rules,
+            market_state=market_state,
+            apply=True,
+        )
+        if not normalization.accepted:
+            order.update_status(OrderStatus.REJECTED)
+            self.order_history.append(order)
+            raise OrderSubmissionBlocked(
+                f"order {order.client_order_id} blocked by venue rules: "
+                f"{','.join(normalization.reasons)}"
+            )
+
         self.add_order(order)
         return {
             "accepted": True,
             "client_order_id": order.client_order_id,
             "gate": gate,
             "venue_submitted": False,
+            "normalization": normalization.diagnostics,
         }
 
     async def submit_order_async(
@@ -276,6 +294,7 @@ class OrderManager:
         *,
         kill_switch_manager: Any | None = None,
         market_state: Optional[Dict[str, float]] = None,
+        venue_rules: VenueSymbolRules | None = None,
         max_spread_bps: float = 5.0,
         min_depth_usd: float = 25_000.0,
         min_tob_coverage: float = 0.80,
@@ -299,32 +318,18 @@ class OrderManager:
                     f"{','.join(gate['reasons'])}"
                 )
 
-        if self.exchange_client is None:
-            self.add_order(order)
-            return {
-                "accepted": True,
-                "client_order_id": order.client_order_id,
-                "gate": gate,
-                "venue_submitted": False,
-            }
+        try:
+            from project.live.execution_router import ExecutionRouter, ExecutionRouterError
 
-        if order.order_type != OrderType.MARKET:
+            submission = await ExecutionRouter(self.exchange_client).submit(
+                order,
+                market_state=market_state,
+                venue_rules=venue_rules,
+            )
+        except ExecutionRouterError as exc:
             order.update_status(OrderStatus.REJECTED)
             self.order_history.append(order)
-            raise OrderSubmissionFailed(
-                f"exchange-backed OMS does not support {order.order_type.name} orders yet"
-            )
-
-        try:
-            venue_kwargs = self._market_order_call_kwargs(order)
-            try:
-                sig = inspect.signature(self.exchange_client.create_market_order)
-                params = sig.parameters
-                if "new_client_order_id" in params or "newClientOrderId" in params:
-                    venue_kwargs["new_client_order_id"] = order.client_order_id
-            except Exception:
-                pass
-            venue_response = await self.exchange_client.create_market_order(**venue_kwargs)
+            raise OrderSubmissionBlocked(str(exc)) from exc
         except Exception as exc:
             order.update_status(OrderStatus.REJECTED)
             self.order_history.append(order)
@@ -332,25 +337,25 @@ class OrderManager:
                 f"venue rejected order {order.client_order_id}: {exc}"
             ) from exc
 
-        exchange_order_id = None
-        if isinstance(venue_response, dict):
-            exchange_order_id = (
-                str(
-                    venue_response.get("orderId")
-                    or venue_response.get("clientOrderId")
-                    or venue_response.get("origClientOrderId")
-                    or ""
-                ).strip()
-                or None
-            )
         self.add_order(order)
-        order.update_status(OrderStatus.NEW, exchange_id=exchange_order_id)
+        order.update_status(OrderStatus.NEW, exchange_id=submission.exchange_order_id)
         return {
             "accepted": True,
             "client_order_id": order.client_order_id,
             "gate": gate,
-            "venue_submitted": True,
-            "venue_response": venue_response,
+            "venue_submitted": submission.venue_submitted,
+            "venue_response": submission.venue_response,
+            "route": {
+                "route_type": submission.route.route_type,
+                "order_type": submission.route.order_type.name,
+                "time_in_force": submission.route.time_in_force,
+                "reduce_only": submission.route.reduce_only,
+                "post_only": submission.route.post_only,
+                "price": submission.route.price,
+            },
+            "normalization": (
+                submission.normalization.diagnostics if submission.normalization else None
+            ),
         }
 
     async def cancel_all_orders(self, symbol: Optional[str] = None):

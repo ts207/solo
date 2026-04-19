@@ -46,6 +46,7 @@ def test_parse_binance_exchange_info_to_venue_rules() -> None:
     assert rule.min_notional == 100.0
     assert rule.market_order_supported is True
     assert rule.limit_order_supported is True
+    assert rule.post_only_supported is True
     assert rule.is_actionable is True
     assert rule.source == "exchange:binance"
 

@@ -2,13 +2,11 @@ from __future__ import annotations
 
 import logging
 import re
-from datetime import timedelta
-from typing import Any, Iterable, List, Optional
+from typing import Any, Iterable, List, Literal
 
 import pandas as pd
 
 from project.research.validation.schemas import ValidationSplit
-
 
 DEFAULT_BAR_DURATION_MINUTES = 5
 log = logging.getLogger(__name__)
@@ -129,6 +127,93 @@ def build_validation_splits(
     return windows
 
 
+def row_purge_embargo_mask(
+    n_rows: int,
+    *,
+    train_start_idx: int,
+    train_end_idx: int,
+    validation_start_idx: int,
+    validation_end_idx: int,
+    purge_bars: int = 0,
+    embargo_bars: int = 0,
+) -> pd.Series:
+    """Return exact row-inclusion mask for a train/validation boundary.
+
+    Indices are inclusive. Purge removes rows immediately before the validation
+    window from train; embargo removes rows immediately after validation.
+    """
+    total = max(0, int(n_rows))
+    mask = pd.Series(False, index=range(total), dtype=bool)
+    if total == 0:
+        return mask
+    purge = max(0, int(purge_bars))
+    embargo = max(0, int(embargo_bars))
+    train_start = max(0, int(train_start_idx))
+    train_end = min(total - 1, int(train_end_idx) - purge)
+    validation_start = max(0, int(validation_start_idx))
+    validation_end = min(total - 1, int(validation_end_idx))
+    embargo_end = min(total - 1, validation_end + embargo)
+
+    if train_end >= train_start:
+        mask.iloc[train_start : train_end + 1] = True
+    if validation_end >= validation_start:
+        mask.iloc[validation_start : validation_end + 1] = True
+    if embargo_end >= validation_end + 1:
+        mask.iloc[validation_end + 1 : embargo_end + 1] = False
+    return mask
+
+
+def assign_row_purged_split_labels(
+    df: pd.DataFrame,
+    *,
+    train_frac: float = 0.6,
+    validation_frac: float = 0.2,
+    purge_bars: int = 0,
+    embargo_bars: int = 0,
+    split_col: str = "split_label",
+    sort_col: str | None = None,
+) -> pd.DataFrame:
+    if df.empty:
+        out = df.copy()
+        out[split_col] = pd.Series(dtype="object")
+        return out
+    if not (0.0 < float(train_frac) < 1.0):
+        raise ValueError("train_frac must be in (0,1)")
+    if not (0.0 < float(validation_frac) < 1.0):
+        raise ValueError("validation_frac must be in (0,1)")
+    if float(train_frac) + float(validation_frac) >= 1.0:
+        raise ValueError("train_frac + validation_frac must be < 1")
+
+    out = df.sort_values(sort_col).copy() if sort_col and sort_col in df.columns else df.copy()
+    n_rows = len(out)
+    train_end_nominal = max(0, int(n_rows * float(train_frac)) - 1)
+    validation_start = train_end_nominal + 1 + max(0, int(embargo_bars))
+    validation_count = int(n_rows * float(validation_frac))
+    validation_end_nominal = min(n_rows - 1, validation_start + max(0, validation_count) - 1)
+    test_start = validation_end_nominal + 1 + max(0, int(embargo_bars))
+    train_end = train_end_nominal - max(0, int(purge_bars))
+    validation_end = validation_end_nominal - max(0, int(purge_bars))
+
+    labels = pd.Series(pd.NA, index=out.index, dtype="object")
+    if train_end >= 0:
+        labels.iloc[: train_end + 1] = "train"
+    if validation_end >= validation_start:
+        labels.iloc[validation_start : validation_end + 1] = "validation"
+    if test_start < n_rows:
+        labels.iloc[test_start:] = "test"
+    out = out.loc[labels.notna()].copy()
+    out[split_col] = labels.loc[out.index].astype(str)
+    out["split_plan_id"] = (
+        f"ROW_TVT_{int(round(train_frac * 100))}_"
+        f"{int(round(validation_frac * 100))}_"
+        f"{100 - int(round((train_frac + validation_frac) * 100))}"
+    )
+    out["purge_bars_used"] = int(purge_bars)
+    out["embargo_bars_used"] = int(embargo_bars)
+    out["purge_mode"] = "rows"
+    return out
+
+
 def assign_split_labels(
     df: pd.DataFrame,
     *,
@@ -141,9 +226,21 @@ def assign_split_labels(
     split_col: str = "split_label",
     event_window_start_col: str | None = None,
     event_window_end_col: str | None = None,
+    purge_mode: Literal["rows", "time"] = "rows",
 ) -> pd.DataFrame:
     if df.empty or time_col not in df.columns:
         return df.copy()
+
+    if purge_mode == "rows":
+        return assign_row_purged_split_labels(
+            df,
+            train_frac=train_frac,
+            validation_frac=validation_frac,
+            embargo_bars=embargo_bars,
+            purge_bars=purge_bars,
+            split_col=split_col,
+            sort_col=time_col,
+        )
 
     out = df.copy()
     ts = pd.to_datetime(out[time_col], utc=True, errors="coerce")
@@ -190,12 +287,17 @@ def assign_split_labels(
 
     excluded_mask = valid & labels.isna()
     if bool(excluded_mask.any()):
-        logging.getLogger(__name__).debug(f"Dropping {excluded_mask.sum()} rows due to embargo/purge/invalid split.")
+        logging.getLogger(__name__).debug(
+            "Dropping %d rows due to embargo/purge/invalid split.",
+            int(excluded_mask.sum()),
+        )
         out = out.loc[~excluded_mask].copy()
         labels = labels.loc[out.index]
     out[split_col] = labels.astype(str)
     out["split_plan_id"] = (
-        f"TVT_{int(round(train_frac * 100))}_{int(round(validation_frac * 100))}_{100 - int(round((train_frac + validation_frac) * 100))}"
+        f"TVT_{int(round(train_frac * 100))}_"
+        f"{int(round(validation_frac * 100))}_"
+        f"{100 - int(round((train_frac + validation_frac) * 100))}"
     )
     out["purge_bars_used"] = int(purge_bars)
     out["embargo_bars_used"] = int(embargo_bars)
@@ -205,6 +307,7 @@ def assign_split_labels(
 
 def serialize_splits(splits: Iterable[ValidationSplit]) -> list[dict]:
     return [split.to_dict() for split in splits]
+
 
 def build_repeated_walkforward_splits(
     timestamps: pd.Series | pd.DatetimeIndex | list,
@@ -227,20 +330,8 @@ def build_repeated_walkforward_splits(
     with no other diagnostic, which can cause it to fail the fold-stability gate
     silently.  A WARNING is emitted here so the log trace is available.
 
-    Purge/embargo implementation note
-    -----------------------------------
-    Purge and embargo are applied as *calendar-time deltas* (via
-    ``bars_to_timedelta``), not as *row counts*.  In continuously-trading
-    24/7 crypto markets this is approximately equivalent.  However, if the
-    data contains gaps (exchange maintenance, collection outages), the actual
-    number of rows excluded from training may be fewer than *purge_bars*,
-    which can allow information leakage from near-event-time bars into the
-    validation window.
-
-    # TODO(purge-row-count): Implement an alternative row-index-based purge
-    # mode (purge_mode='rows') that removes exactly *purge_bars* rows rather
-    # than *purge_bars × bar_duration_minutes* of calendar time.  This is
-    # the correct approach for data with irregular or sparse bar density.
+    Purge/embargo are applied by row index, not calendar deltas, so irregular
+    bar density still excludes exactly the requested number of adjacent rows.
     """
     ts = pd.to_datetime(timestamps).sort_values()
     if len(ts) == 0:
@@ -249,85 +340,82 @@ def build_repeated_walkforward_splits(
     from project.research.validation.schemas import FoldDefinition, ValidationSplit
 
     folds: List[FoldDefinition] = []
-    
+
     total_bars = len(ts)
     if total_bars == 0:
         return folds
 
-    embargo_delta = bars_to_timedelta(embargo_bars, bar_duration_minutes=bar_duration_minutes)
-    purge_delta = bars_to_timedelta(purge_bars, bar_duration_minutes=bar_duration_minutes)
-
     fold_size = train_bars + validation_bars + test_bars
     start_idx = 0
     fold_id = 1
-    
+
     while True:
         if start_idx + fold_size > total_bars:
             break
-            
+
         train_start_ts = ts.iloc[start_idx]
         train_end_nominal_idx = start_idx + train_bars - 1
-        train_end_nominal_ts = ts.iloc[train_end_nominal_idx]
-        
-        valid_start_idx = train_end_nominal_idx + 1
+        train_end_idx = train_end_nominal_idx - max(0, int(purge_bars))
+
+        valid_start_idx = train_end_nominal_idx + 1 + max(0, int(embargo_bars))
         valid_end_nominal_idx = valid_start_idx + validation_bars - 1
-        valid_start_ts = ts.iloc[valid_start_idx]
-        valid_end_nominal_ts = ts.iloc[valid_end_nominal_idx]
-        
-        test_start_idx = valid_end_nominal_idx + 1
+        valid_end_idx = valid_end_nominal_idx - max(0, int(purge_bars))
+
+        test_start_idx = valid_end_nominal_idx + 1 + max(0, int(embargo_bars))
         test_end_nominal_idx = test_start_idx + test_bars - 1
-        test_start_ts = ts.iloc[test_start_idx]
-        test_end_ts = ts.iloc[test_end_nominal_idx]
-        
-        train_end_ts = train_end_nominal_ts - purge_delta
-        adjusted_valid_start = max(valid_start_ts, train_end_nominal_ts + embargo_delta)
-        adjusted_valid_end = valid_end_nominal_ts - purge_delta
-        adjusted_test_start = max(test_start_ts, valid_end_nominal_ts + embargo_delta)
-        
-        if train_end_ts < train_start_ts or adjusted_valid_end < adjusted_valid_start or test_end_ts < adjusted_test_start:
+
+        if (
+            train_end_idx < start_idx
+            or valid_start_idx >= total_bars
+            or valid_end_idx < valid_start_idx
+            or test_start_idx >= total_bars
+            or test_end_nominal_idx >= total_bars
+        ):
             start_idx += step_bars
             continue
-            
+
         t_split = ValidationSplit(
             label="train",
             start=normalize_timestamp(train_start_ts),
-            end=normalize_timestamp(train_end_ts),
+            end=normalize_timestamp(ts.iloc[train_end_idx]),
             purge_bars=int(purge_bars),
             embargo_bars=int(embargo_bars),
-            bar_duration_minutes=int(bar_duration_minutes)
+            bar_duration_minutes=int(bar_duration_minutes),
         )
-        
+
         v_split = ValidationSplit(
             label="validation",
-            start=normalize_timestamp(adjusted_valid_start),
-            end=normalize_timestamp(adjusted_valid_end),
+            start=normalize_timestamp(ts.iloc[valid_start_idx]),
+            end=normalize_timestamp(ts.iloc[valid_end_idx]),
             purge_bars=int(purge_bars),
             embargo_bars=int(embargo_bars),
-            bar_duration_minutes=int(bar_duration_minutes)
+            bar_duration_minutes=int(bar_duration_minutes),
         )
-        
+
         test_split = ValidationSplit(
             label="test",
-            start=normalize_timestamp(adjusted_test_start),
-            end=normalize_timestamp(test_end_ts),
+            start=normalize_timestamp(ts.iloc[test_start_idx]),
+            end=normalize_timestamp(ts.iloc[test_end_nominal_idx]),
             purge_bars=int(purge_bars),
             embargo_bars=int(embargo_bars),
-            bar_duration_minutes=int(bar_duration_minutes)
+            bar_duration_minutes=int(bar_duration_minutes),
         )
-        
-        folds.append(FoldDefinition(
-            fold_id=fold_id,
-            train_split=t_split,
-            validation_split=v_split,
-            test_split=test_split
-        ))
-        
+
+        folds.append(
+            FoldDefinition(
+                fold_id=fold_id,
+                train_split=t_split,
+                validation_split=v_split,
+                test_split=test_split,
+            )
+        )
+
         fold_id += 1
         start_idx += step_bars
-        
+
         if max_folds is not None and len(folds) >= max_folds:
             break
-            
+
     if len(folds) < min_folds:
         log.warning(
             "build_repeated_walkforward_splits: could not satisfy min_folds=%d. "
@@ -346,6 +434,5 @@ def build_repeated_walkforward_splits(
             step_bars,
         )
         return []
-        
-    return folds
 
+    return folds

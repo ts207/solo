@@ -2,10 +2,9 @@ from __future__ import annotations
 
 import enum
 import logging
-from typing import Dict, Any
+from typing import Any, Dict
 
-import numpy as np
-import pandas as pd
+from project.core.execution_costs import estimate_fill_probability_v2
 
 _LOG = logging.getLogger(__name__)
 
@@ -34,36 +33,14 @@ def calculate_fill_probability(
     """
     Calculate fill probability based on order size, market conditions, and urgency.
     """
-    # Base fill probability by urgency
-    if urgency == OrderUrgency.AGGRESSIVE:
-        base_prob = 1.0
-    elif urgency == OrderUrgency.PASSIVE:
-        base_prob = 0.8
-    elif urgency == OrderUrgency.DELAYED_AGGRESSIVE:
-        base_prob = 0.95
-    else:
-        base_prob = 0.9
-
-    # Profile adjustments
-    if profile == ExecutionProfile.OPTIMISTIC:
-        profile_mult = 1.1
-    elif profile == ExecutionProfile.STRESSED:
-        profile_mult = 0.6
-    else:
-        profile_mult = 1.0
-
-    # Participation rate impact
-    participation_rate = abs(float(order_size)) / max(1.0, float(liquidity_available))
-    participation_impact = np.exp(-participation_rate * 5.0)
-
-    # Volatility impact (higher vol -> lower fill prob for passive)
-    if urgency == OrderUrgency.PASSIVE:
-        vol_impact = np.exp(-vol_regime * 2.0)
-    else:
-        vol_impact = 1.0
-
-    fill_prob = base_prob * profile_mult * participation_impact * vol_impact
-    return float(np.clip(fill_prob, 0.0, 1.0))
+    return estimate_fill_probability_v2(
+        order_size=order_size,
+        liquidity_available=liquidity_available,
+        spread_bps=spread_bps,
+        vol_regime_bps=float(vol_regime) * 10_000.0,
+        urgency=urgency.value,
+        profile=profile.value,
+    )
 
 
 def estimate_fill_details(

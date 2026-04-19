@@ -69,8 +69,12 @@ def _resolve_promotion_policy(
         base_min_events = max(
             base_min_events,
             int(getattr(contract, "min_trade_count", base_min_events) or base_min_events),
+            150,
         )
         dynamic_min_events = load_dynamic_min_events_by_event_fn(project_root)
+        enforce_baseline_beats_complexity = True
+        enforce_placebo_controls = True
+        enforce_timeframe_consensus = True
     else:
         min_net_expectancy_bps = min(min_net_expectancy_bps, 1.5)
         require_retail_viability = False

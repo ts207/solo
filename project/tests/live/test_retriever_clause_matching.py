@@ -48,7 +48,9 @@ def _canonical_confirm_thesis() -> PromotedThesis:
             candidate_id="THESIS_VOL_SHOCK_LIQUIDITY_CONFIRM",
         ),
         governance=ThesisGovernance(trade_trigger_eligible=True),
-        requirements=ThesisRequirements(trigger_events=["VOL_SHOCK"], confirmation_events=["LIQUIDITY_VACUUM"]),
+        requirements=ThesisRequirements(
+            trigger_events=["VOL_SHOCK"], confirmation_events=["LIQUIDITY_VACUUM"]
+        ),
     )
 
 
@@ -71,7 +73,9 @@ def test_retriever_uses_canonical_confirmation_clause_when_present() -> None:
         active_episode_ids=[],
     )
 
-    match = retrieve_ranked_theses(thesis_store=store, context=context, include_pending=False, limit=1)[0]
+    match = retrieve_ranked_theses(
+        thesis_store=store, context=context, include_pending=False, limit=1
+    )[0]
 
     assert match.eligibility_passed is True
     assert "trigger_clause_match:VOL_SHOCK" in match.reasons_for
@@ -98,7 +102,9 @@ def test_retriever_matches_trigger_without_family_metadata() -> None:
         active_episode_ids=[],
     )
 
-    match = retrieve_ranked_theses(thesis_store=store, context=context, include_pending=False, limit=1)[0]
+    match = retrieve_ranked_theses(
+        thesis_store=store, context=context, include_pending=False, limit=1
+    )[0]
 
     assert match.eligibility_passed is True
     assert "trigger_clause_match:VOL_SHOCK" in match.reasons_for
@@ -124,7 +130,9 @@ def test_retriever_rejects_family_only_trigger_match_when_ids_disagree() -> None
         active_episode_ids=[],
     )
 
-    match = retrieve_ranked_theses(thesis_store=store, context=context, include_pending=False, limit=1)[0]
+    match = retrieve_ranked_theses(
+        thesis_store=store, context=context, include_pending=False, limit=1
+    )[0]
 
     assert match.eligibility_passed is False
     assert "trigger_clause_missing:VOL_SHOCK,LIQUIDITY_VACUUM" not in match.reasons_against
@@ -152,10 +160,56 @@ def test_retriever_rejects_required_context_mismatch() -> None:
         active_episode_ids=[],
     )
 
-    match = retrieve_ranked_theses(thesis_store=store, context=context, include_pending=False, limit=1)[0]
+    match = retrieve_ranked_theses(
+        thesis_store=store, context=context, include_pending=False, limit=1
+    )[0]
 
     assert match.eligibility_passed is False
     assert "required_context_mismatch:symbol" in match.reasons_against
+
+
+def test_retriever_enforces_required_state_ids() -> None:
+    thesis = _canonical_confirm_thesis().model_copy(
+        update={
+            "required_state_ids": ["STATE_A"],
+            "supportive_state_ids": ["STATE_B"],
+        }
+    )
+    store = ThesisStore([thesis])
+    base_context = LiveTradeContext(
+        timestamp="2026-04-02T00:00:00Z",
+        symbol="BTCUSDT",
+        timeframe="5m",
+        primary_event_id="VOL_SHOCK",
+        event_family="VOL_SHOCK",
+        canonical_regime="VOLATILITY_TRANSITION",
+        event_side="long",
+        live_features={},
+        regime_snapshot={"canonical_regime": "VOLATILITY_TRANSITION"},
+        execution_env={},
+        portfolio_state={},
+        active_event_ids=["VOL_SHOCK", "LIQUIDITY_VACUUM"],
+        active_episode_ids=[],
+    )
+
+    missing = retrieve_ranked_theses(
+        thesis_store=store,
+        context=base_context,
+        include_pending=False,
+        limit=1,
+    )[0]
+    matched = retrieve_ranked_theses(
+        thesis_store=store,
+        context=base_context.model_copy(update={"active_state_ids": ["STATE_A", "STATE_B"]}),
+        include_pending=False,
+        limit=1,
+    )[0]
+
+    assert missing.eligibility_passed is False
+    assert "required_state_missing:STATE_A" in missing.reasons_against
+    assert matched.eligibility_passed is True
+    assert "required_state_match:STATE_A" in matched.reasons_for
+    assert "supportive_state_match:STATE_B" in matched.reasons_for
 
 
 def test_retriever_rejects_stale_thesis_when_policy_disallows_it() -> None:
@@ -182,7 +236,9 @@ def test_retriever_rejects_stale_thesis_when_policy_disallows_it() -> None:
         active_episode_ids=[],
     )
 
-    match = retrieve_ranked_theses(thesis_store=store, context=context, include_pending=False, limit=1)[0]
+    match = retrieve_ranked_theses(
+        thesis_store=store, context=context, include_pending=False, limit=1
+    )[0]
 
     assert match.eligibility_passed is False
     assert "freshness_disallowed:stale" in match.reasons_against
@@ -209,7 +265,9 @@ def test_retriever_hard_fails_on_invalidation_trigger() -> None:
         active_episode_ids=[],
     )
 
-    match = retrieve_ranked_theses(thesis_store=store, context=context, include_pending=False, limit=1)[0]
+    match = retrieve_ranked_theses(
+        thesis_store=store, context=context, include_pending=False, limit=1
+    )[0]
 
     assert match.eligibility_passed is False
     assert "invalidation_triggered" in match.reasons_against
@@ -242,16 +300,16 @@ def test_retriever_hard_fails_on_disallowed_regime() -> None:
         active_episode_ids=[],
     )
 
-    match = retrieve_ranked_theses(thesis_store=store, context=context, include_pending=False, limit=1)[0]
+    match = retrieve_ranked_theses(
+        thesis_store=store, context=context, include_pending=False, limit=1
+    )[0]
 
     assert match.eligibility_passed is False
     assert "regime_disallowed:VOLATILITY_TRANSITION" in match.reasons_against
 
 
 def test_retriever_blocks_non_live_deployment_state_in_trading_mode() -> None:
-    thesis = _canonical_confirm_thesis().model_copy(
-        update={"deployment_state": "paper_only"}
-    )
+    thesis = _canonical_confirm_thesis().model_copy(update={"deployment_state": "paper_only"})
     store = ThesisStore([thesis])
     context = LiveTradeContext(
         timestamp="2026-04-02T00:00:00Z",
@@ -269,7 +327,9 @@ def test_retriever_blocks_non_live_deployment_state_in_trading_mode() -> None:
         active_episode_ids=[],
     )
 
-    match = retrieve_ranked_theses(thesis_store=store, context=context, include_pending=False, limit=1)[0]
+    match = retrieve_ranked_theses(
+        thesis_store=store, context=context, include_pending=False, limit=1
+    )[0]
 
     assert match.eligibility_passed is False
     assert "deployment_state_blocked:paper_only" in match.reasons_against
@@ -278,9 +338,7 @@ def test_retriever_blocks_non_live_deployment_state_in_trading_mode() -> None:
 def test_retriever_prefers_exported_deployment_state_over_authored_definition(
     monkeypatch,
 ) -> None:
-    thesis = _canonical_confirm_thesis().model_copy(
-        update={"deployment_state": "live_enabled"}
-    )
+    thesis = _canonical_confirm_thesis().model_copy(update={"deployment_state": "live_enabled"})
     store = ThesisStore([thesis])
     context = LiveTradeContext(
         timestamp="2026-04-02T00:00:00Z",
@@ -309,7 +367,9 @@ def test_retriever_prefers_exported_deployment_state_over_authored_definition(
         ),
     )
 
-    match = retrieve_ranked_theses(thesis_store=store, context=context, include_pending=False, limit=1)[0]
+    match = retrieve_ranked_theses(
+        thesis_store=store, context=context, include_pending=False, limit=1
+    )[0]
 
     assert match.eligibility_passed is True
     assert "deployment_state:live_enabled" in match.reasons_for
@@ -359,7 +419,9 @@ def test_retriever_supportive_context_boosts_score_without_gating() -> None:
         active_episode_ids=[],
     )
 
-    matches = retrieve_ranked_theses(thesis_store=store, context=context, include_pending=False, limit=2)
+    matches = retrieve_ranked_theses(
+        thesis_store=store, context=context, include_pending=False, limit=2
+    )
 
     assert matches[0].thesis.thesis_id == "thesis::shadow::boosted"
     assert "supportive_context:bridge_certified" in matches[0].reasons_for
@@ -370,7 +432,9 @@ def test_retriever_suppresses_lower_ranked_overlap_group_match() -> None:
     winner = _canonical_confirm_thesis().model_copy(
         update={
             "thesis_id": "thesis::shadow::winner",
-            "governance": ThesisGovernance(overlap_group_id="grp_overlap", trade_trigger_eligible=True),
+            "governance": ThesisGovernance(
+                overlap_group_id="grp_overlap", trade_trigger_eligible=True
+            ),
         }
     )
     loser = _canonical_confirm_thesis().model_copy(
@@ -386,7 +450,9 @@ def test_retriever_suppresses_lower_ranked_overlap_group_match() -> None:
                 stability_score=0.5,
                 rank_score=1.0,
             ),
-            "governance": ThesisGovernance(overlap_group_id="grp_overlap", trade_trigger_eligible=True),
+            "governance": ThesisGovernance(
+                overlap_group_id="grp_overlap", trade_trigger_eligible=True
+            ),
         }
     )
     store = ThesisStore([loser, winner])
@@ -406,7 +472,9 @@ def test_retriever_suppresses_lower_ranked_overlap_group_match() -> None:
         active_episode_ids=[],
     )
 
-    matches = retrieve_ranked_theses(thesis_store=store, context=context, include_pending=False, limit=2)
+    matches = retrieve_ranked_theses(
+        thesis_store=store, context=context, include_pending=False, limit=2
+    )
 
     assert matches[0].thesis.thesis_id == "thesis::shadow::winner"
     assert matches[1].eligibility_passed is False

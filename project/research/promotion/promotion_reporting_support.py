@@ -35,24 +35,25 @@ def resolve_promotion_tier(
 ) -> str:
     decision = str(row.get("promotion_decision", "")).strip().lower()
     if decision != "promoted":
-        return "research"
+        return "research_promoted"
 
     conf_gates = promotion_confirmatory_gates or {}
     dep_gates = conf_gates.get("deployable", {})
 
     stat_ok = True
-    if "q_value" in row and "test_q_value" in row:
-        max_q = float(dep_gates.get("max_q_value", 0.05))
-        q_value = _quiet_float(row.get("q_value", 1.0), 1.0)
-        test_q_value = _quiet_float(row.get("test_q_value", 1.0), 1.0)
-        stat_ok = (q_value <= max_q) and (test_q_value <= max_q)
+    max_q = float(dep_gates.get("max_q_value", 0.025))
+    q_value = _quiet_float(row.get("effective_q_value", row.get("q_value", 1.0)), 1.0)
+    test_q_value = _quiet_float(row.get("test_q_value", q_value), q_value)
+    stat_ok = (q_value <= max_q) and (test_q_value <= max_q)
 
     samples_ok = True
-    if "validation_samples" in row and "test_samples" in row:
-        min_oos_events = int(dep_gates.get("min_oos_event_count", 50))
-        validation_samples = int(row.get("validation_samples", 0))
-        test_samples = int(row.get("test_samples", 0))
-        samples_ok = (validation_samples >= min_oos_events) and (test_samples >= min_oos_events)
+    min_oos_events = int(dep_gates.get("min_oos_event_count", 75))
+    validation_samples = _quiet_int(
+        row.get("validation_samples", row.get("validation_samples_raw")),
+        0,
+    )
+    test_samples = _quiet_int(row.get("test_samples", row.get("test_samples_raw")), 0)
+    samples_ok = (validation_samples >= min_oos_events) and (test_samples >= min_oos_events)
 
     bridge_viability_ok = bool(
         row.get("gate_bridge_tradable") == "pass" or row.get("gate_bridge_tradable") is True
@@ -61,6 +62,22 @@ def resolve_promotion_tier(
     retail_viable = bool(bool_gate(row.get("gate_promo_retail_viability")))
     redundancy_ok = bool(bool_gate(row.get("gate_promo_redundancy")))
     retail_gate_ok = retail_viable if bool(require_retail_viability) else True
+    dsr_ok = bool(bool_gate(row.get("gate_promo_dsr"))) and _quiet_float(
+        row.get("dsr_value"), 0.0
+    ) >= float(dep_gates.get("min_dsr", 0.5))
+    cost_ok = _quiet_float(row.get("cost_survival_ratio"), 0.0) >= float(
+        dep_gates.get("min_cost_survival_ratio", 1.0)
+    )
+    regimes_ok = bool(bool_gate(row.get("gate_regime_stability"))) and _quiet_int(
+        row.get("num_regimes_supported"), 0
+    ) >= int(dep_gates.get("min_regimes_supported", 2))
+    robustness_ok = bool(bool_gate(row.get("gate_promo_robustness"))) or bool(
+        as_bool(row.get("robustness_panel_complete", False))
+    )
+    multiplicity_ok = bool(bool_gate(row.get("gate_promo_multiplicity_confirmatory"))) and bool(
+        bool_gate(row.get("gate_promo_multiplicity_diagnostics"))
+    )
+    n_events_ok = _quiet_int(row.get("n_events"), 0) >= int(dep_gates.get("min_events", 150))
 
     if (
         track == "standard"
@@ -69,9 +86,15 @@ def resolve_promotion_tier(
         and stat_ok
         and samples_ok
         and bridge_viability_ok
+        and dsr_ok
+        and cost_ok
+        and regimes_ok
+        and robustness_ok
+        and multiplicity_ok
+        and n_events_ok
     ):
-        return "deployable"
-    return "shadow"
+        return "live_eligible"
+    return "paper_eligible"
 
 
 def build_promotion_capital_footprint(
@@ -454,8 +477,8 @@ def assign_and_validate_promotion_tiers(
         promoted_df["promotion_tier"] = [
             _get_tier(r) for r in promoted_df.to_dict(orient="records")
         ]
-        if (promoted_df["promotion_tier"] == "research").any():
-            raise ValueError("promoted output cannot contain tier=research")
+        if (promoted_df["promotion_tier"] == "research_promoted").any():
+            raise ValueError("promoted output cannot contain tier=research_promoted")
     else:
         promoted_df = promoted_df.copy()
         promoted_df["promotion_tier"] = pd.Series(dtype="object")

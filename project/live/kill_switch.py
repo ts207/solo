@@ -38,6 +38,7 @@ class KillSwitchReason(Enum):
     EXCHANGE_DISCONNECT = auto()
     STALE_DATA = auto()
     MICROSTRUCTURE_BREAKDOWN = auto()
+    LIVE_QUALITY_DEGRADATION = auto()
     ACCOUNT_SYNC_LOSS = auto()
     MANUAL = auto()
 
@@ -477,6 +478,17 @@ class KillSwitchManager:
             )
 
         return drift_results
+
+    def check_live_quality_gate(self, gate_result: Dict[str, Any]) -> Dict[str, Any]:
+        action = str(gate_result.get("action", "allow"))
+        reasons = list(gate_result.get("reason_codes", []))
+        if action == "disable":
+            self.trigger(
+                KillSwitchReason.LIVE_QUALITY_DEGRADATION,
+                "Live quality gate disabled trading: " + ",".join(reasons),
+            )
+            return {"triggered": True, "action": action, "reason_codes": reasons}
+        return {"triggered": False, "action": action, "reason_codes": reasons}
 
 
 class UnwindOrchestrator:

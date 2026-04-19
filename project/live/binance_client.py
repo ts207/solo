@@ -178,16 +178,18 @@ class BinanceFuturesClient:
         price: float,
         time_in_force: str = "GTC",
         reduce_only: bool = False,
+        post_only: bool = False,
         new_client_order_id: str | None = None,
     ) -> Any:
         """POST /fapi/v1/order"""
+        tif = "GTX" if post_only else time_in_force.upper()
         params = {
             "symbol": symbol.upper(),
             "side": side.upper(),
             "type": "LIMIT",
             "quantity": quantity,
             "price": price,
-            "timeInForce": time_in_force.upper(),
+            "timeInForce": tif,
             "reduceOnly": "true" if reduce_only else "false",
         }
         if new_client_order_id:

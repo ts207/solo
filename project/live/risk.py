@@ -5,6 +5,8 @@ from dataclasses import dataclass, field
 from datetime import date, datetime, timezone
 from typing import Any, Dict, List, Optional, Set
 
+from project.portfolio.risk_budget import calculate_execution_quality_multiplier
+
 _LOG = logging.getLogger(__name__)
 
 
@@ -29,6 +31,9 @@ class RuntimeRiskCaps:
     max_order_notional: float = 50_000.0  # hard per-order ceiling (all theses)
     max_daily_loss: float = 0.0  # global daily loss limit (0 = no limit)
     reject_on_breach: bool = True  # If False, clip to cap
+    slippage_budget_bps: float = 0.0  # 0 disables execution-quality slippage scaling
+    min_fill_rate: float = 0.0  # 0 disables execution-quality fill-rate scaling
+    min_execution_quality_multiplier: float = 0.10
     # Per-family risk budgets
     per_family_caps: Dict[str, float] = field(default_factory=dict)
     # Per-thesis overrides indexed by thesis_id
@@ -146,6 +151,32 @@ class RiskEnforcer:
         self.breach_history.append(ev)
         return ev
 
+    def _execution_quality_multiplier(self, portfolio_state: Dict[str, Any]) -> float:
+        raw_quality = portfolio_state.get("execution_quality", {})
+        quality = raw_quality if isinstance(raw_quality, dict) else {}
+        explicit_quality = portfolio_state.get(
+            "execution_quality_multiplier",
+            quality.get("multiplier", quality.get("quality_multiplier")),
+        )
+        realized_slippage = quality.get(
+            "realized_slippage_bps",
+            quality.get("avg_slippage_bps", quality.get("slippage_bps")),
+        )
+        fill_rate = quality.get("fill_rate", quality.get("recent_fill_rate"))
+        has_config = self.caps.slippage_budget_bps > 0.0 or self.caps.min_fill_rate > 0.0
+        if explicit_quality is None and not has_config:
+            return 1.0
+        return calculate_execution_quality_multiplier(
+            realized_slippage_bps=(None if realized_slippage is None else float(realized_slippage)),
+            slippage_budget_bps=(
+                self.caps.slippage_budget_bps if self.caps.slippage_budget_bps > 0.0 else None
+            ),
+            fill_rate=None if fill_rate is None else float(fill_rate),
+            min_fill_rate=self.caps.min_fill_rate if self.caps.min_fill_rate > 0.0 else None,
+            explicit_quality=None if explicit_quality is None else float(explicit_quality),
+            min_multiplier=self.caps.min_execution_quality_multiplier,
+        )
+
     def check_and_apply_caps(
         self,
         *,
@@ -179,6 +210,7 @@ class RiskEnforcer:
           10. gross exposure cap
         """
         effective_notional = float(attempted_notional)
+        last_breach: Optional[CapBreachEvent] = None
         per = self.caps.per_thesis.get(thesis_id)
 
         # 1. Hard per-order ceiling (global)
@@ -193,7 +225,7 @@ class RiskEnforcer:
                     self.caps.max_order_notional,
                 )
             effective_notional = self.caps.max_order_notional
-            self._clip(
+            last_breach = self._clip(
                 timestamp,
                 thesis_id,
                 symbol,
@@ -214,7 +246,7 @@ class RiskEnforcer:
                     per.max_notional,
                 )
             effective_notional = per.max_notional
-            self._clip(
+            last_breach = self._clip(
                 timestamp,
                 thesis_id,
                 symbol,
@@ -294,6 +326,20 @@ class RiskEnforcer:
                     1.0,
                     0.0,
                 )
+
+        # 6c. Execution quality degradation scales risk down before exposure caps.
+        execution_quality_mult = self._execution_quality_multiplier(portfolio_state)
+        if execution_quality_mult < 0.999999 and effective_notional > 0.0:
+            scaled_notional = effective_notional * execution_quality_mult
+            last_breach = self._clip(
+                timestamp,
+                thesis_id,
+                symbol,
+                "execution_quality",
+                effective_notional,
+                scaled_notional,
+            )
+            effective_notional = scaled_notional
 
         # 7. Per-Symbol Cap
         current_symbol_notional = portfolio_state.get("symbol_exposures", {}).get(symbol, 0.0)
@@ -383,4 +429,4 @@ class RiskEnforcer:
                 timestamp, thesis_id, symbol, "gross", total_gross, self.caps.max_gross_exposure
             )
 
-        return effective_notional, None
+        return effective_notional, last_breach

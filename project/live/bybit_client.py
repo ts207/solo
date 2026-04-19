@@ -377,10 +377,12 @@ class BybitDerivativesClient:
         price: float,
         time_in_force: str = "GTC",
         reduce_only: bool = False,
+        post_only: bool = False,
         new_client_order_id: str | None = None,
         category: str = "linear",
     ) -> Any:
         """POST /v5/order/create"""
+        tif = "PostOnly" if post_only else time_in_force
         params = {
             "category": category,
             "symbol": symbol.upper(),
@@ -388,7 +390,7 @@ class BybitDerivativesClient:
             "orderType": "Limit",
             "qty": str(quantity),
             "price": str(price),
-            "timeInForce": time_in_force,
+            "timeInForce": tif,
             "reduceOnly": reduce_only,
         }
         if new_client_order_id:

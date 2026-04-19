@@ -5,6 +5,7 @@ from dataclasses import dataclass
 from typing import List
 
 from project.live.contracts.live_trade_context import LiveTradeContext
+from project.live.decision_ranker import rank_match_by_expected_value
 from project.live.retriever import ThesisMatch
 
 
@@ -16,6 +17,12 @@ class DecisionScore:
     thesis_strength_score: float
     regime_alignment_score: float
     contradiction_penalty: float
+    probability_positive_post_cost: float
+    expected_net_pnl_bps: float
+    expected_downside_bps: float
+    fill_probability: float
+    regime_reliability: float
+    utility_score: float
     reasons_for: List[str]
     reasons_against: List[str]
 
@@ -58,13 +65,23 @@ def _execution_quality_score(context: LiveTradeContext) -> tuple[float, list[str
 
 
 
-def _event_quality_adjustment(context: LiveTradeContext) -> tuple[float, float, list[str], list[str]]:
+def _event_quality_adjustment(
+    context: LiveTradeContext,
+) -> tuple[float, float, list[str], list[str]]:
     reasons_for: list[str] = []
     reasons_against: list[str] = []
     additive = 0.0
     penalty = 0.0
-    confidence = _finite_metric(context.event_confidence, 0.0) if context.event_confidence is not None else 0.0
-    severity = _finite_metric(context.event_severity, 0.0) if context.event_severity is not None else 0.0
+    confidence = (
+        _finite_metric(context.event_confidence, 0.0)
+        if context.event_confidence is not None
+        else 0.0
+    )
+    severity = (
+        _finite_metric(context.event_severity, 0.0)
+        if context.event_severity is not None
+        else 0.0
+    )
     quality = str(context.data_quality_flag or "ok").strip().lower()
     evidence_mode = str(getattr(context, "event_evidence_mode", "") or "").strip().lower()
     event_role = str(getattr(context, "event_role", "trigger") or "trigger").strip().lower()
@@ -101,6 +118,7 @@ def _event_quality_adjustment(context: LiveTradeContext) -> tuple[float, float, 
     return additive, penalty, reasons_for, reasons_against
 
 def build_decision_score(match: ThesisMatch, context: LiveTradeContext) -> DecisionScore:
+    ev_rank = rank_match_by_expected_value(match=match, context=context)
     setup_match_score = max(0.0, min(1.0, match.support_score))
     execution_quality_score, exec_for, exec_against = _execution_quality_score(context)
 
@@ -133,7 +151,9 @@ def build_decision_score(match: ThesisMatch, context: LiveTradeContext) -> Decis
     if any(item.startswith("confirmation_match:") for item in reasons_for):
         thesis_strength_score += 0.05
 
-    regime_alignment_score = 0.10 if any(item.startswith("regime_match:") for item in reasons_for) else 0.0
+    regime_alignment_score = (
+        0.10 if any(item.startswith("regime_match:") for item in reasons_for) else 0.0
+    )
     contradiction_penalty = max(0.0, min(1.0, match.contradiction_penalty))
     if any(item.startswith("confirmation_missing:") for item in reasons_against):
         contradiction_penalty = min(1.0, contradiction_penalty + 0.05)
@@ -159,16 +179,24 @@ def build_decision_score(match: ThesisMatch, context: LiveTradeContext) -> Decis
             thesis_strength_score=thesis_strength_score,
             regime_alignment_score=regime_alignment_score,
             contradiction_penalty=contradiction_penalty,
+            probability_positive_post_cost=ev_rank.probability_positive_post_cost,
+            expected_net_pnl_bps=ev_rank.expected_net_pnl_bps,
+            expected_downside_bps=ev_rank.expected_downside_bps,
+            fill_probability=ev_rank.fill_probability,
+            regime_reliability=ev_rank.regime_reliability,
+            utility_score=ev_rank.utility_score,
             reasons_for=reasons_for,
             reasons_against=reasons_against,
         )
 
     contradiction_penalty = max(0.0, min(1.0, contradiction_penalty + quality_penalty))
+    ev_score = max(0.0, min(1.0, 0.50 + (ev_rank.utility_score / 100.0)))
     total_score = (
-        (0.45 * setup_match_score)
-        + execution_quality_score
-        + thesis_strength_score
-        + regime_alignment_score
+        (0.25 * setup_match_score)
+        + (0.15 * execution_quality_score)
+        + (0.10 * thesis_strength_score)
+        + (0.10 * regime_alignment_score)
+        + (0.40 * ev_score)
         - contradiction_penalty
     )
     return DecisionScore(
@@ -178,6 +206,12 @@ def build_decision_score(match: ThesisMatch, context: LiveTradeContext) -> Decis
         thesis_strength_score=thesis_strength_score,
         regime_alignment_score=regime_alignment_score,
         contradiction_penalty=contradiction_penalty,
+        probability_positive_post_cost=ev_rank.probability_positive_post_cost,
+        expected_net_pnl_bps=ev_rank.expected_net_pnl_bps,
+        expected_downside_bps=ev_rank.expected_downside_bps,
+        fill_probability=ev_rank.fill_probability,
+        regime_reliability=ev_rank.regime_reliability,
+        utility_score=ev_rank.utility_score,
         reasons_for=reasons_for,
         reasons_against=reasons_against,
     )

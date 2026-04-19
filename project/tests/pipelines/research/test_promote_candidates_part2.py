@@ -491,14 +491,27 @@ def test_portfolio_diversification_violations_detect_overlap_and_correlation():
 def test_assign_and_validate_promotion_tiers_maps_expected_tiers():
     audit_df = pd.DataFrame(
         [
-            {
-                "candidate_id": "deployable_1",
-                "promotion_decision": "promoted",
-                "promotion_track": "standard",
-                "gate_promo_retail_viability": True,
-                "gate_promo_redundancy": True,
-                "gate_bridge_tradable": True,
-            },
+                {
+                    "candidate_id": "deployable_1",
+                    "promotion_decision": "promoted",
+                    "promotion_track": "standard",
+                    "gate_promo_retail_viability": True,
+                    "gate_promo_redundancy": True,
+                    "gate_bridge_tradable": True,
+                    "effective_q_value": 0.01,
+                    "test_q_value": 0.01,
+                    "n_events": 250,
+                    "validation_samples": 100,
+                    "test_samples": 100,
+                    "gate_promo_dsr": "pass",
+                    "dsr_value": 0.8,
+                    "cost_survival_ratio": 1.2,
+                    "gate_regime_stability": True,
+                    "num_regimes_supported": 3,
+                    "gate_promo_robustness": "pass",
+                    "gate_promo_multiplicity_confirmatory": "pass",
+                    "gate_promo_multiplicity_diagnostics": "pass",
+                },
             {
                 "candidate_id": "shadow_1",
                 "promotion_decision": "promoted",
@@ -518,14 +531,27 @@ def test_assign_and_validate_promotion_tiers_maps_expected_tiers():
     )
     promoted_df = pd.DataFrame(
         [
-            {
-                "candidate_id": "deployable_1",
-                "promotion_decision": "promoted",
-                "promotion_track": "standard",
-                "gate_promo_retail_viability": True,
-                "gate_promo_redundancy": True,
-                "gate_bridge_tradable": True,
-            },
+                {
+                    "candidate_id": "deployable_1",
+                    "promotion_decision": "promoted",
+                    "promotion_track": "standard",
+                    "gate_promo_retail_viability": True,
+                    "gate_promo_redundancy": True,
+                    "gate_bridge_tradable": True,
+                    "effective_q_value": 0.01,
+                    "test_q_value": 0.01,
+                    "n_events": 250,
+                    "validation_samples": 100,
+                    "test_samples": 100,
+                    "gate_promo_dsr": "pass",
+                    "dsr_value": 0.8,
+                    "cost_survival_ratio": 1.2,
+                    "gate_regime_stability": True,
+                    "num_regimes_supported": 3,
+                    "gate_promo_robustness": "pass",
+                    "gate_promo_multiplicity_confirmatory": "pass",
+                    "gate_promo_multiplicity_diagnostics": "pass",
+                },
             {
                 "candidate_id": "shadow_1",
                 "promotion_decision": "promoted",
@@ -549,14 +575,14 @@ def test_assign_and_validate_promotion_tiers_maps_expected_tiers():
             audit_out["promotion_tier"].astype(str).tolist(),
         )
     )
-    assert tier_by_id["deployable_1"] == "deployable"
-    assert tier_by_id["shadow_1"] == "shadow"
-    assert tier_by_id["research_1"] == "research"
+    assert tier_by_id["deployable_1"] == "live_eligible"
+    assert tier_by_id["shadow_1"] == "paper_eligible"
+    assert tier_by_id["research_1"] == "research_promoted"
     assert sorted(promoted_out["promotion_tier"].unique().tolist()) == [
-        "deployable",
-        "shadow",
+        "live_eligible",
+        "paper_eligible",
     ]
-    assert tier_counts == {"deployable": 1, "shadow": 1, "research": 1}
+    assert tier_counts == {"live_eligible": 1, "paper_eligible": 1, "research_promoted": 1}
 
 
 def test_assign_and_validate_promotion_tiers_rejects_research_rows_in_promoted_output():
@@ -583,7 +609,7 @@ def test_assign_and_validate_promotion_tiers_rejects_research_rows_in_promoted_o
         ]
     )
 
-    with pytest.raises(ValueError, match="promoted output cannot contain tier=research"):
+    with pytest.raises(ValueError, match="promoted output cannot contain tier=research_promoted"):
         _assign_and_validate_promotion_tiers(
             audit_df=audit_df,
             promoted_df=promoted_df,

@@ -1,5 +1,8 @@
-import pandas as pd
 from pathlib import Path
+
+import pandas as pd
+
+from project.core.execution_costs import estimate_execution_model_v2_cost_bps
 from project.spec_registry import load_yaml_path
 
 
@@ -29,6 +32,22 @@ def apply_cost_model(
         raise FileNotFoundError(f"Cost config not found at: {config_path}")
 
     config = load_yaml_path(config_file)
+
+    cost_model = str(config.get("cost_model", "")).strip().lower()
+    if cost_model in {"execution_simulator_v2", "fill_model_v2"}:
+        turnover = pd.to_numeric(
+            candidates.get(
+                "turnover",
+                candidates.get("notional", pd.Series(1.0, index=candidates.index)),
+            ),
+            errors="coerce",
+        ).fillna(0.0)
+        side_cost = estimate_execution_model_v2_cost_bps(candidates, turnover, dict(config))
+        round_trip_cost_series = side_cost * 2.0
+        candidates["net_pnl_bps"] = candidates[pnl_col] - round_trip_cost_series
+        candidates["round_trip_cost_bps"] = round_trip_cost_series
+        candidates["execution_model_family"] = "execution_simulator_v2"
+        return candidates
 
     fee = float(config.get("fee_bps_per_side", 0.0))
     slippage = float(config.get("slippage_bps_per_fill", 0.0))

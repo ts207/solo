@@ -7,9 +7,9 @@ from typing import Dict, List
 from project.domain.models import ThesisDefinition
 from project.live.contracts import PromotedThesis
 from project.live.contracts.live_trade_context import LiveTradeContext
-from project.portfolio.admission_policy import PortfolioAdmissionPolicy
 from project.live.thesis_specs import resolve_promoted_thesis_definition
 from project.live.thesis_store import ThesisStore
+from project.portfolio.admission_policy import PortfolioAdmissionPolicy
 from project.research.meta_ranking import thesis_meta_quality_score
 
 
@@ -67,6 +67,14 @@ def _context_episodes(context: LiveTradeContext) -> set[str]:
     return out
 
 
+def _context_states(context: LiveTradeContext) -> set[str]:
+    out = _normalized_tokens(list(getattr(context, "active_state_ids", []) or []))
+    snapshot = context.episode_snapshot or {}
+    out.update(_normalized_tokens(snapshot.get("state_ids", [])))
+    out.update(_normalized_tokens(snapshot.get("active_state_ids", [])))
+    return out
+
+
 def _context_contradictions(context: LiveTradeContext) -> set[str]:
     return _normalized_tokens(list(context.contradiction_event_ids or []))
 
@@ -105,7 +113,10 @@ def _evaluate_invalidation(thesis: PromotedThesis, context: LiveTradeContext) ->
     return False
 
 
-def _score_supportive_context(thesis: PromotedThesis, context: LiveTradeContext) -> tuple[float, list[str], list[str]]:
+def _score_supportive_context(
+    thesis: PromotedThesis,
+    context: LiveTradeContext,
+) -> tuple[float, list[str], list[str]]:
     reasons_for: list[str] = []
     reasons_against: list[str] = []
     score = 0.0
@@ -154,7 +165,9 @@ def _requirements_for_matching(
         )
         thesis_event_ids = set(trigger_events | confirmation_events)
         thesis_event_ids.update(
-            _normalized_tokens(thesis.source.event_contract_ids or definition.source_event_contract_ids)
+            _normalized_tokens(
+                thesis.source.event_contract_ids or definition.source_event_contract_ids
+            )
         )
         thesis_event_ids.update(
             _normalized_tokens([thesis.primary_event_id or definition.primary_event_id])
@@ -252,7 +265,10 @@ def _overlap_group_for_matching(
     return ""
 
 
-def _evaluate_required_context(context_clause: dict, context: LiveTradeContext) -> tuple[bool, list[str], list[str]]:
+def _evaluate_required_context(
+    context_clause: dict,
+    context: LiveTradeContext,
+) -> tuple[bool, list[str], list[str]]:
     reasons_for: list[str] = []
     reasons_against: list[str] = []
     if not context_clause:
@@ -304,7 +320,12 @@ def _evaluate_freshness(
         if str(item).strip()
     }
     staleness = str(thesis.staleness_class or "unknown").strip().lower()
-    if allowed_tokens and staleness and staleness not in {"", "unknown"} and staleness not in allowed_tokens:
+    if (
+        allowed_tokens
+        and staleness
+        and staleness not in {"", "unknown"}
+        and staleness not in allowed_tokens
+    ):
         reasons_against.append(f"freshness_disallowed:{staleness}")
         return False, reasons_for, reasons_against
 
@@ -391,6 +412,7 @@ def retrieve_ranked_theses(
     context_events = _context_events(context)
     context_event_families = _context_event_families(context)
     context_episodes = _context_episodes(context)
+    context_states = _context_states(context)
     contradiction_events = _context_contradictions(context)
     contradiction_event_families = _context_contradiction_families(context)
     current_regime = str(
@@ -434,7 +456,11 @@ def retrieve_ranked_theses(
         clause_triggers = requirements.trigger_events or requirements.thesis_event_ids
         matched_triggers = clause_triggers.intersection(context_events)
         matched_trigger_families: set[str] = set()
-        if not matched_triggers and not clause_triggers and requirements.compatibility_event_families:
+        if (
+            not matched_triggers
+            and not clause_triggers
+            and requirements.compatibility_event_families
+        ):
             matched_trigger_families = requirements.compatibility_event_families.intersection(
                 context_event_families
             )
@@ -478,8 +504,43 @@ def retrieve_ranked_theses(
                 support_score += min(0.15, 0.08 * len(matched_episodes))
                 reasons_for.append(f"required_episode_match:{','.join(sorted(matched_episodes))}")
 
+        required_states = _normalized_tokens(list(thesis.required_state_ids or []))
+        if definition is not None:
+            required_states.update(
+                _normalized_tokens(list(getattr(definition, "required_state_ids", []) or []))
+            )
+        if required_states:
+            matched_states = required_states.intersection(context_states)
+            if not matched_states:
+                reasons_against.append(
+                    f"required_state_missing:{','.join(sorted(required_states))}"
+                )
+                eligibility_passed = False
+            else:
+                support_score += min(0.15, 0.08 * len(matched_states))
+                reasons_for.append(f"required_state_match:{','.join(sorted(matched_states))}")
+
+        supportive_states = _normalized_tokens(list(thesis.supportive_state_ids or []))
+        if definition is not None:
+            supportive_states.update(
+                _normalized_tokens(list(getattr(definition, "supportive_state_ids", []) or []))
+            )
+        if supportive_states:
+            matched_supportive_states = supportive_states.intersection(context_states)
+            if matched_supportive_states:
+                support_score += min(0.10, 0.05 * len(matched_supportive_states))
+                reasons_for.append(
+                    f"supportive_state_match:{','.join(sorted(matched_supportive_states))}"
+                )
+            else:
+                reasons_against.append(
+                    f"supportive_state_missing:{','.join(sorted(supportive_states))}"
+                )
+
         if _evaluate_invalidation(
-            thesis.model_copy(update={"invalidation": _invalidation_for_matching(thesis, definition)}),
+            thesis.model_copy(
+                update={"invalidation": _invalidation_for_matching(thesis, definition)}
+            ),
             context,
         ):
             contradiction_penalty += 0.60
@@ -573,16 +634,16 @@ def retrieve_ranked_theses(
     # Replace legacy overlap suppression with PortfolioAdmissionPolicy().resolve_overlap_winners
     policy = PortfolioAdmissionPolicy(family_budgets=dict(context.family_budgets))
     eligible_dicts = []
-    
+
     # Pre-filter by family budget
     family_exposures = context.portfolio_state.get("family_exposures", {})
-    
+
     updated_results = []
     for m in results:
         if m.eligibility_passed:
             family = str(m.thesis.event_family or m.thesis.primary_event_id).strip().upper()
             admission = policy.is_family_admissible(family, family_exposures)
-            
+
             if not admission.admissible:
                 reasons_against = list(m.reasons_against)
                 reasons_against.append(f"blocked_by_family_budget:{admission.reason}")
@@ -594,9 +655,9 @@ def retrieve_ranked_theses(
                     reasons_for=list(m.reasons_for),
                     reasons_against=reasons_against
                 )
-        
+
         updated_results.append(m)
-        
+
         if m.eligibility_passed:
             eligible_dicts.append({
                 "thesis_id": m.thesis.thesis_id,
@@ -606,29 +667,31 @@ def retrieve_ranked_theses(
                 "overlap_group_id": str(m.thesis.governance.overlap_group_id or "").strip(),
                 "_match": m
             })
-    
+
     results = updated_results
-    
+
     winners = policy.resolve_overlap_winners(eligible_dicts, set(context.active_groups))
     winner_ids = {w["thesis_id"] for w in winners}
-    
+
     # Identify winners per group for reason reporting
-    group_winners: Dict[str, str] = {w["overlap_group_id"]: w["thesis_id"] for w in winners if w["overlap_group_id"]}
-    
+    group_winners: Dict[str, str] = {
+        w["overlap_group_id"]: w["thesis_id"] for w in winners if w["overlap_group_id"]
+    }
+
     final_results: list[ThesisMatch] = []
     for m in results:
         overlap_group_id = str(m.thesis.governance.overlap_group_id or "").strip()
-        
+
         # If it was already ineligible, keep it
         if not m.eligibility_passed:
             final_results.append(m)
             continue
-            
+
         # If it's a winner, keep it
         if m.thesis.thesis_id in winner_ids:
             final_results.append(m)
             continue
-            
+
         # If it's not a winner, it's suppressed
         reasons_against = list(m.reasons_against)
         if overlap_group_id in context.active_groups:
@@ -638,7 +701,7 @@ def retrieve_ranked_theses(
         else:
             # Should not happen given policy logic, but for safety:
             reasons_against.append(f"overlap_suppressed:{overlap_group_id}")
-            
+
         final_results.append(
             ThesisMatch(
                 thesis=m.thesis,

@@ -3,10 +3,7 @@ from __future__ import annotations
 import logging
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional
-
-import numpy as np
-import pandas as pd
+from typing import Any, Dict, List
 
 _LOG = logging.getLogger(__name__)
 
@@ -90,11 +87,11 @@ class DecayMonitor:
         expected_edge = float(expected_metrics.get("net_expectancy_bps", 0.0))
         realized_hit_rate = float(realized_metrics.get("hit_rate", 0.0))
         sample_count = int(realized_metrics.get("sample_count", 0))
-        
+
         health_state = "healthy"
         actions = []
         reasons = []
-        
+
         realized_slippage = float(realized_metrics.get("avg_realized_slippage_bps", 0.0))
         payoff_ratio = float(realized_metrics.get("payoff_ratio", 0.0))
 
@@ -139,7 +136,23 @@ class DecayMonitor:
             hit_rate=realized_hit_rate,
             sample_count=sample_count,
             actions_taken=actions,
-            reason_codes=reasons
+            reason_codes=reasons,
         )
         self.health_history.append(snapshot)
         return snapshot
+
+    def thesis_decay_rate(self, thesis_id: str, *, window: int = 20) -> float:
+        return calculate_thesis_decay_rate(
+            [item for item in self.health_history if item.thesis_id == thesis_id][-window:]
+        )
+
+
+def calculate_thesis_decay_rate(snapshots: List[ThesisHealthSnapshot]) -> float:
+    if not snapshots:
+        return 0.0
+    degraded = sum(
+        1
+        for item in snapshots
+        if item.health_state in {"watch", "degraded", "disabled"} or item.reason_codes
+    )
+    return float(degraded / len(snapshots))

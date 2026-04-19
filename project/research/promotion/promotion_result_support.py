@@ -141,17 +141,21 @@ def _assemble_promotion_result(
     readiness = "research_inventory"
     if promoted:
         if promo_class == "production_promoted":
-            readiness = "live_review_required" # Still needs human/governance review
+            readiness = "live_review_required"
         else:
             readiness = "paper_ready"
 
     deploy_state_default = "paper_only"
     if promo_class == "production_promoted" and promoted:
-        deploy_state_default = "live_enabled"
+        deploy_state_default = "live_eligible"
 
     inventory_reason_code = ""
     if not promoted:
-        inventory_reason_code = f"failed_{primary_promo_fail}" if primary_promo_fail else "below_promotion_threshold"
+        inventory_reason_code = (
+            f"failed_{primary_promo_fail}"
+            if primary_promo_fail
+            else "below_promotion_threshold"
+        )
 
     return {
         "promotion_decision": promotion_decision,

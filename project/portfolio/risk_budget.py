@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import logging
-from typing import Dict, Any
+from typing import Dict
 
 import numpy as np
 
@@ -54,14 +54,14 @@ def calculate_cluster_risk_multiplier(
 ) -> float:
     """
     Scale down risk if too many strategies from the same alpha cluster are active.
-    
+
     This enforces the 'Portfolio Matrix' gating logic where redundant alphas
     (identified by PnL/Trigger clustering) share a total risk budget.
     """
     count = active_cluster_counts.get(cluster_id, active_cluster_counts.get(str(cluster_id), 0))
     if count <= 1:
         return 1.0
-        
+
     # Inverse square root scaling for clusters (1 -> 1.0, 2 -> 0.707, 3 -> 0.577)
     # This ensures the total risk of the cluster grows sub-linearly.
     multiplier = 1.0 / np.sqrt(count)
@@ -73,3 +73,60 @@ def calculate_cluster_risk_multiplier(
         multiplier *= float(np.exp(-0.35 * excess))
 
     return float(np.clip(multiplier, 0.1, 1.0))
+
+
+def calculate_edge_risk_multiplier(
+    *,
+    expected_net_edge_bps: float,
+    expected_downside_bps: float,
+    fill_probability: float,
+    edge_confidence: float,
+    target_reward_to_risk: float = 0.25,
+    min_multiplier: float = 0.0,
+) -> float:
+    """Scale risk from expected post-cost edge instead of support buckets."""
+
+    net_edge = float(expected_net_edge_bps)
+    if net_edge <= 0.0:
+        return 0.0
+    downside = max(1.0, abs(float(expected_downside_bps)))
+    reward_to_risk = net_edge / downside
+    rr_scale = reward_to_risk / max(float(target_reward_to_risk), 1e-9)
+    probability_scale = (float(fill_probability) - 0.50) / 0.15
+    confidence_scale = float(edge_confidence)
+    multiplier = min(1.0, rr_scale, probability_scale, confidence_scale)
+    return float(np.clip(multiplier, min_multiplier, 1.0))
+
+
+def calculate_execution_quality_multiplier(
+    *,
+    realized_slippage_bps: float | None = None,
+    slippage_budget_bps: float | None = None,
+    fill_rate: float | None = None,
+    min_fill_rate: float | None = None,
+    explicit_quality: float | None = None,
+    min_multiplier: float = 0.10,
+) -> float:
+    """Return a risk scale from current realized execution quality."""
+
+    if explicit_quality is not None:
+        return float(np.clip(float(explicit_quality), min_multiplier, 1.0))
+
+    multiplier = 1.0
+    if (
+        realized_slippage_bps is not None
+        and slippage_budget_bps is not None
+        and float(slippage_budget_bps) > 0.0
+    ):
+        realized = max(0.0, float(realized_slippage_bps))
+        budget = float(slippage_budget_bps)
+        if realized > budget:
+            multiplier = min(multiplier, budget / max(realized, 1e-9))
+
+    if fill_rate is not None and min_fill_rate is not None and float(min_fill_rate) > 0.0:
+        observed = float(np.clip(float(fill_rate), 0.0, 1.0))
+        required = float(np.clip(float(min_fill_rate), 1e-9, 1.0))
+        if observed < required:
+            multiplier = min(multiplier, observed / required)
+
+    return float(np.clip(multiplier, min_multiplier, 1.0))
