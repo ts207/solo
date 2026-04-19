@@ -1,3 +1,9 @@
+# _COMPAT_ADAPTER: Legacy discovery service layer superseded by project.research.phase2_search_engine.
+# Active pipeline stages (run_all.py) do NOT call this service — they invoke phase2_search_engine.py
+# directly as a subprocess stage. This service is retained for:
+#   - reliability/smoke_data.py (smoke test fixtures)
+#   - research/cli/candidate_discovery_cli.py (standalone research tool)
+# Do not add new pipeline callers here.
 from __future__ import annotations
 
 import logging

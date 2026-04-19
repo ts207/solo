@@ -22,17 +22,24 @@ from project.live.policy import normalize_live_event_detector_config
 _LOG = logging.getLogger(__name__)
 
 _DEFAULT_SUPPORTED_EVENT_IDS: tuple[str, ...] = ("VOL_SHOCK",)
-_GOVERNED_RUNTIME_CORE_EVENT_IDS: tuple[str, ...] = (
-    "BASIS_DISLOC",
-    "FND_DISLOC",
-    "LIQUIDATION_CASCADE",
-    "LIQUIDITY_SHOCK",
-    "LIQUIDITY_STRESS_DIRECT",
-    "LIQUIDITY_VACUUM",
-    "SPOT_PERP_BASIS_SHOCK",
-    "VOL_SHOCK",
-    "VOL_SPIKE",
-)
+
+
+def _governed_runtime_core_event_ids() -> frozenset[str]:
+    """Return the set of event IDs eligible for governed runtime-core detection.
+
+    Derived from the compiled domain graph (spec/domain/domain_graph.yaml) so
+    that adding a new event to the spec + rebuilding the domain is sufficient —
+    no manual sync with a hardcoded list here.
+    """
+    try:
+        return frozenset(get_domain_registry().runtime_eligible_event_ids())
+    except Exception:
+        # Fallback to a known-good set if the compiled registry is unavailable.
+        return frozenset({
+            "BASIS_DISLOC", "FND_DISLOC", "LIQUIDATION_CASCADE",
+            "LIQUIDITY_SHOCK", "LIQUIDITY_STRESS_DIRECT", "LIQUIDITY_VACUUM",
+            "OI_SPIKE_NEGATIVE", "SPOT_PERP_BASIS_SHOCK", "VOL_SHOCK", "VOL_SPIKE",
+        })
 
 
 @dataclass(frozen=True)
@@ -467,9 +474,10 @@ class GovernedRuntimeCoreEventDetectionAdapter(LiveEventDetectionAdapter):
         supported_event_families: Sequence[str] | None,
     ) -> list[DetectorContract]:
         selected: list[DetectorContract] = []
+        eligible = _governed_runtime_core_event_ids()
         for event_id in _normalize_supported_event_ids(supported_event_ids, supported_event_families):
             canonical = str(event_id).strip().upper()
-            if canonical not in _GOVERNED_RUNTIME_CORE_EVENT_IDS:
+            if canonical not in eligible:
                 continue
             contract = get_detector_contract(canonical)
             if not contract.runtime_default:

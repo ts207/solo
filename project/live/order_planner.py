@@ -63,13 +63,17 @@ def build_order_plan(
         or market_state.get("close")
         or 0.0
     )
-    available_balance = float(portfolio_state.get("available_balance", 0.0) or 0.0)
-    quantity = _resolve_order_quantity(
-        size_fraction=float(intent.size_fraction),
-        entry_price=entry_price,
-        available_balance=available_balance,
-        max_notional_fraction=float(max_notional_fraction),
-    )
+    engine_notional = float(market_state.get("engine_allocated_notional", 0.0) or 0.0)
+    if engine_notional > 0.0 and entry_price > 0.0:
+        quantity = engine_notional / entry_price
+    else:
+        available_balance = float(portfolio_state.get("available_balance", 0.0) or 0.0)
+        quantity = _resolve_order_quantity(
+            size_fraction=float(intent.size_fraction),
+            entry_price=entry_price,
+            available_balance=available_balance,
+            max_notional_fraction=float(max_notional_fraction),
+        )
     if quantity <= 0.0:
         return OrderPlan(
             accepted=False,

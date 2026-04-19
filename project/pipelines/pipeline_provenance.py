@@ -10,6 +10,7 @@ from pathlib import Path
 from typing import Any, Dict, Iterable, List, Optional, Tuple
 
 from project import PROJECT_ROOT
+from project.contracts.schemas import validate_payload_for_schema
 from project.core.exceptions import DataIntegrityError
 from project.io.utils import atomic_write_json, atomic_write_text
 from project.pipelines.execution_plan import ExecutionPlan, ExecutionVerificationReport
@@ -202,6 +203,7 @@ def write_run_manifest(
     data_root: Path | None = None,
 ) -> None:
     """Writes the run manifest to disk."""
+    validate_payload_for_schema(dict(manifest), "run_manifest")
     path = Path(data_root or _get_data_root()) / "runs" / run_id / "run_manifest.json"
     path.parent.mkdir(parents=True, exist_ok=True)
     with path.open("w", encoding="utf-8") as f:

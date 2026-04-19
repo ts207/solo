@@ -6,7 +6,7 @@ from typing import Any, Dict, List, Literal, Tuple
 
 
 StageReasonCode = Literal["selected", "skipped", "failed", "artifact_mismatch", "dependency_missing"]
-ArtifactVerificationStatus = Literal["conformant", "missing", "not_verified"]
+ArtifactVerificationStatus = Literal["conformant", "missing", "not_verified", "schema_violation"]
 
 
 @dataclass(frozen=True)
@@ -228,6 +228,67 @@ def build_execution_plan(
     )
 
 
+def _validate_artifact_schema(path: Path, schema_id: str) -> str | None:
+    """Returns None if conformant, or an issue string on schema violation.
+
+    Uses pyarrow metadata (no data load) for parquets; JSON load for payloads.
+    Returns None for unknown schemas so callers stay forward-compatible.
+    """
+    try:
+        from project.contracts.schemas import (
+            DataFrameSchemaContract,
+            PayloadSchemaContract,
+            get_any_schema_contract,
+        )
+    except Exception:
+        return None
+
+    try:
+        contract = get_any_schema_contract(schema_id)
+    except KeyError:
+        return None
+
+    suffix = path.suffix.lower()
+
+    if isinstance(contract, DataFrameSchemaContract) and suffix == ".parquet":
+        try:
+            import pyarrow.parquet as pq
+
+            pq_schema = pq.read_schema(path)
+            existing = set(pq_schema.names)
+            missing = [c for c in contract.required_columns if c not in existing]
+            if missing:
+                return f"missing required columns: {missing}"
+        except Exception as exc:
+            return f"could not read parquet schema: {exc}"
+        return None
+
+    if isinstance(contract, PayloadSchemaContract) and suffix == ".json":
+        try:
+            import json as _json
+
+            payload = _json.loads(path.read_text(encoding="utf-8"))
+            if not isinstance(payload, dict):
+                return "payload is not a JSON object"
+            for field_name, field_type in contract.required_fields:
+                if field_name not in payload:
+                    return f"missing required field: {field_name!r}"
+                if not isinstance(payload[field_name], field_type):
+                    return f"field {field_name!r} has wrong type: expected {field_type.__name__}"
+            if contract.version_field is not None:
+                actual = payload.get(contract.version_field)
+                if actual != contract.version_value:
+                    return (
+                        f"version field {contract.version_field!r} is {actual!r}, "
+                        f"expected {contract.version_value!r}"
+                    )
+        except Exception as exc:
+            return f"could not validate JSON payload: {exc}"
+        return None
+
+    return None
+
+
 def verify_execution(
     plan: ExecutionPlan,
     run_manifest: Dict[str, Any],
@@ -289,6 +350,16 @@ def verify_execution(
             *[resolved_data_root / legacy for legacy in obligation.legacy_paths],
         ]
         matched = next((path for path in candidate_paths if path.exists()), None)
+        if matched is not None:
+            schema_issue = _validate_artifact_schema(matched, obligation.schema_id)
+            av_status: ArtifactVerificationStatus = (
+                "schema_violation" if schema_issue else "conformant"
+            )
+            av_notes = schema_issue or ""
+        else:
+            av_status = "missing"
+            av_notes = "required artifact missing on disk"
+
         artifact_results.append(
             ArtifactVerificationResult(
                 contract_id=obligation.contract_id,
@@ -298,9 +369,9 @@ def verify_execution(
                 schema_version=obligation.schema_version,
                 strictness=obligation.strictness,
                 required=obligation.required,
-                status="conformant" if matched is not None else "missing",
+                status=av_status,
                 actual_path=str(matched) if matched is not None else "",
-                notes="" if matched is not None else "required artifact missing on disk",
+                notes=av_notes,
             )
         )
 

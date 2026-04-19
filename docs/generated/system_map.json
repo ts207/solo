@@ -642,6 +642,32 @@
       "version": "phase5_artifact_contract_v1"
     }
   ],
+  "artifact_stage_families": [
+    {
+      "description": "Discovery-stage candidate artifacts produced from bounded phase-2 search.",
+      "family": "phase2_discovery"
+    },
+    {
+      "description": "Validation-stage artifacts that formalize candidate quality and handoff.",
+      "family": "validation"
+    },
+    {
+      "description": "Promotion-stage artifacts that package validated candidates into runtime-ready surfaces.",
+      "family": "promotion"
+    },
+    {
+      "description": "Deployment/runtime artifacts consumed by paper/live selection and execution.",
+      "family": "deploy"
+    },
+    {
+      "description": "Run-level provenance and manifest artifacts maintained by pipeline orchestration.",
+      "family": "run_orchestration"
+    },
+    {
+      "description": "Operator/reporting consumers that inspect lifecycle artifacts without producing them.",
+      "family": "operator"
+    }
+  ],
   "canonical_entrypoints": [
     {
       "description": "Primary orchestration CLI entrypoint.",
@@ -653,13 +679,22 @@
       "status": "canonical"
     },
     {
-      "description": "Canonical phase-2 discovery service.",
+      "description": "Canonical phase-2 discovery stage (invoked by run_all.py).",
+      "kind": "pipeline_stage",
+      "module": "project.research.phase2_search_engine",
+      "name": "phase2_search_engine",
+      "removal_target": "",
+      "replacement_module": "",
+      "status": "canonical"
+    },
+    {
+      "description": "Legacy discovery service \u2014 retained for smoke tests and CLI tool only. Active pipeline uses phase2_search_engine.",
       "kind": "service",
       "module": "project.research.services.candidate_discovery_service",
       "name": "candidate_discovery_service",
       "removal_target": "",
       "replacement_module": "",
-      "status": "canonical"
+      "status": "legacy_compat"
     },
     {
       "description": "Canonical promotion service.",
@@ -686,7 +721,7 @@
     {
       "family": "ingest",
       "is_legacy": false,
-      "owner_service": "project.pipelines.run_all",
+      "owner_service": "project.pipelines.stages.ingest",
       "schema_version": "phase5_stage_contract_v1",
       "script_patterns": [
         "pipelines/ingest/ingest_binance_um_ohlcv*.py",
@@ -712,7 +747,7 @@
     {
       "family": "core",
       "is_legacy": false,
-      "owner_service": "project.pipelines.run_all",
+      "owner_service": "project.pipelines.stages.core",
       "schema_version": "phase5_stage_contract_v1",
       "script_patterns": [
         "pipelines/clean/build_cleaned_bars.py",
@@ -738,7 +773,7 @@
     {
       "family": "runtime_invariants",
       "is_legacy": false,
-      "owner_service": "project.pipelines.run_all",
+      "owner_service": "project.pipelines.stages.core",
       "schema_version": "phase5_stage_contract_v1",
       "script_patterns": [
         "pipelines/runtime/build_normalized_replay_stream.py",
@@ -756,7 +791,7 @@
     {
       "family": "phase1_analysis",
       "is_legacy": false,
-      "owner_service": "project.pipelines.run_all",
+      "owner_service": "project.research.analyze_events",
       "schema_version": "phase5_stage_contract_v1",
       "script_patterns": [
         "research/analyze_*.py",
@@ -770,7 +805,7 @@
     {
       "family": "phase2_event_registry",
       "is_legacy": false,
-      "owner_service": "project.pipelines.run_all",
+      "owner_service": "project.research.build_event_registry",
       "schema_version": "phase5_stage_contract_v1",
       "script_patterns": [
         "research/build_event_registry.py",
@@ -784,7 +819,7 @@
     {
       "family": "phase2_discovery",
       "is_legacy": false,
-      "owner_service": "project.research.services.candidate_discovery_service",
+      "owner_service": "project.research.phase2_search_engine",
       "schema_version": "phase5_stage_contract_v1",
       "script_patterns": [
         "research/phase2_search_engine.py",
@@ -824,7 +859,7 @@
     {
       "family": "research_quality",
       "is_legacy": false,
-      "owner_service": "project.pipelines.run_all",
+      "owner_service": "project.research.services.reporting_service",
       "schema_version": "phase5_stage_contract_v1",
       "script_patterns": [
         "research/analyze_conditional_expectancy.py",
@@ -840,7 +875,7 @@
     {
       "family": "strategy_packaging",
       "is_legacy": false,
-      "owner_service": "project.pipelines.run_all",
+      "owner_service": "project.research.services.promotion_service",
       "schema_version": "phase5_stage_contract_v1",
       "script_patterns": [
         "research/compile_strategy_blueprints.py",
@@ -852,6 +887,98 @@
         "build_strategy_candidates",
         "select_profitable_strategies"
       ]
+    }
+  ],
+  "typed_artifact_contracts": [
+    {
+      "consumer_stage_families": [
+        "validation",
+        "operator"
+      ],
+      "contract_id": "discovery_phase2_candidates",
+      "legacy_aliases": [],
+      "path_pattern": "reports/phase2/{run_id}/phase2_candidates.parquet",
+      "producer_stage_family": "phase2_discovery",
+      "required": true,
+      "schema_id": "phase2_candidates",
+      "schema_version": "phase5_schema_v1",
+      "strictness": "strict"
+    },
+    {
+      "consumer_stage_families": [
+        "promotion",
+        "operator"
+      ],
+      "contract_id": "validation_bundle",
+      "legacy_aliases": [],
+      "path_pattern": "reports/validation/{run_id}/validation_bundle.json",
+      "producer_stage_family": "validation",
+      "required": true,
+      "schema_id": "validation_bundle",
+      "schema_version": "validation_bundle_v1",
+      "strictness": "strict"
+    },
+    {
+      "consumer_stage_families": [
+        "promotion",
+        "operator"
+      ],
+      "contract_id": "promotion_ready_candidates",
+      "legacy_aliases": [
+        "reports/validation/{run_id}/promotion_ready_candidates.csv"
+      ],
+      "path_pattern": "reports/validation/{run_id}/promotion_ready_candidates.parquet",
+      "producer_stage_family": "validation",
+      "required": true,
+      "schema_id": "promotion_ready_candidates",
+      "schema_version": "phase5_schema_v1",
+      "strictness": "strict"
+    },
+    {
+      "consumer_stage_families": [
+        "deploy",
+        "operator"
+      ],
+      "contract_id": "promoted_theses",
+      "legacy_aliases": [],
+      "path_pattern": "live/theses/{run_id}/promoted_theses.json",
+      "producer_stage_family": "promotion",
+      "required": true,
+      "schema_id": "promoted_theses_payload",
+      "schema_version": "promoted_theses_v1",
+      "strictness": "strict"
+    },
+    {
+      "consumer_stage_families": [
+        "deploy",
+        "operator"
+      ],
+      "contract_id": "live_thesis_index",
+      "legacy_aliases": [],
+      "path_pattern": "live/theses/index.json",
+      "producer_stage_family": "promotion",
+      "required": true,
+      "schema_id": "live_thesis_index",
+      "schema_version": "promoted_thesis_index_v1",
+      "strictness": "strict"
+    },
+    {
+      "consumer_stage_families": [
+        "validation",
+        "promotion",
+        "deploy",
+        "operator"
+      ],
+      "contract_id": "run_manifest",
+      "legacy_aliases": [
+        "runs/{run_id}/manifest.json"
+      ],
+      "path_pattern": "runs/{run_id}/run_manifest.json",
+      "producer_stage_family": "run_orchestration",
+      "required": true,
+      "schema_id": "run_manifest",
+      "schema_version": "run_manifest_v1",
+      "strictness": "strict"
     }
   ]
 }

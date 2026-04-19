@@ -3831,9 +3831,9 @@ events:
     research_only: false
     strategy_only: false
     default_executable: true
-    detector_band: research_trigger
+    detector_band: deployable_core
     planning_eligible: true
-    runtime_eligible: false
+    runtime_eligible: true
     promotion_eligible: true
     primary_anchor_eligible: true
     deconflict_priority: 0
@@ -3841,7 +3841,7 @@ events:
     maturity: ''
     tier: B
     operational_role: trigger
-    deployment_disposition: secondary_or_confirm
+    deployment_disposition: primary
     runtime_category: active_runtime_event
     enabled: true
     detector_name: OISpikeNegativeDetector

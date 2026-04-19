@@ -212,6 +212,15 @@ class LiveEngineRunner:
         self.thesis_manager = ThesisStateManager()
         self._family_budgets = dict(family_budgets)
 
+        # Phase 5: Portfolio decision engine (overlap/family/cluster/correlation gating)
+        from project.portfolio.engine import PortfolioDecisionEngine
+        self._portfolio_engine = PortfolioDecisionEngine(
+            family_budgets=dict(family_budgets) or None,
+            max_gross_leverage=float(self.strategy_runtime.get("max_gross_leverage", 1.0) or 1.0),
+            target_vol=float(self.strategy_runtime.get("target_vol", 0.10) or 0.10),
+            correlation_limit=float(self.strategy_runtime.get("correlation_limit", 0.5) or 0.5),
+        )
+
         # Workstream 1: Deploy admission control
         self._thesis_store = self._load_thesis_store()
 
@@ -1006,6 +1015,7 @@ class LiveEngineRunner:
                 "BASIS_DISLOC",
                 "FND_DISLOC",
                 "LIQUIDATION_CASCADE",
+                "OI_SPIKE_NEGATIVE",
                 "SPOT_PERP_BASIS_SHOCK",
             }
             return bool(supported.intersection(governed_runtime_inputs))
@@ -1179,10 +1189,30 @@ class LiveEngineRunner:
             spread_bps_source = "book_ticker"
         elif mark_price > 0.0:
             mid_price = mark_price
-        depth_usd = float(
-            self.strategy_runtime.get("default_depth_usd", 50_000.0) or 50_000.0
-        )
-        depth_usd_source = "configured_default"
+        bid_qty = float(ticker.get("best_bid_qty", 0.0) or 0.0)
+        ask_qty = float(ticker.get("best_ask_qty", 0.0) or 0.0)
+        _cfg_depth_usd = float(self.strategy_runtime.get("default_depth_usd", 50_000.0) or 50_000.0)
+        _cfg_tob_coverage = float(self.strategy_runtime.get("default_tob_coverage", 0.95) or 0.95)
+        _cfg_cost_bps = float(self.strategy_runtime.get("default_expected_cost_bps", 3.0) or 3.0)
+        if bid_qty > 0.0 and ask_qty > 0.0 and mid_price > 0.0:
+            tob_bid_usd = bid_qty * bid
+            tob_ask_usd = ask_qty * ask
+            depth_usd = min(tob_bid_usd, tob_ask_usd)
+            depth_usd_source = "book_ticker_tob"
+            tob_coverage = min(1.0, depth_usd / _cfg_depth_usd) if _cfg_depth_usd > 0.0 else 0.5
+            tob_coverage_source = "book_ticker_tob"
+        else:
+            depth_usd = _cfg_depth_usd
+            depth_usd_source = "configured_default"
+            tob_coverage = _cfg_tob_coverage
+            tob_coverage_source = "configured_default"
+        if spread_bps > 0.0:
+            _VENUE_TAKER_FEE_BPS = 2.5
+            expected_cost_bps = spread_bps / 2.0 + _VENUE_TAKER_FEE_BPS
+            expected_cost_bps_source = "spread_derived"
+        else:
+            expected_cost_bps = _cfg_cost_bps
+            expected_cost_bps_source = "configured_default"
         funding_rate_source = "runtime_market_features" if "funding_rate" in runtime_features else "missing"
         open_interest_source = (
             "runtime_market_features" if "open_interest" in runtime_features else "missing"
@@ -1211,15 +1241,15 @@ class LiveEngineRunner:
             "spread_bps_source": spread_bps_source,
             "depth_usd": depth_usd,
             "depth_usd_source": depth_usd_source,
-            "tob_coverage": float(self.strategy_runtime.get("default_tob_coverage", 0.95) or 0.95),
+            "tob_coverage": tob_coverage,
+            "tob_coverage_source": tob_coverage_source,
             "canonical_regime": regime_info["canonical_regime"],
             "regime_mode": regime_info["regime_mode"],
             "regime_confidence": regime_info["regime_confidence"],
             "regime_metadata": regime_info["regime_metadata"],
             "microstructure_regime": "healthy" if spread_bps <= 5.0 else "degraded",
-            "expected_cost_bps": float(
-                self.strategy_runtime.get("default_expected_cost_bps", 3.0) or 3.0
-            ),
+            "expected_cost_bps": expected_cost_bps,
+            "expected_cost_bps_source": expected_cost_bps_source,
             "funding_rate": float(runtime_features.get("funding_rate", 0.0) or 0.0),
             "funding_rate_source": funding_rate_source,
             "funding_timestamp": str(runtime_features.get("funding_timestamp", "") or ""),
@@ -1239,9 +1269,31 @@ class LiveEngineRunner:
             "liquidation_notional_source": liquidation_source,
         }
 
-    def _record_live_decision_episode(self, outcome: DecisionOutcome) -> None:
+    def _record_live_decision_episode(
+        self,
+        outcome: DecisionOutcome,
+        *,
+        oms_result: Dict[str, Any] | None = None,
+    ) -> None:
         if self._thesis_memory_root is None:
             return
+        from project.live.policy import build_live_decision_trace
+
+        decision_trace = build_live_decision_trace(
+            context=outcome.context,
+            ranked_matches=outcome.ranked_matches,
+            trade_intent=outcome.trade_intent,
+            top_score=outcome.top_score,
+        )
+        oms_linkage: Dict[str, Any] = {}
+        if oms_result is not None:
+            oms_linkage = {
+                "oms_accepted": bool(oms_result.get("accepted", False)),
+                "oms_client_order_id": str(oms_result.get("client_order_id", "") or ""),
+                "oms_venue_submitted": bool(oms_result.get("venue_submitted", False)),
+                "oms_blocked_by": str(oms_result.get("blocked_by", "") or ""),
+                "portfolio_reasons": list(oms_result.get("reasons", [])),
+            }
         payload = {
             "timestamp": outcome.context.timestamp,
             "symbol": outcome.context.symbol,
@@ -1262,6 +1314,8 @@ class LiveEngineRunner:
             "support_score": float(outcome.trade_intent.support_score),
             "contradiction_penalty": float(outcome.trade_intent.contradiction_penalty),
             "confidence_band": outcome.trade_intent.confidence_band,
+            "decision_trace": decision_trace,
+            **oms_linkage,
         }
         append_live_episode(self._thesis_memory_root, payload)
 
@@ -1281,16 +1335,48 @@ class LiveEngineRunner:
                 "blocked_by": "action_not_enabled",
                 "action": outcome.trade_intent.action,
             }
-        # Sprint 6: Risk Enforcer check
+        # Phase 5: Portfolio decision engine — overlap/family/cluster gating + risk multipliers
+        from project.portfolio.engine import ThesisIntent as PortfolioThesisIntent
         top_match = outcome.ranked_matches[0]
         family = top_match.thesis.event_family or top_match.thesis.primary_event_id
-
-        # Estimate attempted notional (mid_price * quantity)
-        # This is an approximation for pre-trade check
         mid_price = float(market_state.get("mid_price", 0.0))
-        # Need to know target quantity from intent?
-        # TradeIntent doesn't have absolute quantity, only size_fraction.
-        # Sizing happens in build_order_plan.
+        portfolio_state = outcome.context.portfolio_state
+        available_balance = float(portfolio_state.get("available_balance", 0.0))
+        _max_notional_fraction = float(self.strategy_runtime.get("max_notional_fraction", 0.10) or 0.10)
+        raw_notional = available_balance * _max_notional_fraction * float(outcome.trade_intent.size_fraction)
+        overlap_group_id = top_match.thesis.overlap_group_id or ""
+        _is_graduated = self.incubation_ledger.is_graduated(outcome.trade_intent.thesis_id)
+        thesis_intent = PortfolioThesisIntent(
+            thesis_id=outcome.trade_intent.thesis_id,
+            symbol=outcome.trade_intent.symbol,
+            family=family,
+            overlap_group_id=overlap_group_id,
+            requested_notional=raw_notional,
+            support_score=float(outcome.trade_intent.support_score),
+            incubation_state="live" if _is_graduated else "incubating",
+        )
+        portfolio_decisions = self._portfolio_engine.decide(
+            [thesis_intent],
+            active_overlap_groups=self._get_active_overlap_groups(),
+            family_exposures=dict(portfolio_state.get("family_exposures", {})),
+            symbol_exposures=dict(portfolio_state.get("symbol_exposures", {})),
+            active_cluster_counts=dict(portfolio_state.get("active_cluster_counts", {})),
+        )
+        portfolio_decision = portfolio_decisions[0] if portfolio_decisions else None
+        if portfolio_decision is not None and not portfolio_decision.is_allocated:
+            _LOG.info(
+                "Portfolio engine blocked %s: %s",
+                outcome.trade_intent.thesis_id,
+                portfolio_decision.reasons,
+            )
+            return {
+                "accepted": False,
+                "blocked_by": "portfolio_engine",
+                "reasons": list(portfolio_decision.reasons),
+            }
+        engine_allocated_notional = (
+            portfolio_decision.allocated_notional if portfolio_decision is not None else raw_notional
+        )
 
         plan = build_order_plan(
             intent=outcome.trade_intent,
@@ -1310,8 +1396,9 @@ class LiveEngineRunner:
                 "expected_net_edge_bps": float(
                     outcome.ranked_matches[0].thesis.evidence.net_expectancy_bps or 0.0
                 ),
+                "engine_allocated_notional": engine_allocated_notional,
             },
-            portfolio_state=outcome.context.portfolio_state,
+            portfolio_state=portfolio_state,
             max_notional_fraction=float(
                 self.strategy_runtime.get("max_notional_fraction", 0.10) or 0.10
             ),
@@ -1512,6 +1599,7 @@ class LiveEngineRunner:
             )
 
         # Sprint 6: Risk Enforcer check
+        oms_result: Dict[str, Any] | None = None
         if outcome.trade_intent.action != "reject":
             thesis_id = outcome.trade_intent.thesis_id
             thesis_state = self.thesis_manager.get_state(thesis_id)
@@ -1536,13 +1624,13 @@ class LiveEngineRunner:
                 outcome = replace(outcome, trade_intent=rejected_intent)
             else:
                 # Apply risk caps
-                await self._submit_trade_intent_if_enabled(
+                oms_result = await self._submit_trade_intent_if_enabled(
                     outcome=outcome, market_state=market_state
                 )
 
         self._decision_outcomes.append(outcome)
         self._decision_outcomes = self._decision_outcomes[-100:]
-        self._record_live_decision_episode(outcome)
+        self._record_live_decision_episode(outcome, oms_result=oms_result)
 
         self.persist_runtime_metrics_snapshot()
 
@@ -1796,7 +1884,9 @@ class LiveEngineRunner:
                 )
                 self._latest_book_ticker_by_symbol[str(event.symbol).upper()] = {
                     "best_bid_price": float(event.best_bid_price),
+                    "best_bid_qty": float(event.best_bid_qty),
                     "best_ask_price": float(event.best_ask_price),
+                    "best_ask_qty": float(event.best_ask_qty),
                     "timestamp": (
                         event.timestamp.isoformat()
                         if hasattr(event.timestamp, "isoformat")

@@ -1,15 +1,15 @@
-workflow_id: live_paper_btc_thesis_v1
+workflow_id: live_paper_campaign_pe_oi_spike_neg_20260416T092104Z_f6e6885923
 golden_workflow_config: project/configs/golden_workflow.yaml
-runtime_run_id: live_paper_btc_thesis_v1
+runtime_run_id: live_paper_campaign_pe_oi_spike_neg_20260416T092104Z_f6e6885923
 runtime_mode: trading
 stale_threshold_sec: 60.0
 freshness_streams:
-  - symbol: BTCUSDT
-    stream: kline_5m
+- symbol: BTCUSDT
+  stream: kline_5m
 oms_lineage:
   order_source: paper_oms
-  session_id: live-paper-btc-thesis-session
-live_state_snapshot_path: artifacts/live_state_paper_btc_thesis.json
+  session_id: live-paper-campaign_pe_oi_spike_neg_20260416T092104
+live_state_snapshot_path: artifacts/live_state_campaign_pe_oi_spike_neg_20260416T092104.json
 microstructure_recovery_streak: 2
 account_sync_interval_seconds: 15.0
 account_sync_failure_threshold: 4
@@ -17,19 +17,17 @@ execution_degradation_min_samples: 4
 execution_degradation_warn_edge_bps: 0.0
 execution_degradation_block_edge_bps: -8.0
 execution_degradation_throttle_scale: 0.5
-runtime_metrics_snapshot_path: artifacts/live_runtime_metrics_paper_btc_thesis.json
+runtime_metrics_snapshot_path: artifacts/live_runtime_metrics_campaign_pe_oi_spike_neg_20260416T092104.json
 strategy_runtime:
   implemented: true
   thesis_run_id: campaign_pe_oi_spike_neg_20260416T092104Z_f6e6885923
   include_pending_theses: false
   auto_submit: true
   supported_event_families:
-    - VOL_SHOCK
-    - LIQUIDITY_VACUUM
-    - LIQUIDATION_CASCADE
+  - OI_SPIKE_NEGATIVE
   allowed_actions:
-    - probe
-    - trade_small
+  - probe
+  - trade_small
   max_notional_fraction: 0.03
   max_spread_bps: 5.0
   min_depth_usd: 50000.0
@@ -37,7 +35,7 @@ strategy_runtime:
   default_depth_usd: 75000.0
   default_tob_coverage: 0.97
   default_expected_cost_bps: 3.0
-  memory_root: artifacts/live_memory/paper_btc_thesis
+  memory_root: artifacts/live_memory/campaign_pe_oi_spike_neg_20260416T092104
   event_detector:
     vol_shock_min_abs_move_bps: 35.0
     liquidity_vacuum_min_spread_bps: 5.0
@@ -51,10 +49,9 @@ strategy_runtime:
     small_min: 0.6
     normal_min: 0.8
     max_contradiction_penalty: 0.4
-
 runtime_alerts:
-  metrics_path: artifacts/live_runtime_metrics_paper_btc_thesis.json
-  alert_log_path: artifacts/live_runtime_alerts_paper_btc_thesis.jsonl
+  metrics_path: artifacts/live_runtime_metrics_campaign_pe_oi_spike_neg_20260416T092104.json
+  alert_log_path: artifacts/live_runtime_alerts_campaign_pe_oi_spike_neg_20260416T092104.jsonl
   poll_interval_seconds: 15.0
   snapshot_max_age_seconds: 180.0
   decision_drought_seconds: 3600.0

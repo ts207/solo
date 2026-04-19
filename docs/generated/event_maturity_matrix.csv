@@ -37,7 +37,7 @@ LIQUIDITY_STRESS_PROXY,B,trigger,secondary_or_confirm,active_runtime_event,4,4,4
 LIQUIDITY_VACUUM,A,trigger,primary_trigger_candidate,active_runtime_event,5,5,5,5,4,5,5,5
 MOMENTUM_DIVERGENCE_TRIGGER,B,trigger,secondary_or_confirm,active_runtime_event,4,4,4,4,3,4,3,3
 OI_FLUSH,B,trigger,secondary_or_confirm,active_runtime_event,4,4,4,4,3,4,4,3
-OI_SPIKE_NEGATIVE,B,trigger,secondary_or_confirm,active_runtime_event,4,4,4,4,3,4,4,3
+OI_SPIKE_NEGATIVE,B,trigger,primary,active_runtime_event,4,4,4,4,3,4,4,3
 OI_SPIKE_POSITIVE,B,trigger,secondary_or_confirm,active_runtime_event,4,4,4,4,3,4,4,3
 ORDERFLOW_IMBALANCE_SHOCK,B,trigger,secondary_or_confirm,active_runtime_event,4,4,4,4,3,4,4,3
 OVERSHOOT_AFTER_SHOCK,B,trigger,secondary_or_confirm,active_runtime_event,4,4,4,4,3,4,3,3

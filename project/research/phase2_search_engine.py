@@ -36,6 +36,7 @@ from project.research.search.bridge_adapter import (
     hypotheses_to_bridge_candidates,
     split_bridge_candidates,
 )
+from project.contracts.schemas import validate_schema_at_producer
 from project.io.utils import ensure_dir, read_parquet, write_parquet
 from project.research.search.distributed_runner import run_distributed_search
 from project.research._family_event_utils import load_features as load_features
@@ -1784,6 +1785,8 @@ def run(
 
     # 6. Write output
     write_parquet(final_df, output_path)
+    if not final_df.empty:
+        validate_schema_at_producer(final_df, "phase2_candidates", context="phase2_search_engine")
 
     # Write hypothesis registry so promote_candidates can validate the audit chain.
     _write_hypothesis_registry(final_df, out_dir)
@@ -1889,6 +1892,8 @@ def run(
         # Persist the final annotated candidate frame. This intentionally rewrites
         # the baseline candidate artifact written before downstream side artifacts.
         write_parquet(final_df, output_path)
+        if not final_df.empty:
+            validate_schema_at_producer(final_df, "phase2_candidates", context="phase2_search_engine:diversified")
 
     main_diag = build_search_engine_diagnostics(
         run_id=run_id,

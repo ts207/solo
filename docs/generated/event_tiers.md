@@ -42,7 +42,7 @@
 - `LIQUIDITY_STRESS_PROXY` — role `trigger`, disposition `secondary_or_confirm`
 - `MOMENTUM_DIVERGENCE_TRIGGER` — role `trigger`, disposition `secondary_or_confirm`
 - `OI_FLUSH` — role `trigger`, disposition `secondary_or_confirm`
-- `OI_SPIKE_NEGATIVE` — role `trigger`, disposition `secondary_or_confirm`
+- `OI_SPIKE_NEGATIVE` — role `trigger`, disposition `primary`
 - `OI_SPIKE_POSITIVE` — role `trigger`, disposition `secondary_or_confirm`
 - `ORDERFLOW_IMBALANCE_SHOCK` — role `trigger`, disposition `secondary_or_confirm`
 - `OVERSHOOT_AFTER_SHOCK` — role `trigger`, disposition `secondary_or_confirm`

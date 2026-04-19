@@ -12,6 +12,10 @@ __all__ = [
 ]
 
 
+def __dir__():
+    return __all__
+
+
 def __getattr__(name: str):
     if name == "LiveEngineRunner":
         from project.live.runner import LiveEngineRunner

@@ -1,3 +1,6 @@
+# _COMPAT_ADAPTER: Legacy discovery layer superseded by project.research.phase2_search_engine.
+# Retained for smoke_data.py and the candidate_discovery_cli research tool only.
+# Do not add new callers — use the phase2_search_engine pipeline stage instead.
 from __future__ import annotations
 
 import pandas as pd

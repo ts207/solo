@@ -257,7 +257,7 @@ STAGE_FAMILY_REGISTRY: tuple[StageFamilyContract, ...] = (
             "research/analyze_*.py",
             "research/phase1_correlation_clustering.py",
         ),
-        owner_service="project.research.services.candidate_discovery_service",
+        owner_service="project.research.analyze_events",
     ),
     StageFamilyContract(
         family="phase2_event_registry",
@@ -266,7 +266,7 @@ STAGE_FAMILY_REGISTRY: tuple[StageFamilyContract, ...] = (
             "research/build_event_registry.py",
             "research/canonicalize_event_episodes.py",
         ),
-        owner_service="project.research.services.candidate_discovery_service",
+        owner_service="project.research.build_event_registry",
     ),
     StageFamilyContract(
         family="phase2_discovery",
@@ -282,7 +282,7 @@ STAGE_FAMILY_REGISTRY: tuple[StageFamilyContract, ...] = (
             "research/analyze_interaction_lift.py",
             "research/finalize_experiment.py",
         ),
-        owner_service="project.research.services.candidate_discovery_service",
+        owner_service="project.research.phase2_search_engine",
     ),
     StageFamilyContract(
         family="promotion",

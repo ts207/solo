@@ -34,11 +34,19 @@ def build_canonical_entrypoints() -> tuple[SystemSurface, ...]:
             description="Primary orchestration CLI entrypoint.",
         ),
         SystemSurface(
+            name="phase2_search_engine",
+            kind="pipeline_stage",
+            module="project.research.phase2_search_engine",
+            status="canonical",
+            description="Canonical phase-2 discovery stage (invoked by run_all.py).",
+        ),
+        SystemSurface(
             name="candidate_discovery_service",
             kind="service",
             module="project.research.services.candidate_discovery_service",
-            status="canonical",
-            description="Canonical phase-2 discovery service.",
+            status="legacy_compat",
+            description="Legacy discovery service — retained for smoke tests and CLI tool only. "
+                        "Active pipeline uses phase2_search_engine.",
         ),
         SystemSurface(
             name="promotion_service",

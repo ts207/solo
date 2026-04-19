@@ -83,6 +83,17 @@ _RUNTIME_CORE_EVENT_INPUT_BINDINGS: dict[str, dict[str, dict[str, Any]]] = {
         "high": {"mode": "direct"},
         "low": {"mode": "direct"},
     },
+    "OI_SPIKE_NEGATIVE": {
+        "timestamp": {"mode": "direct"},
+        "oi_notional": {
+            "mode": "direct",
+            "accepted_sources": {"oi_notional", "open_interest"},
+        },
+        "close": {"mode": "direct"},
+        "ms_oi_state": {"mode": "derived", "depends_on": ("oi_notional",)},
+        "ms_oi_confidence": {"mode": "derived", "depends_on": ("oi_notional",)},
+        "ms_oi_entropy": {"mode": "derived", "depends_on": ("oi_notional",)},
+    },
     "SPOT_PERP_BASIS_SHOCK": {
         "timestamp": {"mode": "direct"},
         "close_perp": {"mode": "direct"},
@@ -345,9 +356,27 @@ def enrich_runtime_core_detector_history(frame: pd.DataFrame, *, timeframe: str)
         out["oi_notional"]
     )
     out["ms_vol_state"], out["ms_vol_confidence"], out["ms_vol_entropy"] = _vol_state_series(out)
+    out["ms_oi_state"], out["ms_oi_confidence"], out["ms_oi_entropy"] = _oi_state_series(out)
     out["high"] = high.fillna(close)
     out["low"] = low.fillna(close)
     return out
+
+
+def _oi_state_series(frame: pd.DataFrame) -> tuple[pd.Series, pd.Series, pd.Series]:
+    oi = pd.to_numeric(frame["oi_notional"], errors="coerce").replace(0.0, np.nan).astype(float)
+    oi_pct = oi.pct_change(fill_method=None).fillna(0.0)
+    oi_mean = oi_pct.rolling(window=96, min_periods=24).mean().fillna(0.0)
+    oi_std = oi_pct.rolling(window=96, min_periods=24).std().fillna(1e-8).clip(lower=1e-8)
+    oi_z = ((oi_pct - oi_mean) / oi_std).fillna(0.0)
+    oi_z_abs = oi_z.abs()
+    q70 = oi_z_abs.shift(1).rolling(window=2880, min_periods=24).quantile(0.70).fillna(oi_z_abs)
+    q90 = oi_z_abs.shift(1).rolling(window=2880, min_periods=24).quantile(0.90).fillna(q70)
+    state = pd.Series(0.0, index=frame.index, dtype=float)
+    state = state.mask(oi_z_abs >= q70, 1.0)
+    state = state.mask(oi_z_abs >= q90, 2.0)
+    confidence = pd.Series(0.70, index=frame.index, dtype=float)
+    entropy = pd.Series(0.25, index=frame.index, dtype=float)
+    return state, confidence, entropy
 
 
 def _vol_state_series(frame: pd.DataFrame) -> tuple[pd.Series, pd.Series, pd.Series]:

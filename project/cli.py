@@ -220,6 +220,147 @@ def _deploy_paper(args: argparse.Namespace) -> int:
     return 0
 
 
+def _deploy_bind_config(args: argparse.Namespace) -> int:
+    """Generate a runtime config YAML from a promoted thesis run."""
+    import yaml  # type: ignore[import-untyped]
+
+    from project.core.config import get_data_root
+
+    data_root = _path_or_none(args.data_root) or get_data_root()
+    run_id = str(args.run_id)
+    thesis_path = data_root / "live" / "theses" / run_id / "promoted_theses.json"
+    if not thesis_path.exists():
+        print(f"Error: No promoted theses found at {thesis_path}")
+        print("Run 'promote export --run_id <run_id>' first.")
+        return 1
+
+    import json as _json
+
+    bundle = _json.loads(thesis_path.read_text())
+    theses = bundle.get("theses", [])
+    if not theses:
+        print(f"Error: Promoted thesis bundle for {run_id} contains no theses.")
+        return 1
+
+    event_ids: list[str] = []
+    symbols: list[str] = []
+    for t in theses:
+        ev = t.get("primary_event_id") or ""
+        if ev and ev not in event_ids:
+            event_ids.append(ev)
+        sym_raw = t.get("thesis_id", "")
+        parts = sym_raw.split("::")
+        if len(parts) >= 3:
+            sym = parts[2]
+            if sym and sym not in symbols:
+                symbols.append(sym)
+
+    if not event_ids:
+        print("Error: Could not extract event IDs from theses — check thesis schema.")
+        return 1
+
+    out_dir = _path_or_none(getattr(args, "out_dir", None)) or (PROJECT_ROOT / "configs")
+    out_path = out_dir / f"live_paper_{run_id}.yaml"
+
+    primary_symbol = (symbols[0] if symbols else "BTCUSDT").upper()
+
+    config: dict = {
+        "workflow_id": f"live_paper_{run_id}",
+        "golden_workflow_config": "project/configs/golden_workflow.yaml",
+        "runtime_run_id": f"live_paper_{run_id}",
+        "runtime_mode": "trading",
+        "stale_threshold_sec": 60.0,
+        "freshness_streams": [{"symbol": primary_symbol, "stream": f"kline_5m"}],
+        "oms_lineage": {
+            "order_source": "paper_oms",
+            "session_id": f"live-paper-{run_id[:40]}",
+        },
+        "live_state_snapshot_path": f"artifacts/live_state_{run_id[:40]}.json",
+        "microstructure_recovery_streak": 2,
+        "account_sync_interval_seconds": 15.0,
+        "account_sync_failure_threshold": 4,
+        "execution_degradation_min_samples": 4,
+        "execution_degradation_warn_edge_bps": 0.0,
+        "execution_degradation_block_edge_bps": -8.0,
+        "execution_degradation_throttle_scale": 0.5,
+        "runtime_metrics_snapshot_path": f"artifacts/live_runtime_metrics_{run_id[:40]}.json",
+        "strategy_runtime": {
+            "implemented": True,
+            "thesis_run_id": run_id,
+            "include_pending_theses": False,
+            "auto_submit": True,
+            "supported_event_families": event_ids,
+            "allowed_actions": ["probe", "trade_small"],
+            "max_notional_fraction": 0.03,
+            "max_spread_bps": 5.0,
+            "min_depth_usd": 50000.0,
+            "min_tob_coverage": 0.9,
+            "default_depth_usd": 75000.0,
+            "default_tob_coverage": 0.97,
+            "default_expected_cost_bps": 3.0,
+            "memory_root": f"artifacts/live_memory/{run_id[:40]}",
+            "event_detector": {
+                "vol_shock_min_abs_move_bps": 35.0,
+                "liquidity_vacuum_min_spread_bps": 5.0,
+                "liquidity_vacuum_max_depth_usd": 25000.0,
+                "liquidation_cascade_min_abs_move_bps": 80.0,
+                "liquidation_cascade_min_abs_oi_drop_fraction": 0.03,
+                "liquidation_cascade_min_abs_funding_rate": 0.0005,
+            },
+            "decision_policy": {
+                "watch_min": 0.25,
+                "probe_min": 0.4,
+                "small_min": 0.6,
+                "normal_min": 0.8,
+                "max_contradiction_penalty": 0.4,
+            },
+        },
+        "runtime_alerts": {
+            "metrics_path": f"artifacts/live_runtime_metrics_{run_id[:40]}.json",
+            "alert_log_path": f"artifacts/live_runtime_alerts_{run_id[:40]}.jsonl",
+            "poll_interval_seconds": 15.0,
+            "snapshot_max_age_seconds": 180.0,
+            "decision_drought_seconds": 3600.0,
+            "funding_elevated_abs": 0.0003,
+            "funding_stretched_abs": 0.0005,
+            "oi_stable_abs": 0.01,
+            "oi_flush_abs": 0.03,
+            "ratio_min_total": 8,
+            "trade_small_probe_ratio_baseline": 1.0,
+            "trade_small_probe_ratio_tolerance_fraction": 0.5,
+        },
+    }
+
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    out_path.write_text(yaml.dump(config, default_flow_style=False, sort_keys=False))
+    _emit_payload({
+        "run_id": run_id,
+        "config_path": str(out_path),
+        "event_ids": event_ids,
+        "symbols": symbols,
+        "thesis_count": len(theses),
+    })
+    print(f"Bound config written to: {out_path}")
+    print(f"Next: EDGE_LIVE_CONFIG={out_path} python project/scripts/certify_paper_startup.py --config {out_path}")
+    return 0
+
+
+def _deploy_certify(args: argparse.Namespace) -> int:
+    """Run paper startup certification against a bound config."""
+    config_path = Path(args.config)
+    if not config_path.exists():
+        print(f"Error: Config not found: {config_path}")
+        return 1
+
+    cert_script = PROJECT_ROOT / "scripts" / "certify_paper_startup.py"
+    cmd = [sys.executable, str(cert_script), "--config", str(config_path)]
+    if getattr(args, "out", None):
+        cmd += ["--out", args.out]
+
+    result = subprocess.run(cmd)
+    return result.returncode
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="backtest",
@@ -326,11 +467,28 @@ def build_parser() -> argparse.ArgumentParser:
     deploy_subparsers = deploy.add_subparsers(dest="deploy_command")
     deploy_paper = deploy_subparsers.add_parser(
         "paper",
-        help="Export promoted theses for paper deployment.",
+        help="Export promoted theses to the live thesis store (does not launch runtime).",
     )
     deploy_paper.add_argument("--run_id", required=True)
     deploy_paper.add_argument("--data_root", default=None)
     deploy_paper.set_defaults(func=_deploy_paper)
+
+    deploy_bind = deploy_subparsers.add_parser(
+        "bind-config",
+        help="Generate a runtime config YAML from a promoted thesis run.",
+    )
+    deploy_bind.add_argument("--run_id", required=True)
+    deploy_bind.add_argument("--data_root", default=None)
+    deploy_bind.add_argument("--out_dir", default=None, help="Output directory for the config YAML.")
+    deploy_bind.set_defaults(func=_deploy_bind_config)
+
+    deploy_certify = deploy_subparsers.add_parser(
+        "certify",
+        help="Run paper startup certification against a bound config (no live credentials needed).",
+    )
+    deploy_certify.add_argument("--config", required=True, help="Path to the bound runtime config YAML.")
+    deploy_certify.add_argument("--out", default=None, help="Path to write certification JSON report.")
+    deploy_certify.set_defaults(func=_deploy_certify)
 
     return parser
 

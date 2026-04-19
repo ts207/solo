@@ -382,8 +382,8 @@
 
 ### OI_SPIKE_NEGATIVE
 
-- Detector: `OISpikeNegativeDetector` | enabled=`True` | band=`research_trigger`
-- Eligibility: planning=`True` | runtime=`False` | promotion=`True` | primary_anchor=`True` | legacy_default_executable=`True`
+- Detector: `OISpikeNegativeDetector` | enabled=`True` | band=`deployable_core`
+- Eligibility: planning=`True` | runtime=`True` | promotion=`True` | primary_anchor=`True` | legacy_default_executable=`True`
 - Family: canonical=`POSITIONING_EXTREMES`
 - Shape: subtype=`oi_spike_negative` | phase=`expansion` | evidence=`direct` | layer=`canonical` | disposition=`merge`
 - Scope: asset=`single_asset` | venue=`single_venue` | research_only=`False` | composite=`False` | context_tag=`False`

@@ -116,7 +116,11 @@ def test_verify_execution_checks_artifact_obligations(tmp_path: Path):
     )
     artifact_path = tmp_path / "reports" / "phase2" / "r1" / "phase2_candidates.parquet"
     artifact_path.parent.mkdir(parents=True, exist_ok=True)
-    artifact_path.write_text("ok", encoding="utf-8")
+    import pandas as pd
+    pd.DataFrame({
+        "candidate_id": ["c1"], "hypothesis_id": ["h1"], "event_type": ["E"],
+        "symbol": ["BTCUSDT"], "run_id": ["r1"],
+    }).to_parquet(artifact_path, index=False)
     manifest = {
         "status": "success",
         "stage_timings_sec": {"phase2_search_engine": 1.0},
@@ -132,6 +136,91 @@ def test_verify_execution_checks_artifact_obligations(tmp_path: Path):
 
     assert report.passed
     assert report.artifact_results[0].status == "conformant"
+
+
+def test_verify_execution_schema_violation_for_bad_parquet(tmp_path: Path):
+    """A parquet that exists but is missing required columns yields schema_violation, not conformant."""
+    plan = ExecutionPlan(
+        run_id="r2",
+        planned_at="2026-04-18T00:00:00Z",
+        stages=(
+            PlannedStage(
+                stage_name="phase2_search_engine",
+                script_path="research/phase2_search_engine.py",
+                reason_code="selected",
+                stage_family="phase2_discovery",
+            ),
+        ),
+        artifact_obligations=(
+            PlannedArtifactObligation(
+                contract_id="discovery_phase2_candidates",
+                producer_stage_family="phase2_discovery",
+                schema_id="phase2_candidates",
+                schema_version="phase2_candidates_v1",
+                strictness="strict",
+                required=True,
+                expected_path="reports/phase2/r2/phase2_candidates.parquet",
+            ),
+        ),
+    )
+    artifact_path = tmp_path / "reports" / "phase2" / "r2" / "phase2_candidates.parquet"
+    artifact_path.parent.mkdir(parents=True, exist_ok=True)
+    import pandas as pd
+    # Parquet with wrong columns — missing all required fields
+    pd.DataFrame({"unrelated_col": [1, 2]}).to_parquet(artifact_path, index=False)
+    manifest = {
+        "status": "success",
+        "stage_timings_sec": {"phase2_search_engine": 1.0},
+        "failed_stage": None,
+    }
+
+    report = verify_execution(plan, manifest, verified_at="2026-04-18T01:00:00Z", data_root=tmp_path)
+
+    assert not report.passed
+    assert report.artifact_results[0].status == "schema_violation"
+    assert "candidate_id" in report.artifact_results[0].notes
+
+
+def test_verify_execution_schema_violation_for_bad_json(tmp_path: Path):
+    """A JSON payload missing required fields yields schema_violation, not conformant."""
+    plan = ExecutionPlan(
+        run_id="r3",
+        planned_at="2026-04-18T00:00:00Z",
+        stages=(
+            PlannedStage(
+                stage_name="promote",
+                script_path="research/promote.py",
+                reason_code="selected",
+                stage_family="promotion",
+            ),
+        ),
+        artifact_obligations=(
+            PlannedArtifactObligation(
+                contract_id="promoted_theses",
+                producer_stage_family="promotion",
+                schema_id="promoted_theses_payload",
+                schema_version="promoted_theses_v1",
+                strictness="strict",
+                required=True,
+                expected_path="live/theses/r3/promoted_theses.json",
+            ),
+        ),
+    )
+    artifact_path = tmp_path / "live" / "theses" / "r3" / "promoted_theses.json"
+    artifact_path.parent.mkdir(parents=True, exist_ok=True)
+    import json
+    artifact_path.write_text(json.dumps({"run_id": "r3"}), encoding="utf-8")  # missing most fields
+    manifest = {
+        "status": "success",
+        "stage_timings_sec": {"promote": 1.0},
+        "failed_stage": None,
+    }
+
+    report = verify_execution(plan, manifest, verified_at="2026-04-18T01:00:00Z", data_root=tmp_path)
+
+    assert not report.passed
+    assert report.artifact_results[0].status == "schema_violation"
+    assert "schema_version" in report.artifact_results[0].notes
 
 
 def test_pipelines_init_exports_execution_plan():
