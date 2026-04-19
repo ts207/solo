@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-DEPLOYABLE_CORE_EVENT_TYPES = frozenset(
+DEPLOYABLE_CORE_EVENT_TYPES: frozenset[str] = frozenset(
     {
         "BASIS_DISLOC",
         "FND_DISLOC",
@@ -38,7 +38,15 @@ LEGACY_EVENT_TYPES = frozenset(
 )
 
 
+def _domain_runtime_eligible_set() -> frozenset[str]:
+    from project.domain.compiled_registry import get_domain_registry
+    return frozenset(get_domain_registry().runtime_eligible_event_ids())
+
+
 def is_live_safe_event_type(event_type: str) -> bool:
+    domain_set = _domain_runtime_eligible_set()
+    if domain_set:
+        return str(event_type).strip().upper() in domain_set
     return str(event_type).strip().upper() in LIVE_SAFE_EVENT_TYPES
 
 

@@ -165,11 +165,10 @@ def canonical_event_registry_payload() -> Dict[str, Any]:
         spec = registry.event_definitions.get(source_event_type)
         if spec is None:
             continue
-        payload = _event_spec_payload(spec.event_type)
-        description = _clean_text(payload.get("description")) or (
+        description = _clean_text(spec.notes) or (
             f"{event_type} canonical proxy compatibility entry."
         )
-        family = _family_for_proxy(payload, spec.research_family or spec.canonical_family or spec.canonical_regime)
+        family = _clean_text(spec.research_family or spec.canonical_family or spec.canonical_regime) or "UNSPECIFIED"
         event_metadata[event_type] = {
             "evidence_tier": "proxy",
             "family": family,

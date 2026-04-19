@@ -1,11 +1,8 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from pathlib import Path
 from typing import Dict, Sequence
 
-from project.spec_registry import load_yaml_path, resolve_relative_spec_path
-from project import PROJECT_ROOT
 from project.core.coercion import as_bool
 
 
@@ -48,101 +45,70 @@ class EventRegistrySpec:
 
 
 def _load_event_specs() -> Dict[str, EventRegistrySpec]:
-    from project.spec_registry import load_unified_event_registry
-    unified = load_unified_event_registry()
-    if not unified:
-        return {}
+    from project.domain.compiled_registry import get_domain_registry
 
-    events_payload = unified.get("events", {})
-    if not isinstance(events_payload, dict):
-        return {}
-
-    defaults = unified.get("defaults", {})
-    default_params = defaults.get("parameters", {}) if isinstance(defaults, dict) else {}
-    families = unified.get("families", {})
-
-    specs = {}
-    for event_type, row in events_payload.items():
-        if not isinstance(row, dict):
-            continue
-        if bool(row.get("deprecated", False)) or not bool(row.get("active", True)):
+    registry = get_domain_registry()
+    specs: Dict[str, EventRegistrySpec] = {}
+    for event_type in registry.event_ids:
+        event_def = registry.get_event(event_type)
+        if event_def is None or not event_def.enabled:
             continue
 
-        family_name = str(row.get("research_family", row.get("canonical_family", ""))).strip().upper()
-        family_params = {}
-        if family_name and isinstance(families, dict):
-            family_info = families.get(family_name)
-            if isinstance(family_info, dict):
-                family_params = family_info.get("parameters", {})
+        params = dict(event_def.parameters) if isinstance(event_def.parameters, dict) else {}
+        raw = dict(event_def.raw)
+        runtime_params = raw.get("parameters", {})
+        if isinstance(runtime_params, dict):
+            params.update(runtime_params)
 
-        parameters = {}
-        if isinstance(default_params, dict):
-            parameters.update(default_params)
-        if isinstance(family_params, dict):
-            parameters.update(family_params)
-        if isinstance(row.get("parameters"), dict):
-            parameters.update(row["parameters"])
-
-        def _canon_param(name: str, default: int | str | Sequence[str] | bool):
-            if name in row:
-                return row.get(name, default)
-            if name in parameters:
-                return parameters.get(name, default)
-            if isinstance(defaults, dict) and name in defaults:
-                return defaults.get(name, default)
+        def _param(name: str, default):
+            if name in params:
+                return params[name]
+            if name in raw:
+                return raw[name]
             return default
 
-        def _coalesce_text(value: object, default: str) -> str:
-            text = str(value or "").strip()
-            return text or default
-
-        reports_dir = _coalesce_text(row.get("reports_dir"), event_type.lower())
-        events_file = _coalesce_text(
-            row.get("events_file"),
-            f"{event_type.lower()}_events.parquet",
+        is_context_or_proxy = bool(
+            event_def.is_context_tag
+            or event_def.operational_role.lower().strip() in ("context", "filter", "research_only", "sequence_component", "composite")
+            or event_def.evidence_mode.lower().strip() in ("proxy", "indirect", "derived", "inferred", "inferred_cross_asset")
         )
-        default_signal_column = (
-            event_type.lower()
-            if str(event_type).strip().lower().endswith("_event")
-            else f"{event_type.lower()}_event"
+        is_trade_trigger = bool(
+            not is_context_or_proxy
+            and event_def.operational_role.lower().strip() in ("trigger", "confirm", "")
+            and event_def.promotion_eligible
         )
-        signal_column = _coalesce_text(row.get("signal_column"), default_signal_column)
 
         spec = EventRegistrySpec(
-            event_type=event_type,
-            reports_dir=reports_dir,
-            events_file=events_file,
-            signal_column=signal_column,
-            research_family=str(
-                row.get("research_family", row.get("canonical_family", ""))
-            ).strip().upper(),
-            canonical_regime=str(
-                row.get("canonical_regime", row.get("canonical_family", ""))
-            ).strip().upper(),
-            subtype=str(row.get("subtype", "")).strip(),
-            phase=str(row.get("phase", "")).strip(),
-            evidence_mode=str(row.get("evidence_mode", "")).strip(),
-            asset_scope=str(row.get("asset_scope", "")).strip(),
-            venue_scope=str(row.get("venue_scope", "")).strip(),
-            is_composite=as_bool(row.get("is_composite", False)),
-            is_context_tag=as_bool(row.get("is_context_tag", False)),
-            is_strategy_construct=as_bool(row.get("is_strategy_construct", False)),
-            research_only=as_bool(row.get("research_only", False)),
-            strategy_only=as_bool(row.get("strategy_only", False)),
-            deconflict_priority=int(row.get("deconflict_priority", 0) or 0),
-            disposition=str(row.get("disposition", "")).strip(),
-            layer=str(row.get("layer", "")).strip(),
-            notes=str(row.get("notes", "")).strip(),
-            merge_gap_bars=int(_canon_param("merge_gap_bars", 1)),
-            cooldown_bars=int(_canon_param("cooldown_bars", 0)),
-            anchor_rule=str(_canon_param("anchor_rule", "max_intensity")),
-            min_occurrences=int(_canon_param("min_occurrences", 0)),
-            is_descriptive=as_bool(_canon_param("is_descriptive", False)),
-            is_trade_trigger=as_bool(_canon_param("is_trade_trigger", True)),
-            requires_confirmation=as_bool(_canon_param("requires_confirmation", False)),
-            allowed_templates=list(_canon_param("allowed_templates", ["all"])),
-            disallowed_states=list(_canon_param("disallowed_states", [])),
-            synthetic_coverage=str(_canon_param("synthetic_coverage", "uncovered")),
+            event_type=event_def.event_type,
+            reports_dir=event_def.reports_dir,
+            events_file=event_def.events_file,
+            signal_column=event_def.signal_column,
+            research_family=event_def.research_family,
+            canonical_regime=event_def.canonical_regime,
+            subtype=event_def.subtype,
+            phase=event_def.phase,
+            evidence_mode=event_def.evidence_mode,
+            asset_scope=event_def.asset_scope,
+            venue_scope=event_def.venue_scope,
+            is_composite=event_def.is_composite,
+            is_context_tag=event_def.is_context_tag,
+            is_strategy_construct=event_def.is_strategy_construct,
+            research_only=event_def.research_only,
+            strategy_only=event_def.strategy_only,
+            deconflict_priority=event_def.deconflict_priority,
+            disposition=event_def.disposition,
+            layer=event_def.layer,
+            notes=event_def.notes,
+            merge_gap_bars=int(_param("merge_gap_bars", 1)),
+            cooldown_bars=int(_param("cooldown_bars", 0)),
+            anchor_rule=str(_param("anchor_rule", "max_intensity")),
+            min_occurrences=int(_param("min_occurrences", 0)),
+            is_descriptive=as_bool(_param("is_descriptive", is_context_or_proxy)),
+            is_trade_trigger=as_bool(_param("is_trade_trigger", is_trade_trigger)),
+            requires_confirmation=as_bool(_param("requires_confirmation", False)),
+            allowed_templates=list(_param("allowed_templates", _param("templates", ["all"]))),
+            disallowed_states=list(_param("disallowed_states", [])),
+            synthetic_coverage=str(_param("synthetic_coverage", "uncovered")),
         )
         specs[spec.event_type] = spec
     return specs

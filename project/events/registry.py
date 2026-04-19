@@ -136,26 +136,52 @@ _MILESTONE_REGISTRY_PATH = _UNIFIED_REGISTRY_PATH
 
 @functools.lru_cache(maxsize=1)
 def load_milestone_event_registry() -> dict[str, dict]:
-    path = _UNIFIED_REGISTRY_PATH if _UNIFIED_REGISTRY_PATH.exists() else _LEGACY_REGISTRY_PATH
-    if not path.exists():
-        return {}
-    
-    payload = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
-    if not isinstance(payload, dict):
-        return {}
-    
-    # Unified registry nests event definitions under 'events'
-    events_payload = payload.get("events", payload) if path == _UNIFIED_REGISTRY_PATH else payload
-    if not isinstance(events_payload, dict):
-        return {}
-
+    from project.domain.compiled_registry import get_domain_registry
+    registry = get_domain_registry()
     out: dict[str, dict] = {}
-    for raw_key, value in events_payload.items():
-        if isinstance(value, dict):
-            row = dict(value)
-            event_type = str(row.get("event_type") or raw_key).strip().upper()
-            row["event_type"] = event_type
-            out[event_type] = row
+    for event_type in registry.event_ids:
+        event_def = registry.get_event(event_type)
+        if event_def is None:
+            continue
+        row = registry.event_row(event_type)
+        if not row:
+            continue
+        row.setdefault("operational_role", event_def.operational_role)
+        row.setdefault("deployment_disposition", event_def.deployment_disposition)
+        row.setdefault("runtime_category", event_def.runtime_category)
+        row.setdefault("maturity", event_def.maturity)
+        row.setdefault("detector_band", event_def.detector_band)
+        row.setdefault("detector_name", event_def.detector_name)
+        row.setdefault("tier", event_def.tier)
+        row.setdefault("default_executable", event_def.default_executable)
+        row.setdefault("is_composite", event_def.is_composite)
+        row.setdefault("is_context_tag", event_def.is_context_tag)
+        row.setdefault("is_strategy_construct", event_def.is_strategy_construct)
+        row.setdefault("planning_eligible", event_def.planning_eligible)
+        row.setdefault("runtime_eligible", event_def.runtime_eligible)
+        row.setdefault("promotion_eligible", event_def.promotion_eligible)
+        row.setdefault("primary_anchor_eligible", event_def.primary_anchor_eligible)
+        row.setdefault("enabled", event_def.enabled)
+        row.setdefault("canonical_family", event_def.canonical_family)
+        row.setdefault("canonical_regime", event_def.canonical_regime)
+        row.setdefault("subtype", event_def.subtype)
+        row.setdefault("phase", event_def.phase)
+        row.setdefault("evidence_mode", event_def.evidence_mode)
+        row.setdefault("asset_scope", event_def.asset_scope)
+        row.setdefault("venue_scope", event_def.venue_scope)
+        row.setdefault("deconflict_priority", event_def.deconflict_priority)
+        row.setdefault("disposition", event_def.disposition)
+        row.setdefault("layer", event_def.layer)
+        row.setdefault("cluster_id", event_def.cluster_id)
+        row.setdefault("collapse_target", event_def.collapse_target)
+        row.setdefault("overlap_group", event_def.overlap_group)
+        row.setdefault("precedence_rank", event_def.precedence_rank)
+        row.setdefault("instrument_classes", list(event_def.instrument_classes))
+        row.setdefault("requires_features", list(event_def.requires_features))
+        row.setdefault("runtime_tags", list(event_def.runtime_tags))
+        row.setdefault("sequence_eligible", event_def.sequence_eligible)
+        row.setdefault("maturity_scores", dict(event_def.maturity_scores))
+        out[event_type] = row
     return out
 
 
@@ -233,12 +259,15 @@ def _bool_from_row(row: dict, *keys: str, default: bool = False) -> bool:
 
 def resolve_event_alias(event_name: str) -> str:
     normalized = str(event_name).strip().upper()
-    registry = load_milestone_event_registry()
-    for key, row in registry.items():
-        aliases = row.get("aliases", [])
-        if normalized == key or normalized in [str(a).strip().upper() for a in aliases]:
-            return key
-    return normalized
+    from project.events.event_aliases import resolve_event_alias as _resolve_alias
+    alias_result = _resolve_alias(normalized)
+    if alias_result != normalized:
+        return alias_result
+    from project.domain.compiled_registry import get_domain_registry
+    registry = get_domain_registry()
+    if registry.has_event(normalized):
+        return normalized
+    return load_milestone_event_registry().get(normalized, {}).get("event_type", normalized)
 
 
 def _normalize_columns(values: object) -> tuple[str, ...]:
@@ -363,25 +392,31 @@ def validate_detector_registry_implementation_parity(
 
 
 def get_detector_contract(event_name: str) -> DetectorContract:
+    from project.domain.compiled_registry import get_domain_registry
     canonical_name = resolve_event_alias(event_name)
-    compiled_row = get_event_definition(canonical_name) or {}
-    governance_row = load_milestone_event_registry().get(canonical_name) or {}
-    if not compiled_row and not governance_row:
+    registry = get_domain_registry()
+    event_def = registry.get_event(canonical_name)
+    if event_def is None:
         raise DetectorContractError(f"Event {event_name} not found in registry")
-
-    row = dict(compiled_row)
-    if governance_row:
-        row.update(governance_row)
-        compiled_detector = (
-            compiled_row.get("detector", {}) if isinstance(compiled_row.get("detector"), dict) else {}
-        )
-        governance_detector = (
-            governance_row.get("detector", {})
-            if isinstance(governance_row.get("detector"), dict)
-            else {}
-        )
-        if compiled_detector or governance_detector:
-            row["detector"] = {**compiled_detector, **governance_detector}
+    row = registry.event_row(canonical_name)
+    row.setdefault("operational_role", event_def.operational_role)
+    row.setdefault("deployment_disposition", event_def.deployment_disposition)
+    row.setdefault("runtime_category", event_def.runtime_category)
+    row.setdefault("maturity", event_def.maturity)
+    row.setdefault("detector_band", event_def.detector_band)
+    row.setdefault("detector_name", event_def.detector_name)
+    row.setdefault("tier", event_def.tier)
+    row.setdefault("default_executable", event_def.default_executable)
+    row.setdefault("is_composite", event_def.is_composite)
+    row.setdefault("is_context_tag", event_def.is_context_tag)
+    row.setdefault("is_strategy_construct", event_def.is_strategy_construct)
+    row.setdefault("planning_eligible", event_def.planning_eligible)
+    row.setdefault("runtime_eligible", event_def.runtime_eligible)
+    row.setdefault("promotion_eligible", event_def.promotion_eligible)
+    row.setdefault("primary_anchor_eligible", event_def.primary_anchor_eligible)
+    row.setdefault("enabled", event_def.enabled)
+    row.setdefault("canonical_family", event_def.canonical_family)
+    row.setdefault("canonical_regime", event_def.canonical_regime)
 
     params = _parameters(row)
     _, detector_metadata = _registered_detector_metadata(canonical_name, row)
@@ -456,8 +491,10 @@ def get_detector_contract(event_name: str) -> DetectorContract:
 
 
 def _list_detectors_by_filter(filter_fn) -> list[DetectorContract]:
+    from project.domain.compiled_registry import get_domain_registry
+    registry = get_domain_registry()
     contracts = []
-    for key in load_milestone_event_registry().keys():
+    for key in registry.event_ids:
         contract = get_detector_contract(key)
         if filter_fn(contract):
             contracts.append(contract)

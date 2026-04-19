@@ -414,7 +414,7 @@ def _merged_row(event_type: str) -> dict[str, Any]:
     event_def = registry.get_event(event_type)
     if event_def is None:
         raise KeyError(f"Unknown event_type: {event_type}")
-    row = dict(event_def.raw)
+    row = registry.event_row(event_type)
     runtime_spec = _load_runtime_spec(event_type)
 
     for source in (runtime_spec,):

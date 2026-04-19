@@ -63,7 +63,13 @@ def event_alias_policy_rows() -> tuple[dict[str, object], ...]:
 
 def resolve_event_alias(event_type: str) -> str:
     normalized = str(event_type).strip().upper()
-    return EVENT_ALIASES.get(normalized, normalized)
+    alias_hit = EVENT_ALIASES.get(normalized)
+    if alias_hit:
+        return alias_hit
+    from project.domain.compiled_registry import get_domain_registry
+    if get_domain_registry().has_event(normalized):
+        return normalized
+    return normalized
 
 
 def resolve_executable_event_alias(event_type: str) -> str:
