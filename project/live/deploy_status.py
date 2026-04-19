@@ -59,6 +59,8 @@ def inspect_deployment(
     theses = _theses(thesis_payload)
     config = _load_config_for_run(run_id, config_path=config_path)
     strategy_runtime = _mapping(config.get("strategy_runtime"))
+    execution_model = _mapping(strategy_runtime.get("execution_model"))
+    live_quality_gate = _mapping(strategy_runtime.get("live_quality_gate"))
 
     thesis_hash = _sha256_file(thesis_path)
     synthetic_default_keys = synthetic_microstructure_default_keys(strategy_runtime)
@@ -107,6 +109,22 @@ def inspect_deployment(
             "max_spread_bps": strategy_runtime.get("max_spread_bps"),
             "min_depth_usd": strategy_runtime.get("min_depth_usd"),
             "min_tob_coverage": strategy_runtime.get("min_tob_coverage"),
+            "execution_model": execution_model,
+            "execution_model_family": _execution_model_family(
+                execution_model,
+                implemented=bool(strategy_runtime.get("implemented", False)),
+            ),
+            "live_quality_gate": live_quality_gate,
+            "kill_on_live_quality_disable": bool(
+                strategy_runtime.get("kill_on_live_quality_disable", False)
+            ),
+            "live_quality_kill_on_disable": bool(
+                live_quality_gate.get(
+                    "kill_on_disable",
+                    strategy_runtime.get("kill_on_live_quality_disable", False),
+                )
+            ),
+            "portfolio_candidate_batch_size": strategy_runtime.get("portfolio_candidate_batch_size"),
             "synthetic_microstructure_defaults_present": synthetic_default_keys,
             "synthetic_microstructure_defaults_allowed": (
                 runtime_allows_synthetic_microstructure_defaults(runtime_mode)
@@ -235,6 +253,21 @@ def _config_path_value(value: Any) -> Path | None:
 
 def _mapping(value: Any) -> dict[str, Any]:
     return dict(value) if isinstance(value, Mapping) else {}
+
+
+def _execution_model_family(
+    execution_model: Mapping[str, Any],
+    *,
+    implemented: bool,
+) -> str:
+    configured = str(execution_model.get("cost_model", "") or "").strip().lower()
+    if configured in {"execution_simulator_v2", "fill_model_v2"}:
+        return "execution_simulator_v2"
+    if implemented:
+        return "execution_simulator_v2"
+    if configured:
+        return configured
+    return ""
 
 
 def _theses(payload: Mapping[str, Any]) -> list[dict[str, Any]]:

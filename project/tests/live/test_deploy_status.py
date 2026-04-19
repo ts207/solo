@@ -76,6 +76,14 @@ def test_inspect_deployment_returns_runtime_thesis_and_approval_state(tmp_path: 
                 "  max_spread_bps: 5.0",
                 "  min_depth_usd: 50000.0",
                 "  min_tob_coverage: 0.9",
+                "  execution_model:",
+                "    cost_model: execution_simulator_v2",
+                "    base_slippage_bps: 1.5",
+                "  live_quality_gate:",
+                "    max_slippage_drift_bps: 4.0",
+                "    disable_slippage_drift_bps: 12.0",
+                "    kill_on_disable: true",
+                "  portfolio_candidate_batch_size: 4",
             ]
         )
         + "\n",
@@ -92,6 +100,11 @@ def test_inspect_deployment_returns_runtime_thesis_and_approval_state(tmp_path: 
     assert payload["runtime"]["runtime_mode"] == "trading"
     assert payload["runtime"]["venue"] == "bybit"
     assert payload["strategy_runtime"]["implemented"] is True
+    assert payload["strategy_runtime"]["execution_model"]["cost_model"] == "execution_simulator_v2"
+    assert payload["strategy_runtime"]["execution_model_family"] == "execution_simulator_v2"
+    assert payload["strategy_runtime"]["live_quality_gate"]["kill_on_disable"] is True
+    assert payload["strategy_runtime"]["live_quality_kill_on_disable"] is True
+    assert payload["strategy_runtime"]["portfolio_candidate_batch_size"] == 4
     assert payload["strategy_runtime"]["synthetic_microstructure_defaults_present"] == []
     assert payload["risk_caps"]["configured_count"] == 1
     assert payload["approval_state"]["approved_required_count"] == 1

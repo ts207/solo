@@ -33,6 +33,23 @@ strategy_runtime:
   max_spread_bps: 5.0
   min_depth_usd: 25000.0
   min_tob_coverage: 0.8
+  execution_model:
+    cost_model: execution_simulator_v2
+    base_slippage_bps: 3.0
+  live_quality_gate:
+    max_slippage_drift_bps: 5.0
+    disable_slippage_drift_bps: 15.0
+    min_fill_rate: 0.7
+    disable_fill_rate: 0.4
+    max_edge_divergence_bps: 10.0
+    disable_edge_divergence_bps: 25.0
+    max_stale_data_frequency: 0.05
+    disable_stale_data_frequency: 0.2
+    max_thesis_decay_rate: 0.25
+    disable_thesis_decay_rate: 0.6
+    min_risk_scale: 0.1
+    kill_on_disable: false
+  portfolio_candidate_batch_size: 5
   default_depth_usd: 50000.0
   default_tob_coverage: 0.95
   default_expected_cost_bps: 3.0

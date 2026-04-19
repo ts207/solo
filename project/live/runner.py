@@ -18,6 +18,7 @@ from project.core.exceptions import (
 from project.live.audit_log import (
     AuditLog,
     KillSwitchEvent,
+    OperatorActionEvent,
     OrderIntentEvent,
 )
 from project.live.binance_client import BinanceFuturesClient
@@ -26,7 +27,11 @@ from project.live.context_builder import build_live_trade_context
 from project.live.contracts.trade_intent import TradeIntent
 from project.live.decay import DecayMonitor, DecayRule
 from project.live.decay import default_decay_rules as _default_decay_rules
-from project.live.decision import DecisionOutcome, decide_trade_intent
+from project.live.decision import (
+    DecisionOutcome,
+    build_candidate_trade_outcomes,
+    decide_trade_intent,
+)
 from project.live.event_detector import (
     GovernedRuntimeCoreEventDetectionAdapter,
     build_live_event_detection_adapter,
@@ -37,7 +42,7 @@ from project.live.execution_attribution import (
 )
 from project.live.health_checks import DataHealthMonitor
 from project.live.kill_switch import KillSwitchManager, KillSwitchReason
-from project.live.live_quality_gate import evaluate_live_quality_gate
+from project.live.live_quality_gate import LiveQualityThresholds, evaluate_live_quality_gate
 from project.live.market_state_builder import (
     MarketStateBuilderConfig,
     build_measured_market_state,
@@ -163,6 +168,16 @@ class LiveEngineRunner:
         else:
             self.order_manager = OrderManager()
         self.strategy_runtime = dict(strategy_runtime or {})
+        self._execution_model_config = self._resolve_execution_model_config()
+        self._live_quality_thresholds = self._resolve_live_quality_thresholds()
+        self._kill_on_live_quality_disable = bool(
+            self.strategy_runtime.get("kill_on_live_quality_disable", False)
+            or self.strategy_runtime.get("live_quality_gate", {}).get("kill_on_disable", False)
+        )
+        self._portfolio_candidate_batch_size = max(
+            1,
+            int(self.strategy_runtime.get("portfolio_candidate_batch_size", 5) or 5),
+        )
         self._event_detector = build_live_event_detection_adapter(
             self.strategy_runtime.get("event_detector", {})
         )
@@ -238,7 +253,7 @@ class LiveEngineRunner:
         self._family_budgets = dict(family_budgets)
 
         # Phase 5: Portfolio decision engine (overlap/family/cluster/correlation gating)
-        from project.portfolio.engine import PortfolioDecisionEngine
+        from project.portfolio.engine import PortfolioDecisionEngine, ThesisIntent as PortfolioThesisIntent
 
         self._portfolio_engine = PortfolioDecisionEngine(
             family_budgets=dict(family_budgets) or None,
@@ -246,6 +261,7 @@ class LiveEngineRunner:
             target_vol=float(self.strategy_runtime.get("target_vol", 0.10) or 0.10),
             correlation_limit=float(self.strategy_runtime.get("correlation_limit", 0.5) or 0.5),
         )
+        self._portfolio_thesis_intent_cls = PortfolioThesisIntent
 
         # Workstream 1: Deploy admission control
         self._thesis_store = self._load_thesis_store()
@@ -307,6 +323,39 @@ class LiveEngineRunner:
             ),
             "runtime_mode": self.runtime_mode,
             "strategy_runtime_implemented": bool(self.strategy_runtime.get("implemented", False)),
+            "execution_model": dict(self._execution_model_config),
+            "live_quality_gate": {
+                "min_samples": int(self._live_quality_thresholds.min_samples),
+                "max_slippage_drift_bps": float(
+                    self._live_quality_thresholds.max_slippage_drift_bps
+                ),
+                "disable_slippage_drift_bps": float(
+                    self._live_quality_thresholds.disable_slippage_drift_bps
+                ),
+                "min_fill_rate": float(self._live_quality_thresholds.min_fill_rate),
+                "disable_fill_rate": float(self._live_quality_thresholds.disable_fill_rate),
+                "max_edge_divergence_bps": float(
+                    self._live_quality_thresholds.max_edge_divergence_bps
+                ),
+                "disable_edge_divergence_bps": float(
+                    self._live_quality_thresholds.disable_edge_divergence_bps
+                ),
+                "max_stale_data_frequency": float(
+                    self._live_quality_thresholds.max_stale_data_frequency
+                ),
+                "disable_stale_data_frequency": float(
+                    self._live_quality_thresholds.disable_stale_data_frequency
+                ),
+                "max_thesis_decay_rate": float(
+                    self._live_quality_thresholds.max_thesis_decay_rate
+                ),
+                "disable_thesis_decay_rate": float(
+                    self._live_quality_thresholds.disable_thesis_decay_rate
+                ),
+                "min_risk_scale": float(self._live_quality_thresholds.min_risk_scale),
+                "kill_on_disable": bool(self._kill_on_live_quality_disable),
+            },
+            "portfolio_candidate_batch_size": int(self._portfolio_candidate_batch_size),
             "event_detection_adapter": getattr(
                 self._event_detector, "adapter_id", self._event_detector.__class__.__name__
             ),
@@ -323,6 +372,78 @@ class LiveEngineRunner:
         if not memory_root:
             return None
         return Path(memory_root)
+
+    def _resolve_execution_model_config(self) -> Dict[str, Any]:
+        configured = self.strategy_runtime.get("execution_model", {})
+        config = dict(configured) if isinstance(configured, Mapping) else {}
+        if bool(self.strategy_runtime.get("implemented", False)):
+            config.setdefault("cost_model", "execution_simulator_v2")
+        return config
+
+    def _resolve_live_quality_thresholds(self) -> LiveQualityThresholds:
+        configured = self.strategy_runtime.get("live_quality_gate", {})
+        values = dict(configured) if isinstance(configured, Mapping) else {}
+        return LiveQualityThresholds(
+            min_samples=int(values.get("min_samples", 5) or 5),
+            max_slippage_drift_bps=float(values.get("max_slippage_drift_bps", 5.0) or 5.0),
+            disable_slippage_drift_bps=float(
+                values.get("disable_slippage_drift_bps", 15.0) or 15.0
+            ),
+            min_fill_rate=float(values.get("min_fill_rate", 0.70) or 0.70),
+            disable_fill_rate=float(values.get("disable_fill_rate", 0.40) or 0.40),
+            max_edge_divergence_bps=float(
+                values.get("max_edge_divergence_bps", 10.0) or 10.0
+            ),
+            disable_edge_divergence_bps=float(
+                values.get("disable_edge_divergence_bps", 25.0) or 25.0
+            ),
+            max_stale_data_frequency=float(
+                values.get("max_stale_data_frequency", 0.05) or 0.05
+            ),
+            disable_stale_data_frequency=float(
+                values.get("disable_stale_data_frequency", 0.20) or 0.20
+            ),
+            max_thesis_decay_rate=float(values.get("max_thesis_decay_rate", 0.25) or 0.25),
+            disable_thesis_decay_rate=float(
+                values.get("disable_thesis_decay_rate", 0.60) or 0.60
+            ),
+            min_risk_scale=float(values.get("min_risk_scale", 0.10) or 0.10),
+        )
+
+    def _expected_slippage_bps(self) -> float:
+        return float(
+            self._execution_model_config.get(
+                "base_slippage_bps",
+                self.strategy_runtime.get("expected_slippage_bps", 0.0),
+            )
+            or 0.0
+        )
+
+    def _log_live_quality_decision(
+        self,
+        *,
+        thesis_id: str,
+        action: str,
+        risk_scale: float,
+        reason_codes: List[str],
+        metrics: Mapping[str, Any],
+    ) -> None:
+        if self._audit_log is None or action not in {"downscale", "disable"}:
+            return
+        self._audit_log.append(
+            OperatorActionEvent(
+                session_id=self._session_id,
+                action=f"live_quality_{action}",
+                target=str(thesis_id),
+                operator="system",
+                reason=",".join(reason_codes) if reason_codes else "live_quality_gate",
+                metadata={
+                    "risk_scale": float(risk_scale),
+                    "reason_codes": list(reason_codes),
+                    "metrics": dict(metrics),
+                },
+            )
+        )
 
     def _serialize_recent_decision(self, outcome: DecisionOutcome) -> Dict[str, Any]:
         top_match = outcome.ranked_matches[0] if outcome.ranked_matches else None
@@ -1323,6 +1444,223 @@ class LiveEngineRunner:
         }
         append_live_episode(self._thesis_memory_root, payload)
 
+    def _find_thesis_for_outcome(self, outcome: DecisionOutcome) -> Any | None:
+        if outcome.ranked_matches:
+            return outcome.ranked_matches[0].thesis
+        thesis_id = str(outcome.trade_intent.thesis_id or "").strip()
+        if not thesis_id or self._thesis_store is None:
+            return None
+        for thesis in self._thesis_store.all():
+            if str(thesis.thesis_id) == thesis_id:
+                return thesis
+        return None
+
+    def _candidate_decision_outcomes(self, outcome: DecisionOutcome) -> List[DecisionOutcome]:
+        if (
+            self.runtime_mode != "trading"
+            or not bool(self.strategy_runtime.get("auto_submit", False))
+            or not outcome.ranked_matches
+        ):
+            return [outcome]
+        outcomes = build_candidate_trade_outcomes(
+            context=outcome.context,
+            ranked_matches=outcome.ranked_matches,
+            policy_config=self.strategy_runtime.get("decision_policy", {}),
+        )
+        if not outcomes:
+            return [outcome]
+        return outcomes[: self._portfolio_candidate_batch_size]
+
+    def _apply_runtime_quality_state(self, outcome: DecisionOutcome) -> DecisionOutcome:
+        thesis = self._find_thesis_for_outcome(outcome)
+        if thesis is None:
+            return outcome
+
+        realized = self._get_realized_metrics_for_thesis(thesis.thesis_id)
+        expected_hit_rate = float(
+            getattr(thesis.evidence, "hit_rate", None)
+            or (thesis.evidence.net_expectancy_bps > 0 and 0.55)
+            or 0.5
+        )
+        expected = {
+            "net_expectancy_bps": float(thesis.evidence.net_expectancy_bps or 0.0),
+            "hit_rate": expected_hit_rate,
+        }
+        health = self.decay_monitor.assess_thesis_health(thesis.thesis_id, realized, expected)
+        self.thesis_manager.update_health(thesis.thesis_id, health.health_state, health.actions_taken)
+
+        records = [
+            item
+            for item in self.order_manager.execution_attribution
+            if item.thesis_id == thesis.thesis_id
+        ]
+        quality_metrics = summarize_live_quality_inputs(
+            records,
+            expected_slippage_bps=self._expected_slippage_bps(),
+            thesis_decay_rate=self.decay_monitor.thesis_decay_rate(thesis.thesis_id),
+        )
+        gate = evaluate_live_quality_gate(
+            thesis.thesis_id,
+            quality_metrics,
+            thresholds=self._live_quality_thresholds,
+        )
+        decision = decide_thesis_disable_policy(gate)
+        apply_thesis_disable_decision(self.thesis_manager, decision)
+        self._log_live_quality_decision(
+            thesis_id=thesis.thesis_id,
+            action=decision.action,
+            risk_scale=decision.risk_scale,
+            reason_codes=list(gate.reason_codes),
+            metrics=gate.metrics,
+        )
+        if decision.action == "disable" and self._kill_on_live_quality_disable:
+            self.kill_switch.check_live_quality_gate(
+                {
+                    "action": gate.action,
+                    "risk_scale": gate.risk_scale,
+                    "reason_codes": list(gate.reason_codes),
+                }
+            )
+
+        if outcome.trade_intent.action == "reject":
+            return outcome
+
+        thesis_state = self.thesis_manager.get_state(thesis.thesis_id)
+        if thesis_state and thesis_state.state in {"disabled", "paused"}:
+            return replace(
+                outcome,
+                trade_intent=outcome.trade_intent.model_copy(
+                    update={
+                        "action": "reject",
+                        "side": "flat",
+                        "size_fraction": 0.0,
+                        "confidence_band": "none",
+                        "reasons_against": [
+                            *list(outcome.trade_intent.reasons_against),
+                            f"thesis_state_{thesis_state.state}",
+                        ],
+                    }
+                ),
+            )
+        if thesis_state and thesis_state.state == "degraded":
+            return replace(
+                outcome,
+                trade_intent=outcome.trade_intent.model_copy(
+                    update={
+                        "size_fraction": float(outcome.trade_intent.size_fraction)
+                        * float(thesis_state.size_scalar),
+                        "reasons_against": [
+                            *list(outcome.trade_intent.reasons_against),
+                            f"thesis_live_quality_downscaled_{thesis_state.size_scalar:.3f}",
+                        ],
+                    }
+                ),
+            )
+        return outcome
+
+    def _build_portfolio_thesis_intent(
+        self,
+        *,
+        outcome: DecisionOutcome,
+    ) -> Any | None:
+        if not outcome.ranked_matches:
+            return None
+
+        thesis = outcome.ranked_matches[0].thesis
+        family = thesis.event_family or thesis.primary_event_id
+        portfolio_state = outcome.context.portfolio_state
+        available_balance = float(portfolio_state.get("available_balance", 0.0))
+        max_notional_fraction = float(
+            self.strategy_runtime.get("max_notional_fraction", 0.10) or 0.10
+        )
+        raw_notional = (
+            available_balance * max_notional_fraction * float(outcome.trade_intent.size_fraction)
+        )
+        ev_fields_present = any(
+            abs(float(value)) > 1e-12
+            for value in (
+                outcome.trade_intent.expected_net_edge_bps,
+                outcome.trade_intent.expected_downside_bps,
+                outcome.trade_intent.expected_net_pnl_bps,
+            )
+        )
+        return self._portfolio_thesis_intent_cls(
+            thesis_id=outcome.trade_intent.thesis_id,
+            symbol=outcome.trade_intent.symbol,
+            family=family,
+            overlap_group_id=str(thesis.overlap_group_id or ""),
+            requested_notional=raw_notional,
+            support_score=float(outcome.trade_intent.support_score),
+            expected_net_edge_bps=(
+                float(outcome.trade_intent.expected_net_edge_bps) if ev_fields_present else None
+            ),
+            expected_downside_bps=(
+                float(outcome.trade_intent.expected_downside_bps) if ev_fields_present else None
+            ),
+            fill_probability=(
+                float(outcome.trade_intent.fill_probability) if ev_fields_present else None
+            ),
+            edge_confidence=(
+                float(outcome.trade_intent.edge_confidence) if ev_fields_present else None
+            ),
+            execution_quality=float(portfolio_state.get("execution_quality_multiplier", 1.0)),
+            overlap_score=float(outcome.trade_intent.metadata.get("overlap_score", 0.0) or 0.0),
+            incubation_state=(
+                "live"
+                if self.incubation_ledger.is_graduated(outcome.trade_intent.thesis_id)
+                else "incubating"
+            ),
+        )
+
+    async def _submit_trade_intent_batch_if_enabled(
+        self,
+        *,
+        outcomes: List[DecisionOutcome],
+        market_state: Dict[str, Any],
+    ) -> Dict[str, Dict[str, Any] | None]:
+        if not outcomes:
+            return {}
+        if self.runtime_mode != "trading" or not bool(self.strategy_runtime.get("auto_submit", False)):
+            return {
+                str(outcome.trade_intent.thesis_id): await self._submit_trade_intent_if_enabled(
+                    outcome=outcome,
+                    market_state=market_state,
+                )
+                for outcome in outcomes
+            }
+
+        portfolio_inputs: List[tuple[DecisionOutcome, Any]] = []
+        for outcome in outcomes:
+            portfolio_intent = self._build_portfolio_thesis_intent(
+                                outcome=outcome,
+            )
+            if portfolio_intent is not None:
+                portfolio_inputs.append((outcome, portfolio_intent))
+
+        portfolio_by_thesis: Dict[str, Any] = {}
+        if portfolio_inputs:
+            portfolio_state = outcomes[0].context.portfolio_state
+            decisions = self._portfolio_engine.decide(
+                [item[1] for item in portfolio_inputs],
+                active_overlap_groups=self._get_active_overlap_groups(),
+                family_exposures=dict(portfolio_state.get("family_exposures", {})),
+                symbol_exposures=dict(portfolio_state.get("symbol_exposures", {})),
+                active_cluster_counts=dict(portfolio_state.get("active_cluster_counts", {})),
+            )
+            portfolio_by_thesis = {
+                str(decision.thesis_id): decision for decision in decisions
+            }
+
+        results: Dict[str, Dict[str, Any] | None] = {}
+        for outcome in outcomes:
+            thesis_id = str(outcome.trade_intent.thesis_id)
+            results[thesis_id] = await self._submit_trade_intent_if_enabled(
+                outcome=outcome,
+                market_state=market_state,
+                portfolio_decision=portfolio_by_thesis.get(thesis_id),
+            )
+        return results
+
     def _non_tradable_market_state_outcome(
         self,
         *,
@@ -1371,6 +1709,7 @@ class LiveEngineRunner:
         *,
         outcome: DecisionOutcome,
         market_state: Dict[str, Any],
+        portfolio_decision: Any | None = None,
     ) -> Dict[str, Any] | None:
         if self.runtime_mode != "trading":
             return None
@@ -1397,61 +1736,34 @@ class LiveEngineRunner:
                 "blocked_by": "missing_venue_rules",
                 "symbol": str(outcome.trade_intent.symbol).upper(),
             }
-        # Phase 5: Portfolio decision engine — overlap/family/cluster gating + risk multipliers
-        from project.portfolio.engine import ThesisIntent as PortfolioThesisIntent
-
-        top_match = outcome.ranked_matches[0]
-        family = top_match.thesis.event_family or top_match.thesis.primary_event_id
+        thesis = self._find_thesis_for_outcome(outcome)
+        family = (
+            (thesis.event_family or thesis.primary_event_id)
+            if thesis is not None
+            else str(outcome.trade_intent.metadata.get("compat_thesis_event_family", "") or "")
+        )
         mid_price = float(market_state.get("mid_price", 0.0))
         portfolio_state = outcome.context.portfolio_state
         available_balance = float(portfolio_state.get("available_balance", 0.0))
-        _max_notional_fraction = float(
+        max_notional_fraction = float(
             self.strategy_runtime.get("max_notional_fraction", 0.10) or 0.10
         )
         raw_notional = (
-            available_balance * _max_notional_fraction * float(outcome.trade_intent.size_fraction)
+            available_balance * max_notional_fraction * float(outcome.trade_intent.size_fraction)
         )
-        overlap_group_id = top_match.thesis.overlap_group_id or ""
-        _is_graduated = self.incubation_ledger.is_graduated(outcome.trade_intent.thesis_id)
-        ev_fields_present = any(
-            abs(float(value)) > 1e-12
-            for value in (
-                outcome.trade_intent.expected_net_edge_bps,
-                outcome.trade_intent.expected_downside_bps,
-                outcome.trade_intent.expected_net_pnl_bps,
+        if portfolio_decision is None and outcome.ranked_matches:
+            portfolio_inputs = self._build_portfolio_thesis_intent(
+                outcome=outcome,
             )
-        )
-        thesis_intent = PortfolioThesisIntent(
-            thesis_id=outcome.trade_intent.thesis_id,
-            symbol=outcome.trade_intent.symbol,
-            family=family,
-            overlap_group_id=overlap_group_id,
-            requested_notional=raw_notional,
-            support_score=float(outcome.trade_intent.support_score),
-            expected_net_edge_bps=(
-                float(outcome.trade_intent.expected_net_edge_bps) if ev_fields_present else None
-            ),
-            expected_downside_bps=(
-                float(outcome.trade_intent.expected_downside_bps) if ev_fields_present else None
-            ),
-            fill_probability=(
-                float(outcome.trade_intent.fill_probability) if ev_fields_present else None
-            ),
-            edge_confidence=(
-                float(outcome.trade_intent.edge_confidence) if ev_fields_present else None
-            ),
-            execution_quality=float(portfolio_state.get("execution_quality_multiplier", 1.0)),
-            overlap_score=float(outcome.trade_intent.metadata.get("overlap_score", 0.0) or 0.0),
-            incubation_state="live" if _is_graduated else "incubating",
-        )
-        portfolio_decisions = self._portfolio_engine.decide(
-            [thesis_intent],
-            active_overlap_groups=self._get_active_overlap_groups(),
-            family_exposures=dict(portfolio_state.get("family_exposures", {})),
-            symbol_exposures=dict(portfolio_state.get("symbol_exposures", {})),
-            active_cluster_counts=dict(portfolio_state.get("active_cluster_counts", {})),
-        )
-        portfolio_decision = portfolio_decisions[0] if portfolio_decisions else None
+            if portfolio_inputs is not None:
+                portfolio_decisions = self._portfolio_engine.decide(
+                    [portfolio_inputs],
+                    active_overlap_groups=self._get_active_overlap_groups(),
+                    family_exposures=dict(portfolio_state.get("family_exposures", {})),
+                    symbol_exposures=dict(portfolio_state.get("symbol_exposures", {})),
+                    active_cluster_counts=dict(portfolio_state.get("active_cluster_counts", {})),
+                )
+                portfolio_decision = portfolio_decisions[0] if portfolio_decisions else None
         if portfolio_decision is not None and not portfolio_decision.is_allocated:
             _LOG.info(
                 "Portfolio engine blocked %s: %s",
@@ -1475,24 +1787,21 @@ class LiveEngineRunner:
             market_state=market_state
             | {
                 "expected_return_bps": float(
-                    outcome.ranked_matches[0].thesis.evidence.estimate_bps or 0.0
+                    thesis.evidence.estimate_bps if thesis is not None else 0.0
                 ),
                 "expected_adverse_bps": float(
                     abs(
-                        outcome.ranked_matches[0].thesis.expected_response.get("stop_value", 0.0)
-                        or 0.0
+                        (thesis.expected_response.get("stop_value", 0.0) if thesis is not None else 0.0)
                     )
                     * 10_000.0
                 ),
                 "expected_net_edge_bps": float(
-                    outcome.ranked_matches[0].thesis.evidence.net_expectancy_bps or 0.0
+                    thesis.evidence.net_expectancy_bps if thesis is not None else 0.0
                 ),
                 "engine_allocated_notional": engine_allocated_notional,
             },
             portfolio_state=portfolio_state,
-            max_notional_fraction=float(
-                self.strategy_runtime.get("max_notional_fraction", 0.10) or 0.10
-            ),
+            max_notional_fraction=max_notional_fraction,
             venue_rules=venue_rules,
         )
 
@@ -1519,12 +1828,8 @@ class LiveEngineRunner:
         # Portfolio Orchestration: Pass active overlap groups to risk enforcer
         active_overlap_groups = self._get_active_overlap_groups()
         thesis_overlap_group = ""
-        if self._thesis_store:
-            matching = [
-                t for t in self._thesis_store.all() if t.thesis_id == outcome.trade_intent.thesis_id
-            ]
-            if matching:
-                thesis_overlap_group = matching[0].overlap_group_id
+        if thesis is not None:
+            thesis_overlap_group = thesis.overlap_group_id
 
         effective_notional, breach = self.risk_enforcer.check_and_apply_caps(
             thesis_id=outcome.trade_intent.thesis_id,
@@ -1679,101 +1984,21 @@ class LiveEngineRunner:
                 ),
             )
 
-        # Sprint 6: Decay Monitor check
-        if outcome.ranked_matches:
-            top_thesis = outcome.ranked_matches[0].thesis
-            realized = self._get_realized_metrics_for_thesis(top_thesis.thesis_id)
-            # Expected metrics at promotion time. hit_rate comes from the thesis evidence
-            # if available; falls back to 0.5 only when no empirical value was recorded.
-            expected_hit_rate = float(
-                getattr(top_thesis.evidence, "hit_rate", None)
-                or (top_thesis.evidence.net_expectancy_bps > 0 and 0.55)  # directional prior
-                or 0.5
-            )
-            expected = {
-                "net_expectancy_bps": float(top_thesis.evidence.net_expectancy_bps or 0.0),
-                "hit_rate": expected_hit_rate,
-            }
-            health = self.decay_monitor.assess_thesis_health(
-                top_thesis.thesis_id, realized, expected
-            )
-            self.thesis_manager.update_health(
-                top_thesis.thesis_id, health.health_state, health.actions_taken
-            )
-            records = [
-                item
-                for item in self.order_manager.execution_attribution
-                if item.thesis_id == top_thesis.thesis_id
-            ]
-            quality_metrics = summarize_live_quality_inputs(
-                records,
-                expected_slippage_bps=float(
-                    self.strategy_runtime.get("expected_slippage_bps", 0.0) or 0.0
-                ),
-                thesis_decay_rate=self.decay_monitor.thesis_decay_rate(top_thesis.thesis_id),
-            )
-            gate = evaluate_live_quality_gate(top_thesis.thesis_id, quality_metrics)
-            decision = decide_thesis_disable_policy(gate)
-            apply_thesis_disable_decision(self.thesis_manager, decision)
-            if decision.action == "disable" and bool(
-                self.strategy_runtime.get("kill_on_live_quality_disable", False)
-            ):
-                self.kill_switch.check_live_quality_gate(
-                    {
-                        "action": gate.action,
-                        "risk_scale": gate.risk_scale,
-                        "reason_codes": list(gate.reason_codes),
-                    }
-                )
+        candidate_outcomes = [
+            self._apply_runtime_quality_state(item)
+            for item in self._candidate_decision_outcomes(outcome)
+        ]
+        oms_results_by_thesis = await self._submit_trade_intent_batch_if_enabled(
+            outcomes=[item for item in candidate_outcomes if item.trade_intent.action != "reject"],
+            market_state=market_state,
+        )
 
-        # Sprint 6: Risk Enforcer check
-        oms_result: Dict[str, Any] | None = None
-        if outcome.trade_intent.action != "reject":
-            thesis_id = outcome.trade_intent.thesis_id
-            thesis_state = self.thesis_manager.get_state(thesis_id)
-            if thesis_state and thesis_state.state in ("disabled", "paused"):
-                _LOG.warning(
-                    "Rejecting trade intent for %s: thesis state is %s",
-                    thesis_id,
-                    thesis_state.state,
-                )
-                rejected_intent = outcome.trade_intent.model_copy(
-                    update={
-                        "action": "reject",
-                        "side": "flat",
-                        "size_fraction": 0.0,
-                        "confidence_band": "none",
-                        "reasons_against": [
-                            *list(outcome.trade_intent.reasons_against),
-                            f"thesis_state_{thesis_state.state}",
-                        ],
-                    }
-                )
-                outcome = replace(outcome, trade_intent=rejected_intent)
-            elif thesis_state and thesis_state.state == "degraded":
-                scaled_intent = outcome.trade_intent.model_copy(
-                    update={
-                        "size_fraction": float(outcome.trade_intent.size_fraction)
-                        * float(thesis_state.size_scalar),
-                        "reasons_against": [
-                            *list(outcome.trade_intent.reasons_against),
-                            f"thesis_live_quality_downscaled_{thesis_state.size_scalar:.3f}",
-                        ],
-                    }
-                )
-                outcome = replace(outcome, trade_intent=scaled_intent)
-                oms_result = await self._submit_trade_intent_if_enabled(
-                    outcome=outcome, market_state=market_state
-                )
-            else:
-                # Apply risk caps
-                oms_result = await self._submit_trade_intent_if_enabled(
-                    outcome=outcome, market_state=market_state
-                )
-
-        self._decision_outcomes.append(outcome)
+        for candidate in candidate_outcomes:
+            thesis_id = str(candidate.trade_intent.thesis_id)
+            oms_result = oms_results_by_thesis.get(thesis_id)
+            self._decision_outcomes.append(candidate)
+            self._record_live_decision_episode(candidate, oms_result=oms_result)
         self._decision_outcomes = self._decision_outcomes[-100:]
-        self._record_live_decision_episode(outcome, oms_result=oms_result)
 
         self.persist_runtime_metrics_snapshot()
 

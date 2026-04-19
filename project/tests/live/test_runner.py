@@ -109,6 +109,9 @@ def test_live_runner_exposes_persistent_session_metadata(tmp_path) -> None:
     assert runner.session_metadata["runtime_metrics_snapshot_path"] == str(metrics_path)
     assert runner.session_metadata["runtime_mode"] == "monitor_only"
     assert runner.session_metadata["strategy_runtime_implemented"] is False
+    assert runner.session_metadata["execution_model"] == {}
+    assert runner.session_metadata["live_quality_gate"]["kill_on_disable"] is False
+    assert runner.session_metadata["portfolio_candidate_batch_size"] == 5
     assert runner.session_metadata["event_detection_adapter"] == "governed_runtime_core"
 
 
@@ -1689,6 +1692,164 @@ def test_live_runner_auto_submit_skips_order_planning_when_market_state_incomple
         "blocked_by": "market_state_not_tradable",
         "reasons": ["missing_book_quantities"],
     }
+
+
+def test_live_runner_batch_submission_reuses_one_portfolio_engine_call() -> None:
+    from project.portfolio.engine import PortfolioCapitalDecision
+
+    class _RecordingPortfolioEngine:
+        def __init__(self) -> None:
+            self.calls = []
+
+        def decide(self, intents, **kwargs):
+            self.calls.append((list(intents), dict(kwargs)))
+            return [
+                PortfolioCapitalDecision(
+                    thesis_id=intent.thesis_id,
+                    symbol=intent.symbol,
+                    family=intent.family,
+                    overlap_group_id=intent.overlap_group_id,
+                    requested_notional=float(intent.requested_notional),
+                    allocated_notional=float(intent.requested_notional) * 0.5,
+                    risk_multiplier=0.5,
+                    cluster_multiplier=1.0,
+                    correlation_adjustment=1.0,
+                    incubation_state=str(intent.incubation_state),
+                    admission=SimpleNamespace(admissible=True, reason=""),
+                    reasons=("risk_mult=0.500",),
+                )
+                for intent in intents
+            ]
+
+    runner = LiveEngineRunner(
+        ["btcusdt"],
+        data_manager=_DummyDataManager(),
+        runtime_mode="trading",
+        strategy_runtime={
+            "implemented": True,
+            "auto_submit": True,
+            "allowed_actions": ["probe", "trade_small"],
+        },
+    )
+    runner._portfolio_engine = _RecordingPortfolioEngine()
+
+    thesis_one = SimpleNamespace(
+        thesis_id="thesis_1",
+        event_family="VOL_SHOCK",
+        primary_event_id="VOL_SHOCK",
+        overlap_group_id="group_1",
+    )
+    thesis_two = SimpleNamespace(
+        thesis_id="thesis_2",
+        event_family="VOL_SHOCK",
+        primary_event_id="VOL_SHOCK",
+        overlap_group_id="group_2",
+    )
+    context = SimpleNamespace(
+        portfolio_state={
+            "available_balance": 1000.0,
+            "family_exposures": {},
+            "symbol_exposures": {},
+            "active_cluster_counts": {},
+            "execution_quality_multiplier": 1.0,
+        }
+    )
+    outcomes = [
+        SimpleNamespace(
+            context=context,
+            ranked_matches=[SimpleNamespace(thesis=thesis_one)],
+            trade_intent=TradeIntent(
+                action="probe",
+                symbol="BTCUSDT",
+                side="buy",
+                thesis_id="thesis_1",
+                size_fraction=0.2,
+                support_score=0.8,
+                expected_net_edge_bps=8.0,
+                expected_downside_bps=4.0,
+                expected_net_pnl_bps=4.0,
+                fill_probability=0.7,
+                edge_confidence=0.8,
+            ),
+        ),
+        SimpleNamespace(
+            context=context,
+            ranked_matches=[SimpleNamespace(thesis=thesis_two)],
+            trade_intent=TradeIntent(
+                action="trade_small",
+                symbol="BTCUSDT",
+                side="buy",
+                thesis_id="thesis_2",
+                size_fraction=0.1,
+                support_score=0.7,
+                expected_net_edge_bps=6.0,
+                expected_downside_bps=3.0,
+                expected_net_pnl_bps=3.0,
+                fill_probability=0.6,
+                edge_confidence=0.7,
+            ),
+        ),
+    ]
+
+    submitted = []
+
+    async def _submit(*, outcome, market_state, portfolio_decision=None):
+        submitted.append((outcome.trade_intent.thesis_id, portfolio_decision))
+        return {
+            "accepted": True,
+            "client_order_id": f"order::{outcome.trade_intent.thesis_id}",
+            "allocated_notional": float(portfolio_decision.allocated_notional),
+        }
+
+    runner._submit_trade_intent_if_enabled = _submit  # type: ignore[method-assign]
+
+    results = asyncio.run(
+        runner._submit_trade_intent_batch_if_enabled(
+            outcomes=outcomes,
+            market_state={
+                "market_state_complete": True,
+                "is_execution_tradable": True,
+                "mid_price": 100.0,
+            },
+        )
+    )
+
+    assert len(runner._portfolio_engine.calls) == 1
+    assert len(runner._portfolio_engine.calls[0][0]) == 2
+    assert [item[0] for item in submitted] == ["thesis_1", "thesis_2"]
+    assert all(item[1] is not None for item in submitted)
+    assert results["thesis_1"]["accepted"] is True
+    assert results["thesis_2"]["accepted"] is True
+
+
+def test_live_runner_persists_live_quality_operator_actions(tmp_path) -> None:
+    audit_log_path = tmp_path / "live_quality_audit.jsonl"
+    runner = LiveEngineRunner(
+        ["btcusdt"],
+        data_manager=_DummyDataManager(),
+        strategy_runtime={
+            "audit_log_path": str(audit_log_path),
+        },
+    )
+
+    runner._log_live_quality_decision(
+        thesis_id="thesis_1",
+        action="disable",
+        risk_scale=0.0,
+        reason_codes=["slippage_drift_disable", "edge_divergence_disable"],
+        metrics={"sample_count": 7.0, "slippage_drift_bps": 18.0},
+    )
+
+    lines = [json.loads(line) for line in audit_log_path.read_text(encoding="utf-8").splitlines()]
+    assert len(lines) == 1
+    assert lines[0]["event_type"] == "operator_action"
+    assert lines[0]["action"] == "live_quality_disable"
+    assert lines[0]["target"] == "thesis_1"
+    assert lines[0]["metadata"]["risk_scale"] == 0.0
+    assert lines[0]["metadata"]["reason_codes"] == [
+        "slippage_drift_disable",
+        "edge_divergence_disable",
+    ]
 
 
 def test_live_runner_rest_market_feature_total_outage_is_warning_and_clears_state(caplog) -> None:
