@@ -19,7 +19,12 @@ import argparse
 import json
 import sys
 
-DATA_ROOT = get_data_root()
+def __getattr__(name):
+    if name == "DATA_ROOT":
+        from project.core.config import get_data_root
+        return get_data_root()
+    raise AttributeError(f"module {__name__} has no attribute {name}")
+
 
 
 def _load_manifest(run_id: str) -> dict:

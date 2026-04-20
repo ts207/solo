@@ -24,7 +24,12 @@ import numpy as np
 import pandas as pd
 from project.core.feature_schema import feature_dataset_dir_name
 
-DATA_ROOT = get_data_root()
+def __getattr__(name):
+    if name == "DATA_ROOT":
+        from project.core.config import get_data_root
+        return get_data_root()
+    raise AttributeError(f"module {__name__} has no attribute {name}")
+
 
 MONITOR_FEATURES = [
     "atr_14",

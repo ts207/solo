@@ -35,7 +35,7 @@ Count: **61**
 - `BAND_BREAK` — band `research_trigger`, version `v1`, maturity `specialized`, runtime `False`, promotion `False`
 - `BASIS_DISLOC` — band `deployable_core`, version `v2`, maturity `production`, runtime `True`, promotion `True`
 - `BETA_SPIKE_EVENT` — band `research_trigger`, version `v2`, maturity `specialized`, runtime `False`, promotion `True`
-- `BREAKOUT_TRIGGER` — band `research_trigger`, version `v1`, maturity `specialized`, runtime `False`, promotion `False`
+- `BREAKOUT_TRIGGER` — band `research_trigger`, version `v2`, maturity `specialized`, runtime `False`, promotion `False`
 - `CHOP_TO_TREND_SHIFT` — band `research_trigger`, version `v1`, maturity `specialized`, runtime `False`, promotion `False`
 - `CLIMAX_VOLUME_BAR` — band `research_trigger`, version `v1`, maturity `specialized`, runtime `False`, promotion `False`
 - `CORRELATION_BREAKDOWN_EVENT` — band `research_trigger`, version `v2`, maturity `specialized`, runtime `False`, promotion `True`
@@ -66,7 +66,7 @@ Count: **61**
 - `LIQUIDITY_VACUUM` — band `deployable_core`, version `v2`, maturity `production`, runtime `True`, promotion `True`
 - `MOMENTUM_DIVERGENCE_TRIGGER` — band `research_trigger`, version `v1`, maturity `specialized`, runtime `False`, promotion `False`
 - `OI_FLUSH` — band `research_trigger`, version `v2`, maturity `specialized`, runtime `False`, promotion `True`
-- `OI_SPIKE_NEGATIVE` — band `research_trigger`, version `v2`, maturity `specialized`, runtime `False`, promotion `True`
+- `OI_SPIKE_NEGATIVE` — band `deployable_core`, version `v2`, maturity `specialized`, runtime `True`, promotion `True`
 - `OI_SPIKE_POSITIVE` — band `research_trigger`, version `v2`, maturity `specialized`, runtime `False`, promotion `True`
 - `ORDERFLOW_IMBALANCE_SHOCK` — band `research_trigger`, version `v1`, maturity `standard`, runtime `False`, promotion `False`
 - `OVERSHOOT_AFTER_SHOCK` — band `research_trigger`, version `v1`, maturity `specialized`, runtime `False`, promotion `False`
@@ -74,7 +74,7 @@ Count: **61**
 - `PRICE_VOL_IMBALANCE_PROXY` — band `composite_or_fragile`, version `v1`, maturity `standard`, runtime `False`, promotion `False`
 - `PULLBACK_PIVOT` — band `research_trigger`, version `v1`, maturity `specialized`, runtime `False`, promotion `False`
 - `RANGE_BREAKOUT` — band `research_trigger`, version `v1`, maturity `specialized`, runtime `False`, promotion `False`
-- `RANGE_COMPRESSION_END` — band `research_trigger`, version `v1`, maturity `specialized`, runtime `False`, promotion `False`
+- `RANGE_COMPRESSION_END` — band `research_trigger`, version `v2`, maturity `specialized`, runtime `False`, promotion `False`
 - `SLIPPAGE_SPIKE_EVENT` — band `research_trigger`, version `v1`, maturity `specialized`, runtime `False`, promotion `False`
 - `SPOT_PERP_BASIS_SHOCK` — band `deployable_core`, version `v2`, maturity `production`, runtime `True`, promotion `True`
 - `SPREAD_BLOWOUT` — band `research_trigger`, version `v1`, maturity `specialized`, runtime `False`, promotion `False`
@@ -85,8 +85,8 @@ Count: **61**
 - `TREND_DECELERATION` — band `research_trigger`, version `v1`, maturity `specialized`, runtime `False`, promotion `False`
 - `TREND_EXHAUSTION_TRIGGER` — band `research_trigger`, version `v1`, maturity `specialized`, runtime `False`, promotion `False`
 - `TREND_TO_CHOP_SHIFT` — band `research_trigger`, version `v1`, maturity `specialized`, runtime `False`, promotion `False`
-- `VOL_CLUSTER_SHIFT` — band `research_trigger`, version `v1`, maturity `specialized`, runtime `False`, promotion `False`
-- `VOL_REGIME_SHIFT_EVENT` — band `research_trigger`, version `v1`, maturity `specialized`, runtime `False`, promotion `False`
+- `VOL_CLUSTER_SHIFT` — band `research_trigger`, version `v2`, maturity `specialized`, runtime `False`, promotion `False`
+- `VOL_REGIME_SHIFT_EVENT` — band `research_trigger`, version `v2`, maturity `specialized`, runtime `False`, promotion `False`
 - `VOL_RELAXATION_START` — band `research_trigger`, version `v2`, maturity `specialized`, runtime `False`, promotion `True`
 - `VOL_SHOCK` — band `deployable_core`, version `v2`, maturity `production`, runtime `True`, promotion `True`
 - `VOL_SPIKE` — band `deployable_core`, version `v2`, maturity `production`, runtime `True`, promotion `True`

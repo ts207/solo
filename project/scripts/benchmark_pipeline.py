@@ -12,7 +12,11 @@ from typing import Dict, List
 
 from project.core.exceptions import DataIntegrityError
 
-DATA_ROOT = get_data_root()
+
+def __getattr__(name: str):
+    if name == "DATA_ROOT":
+        return get_data_root()
+    raise AttributeError(f"module {__name__} has no attribute {name}")
 
 
 def _load_manifest(path: Path) -> Dict[str, object]:

@@ -62,17 +62,17 @@
   {
     "detector_band": "research_trigger",
     "event_name": "BREAKOUT_TRIGGER",
-    "event_version": "v1",
+    "event_version": "v2",
     "maturity": "specialized",
-    "migration_bucket": "research_perimeter",
-    "owner": "workstream_b",
+    "migration_bucket": "promotion_eligible_middle_layer",
+    "owner": "workstream_c",
     "planning_default": true,
     "primary_anchor_eligible": false,
     "promotion_eligible": false,
-    "rationale": "legacy research trigger still available for planning but not promoted to v2 yet",
+    "rationale": "v2 research trigger retained on the governed migration path",
     "role": "trigger",
     "runtime_default": false,
-    "target_state": "keep_v1"
+    "target_state": "migrate_to_v2"
   },
   {
     "detector_band": "research_trigger",
@@ -570,18 +570,18 @@
     "target_state": "migrate_to_v2"
   },
   {
-    "detector_band": "research_trigger",
+    "detector_band": "deployable_core",
     "event_name": "OI_SPIKE_NEGATIVE",
     "event_version": "v2",
     "maturity": "specialized",
-    "migration_bucket": "promotion_eligible_middle_layer",
+    "migration_bucket": "runtime_core_first",
     "owner": "workstream_c",
     "planning_default": true,
     "primary_anchor_eligible": true,
     "promotion_eligible": true,
-    "rationale": "promotion-eligible detector; keep on the governed v2 migration path",
+    "rationale": "deployable core runtime detector; keep fully v2 and contract-complete",
     "role": "trigger",
-    "runtime_default": false,
+    "runtime_default": true,
     "target_state": "migrate_to_v2"
   },
   {
@@ -692,17 +692,17 @@
   {
     "detector_band": "research_trigger",
     "event_name": "RANGE_COMPRESSION_END",
-    "event_version": "v1",
+    "event_version": "v2",
     "maturity": "specialized",
-    "migration_bucket": "research_perimeter",
-    "owner": "workstream_b",
+    "migration_bucket": "promotion_eligible_middle_layer",
+    "owner": "workstream_c",
     "planning_default": true,
     "primary_anchor_eligible": false,
     "promotion_eligible": false,
-    "rationale": "legacy research trigger still available for planning but not promoted to v2 yet",
+    "rationale": "v2 research trigger retained on the governed migration path",
     "role": "trigger",
     "runtime_default": false,
-    "target_state": "keep_v1"
+    "target_state": "migrate_to_v2"
   },
   {
     "detector_band": "context_only",
@@ -962,32 +962,32 @@
   {
     "detector_band": "research_trigger",
     "event_name": "VOL_CLUSTER_SHIFT",
-    "event_version": "v1",
+    "event_version": "v2",
     "maturity": "specialized",
-    "migration_bucket": "research_perimeter",
-    "owner": "workstream_b",
+    "migration_bucket": "promotion_eligible_middle_layer",
+    "owner": "workstream_c",
     "planning_default": true,
     "primary_anchor_eligible": false,
     "promotion_eligible": false,
-    "rationale": "legacy research trigger still available for planning but not promoted to v2 yet",
+    "rationale": "v2 research trigger retained on the governed migration path",
     "role": "trigger",
     "runtime_default": false,
-    "target_state": "keep_v1"
+    "target_state": "migrate_to_v2"
   },
   {
     "detector_band": "research_trigger",
     "event_name": "VOL_REGIME_SHIFT_EVENT",
-    "event_version": "v1",
+    "event_version": "v2",
     "maturity": "specialized",
-    "migration_bucket": "research_perimeter",
-    "owner": "workstream_b",
+    "migration_bucket": "promotion_eligible_middle_layer",
+    "owner": "workstream_c",
     "planning_default": true,
     "primary_anchor_eligible": false,
     "promotion_eligible": false,
-    "rationale": "legacy research trigger still available for planning but not promoted to v2 yet",
+    "rationale": "v2 research trigger retained on the governed migration path",
     "role": "trigger",
     "runtime_default": false,
-    "target_state": "keep_v1"
+    "target_state": "migrate_to_v2"
   },
   {
     "detector_band": "research_trigger",

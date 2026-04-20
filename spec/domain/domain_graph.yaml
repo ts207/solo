@@ -4,8 +4,8 @@ metadata:
   status: generated
   graph_role: runtime_read_model
   schema_version: 2
-  generated_at_utc: '2026-04-19T02:49:11Z'
-  spec_sources_digest: 7947159879e3130d11ccffc0dd921c2af3d6bd4cba6676fdf9c40e1187c33dbc
+  generated_at_utc: '2026-04-20T04:40:18Z'
+  spec_sources_digest: 13f8a1beabd04b2e06b4f69ff926b29745bee10ddca2cd8e323ba9b55cbbe3ab
   notes: Compiled runtime read model. Semantic nodes are normalized for direct runtime/search
     loading.
 events:
@@ -11716,23 +11716,31 @@ runtime:
     label: low
     state_id: LOW_VOL_REGIME
   searchable_event_families:
+  - BASIS_FUNDING_DISLOCATION
   - EXECUTION_FRICTION
   - FORCED_FLOW_AND_EXHAUSTION
   - INFORMATION_DESYNC
   - LIQUIDITY_DISLOCATION
+  - LIQUIDITY_STRESS
   - POSITIONING_EXTREMES
+  - POSITIONING_UNWIND_DELEVERAGING
   - REGIME_TRANSITION
   - STATISTICAL_DISLOCATION
   - TEMPORAL_STRUCTURE
+  - TREND_FAILURE_EXHAUSTION
   - TREND_STRUCTURE
   - VOLATILITY_TRANSITION
   searchable_state_families:
+  - BASIS_FUNDING_DISLOCATION
   - EXECUTION_FRICTION
   - LIQUIDITY_DISLOCATION
+  - LIQUIDITY_STRESS
   - POSITIONING_EXTREMES
+  - POSITIONING_UNWIND_DELEVERAGING
   - REGIME_TRANSITION
   - STATISTICAL_DISLOCATION
   - TEMPORAL_STRUCTURE
+  - TREND_FAILURE_EXHAUSTION
   - TREND_STRUCTURE
   - VOLATILITY_TRANSITION
   stress_scenarios:

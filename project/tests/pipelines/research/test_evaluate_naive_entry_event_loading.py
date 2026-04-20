@@ -8,7 +8,8 @@ import project.research.evaluate_naive_entry as evaluate_naive_entry
 
 
 def test_load_phase1_events_uses_registry_spec_paths_and_subtype_filter(monkeypatch, tmp_path):
-    monkeypatch.setattr(evaluate_naive_entry, "DATA_ROOT", tmp_path)
+    monkeypatch.setattr(evaluate_naive_entry, "DATA_ROOT", tmp_path, raising=False)
+    monkeypatch.setenv("BACKTEST_DATA_ROOT", str(tmp_path))
 
     run_id = "r_eval"
     events_path = (
@@ -39,7 +40,8 @@ def test_load_phase1_events_uses_registry_spec_paths_and_subtype_filter(monkeypa
 
 
 def test_load_phase2_candidates_collects_search_engine_bridge_pass_rows(monkeypatch, tmp_path):
-    monkeypatch.setattr(evaluate_naive_entry, "DATA_ROOT", tmp_path)
+    monkeypatch.setattr(evaluate_naive_entry, "DATA_ROOT", tmp_path, raising=False)
+    monkeypatch.setenv("BACKTEST_DATA_ROOT", str(tmp_path))
 
     run_id = "r_eval_phase2"
     search_dir = tmp_path / "reports" / "phase2" / run_id / "search_engine"
@@ -69,7 +71,8 @@ def test_load_phase2_candidates_collects_search_engine_bridge_pass_rows(monkeypa
 
 
 def test_main_evaluates_bridge_pass_phase2_candidates(monkeypatch, tmp_path):
-    monkeypatch.setattr(evaluate_naive_entry, "DATA_ROOT", tmp_path)
+    monkeypatch.setattr(evaluate_naive_entry, "DATA_ROOT", tmp_path, raising=False)
+    monkeypatch.setenv("BACKTEST_DATA_ROOT", str(tmp_path))
 
     run_id = "r_eval_main"
     search_dir = tmp_path / "reports" / "phase2" / run_id / "search_engine"

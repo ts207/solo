@@ -6,7 +6,7 @@
 | BAND_BREAK | v1 | research_trigger | trigger | specialized | False | False | False | False | not_supported | legacy_event_id |
 | BASIS_DISLOC | v2 | deployable_core | trigger | production | True | True | True | True | event_timestamp_plus_cooldown_bars | symbol_plus_cluster_id |
 | BETA_SPIKE_EVENT | v2 | research_trigger | trigger | specialized | False | True | True | True | event_timestamp_plus_cooldown_bars | symbol_plus_cluster_id |
-| BREAKOUT_TRIGGER | v1 | research_trigger | trigger | specialized | False | False | False | False | not_supported | legacy_event_id |
+| BREAKOUT_TRIGGER | v2 | research_trigger | trigger | specialized | False | False | True | True | event_timestamp_plus_cooldown_bars | symbol_plus_cluster_id |
 | CHOP_TO_TREND_SHIFT | v1 | research_trigger | trigger | specialized | False | False | False | False | not_supported | legacy_event_id |
 | CLIMAX_VOLUME_BAR | v1 | research_trigger | trigger | specialized | False | False | False | False | not_supported | legacy_event_id |
 | COPULA_PAIRS_TRADING | v1 | composite_or_fragile | research_only | standard | False | False | False | False | not_supported | legacy_event_id |
@@ -40,7 +40,7 @@
 | LIQUIDITY_VACUUM | v2 | deployable_core | trigger | production | True | True | True | True | event_timestamp_plus_cooldown_bars | symbol_plus_cluster_id |
 | MOMENTUM_DIVERGENCE_TRIGGER | v1 | research_trigger | trigger | specialized | False | False | False | False | not_supported | legacy_event_id |
 | OI_FLUSH | v2 | research_trigger | trigger | specialized | False | True | True | True | event_timestamp_plus_cooldown_bars | symbol_plus_cluster_id |
-| OI_SPIKE_NEGATIVE | v2 | research_trigger | trigger | specialized | False | True | True | True | event_timestamp_plus_cooldown_bars | symbol_plus_cluster_id |
+| OI_SPIKE_NEGATIVE | v2 | deployable_core | trigger | specialized | True | True | True | True | event_timestamp_plus_cooldown_bars | symbol_plus_cluster_id |
 | OI_SPIKE_POSITIVE | v2 | research_trigger | trigger | specialized | False | True | True | True | event_timestamp_plus_cooldown_bars | symbol_plus_cluster_id |
 | ORDERFLOW_IMBALANCE_SHOCK | v1 | research_trigger | trigger | standard | False | False | False | False | not_supported | legacy_event_id |
 | OVERSHOOT_AFTER_SHOCK | v1 | research_trigger | trigger | specialized | False | False | False | False | not_supported | legacy_event_id |
@@ -48,7 +48,7 @@
 | PRICE_VOL_IMBALANCE_PROXY | v1 | composite_or_fragile | trigger | standard | False | False | False | False | not_supported | legacy_event_id |
 | PULLBACK_PIVOT | v1 | research_trigger | trigger | specialized | False | False | False | False | not_supported | legacy_event_id |
 | RANGE_BREAKOUT | v1 | research_trigger | trigger | specialized | False | False | False | False | not_supported | legacy_event_id |
-| RANGE_COMPRESSION_END | v1 | research_trigger | trigger | specialized | False | False | False | False | not_supported | legacy_event_id |
+| RANGE_COMPRESSION_END | v2 | research_trigger | trigger | specialized | False | False | True | True | event_timestamp_plus_cooldown_bars | symbol_plus_cluster_id |
 | SCHEDULED_NEWS_WINDOW_EVENT | v1 | context_only | context | standard | False | False | False | False | not_supported | legacy_event_id |
 | SEQ_FND_EXTREME_THEN_BREAKOUT | v1 | composite_or_fragile | composite | standard | False | False | False | False | not_supported | legacy_event_id |
 | SEQ_LIQ_VACUUM_THEN_DEPTH_RECOVERY | v1 | composite_or_fragile | composite | standard | False | False | False | False | not_supported | legacy_event_id |
@@ -66,8 +66,8 @@
 | TREND_DECELERATION | v1 | research_trigger | trigger | specialized | False | False | False | False | not_supported | legacy_event_id |
 | TREND_EXHAUSTION_TRIGGER | v1 | research_trigger | trigger | specialized | False | False | False | False | not_supported | legacy_event_id |
 | TREND_TO_CHOP_SHIFT | v1 | research_trigger | trigger | specialized | False | False | False | False | not_supported | legacy_event_id |
-| VOL_CLUSTER_SHIFT | v1 | research_trigger | trigger | specialized | False | False | False | False | not_supported | legacy_event_id |
-| VOL_REGIME_SHIFT_EVENT | v1 | research_trigger | trigger | specialized | False | False | False | False | not_supported | legacy_event_id |
+| VOL_CLUSTER_SHIFT | v2 | research_trigger | trigger | specialized | False | False | True | True | event_timestamp_plus_cooldown_bars | symbol_plus_cluster_id |
+| VOL_REGIME_SHIFT_EVENT | v2 | research_trigger | trigger | specialized | False | False | True | True | event_timestamp_plus_cooldown_bars | symbol_plus_cluster_id |
 | VOL_RELAXATION_START | v2 | research_trigger | trigger | specialized | False | True | True | True | event_timestamp_plus_cooldown_bars | symbol_plus_cluster_id |
 | VOL_SHOCK | v2 | deployable_core | trigger | production | True | True | True | True | event_timestamp_plus_cooldown_bars | symbol_plus_cluster_id |
 | VOL_SPIKE | v2 | deployable_core | trigger | production | True | True | True | True | event_timestamp_plus_cooldown_bars | symbol_plus_cluster_id |

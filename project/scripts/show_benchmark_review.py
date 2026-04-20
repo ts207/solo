@@ -15,9 +15,6 @@ def get_data_root() -> Path:
     return Path(os.getenv("BACKTEST_DATA_ROOT", PROJECT_ROOT.parent / "data"))
 
 
-DATA_ROOT: Path = get_data_root()
-
-
 def find_latest_review(data_root: Path | None = None) -> Path | None:
     """Find the most recently modified benchmark review file, preferring canonical."""
     root = data_root or get_data_root()
@@ -49,16 +46,18 @@ def find_historical_reviews(matrix_id: str, limit: int = 5) -> list[Path]:
  
     matches: list[Path] = []
     for p in search_paths:
+        path_matches = []
         if p.exists():
             # Look for directories starting with matrix_id
             for d in p.iterdir():
                 if d.is_dir() and d.name.startswith(f"{matrix_id}_"):
                     review_file = d / "benchmark_review.json"
                     if review_file.exists():
-                        matches.append(review_file)
+                        path_matches.append(review_file)
+        # Sort within this priority level by mtime descending
+        path_matches.sort(key=lambda x: x.stat().st_mtime, reverse=True)
+        matches.extend(path_matches)
  
-    # Sort by mtime descending
-    matches.sort(key=lambda x: x.stat().st_mtime, reverse=True)
     return matches[:limit]
 
 

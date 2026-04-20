@@ -17,7 +17,15 @@ def rolling_z(series, window):
     return rolling_z_score(series, window)
 
 
-from project.research.phase2 import load_features as _load_features_impl
+from project.research.phase2 import (
+    load_features as _load_features_impl,
+    clear_feature_cache as _clear_feature_cache_impl,
+)
+
+
+def clear_feature_cache() -> None:
+    """Clear the global feature cache used during tests."""
+    _clear_feature_cache_impl()
 
 
 def load_features(

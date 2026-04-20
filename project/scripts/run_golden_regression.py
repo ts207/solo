@@ -10,7 +10,12 @@ from typing import Any, Dict
 from project import PROJECT_ROOT
 
 REPO_ROOT = PROJECT_ROOT.parent
-DATA_ROOT = get_data_root()
+
+def __getattr__(name):
+    if name == "DATA_ROOT":
+        from project.core.config import get_data_root
+        return get_data_root()
+    raise AttributeError(f"module {__name__} has no attribute {name}")
 
 from project.core.golden_regression import (
     collect_core_artifact_snapshot,
@@ -33,13 +38,14 @@ def _read_json(path: Path) -> Dict[str, Any]:
 
 
 def main() -> int:
+    data_root_default = get_data_root()
     parser = argparse.ArgumentParser(
         description="Build and compare golden-run snapshots for core pipeline artifacts."
     )
     parser.add_argument("--run_id", required=True)
     parser.add_argument(
         "--data_root",
-        default=str(DATA_ROOT),
+        default=str(data_root_default),
         help="Data root path (default: BACKTEST_DATA_ROOT or repo/data).",
     )
     parser.add_argument(

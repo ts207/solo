@@ -39,6 +39,7 @@ def test_benchmark_matrix_dry_run_writes_manifest(tmp_path, monkeypatch):
     )
 
     monkeypatch.setattr(module, "DATA_ROOT", data_root)
+    monkeypatch.setenv("BACKTEST_DATA_ROOT", str(data_root))
     monkeypatch.setattr(
         sys,
         "argv",
@@ -91,6 +92,7 @@ def test_benchmark_matrix_defaults_to_canonical_benchmark_root(tmp_path, monkeyp
             return datetime(2026, 1, 1, 0, 0, 0, tzinfo=timezone.utc)
 
     monkeypatch.setattr(module, "DATA_ROOT", data_root)
+    monkeypatch.setenv("BACKTEST_DATA_ROOT", str(data_root))
     monkeypatch.setattr(module, "datetime", FixedDatetime)
     monkeypatch.setattr(
         sys,
@@ -129,6 +131,7 @@ def test_benchmark_matrix_execute_records_success(tmp_path, monkeypatch):
     fake_run_all.write_text("raise SystemExit(0)\n", encoding="utf-8")
 
     monkeypatch.setattr(module, "DATA_ROOT", data_root)
+    monkeypatch.setenv("BACKTEST_DATA_ROOT", str(data_root))
 
     def fake_matrix_report(**kwargs):
         out_path = Path(kwargs["out_dir"]) / "research_run_matrix_summary.json"
@@ -244,6 +247,7 @@ def test_benchmark_matrix_execute_emits_post_run_reports(tmp_path, monkeypatch):
     fake_run_all.write_text("raise SystemExit(0)\n", encoding="utf-8")
 
     monkeypatch.setattr(module, "DATA_ROOT", data_root)
+    monkeypatch.setenv("BACKTEST_DATA_ROOT", str(data_root))
 
     def fake_matrix_report(**kwargs):
         out_path = Path(kwargs["out_dir"]) / "research_run_matrix_summary.json"
@@ -358,6 +362,7 @@ def test_benchmark_matrix_execute_failed_runs_still_emit_matrix_summary(tmp_path
     fake_run_all.write_text("raise SystemExit(1)\n", encoding="utf-8")
 
     monkeypatch.setattr(module, "DATA_ROOT", data_root)
+    monkeypatch.setenv("BACKTEST_DATA_ROOT", str(data_root))
 
     def fake_matrix_report(**kwargs):
         out_path = Path(kwargs["out_dir"]) / "research_run_matrix_summary.json"

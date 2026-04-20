@@ -297,7 +297,11 @@ def measure_detector(
     Returns a DetectorMetrics dataclass. On detection errors (e.g. missing
     required columns), classification is set to "error" and error field is set.
     """
-    event_type = detector.event_type
+    event_type = (
+        getattr(detector, "event_name", None)
+        or getattr(detector, "event_type", None)
+        or "UNKNOWN"
+    )
     tolerance = _get_tolerance_td(event_type, tolerance_minutes)
     truth_windows = _build_truth_windows(segments, event_type, symbol, tolerance)
 

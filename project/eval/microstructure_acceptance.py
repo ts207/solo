@@ -5,7 +5,11 @@ import numpy as np
 from typing import Dict, Any
 from project.spec_registry import load_concept_spec
 
-DATA_ROOT = get_data_root()
+def __getattr__(name):
+    if name == "DATA_ROOT":
+        from project.core.config import get_data_root
+        return get_data_root()
+    raise AttributeError(f"module {__name__} has no attribute {name}")
 
 from project.features.microstructure import (
     calculate_roll_spread,

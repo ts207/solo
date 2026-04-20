@@ -10,6 +10,7 @@ from project import discover, promote, validate
 
 log = logging.getLogger(__name__)
 
+@pytest.mark.slow
 @pytest.mark.integration
 class TestResearchYield:
     """

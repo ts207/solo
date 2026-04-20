@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import pytest
 from project.events.policy import DEPLOYABLE_CORE_EVENT_TYPES
 from project.tests.events.fixtures.deployable_core_replay_baseline import (
     BASELINE_PATH,
@@ -9,6 +10,7 @@ from project.tests.events.fixtures.deployable_core_replay_baseline import (
 )
 
 
+@pytest.mark.slow
 def test_deployable_core_replay_baseline_covers_runtime_core() -> None:
     baseline = load_deployable_core_replay_baseline()
     assert {case["event_name"] for case in baseline["cases"]} == DEPLOYABLE_CORE_EVENT_TYPES
@@ -16,6 +18,7 @@ def test_deployable_core_replay_baseline_covers_runtime_core() -> None:
     assert BASELINE_PATH.exists()
 
 
+@pytest.mark.slow
 def test_deployable_core_replay_baseline_matches_current_detector_outputs() -> None:
     baseline = load_deployable_core_replay_baseline()
     current = build_deployable_core_replay_baseline()
@@ -23,7 +26,8 @@ def test_deployable_core_replay_baseline_matches_current_detector_outputs() -> N
     assert compare_deployable_core_replay_baseline(baseline=baseline, current=current) == []
 
 
-def test_deployable_core_replay_baseline_reports_material_drift() -> None:
+@pytest.mark.slow
+def test_deployable_core_replay_baseline_reports_detector_drift() -> None:
     baseline = load_deployable_core_replay_baseline()
     drifted = build_deployable_core_replay_baseline()
     drifted["cases"][0]["event_count"] += 1

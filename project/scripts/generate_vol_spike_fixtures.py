@@ -15,13 +15,18 @@ from project.core.config import get_data_root
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
 log = logging.getLogger(__name__)
 
-DATA_ROOT = get_data_root()
-FIXTURES_DIR = DATA_ROOT / "reports" / "benchmarks" / "fixtures"
 
-VOL_SPIKE_SOURCES = [
-    DATA_ROOT / "reports" / "volatility_transition" / "batch4_vol" / "vol_spike_edge_events.parquet",
-    DATA_ROOT / "reports" / "volatility_transition" / "vol_spike_regime" / "vol_spike_edge_events.parquet",
-]
+def __getattr__(name: str):
+    if name == "DATA_ROOT":
+        return get_data_root()
+    if name == "FIXTURES_DIR":
+        return get_data_root() / "reports" / "benchmarks" / "fixtures"
+    if name == "VOL_SPIKE_SOURCES":
+        return [
+            get_data_root() / "reports" / "volatility_transition" / "batch4_vol" / "vol_spike_edge_events.parquet",
+            get_data_root() / "reports" / "volatility_transition" / "vol_spike_regime" / "vol_spike_edge_events.parquet",
+        ]
+    raise AttributeError(f"module {__name__} has no attribute {name}")
 
 
 def _parse_date(s: str) -> pd.Timestamp:

@@ -5,7 +5,11 @@ import pandas as pd
 import numpy as np
 import sys
 
-DATA_ROOT = get_data_root()
+def __getattr__(name):
+    if name == "DATA_ROOT":
+        from project.core.config import get_data_root
+        return get_data_root()
+    raise AttributeError(f"module {__name__} has no attribute {name}")
 
 from project.io.utils import ensure_dir, write_parquet
 from project.eval.multiplicity import benjamini_hochberg

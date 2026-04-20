@@ -42,4 +42,5 @@ def test_event_stats_subtype_filters_shared_funding_file(monkeypatch, tmp_path):
         ],
     )
     monkeypatch.setattr(compiler, "DATA_ROOT", tmp_path)
+    monkeypatch.setenv("BACKTEST_DATA_ROOT", str(tmp_path))
     stats = compiler._event_stats(run_id=run_id, event_type="FUNDING_EXTREME_ONSET")

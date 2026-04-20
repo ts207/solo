@@ -4,7 +4,11 @@ import argparse, json, logging, os, sqlite3, sys
 from pathlib import Path
 from typing import Dict, List
 
-DATA_ROOT = get_data_root()
+
+def __getattr__(name: str):
+    if name == "DATA_ROOT":
+        return get_data_root()
+    raise AttributeError(f"module {__name__} has no attribute {name}")
 
 
 def create_schema(conn: sqlite3.Connection) -> None:
@@ -50,8 +54,9 @@ def query_top_promoted(conn: sqlite3.Connection, limit: int = 10) -> List[Dict]:
 
 def main() -> int:
     logging.basicConfig(level=logging.INFO, format="%(levelname)s %(message)s")
+    data_root_default = get_data_root()
     parser = argparse.ArgumentParser(description="Index run manifests into SQLite registry")
-    parser.add_argument("--data_root", default=str(DATA_ROOT))
+    parser.add_argument("--data_root", default=str(data_root_default))
     parser.add_argument("--db", default=None)
     args = parser.parse_args()
     data_root = Path(args.data_root)

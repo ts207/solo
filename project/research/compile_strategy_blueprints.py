@@ -1,7 +1,5 @@
 from project.core.config import get_data_root
 
-DATA_ROOT = get_data_root()
-
 import argparse
 import hashlib
 import json
@@ -81,6 +79,12 @@ def _copy_model(instance: Any, **updates: object) -> Any:
     return dataclasses.replace(instance, **updates)
 
 
+def __getattr__(name: str) -> Any:
+    if name == "DATA_ROOT":
+        return get_data_root()
+    raise AttributeError(f"module {__name__} has no attribute {name}")
+
+
 def _as_bool(value: object) -> bool:
     return as_bool(value)
 
@@ -143,7 +147,7 @@ def _choose_event_rows(
         min_net_expectancy_bps=0.0,
         max_fee_plus_slippage_bps=None,
         max_daily_turnover_multiple=None,
-        data_root=DATA_ROOT,
+        data_root=get_data_root(),
         candidate_id_fn=_candidate_id,
         load_gates_spec_fn=_load_gates_spec,
         passes_quality_floor_fn=_passes_quality_floor,
@@ -392,7 +396,8 @@ def _write_strategy_contract_artifacts(
 
 
 def _load_run_mode(run_id: str) -> str:
-    path = run_manifest_path(run_id, DATA_ROOT)
+    data_root = get_data_root()
+    path = run_manifest_path(run_id, data_root)
     payload = load_json_dict(path)
     mode = payload.get("mode") or payload.get("run_mode") or "research"
     return str(mode).strip().lower()
@@ -482,14 +487,16 @@ def _load_operator_registry() -> Dict[str, Dict[str, Any]]:
 
 
 def _checklist_decision(run_id: str) -> str:
-    payload = load_json_dict(checklist_path(run_id, DATA_ROOT))
+    data_root = get_data_root()
+    payload = load_json_dict(checklist_path(run_id, data_root))
     if not payload:
         return "missing"
     return str(payload.get("decision", "missing")).strip().upper() or "missing"
 
 
 def _load_phase2_table(run_id: str, event_type: str) -> pd.DataFrame:
-    path = phase2_candidates_path(run_id, DATA_ROOT)
+    data_root = get_data_root()
+    path = phase2_candidates_path(run_id, data_root)
     if not path.exists():
         return pd.DataFrame()
     if path.suffix == ".parquet":
@@ -563,10 +570,11 @@ def main() -> int:
     )
     args = parser.parse_args()
 
+    data_root = get_data_root()
     out_dir = (
         Path(args.out_dir)
         if args.out_dir
-        else DATA_ROOT / "reports" / "strategy_blueprints" / args.run_id
+        else data_root / "reports" / "strategy_blueprints" / args.run_id
     )
     ensure_dir(out_dir)
 
@@ -576,7 +584,7 @@ def main() -> int:
         # 1. Setup and Loading
         contract = resolve_objective_profile_contract(
             project_root=PROJECT_ROOT,
-            data_root=DATA_ROOT,
+            data_root=get_data_root(),
             run_id=args.run_id,
             required=True,
         )
@@ -595,7 +603,7 @@ def main() -> int:
             promoted_path = Path(args.candidates_file)
         else:
             promoted_path = (
-                DATA_ROOT / "reports" / "promotions" / args.run_id / "promoted_candidates.parquet"
+                data_root / "reports" / "promotions" / args.run_id / "promoted_candidates.parquet"
             )
             if not promoted_path.exists():
                 promoted_path = promoted_path.with_suffix(".csv")
@@ -742,7 +750,7 @@ def main() -> int:
 
         export_promoted_theses_for_run(
             args.run_id,
-            data_root=DATA_ROOT,
+            data_root=get_data_root(),
             blueprints=[bp.to_dict() for bp in blueprints],
         )
 

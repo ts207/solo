@@ -8,20 +8,20 @@ import sys
 from pathlib import Path
 from project import PROJECT_ROOT
 
-REPO_ROOT = PROJECT_ROOT.parent
-DATA_ROOT = get_data_root()
-
-from project.research.template_regression import build_run_summary, compare_summaries  # noqa: E402
-
+def _repo_root() -> Path:
+    return PROJECT_ROOT.parent
 
 def main() -> int:
+    from project.research.template_regression import build_run_summary, compare_summaries
+    repo_root = _repo_root()
+    data_root = get_data_root()
     parser = argparse.ArgumentParser(
         description="Compare phase2 template/action/direction summary for a run against a baseline fixture."
     )
     parser.add_argument("--run_id", required=True)
     parser.add_argument(
         "--baseline",
-        default=str(REPO_ROOT / "tests" / "fixtures" / "phase2_template_summary_baseline.json"),
+        default=str(repo_root / "tests" / "fixtures" / "phase2_template_summary_baseline.json"),
     )
     parser.add_argument(
         "--events",
@@ -33,7 +33,7 @@ def main() -> int:
     baseline_path = Path(args.baseline)
     baseline = json.loads(baseline_path.read_text(encoding="utf-8"))
     events = [token.strip().upper() for token in str(args.events).split(",") if token.strip()]
-    current = build_run_summary(data_root=DATA_ROOT, run_id=str(args.run_id), events=events)
+    current = build_run_summary(data_root=data_root, run_id=str(args.run_id), events=events)
     failures = compare_summaries(baseline=baseline, current=current)
     if failures:
         print("Baseline regression mismatches detected:")

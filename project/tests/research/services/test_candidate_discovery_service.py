@@ -85,6 +85,7 @@ def _run_candidate_discovery(tmp_path, **overrides):
     return svc.execute_candidate_discovery(config)
 
 
+@pytest.mark.slow
 def test_run_candidate_discovery_service_smoke(monkeypatch, tmp_path):
     monkeypatch.setattr(
         "project.core.execution_costs.load_configs",
@@ -250,6 +251,7 @@ def test_concept_ledger_write_failure_aborts_discovery_path(monkeypatch, tmp_pat
         )
 
 
+@pytest.mark.slow
 def test_run_candidate_discovery_service_records_sample_quality_gate_thresholds(
     monkeypatch, tmp_path
 ):
@@ -307,6 +309,7 @@ def test_run_candidate_discovery_service_records_sample_quality_gate_thresholds(
     }
 
 
+@pytest.mark.slow
 def test_run_candidate_discovery_service_records_non_directional_registry_policy(
     monkeypatch, tmp_path
 ):
@@ -425,6 +428,7 @@ def test_resolve_sample_quality_policy_uses_profile_defaults():
     assert synthetic["min_total_n_obs"] == 4
 
 
+@pytest.mark.slow
 def test_run_candidate_discovery_service_passes_timeframe_to_prepare_events(monkeypatch, tmp_path):
     monkeypatch.setattr(
         "project.core.execution_costs.load_configs",
@@ -477,6 +481,7 @@ def test_run_candidate_discovery_service_passes_timeframe_to_prepare_events(monk
     assert captured["timeframe"] == "15m"
 
 
+@pytest.mark.slow
 def test_run_candidate_discovery_service_passes_registry_root_to_experiment_discovery(
     monkeypatch, tmp_path
 ):
@@ -534,6 +539,7 @@ def test_run_candidate_discovery_service_passes_registry_root_to_experiment_disc
     assert captured["registry_root"] == tmp_path / "registries"
 
 
+@pytest.mark.slow
 def test_run_candidate_discovery_service_split_scheme_changes_split_plan(monkeypatch, tmp_path):
     monkeypatch.setattr(
         "project.core.execution_costs.load_configs",
@@ -587,6 +593,7 @@ def test_run_candidate_discovery_service_split_scheme_changes_split_plan(monkeyp
     assert int(row_default["validation_n_obs"]) != int(row_alt["validation_n_obs"])
 
 
+@pytest.mark.slow
 def test_run_candidate_discovery_service_shift_labels_changes_estimate(monkeypatch, tmp_path):
     monkeypatch.setattr(
         "project.core.execution_costs.load_configs",
@@ -638,6 +645,7 @@ def test_run_candidate_discovery_service_shift_labels_changes_estimate(monkeypat
     assert est0 != est5
 
 
+@pytest.mark.slow
 def test_run_candidate_discovery_service_cost_bps_changes_estimate(monkeypatch, tmp_path):
     monkeypatch.setattr(
         "project.core.execution_costs.load_configs",

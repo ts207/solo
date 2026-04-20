@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Iterable
+from typing import Any, Iterable
 
 import pandas as pd
 
@@ -9,8 +9,14 @@ from project.core.config import get_data_root
 from project.events.event_specs import EVENT_REGISTRY_SPECS
 
 
-DATA_ROOT = get_data_root()
-FIXTURES_DIR = DATA_ROOT / "reports" / "benchmarks" / "fixtures"
+def __getattr__(name: str) -> Any:
+    if name == "DATA_ROOT":
+        return get_data_root()
+    if name == "FIXTURES_DIR":
+        return get_data_root() / "reports" / "benchmarks" / "fixtures"
+    raise AttributeError(f"module {__name__} has no attribute {name}")
+
+
 _WRITE_PARQUET = None
 
 _EVENT_SOURCE_RELATIVE_PATHS: dict[str, tuple[str, ...]] = {

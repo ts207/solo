@@ -231,6 +231,7 @@ def test_run_engine_resolves_default_data_root_at_call_time(
         captured["symbol_data"] = data_root
         raise RuntimeError("stop_after_data_root_capture")
 
+    monkeypatch.setenv("EDGE_DATA_ROOT", str(tmp_path))
     monkeypatch.setenv("BACKTEST_DATA_ROOT", str(tmp_path))
     monkeypatch.setattr("project.engine.runner.get_strategy", fake_get_strategy)
     monkeypatch.setattr(

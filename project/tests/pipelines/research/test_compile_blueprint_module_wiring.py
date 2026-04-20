@@ -157,6 +157,8 @@ def test_main_compilation_loop_accepts_record_dicts(monkeypatch, tmp_path):
     ).to_parquet(promo_dir / "promoted_candidates.parquet", index=False)
 
     monkeypatch.setattr(compiler, "DATA_ROOT", data_root)
+    monkeypatch.setenv("BACKTEST_DATA_ROOT", str(data_root))
+
     monkeypatch.setattr(compiler, "_checklist_decision", lambda _run_id: "PROMOTE")
     monkeypatch.setattr(compiler, "_load_run_mode", lambda _run_id: "research")
     monkeypatch.setattr(compiler, "ontology_spec_hash", lambda _root: "sha256:test")

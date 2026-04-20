@@ -4,6 +4,7 @@
 |---|---|---|---|---|---|---|---|
 | BASIS_DISLOC | v2 | 2.0 | rolling_quantile | major_crypto | 5m | synthetic_and_spec_seeded_v2_baseline | baseline_fixture |
 | BETA_SPIKE_EVENT | v2 | 2.0 | cross_series_spread | major_crypto | 5m | synthetic_and_spec_seeded_v2_baseline | baseline_fixture |
+| BREAKOUT_TRIGGER | v2 | 2.0 | rolling_quantile | major_crypto | 5m | synthetic_and_spec_seeded_v2_baseline | baseline_fixture |
 | CORRELATION_BREAKDOWN_EVENT | v2 | 2.0 | cross_series_spread | major_crypto | 5m | synthetic_and_spec_seeded_v2_baseline | baseline_fixture |
 | CROSS_ASSET_DESYNC_EVENT | v2 | 2.0 | cross_series_spread | major_crypto | 5m | synthetic_and_spec_seeded_v2_baseline | baseline_fixture |
 | CROSS_VENUE_DESYNC | v2 | 2.0 | cross_series_spread | major_crypto | 5m | synthetic_and_spec_seeded_v2_baseline | baseline_fixture |
@@ -25,7 +26,10 @@
 | OI_FLUSH | v2 | 2.0 | rolling_zscore | major_crypto | 5m | synthetic_and_spec_seeded_v2_baseline | baseline_fixture |
 | OI_SPIKE_NEGATIVE | v2 | 2.0 | rolling_zscore | major_crypto | 5m | synthetic_and_spec_seeded_v2_baseline | baseline_fixture |
 | OI_SPIKE_POSITIVE | v2 | 2.0 | rolling_zscore | major_crypto | 5m | synthetic_and_spec_seeded_v2_baseline | baseline_fixture |
+| RANGE_COMPRESSION_END | v2 | 2.0 | rolling_quantile | major_crypto | 5m | synthetic_and_spec_seeded_v2_baseline | baseline_fixture |
 | SPOT_PERP_BASIS_SHOCK | v2 | 2.0 | rolling_quantile | major_crypto | 5m | synthetic_and_spec_seeded_v2_baseline | baseline_fixture |
+| VOL_CLUSTER_SHIFT | v2 | 2.0 | rolling_quantile | major_crypto | 5m | synthetic_and_spec_seeded_v2_baseline | baseline_fixture |
+| VOL_REGIME_SHIFT_EVENT | v2 | 2.0 | rolling_quantile | major_crypto | 5m | synthetic_and_spec_seeded_v2_baseline | baseline_fixture |
 | VOL_RELAXATION_START | v2 | 2.0 | rolling_quantile | major_crypto | 5m | synthetic_and_spec_seeded_v2_baseline | baseline_fixture |
 | VOL_SHOCK | v2 | 2.0 | rolling_quantile | major_crypto | 5m | synthetic_and_spec_seeded_v2_baseline | baseline_fixture |
 | VOL_SPIKE | v2 | 2.0 | rolling_quantile | major_crypto | 5m | synthetic_and_spec_seeded_v2_baseline | baseline_fixture |

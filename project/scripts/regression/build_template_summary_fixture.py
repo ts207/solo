@@ -8,13 +8,13 @@ import sys
 from pathlib import Path
 from project import PROJECT_ROOT
 
-REPO_ROOT = PROJECT_ROOT.parent
-DATA_ROOT = get_data_root()
-
-from project.research.template_regression import build_run_summary  # noqa: E402
-
+def _repo_root() -> Path:
+    return PROJECT_ROOT.parent
 
 def main() -> int:
+    from project.research.template_regression import build_run_summary
+    repo_root = _repo_root()
+    data_root = get_data_root()
     parser = argparse.ArgumentParser(
         description="Build baseline fixture with template/action/direction summaries from a phase2 run."
     )
@@ -26,12 +26,12 @@ def main() -> int:
     )
     parser.add_argument(
         "--out",
-        default=str(REPO_ROOT / "tests" / "fixtures" / "phase2_template_summary_baseline.json"),
+        default=str(repo_root / "tests" / "fixtures" / "phase2_template_summary_baseline.json"),
     )
     args = parser.parse_args()
 
     events = [token.strip().upper() for token in str(args.events).split(",") if token.strip()]
-    summary = build_run_summary(data_root=DATA_ROOT, run_id=str(args.run_id), events=events)
+    summary = build_run_summary(data_root=data_root, run_id=str(args.run_id), events=events)
     out_path = Path(args.out)
     out_path.parent.mkdir(parents=True, exist_ok=True)
     out_path.write_text(json.dumps(summary, indent=2, sort_keys=True), encoding="utf-8")

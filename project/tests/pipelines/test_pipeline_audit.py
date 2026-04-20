@@ -49,6 +49,7 @@ def test_apply_run_terminal_audit_records_top_level_artifact_count_and_uses_fini
     }
 
     monkeypatch.setattr(pipeline_audit, "DATA_ROOT", data_root)
+    monkeypatch.setenv("BACKTEST_DATA_ROOT", str(data_root))
     pipeline_audit.apply_run_terminal_audit(run_id, manifest)
 
     assert manifest["artifact_count"] == 3

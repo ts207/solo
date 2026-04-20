@@ -19,7 +19,11 @@ import sys
 
 import pandas as pd
 
-DATA_ROOT = get_data_root()
+def __getattr__(name):
+    if name == "DATA_ROOT":
+        from project.core.config import get_data_root
+        return get_data_root()
+    raise AttributeError(f"module {__name__} has no attribute {name}")
 
 TIMEFRAME_MINUTES = {"1m": 1, "5m": 5, "15m": 15, "1h": 60}
 

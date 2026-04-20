@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import pytest
 from project.events.policy import DEPLOYABLE_CORE_EVENT_TYPES
 from project.tests.events.fixtures.deployable_core_historical_exchange_replay import (
     BASELINE_PATH,
@@ -12,6 +13,7 @@ from project.tests.events.fixtures.deployable_core_historical_exchange_replay im
 )
 
 
+@pytest.mark.slow
 def test_historical_exchange_fixture_is_pinned_and_detector_ready() -> None:
     assert SLICE_PATH.exists()
     slice_spec = historical_exchange_slices()[0]
@@ -30,6 +32,7 @@ def test_historical_exchange_fixture_is_pinned_and_detector_ready() -> None:
     assert {"close_perp", "close_spot"}.issubset(frame.columns)
 
 
+@pytest.mark.slow
 def test_historical_exchange_replay_baseline_covers_runtime_core() -> None:
     baseline = load_historical_exchange_replay_baseline()
     assert BASELINE_PATH.exists()
@@ -43,6 +46,7 @@ def test_historical_exchange_replay_baseline_covers_runtime_core() -> None:
         )
 
 
+@pytest.mark.slow
 def test_historical_exchange_replay_expected_present_and_absent_sets_are_enforced() -> None:
     baseline = load_historical_exchange_replay_baseline()
 
@@ -54,6 +58,7 @@ def test_historical_exchange_replay_expected_present_and_absent_sets_are_enforce
             assert by_event[event_name]["event_count"] == 0, (slice_payload["slice_id"], event_name)
 
 
+@pytest.mark.slow
 def test_historical_exchange_replay_baseline_matches_current_detector_outputs() -> None:
     baseline = load_historical_exchange_replay_baseline()
     current = build_historical_exchange_replay_baseline()
@@ -61,6 +66,7 @@ def test_historical_exchange_replay_baseline_matches_current_detector_outputs() 
     assert compare_historical_exchange_replay_baseline(baseline=baseline, current=current) == []
 
 
+@pytest.mark.slow
 def test_historical_exchange_replay_baseline_reports_material_drift() -> None:
     baseline = load_historical_exchange_replay_baseline()
     drifted = build_historical_exchange_replay_baseline()

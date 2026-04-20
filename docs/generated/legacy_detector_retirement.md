@@ -1,13 +1,12 @@
 # Legacy Detector Retirement
 
-Legacy detectors: **44**
-Legacy detectors retired-safe: **44**
+Legacy detectors: **40**
+Legacy detectors retired-safe: **40**
 
 | Event | Role | Runtime Eligible | Promotion Eligible | Primary Anchor | Retired Safe |
 |---|---|---|---|---|---|
 | ABSORPTION_PROXY | trigger | False | False | False | True |
 | BAND_BREAK | trigger | False | False | False | True |
-| BREAKOUT_TRIGGER | trigger | False | False | False | True |
 | CHOP_TO_TREND_SHIFT | trigger | False | False | False | True |
 | CLIMAX_VOLUME_BAR | trigger | False | False | False | True |
 | COPULA_PAIRS_TRADING | research_only | False | False | False | True |
@@ -28,7 +27,6 @@ Legacy detectors retired-safe: **44**
 | PRICE_VOL_IMBALANCE_PROXY | trigger | False | False | False | True |
 | PULLBACK_PIVOT | trigger | False | False | False | True |
 | RANGE_BREAKOUT | trigger | False | False | False | True |
-| RANGE_COMPRESSION_END | trigger | False | False | False | True |
 | SCHEDULED_NEWS_WINDOW_EVENT | context | False | False | False | True |
 | SEQ_FND_EXTREME_THEN_BREAKOUT | composite | False | False | False | True |
 | SEQ_LIQ_VACUUM_THEN_DEPTH_RECOVERY | composite | False | False | False | True |
@@ -45,7 +43,5 @@ Legacy detectors retired-safe: **44**
 | TREND_DECELERATION | trigger | False | False | False | True |
 | TREND_EXHAUSTION_TRIGGER | trigger | False | False | False | True |
 | TREND_TO_CHOP_SHIFT | trigger | False | False | False | True |
-| VOL_CLUSTER_SHIFT | trigger | False | False | False | True |
-| VOL_REGIME_SHIFT_EVENT | trigger | False | False | False | True |
 | WICK_REVERSAL_PROXY | trigger | False | False | False | True |
 | ZSCORE_STRETCH | trigger | False | False | False | True |

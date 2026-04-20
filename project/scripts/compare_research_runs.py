@@ -13,10 +13,14 @@ from project.research.services.run_comparison_service import (
 )
 
 
-DATA_ROOT = get_data_root()
+def __getattr__(name: str):
+    if name == "DATA_ROOT":
+        return get_data_root()
+    raise AttributeError(f"module {__name__} has no attribute {name}")
 
 
 def main() -> int:
+    data_root_default = get_data_root()
     parser = argparse.ArgumentParser(
         description="Compare phase2 and promotion diagnostics between two research runs."
     )
@@ -24,7 +28,7 @@ def main() -> int:
     parser.add_argument("--candidate_run_id", required=True)
     parser.add_argument(
         "--data_root",
-        default=str(DATA_ROOT),
+        default=str(data_root_default),
         help="Data root path (default: BACKTEST_DATA_ROOT or repo/data).",
     )
     parser.add_argument(

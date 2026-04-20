@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import pytest
 from project.events.policy import DEPLOYABLE_CORE_EVENT_TYPES
 from project.tests.events.fixtures.deployable_core_known_episode_replay import (
     BASELINE_PATH,
@@ -10,6 +11,7 @@ from project.tests.events.fixtures.deployable_core_known_episode_replay import (
 )
 
 
+@pytest.mark.slow
 def test_known_episode_replay_baseline_covers_expected_episodes_and_core_detectors() -> None:
     baseline = load_known_episode_replay_baseline()
 
@@ -21,6 +23,7 @@ def test_known_episode_replay_baseline_covers_expected_episodes_and_core_detecto
         assert {item["event_name"] for item in episode["detector_results"]} == DEPLOYABLE_CORE_EVENT_TYPES
 
 
+@pytest.mark.slow
 def test_known_episode_replay_expected_present_and_absent_sets_are_enforced() -> None:
     baseline = load_known_episode_replay_baseline()
 
@@ -32,6 +35,7 @@ def test_known_episode_replay_expected_present_and_absent_sets_are_enforced() ->
             assert by_event[event_name]["event_count"] == 0, (episode["episode_id"], event_name)
 
 
+@pytest.mark.slow
 def test_known_episode_replay_baseline_matches_current_detector_outputs() -> None:
     baseline = load_known_episode_replay_baseline()
     current = build_known_episode_replay_baseline()
@@ -39,6 +43,7 @@ def test_known_episode_replay_baseline_matches_current_detector_outputs() -> Non
     assert compare_known_episode_replay_baseline(baseline=baseline, current=current) == []
 
 
+@pytest.mark.slow
 def test_known_episode_replay_baseline_reports_detector_drift() -> None:
     baseline = load_known_episode_replay_baseline()
     drifted = build_known_episode_replay_baseline()

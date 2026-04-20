@@ -12,6 +12,7 @@ from project.research.validation.contracts import (
     ValidationMetrics,
     ValidationReasonCodes,
 )
+from project.io.utils import read_parquet
 from project.research.validation.result_writer import (
     write_validation_bundle,
     write_promotion_ready_candidates,
@@ -159,7 +160,7 @@ def test_write_promotion_ready_candidates_backfills_canonical_defaults(tmp_path)
     )
 
     path = write_promotion_ready_candidates(bundle, base_dir=tmp_path)
-    payload = __import__("pandas").read_parquet(path)
+    payload = read_parquet(path)
     assert payload.iloc[0]["validation_program_id"] == ""
     assert float(payload.iloc[0]["metric_q_value"]) == 1.0
     assert float(payload.iloc[0]["metric_stability_score"]) == 0.0

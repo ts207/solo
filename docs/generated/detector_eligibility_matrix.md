@@ -6,7 +6,7 @@
 | BAND_BREAK | v1 | trigger | research_trigger | specialized | True | False | False | False |
 | BASIS_DISLOC | v2 | trigger | deployable_core | production | True | True | True | True |
 | BETA_SPIKE_EVENT | v2 | trigger | research_trigger | specialized | True | True | False | True |
-| BREAKOUT_TRIGGER | v1 | trigger | research_trigger | specialized | True | False | False | False |
+| BREAKOUT_TRIGGER | v2 | trigger | research_trigger | specialized | True | False | False | False |
 | CHOP_TO_TREND_SHIFT | v1 | trigger | research_trigger | specialized | True | False | False | False |
 | CLIMAX_VOLUME_BAR | v1 | trigger | research_trigger | specialized | True | False | False | False |
 | COPULA_PAIRS_TRADING | v1 | research_only | composite_or_fragile | standard | False | False | False | False |
@@ -40,7 +40,7 @@
 | LIQUIDITY_VACUUM | v2 | trigger | deployable_core | production | True | True | True | True |
 | MOMENTUM_DIVERGENCE_TRIGGER | v1 | trigger | research_trigger | specialized | True | False | False | False |
 | OI_FLUSH | v2 | trigger | research_trigger | specialized | True | True | False | True |
-| OI_SPIKE_NEGATIVE | v2 | trigger | research_trigger | specialized | True | True | False | True |
+| OI_SPIKE_NEGATIVE | v2 | trigger | deployable_core | specialized | True | True | True | True |
 | OI_SPIKE_POSITIVE | v2 | trigger | research_trigger | specialized | True | True | False | True |
 | ORDERFLOW_IMBALANCE_SHOCK | v1 | trigger | research_trigger | standard | True | False | False | False |
 | OVERSHOOT_AFTER_SHOCK | v1 | trigger | research_trigger | specialized | True | False | False | False |
@@ -48,7 +48,7 @@
 | PRICE_VOL_IMBALANCE_PROXY | v1 | trigger | composite_or_fragile | standard | False | False | False | False |
 | PULLBACK_PIVOT | v1 | trigger | research_trigger | specialized | True | False | False | False |
 | RANGE_BREAKOUT | v1 | trigger | research_trigger | specialized | True | False | False | False |
-| RANGE_COMPRESSION_END | v1 | trigger | research_trigger | specialized | True | False | False | False |
+| RANGE_COMPRESSION_END | v2 | trigger | research_trigger | specialized | True | False | False | False |
 | SCHEDULED_NEWS_WINDOW_EVENT | v1 | context | context_only | standard | True | False | False | False |
 | SEQ_FND_EXTREME_THEN_BREAKOUT | v1 | composite | composite_or_fragile | standard | False | False | False | False |
 | SEQ_LIQ_VACUUM_THEN_DEPTH_RECOVERY | v1 | composite | composite_or_fragile | standard | False | False | False | False |
@@ -66,8 +66,8 @@
 | TREND_DECELERATION | v1 | trigger | research_trigger | specialized | True | False | False | False |
 | TREND_EXHAUSTION_TRIGGER | v1 | trigger | research_trigger | specialized | True | False | False | False |
 | TREND_TO_CHOP_SHIFT | v1 | trigger | research_trigger | specialized | True | False | False | False |
-| VOL_CLUSTER_SHIFT | v1 | trigger | research_trigger | specialized | True | False | False | False |
-| VOL_REGIME_SHIFT_EVENT | v1 | trigger | research_trigger | specialized | True | False | False | False |
+| VOL_CLUSTER_SHIFT | v2 | trigger | research_trigger | specialized | True | False | False | False |
+| VOL_REGIME_SHIFT_EVENT | v2 | trigger | research_trigger | specialized | True | False | False | False |
 | VOL_RELAXATION_START | v2 | trigger | research_trigger | specialized | True | True | False | False |
 | VOL_SHOCK | v2 | trigger | deployable_core | production | True | True | True | True |
 | VOL_SPIKE | v2 | trigger | deployable_core | production | True | True | True | True |

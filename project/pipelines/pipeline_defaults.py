@@ -16,9 +16,6 @@ def get_data_root() -> Path:
     return Path(os.getenv("BACKTEST_DATA_ROOT", PROJECT_ROOT.parent / "data"))
 
 
-DATA_ROOT: Path = get_data_root()
- 
- 
 def __getattr__(name: str) -> Any:
     if name == "DATA_ROOT":
         return get_data_root()

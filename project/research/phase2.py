@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import json
 import logging
+import os
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
@@ -35,6 +36,14 @@ from project.specs.ontology import ontology_spec_paths
 from project.research.holdout_integrity import assert_holdout_split_integrity
 
 log = logging.getLogger(__name__)
+
+# Cache for feature DataFrames during tests to reduce disk I/O
+_FEATURE_CACHE: Dict[Tuple[str, str, str, str, Tuple[str, ...]], pd.DataFrame] = {}
+
+
+def clear_feature_cache() -> None:
+    """Clear the global feature cache used during tests."""
+    _FEATURE_CACHE.clear()
 
 
 def load_template_verb_lexicon(repo_root: Path) -> Dict[str, Any]:
@@ -87,6 +96,14 @@ def load_features(
     """Load and merge feature partitions for a symbol/run/market."""
     tf = str(timeframe or "5m").strip().lower() or "5m"
     mkt = str(market or "perp").strip().lower()
+
+    # Check cache if in test environment
+    is_test = os.getenv("PYTEST_CURRENT_TEST") is not None
+    htf_key = tuple(sorted(higher_timeframes)) if higher_timeframes else ()
+    cache_key = (run_id, symbol, tf, mkt, htf_key)
+    if is_test and cache_key in _FEATURE_CACHE:
+        return _FEATURE_CACHE[cache_key].copy()
+
     feature_dataset = feature_dataset_dir_name()
     candidates = [
         run_scoped_lake_path(data_root, run_id, "features", mkt, symbol, tf, feature_dataset),
@@ -166,6 +183,10 @@ def load_features(
                 on="timestamp",
                 direction="backward",
             )
+
+    if is_test and not out.empty:
+        _FEATURE_CACHE[cache_key] = out.copy()
+
     return out
 
 

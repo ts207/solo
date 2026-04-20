@@ -289,7 +289,7 @@ discover-hybrid:
 		--run_expectancy_robustness 1
 
 test:
-	$(PYTHON) -m pytest -q
+	$(PYTHON) -m pytest -n auto -q
 
 test-fast:
 	$(PYTHON) -m pytest -q -m "not slow" --maxfail=1

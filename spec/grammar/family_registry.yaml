@@ -17,6 +17,18 @@ event_families:
       - overshoot_repair
       - only_if_liquidity
       - slippage_aware_filter
+  LIQUIDITY_STRESS:
+    description: "Liquidations and depth depletion during stress regimes."
+    searchable: true
+    allowed_templates:
+      - mean_reversion
+      - continuation
+      - stop_run_repair
+      - overshoot_repair
+      - only_if_liquidity
+      - slippage_aware_filter
+      - only_if_regime
+      - only_if_highvol
   VOLATILITY_TRANSITION:
     description: "Shifts in realized volatility and range compression."
     searchable: true
@@ -39,6 +51,34 @@ event_families:
       - only_if_funding
       - only_if_oi
       - tail_risk_avoid
+  POSITIONING_UNWIND_DELEVERAGING:
+    description: "Unwinding of crowded positions and deleveraging waves."
+    searchable: true
+    allowed_templates:
+      - reversal_or_squeeze
+      - mean_reversion
+      - continuation
+      - exhaustion_reversal
+      - convexity_capture
+      - only_if_funding
+      - only_if_oi
+      - only_if_regime
+      - tail_risk_avoid
+  BASIS_FUNDING_DISLOCATION:
+    description: "Extreme basis and funding rate dislocations."
+    searchable: true
+    allowed_templates:
+      - reversal_or_squeeze
+      - mean_reversion
+      - continuation
+      - exhaustion_reversal
+      - convexity_capture
+      - only_if_funding
+      - only_if_oi
+      - only_if_regime
+      - only_if_highvol
+      - only_if_trend
+      - tail_risk_avoid
   FORCED_FLOW_AND_EXHAUSTION:
     description: "Exhaustion of trend momentum and climax volume."
     searchable: true
@@ -48,6 +88,19 @@ event_families:
       - momentum_fade
       - range_reversion
       - only_if_trend
+      - only_if_regime
+      - drawdown_filter
+  TREND_FAILURE_EXHAUSTION:
+    description: "Exhaustion of trend momentum and climax volume reversals."
+    searchable: true
+    allowed_templates:
+      - mean_reversion
+      - exhaustion_reversal
+      - momentum_fade
+      - range_reversion
+      - only_if_trend
+      - only_if_regime
+      - only_if_highvol
       - drawdown_filter
   TREND_STRUCTURE:
     description: "Breakouts and trend accelerations."
@@ -103,14 +156,26 @@ state_families:
   LIQUIDITY_DISLOCATION:
     description: "Persistent states of low liquidity or high friction."
     searchable: true
+  LIQUIDITY_STRESS:
+    description: "Persistent liquidity stress and depth depletion."
+    searchable: true
   VOLATILITY_TRANSITION:
     description: "High/Low volatility regimes and post-shock states."
     searchable: true
   POSITIONING_EXTREMES:
     description: "Crowded trades and deleveraging regimes."
     searchable: true
+  POSITIONING_UNWIND_DELEVERAGING:
+    description: "Crowded unwinds and deleveraging waves."
+    searchable: true
+  BASIS_FUNDING_DISLOCATION:
+    description: "Extreme basis and funding rate dislocations."
+    searchable: true
   TREND_STRUCTURE:
     description: "Trending vs Choppy regimes."
+    searchable: true
+  TREND_FAILURE_EXHAUSTION:
+    description: "Exhaustion of trend momentum and climax volume."
     searchable: true
   STATISTICAL_DISLOCATION:
     description: "Stretched or overshot market conditions."
