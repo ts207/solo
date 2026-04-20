@@ -6,6 +6,7 @@ from typing import Any, Iterable
 
 from project.live.contradiction_model import assess_contradictions
 from project.live.regime_reliability import evaluate_regime_reliability
+from project.live.trade_valuator import estimate_fill_probability
 
 
 def _finite(value: Any, default: float = 0.0) -> float:
@@ -44,22 +45,7 @@ def rank_match_by_expected_value(*, match: Any, context: Any) -> RankedDecision:
     downside = abs(_finite(stop_value, 0.0) * 10_000.0)
     if downside <= 0.0:
         downside = max(5.0, gross)
-    spread = _finite(live_features.get("spread_bps"), 999.0)
-    depth = _finite(
-        live_features.get("top_of_book_depth_usd")
-        or live_features.get("depth_usd")
-        or live_features.get("liquidity_available"),
-        0.0,
-    )
-    fill_probability = 0.75
-    if spread <= 3.0:
-        fill_probability += 0.10
-    elif spread >= 10.0:
-        fill_probability -= 0.20
-    if depth >= 100_000.0:
-        fill_probability += 0.10
-    elif depth < 25_000.0:
-        fill_probability -= 0.20
+    fill_probability = estimate_fill_probability(market_state=live_features)
     regime = evaluate_regime_reliability(thesis=thesis, context=context)
     contradiction = assess_contradictions(match=match, context=context)
     probability = max(

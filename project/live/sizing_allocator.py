@@ -30,6 +30,41 @@ class SizeAllocation:
         return self.size_fraction
 
 
+def compute_marginal_overlap(
+    *,
+    symbol: str,
+    event_family: str,
+    portfolio_state: Mapping[str, Any],
+) -> float:
+    """
+    Fraction [0, 1] of the proposed trade's directional risk already captured
+    by open positions, weighted by correlation proxies:
+
+      same symbol + same family  → 1.00 (identical trigger and underlier)
+      same symbol, diff family   → 0.60 (same underlier, different catalyst)
+      diff symbol, same family   → 0.50 (same catalyst type, different coin)
+
+    Normalised against gross_exposure so the result degrades gracefully as
+    the portfolio grows.
+    """
+    symbol_exposures: dict[str, float] = dict(portfolio_state.get("symbol_exposures", {}))
+    family_exposures: dict[str, float] = dict(portfolio_state.get("family_exposures", {}))
+    gross_exposure = max(1.0, _finite(portfolio_state.get("gross_exposure"), 0.0))
+
+    sym = str(symbol).upper()
+    fam = str(event_family)
+    same_symbol = abs(_finite(symbol_exposures.get(sym), 0.0))
+    same_family = abs(_finite(family_exposures.get(fam), 0.0))
+
+    # Decompose into non-overlapping buckets to avoid double-counting.
+    same_both = min(same_symbol, same_family)
+    symbol_only = max(0.0, same_symbol - same_both)
+    family_only = max(0.0, same_family - same_both)
+
+    correlated = 1.00 * same_both + 0.60 * symbol_only + 0.50 * family_only
+    return min(1.0, correlated / gross_exposure)
+
+
 def allocate_trade_size(
     *,
     valuation: TradeValuation,
@@ -37,6 +72,8 @@ def allocate_trade_size(
     portfolio_state: Mapping[str, Any],
     base_size_fraction: float,
     max_notional_fraction: float,
+    symbol: str = "",
+    event_family: str = "",
 ) -> SizeAllocation:
     if not valuation.should_trade:
         return SizeAllocation(False, 0.0, 0.0, 0.0, valuation.reasons)
@@ -59,12 +96,21 @@ def allocate_trade_size(
         0.0,
     )
     slippage_scale = 1.0 / (1.0 + max(0.0, slippage_bps) / 10.0)
-    overlap = _finite(
+    explicit_overlap = (
         portfolio_state.get("marginal_overlap")
         or portfolio_state.get("thesis_overlap")
-        or market_state.get("thesis_overlap"),
-        0.0,
+        or market_state.get("thesis_overlap")
     )
+    if explicit_overlap is not None:
+        overlap = _finite(explicit_overlap, 0.0)
+    elif symbol:
+        overlap = compute_marginal_overlap(
+            symbol=symbol,
+            event_family=event_family,
+            portfolio_state=portfolio_state,
+        )
+    else:
+        overlap = 0.0
     overlap_scale = max(0.20, 1.0 - max(0.0, min(1.0, overlap)))
     downside_scale = 1.0 / (1.0 + max(0.0, downside - valuation.expected_net_edge_bps) / 50.0)
     requested = max(0.0, float(base_size_fraction))

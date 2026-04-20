@@ -144,7 +144,7 @@ def test_resolve_promotion_policy_switches_by_profile(monkeypatch, tmp_path: Pat
         project_root=tmp_path,
     )
     assert deploy.promotion_profile == "deploy"
-    assert deploy.base_min_events == max(base_config.min_events, contract.min_trade_count)
+    assert deploy.base_min_events == max(base_config.min_events, contract.min_trade_count, 150)
     assert deploy.dynamic_min_events["BASIS_DISLOC"] == 25
     assert deploy.require_retail_viability is True
 

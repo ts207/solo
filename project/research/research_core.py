@@ -21,7 +21,8 @@ from project.core.coercion import safe_float, safe_int, as_bool
 from project.research.helpers.loading import load_research_features, normalize_research_dataframe
 from project.research.helpers.events import sparsify_event_mask, rolling_z_score
 
-DATA_ROOT = get_data_root()
+def get_research_data_root() -> Path:
+    return get_data_root()
 
 # --- Candidate Schema ---
 

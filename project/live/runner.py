@@ -27,6 +27,7 @@ from project.live.context_builder import build_live_trade_context
 from project.live.contracts.trade_intent import TradeIntent
 from project.live.decay import DecayMonitor, DecayRule
 from project.live.decay import default_decay_rules as _default_decay_rules
+from project.live.signal_monitor import SignalMonitor
 from project.live.decision import (
     DecisionOutcome,
     build_candidate_trade_outcomes,
@@ -249,6 +250,7 @@ class LiveEngineRunner:
 
         self.risk_enforcer = RiskEnforcer(risk_caps)
         self.decay_monitor = DecayMonitor(decay_rules or _default_decay_rules())
+        self.signal_monitor = SignalMonitor()
         self.thesis_manager = ThesisStateManager()
         self._family_budgets = dict(family_budgets)
 
@@ -575,6 +577,7 @@ class LiveEngineRunner:
                     [s for s in self.thesis_manager.states.values() if s.state == "disabled"]
                 ),
             },
+            "signal_monitor": self.signal_monitor.check().as_dict(),
             "symbols": list(self.symbols),
             "kill_switch": self.state_store.get_kill_switch_snapshot(),
             "account": {
@@ -1988,6 +1991,17 @@ class LiveEngineRunner:
             self._apply_runtime_quality_state(item)
             for item in self._candidate_decision_outcomes(outcome)
         ]
+        for _candidate in candidate_outcomes:
+            if _candidate.trade_intent.action not in {"reject", "watch"}:
+                _family = str(
+                    _candidate.trade_intent.metadata.get("event_family", "")
+                    or outcome.context.event_family
+                    or ""
+                )
+                self.signal_monitor.record_event_fired(
+                    thesis_id=str(_candidate.trade_intent.thesis_id),
+                    event_family=_family,
+                )
         oms_results_by_thesis = await self._submit_trade_intent_batch_if_enabled(
             outcomes=[item for item in candidate_outcomes if item.trade_intent.action != "reject"],
             market_state=market_state,
@@ -2054,6 +2068,18 @@ class LiveEngineRunner:
                     },
                 )
                 break
+        for order in reversed(self.order_manager.order_history):
+            if order.client_order_id != client_order_id:
+                continue
+            tid = str(order.metadata.get("thesis_id", "")).strip()
+            predicted = float(order.metadata.get("fill_probability", 0.0) or 0.0)
+            if tid and predicted > 0.0:
+                self.signal_monitor.record_fill_outcome(
+                    thesis_id=tid,
+                    predicted_fill_probability=predicted,
+                    was_filled=True,
+                )
+            break
         self.persist_execution_quality_report()
         self.persist_runtime_metrics_snapshot()
 

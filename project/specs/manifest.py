@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import functools
 import hashlib
 import json
 import os
@@ -67,15 +68,20 @@ def _project_root() -> Path:
     return PROJECT_ROOT
 
 
-def _git_commit(project_root: Path) -> str:
+@functools.lru_cache(maxsize=1)
+def _git_commit_cached(project_root_str: str) -> str:
     try:
         return subprocess.check_output(
-            ["git", "-C", str(project_root), "rev-parse", "HEAD"],
+            ["git", "-C", project_root_str, "rev-parse", "HEAD"],
             text=True,
             stderr=subprocess.DEVNULL,
         ).strip()
     except Exception:
         return "unknown"
+
+
+def _git_commit(project_root: Path) -> str:
+    return _git_commit_cached(str(project_root.resolve()))
 
 
 def _file_fingerprint(path: Path) -> str:

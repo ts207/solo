@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import functools
 import hashlib
 import json
 from pathlib import Path
@@ -128,7 +129,9 @@ def _canonical_spec_bytes(path: Path) -> bytes:
         return path.read_bytes()
 
 
-def ontology_component_hashes(repo_root: Path) -> Dict[str, Optional[str]]:
+@functools.lru_cache(maxsize=1)
+def _ontology_component_hashes_cached(repo_root_str: str) -> Dict[str, Optional[str]]:
+    repo_root = Path(repo_root_str)
     out: Dict[str, Optional[str]] = {}
     for key, path in ontology_spec_paths(repo_root).items():
         if not path.exists():
@@ -138,7 +141,13 @@ def ontology_component_hashes(repo_root: Path) -> Dict[str, Optional[str]]:
     return out
 
 
-def ontology_spec_hash(repo_root: Path) -> str:
+def ontology_component_hashes(repo_root: Path) -> Dict[str, Optional[str]]:
+    return _ontology_component_hashes_cached(str(repo_root.resolve()))
+
+
+@functools.lru_cache(maxsize=1)
+def _ontology_spec_hash_cached(repo_root_str: str) -> str:
+    repo_root = Path(repo_root_str)
     hasher = hashlib.sha256()
     paths = ontology_spec_paths(repo_root)
     for key in sorted(paths):
@@ -148,6 +157,10 @@ def ontology_spec_hash(repo_root: Path) -> str:
         hasher.update(rel_path.encode("utf-8"))
         hasher.update(_canonical_spec_bytes(path))
     return "sha256:" + hasher.hexdigest()
+
+
+def ontology_spec_hash(repo_root: Path) -> str:
+    return _ontology_spec_hash_cached(str(repo_root.resolve()))
 
 
 def load_ontology_linkage_hash(atlas_dir: Path) -> Optional[str]:

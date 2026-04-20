@@ -957,7 +957,7 @@ def test_resolve_promotion_policy_research_relaxes_deploy_only_controls():
     assert policy.min_net_expectancy_bps == 1.5
     assert policy.require_retail_viability is False
     assert policy.require_low_capital_viability is False
-    assert policy.enforce_baseline_beats_complexity is False
+    assert policy.enforce_baseline_beats_complexity is True
     assert policy.enforce_placebo_controls is False
     assert policy.enforce_timeframe_consensus is False
 

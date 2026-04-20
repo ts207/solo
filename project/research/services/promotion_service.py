@@ -110,17 +110,17 @@ class PromotionConfig:
 
 
 PROMOTION_CONFIG_DEFAULTS: Dict[str, Any] = {
-    "max_q_value": 0.10,
-    "min_events": 0,
-    "min_stability_score": 0.05,
+    "max_q_value": 0.05,           # align with gate_v1_phase2
+    "min_events": 30,              # require meaningful sample even for paper
+    "min_stability_score": 0.60,   # align with bridge gate lower bound
     "min_sign_consistency": 0.67,
-    "min_cost_survival_ratio": 0.75,
+    "min_cost_survival_ratio": 0.80,
     "max_negative_control_pass_rate": 0.01,
     "min_tob_coverage": 0.60,
     "require_hypothesis_audit": True,
     "allow_missing_negative_controls": True,
-    "require_multiplicity_diagnostics": False,
-    "min_dsr": 0.5,
+    "require_multiplicity_diagnostics": True,  # require multiplicity audit
+    "min_dsr": 0.60,               # degradation-survival floor
     "max_overlap_ratio": 0.80,
     "max_profile_correlation": 0.90,
     "allow_discovery_promotion": False,

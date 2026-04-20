@@ -97,6 +97,8 @@ def build_order_plan(
         portfolio_state=portfolio_state,
         base_size_fraction=float(intent.size_fraction),
         max_notional_fraction=float(max_notional_fraction),
+        symbol=intent.symbol,
+        event_family=str(intent.metadata.get("event_family", "")),
     )
     if not allocation.accepted:
         return OrderPlan(

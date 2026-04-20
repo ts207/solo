@@ -131,7 +131,8 @@ data/
 
 ### Research gates
 
-- **Bridge gate**: t ≥ 2.0 AND robustness ≥ 0.70
+- **Promotion bridge gate**: t ≥ 2.0 AND robustness ≥ 0.70 (checked at promotion time via `min_stability_score`)
+- **Search bridge gate**: robustness ≥ 0.5 (`spec/gates.yaml` `search_bridge_min_robustness_score`) — intentionally permissive for research recall
 - **Phase2 gate**: robustness ≥ 0.60
 - `rv_pct_17280` is on a 0–100 percentile scale (mean ≈ 46) — threshold 70 means 70th percentile, not 0.70
 
@@ -168,43 +169,13 @@ Startup certification (no credentials needed): `PYTHONPATH=. python3 project/scr
 
 ---
 
-## Current research state (2026-04-18)
+## Current research state
 
-### Promoted theses (paper-only)
+No promoted theses. All prior results cleared — re-run from scratch with hardened gates.
 
-| Event | Dir | Horizon | Template | t | rob | run_id |
-|-------|-----|---------|----------|---|-----|--------|
-| VOL_SPIKE | long | 24b | mean_reversion | 3.59 | 0.62 | `broad_vol_spike_20260416T210045Z_68e0020707` |
-| OI_SPIKE_NEGATIVE | long | 24b | exhaustion_reversal | 2.74 | 0.93 | `campaign_pe_oi_spike_neg_20260416T092104Z_f6e6885923` |
-| LIQUIDATION_CASCADE | long | 8b | mean_reversion | 3.07 | 0.61 | `liq_direct_edge_2021_2024_20260413` |
+Lake data is intact (`data/lake/`). Run proposals against existing lake using `--run_id` reuse to skip data rebuild.
 
-All three are deployed to paper (Bybit testnet). VOL_SPIKE and LIQUIDATION_CASCADE deployed after refactor.
-
-Paper config: `project/configs/live_paper_campaign_pe_oi_spike_neg_20260416T092104Z_f6e6885923.yaml`
-
-### Signal boundaries
-
-- Long only, BTC only, high-vol only (rv_pct_17280 > 70), 2023-2024 only (2022 dilutes all signals)
-- Full campaign results: `docs/research/results.md`
-- Research reflections: `docs/research/reflections.md`, `docs/research/narrative.md`
-
-### Apr 17 sweep results (VOLATILITY_TRANSITION family)
-
-New events tested after VOL_SPIKE promotion — all came back below gate or no signal:
-
-| Event | t | rob | Notes |
-|-------|---|-----|-------|
-| VOL_SHOCK | — | — | 0 eval results (pipeline failure or too few fires) |
-| BREAKOUT_TRIGGER | 0.79 | 0.46 | Below gate |
-| VOL_CLUSTER_SHIFT | — | — | 0 eval results |
-| VOL_REGIME_SHIFT_EVENT | — | — | 0 eval results |
-| VOL_RELAXATION_START | — | — | 0 eval results |
-| RANGE_COMPRESSION_END | — | — | 0 eval results |
-| BETA_SPIKE_EVENT | — | — | 0 eval results |
-
-Events with 0 eval results likely have too few fires in 2023-2024 BTC high-vol window to evaluate.
-
-### Cached lake runs (for `--run_id` reuse)
+### Known lake runs (reusable)
 
 | Data scope | run_id |
 |------------|--------|
@@ -212,9 +183,3 @@ Events with 0 eval results likely have too few fires in 2023-2024 BTC high-vol w
 | BTC 2023-2024 (POSITIONING_EXTREMES) | `broad_oi_spike_positive_20260416T201712Z_2c9510827b` |
 | BTC 2023-2024 (VOLATILITY_TRANSITION) | `broad_vol_spike_20260416T210045Z_68e0020707` |
 | BTC 2022-2024 (3yr) | `liquidation_std_gate_3yr_20260416T090827Z_91dd43e2f6` |
-
-### Next actions
-
-1. **Diagnose 0-eval events** — VOL_SHOCK, VOL_CLUSTER_SHIFT, VOL_REGIME_SHIFT_EVENT etc. ran 1 hypothesis each but produced no `evaluation_results.parquet`. Check fire counts against lake before running full campaigns.
-2. **LIQUIDATION_CASCADE robustness** — best result is t=3.07/rob=0.61 at 8b (phase2 gate only). Rob gap is 0.09. Try additional horizon/filter combos to push over 0.70.
-3. **Multi-feature regime classifier** — only remaining path to unlock below-gate cluster (CLIMAX_VOLUME_BAR t=2.09/rob=0.52, POST_DELEVERAGING_REBOUND t=1.95/rob=0.68, OI_SPIKE_POSITIVE t=1.65/rob=0.65). No single feature concentrates the effect.

@@ -10,16 +10,18 @@ from project.io.utils import (
     run_scoped_lake_path,
 )
 
-DATA_ROOT = get_data_root()
+def get_research_data_root() -> Path:
+    return get_data_root()
 
 
 def load_research_features(run_id: str, symbol: str, timeframe: str = "5m") -> pd.DataFrame:
+    data_root = get_research_data_root()
     feature_dataset = feature_dataset_dir_name()
     candidates = [
         run_scoped_lake_path(
-            DATA_ROOT, run_id, "features", "perp", symbol, timeframe, feature_dataset
+            data_root, run_id, "features", "perp", symbol, timeframe, feature_dataset
         ),
-        DATA_ROOT / "lake" / "features" / "perp" / symbol / timeframe / feature_dataset,
+        data_root / "lake" / "features" / "perp" / symbol / timeframe / feature_dataset,
     ]
     features_dir = choose_partition_dir(candidates)
     files = list_parquet_files(features_dir) if features_dir else []

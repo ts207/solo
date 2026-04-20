@@ -79,7 +79,7 @@ def _resolve_promotion_policy(
         min_net_expectancy_bps = min(min_net_expectancy_bps, 1.5)
         require_retail_viability = False
         require_low_capital_viability = False
-        enforce_baseline_beats_complexity = False
+        enforce_baseline_beats_complexity = True
         enforce_placebo_controls = False
         enforce_timeframe_consensus = False
 

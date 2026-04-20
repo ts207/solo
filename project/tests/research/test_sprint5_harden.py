@@ -5,18 +5,17 @@ from pathlib import Path
 
 
 def test_deploy_honest_stubs():
-    # Test paper dry-run message
     result = subprocess.run(
-        [sys.executable, "project/cli.py", "deploy", "paper", "--run_id", "any_run"],
+        [sys.executable, "project/cli.py", "deploy", "export", "--run_id", "any_run"],
         capture_output=True,
         text=True,
     )
-    # If run_id doesn't exist, it should fail with "No promoted thesis found"
+    assert result.returncode == 1
     assert "Error: No promoted thesis found" in result.stdout
 
 
 def test_deploy_boundary_protection(tmp_path):
-    # Ensure it rejects raw candidates if they don't have a promoted thesis artifact
+    # Ensure deploy export rejects runs that have no promoted thesis artifact
     data_root = tmp_path / "data"
     data_root.mkdir()
     (data_root / "reports" / "phase2" / "raw_run").mkdir(parents=True)
@@ -27,7 +26,7 @@ def test_deploy_boundary_protection(tmp_path):
             sys.executable,
             "project/cli.py",
             "deploy",
-            "paper",
+            "export",
             "--run_id",
             "raw_run",
             "--data_root",

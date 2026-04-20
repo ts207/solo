@@ -1,7 +1,8 @@
 from __future__ import annotations
 from project.core.config import get_data_root
 
-DATA_ROOT = get_data_root()
+def get_research_data_root() -> Path:
+    return get_data_root()
 
 import argparse
 import json
@@ -119,7 +120,7 @@ def _load_phase1_events(run_id: str, event_type: str) -> pd.DataFrame:
     spec = EVENT_REGISTRY_SPECS.get(str(event_type))
     report_dir = spec.reports_dir if spec is not None else str(event_type)
     file_name = spec.events_file if spec is not None else f"{event_type}_events.csv"
-    path = DATA_ROOT / "reports" / report_dir / run_id / file_name
+    path = get_research_data_root() / "reports" / report_dir / run_id / file_name
     if not path.exists():
         return pd.DataFrame()
     try:
@@ -135,7 +136,7 @@ def _load_phase1_events(run_id: str, event_type: str) -> pd.DataFrame:
 
 
 def _load_phase2_candidates(run_id: str) -> pd.DataFrame:
-    phase2_root = DATA_ROOT / "reports" / "phase2" / run_id
+    phase2_root = get_research_data_root() / "reports" / "phase2" / run_id
     if not phase2_root.exists():
         return pd.DataFrame()
 
@@ -339,7 +340,7 @@ def main() -> int:
 
         if results:
             eval_df = pd.DataFrame(results)
-            out_path = DATA_ROOT / "reports" / "phase2" / args.run_id / "naive_evaluation.parquet"
+            out_path = get_research_data_root() / "reports" / "phase2" / args.run_id / "naive_evaluation.parquet"
             ensure_dir(out_path.parent)
             write_parquet(eval_df, out_path)
 

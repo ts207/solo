@@ -11,6 +11,7 @@ def _valuation(*, net: float, downside: float, fill: float) -> TradeValuation:
         expected_net_edge_bps=net,
         expected_downside_bps=downside,
         fill_probability=fill,
+        win_probability=0.60,
         edge_confidence=0.8,
         utility_score=net,
         should_trade=True,

@@ -12,21 +12,32 @@ if TYPE_CHECKING:
 
 @dataclass(frozen=True)
 class PolicyThresholds:
-    watch_min: float = 0.20
-    probe_min: float = 0.35
-    small_min: float = 0.55
-    normal_min: float = 0.75
+    # Hard floor: below this probability we watch or reject, never trade
+    min_trade_probability: float = 0.45
     max_contradiction_penalty: float = 0.45
+    # Action label boundaries derived from computed size_fraction
+    probe_max_fraction: float = 0.15
+    small_max_fraction: float = 0.40
+    # Minimum total_score to warrant a "watch" log entry (below → reject)
+    watch_min_score: float = 0.10
 
 
 def thresholds_from_config(config: Dict[str, Any] | None) -> PolicyThresholds:
     payload = dict(config or {})
     return PolicyThresholds(
-        watch_min=float(payload.get("watch_min", 0.20) or 0.20),
-        probe_min=float(payload.get("probe_min", 0.35) or 0.35),
-        small_min=float(payload.get("small_min", 0.55) or 0.55),
-        normal_min=float(payload.get("normal_min", 0.75) or 0.75),
+        min_trade_probability=float(
+            payload.get("min_trade_probability")
+            or payload.get("probe_min", 0.45)  # backward compat with old bucket key
+            or 0.45
+        ),
         max_contradiction_penalty=float(payload.get("max_contradiction_penalty", 0.45) or 0.45),
+        probe_max_fraction=float(payload.get("probe_max_fraction", 0.15) or 0.15),
+        small_max_fraction=float(payload.get("small_max_fraction", 0.40) or 0.40),
+        watch_min_score=float(
+            payload.get("watch_min_score")
+            or payload.get("watch_min", 0.10)  # backward compat
+            or 0.10
+        ),
     )
 
 
@@ -57,6 +68,41 @@ def normalize_live_event_detector_config(config: Mapping[str, Any] | None) -> Di
         payload["legacy_heuristic_enabled"] = True
         return payload
     raise ValueError(f"unsupported live event detector adapter '{adapter}'")
+
+
+def _continuous_size_fraction(
+    *,
+    probability: float,
+    utility: float,
+    downside: float,
+    min_trade_probability: float,
+) -> float:
+    """
+    Continuous size request in [0, 1].
+
+    70% driven by win probability (linear scale from min_trade_probability to 1.0),
+    30% driven by utility/downside ratio. The allocator further scales this down
+    based on realized slippage, overlap, and depth — so this is a requested ceiling,
+    not a final size.
+    """
+    if probability <= min_trade_probability:
+        return 0.0
+    prob_fraction = (probability - min_trade_probability) / (1.0 - min_trade_probability)
+    edge_ratio = min(1.0, max(0.0, utility / max(1.0, downside)))
+    return min(1.0, 0.70 * prob_fraction + 0.30 * edge_ratio)
+
+
+def _action_label_from_fraction(
+    size_fraction: float,
+    *,
+    probe_max: float,
+    small_max: float,
+) -> str:
+    if size_fraction >= small_max:
+        return "trade_normal"
+    if size_fraction >= probe_max:
+        return "trade_small"
+    return "probe"
 
 
 def build_live_decision_trace(
@@ -141,34 +187,38 @@ def score_to_action(
     probability = float(score.probability_positive_post_cost)
     expected_net_pnl = float(score.expected_net_pnl_bps)
     utility = float(score.utility_score)
+    expected_downside = float(score.expected_downside_bps)
+
+    # Hard reject gates
     if score.contradiction_penalty >= ladder.max_contradiction_penalty:
-        action = "reject"
-        confidence_band = "none"
-        size_fraction = 0.0
+        action, confidence_band, size_fraction = "reject", "none", 0.0
     elif utility <= 0.0 or expected_net_pnl <= 0.0:
-        action = "reject"
-        confidence_band = "none"
-        size_fraction = 0.0
-    elif probability >= 0.65 and expected_net_pnl >= 8.0 and utility >= 5.0:
-        action = "trade_normal"
-        confidence_band = "high"
-        size_fraction = max(0.25, min(1.0, utility / max(1.0, score.expected_downside_bps)))
-    elif probability >= 0.55 and expected_net_pnl >= 3.0:
-        action = "trade_small"
-        confidence_band = "medium"
-        size_fraction = max(0.10, min(0.50, utility / max(1.0, score.expected_downside_bps)))
-    elif probability >= 0.45 and expected_net_pnl > 0.0:
-        action = "probe"
-        confidence_band = "medium"
-        size_fraction = max(0.05, min(0.20, utility / max(1.0, score.expected_downside_bps)))
-    elif score.total_score >= ladder.watch_min:
-        action = "watch"
-        confidence_band = "low"
-        size_fraction = 0.0
+        action, confidence_band, size_fraction = "reject", "none", 0.0
+    elif probability < ladder.min_trade_probability:
+        # Below trading floor: watch if score is meaningful, else reject
+        if score.total_score >= ladder.watch_min_score:
+            action, confidence_band, size_fraction = "watch", "low", 0.0
+        else:
+            action, confidence_band, size_fraction = "reject", "none", 0.0
     else:
-        action = "reject"
-        confidence_band = "none"
-        size_fraction = 0.0
+        # Continuous sizing: probability + edge ratio, allocator scales further
+        size_fraction = _continuous_size_fraction(
+            probability=probability,
+            utility=utility,
+            downside=expected_downside,
+            min_trade_probability=ladder.min_trade_probability,
+        )
+        action = _action_label_from_fraction(
+            size_fraction,
+            probe_max=ladder.probe_max_fraction,
+            small_max=ladder.small_max_fraction,
+        )
+        confidence_band = (
+            "high" if action == "trade_normal"
+            else "medium" if action == "trade_small"
+            else "low"
+        )
+
     return TradeIntent(
         action=action,
         symbol=symbol,

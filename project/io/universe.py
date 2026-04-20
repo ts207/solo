@@ -15,7 +15,8 @@ from project.io.utils import (
     run_scoped_lake_path,
 )
 
-DATA_ROOT = get_data_root()
+def get_io_data_root() -> Path:
+    return get_data_root()
 DEFAULT_TOP10_SEED = [
     "BTCUSDT",
     "ETHUSDT",

@@ -115,13 +115,13 @@ def _evaluate_hypotheses(
             min_t_stat=min_t_stat,
             min_n=min_n,
             bridge_min_t_stat=float(bridge_gates.get("search_bridge_min_t_stat", 2.0)),
-            bridge_min_robustness_score=float(bridge_gates.get("bridge_min_robustness_score", 0.7)),
+            bridge_min_robustness_score=float(bridge_gates.get("search_bridge_min_robustness_score", 0.7)),
             bridge_min_regime_stability_score=float(
-                bridge_gates.get("bridge_min_regime_stability_score", 0.6)
+                bridge_gates.get("search_bridge_min_regime_stability_score", 0.6)
             ),
-            bridge_min_stress_survival=float(bridge_gates.get("bridge_min_stress_survival", 0.5)),
+            bridge_min_stress_survival=float(bridge_gates.get("search_bridge_min_stress_survival", 0.5)),
             bridge_stress_cost_buffer_bps=float(
-                bridge_gates.get("bridge_stress_cost_buffer_bps", 2.0)
+                bridge_gates.get("search_bridge_stress_cost_buffer_bps", 2.0)
             ),
             prefilter_min_n=True,
             prefilter_min_t_stat=False,  # Permissive for stage filtering
