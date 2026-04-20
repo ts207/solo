@@ -430,8 +430,19 @@ def expand_hypotheses(
     max_total = request.search_control.max_hypotheses_total
     if len(hypotheses) > max_total:
         log.warning(f"Truncating hypotheses expansion from {len(hypotheses)} to {max_total}")
-        # TODO: Better selection strategy (e.g. balanced across templates)
-        hypotheses = hypotheses[:max_total]
+        from collections import defaultdict
+        by_template = defaultdict(list)
+        for hyp in hypotheses:
+            by_template[hyp.template_id].append(hyp)
+        balanced_hypotheses = []
+        while len(balanced_hypotheses) < max_total and by_template:
+            for template_id in sorted(by_template.keys()):
+                if by_template[template_id]:
+                    balanced_hypotheses.append(by_template[template_id].pop(0))
+                    if len(balanced_hypotheses) == max_total:
+                        break
+            by_template = {k: v for k, v in by_template.items() if v}
+        hypotheses = balanced_hypotheses
 
     return hypotheses
 

@@ -39,6 +39,8 @@ class MatchingRequirements:
     confirmation_events: set[str]
     required_episodes: set[str]
     disallowed_regimes: set[str]
+    required_states: set[str]
+    supportive_states: set[str]
     thesis_event_ids: set[str]
     compatibility_event_families: set[str]
     canonical_regime: str
@@ -163,6 +165,12 @@ def _requirements_for_matching(
         disallowed_regimes = _normalized_tokens(
             thesis_requirements.disallowed_regimes or definition.disallowed_regimes
         )
+        required_states = _normalized_tokens(
+            thesis_requirements.required_states or definition.required_states
+        )
+        supportive_states = _normalized_tokens(
+            thesis_requirements.supportive_states or definition.supportive_states
+        )
         thesis_event_ids = set(trigger_events | confirmation_events)
         thesis_event_ids.update(
             _normalized_tokens(
@@ -172,13 +180,13 @@ def _requirements_for_matching(
         thesis_event_ids.update(
             _normalized_tokens([thesis.primary_event_id or definition.primary_event_id])
         )
-        # TODO: thread required/supportive state ids through runtime retrieval once the
-        # canonical thesis schema exposes them in live payloads.
         return MatchingRequirements(
             trigger_events=trigger_events,
             confirmation_events=confirmation_events,
             required_episodes=required_episodes,
             disallowed_regimes=disallowed_regimes,
+            required_states=required_states,
+            supportive_states=supportive_states,
             thesis_event_ids=thesis_event_ids,
             compatibility_event_families=_normalized_tokens(
                 [thesis.event_family or definition.event_family]
@@ -195,13 +203,13 @@ def _requirements_for_matching(
     thesis_event_ids.update(_normalized_tokens(thesis_requirements.confirmation_events))
     thesis_event_ids.update(_normalized_tokens(thesis.source.event_contract_ids))
     thesis_event_ids.update(_normalized_tokens([thesis.primary_event_id]))
-    # TODO: thread required/supportive state ids through runtime retrieval once the
-    # canonical thesis schema exposes them in live payloads.
     return MatchingRequirements(
         trigger_events=_normalized_tokens(thesis_requirements.trigger_events),
         confirmation_events=_normalized_tokens(thesis_requirements.confirmation_events),
         required_episodes=_normalized_tokens(thesis_requirements.required_episodes),
         disallowed_regimes=_normalized_tokens(thesis_requirements.disallowed_regimes),
+        required_states=_normalized_tokens(thesis_requirements.required_states),
+        supportive_states=_normalized_tokens(thesis_requirements.supportive_states),
         thesis_event_ids=thesis_event_ids,
         compatibility_event_families=_normalized_tokens([thesis.event_family]),
         canonical_regime=str(

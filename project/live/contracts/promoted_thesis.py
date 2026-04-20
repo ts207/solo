@@ -161,6 +161,8 @@ class ThesisRequirements(BaseModel):
     confirmation_events: List[str] = Field(default_factory=list)
     required_episodes: List[str] = Field(default_factory=list)
     disallowed_regimes: List[str] = Field(default_factory=list)
+    required_states: List[str] = Field(default_factory=list)
+    supportive_states: List[str] = Field(default_factory=list)
     deployment_gate: str = ""
     sequence_mode: str = ""
     minimum_episode_confidence: float = 0.0

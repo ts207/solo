@@ -127,6 +127,8 @@ class ThesisDefinition:
     confirmation_events: tuple[str, ...] = ()
     required_episodes: tuple[str, ...] = ()
     disallowed_regimes: tuple[str, ...] = ()
+    required_states: tuple[str, ...] = ()
+    supportive_states: tuple[str, ...] = ()
     source_event_contract_ids: tuple[str, ...] = ()
     source_episode_contract_ids: tuple[str, ...] = ()
     required_context: Dict[str, Any] = field(default_factory=dict)
