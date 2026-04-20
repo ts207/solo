@@ -222,28 +222,35 @@ def _build_confirmatory_evidence(
     train_frame = _split_frame(return_frame, "train")
     validation_frame = _split_frame(return_frame, "validation")
     test_frame = _split_frame(return_frame, "test")
+    confirmatory_frame = test_frame if not test_frame.empty else eval_frame
 
-    returns_oos = _numeric_series(eval_frame, "forward_return").dropna()
+    returns_oos = _numeric_series(confirmatory_frame, "forward_return").dropna()
     pnl_series = returns_oos.tolist()
     returns_raw = (
-        _numeric_series(eval_frame, "forward_return_raw")
-        if "forward_return_raw" in eval_frame.columns
-        else _numeric_series(eval_frame, "forward_return")
+        _numeric_series(confirmatory_frame, "forward_return_raw")
+        if "forward_return_raw" in confirmatory_frame.columns
+        else _numeric_series(confirmatory_frame, "forward_return")
     ).dropna()
-    costs_bps = (_numeric_series(eval_frame, "cost_return", default=0.0).fillna(0.0) * 1e4).tolist()
+    costs_bps = (
+        _numeric_series(confirmatory_frame, "cost_return", default=0.0).fillna(0.0) * 1e4
+    ).tolist()
     funding_present = (
-        eval_frame.get("funding_carry_present", pd.Series(False, index=eval_frame.index))
-        if not eval_frame.empty
+        confirmatory_frame.get(
+            "funding_carry_present", pd.Series(False, index=confirmatory_frame.index)
+        )
+        if not confirmatory_frame.empty
         else pd.Series(dtype=bool)
     )
     funding_present = funding_present.fillna(False).astype(bool)
-    funding_carry = _numeric_series(eval_frame, "funding_carry_return", default=0.0).fillna(0.0)
+    funding_carry = _numeric_series(
+        confirmatory_frame, "funding_carry_return", default=0.0
+    ).fillna(0.0)
     funding_carry_eval_coverage = float(funding_present.mean()) if len(funding_present) else 0.0
     mean_funding_carry_bps = (
         float(funding_carry[funding_present].mean() * 1e4) if bool(funding_present.any()) else 0.0
     )
-    if "event_ts" in eval_frame.columns:
-        event_ts = pd.to_datetime(eval_frame["event_ts"], utc=True, errors="coerce").dropna()
+    if "event_ts" in confirmatory_frame.columns:
+        event_ts = pd.to_datetime(confirmatory_frame["event_ts"], utc=True, errors="coerce").dropna()
         timestamps = [ts.isoformat() for ts in event_ts.tolist()]
     else:
         timestamps = []
@@ -289,8 +296,8 @@ def _build_confirmatory_evidence(
         and abs(delayed_mean) >= abs(eval_mean) * 0.25
     )
 
-    regime_series = _regime_labels(eval_frame)
-    regime_frame = eval_frame.copy()
+    regime_series = _regime_labels(confirmatory_frame)
+    regime_frame = confirmatory_frame.copy()
     regime_frame["regime"] = regime_series.values if not regime_series.empty else []
     regime_info = evaluate_by_regime(regime_frame, value_col="forward_return", regime_col="regime")
     regime_counts = {
@@ -436,11 +443,7 @@ def split_and_score_candidates(
 
     out = candidates.copy()
     out["split_scheme_id"] = str(resolved_split_scheme_id)
-    out["split_plan_id"] = (
-        str(working["split_plan_id"].iloc[0])
-        if "split_plan_id" in working.columns and not working.empty
-        else ""
-    )
+    out["split_plan_id"] = split_plan_id
     out["purge_bars_used"] = int(purge_bars)
     out["embargo_bars_used"] = int(embargo_bars)
     out["bar_duration_minutes"] = int(bar_duration_minutes)
@@ -521,6 +524,7 @@ def split_and_score_candidates(
                 split_col="split_label",
                 event_window_start_col="event_window_start",
                 event_window_end_col="event_window_end",
+                purge_mode="time" if int(row_horizon_bars) > 1 else "rows",
             )
         prepared_source_events_cache[cache_key] = prepared
         return prepared

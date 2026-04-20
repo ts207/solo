@@ -11,6 +11,7 @@ from project.events.event_specs import EVENT_REGISTRY_SPECS
 
 DATA_ROOT = get_data_root()
 FIXTURES_DIR = DATA_ROOT / "reports" / "benchmarks" / "fixtures"
+_WRITE_PARQUET = None
 
 _EVENT_SOURCE_RELATIVE_PATHS: dict[str, tuple[str, ...]] = {
     "VOL_SPIKE": (
@@ -33,6 +34,14 @@ _EVENT_SOURCE_RELATIVE_PATHS: dict[str, tuple[str, ...]] = {
 
 def _parse_date(value: str) -> pd.Timestamp:
     return pd.Timestamp(value, tz="UTC")
+
+
+def _write_fixture_parquet(frame: pd.DataFrame, output_path: Path) -> None:
+    global _WRITE_PARQUET
+    if _WRITE_PARQUET is None:
+        module = __import__("project.io.utils", fromlist=["write_parquet"])
+        _WRITE_PARQUET = getattr(module, "write_parquet")
+    _WRITE_PARQUET(frame, output_path)
 
 
 def _candidate_source_paths(event_type: str, *, data_root: Path | None = None) -> list[Path]:
@@ -139,5 +148,5 @@ def materialize_benchmark_fixture(
         )
 
     output_path.parent.mkdir(parents=True, exist_ok=True)
-    fixture.to_parquet(output_path, index=False)
+    _write_fixture_parquet(fixture, output_path)
     return int(len(fixture))

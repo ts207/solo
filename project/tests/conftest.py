@@ -9,6 +9,7 @@ from project.tests.synthetic_truth.scenarios.factory import ScenarioFactory
 
 
 REPO_ROOT = PROJECT_ROOT.parent
+SPEC_ROOT = REPO_ROOT / "spec"
 
 
 @pytest.fixture

@@ -1,10 +1,119 @@
 import asyncio
+import contextlib
+import json
+from collections.abc import Sequence
+from typing import Any
 
 from mcp.types import DEFAULT_NEGOTIATED_VERSION
-from starlette.testclient import TestClient
 
 from project.apps.chatgpt.server import _build_runtime_wrapper, build_asgi_app, build_mcp_server
 from project.apps.chatgpt.tool_catalog import get_tool_definition
+
+
+async def start_lifespan(app: Any) -> asyncio.Task[Any]:
+    started = asyncio.Event()
+    shutdown = asyncio.Event()
+
+    async def receive() -> dict[str, Any]:
+        if not started.is_set():
+            return {"type": "lifespan.startup"}
+        await shutdown.wait()
+        return {"type": "lifespan.shutdown"}
+
+    async def send(message: dict[str, Any]) -> None:
+        message_type = str(message.get("type", ""))
+        if message_type == "lifespan.startup.complete":
+            started.set()
+        elif message_type == "lifespan.shutdown.complete":
+            shutdown.set()
+        elif message_type == "lifespan.startup.failed":
+            started.set()
+            raise RuntimeError(f"lifespan startup failed: {message}")
+
+    task = asyncio.create_task(
+        app(
+            {"type": "lifespan", "asgi": {"version": "3.0", "spec_version": "2.0"}, "state": {}},
+            receive,
+            send,
+        )
+    )
+    await asyncio.wait_for(started.wait(), timeout=5.0)
+    return task
+
+
+async def stop_lifespan(task: asyncio.Task[Any]) -> None:
+    task.cancel()
+    with contextlib.suppress(asyncio.CancelledError):
+        await task
+
+
+async def request(
+    app: Any,
+    *,
+    method: str,
+    path: str,
+    body: bytes = b"",
+    headers: Sequence[tuple[bytes, bytes]] | None = None,
+) -> tuple[int, bytes]:
+    messages: list[dict[str, Any]] = []
+    first = True
+
+    async def receive() -> dict[str, Any]:
+        nonlocal first
+        if first:
+            first = False
+            return {"type": "http.request", "body": body, "more_body": False}
+        return {"type": "http.disconnect"}
+
+    async def send(message: dict[str, Any]) -> None:
+        messages.append(message)
+
+    await app(
+        {
+            "type": "http",
+            "asgi": {"version": "3.0", "spec_version": "2.3"},
+            "http_version": "1.1",
+            "method": method.upper(),
+            "scheme": "http",
+            "path": path,
+            "raw_path": path.encode("utf-8"),
+            "query_string": b"",
+            "headers": list(headers or []),
+            "client": ("pytest", 50000),
+            "server": ("testserver", 80),
+            "root_path": "",
+            "state": {},
+        },
+        receive,
+        send,
+    )
+
+    start = next(message for message in messages if message["type"] == "http.response.start")
+    chunks = [
+        bytes(message.get("body", b""))
+        for message in messages
+        if message["type"] == "http.response.body"
+    ]
+    return int(start["status"]), b"".join(chunks)
+
+
+async def json_request(
+    app: Any,
+    *,
+    method: str,
+    path: str,
+    payload: dict[str, Any] | None = None,
+    headers: Sequence[tuple[bytes, bytes]] | None = None,
+) -> tuple[int, dict[str, Any]]:
+    body = json.dumps(payload).encode("utf-8") if payload is not None else b""
+    status, response_body = await request(
+        app,
+        method=method,
+        path=path,
+        body=body,
+        headers=headers,
+    )
+    return status, json.loads(response_body.decode("utf-8"))
 
 
 def test_fastmcp_registration_carries_titles_and_annotations() -> None:
@@ -66,25 +175,32 @@ def test_streamable_http_initialize_smoke() -> None:
         },
     }
 
-    with TestClient(app) as client:
-        health_response = client.get("/")
-        assert health_response.status_code == 200
-        assert health_response.json()["mcp_endpoint"] == "/mcp"
+    async def _exercise() -> None:
+        lifespan = await start_lifespan(app)
+        try:
+            health_status, health_payload = await json_request(app, method="GET", path="/")
+            assert health_status == 200
+            assert health_payload["mcp_endpoint"] == "/mcp"
 
-        initialize_response = client.post(
-            "/mcp/",
-            headers={
-                "accept": "application/json, text/event-stream",
-                "content-type": "application/json",
-            },
-            json=initialize_request,
-        )
+            status, payload = await json_request(
+                app,
+                method="POST",
+                path="/mcp/",
+                payload=initialize_request,
+                headers=[
+                    (b"accept", b"application/json, text/event-stream"),
+                    (b"content-type", b"application/json"),
+                ],
+            )
+        finally:
+            await stop_lifespan(lifespan)
 
-    assert initialize_response.status_code == 200
-    payload = initialize_response.json()
-    assert payload["result"]["protocolVersion"] == DEFAULT_NEGOTIATED_VERSION
-    assert payload["result"]["serverInfo"]["name"] == "Edge Operator"
-    assert payload["result"]["capabilities"]["tools"]["listChanged"] is False
+        assert status == 200
+        assert payload["result"]["protocolVersion"] == DEFAULT_NEGOTIATED_VERSION
+        assert payload["result"]["serverInfo"]["name"] == "Edge Operator"
+        assert payload["result"]["capabilities"]["tools"]["listChanged"] is False
+
+    asyncio.run(_exercise())
 
 
 def test_runtime_wrapper_uses_schema_defaults_for_optional_fields() -> None:

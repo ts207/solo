@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import contextlib
 import importlib
 import inspect
 from typing import Any
@@ -181,9 +180,32 @@ def build_asgi_app(*, profile: str = "operator", repo_root: str | None = None) -
     Route = _load_symbol("starlette.routing.Route")
     Mount = _load_symbol("starlette.routing.Mount")
     CORSMiddleware = _load_symbol("starlette.middleware.cors.CORSMiddleware")
+    StreamableHTTPASGIApp = _load_symbol("mcp.server.fastmcp.server.StreamableHTTPASGIApp")
+    StreamableHTTPSessionManager = _load_symbol(
+        "mcp.server.streamable_http_manager.StreamableHTTPSessionManager"
+    )
 
     mcp_server = build_mcp_server(profile=profile, repo_root=repo_root)
     metadata = get_profile_metadata(profile)
+    if bool(getattr(mcp_server.settings, "stateless_http", False)):
+        class StatelessMCPTransport:
+            async def __call__(self, scope: Any, receive: Any, send: Any) -> None:
+                manager = StreamableHTTPSessionManager(
+                    app=mcp_server._mcp_server,
+                    event_store=mcp_server._event_store,
+                    json_response=bool(mcp_server.settings.json_response),
+                    stateless=True,
+                    security_settings=mcp_server.settings.transport_security,
+                )
+                async with manager.run():
+                    await manager.handle_request(scope, receive, send)
+
+        mcp_transport = StatelessMCPTransport()
+        app_lifespan = None
+    else:
+        mcp_server.streamable_http_app()
+        mcp_transport = StreamableHTTPASGIApp(mcp_server.session_manager)
+        app_lifespan = None
 
     async def healthcheck(_request: Any) -> Any:
         return JSONResponse(
@@ -199,19 +221,15 @@ def build_asgi_app(*, profile: str = "operator", repo_root: str | None = None) -
     async def oauth_not_configured(_request: Any) -> Any:
         return PlainTextResponse("OAuth not configured for this server.", status_code=404)
 
-    @contextlib.asynccontextmanager
-    async def lifespan(_app: Any) -> Any:
-        async with mcp_server.session_manager.run():
-            yield
-
     app = Starlette(
         routes=[
             Route("/", endpoint=healthcheck, methods=["GET"]),
             Route("/.well-known/oauth-authorization-server", endpoint=oauth_not_configured, methods=["GET"]),
             Route("/oauth/.well-known/openid-configuration", endpoint=oauth_not_configured, methods=["GET"]),
-            Mount("/mcp", app=mcp_server.streamable_http_app()),
+            Route("/mcp", endpoint=mcp_transport),
+            Route("/mcp/", endpoint=mcp_transport),
         ],
-        lifespan=lifespan,
+        lifespan=app_lifespan,
     )
     return CORSMiddleware(
         app,

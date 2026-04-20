@@ -31,9 +31,14 @@ def _sha256_text(text: str) -> str:
 
 
 def _default_config_paths(project_root: Path) -> List[Path]:
-    cfg = project_root / "project" / "configs"
-    if not cfg.exists():
-        cfg = project_root / "configs"
+    candidate_dirs = [
+        project_root / "configs",
+        project_root / "project" / "configs",
+    ]
+    for cfg in candidate_dirs:
+        if cfg.exists():
+            return [cfg / "pipeline.yaml", cfg / "fees.yaml"]
+    cfg = candidate_dirs[0]
     return [cfg / "pipeline.yaml", cfg / "fees.yaml"]
 
 
