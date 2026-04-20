@@ -1,11 +1,6 @@
 # Edge documentation
 
-> **⚠️ WARNING: DOCS FROZEN**
-> The live runtime and deployment surface are currently undergoing a major remediation (Phase 1).
-> These docs currently reflect the older, pre-remediation state and are out of sync with actual runtime behavior.
-> Please rely on the code in `project/cli.py` and `project/live/` until this warning is removed.
-
-This docset is meant to stand on its own. Read it as the map of the repository, the lifecycle guide for the trading system, and the operator handbook for running it safely.
+This docset is the map of the repository, the lifecycle guide for the trading system, and the operator handbook for running it safely.
 
 ## Start here
 
@@ -73,6 +68,7 @@ That sequence gives you:
 | [reference/commands.md](reference/commands.md) | CLI commands, scripts, Make targets, operational entrypoints |
 | [reference/spec_authoring.md](reference/spec_authoring.md) | Event, template, proposal, and generated-domain workflow |
 | [reference/assurance.md](reference/assurance.md) | Test surface, governance, certification, and minimum-green checks |
+| [reference/detector_governance.md](reference/detector_governance.md) | Detector banding, eligibility model, migration policy, generated governance artifacts |
 
 ## Operations
 
@@ -84,30 +80,46 @@ That sequence gives you:
 
 | File | Main coverage |
 |------|---------------|
-| [research/results.md](research/results.md) | Results index and result surfaces |
-| [research/campaign_results.md](research/campaign_results.md) | Campaign-style summaries |
-| [research/reflections.md](research/reflections.md) | Pattern summaries and research reflections |
-| [research/narrative.md](research/narrative.md) | Longer-form narrative interpretation |
+| [research/results.md](research/results.md) | Auto-generated results index (updated after each pipeline run) |
+| [research/reflections.md](research/reflections.md) | Human observations and auto-detected patterns |
+| [research/campaign_results.md](research/campaign_results.md) | Historical: initial discovery campaign data (2026-04-17) |
+| [research/narrative.md](research/narrative.md) | Historical: initial discovery campaign narrative (2026-04-17) |
+
+## Research state
+
+No promoted theses. Prior results cleared — produced under gates and policy that had since-fixed bugs. Lake must be re-ingested; historical BTC lake runs are not on disk.
+
+Start with a fresh discovery run:
+```bash
+edge discover run --proposal spec/proposals/broad_vol-spike_long_mr_24b.yaml
+```
+Then pass `--run_id <run_id>` on subsequent proposals to reuse that lake.
 
 ## Generated reference
 
-`generated/` contains machine-derived inventories and audits. These files are not the place to explain the system, but they are useful when you need a mechanically produced index or consistency report.
+`generated/` contains machine-derived inventories and audits. Not the place to explain the system, but useful when you need a mechanically produced index or consistency report.
 
 High-value generated documents:
 - `generated/system_map.md` — stage and dependency inventory
 - `generated/detector_coverage.md` — detector coverage across the event surface
 - `generated/event_contract_reference.md` — event catalog and contract view
 - `generated/event_ontology_mapping.md` — canonical event mapping view
+- `generated/detector_eligibility_matrix.md` — planning/promotion/runtime/anchor eligibility per detector
 
-Refresh generated docs through the governance and generator scripts referenced in [reference/assurance.md](reference/assurance.md).
+Refresh generated docs:
+```bash
+make governance
+PYTHONPATH=. python3 project/scripts/build_detector_governance_artifacts.py --output-dir docs/generated
+```
 
 ## Fast answers
 
-- **What is the repo’s main architectural idea?** Research produces evidence, promotion packages evidence into thesis contracts, and runtime trades only against thesis contracts. Start with [lifecycle/overview.md](lifecycle/overview.md).
+- **What is the repo's main architectural idea?** Research produces evidence → promotion packages it into thesis contracts → runtime trades only against thesis contracts. Start with [lifecycle/overview.md](lifecycle/overview.md).
 - **Where is the full repo map?** [reference/full_repo_surface.md](reference/full_repo_surface.md)
 - **Where should I start reading code?** [reference/repository_map.md](reference/repository_map.md)
 - **Where is the live engine?** `project/live/` plus `project/scripts/run_live_engine.py`, explained in [lifecycle/deploy.md](lifecycle/deploy.md)
 - **Where is research logic?** `project/research/`, explained in [reference/repository_map.md](reference/repository_map.md)
 - **Where are event definitions?** `spec/events/`, with runtime consumers in `project/events/`
-- **Where do artifacts land?** [reference/full_repo_surface.md](reference/full_repo_surface.md)
+- **Where do artifacts land?** `data/` — see [reference/full_repo_surface.md](reference/full_repo_surface.md)
 - **Where are the operator procedures?** [operator/runbook.md](operator/runbook.md)
+- **How do I run discovery?** `edge discover run --proposal spec/proposals/<your>.yaml` — see [lifecycle/discover.md](lifecycle/discover.md)

@@ -476,13 +476,25 @@ def load_feature_schema_registry(version: str | None = None) -> Dict[str, Any]:
     return payload
 
 
+_GENERATED_SPEC_SUBDIRS = ("ontology",)
+_GENERATED_SPEC_FILES = ("templates/event_template_registry.yaml",)
+
+
 def iter_spec_yaml_files(repo_root: Path | None = None) -> list[Path]:
     base = (
         spec_root()
         if repo_root is None
         else resolve_relative_spec_path("spec", repo_root=repo_root)
     )
-    files = [p for p in base.rglob("*.yaml") if p.is_file()]
+    generated_dirs = {base / d for d in _GENERATED_SPEC_SUBDIRS}
+    generated_files = {base / f for f in _GENERATED_SPEC_FILES}
+    files = [
+        p
+        for p in base.rglob("*.yaml")
+        if p.is_file()
+        and not any(p == g or g in p.parents for g in generated_dirs)
+        and p not in generated_files
+    ]
     return sorted(files)
 
 

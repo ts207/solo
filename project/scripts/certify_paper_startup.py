@@ -16,7 +16,7 @@ artifacts are written; only the venue adapter is not yet connected."
 
 Usage:
     python project/scripts/certify_paper_startup.py \
-        --config project/configs/live_paper_productive_golden_path_20260416T041539Z_c7e116bafd.yaml \
+        --config project/configs/live_paper_<RUN_ID>.yaml \
         --out artifacts/paper_startup_certification.json
 """
 from __future__ import annotations

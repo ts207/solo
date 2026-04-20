@@ -10,13 +10,12 @@ from project.research.gating import (
     calculate_expectancy_stats,
     distribution_stats,
     one_sided_p_from_t,
-    two_sided_p_from_t,
 )
 
 
 def test_one_sided_p_handles_degenerate_degrees_of_freedom() -> None:
     assert one_sided_p_from_t(2.5, df=0) == 1.0
-    assert two_sided_p_from_t(-2.5, df=0) == 1.0
+    assert one_sided_p_from_t(-2.5, df=0) == 1.0
 
 
 def test_distribution_stats_preserves_direction_with_small_samples() -> None:

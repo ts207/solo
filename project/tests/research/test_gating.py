@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import numpy as np
 import pytest
-from project.research.gating import one_sided_p_from_t, distribution_stats, two_sided_p_from_t
+from project.research.gating import one_sided_p_from_t, distribution_stats
 
 def test_one_sided_p_from_t():
     # Large positive t-stat (strong winner) -> low p-value (rejected H0: mu <= 0)
@@ -19,11 +19,10 @@ def test_one_sided_p_from_t():
     p_zero = one_sided_p_from_t(0.0, df=99)
     assert abs(p_zero - 0.5) < 1e-9
 
-def test_two_sided_p_from_t_alias():
-    # Verify that two_sided_p_from_t is now aliased to one_sided_p_from_t
-    # (i.e. it no longer returns a low p-value for large negative t-stats)
-    p_loser = two_sided_p_from_t(-10.0, df=99)
-    assert p_loser > 0.99  # In a real two-sided test, this would be near 0.0
+def test_one_sided_p_from_t_treats_negative_t_as_losing():
+    # Large negative t-stat should give a high p-value (cannot reject H0: mu <= 0)
+    p_loser = one_sided_p_from_t(-10.0, df=99)
+    assert p_loser > 0.99
 
 def test_distribution_stats_basic():
     # Strong winner: all positive returns

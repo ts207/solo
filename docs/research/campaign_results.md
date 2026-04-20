@@ -1,5 +1,7 @@
 # Campaign Results — 2026-04-17
 
+> **Historical record.** These results are from the initial discovery campaign run under gates and sizing policy that have since been fixed and hardened. The promoted theses from this campaign were cleared. The statistical observations, signal rankings, and template-compatibility findings remain valid and are preserved here as research context.
+
 Systematic discovery across the full event universe, BTC 2023-2024, rv_pct_17280 > 70 unless noted.
 Gates: bridge requires t ≥ 2.0 AND rob ≥ 0.70. Phase2 requires rob ≥ 0.60.
 

@@ -173,13 +173,22 @@ Startup certification (no credentials needed): `PYTHONPATH=. python3 project/scr
 
 No promoted theses. All prior results cleared — re-run from scratch with hardened gates.
 
-Lake data is intact (`data/lake/`). Run proposals against existing lake using `--run_id` reuse to skip data rebuild.
+Lake data must be re-ingested. The historical BTC lake runs from April 2026 are not present on disk. Run a new proposal with `edge discover run --proposal <path>` to rebuild the lake, then use `--run_id` reuse for subsequent proposals over the same data.
 
-### Known lake runs (reusable)
+### Starting a new discovery run
 
-| Data scope | run_id |
-|------------|--------|
-| BTC 2023-2024 (FORCED_FLOW events) | `broad_climax_volume_bar_20260416T202235Z_9787da0dd4` |
-| BTC 2023-2024 (POSITIONING_EXTREMES) | `broad_oi_spike_positive_20260416T201712Z_2c9510827b` |
-| BTC 2023-2024 (VOLATILITY_TRANSITION) | `broad_vol_spike_20260416T210045Z_68e0020707` |
-| BTC 2022-2024 (3yr) | `liquidation_std_gate_3yr_20260416T090827Z_91dd43e2f6` |
+```bash
+# First run: builds lake + runs discovery
+edge discover run --proposal spec/proposals/broad_vol-spike_long_mr_24b.yaml
+
+# Subsequent runs over the same data: reuse the lake
+edge discover run --proposal spec/proposals/<other>.yaml --run_id <run_id_from_first_run>
+```
+
+The highest-priority re-runs based on prior campaign evidence (before gates were fixed):
+
+| Event | Best prior result | Proposal |
+|-------|-------------------|---------|
+| VOL_SPIKE long 24b | t=3.59, rob=0.62 | `spec/proposals/broad_vol-spike_long_mr_24b.yaml` |
+| OI_SPIKE_NEGATIVE long 48b | t=2.37, rob=0.87 | `spec/proposals/campaign_pe_oi-spike-negative_48b.yaml` |
+| LIQUIDATION_CASCADE long 24b | t=1.78, rob=0.82 | `spec/proposals/broad_liquidation-exhaustion-reversal.yaml` |

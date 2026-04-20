@@ -4,8 +4,8 @@ metadata:
   status: generated
   graph_role: runtime_read_model
   schema_version: 2
-  generated_at_utc: '2026-04-20T04:40:18Z'
-  spec_sources_digest: 13f8a1beabd04b2e06b4f69ff926b29745bee10ddca2cd8e323ba9b55cbbe3ab
+  generated_at_utc: '2026-04-20T05:45:43Z'
+  spec_sources_digest: 73f251998292187c074fe872945beec74d7da494247af9c6c37008e074eb9e16
   notes: Compiled runtime read model. Semantic nodes are normalized for direct runtime/search
     loading.
 events:

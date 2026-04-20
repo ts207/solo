@@ -1,10 +1,5 @@
 # Deploy stage
 
-> **⚠️ WARNING: DOCS FROZEN**
-> The live runtime and deployment surface are currently undergoing a major remediation (Phase 1).
-> These docs currently reflect the older, pre-remediation state and are out of sync with actual runtime behavior.
-> Please rely on the code in `project/cli.py` and `project/live/` until this warning is removed.
-
 The deploy stage launches the runtime against a promoted thesis batch.
 
 It answers this question:
@@ -14,15 +9,16 @@ It answers this question:
 ## CLI surface
 
 ```bash
-edge deploy export          --run_id <run_id>
+edge deploy list-theses
+edge deploy inspect-thesis  --run_id <run_id>
 edge deploy bind-config     --run_id <run_id>
-edge deploy inspect         --run_id <run_id>
-edge deploy paper-run       --config <config.yaml>
-edge deploy live-run        --config <config.yaml>
+edge deploy paper           --run_id <run_id> --config <config.yaml>
+edge deploy live            --run_id <run_id> --config <config.yaml>
 edge deploy status          --run_id <run_id>
+edge deploy export          --run_id <run_id>
 ```
 
-Use `list-theses` and `inspect-thesis` before startup to confirm that a thesis batch exists and that its deployment states match the intended mode.
+Use `list-theses` and `inspect-thesis` before startup to confirm a thesis batch exists and that its deployment states match the intended mode.
 
 Use `bind-config` to create a run-bound paper config instead of editing templates manually.
 
@@ -54,38 +50,28 @@ The stage supports both `paper` and `live`, but deployment state checks differ.
 
 ### Paper launch requirement
 
-The thesis batch must contain at least one thesis whose deployment state is compatible with paper usage, typically `paper_only` or `live_enabled`.
+The thesis batch must contain at least one thesis whose deployment state is compatible with paper usage — typically `paper_only` or `live_enabled`.
 
 ### Live launch requirement
 
 The thesis batch must contain at least one thesis with `deployment_state = live_enabled`.
 
-This means that not every promoted batch is legally deployable in live mode.
+Not every promoted batch is legally deployable in live mode.
 
 ## Runtime config contract
 
 Key config rules:
 - `runtime_mode` must be `monitor_only` or `trading`
 - `strategy_runtime.implemented=true` requires an explicit thesis source
-- only one thesis source should be set at a time, typically `thesis_run_id` or `thesis_path`
+- only one thesis source should be set at a time: typically `thesis_run_id` or `thesis_path`
 
-A practical nuance:
-
-`edge deploy ... --run_id <run_id>` overrides `strategy_runtime.thesis_run_id` for that launch session in memory. It does not rewrite the YAML config on disk.
+`edge deploy ... --run_id <run_id>` overrides `strategy_runtime.thesis_run_id` for that launch session in memory — it does not rewrite the YAML config on disk.
 
 ## Important nuance: default paper config may be monitor-only
 
-Not every paper config is a thesis-trading config.
-
-The checked-in paper profiles include both:
-- monitor-oriented paper configs,
-- thesis-bound paper trading templates.
-
-That distinction matters. Launching paper mode with a monitor-only config does not automatically create a thesis-driven paper trader.
+Not every paper config is a thesis-trading config. The checked-in paper profiles include both monitor-oriented configs and thesis-bound trading configs. Launching paper mode with a monitor-only config does not create a thesis-driven paper trader.
 
 ## Standard bring-up
-
-Typical sequence:
 
 ```bash
 # 1. verify theses
@@ -96,30 +82,32 @@ edge deploy inspect-thesis --run_id <run_id>
 edge deploy bind-config --run_id <run_id>
 
 # 3. optional startup certification
-python project/scripts/certify_paper_startup.py --config project/configs/live_paper_<run_id>.yaml
+python project/scripts/certify_paper_startup.py \
+  --config project/configs/live_paper_<run_id>.yaml
 
 # 4. launch
-edge deploy paper --run_id <run_id> --config project/configs/live_paper_<run_id>.yaml
+edge deploy paper \
+  --run_id <run_id> \
+  --config project/configs/live_paper_<run_id>.yaml
 ```
 
-For a detailed operational version, see [../operator/runbook.md](../operator/runbook.md).
+For the full operational sequence with env vars, failure handling, and restart procedures, see [../operator/runbook.md](../operator/runbook.md).
 
 ## Environment requirements
 
-The runtime performs environment and config checks before allowing trading mode.
+```bash
+export EDGE_ENVIRONMENT=paper         # or live
+export EDGE_VENUE=binance             # or bybit
+export EDGE_LIVE_CONFIG=<path>        # bound config yaml
+export EDGE_LIVE_SNAPSHOT_PATH=<path> # state snapshot json
+# Plus venue-specific API key/secret vars
+```
 
-Representative environment variables include:
-- `EDGE_ENVIRONMENT`
-- `EDGE_VENUE`
-- `EDGE_LIVE_CONFIG`
-- `EDGE_LIVE_SNAPSHOT_PATH`
-- venue-specific credentials such as `EDGE_BYBIT_*` or `EDGE_BINANCE_*`
-
-Treat missing environment state as a deployment blocker, not as something to work around in code.
+Treat missing environment state as a deployment blocker. Do not work around it in config.
 
 ## What happens at runtime startup
 
-When the runner starts, it typically:
+When the runner starts:
 
 1. loads the thesis batch from path or run id,
 2. registers or hydrates thesis runtime state,
@@ -127,36 +115,47 @@ When the runner starts, it typically:
 4. constructs venue, data, OMS, and risk components,
 5. begins the market-data-driven runtime loop.
 
-The thesis reconciliation step is important. It exists to detect dangerous situations such as:
-- removed theses that were previously active,
-- downgraded deployment states,
-- unexpected batch changes across restarts.
+The thesis reconciliation step detects dangerous situations such as removed theses that were previously active, downgraded deployment states, or unexpected batch changes across restarts.
 
 ## The online decision loop
-
-The runtime’s conceptual loop is:
 
 ```text
 market data → event detection → context build → thesis match / decision → order planning → OMS → health and kill-switch checks
 ```
 
-The runtime is thesis-aware. It does not simply trade every detector signal. It uses the thesis store, context, and runtime gating to decide whether a signal is actually actionable.
+The runtime is thesis-aware. It does not trade every detector signal — it gates each signal through the thesis store, context, and runtime admission policy.
+
+## Runtime decision path (hardened)
+
+The live engine decision path runs through these modules in sequence:
+
+| Module | Responsibility |
+|--------|---------------|
+| `project/live/decision_ranker.py` | Rank thesis matches by expected utility: EV × regime reliability × fill probability |
+| `project/live/trade_valuator.py` | Estimate fill probability, win probability, edge confidence, net utility |
+| `project/live/sizing_allocator.py` | Compute position size with overlap, slippage, confidence, and participation cap adjustments |
+| `project/live/order_planner.py` | Convert accepted valuations into executable trade intents |
+| `project/live/contradiction_model.py` | Assess signal contradictions and apply penalty bps |
+| `project/live/regime_reliability.py` | Score regime match between thesis and current market context |
+| `project/live/signal_monitor.py` | Monitor signal silence and fill calibration; emit warnings and alerts |
+| `project/portfolio/` | Shared admission, overlap, sizing, and risk budget policy |
+
+These modules are separately testable and the decision path is instrumented. The runtime emits a `signal_monitor` block in its metrics snapshot.
 
 ## Shared policy surfaces
 
-Risk and admission policy is deliberately shared across runtime and execution-oriented components.
+Risk and admission policy is shared between runtime and research:
 
-Important policy modules include:
 - `project/portfolio/admission_policy.py`
 - `project/portfolio/thesis_overlap.py`
 - `project/portfolio/risk_budget.py`
 - `project/portfolio/sizing.py`
 
-That shared layer is there to reduce drift between what research/execution assumes and what live runtime actually enforces.
+That shared layer reduces drift between what research/execution assumes and what live runtime enforces.
 
 ## Failure and fail-closed behavior
 
-Deploy is intentionally fail-closed in several scenarios:
+Deploy is intentionally fail-closed:
 - thesis package missing,
 - deployment state incompatible with requested mode,
 - runtime config invalid,
@@ -164,7 +163,7 @@ Deploy is intentionally fail-closed in several scenarios:
 - thesis reconciliation degrades into an unsafe state,
 - kill-switch conditions trigger during operation.
 
-When the kill-switch trips in trading mode, the runtime is designed to block or terminate trading actions rather than continue in a degraded state.
+When the kill-switch trips in trading mode, the runtime blocks or terminates trading rather than continuing in a degraded state.
 
 ## Operational rules
 
@@ -176,12 +175,12 @@ When the kill-switch trips in trading mode, the runtime is designed to block or 
 
 ## What deploy proves
 
-A successful deploy proves more than “the process started.” It proves that:
-- the thesis package exists,
-- the deployment state is compatible,
-- the config is coherent,
+A successful deploy proves:
+- the thesis package exists and is coherent,
+- the deployment state is compatible with the requested mode,
+- the config is valid,
 - the environment is sufficient,
 - the runtime can load and reconcile the thesis batch,
-- the engine can enter its decision loop without failing the startup gates.
+- the engine can enter its decision loop without failing startup gates.
 
-For concrete operator steps and restart/failure procedures, see [../operator/runbook.md](../operator/runbook.md).
+For concrete operator steps and restart/failure procedures: [../operator/runbook.md](../operator/runbook.md)

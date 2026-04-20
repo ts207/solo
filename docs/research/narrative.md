@@ -1,5 +1,7 @@
 # Research Reflections — 2026-04-17
 
+> **Historical record.** This narrative covers the initial discovery campaign. The promoted theses were cleared due to bugs in gate computation and sizing policy that have since been fixed. The observations about signal quality, regime sensitivity, template incompatibility, and the discovery landscape remain valid and are preserved here as research context.
+
 Campaign scope: systematic discovery across all events, BTC 2023-2024, rv_pct_17280 > 70. ~50 proposal runs, 20+ events tested, 4 horizon sweeps, multiple vol filter sweeps.
 
 ---
