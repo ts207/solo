@@ -6,15 +6,16 @@ Collects hypotheses evaluation results and appends to the program's tested ledge
 import argparse
 import json
 import logging
-from pathlib import Path
 import sys
+from pathlib import Path
 
 import pandas as pd
+
+from project.artifacts import phase2_candidates_path
 from project.core.config import get_data_root
 from project.core.exceptions import DataIntegrityError
 from project.core.logging_utils import build_stage_log_handlers
 from project.io.utils import read_parquet, write_parquet
-from project.artifacts import phase2_candidates_path
 from project.specs.manifest import finalize_manifest, start_manifest
 
 _LOG = logging.getLogger(__name__)
@@ -29,6 +30,25 @@ def _load_phase2_results(*, data_root: Path, run_id: str) -> pd.DataFrame:
     except Exception as exc:
         _LOG.warning("Failed to read %s: %s", path, exc)
         return pd.DataFrame()
+
+
+def _load_evaluated_hypotheses(*, data_root: Path, run_id: str) -> pd.DataFrame:
+    phase2_root = data_root / "reports" / "phase2" / run_id
+    paths = sorted(phase2_root.glob("hypotheses/*/evaluated_hypotheses.parquet"))
+    if not paths:
+        return pd.DataFrame()
+    try:
+        return read_parquet(paths)
+    except Exception as exc:
+        _LOG.warning("Failed to read evaluated hypotheses under %s: %s", phase2_root, exc)
+        return pd.DataFrame()
+
+
+def _load_experiment_results(*, data_root: Path, run_id: str) -> pd.DataFrame:
+    evaluated_df = _load_evaluated_hypotheses(data_root=data_root, run_id=run_id)
+    if not evaluated_df.empty:
+        return evaluated_df
+    return _load_phase2_results(data_root=data_root, run_id=run_id)
 
 
 def _adapt_legacy_results(results_df: pd.DataFrame) -> pd.DataFrame:
@@ -64,9 +84,10 @@ def finalize_experiment(
     try:
         hyps_df = read_parquet(hyp_path)
     except Exception as exc:
-        raise DataIntegrityError(f"Failed to read expanded hypotheses from {hyp_path}: {exc}") from exc
+        message = f"Failed to read expanded hypotheses from {hyp_path}: {exc}"
+        raise DataIntegrityError(message) from exc
 
-    results_df = _adapt_legacy_results(_load_phase2_results(data_root=data_root, run_id=run_id))
+    results_df = _adapt_legacy_results(_load_experiment_results(data_root=data_root, run_id=run_id))
 
     # Initialize merged_df with hyps
     merged_df = hyps_df.copy()
@@ -100,7 +121,14 @@ def finalize_experiment(
                     exp = r.get("mean_return_bps")
                 if pd.isna(exp):
                     return "empty_sample"
-                if r.get("sample_size", 0) < 5 and r.get("n_obs", 0) < 5:
+
+                sample_count = pd.NA
+                for sample_col in ("sample_size", "n_obs", "n", "train_n_obs"):
+                    value = r.get(sample_col)
+                    if not pd.isna(value):
+                        sample_count = value
+                        break
+                if not pd.isna(sample_count) and float(sample_count) < 5:
                     return "insufficient_sample"
                 return "evaluated"
 

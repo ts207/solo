@@ -23,6 +23,10 @@ def _to_cli_tokens(flag: str, value: Any) -> List[str]:
         if not value:
             return []
         return [flag, *[str(item) for item in value]]
+    if isinstance(value, dict):
+        if not value:
+            return []
+        return [flag, json.dumps(value, sort_keys=True)]
     return [flag, str(value)]
 
 

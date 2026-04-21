@@ -141,3 +141,23 @@ def test_pipeline_parser_rejects_removed_blueprint_promotion_alias() -> None:
     }
     assert "--run_candidate_promotion" in option_strings
     assert "--run_blueprint_promotion" not in option_strings
+
+
+def test_pipeline_parser_accepts_event_parameter_overrides_json() -> None:
+    parser = build_parser()
+    args = parser.parse_args(
+        [
+            "--event_parameter_overrides",
+            (
+                '{"LIQUIDATION_EXHAUSTION_REVERSAL": '
+                '{"liquidation_quantile": 0.9, "cooldown_bars": 36}}'
+            ),
+        ]
+    )
+
+    assert args.event_parameter_overrides == {
+        "LIQUIDATION_EXHAUSTION_REVERSAL": {
+            "liquidation_quantile": 0.9,
+            "cooldown_bars": 36,
+        }
+    }

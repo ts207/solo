@@ -1,0 +1,50 @@
+program_id: funding_continuation_extreme_onset_long_h24_btc_v1
+description: >
+  Bounded validation branch after broad current-data discovery: when
+  FUNDING_EXTREME_ONSET occurs on BTCUSDT, test whether the continuation edge
+  persists over the next 24 bars after standard costs.
+start: "2023-01-01"
+end: "2024-12-31"
+symbols:
+  - BTCUSDT
+timeframe: 5m
+instrument_classes:
+  - crypto
+objective_name: retail_profitability
+promotion_profile: disabled
+search_spec:
+  path: spec/search/single_event_funding_continuation_btc_h24_h48_v1.yaml
+avoid_region_keys: []
+hypothesis:
+  anchor:
+    type: event
+    event_id: FUNDING_EXTREME_ONSET
+  filters: {}
+  sampling_policy:
+    mode: episodic
+    entry_lag_bars: 1
+    overlap_policy: suppress
+  template:
+    id: continuation
+  direction: long
+  horizon_bars: 24
+artifacts:
+  matrix_phase: funding_continuation_validation
+  matrix_run: FC1
+  parent_discovery_run_id: broad_current_data_2023_2024_positioning_extremes_20260421T2015Z
+  parent_report: data/reports/broad_current_data_2023_2024/run_summary.md
+  tracked_lifecycle_note: docs/lifecycle/broad-current-data-event-reflections.md
+  mechanism_statement: >
+    When BTC perpetual funding enters an extreme state, BTCUSDT tends to
+    continue higher over the next 24 to 48 bars after standard costs.
+  research_question: >
+    Does the FUNDING_EXTREME_ONSET BTCUSDT long continuation edge survive as a
+    bounded 24-bar branch without adding contexts, symbols, or templates?
+  decision_rules:
+    parent_after_cost_expectancy_bps: 30.2448
+    parent_t_stat: 3.5492
+    parent_robustness_score: 0.5575
+    require_validation_before_promotion: true
+    no_eth_port_until_btc_validates: true
+    no_context_filters_in_first_branch: true
+version: 1

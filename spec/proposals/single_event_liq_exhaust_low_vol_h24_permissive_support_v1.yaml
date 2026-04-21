@@ -1,0 +1,62 @@
+program_id: single_event_liq_exhaust_low_vol_h24_permissive_support_v1
+description: >
+  Threshold tuning T4 support control: keep the low-vol h24 branch fixed and
+  modestly relax detector thresholds to see whether sample support, rather than
+  intensity, limits the bridge. Phase 2 gates are unchanged.
+start: "2024-01-01"
+end: "2024-12-31"
+symbols:
+  - BTCUSDT
+timeframe: 5m
+instrument_classes:
+  - crypto
+objective_name: retail_profitability
+promotion_profile: disabled
+search_spec:
+  path: spec/search/single_event_liquidation_exhaustion_low_vol_exhaustion_reversal_h24_v1.yaml
+avoid_region_keys: []
+contexts:
+  vol_regime:
+    - low
+hypothesis:
+  anchor:
+    type: event
+    event_id: LIQUIDATION_EXHAUSTION_REVERSAL
+  filters:
+    contexts:
+      vol_regime:
+        - low
+  sampling_policy:
+    mode: episodic
+    entry_lag_bars: 1
+    overlap_policy: suppress
+  template:
+    id: exhaustion_reversal
+  direction: long
+  horizon_bars: 24
+knobs:
+  - name: event_parameter_overrides
+    value:
+      LIQUIDATION_EXHAUSTION_REVERSAL:
+        oi_drop_quantile: 0.75
+        liquidation_quantile: 0.80
+        return_quantile: 0.70
+        wick_quantile: 0.65
+        rebound_quantile: 0.65
+        reversal_quantile: 0.60
+        rebound_return_min: 0.0008
+artifacts:
+  matrix_phase: T
+  matrix_run: T4
+  context: low_vol_control
+  threshold_variant: permissive_support
+  baseline_run_id: single_event_liq_exhaust_20260421T103141Z_ccb04aff6a
+  research_question: >
+    Does increasing event support preserve the low-vol h24 edge quality without
+    changing gates?
+  decision_rules:
+    baseline_after_cost_expectancy_bps: 16.682463
+    baseline_t_stat: 1.9368
+    require_bridge_candidate_for_survival: true
+    phase2_gates_unchanged: true
+version: 1

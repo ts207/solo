@@ -68,6 +68,17 @@ Experimental: trigger-mining and proposal-generation lanes.
 
 Deprecated: removed CLI aliases, implicit latest thesis selection, and downstream schema repair in deploy.
 
+## Current Discovery Notes
+
+- [Broad current-data event reflections](broad-current-data-event-reflections.md)
+  records the 2023-2024 BTCUSDT event sweep and the resulting event-level
+  follow-up decisions. The sweep supports a bounded BTCUSDT long funding
+  continuation validation branch and rejects broad standalone expansion from
+  the other event families under current artifacts.
+- [Liquidation exhaustion matrix](liquidation-exhaustion-matrix.md) records the
+  bounded `LIQUIDATION_EXHAUSTION_REVERSAL` matrix and its non-promotable
+  outcome under current gates.
+
 ## Boundary Between Research and Runtime
 
 Research stages can explore, reject, and package evidence. Runtime stages should not reinterpret discovery results. The boundary artifact is the promoted thesis bundle:

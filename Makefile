@@ -23,7 +23,8 @@ help:
 	@echo "  export                   make export RUN_ID=<run_id>"
 	@echo "  deploy-paper             make deploy-paper CONFIG=path/to/live.yaml"
 	@echo "  benchmark-supported-path make benchmark-supported-path EXECUTE=0|1"
-	@echo "  liquidation-exhaustion-plan-matrix make liquidation-exhaustion-plan-matrix"
+	@echo "  liquidation-exhaustion-plan-matrix make liquidation-exhaustion-plan-matrix [PHASE=A|B|C|S|T]"
+	@echo "    Phase A: baseline runs  B: bridge candidates  C: context splits  S: short-horizon template/detector configs  T: threshold tuning"
 	@echo ""
 	@echo "Compatibility/experimental:"
 	@echo "  advanced-discover-triggers-parameter, advanced-discover-triggers-cluster"
@@ -57,7 +58,7 @@ benchmark-supported-path:
 	PYTHONPATH=. $(PYTHON) project/scripts/run_supported_path_benchmark.py --execute $(EXECUTE)
 
 liquidation-exhaustion-plan-matrix:
-	PYTHONPATH=. $(PYTHON) project/scripts/plan_liquidation_exhaustion_matrix.py
+	PYTHONPATH=. $(PYTHON) project/scripts/plan_liquidation_exhaustion_matrix.py --phase $(or $(PHASE),A)
 
 advanced-discover-triggers-parameter:
 	PYTHONPATH=. $(PYTHON) -m project.cli discover triggers parameter-sweep --family $(or $(FAMILY),vol_shock) --symbol $(or $(SYMBOLS),BTCUSDT)

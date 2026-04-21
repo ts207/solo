@@ -5,11 +5,11 @@ from typing import Any, Dict, List, Mapping, Tuple
 
 from project.events.config import ComposedEventConfig, compose_event_config
 from project.pipelines.stages.utils import script_supports_flag
-from project.research.registry_validation import (
-    validate_agent_selections,
-    filter_event_chain,
-)
 from project.research.experiment_engine import build_experiment_plan
+from project.research.registry_validation import (
+    filter_event_chain,
+    validate_agent_selections,
+)
 
 _LOG = logging.getLogger(__name__)
 
@@ -163,11 +163,12 @@ def _apply_event_parameters_to_phase1_args(
         event_type=event_type,
         runtime_overrides=_event_runtime_overrides(args, event_type),
     )
+    accepts_detector_overrides = phase1_script.name == "analyze_events.py"
     for key, value in cfg.parameters.items():
         if value is None:
             continue
         flag = f"--{key}"
-        if not script_supports_flag(phase1_script, flag):
+        if not accepts_detector_overrides and not script_supports_flag(phase1_script, flag):
             continue
         _upsert_cli_flag(phase1_args, flag, _to_cli_value(value))
     return cfg

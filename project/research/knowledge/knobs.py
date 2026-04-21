@@ -5,9 +5,8 @@ import importlib
 from pathlib import Path
 from typing import Any, Dict, List
 
-from project.spec_registry import load_yaml_path
-
 from project.research.knowledge.schemas import canonical_json, stable_hash
+from project.spec_registry import load_yaml_path
 
 
 def _value_type(value: Any) -> str:
@@ -173,6 +172,7 @@ def build_agent_knob_rows() -> List[Dict[str, Any]]:
                 "search_spec",
                 "search_min_n",
                 "use_context_quality",
+                "event_parameter_overrides",
             ),
         )
     )

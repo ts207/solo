@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import importlib
+import json
 from pathlib import Path
 
 import pandas as pd
@@ -168,3 +169,34 @@ def test_build_run_all_command_repeats_config_overlays():
         ("--config", "project/configs/a.yaml"),
         ("--config", "project/configs/b.yaml"),
     ]
+
+
+def test_build_run_all_command_serializes_dict_overrides():
+    from project.research.agent_io.execute_proposal import build_run_all_command
+
+    cmd = build_run_all_command(
+        run_id="demo_run",
+        registry_root=Path("project/configs/registries"),
+        experiment_config_path=Path("/tmp/experiment.yaml"),
+        run_all_overrides={
+            "event_parameter_overrides": {
+                "LIQUIDATION_EXHAUSTION_REVERSAL": {
+                    "liquidation_quantile": 0.9,
+                    "cooldown_bars": 36,
+                }
+            }
+        },
+        symbols=["BTCUSDT"],
+        start="2025-01-01",
+        end="2025-01-31",
+        plan_only=True,
+        dry_run=False,
+    )
+
+    idx = cmd.index("--event_parameter_overrides")
+    assert json.loads(cmd[idx + 1]) == {
+        "LIQUIDATION_EXHAUSTION_REVERSAL": {
+            "liquidation_quantile": 0.9,
+            "cooldown_bars": 36,
+        }
+    }

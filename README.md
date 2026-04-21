@@ -10,7 +10,7 @@ Current repository scale:
 
 - 1605 Python modules under `project/`
 - 721 test files under `project/tests/`
-- 409 YAML spec files under `spec/`
+- 421 YAML spec files under `spec/`
 
 ## Supported Operating Mode
 

@@ -1,0 +1,54 @@
+program_id: single_event_liq_exhaust_exhaustion_reversal_long_h24_low_vol_phase_c_v1
+description: >
+  Phase C1 template comparison control: retest the low-vol h24
+  LIQUIDATION_EXHAUSTION_REVERSAL branch with the original exhaustion_reversal
+  template before comparing nearby legal templates.
+start: "2024-01-01"
+end: "2024-12-31"
+symbols:
+  - BTCUSDT
+timeframe: 5m
+instrument_classes:
+  - crypto
+objective_name: retail_profitability
+promotion_profile: disabled
+search_spec:
+  path: spec/search/single_event_liquidation_exhaustion_low_vol_exhaustion_reversal_h24_v1.yaml
+avoid_region_keys: []
+contexts:
+  vol_regime:
+    - low
+hypothesis:
+  anchor:
+    type: event
+    event_id: LIQUIDATION_EXHAUSTION_REVERSAL
+  filters:
+    contexts:
+      vol_regime:
+        - low
+  sampling_policy:
+    mode: episodic
+    entry_lag_bars: 1
+    overlap_policy: suppress
+  template:
+    id: exhaustion_reversal
+  direction: long
+  horizon_bars: 24
+artifacts:
+  matrix_phase: C
+  matrix_run: C1
+  context: low_vol_control
+  template_comparison: exhaustion_reversal
+  baseline_run_id: single_event_liq_exhaust_20260421T103141Z_ccb04aff6a
+  research_question: >
+    Does the current low-vol h24 branch reproduce under the Phase C
+    single-template search surface?
+  decision_rules:
+    baseline_after_cost_expectancy_bps: 16.682463
+    baseline_t_stat: 1.9368
+    baseline_robustness_score: 0.4676
+    min_events: 30
+    kill_if_events_below: 20
+    require_positive_post_cost_expectancy: true
+    require_bridge_candidate_for_survival: true
+version: 1

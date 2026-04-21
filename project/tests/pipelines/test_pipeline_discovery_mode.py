@@ -1,9 +1,9 @@
 """Tests for canonical search-only discovery planning."""
 
+import sys
 import types
 from pathlib import Path
-import pytest
-import sys
+
 import yaml
 
 # Add project root to path
@@ -69,6 +69,7 @@ def _make_args(**overrides):
         run_expectancy_robustness=0,
         run_recommendations_checklist=0,
         run_interaction_lift=0,
+        event_parameter_overrides={},
     )
     ns = types.SimpleNamespace(**{**defaults, **overrides})
     return ns
@@ -157,6 +158,39 @@ def test_planner_uses_canonical_research_stage_paths(tmp_path):
     assert stage_paths["generate_recommendations_checklist"] == (
         project_root / "research" / "generate_recommendations_checklist.py"
     )
+
+
+def test_universal_event_analyzer_receives_runtime_parameter_overrides(tmp_path):
+    from project.pipelines.stages.research import build_research_stages
+
+    project_root = Path(__file__).parents[3] / "project"
+    stages = build_research_stages(
+        args=_make_args(
+            event_parameter_overrides={
+                "LIQUIDATION_EXHAUSTION_REVERSAL": {
+                    "liquidation_quantile": 0.9,
+                    "cooldown_bars": 36,
+                }
+            },
+        ),
+        run_id="r0",
+        symbols="BTCUSDT",
+        start="2024-01-01",
+        end="2024-03-01",
+        research_gate_profile="discovery",
+        project_root=project_root,
+        data_root=tmp_path,
+        phase2_event_chain=[("LIQUIDATION_EXHAUSTION_REVERSAL", "analyze_events.py", [])],
+    )
+
+    _, _, analyze_args = next(
+        stage
+        for stage in stages
+        if stage[0] == "analyze_events__LIQUIDATION_EXHAUSTION_REVERSAL_15m"
+    )
+
+    assert analyze_args[analyze_args.index("--liquidation_quantile") + 1] == "0.9"
+    assert analyze_args[analyze_args.index("--cooldown_bars") + 1] == "36"
 
 
 def test_discovery_mode_argument_is_ignored_in_favor_of_canonical_search(tmp_path):

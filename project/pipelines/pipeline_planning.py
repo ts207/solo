@@ -1,49 +1,40 @@
 from __future__ import annotations
 
 import argparse
-import os
+import json
 import sys
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple, Mapping
+from typing import Any, Dict, List, Mapping, Tuple
+
 import yaml
 
-from project import PROJECT_ROOT
-from project.pipelines.pipeline_defaults import (
-    DATA_ROOT,
-    as_flag,
-    run_id_default,
-    script_supports_flag,
-)
-
-from project.pipelines.pipeline_provenance import (
-    objective_spec_metadata,
-    resolve_objective_name,
-    resolve_retail_profile_name,
-    retail_profile_metadata,
-)
-
-from project.core.timeframes import normalize_timeframe
-from project.pipelines.stage_dependencies import resolve_stage_artifact_contract
-from project.pipelines.stage_definitions import ResolvedStageArtifactContract
-from project.specs.ontology import ontology_spec_hash
-from project.pipelines.planner import build_pipeline_plan
-from project.events.phase2 import PHASE2_EVENT_CHAIN
-from project.pipelines.effective_config import resolve_effective_args
 from project.contracts.artifacts import list_artifact_contracts
 from project.contracts.pipeline_registry import resolve_stage_family_contract
-from project.pipelines.execution_plan import (
-    ExecutionPlan,
-    PlannedArtifactObligation,
-    PlannedStage,
-)
-from project.pipelines.pipeline_defaults import utc_now_iso
+from project.core.timeframes import normalize_timeframe
+from project.events.phase2 import PHASE2_EVENT_CHAIN
 from project.io.utils import (
     cleaned_dataset_covers_window,
     discover_external_cleaned_root,
     external_cleaned_dataset_dir,
     materialize_external_cleaned_dataset,
 )
-
+from project.pipelines.effective_config import resolve_effective_args
+from project.pipelines.execution_plan import (
+    ExecutionPlan,
+    PlannedArtifactObligation,
+    PlannedStage,
+)
+from project.pipelines.pipeline_defaults import utc_now_iso
+from project.pipelines.pipeline_provenance import (
+    objective_spec_metadata,
+    resolve_objective_name,
+    resolve_retail_profile_name,
+    retail_profile_metadata,
+)
+from project.pipelines.planner import build_pipeline_plan
+from project.pipelines.stage_definitions import ResolvedStageArtifactContract
+from project.pipelines.stage_dependencies import resolve_stage_artifact_contract
+from project.specs.ontology import ontology_spec_hash
 
 _SPOT_PIPELINE_EVENT_HINTS = {
     "BASIS_DISLOC",
@@ -54,6 +45,18 @@ _SPOT_PIPELINE_EVENT_HINTS = {
 _SPOT_PIPELINE_REGIME_HINTS = {
     "BASIS_FUNDING_DISLOCATION",
 }
+
+
+def _json_object(value: str) -> Dict[str, Any]:
+    try:
+        loaded = json.loads(value)
+    except json.JSONDecodeError as exc:
+        raise argparse.ArgumentTypeError(
+            "--event_parameter_overrides must be a JSON object"
+        ) from exc
+    if not isinstance(loaded, dict):
+        raise argparse.ArgumentTypeError("--event_parameter_overrides must be a JSON object")
+    return loaded
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -155,6 +158,15 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--sequence_max_gap", type=int, help="Max gap for event sequences.")
     parser.add_argument("--program_id", help="Program ID for experiment campaign tracking.")
     parser.add_argument("--search_budget", type=int, help="Limit total candidate expansions.")
+    parser.add_argument(
+        "--event_parameter_overrides",
+        type=_json_object,
+        default={},
+        help=(
+            "Research-only JSON object of event_id -> detector parameter overrides. "
+            "This changes detector thresholds, not Phase 2 gates."
+        ),
+    )
 
     parser.add_argument("--phase2_max_conditions", type=int, default=20)
     parser.add_argument("--phase2_max_actions", type=int, default=9)
