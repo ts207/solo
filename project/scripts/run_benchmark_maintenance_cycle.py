@@ -9,19 +9,13 @@ from pathlib import Path
 from typing import List
 
 from project.core.config import get_data_root
-from project import PROJECT_ROOT
 
 logger = logging.getLogger(__name__)
 
-
-def __getattr__(name: str):
-    if name == "BENCHMARKS_DIR":
-        return get_data_root() / "reports" / "benchmarks"
-    if name == "HISTORY_DIR":
-        return get_data_root() / "reports" / "benchmarks" / "history"
-    if name == "LATEST_DIR":
-        return get_data_root() / "reports" / "benchmarks" / "latest"
-    raise AttributeError(f"module {__name__} has no attribute {name}")
+DATA_ROOT = get_data_root()
+BENCHMARKS_DIR = DATA_ROOT / "reports" / "benchmarks"
+HISTORY_DIR = BENCHMARKS_DIR / "history"
+LATEST_DIR = BENCHMARKS_DIR / "latest"
 
 
 from project.research.benchmarks.benchmark_utils import find_historical_reviews

@@ -1,5 +1,4 @@
 from __future__ import annotations
-from project.core.config import get_data_root
 
 import argparse
 import csv
@@ -10,13 +9,10 @@ from pathlib import Path
 from statistics import median
 from typing import Dict, List
 
+from project.core.config import get_data_root
 from project.core.exceptions import DataIntegrityError
 
-
-def __getattr__(name: str):
-    if name == "DATA_ROOT":
-        return get_data_root()
-    raise AttributeError(f"module {__name__} has no attribute {name}")
+DATA_ROOT = get_data_root()
 
 
 def _load_manifest(path: Path) -> Dict[str, object]:

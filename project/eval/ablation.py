@@ -1,18 +1,15 @@
-from project.core.config import get_data_root
 import argparse
 import logging
-import pandas as pd
+
 import numpy as np
-import sys
+import pandas as pd
 
-def __getattr__(name):
-    if name == "DATA_ROOT":
-        from project.core.config import get_data_root
-        return get_data_root()
-    raise AttributeError(f"module {__name__} has no attribute {name}")
+from project.core.config import get_data_root
 
-from project.io.utils import ensure_dir, write_parquet
+DATA_ROOT = get_data_root()
+
 from project.eval.multiplicity import benjamini_hochberg
+from project.io.utils import ensure_dir, write_parquet
 
 LOGGER = logging.getLogger(__name__)
 

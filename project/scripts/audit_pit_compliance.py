@@ -1,8 +1,9 @@
-import pandas as pd
 import numpy as np
-from project.reliability.audit_utils import verify_pit_compliance
+import pandas as pd
+
+from project.features.liquidity_vacuum import LiquidityVacuumConfig, detect_liquidity_vacuum_events
 from project.features.vol_regime import calculate_rv_percentile_24h
-from project.features.liquidity_vacuum import detect_liquidity_vacuum_events, LiquidityVacuumConfig
+from project.reliability.audit_utils import verify_pit_compliance
 
 
 def audit_features():
@@ -44,7 +45,7 @@ def audit_features():
     print(f"Result: {'PASS' if res_lv['is_compliant'] else 'FAIL'}")
     if not res_lv["is_compliant"]:
         print(
-            f"  Leak detected! Future data affects past event evaluation via global thresholding."
+            "  Leak detected! Future data affects past event evaluation via global thresholding."
         )
         print(f"  First mismatch at index: {res_lv['mismatches'][0]['first_mismatch_at']}")
 

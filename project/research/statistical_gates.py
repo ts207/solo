@@ -7,7 +7,7 @@ from __future__ import annotations
 
 import json
 import re
-from typing import Dict, List, Tuple, Optional, Any
+from typing import Any, Dict, List, Tuple
 
 import numpy as np
 import pandas as pd
@@ -15,11 +15,9 @@ import pandas as pd
 try:
     from scipy import stats
 except ModuleNotFoundError:
-    from project.core.stats import stats
+    pass
 
-from project.core.coercion import safe_float, safe_int, as_bool
-from project.core.stats import subsample_non_overlapping_positions as subsample_non_overlapping_timestamps
-from project.research.gating import one_sided_p_from_t
+from project.core.coercion import safe_float
 
 NUMERIC_CONDITION_PATTERN = re.compile(
     r"^\s*([A-Za-z_][A-Za-z0-9_]*)\s*(>=|<=|==|>|<)\s*(-?\d+(?:\.\d+)?)\s*$"
@@ -199,7 +197,7 @@ def apply_multiplicity_adjustments(
     for _, row in out.iterrows():
         try:
             raw_map = json.loads(str(row.get("delay_expectancy_map", "{}")))
-        except:
+        except Exception:
             raw_map = {}
         adj_map = {
             str(k): float(safe_float(v, 0.0) - safe_float(row.get("multiplicity_penalty"), 0.0))

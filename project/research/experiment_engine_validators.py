@@ -6,11 +6,11 @@ import logging
 from pathlib import Path
 from typing import Dict, List, Optional
 
-from project.io.utils import read_parquet
-from project.domain.hypotheses import HypothesisSpec, TriggerSpec
 from project.domain.compiled_registry import get_domain_registry
-from project.events.governance import event_matches_filters, get_event_governance_metadata
+from project.domain.hypotheses import HypothesisSpec, TriggerSpec
 from project.events.event_aliases import resolve_executable_event_alias
+from project.events.governance import event_matches_filters, get_event_governance_metadata
+from project.io.utils import read_parquet
 from project.research.context_labels import canonicalize_context_label
 from project.research.experiment_engine_schema import (
     AgentExperimentRequest,
@@ -134,7 +134,7 @@ def _validate_proposal_quality(
     def get_eid(payload):
         try:
             return json.loads(payload).get("event_id")
-        except:
+        except Exception:
             return None
 
     df["eid"] = df["trigger_payload"].apply(get_eid)

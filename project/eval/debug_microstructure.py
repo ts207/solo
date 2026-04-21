@@ -1,13 +1,10 @@
-from project.core.config import get_data_root
-import sys
-import pandas as pd
-import numpy as np
 
-def __getattr__(name):
-    if name == "DATA_ROOT":
-        from project.core.config import get_data_root
-        return get_data_root()
-    raise AttributeError(f"module {__name__} has no attribute {name}")
+import numpy as np
+import pandas as pd
+
+from project.core.config import get_data_root
+
+DATA_ROOT = get_data_root()
 
 from project.features.microstructure import calculate_roll_spread, calculate_vpin
 from project.io.utils import list_parquet_files, read_parquet
