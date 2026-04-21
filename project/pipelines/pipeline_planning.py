@@ -581,6 +581,10 @@ def build_contract_backed_execution_plan(
         )
         if not producing_stages:
             continue
+        if contract.contract_id in {"promoted_theses", "live_thesis_index"} and (
+            "promote_candidates" not in producing_stages
+        ):
+            continue
         obligations.append(
             PlannedArtifactObligation(
                 contract_id=contract.contract_id,

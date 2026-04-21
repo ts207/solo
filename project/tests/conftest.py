@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import pytest
 
+from project import PROJECT_ROOT
 from project.tests.synthetic_truth.scenarios.registry import SCENARIO_REGISTRY
 from project.tests.synthetic_truth.scenarios.factory import ScenarioFactory
 

@@ -36,7 +36,7 @@ from project.research.search.bridge_adapter import (
     hypotheses_to_bridge_candidates,
     split_bridge_candidates,
 )
-from project.contracts.schemas import validate_schema_at_producer
+from project.contracts.schemas import normalize_dataframe_for_schema, validate_schema_at_producer
 from project.io.utils import ensure_dir, read_parquet, write_parquet
 from project.research.search.distributed_runner import run_distributed_search
 from project.research._family_event_utils import load_features as load_features
@@ -77,6 +77,11 @@ def _safe_concat(frames: list, **kwargs) -> pd.DataFrame:
         c.attrs = {}
         cleaned.append(c)
     return pd.concat(cleaned, **kwargs)
+
+
+def _normalize_phase2_candidate_artifact(df: pd.DataFrame) -> pd.DataFrame:
+    """Return the canonical producer shape for phase2 candidate artifacts."""
+    return normalize_dataframe_for_schema(df, "phase2_candidates")
 
 
 def _is_default_broad_search_spec(search_spec: str) -> bool:
@@ -1781,9 +1786,9 @@ def run(
             raise RuntimeError("Phase 3 concept ledger write failed") from _ledger_exc
 
     # 6. Write output
+    final_df = _normalize_phase2_candidate_artifact(final_df)
     write_parquet(final_df, output_path)
-    if not final_df.empty:
-        validate_schema_at_producer(final_df, "phase2_candidates", context="phase2_search_engine")
+    validate_schema_at_producer(final_df, "phase2_candidates", context="phase2_search_engine")
 
     # Write hypothesis registry so promote_candidates can validate the audit chain.
     _write_hypothesis_registry(final_df, out_dir)
@@ -1888,9 +1893,9 @@ def run(
 
         # Persist the final annotated candidate frame. This intentionally rewrites
         # the baseline candidate artifact written before downstream side artifacts.
+        final_df = _normalize_phase2_candidate_artifact(final_df)
         write_parquet(final_df, output_path)
-        if not final_df.empty:
-            validate_schema_at_producer(final_df, "phase2_candidates", context="phase2_search_engine:diversified")
+        validate_schema_at_producer(final_df, "phase2_candidates", context="phase2_search_engine:diversified")
 
     main_diag = build_search_engine_diagnostics(
         run_id=run_id,

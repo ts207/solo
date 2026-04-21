@@ -11,11 +11,13 @@ Generated inventories under `docs/generated/` are not part of this replacement d
 3. [Validate](lifecycle/validate.md)
 4. [Promote](lifecycle/promote.md)
 5. [Deploy](lifecycle/deploy.md)
-6. [Operator Runbook](operator/runbook.md)
-7. [Architecture Reference](reference/architecture.md)
-8. [Command Reference](reference/commands.md)
-9. [Specs and Domain Reference](reference/specs-and-domain.md)
-10. [Data and Artifacts Reference](reference/data-and-artifacts.md)
+6. [Liquidation Exhaustion Matrix](lifecycle/liquidation-exhaustion-matrix.md)
+7. [Operator Runbook](operator/runbook.md)
+8. [Supported Path](reference/supported-path.md)
+9. [Architecture Reference](reference/architecture.md)
+10. [Command Reference](reference/commands.md)
+11. [Specs and Domain Reference](reference/specs-and-domain.md)
+12. [Data and Artifacts Reference](reference/data-and-artifacts.md)
 
 ## Project Model
 
@@ -70,6 +72,21 @@ edge deploy status --run_id <run_id>
 ```
 
 The current CLI deploy subcommands are `export`, `bind-config`, `inspect`, `paper-run`, `live-run`, and `status`. Use these names when writing automation or runbooks.
+
+## Supported vs Legacy
+
+The supported operating mode is offline/local-data research through canonical discovery, validation, promotion, export, governed runtime-core detection, portfolio decisioning, and docs/governance refresh/check.
+
+Compatibility surfaces are legacy artifact readers, explicit heuristic detector mode, and historical phase-2 adapters. Trigger mining is experimental. Removed aliases, implicit latest thesis selection, and downstream schema repair are deprecated.
+
+Run the current-path stabilization suite without baseline comparison:
+
+```bash
+make benchmark-supported-path EXECUTE=0
+make benchmark-supported-path EXECUTE=1 OFFLINE_PARQUET_EXECUTION_FIXED=1
+```
+
+`EXECUTE=1` is blocked until the offline parquet execution gate is repaired.
 
 ## Documentation Update Rule
 

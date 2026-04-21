@@ -23,6 +23,7 @@ from project.research.phase2_search_engine import (
     _latest_hierarchical_stage_frame,
     _materialize_interaction_trigger_columns,
     _materialize_sequence_trigger_columns,
+    _normalize_phase2_candidate_artifact,
     _resolve_search_min_t_stat,
     _write_event_scoped_search_spec,
 )
@@ -66,6 +67,15 @@ def test_write_event_scoped_search_spec_preserves_explicit_nondefault_spec(tmp_p
 
     assert resolved == "spec/search/search_benchmark_vol_shock.yaml"
     assert not out_dir.exists()
+
+
+def test_normalize_phase2_candidate_artifact_preserves_empty_contract_columns() -> None:
+    out = _normalize_phase2_candidate_artifact(pd.DataFrame({"run_id": pd.Series(dtype="object")}))
+
+    assert out.empty
+    assert {"candidate_id", "hypothesis_id", "event_type", "symbol", "run_id"}.issubset(
+        set(out.columns)
+    )
 
 
 def test_classify_metrics_counts_separates_min_sample_rejections() -> None:

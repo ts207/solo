@@ -36,8 +36,10 @@ Advanced internal trigger discovery:
 ```bash
 edge discover triggers parameter-sweep --family vol_shock --symbol BTCUSDT
 edge discover triggers feature-cluster --symbol BTCUSDT
-edge discover triggers emit-registry-payload --family vol_shock --symbol BTCUSDT
+edge discover triggers emit-registry-payload --proposal spec/proposals/canonical_event_hypothesis.yaml
 ```
+
+These trigger commands are experimental proposal-generation lanes, not the canonical discovery path.
 
 ## Validate
 
@@ -79,6 +81,10 @@ make discover PROPOSAL=spec/proposals/canonical_event_hypothesis.yaml DISCOVER_A
 make validate RUN_ID=<run_id>
 make promote RUN_ID=<run_id> SYMBOLS=BTCUSDT
 make export RUN_ID=<run_id>
+make deploy-paper CONFIG=project/configs/live_paper_<run_id>.yaml
+make liquidation-exhaustion-plan-matrix
+make benchmark-supported-path EXECUTE=0
+make benchmark-supported-path EXECUTE=1 OFFLINE_PARQUET_EXECUTION_FIXED=1
 ```
 
 Maintenance:
@@ -94,14 +100,6 @@ make governance
 make minimum-green-gate
 make check-hygiene
 ```
-
-Known drift:
-
-```text
-make deploy-paper
-```
-
-currently expands to an unsupported `edge deploy paper` command. Prefer `edge deploy bind-config` plus `edge deploy paper-run` until that target is corrected.
 
 ## Direct Python Entrypoints
 

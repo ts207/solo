@@ -12,7 +12,7 @@ Edge is a Python repository with contract-enforced package boundaries. Package o
 `project.io`:
 
 - table and file IO helpers
-- parquet/csv compatibility surfaces
+- parquet/csv compatibility surfaces retained for legacy artifact access
 
 `project.specs`, `project.spec_registry`, `project.spec_validation`:
 
@@ -24,7 +24,7 @@ Edge is a Python repository with contract-enforced package boundaries. Package o
 
 - compiled domain registry models
 - event, state, template, regime, and thesis definition accessors
-- compatibility checks for search and runtime
+- compatibility checks for search and runtime; compatibility aliases must not become canonical authoring defaults
 
 `project.events`:
 
@@ -95,6 +95,8 @@ Edge is a Python repository with contract-enforced package boundaries. Package o
 - `edge-live-engine = project.scripts.run_live_engine:main`
 
 Treat `edge` as the canonical lifecycle command.
+
+Removed compatibility aliases such as `strategy`, `pipeline run-all`, and `operator` are deprecated and intentionally absent from `project.cli`.
 
 ## Dependency DAG
 

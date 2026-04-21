@@ -54,6 +54,19 @@ Deploy:
 - Promotion from exploratory discovery is blocked unless explicitly allowed by promotion policy.
 - Runtime thesis loading is explicit. Implicit latest thesis resolution is disabled on the canonical path.
 - Live thesis artifacts are schema checked and trust checked before use.
+- The governed runtime-core event detector is the supported default. Heuristic detection is explicit legacy compatibility only.
+- Historical phase-2 discovery surfaces are adapter-only; canonical discovery enters through structured proposals.
+- Schema repair and compatibility artifact lookup are legacy-only and must not be part of canonical deploy.
+
+## Operating Path Labels
+
+Supported: offline/local-data research, canonical discovery/validation/promotion/export, governed runtime-core detection, portfolio decisioning, and docs/governance refresh/check.
+
+Compatibility: legacy artifact readers, explicit heuristic detector mode, and historical phase-2 adapters.
+
+Experimental: trigger-mining and proposal-generation lanes.
+
+Deprecated: removed CLI aliases, implicit latest thesis selection, and downstream schema repair in deploy.
 
 ## Boundary Between Research and Runtime
 

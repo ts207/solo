@@ -125,3 +125,64 @@ def test_build_contract_backed_execution_plan_derives_stage_families_and_obligat
         "promoted_theses",
         "live_thesis_index",
     }
+
+
+def test_contract_plan_does_not_require_live_thesis_package_without_promote_stage():
+    args = type(
+        "Args",
+        (),
+        {
+            "mode": "research",
+            "symbols": "BTCUSDT",
+            "timeframes": "5m",
+            "experiment_config": "",
+            "registry_root": "project/configs/registries",
+        },
+    )()
+    stages = {
+        "phase2_search_engine": StageDefinition(
+            name="phase2_search_engine",
+            script_path=Path("research/phase2_search_engine.py"),
+            args=["--run_id", "r1"],
+        ),
+        "export_edge_candidates": StageDefinition(
+            name="export_edge_candidates",
+            script_path=Path("research/export_edge_candidates.py"),
+            args=["--run_id", "r1"],
+        ),
+    }
+    artifact_contracts = {
+        "phase2_search_engine": type(
+            "Resolved",
+            (),
+            {
+                "inputs": (),
+                "optional_inputs": (),
+                "outputs": ("phase2.candidates",),
+                "external_inputs": (),
+            },
+        )(),
+        "export_edge_candidates": type(
+            "Resolved",
+            (),
+            {
+                "inputs": ("phase2.candidates",),
+                "optional_inputs": (),
+                "outputs": ("edge_candidates.normalized",),
+                "external_inputs": (),
+            },
+        )(),
+    }
+
+    plan = build_contract_backed_execution_plan(
+        run_id="r1",
+        args=args,
+        stages=stages,
+        artifact_contracts=artifact_contracts,
+        planned_at="2026-04-18T00:00:00Z",
+    )
+
+    contract_ids = {item.contract_id for item in plan.artifact_obligations}
+    assert "discovery_phase2_candidates" in contract_ids
+    assert "promoted_theses" not in contract_ids
+    assert "live_thesis_index" not in contract_ids

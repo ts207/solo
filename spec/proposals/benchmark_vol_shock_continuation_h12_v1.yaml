@@ -1,0 +1,41 @@
+program_id: benchmark_vol_shock_continuation_h12_v1
+description: >
+  Supported-path benchmark: when VOL_SHOCK occurs, does BTCUSDT continue
+  over the next 12 bars after standard costs?
+start: "2024-01-01"
+end: "2024-12-31"
+symbols:
+  - BTCUSDT
+timeframe: 5m
+instrument_classes:
+  - crypto
+objective_name: retail_profitability
+promotion_profile: disabled
+search_spec:
+  path: spec/search/search_benchmark_vol_shock.yaml
+avoid_region_keys: []
+hypothesis:
+  anchor:
+    type: event
+    event_id: VOL_SHOCK
+  filters: {}
+  sampling_policy:
+    mode: episodic
+    entry_lag_bars: 1
+    overlap_policy: suppress
+  template:
+    id: continuation
+  direction: long
+  horizon_bars: 12
+artifacts:
+  research_question: >
+    When a volatility shock occurs, does BTCUSDT continue over the next
+    12 bars after standard costs?
+  benchmark_scope:
+    slice: volatility_shock_spike
+    event_family: VOL_SHOCK
+    symbol: BTCUSDT
+    timeframe: 5m
+    direction: long
+    horizon_bars: 12
+version: 1
