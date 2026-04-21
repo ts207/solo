@@ -11,6 +11,8 @@ import pandas as pd
 from project.core.config import get_data_root
 from project.core.exceptions import MissingArtifactError
 from project.io.utils import read_table_auto
+from project.research.CANONICAL_PIPELINE import persist_canonical_pipeline_artifact
+from project.research.decision_trace_artifacts import write_validation_trace, write_merged_research_trace
 from project.research.validation.contracts import (
     ValidationBundle,
     ValidatedCandidateRecord,
@@ -444,6 +446,21 @@ class ValidationService:
         from project.research.validation.manifest import RunArtifactManifest
         from datetime import datetime, timezone
         
+        canonical_path_path = persist_canonical_pipeline_artifact(
+            base_dir,
+            run_id=run_id,
+            stage="validate",
+            used_module="project.research.services.evaluation_service",
+            extra={"program_id": str(program_id or "")},
+        )
+        validation_trace = write_validation_trace(bundle, out_dir=base_dir)
+        merged_trace_path = write_merged_research_trace(
+            out_dir=base_dir,
+            data_root=self.data_root,
+            run_id=run_id,
+            validation_trace=validation_trace["frame"],
+        )
+
         manifest = RunArtifactManifest(
             run_id=run_id,
             stage="validate",
@@ -456,6 +473,9 @@ class ValidationService:
                 "validation_report": "validation_report.json",
                 "effect_stability_report": "effect_stability_report.json",
                 "promotion_ready_candidates": "promotion_ready_candidates.parquet",
+                "canonical_research_path": "canonical_research_path.json",
+                "validation_decision_trace": "validation_decision_trace.parquet",
+                "research_decision_trace": "research_decision_trace.parquet",
             }
         )
         manifest.persist(base_dir)

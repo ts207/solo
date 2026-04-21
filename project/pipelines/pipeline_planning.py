@@ -37,6 +37,12 @@ from project.pipelines.execution_plan import (
     PlannedStage,
 )
 from project.pipelines.pipeline_defaults import utc_now_iso
+from project.io.utils import (
+    cleaned_dataset_covers_window,
+    discover_external_cleaned_root,
+    external_cleaned_dataset_dir,
+    materialize_external_cleaned_dataset,
+)
 
 
 _SPOT_PIPELINE_EVENT_HINTS = {
@@ -87,6 +93,20 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--allow_funding_timestamp_rounding", type=int, default=0)
     parser.add_argument("--run_ingest_liquidation_snapshot", type=int, default=0)
     parser.add_argument("--run_ingest_open_interest_hist", type=int, default=0)
+    parser.add_argument(
+        "--offline_mode",
+        type=int,
+        default=0,
+        help=(
+            "Prefer local cleaned-bar artifacts and fail fast when the requested window is not "
+            "available offline."
+        ),
+    )
+    parser.add_argument(
+        "--offline_cleaned_root",
+        default="",
+        help="Optional explicit path to an external offline-data/cleaned_bars root.",
+    )
     # LT-002: Hardcoded Open Interest to only use 5m archive to prevent API trailing gaps and distribution mismatches
     parser.add_argument(
         "--timeframes", default="5m", help="Comma-separated list of timeframes (e.g., '1m,5m,15m')"
@@ -501,6 +521,7 @@ def build_contract_backed_execution_plan(
     stages: Mapping[str, Any],
     artifact_contracts: Mapping[str, ResolvedStageArtifactContract],
     planned_at: str | None = None,
+    skipped_stage_specs: List[Mapping[str, str]] | None = None,
 ) -> ExecutionPlan:
     selected_stage_families: dict[str, list[str]] = {"run_orchestration": ["run_manifest"]}
     plan_stages: list[PlannedStage] = []
@@ -534,6 +555,22 @@ def build_contract_backed_execution_plan(
                     artifact_surface.external_inputs if artifact_surface is not None else ()
                 ),
                 required_artifact_contract_ids=required_artifact_contract_ids,
+            )
+        )
+
+    for skipped in skipped_stage_specs or []:
+        stage_name = str(skipped.get("stage_name", "") or "")
+        family_contract = resolve_stage_family_contract(stage_name)
+        plan_stages.append(
+            PlannedStage(
+                stage_name=stage_name,
+                stage_instance_id=stage_name,
+                script_path=str(skipped.get("script_path", "") or ""),
+                base_args=(),
+                reason_code="skipped",
+                notes=str(skipped.get("notes", "") or ""),
+                stage_family=family_contract.family if family_contract is not None else "",
+                owner_service=family_contract.owner_service if family_contract is not None else "",
             )
         )
 
@@ -700,6 +737,142 @@ def collect_startup_non_production_overrides(
     return overrides
 
 
+
+def _discover_local_cleaned_coverage(
+    *,
+    args: argparse.Namespace,
+    data_root: Path,
+    parsed_symbols: List[str],
+) -> Dict[str, object]:
+    timeframes = parse_timeframes_csv(getattr(args, "timeframes", "5m"))
+    explicit_offline = bool(int(getattr(args, "offline_mode", 0) or 0))
+    external_root = discover_external_cleaned_root(
+        data_root,
+        explicit_root=str(getattr(args, "offline_cleaned_root", "") or "").strip() or None,
+    )
+    result: Dict[str, object] = {
+        "external_root": str(external_root) if external_root is not None else "",
+        "covered_perp_timeframes": [],
+        "coverage_gaps": [],
+        "materialized_paths": [],
+        "issues": [],
+        "explicit_offline": explicit_offline,
+    }
+    if external_root is None:
+        if explicit_offline:
+            result["issues"] = [
+                "offline_mode requested but no external cleaned-bars root was found. "
+                "Set --offline_cleaned_root or EDGE_OFFLINE_CLEANED_BARS_ROOT."
+            ]
+        return result
+
+    covered_perp: List[str] = []
+    coverage_gaps: List[str] = []
+    materialized: List[str] = []
+    for tf in timeframes:
+        timeframe_ok = True
+        for symbol in parsed_symbols:
+            dataset_root = external_cleaned_dataset_dir(
+                external_root,
+                market="perp",
+                symbol=symbol,
+                timeframe=tf,
+            )
+            if not cleaned_dataset_covers_window(dataset_root, start=str(args.start), end=str(args.end)):
+                timeframe_ok = False
+                coverage_gaps.append(
+                    f"perp/{symbol}/bars_{tf} does not cover requested window {args.start}..{args.end}"
+                )
+        if timeframe_ok:
+            covered_perp.append(tf)
+            for symbol in parsed_symbols:
+                linked = materialize_external_cleaned_dataset(
+                    data_root,
+                    external_root,
+                    market="perp",
+                    symbol=symbol,
+                    timeframe=tf,
+                )
+                if linked is not None:
+                    materialized.append(str(linked))
+
+    if explicit_offline:
+        missing = [tf for tf in timeframes if tf not in covered_perp]
+        if missing:
+            result["issues"] = [
+                "offline_mode requested but local cleaned bars do not fully satisfy the requested "
+                f"timeframes {missing} for symbols {parsed_symbols}."
+            ] + coverage_gaps
+
+    result["covered_perp_timeframes"] = covered_perp
+    result["coverage_gaps"] = coverage_gaps
+    result["materialized_paths"] = sorted(set(materialized))
+    return result
+
+
+def _apply_local_cleaned_stage_shortcuts(
+    *,
+    stages: Mapping[str, Any],
+    args: argparse.Namespace,
+    local_cleaned: Mapping[str, object],
+) -> tuple[Dict[str, Any], List[dict[str, str]]]:
+    covered_perp = {str(tf) for tf in local_cleaned.get("covered_perp_timeframes", [])}
+    if not covered_perp:
+        return dict(stages), []
+
+    external_root = str(local_cleaned.get("external_root", "") or "")
+    notes = (
+        "local cleaned bars satisfy the contract; stage skipped"
+        + (f" (source={external_root})" if external_root else "")
+    )
+
+    pruned: Dict[str, Any] = dict(stages)
+    skipped: List[dict[str, str]] = []
+
+    def _pop(name: str, *, reason: str = notes) -> None:
+        stage_def = pruned.pop(name, None)
+        if stage_def is None:
+            return
+        skipped.append(
+            {
+                "stage_name": str(name),
+                "script_path": str(getattr(stage_def, "script_path", "")),
+                "notes": reason,
+            }
+        )
+
+    for tf in sorted(covered_perp):
+        _pop(f"build_cleaned_{tf}")
+        # If cleaned bars are already available for this timeframe, raw OHLCV ingest is unnecessary.
+        _pop(f"ingest_bybit_derivatives_ohlcv_{tf}")
+        _pop(f"ingest_binance_um_ohlcv_{tf}")
+
+    # Funding ingest is only needed to support build_cleaned for perp. If all remaining
+    # perp cleaned stages are satisfied locally, skip funding ingest too.
+    if not any(name.startswith("build_cleaned_") and not name.endswith("_spot") for name in pruned):
+        _pop(
+            "ingest_bybit_derivatives_funding",
+            reason=(
+                "local cleaned bars satisfy perp feature prerequisites; funding ingest skipped"
+                + (f" (source={external_root})" if external_root else "")
+            ),
+        )
+        _pop(
+            "ingest_binance_um_funding",
+            reason=(
+                "local cleaned bars satisfy perp feature prerequisites; funding ingest skipped"
+                + (f" (source={external_root})" if external_root else "")
+            ),
+        )
+
+    active_names = set(pruned.keys())
+    for stage_def in pruned.values():
+        deps = [dep for dep in getattr(stage_def, "depends_on", []) if dep in active_names]
+        stage_def.depends_on = deps
+
+    return pruned, skipped
+
+
 def prepare_run_preflight(
     *,
     args: argparse.Namespace,
@@ -726,6 +899,16 @@ def prepare_run_preflight(
         return {"exit_code": 2, "run_id": run_id}
 
     args.timeframes = ",".join(parse_timeframes_csv(getattr(args, "timeframes", "5m")))
+
+    local_cleaned = _discover_local_cleaned_coverage(
+        args=args,
+        data_root=data_root,
+        parsed_symbols=parsed_symbols,
+    )
+    if local_cleaned.get("issues"):
+        for issue in list(local_cleaned.get("issues", [])):
+            print(f"ERROR: {issue}", file=sys.stderr)
+        return {"exit_code": 2, "run_id": run_id}
 
     if (
         not cli_flag_present("--enable_cross_venue_spot_pipeline")
@@ -846,6 +1029,11 @@ def prepare_run_preflight(
         script_supports_flag=script_supports_flag,
         retail_profile_name=retail_profile_name,
     )
+    stages, skipped_stage_specs = _apply_local_cleaned_stage_shortcuts(
+        stages=stages,
+        args=args,
+        local_cleaned=local_cleaned,
+    )
     artifact_contracts, artifact_contract_issues = resolve_pipeline_artifact_contracts(stages)
     artifact_contract_issues.extend(
         _validate_negative_control_contract(
@@ -924,6 +1112,8 @@ def prepare_run_preflight(
         "artifact_contract_issues": artifact_contract_issues,
         "effective_behavior": effective_behavior,
         "execution_requested": True,
+        "local_cleaned": local_cleaned,
+        "skipped_stage_specs": skipped_stage_specs,
         "search_spec": getattr(args, "search_spec", "spec/search_space.yaml"),
         "research_compare_baseline_run_id": str(
             getattr(args, "research_compare_baseline_run_id", "") or ""

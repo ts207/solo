@@ -83,3 +83,19 @@ Update this docset when changing:
 - Package architecture or guarded contract boundaries.
 
 Keep generated artifacts separate from authored docs.
+
+
+## Generated Inventories
+
+Generated governance inventories live under `docs/generated/`. Refresh them from code rather than editing them by hand:
+
+```bash
+PYTHONPATH=. ./.venv/bin/python project/scripts/refresh_docs_governance.py
+PYTHONPATH=. ./.venv/bin/python project/scripts/refresh_docs_governance.py --check
+```
+
+Important generated files include:
+- `docs/generated/repo_metrics.md`
+- `docs/generated/system_map.md`
+- `docs/generated/contract_strictness_inventory.md`
+- `docs/generated/detector_governance_summary.json`

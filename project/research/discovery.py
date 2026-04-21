@@ -20,6 +20,9 @@ from project.research.multiplicity import make_family_id as _canonical_make_fami
 
 log = logging.getLogger(__name__)
 
+# Compatibility-only helper module retained for legacy callers.
+LEGACY_COMPATIBILITY_ONLY = True
+
 
 def candidate_id_from_hypothesis(
     *,

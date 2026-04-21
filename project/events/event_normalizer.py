@@ -38,16 +38,6 @@ def _first_existing_column(df: pd.DataFrame, names: Sequence[str]) -> str | None
     return None
 
 
-def _first_parseable_timestamp_column(df: pd.DataFrame, names: Sequence[str]) -> str | None:
-    for name in names:
-        if name not in df.columns:
-            continue
-        parsed = pd.to_datetime(df[name], utc=True, errors="coerce")
-        if parsed.notna().any():
-            return name
-    return None
-
-
 def _feature_payload(row: pd.Series) -> str:
     keys = [
         "adverse_proxy_excess",
@@ -94,7 +84,7 @@ def normalize_phase1_events(
     if out.empty:
         return _empty_registry_events()
 
-    phenom_col = _first_parseable_timestamp_column(
+    phenom_col = _first_existing_column(
         out, ["phenom_enter_ts", "anchor_ts", "timestamp", "event_ts", "start_ts", "enter_ts"]
     )
     if phenom_col is None:
@@ -102,7 +92,7 @@ def normalize_phase1_events(
 
     out["phenom_enter_ts"] = ts_ns_utc(out[phenom_col])
 
-    entry_col = _first_parseable_timestamp_column(
+    entry_col = _first_existing_column(
         out,
         ["enter_ts", "signal_ts", "trigger_ts", "timestamp", "anchor_ts", "event_ts", "start_ts"],
     )
@@ -111,7 +101,7 @@ def normalize_phase1_events(
     else:
         out["enter_ts"] = out["phenom_enter_ts"]
 
-    exit_col = _first_parseable_timestamp_column(
+    exit_col = _first_existing_column(
         out,
         [
             "exit_ts",
@@ -128,7 +118,7 @@ def normalize_phase1_events(
     else:
         out["exit_ts"] = out["enter_ts"]
 
-    det_col = _first_parseable_timestamp_column(
+    det_col = _first_existing_column(
         out, ["detected_ts", "detection_ts", "signal_ts", "trigger_ts"]
     )
     if det_col is not None:
@@ -136,13 +126,13 @@ def normalize_phase1_events(
     else:
         out["detected_ts"] = out["phenom_enter_ts"]
 
-    sig_col = _first_parseable_timestamp_column(out, ["signal_ts"])
+    sig_col = _first_existing_column(out, ["signal_ts"])
     if sig_col is not None and sig_col != det_col:
         out["signal_ts"] = ts_ns_utc(out[sig_col])
     else:
         out["signal_ts"] = out["detected_ts"]
 
-    eval_col = _first_parseable_timestamp_column(out, ["eval_bar_ts"])
+    eval_col = _first_existing_column(out, ["eval_bar_ts"])
     if eval_col is not None:
         out["eval_bar_ts"] = ts_ns_utc(out[eval_col])
     else:

@@ -8,12 +8,6 @@ import numpy as np
 import pandas as pd
 
 if TYPE_CHECKING:
-    from project.events.arbitration import (
-        ArbitrationResult,
-        arbitrate_events,
-        load_compatibility_spec,
-        load_precedence_spec,
-    )
     from project.events.scoring.confidence import (
         EventConfidenceModel,
         load_event_confidence_model,
@@ -181,13 +175,6 @@ _LAZY_CONFIDENCE_EXPORTS = {
     "train_event_confidence_model",
 }
 
-_LAZY_ARBITRATION_EXPORTS = {
-    "ArbitrationResult",
-    "arbitrate_events",
-    "load_compatibility_spec",
-    "load_precedence_spec",
-}
-
 
 def __getattr__(name: str):
     if name in _LAZY_CONFIDENCE_EXPORTS:
@@ -196,23 +183,13 @@ def __getattr__(name: str):
         value = getattr(_confidence, name)
         globals()[name] = value
         return value
-    if name in _LAZY_ARBITRATION_EXPORTS:
-        from project.events import arbitration as _arbitration
-
-        value = getattr(_arbitration, name)
-        globals()[name] = value
-        return value
     raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
 
 
 __all__ = [
-    "ArbitrationResult",
     "EventConfidenceModel",
     "EventScoreColumns",
-    "arbitrate_events",
     "load_event_confidence_model",
-    "load_compatibility_spec",
-    "load_precedence_spec",
     "score_detected_events",
     "score_event_frame",
     "train_event_confidence_model",

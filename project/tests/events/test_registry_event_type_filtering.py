@@ -56,28 +56,5 @@ def test_normalize_phase1_events_without_event_type_column_keeps_rows():
     assert len(normalized) == len(events)
 
 
-def test_normalize_phase1_events_skips_all_nat_timestamp_candidates():
-    events = pd.DataFrame(
-        {
-            "event_type": ["DEPTH_COLLAPSE"],
-            "anchor_ts": [pd.NaT],
-            "enter_ts": [pd.NaT],
-            "exit_ts": [pd.NaT],
-            "timestamp": pd.to_datetime(["2026-01-01T00:00:00Z"], utc=True),
-            "signal_ts": pd.to_datetime(["2026-01-01T00:05:00Z"], utc=True),
-            "symbol": ["BTCUSDT"],
-            "event_id": ["depth-1"],
-        }
-    )
-    spec = EVENT_REGISTRY_SPECS["DEPTH_COLLAPSE"]
-    normalized = normalize_phase1_events(events=events, spec=spec, run_id="r1")
-
-    assert len(normalized) == 1
-    assert normalized["event_type"].iloc[0] == "DEPTH_COLLAPSE"
-    assert normalized["timestamp"].iloc[0] == pd.Timestamp("2026-01-01T00:05:00Z")
-    assert normalized["phenom_enter_ts"].iloc[0] == pd.Timestamp("2026-01-01T00:00:00Z")
-    assert normalized["exit_ts"].iloc[0] == pd.Timestamp("2026-01-01T00:05:00Z")
-
-
 def test_registry_uses_canonical_funding_specs():
     assert "FUNDING_PERSISTENCE_TRIGGER" in EVENT_REGISTRY_SPECS

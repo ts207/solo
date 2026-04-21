@@ -71,3 +71,13 @@ def test_generate_target_portfolio_greedy_with_dynamic_penalty():
     
     # strat_2 gets nothing because capital is exhausted.
     assert state.allocations.get("strat_2", 0.0) == 0.0
+
+
+def test_generate_target_portfolio_respects_symbol_caps_with_engine_backing():
+    intent1 = ThesisIntent(strategy_id="strat_1", family_id="momentum", symbol="BTC", requested_notional=10000.0, setup_match=1.0, thesis_strength=1.0, freshness=1.0, execution_quality=1.0, capital_efficiency=1.0)
+    intent2 = ThesisIntent(strategy_id="strat_2", family_id="mean_reversion", symbol="BTC", requested_notional=10000.0, setup_match=0.9, thesis_strength=1.0, freshness=1.0, execution_quality=1.0, capital_efficiency=1.0)
+    context = PortfolioContext(max_portfolio_notional=20000.0, family_caps={"momentum": 20000.0, "mean_reversion": 20000.0}, symbol_caps={"BTC": 12000.0})
+    state = generate_target_portfolio([intent1, intent2], context)
+    assert state.allocations["strat_1"] > 0.0
+    assert state.allocations["strat_2"] >= 0.0
+    assert state.allocations["strat_1"] + state.allocations["strat_2"] <= 12000.0 + 1e-9

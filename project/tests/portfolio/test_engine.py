@@ -143,3 +143,42 @@ class TestDecisionAudit:
         d = engine.decide([intent])[0]
         assert d.allocated_notional == 0.0
         assert not d.is_allocated
+
+
+class TestCapacityAndIncubationEvidence:
+    def test_symbol_cap_reduces_allocation_instead_of_only_blocking(self):
+        engine = _engine(symbol_caps={"BTCUSDT": 12_000.0})
+        intent = _intent(requested_notional=10_000.0)
+        decisions = engine.decide([intent], symbol_exposures={"BTCUSDT": 5_000.0})
+        d = decisions[0]
+        assert d.is_allocated
+        assert d.decision_status == "reduced"
+        assert d.allocated_notional <= 7_000.0 + 1e-9
+        assert any(reason == "clip:symbol_cap" for reason in d.reasons)
+
+    def test_portfolio_capacity_caps_batch_allocations(self):
+        engine = _engine(family_budgets={"vol": 100_000.0})
+        i1 = _intent(thesis_id="T1", overlap_group_id="OG1", requested_notional=8_000.0, support_score=2.0)
+        i2 = _intent(thesis_id="T2", overlap_group_id="OG2", requested_notional=8_000.0, support_score=1.0)
+        decisions = engine.decide([i1, i2], available_portfolio_notional=10_000.0)
+        by_id = {d.thesis_id: d for d in decisions}
+        assert by_id["T1"].allocated_notional > 0.0
+        assert by_id["T2"].allocated_notional >= 0.0
+        assert sum(d.allocated_notional for d in decisions) <= 10_000.0 + 1e-9
+
+    def test_incubating_intent_with_evidence_can_graduate(self):
+        from project.portfolio.incubation import IncubationEvidence
+
+        engine = _engine()
+        intent = _intent(incubation_state="incubating")
+        evidence = IncubationEvidence(
+            strategy_id="T1",
+            days_elapsed=31,
+            days_required=30,
+            n_trades=7,
+            max_drawdown_pct=0.05,
+        )
+        decisions = engine.decide([intent], incubation_evidence={"T1": evidence})
+        d = decisions[0]
+        assert d.is_allocated
+        assert any(reason.startswith("allow:incubation:") for reason in d.reasons)

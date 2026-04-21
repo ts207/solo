@@ -172,11 +172,36 @@ def build_governance_artifacts(output_dir: Path) -> dict[str, object]:
     return summary
 
 
-def main() -> int:
+def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument('--output-dir', default='docs/generated')
-    args = parser.parse_args()
-    build_governance_artifacts(Path(args.output_dir))
+    parser.add_argument('--check', action='store_true', help='Fail if generated detector governance outputs drift from disk.')
+    args = parser.parse_args(argv)
+
+    output_dir = Path(args.output_dir)
+    if args.check:
+        import tempfile
+
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            tmp_path = Path(tmp_dir)
+            build_governance_artifacts(tmp_path)
+            drift: list[str] = []
+            for expected_path in sorted(tmp_path.rglob('*')):
+                if not expected_path.is_file():
+                    continue
+                rel = expected_path.relative_to(tmp_path)
+                actual = output_dir / rel
+                expected_text = expected_path.read_text(encoding='utf-8')
+                current_text = actual.read_text(encoding='utf-8') if actual.exists() else None
+                if current_text != expected_text:
+                    drift.append(str(actual))
+            if drift:
+                for path in drift:
+                    print(f'detector governance drift: {path}', file=sys.stderr)
+                return 1
+            return 0
+
+    build_governance_artifacts(output_dir)
     return 0
 
 

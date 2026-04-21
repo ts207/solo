@@ -50,28 +50,6 @@ data/lake/raw/<venue>/perp/<SYMBOL>/
 
 The pipeline may reuse global lake data when run-scoped lake data is absent.
 
-## Offline Data Bundles
-
-Small, GitHub-safe data bundles live under:
-
-```text
-offline-data/<bundle_id>/
-```
-
-Bundles are split into `bundle.tar.gz.part-*` files so no single GitHub file exceeds the normal file-size limit. Restore a bundle from the repo root:
-
-```bash
-project/scripts/offline/restore_data_bundle.sh <bundle_id>
-```
-
-For example, the downside liquidation exhaustion reversal campaign bundle is:
-
-```bash
-project/scripts/offline/restore_data_bundle.sh single_event_liq_exhaust_down_bounce_20260421T0521Z
-```
-
-The restore script verifies part checksums, reconstructs the archive locally, verifies the archive checksum, and extracts the `data/` and matching `spec/` files needed for offline inspection and Phase 2 reruns.
-
 ## Run Manifests
 
 Pipeline runs write manifests and conformance reports through the pipeline provenance layer. Manifest fields include:

@@ -11,6 +11,7 @@ from typing import Any, Dict, List
 from project import PROJECT_ROOT
 from project.core.config import get_data_root
 from project.research.agent_io.proposal_to_experiment import translate_and_validate_proposal
+from project.research.CANONICAL_PIPELINE import persist_canonical_pipeline_artifact
 
 
 def _to_cli_tokens(flag: str, value: Any) -> List[str]:
@@ -112,6 +113,19 @@ def execute_proposal(
         json.dumps(translation["run_all_overrides"], indent=2, sort_keys=True) + "\n",
         encoding="utf-8",
     )
+    canonical_path_artifact = persist_canonical_pipeline_artifact(
+        resolved_out_dir,
+        run_id=run_id,
+        stage="discover",
+        used_module="project.research.agent_io.execute_proposal",
+        extra={
+            "plan_only": bool(plan_only),
+            "dry_run": bool(dry_run),
+            "proposal_path": str(proposal_path),
+            "experiment_config_path": str(config_path),
+            "run_all_overrides_path": str(overrides_path),
+        },
+    )
 
     proposal = translation["proposal"]
     command = build_run_all_command(
@@ -138,6 +152,7 @@ def execute_proposal(
         "proposal_path": str(proposal_path),
         "experiment_config_path": str(config_path),
         "run_all_overrides_path": str(overrides_path),
+        "canonical_research_path_path": str(canonical_path_artifact),
         "command": command,
         "returncode": int(result.returncode),
         "stdout": result.stdout,

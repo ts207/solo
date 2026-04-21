@@ -1649,6 +1649,12 @@ class LiveEngineRunner:
                 family_exposures=dict(portfolio_state.get("family_exposures", {})),
                 symbol_exposures=dict(portfolio_state.get("symbol_exposures", {})),
                 active_cluster_counts=dict(portfolio_state.get("active_cluster_counts", {})),
+                gross_exposure=float(portfolio_state.get("gross_exposure", 0.0) or 0.0),
+                current_vol=float(portfolio_state.get("current_vol", 0.10) or 0.10),
+                available_portfolio_notional=float(
+                    float(portfolio_state.get("available_balance", 0.0) or 0.0)
+                    * float(self.strategy_runtime.get("max_notional_fraction", 0.10) or 0.10)
+                ),
             )
             portfolio_by_thesis = {
                 str(decision.thesis_id): decision for decision in decisions
@@ -1765,6 +1771,12 @@ class LiveEngineRunner:
                     family_exposures=dict(portfolio_state.get("family_exposures", {})),
                     symbol_exposures=dict(portfolio_state.get("symbol_exposures", {})),
                     active_cluster_counts=dict(portfolio_state.get("active_cluster_counts", {})),
+                    gross_exposure=float(portfolio_state.get("gross_exposure", 0.0) or 0.0),
+                    current_vol=float(portfolio_state.get("current_vol", 0.10) or 0.10),
+                    available_portfolio_notional=float(
+                        float(portfolio_state.get("available_balance", 0.0) or 0.0)
+                        * float(self.strategy_runtime.get("max_notional_fraction", 0.10) or 0.10)
+                    ),
                 )
                 portfolio_decision = portfolio_decisions[0] if portfolio_decisions else None
         if portfolio_decision is not None and not portfolio_decision.is_allocated:

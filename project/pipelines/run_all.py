@@ -171,6 +171,7 @@ def _run_all_impl(raw_argv: List[str] | None = None) -> int:
         args=args,
         stages=stages,
         artifact_contracts=preflight.get("artifact_contracts", {}),
+        skipped_stage_specs=list(preflight.get("skipped_stage_specs", [])),
     )
 
     if bool(args.plan_only):
@@ -227,6 +228,9 @@ def _run_all_impl(raw_argv: List[str] | None = None) -> int:
     run_manifest = bootstrap.run_manifest
     if effective_behavior:
         run_manifest["effective_behavior"] = effective_behavior
+    local_cleaned = dict(preflight.get("local_cleaned", {}) or {})
+    if local_cleaned:
+        run_manifest["local_cleaned"] = local_cleaned
     run_manifest["execution_plan_stage_families"] = sorted(
         {stage.stage_family for stage in execution_plan.active_stages if stage.stage_family}
     )

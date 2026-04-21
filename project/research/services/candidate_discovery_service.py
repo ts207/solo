@@ -40,6 +40,8 @@ from project.research.services.phase2_diagnostics import (
 )
 from project.research.services.phase2_support import bar_duration_minutes_from_timeframe
 from project.research.services.reporting_service import write_candidate_reports
+from project.research.CANONICAL_PIPELINE import persist_canonical_pipeline_artifact
+from project.research.decision_trace_artifacts import write_discovery_trace, write_merged_research_trace
 from project.research.services.regime_effectiveness_service import (
     write_regime_effectiveness_reports,
 )
@@ -640,7 +642,30 @@ def execute_candidate_discovery(config: CandidateDiscoveryConfig) -> CandidateDi
 
         reg_hash = hyp_registry.write_artifacts(out_dir)
         manifest["hypothesis_registry_hash"] = reg_hash
-        
+        canonical_path_path = persist_canonical_pipeline_artifact(
+            out_dir,
+            run_id=config.run_id,
+            stage="discover",
+            used_module="project.research.services.candidate_discovery_service",
+            extra={
+                "discovery_stage": "phase2_search_engine",
+                "experiment_config": str(config.experiment_config or ""),
+                "discovery_profile": str(config.discovery_profile or ""),
+                "gate_profile": str(config.gate_profile or ""),
+            },
+        )
+        trace_artifact = write_discovery_trace(combined, out_dir=out_dir, run_id=config.run_id)
+        merged_trace_path = write_merged_research_trace(
+            out_dir=out_dir,
+            data_root=config.data_root,
+            run_id=config.run_id,
+            discovery_trace=trace_artifact["frame"],
+        )
+        manifest["canonical_research_path_path"] = str(canonical_path_path)
+        manifest["discovery_decision_trace_path"] = str(trace_artifact["path"])
+        if merged_trace_path is not None:
+            manifest["research_decision_trace_path"] = str(merged_trace_path)
+
         # Sprint 7: Artifact manifest
         try:
             from project.research.validation.manifest import RunArtifactManifest
@@ -654,6 +679,9 @@ def execute_candidate_discovery(config: CandidateDiscoveryConfig) -> CandidateDi
                 artifacts={
                     "phase2_candidates": "phase2_candidates.parquet",
                     "phase2_diagnostics": "phase2_diagnostics.json",
+                    "canonical_research_path": "canonical_research_path.json",
+                    "discovery_decision_trace": "discovery_decision_trace.parquet",
+                    "research_decision_trace": "research_decision_trace.parquet",
                 }
             )
             artifact_manifest.persist(out_dir)

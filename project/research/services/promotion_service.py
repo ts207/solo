@@ -42,6 +42,8 @@ from project.research.services import promotion_inputs as _promotion_inputs
 from project.research.services import promotion_policy as _promotion_policy
 from project.specs.gates import load_gates_spec as _load_gates_spec
 from project.specs.manifest import finalize_manifest, load_run_manifest, start_manifest
+from project.research.CANONICAL_PIPELINE import persist_canonical_pipeline_artifact
+from project.research.decision_trace_artifacts import write_promotion_trace, write_merged_research_trace
 from project.specs.objective import resolve_objective_profile_contract
 from project.specs.ontology import ontology_spec_hash
 from project.events.registry import get_detector_contract
@@ -890,6 +892,33 @@ def execute_promotion(config: PromotionConfig) -> PromotionServiceResult:
             live_export_diagnostics=diagnostics.get("live_thesis_export"),
             historical_trust=diagnostics.get("historical_trust"),
         )
+        canonical_path_path = persist_canonical_pipeline_artifact(
+            out_dir,
+            run_id=config.run_id,
+            stage="promote",
+            used_module="project.research.services.promotion_service",
+            extra={
+                "promotion_profile": str(config.promotion_profile or ""),
+                "program_id": str(config.program_id or ""),
+            },
+        )
+        promotion_trace = write_promotion_trace(
+            audit_df,
+            promoted_df,
+            out_dir=out_dir,
+            run_id=config.run_id,
+            diagnostics=diagnostics,
+        )
+        merged_trace_path = write_merged_research_trace(
+            out_dir=out_dir,
+            data_root=get_data_root(),
+            run_id=config.run_id,
+            promotion_trace=promotion_trace["frame"],
+        )
+        diagnostics["canonical_research_path_path"] = str(canonical_path_path)
+        diagnostics["promotion_decision_trace_path"] = str(promotion_trace["path"])
+        if merged_trace_path is not None:
+            diagnostics["research_decision_trace_path"] = str(merged_trace_path)
 
         # Sprint 7: Artifact manifest
         try:
@@ -906,6 +935,9 @@ def execute_promotion(config: PromotionConfig) -> PromotionServiceResult:
                     "promoted_candidates": "promoted_candidates.parquet",
                     "promotion_summary": "promotion_summary.csv",
                     "promotion_diagnostics": "promotion_diagnostics.json",
+                    "canonical_research_path": "canonical_research_path.json",
+                    "promotion_decision_trace": "promotion_decision_trace.parquet",
+                    "research_decision_trace": "research_decision_trace.parquet",
                 },
             )
             artifact_manifest.persist(out_dir)

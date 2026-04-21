@@ -1,11 +1,12 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Set, Tuple
+from typing import Any, Dict, List, Set, Tuple, Optional
 
 import pandas as pd
 
 from project.portfolio.admission_policy import AdmissionResult, PortfolioAdmissionPolicy
+from project.portfolio.incubation import IncubationEvidence
 from project.portfolio.covariance import covariance_exposure_multiplier
 from project.portfolio.exposure_overlap import overlap_exposure_multiplier
 from project.portfolio.marginal_risk import estimate_marginal_risk, marginal_risk_multiplier
@@ -63,6 +64,10 @@ class PortfolioCapitalDecision:
     overlap_multiplier: float = 1.0
     execution_quality_multiplier: float = 1.0
     covariance_multiplier: float = 1.0
+    decision_status: str = "blocked"
+    priority_score: float = 0.0
+    available_capacity_notional: float = 0.0
+    clip_factors: Tuple[str, ...] = ()
     reasons: Tuple[str, ...] = ()
 
     @property
@@ -77,7 +82,7 @@ class PortfolioCapitalDecision:
             f"requested={self.requested_notional:.0f} "
             f"risk_mult={self.risk_multiplier:.3f} "
             f"edge_mult={self.edge_multiplier:.3f} "
-            f"reasons={self.reasons}"
+            f"status={self.decision_status} reasons={self.reasons}"
         )
 
 
@@ -105,6 +110,7 @@ class PortfolioDecisionEngine:
         max_strategies_per_cluster: int = 3,
         thesis_covariance: pd.DataFrame | None = None,
         overlap_budgets: Dict[str, float] | None = None,
+        max_portfolio_notional: float | None = None,
     ) -> None:
         self._admission = PortfolioAdmissionPolicy(family_budgets=family_budgets or {})
         self._symbol_caps: Dict[str, float] = dict(symbol_caps or {})
@@ -116,6 +122,9 @@ class PortfolioDecisionEngine:
         self._max_strategies_per_cluster = max_strategies_per_cluster
         self._thesis_covariance = thesis_covariance
         self._overlap_budgets = dict(overlap_budgets or {})
+        self._max_portfolio_notional = (
+            float(max_portfolio_notional) if max_portfolio_notional is not None else None
+        )
 
     def decide(
         self,
@@ -128,6 +137,10 @@ class PortfolioDecisionEngine:
         symbol_exposures: Dict[str, float] | None = None,
         thesis_exposures: Dict[str, float] | None = None,
         overlap_exposures: Dict[str, float] | None = None,
+        gross_exposure: float | None = None,
+        current_vol: float | None = None,
+        available_portfolio_notional: float | None = None,
+        incubation_evidence: Dict[str, IncubationEvidence] | None = None,
     ) -> List[PortfolioCapitalDecision]:
         """Produce one PortfolioCapitalDecision per intent, in priority order.
 
@@ -144,12 +157,23 @@ class PortfolioDecisionEngine:
         thesis_exp: Dict[str, float] = dict(thesis_exposures or {})
         overlap_exp: Dict[str, float] = dict(overlap_exposures or {})
 
+        current_gross_exposure = float(self._gross_exposure if gross_exposure is None else gross_exposure)
+        current_realized_vol = float(self._current_vol if current_vol is None else current_vol)
         portfolio_risk_mult = calculate_portfolio_risk_multiplier(
-            gross_exposure=self._gross_exposure,
+            gross_exposure=current_gross_exposure,
             max_gross_leverage=self._max_gross_leverage,
             target_vol=self._target_vol,
-            current_vol=self._current_vol,
+            current_vol=current_realized_vol,
         )
+
+        remaining_portfolio_capacity = None
+        configured_capacity = self._max_portfolio_notional
+        if available_portfolio_notional is not None:
+            configured_capacity = float(available_portfolio_notional)
+        if configured_capacity is not None:
+            remaining_portfolio_capacity = max(0.0, float(configured_capacity))
+
+        incubation_map: Dict[str, IncubationEvidence] = dict(incubation_evidence or {})
 
         sorted_intents = sorted(intents, key=self._priority_score, reverse=True)
         decisions: List[PortfolioCapitalDecision] = []
@@ -159,11 +183,21 @@ class PortfolioDecisionEngine:
 
             # --- incubation gate ---
             if intent.incubation_state == "incubating":
-                reasons.append("incubating:paper_only")
-                decisions.append(
-                    self._blocked(intent, reasons, portfolio_risk_mult, cluster_counts)
-                )
-                continue
+                evidence = incubation_map.get(intent.thesis_id)
+                if evidence is None:
+                    reasons.append("blocked:incubating_without_evidence")
+                    decisions.append(
+                        self._blocked(intent, reasons, portfolio_risk_mult, cluster_counts)
+                    )
+                    continue
+                should_graduate, evidence_reason = evidence.evaluate_graduation()
+                if not should_graduate:
+                    reasons.append(f"blocked:incubation:{evidence_reason}")
+                    decisions.append(
+                        self._blocked(intent, reasons, portfolio_risk_mult, cluster_counts)
+                    )
+                    continue
+                reasons.append(f"allow:incubation:{evidence_reason}")
 
             # --- overlap group gate ---
             admission = self._admission.is_thesis_admissible(
@@ -196,7 +230,7 @@ class PortfolioDecisionEngine:
             # --- symbol cap gate ---
             sym_cap = self._symbol_caps.get(intent.symbol, 0.0)
             if sym_cap > 0.0 and sym_exp.get(intent.symbol, 0.0) >= sym_cap:
-                reasons.append(f"symbol_cap_exhausted:{intent.symbol}")
+                reasons.append(f"blocked:symbol_cap_exhausted:{intent.symbol}")
                 decisions.append(
                     self._blocked(intent, reasons, portfolio_risk_mult, cluster_counts)
                 )
@@ -253,12 +287,49 @@ class PortfolioDecisionEngine:
                 * execution_mult
                 * intent.evidence_multiplier
             )
-            allocated = max(0.0, intent.requested_notional * combined_mult)
+            raw_allocated = max(0.0, intent.requested_notional * combined_mult)
+
+            clip_factors: List[str] = []
+            remaining_caps: List[float] = []
+            family_budget = self._admission.family_budgets.get(intent.family, 0.0)
+            if family_budget > 0.0:
+                remaining_family = max(0.0, family_budget - abs(fam_exp.get(intent.family, 0.0)))
+                remaining_caps.append(remaining_family)
+                if raw_allocated > remaining_family:
+                    clip_factors.append("family_budget")
+            if sym_cap > 0.0:
+                remaining_symbol = max(0.0, sym_cap - abs(sym_exp.get(intent.symbol, 0.0)))
+                remaining_caps.append(remaining_symbol)
+                if raw_allocated > remaining_symbol:
+                    clip_factors.append("symbol_cap")
+            overlap_budget = self._overlap_budgets.get(intent.overlap_group_id)
+            if overlap_budget is not None and float(overlap_budget) > 0.0:
+                remaining_overlap = max(0.0, float(overlap_budget) - abs(overlap_exp.get(intent.overlap_group_id, 0.0)))
+                remaining_caps.append(remaining_overlap)
+                if raw_allocated > remaining_overlap:
+                    clip_factors.append("overlap_budget")
+            if remaining_portfolio_capacity is not None:
+                remaining_caps.append(remaining_portfolio_capacity)
+                if raw_allocated > remaining_portfolio_capacity:
+                    clip_factors.append("portfolio_capacity")
+
+            available_capacity = min(remaining_caps) if remaining_caps else raw_allocated
+            if remaining_caps and available_capacity <= 0.0:
+                reasons.append("blocked:no_remaining_capacity")
+                decisions.append(
+                    self._blocked(intent, reasons, portfolio_risk_mult, cluster_counts, admission=admission)
+                )
+                continue
+
+            allocated = min(raw_allocated, available_capacity)
+            decision_status = "allocated" if allocated >= max(1e-9, intent.requested_notional * 0.999) else ("reduced" if allocated > 0.0 else "blocked")
 
             reasons.append(f"risk_mult={combined_mult:.3f}")
             reasons.append(f"edge_mult={edge_mult:.3f}")
             reasons.append(f"marginal_risk_mult={marginal_mult:.3f}")
             reasons.append(f"execution_quality_mult={execution_mult:.3f}")
+            for factor in clip_factors:
+                reasons.append(f"clip:{factor}")
             decision = PortfolioCapitalDecision(
                 thesis_id=intent.thesis_id,
                 symbol=intent.symbol,
@@ -276,6 +347,10 @@ class PortfolioDecisionEngine:
                 covariance_multiplier=covariance_mult,
                 incubation_state=intent.incubation_state,
                 admission=admission,
+                decision_status=decision_status,
+                priority_score=self._priority_score(intent),
+                available_capacity_notional=float(available_capacity),
+                clip_factors=tuple(clip_factors),
                 reasons=tuple(reasons),
             )
             decisions.append(decision)
@@ -292,6 +367,8 @@ class PortfolioDecisionEngine:
                     overlap_exp.get(intent.overlap_group_id, 0.0) + allocated
                 )
             cluster_counts[intent.cluster_id] = cluster_counts.get(intent.cluster_id, 0) + 1
+            if remaining_portfolio_capacity is not None:
+                remaining_portfolio_capacity = max(0.0, remaining_portfolio_capacity - allocated)
 
         return decisions
 
@@ -343,8 +420,10 @@ class PortfolioDecisionEngine:
             risk_multiplier=risk_multiplier,
             cluster_multiplier=cluster_mult,
             correlation_adjustment=1.0,
-            edge_multiplier=0.0 if "edge:non_positive_post_cost_utility" in reasons else 1.0,
+            edge_multiplier=0.0 if any(reason.startswith("edge:") for reason in reasons) else 1.0,
             incubation_state=intent.incubation_state,
             admission=admission or AdmissionResult(False, "; ".join(reasons)),
+            decision_status="blocked",
+            priority_score=self._priority_score(intent),
             reasons=tuple(reasons),
         )

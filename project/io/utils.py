@@ -162,6 +162,175 @@ def choose_partition_dir(candidates: Sequence[Path]) -> Path | None:
 
 
 
+def _normalize_candidate_path(value: str | Path | None) -> Path | None:
+    raw = str(value).strip() if value is not None else ""
+    if not raw:
+        return None
+    path = Path(raw).expanduser().resolve()
+    return path
+
+
+def discover_external_cleaned_root(
+    data_root: Path,
+    *,
+    explicit_root: str | Path | None = None,
+) -> Path | None:
+    """Locate an external offline cleaned-bars root.
+
+    Supported roots are directories containing the canonical structure:
+    ``<root>/<market>/<symbol>/bars_<timeframe>/year=*/month=*/*.parquet``.
+
+    Search order:
+    1. explicit_root
+    2. EDGE_OFFLINE_CLEANED_BARS_ROOT / BACKTEST_OFFLINE_CLEANED_BARS_ROOT
+    3. EDGE_OFFLINE_DATA_ROOT / BACKTEST_OFFLINE_DATA_ROOT joined with ``cleaned_bars``
+    4. common local bundle paths near the repo or data root
+    5. sibling directories under nearby parents containing ``offline-data/cleaned_bars``
+    """
+    from project import PROJECT_ROOT
+
+    candidate_roots: list[Path] = []
+    seen: set[str] = set()
+
+    def _add(path_like: str | Path | None, *, append_cleaned: bool = False) -> None:
+        path = _normalize_candidate_path(path_like)
+        if path is None:
+            return
+        if append_cleaned:
+            path = path / "cleaned_bars"
+        key = str(path)
+        if key in seen:
+            return
+        seen.add(key)
+        candidate_roots.append(path)
+
+    _add(explicit_root)
+    _add(os.getenv("EDGE_OFFLINE_CLEANED_BARS_ROOT"))
+    _add(os.getenv("BACKTEST_OFFLINE_CLEANED_BARS_ROOT"))
+    _add(os.getenv("EDGE_OFFLINE_DATA_ROOT"), append_cleaned=True)
+    _add(os.getenv("BACKTEST_OFFLINE_DATA_ROOT"), append_cleaned=True)
+
+    _add(Path(data_root) / "offline-data" / "cleaned_bars")
+    _add(Path(data_root).parent / "offline-data" / "cleaned_bars")
+    _add(PROJECT_ROOT.parent / "offline-data" / "cleaned_bars")
+    _add(PROJECT_ROOT.parent.parent / "offline-data" / "cleaned_bars")
+    _add(PROJECT_ROOT.parent.parent.parent / "offline-data" / "cleaned_bars")
+
+    scan_roots = [
+        Path(data_root).parent,
+        PROJECT_ROOT.parent.parent,
+        PROJECT_ROOT.parent.parent.parent,
+    ]
+    for scan_root in scan_roots:
+        try:
+            if not scan_root.exists() or not scan_root.is_dir():
+                continue
+            for child in scan_root.iterdir():
+                if not child.is_dir():
+                    continue
+                _add(child / "offline-data" / "cleaned_bars")
+                try:
+                    for grandchild in child.iterdir():
+                        if not grandchild.is_dir():
+                            continue
+                        _add(grandchild / "offline-data" / "cleaned_bars")
+                except OSError:
+                    pass
+        except OSError:
+            continue
+
+    for candidate in candidate_roots:
+        if not candidate.exists() or not candidate.is_dir():
+            continue
+        if any(candidate.rglob("*.parquet")):
+            return candidate
+    return None
+
+
+def _requested_month_keys(start: str, end: str) -> list[str]:
+    start_ts = pd.Timestamp(str(start))
+    end_ts = pd.Timestamp(str(end))
+    if start_ts.tzinfo is None:
+        start_ts = start_ts.tz_localize("UTC")
+    else:
+        start_ts = start_ts.tz_convert("UTC")
+    if end_ts.tzinfo is None:
+        end_ts = end_ts.tz_localize("UTC")
+    else:
+        end_ts = end_ts.tz_convert("UTC")
+    end_text = str(end).strip()
+    if len(end_text) == 10 and "T" not in end_text:
+        end_ts = end_ts + pd.Timedelta(days=1)
+    if end_ts <= start_ts:
+        return []
+    last_inclusive = end_ts - pd.Timedelta(minutes=1)
+    cursor = pd.Timestamp(start_ts.year, start_ts.month, 1, tz="UTC")
+    last_month = pd.Timestamp(last_inclusive.year, last_inclusive.month, 1, tz="UTC")
+    keys: list[str] = []
+    while cursor <= last_month:
+        keys.append(f"{int(cursor.year):04d}-{int(cursor.month):02d}")
+        cursor = cursor + pd.offsets.MonthBegin(1)
+    return keys
+
+
+def cleaned_dataset_dir(data_root: Path, *, market: str, symbol: str, timeframe: str) -> Path:
+    return Path(data_root) / "lake" / "cleaned" / str(market) / str(symbol) / f"bars_{timeframe}"
+
+
+def external_cleaned_dataset_dir(external_root: Path, *, market: str, symbol: str, timeframe: str) -> Path:
+    return Path(external_root) / str(market) / str(symbol) / f"bars_{timeframe}"
+
+
+def cleaned_dataset_covers_window(
+    dataset_root: Path,
+    *,
+    start: str,
+    end: str,
+) -> bool:
+    if not dataset_root.exists() or not dataset_root.is_dir():
+        return False
+    required = set(_requested_month_keys(start, end))
+    if not required:
+        return False
+    available: set[str] = set()
+    for year_dir in dataset_root.glob("year=*"):
+        if not year_dir.is_dir():
+            continue
+        year = year_dir.name.split("=", 1)[-1]
+        for month_dir in year_dir.glob("month=*"):
+            if not month_dir.is_dir():
+                continue
+            month = month_dir.name.split("=", 1)[-1]
+            if any(month_dir.glob("*.parquet")) or any(month_dir.glob("*.csv")):
+                available.add(f"{year}-{month}")
+    return required.issubset(available)
+
+
+def materialize_external_cleaned_dataset(
+    data_root: Path,
+    external_root: Path,
+    *,
+    market: str,
+    symbol: str,
+    timeframe: str,
+) -> Path | None:
+    src = external_cleaned_dataset_dir(external_root, market=market, symbol=symbol, timeframe=timeframe)
+    if not src.exists() or not src.is_dir():
+        return None
+    dst = cleaned_dataset_dir(data_root, market=market, symbol=symbol, timeframe=timeframe)
+    if dst.exists():
+        return dst
+    ensure_dir(dst.parent)
+    try:
+        os.symlink(src, dst, target_is_directory=True)
+        return dst
+    except OSError:
+        pass
+    import shutil
+    shutil.copytree(src, dst, dirs_exist_ok=True)
+    return dst
+
+
 
 def raw_dataset_dir_candidates(
     data_root: Path,

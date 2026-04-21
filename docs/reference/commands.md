@@ -190,3 +190,12 @@ edge-chatgpt-app serve --host 127.0.0.1 --port 8000 --path /mcp
 ```
 
 The app surface should wrap proposal, dashboard, reporting, and operator actions. It should not redefine proposal policy or promotion logic.
+
+## Documentation and Governance Refresh
+
+```bash
+PYTHONPATH=. ./.venv/bin/python project/scripts/refresh_docs_governance.py
+PYTHONPATH=. ./.venv/bin/python project/scripts/build_repo_metrics.py
+```
+
+`refresh_docs_governance.py` refreshes repo metrics, the system map, contract strictness inventory, and detector governance artifacts under `docs/generated/`.

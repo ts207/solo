@@ -32,6 +32,7 @@ __all__ = [
     "build_thesis_overlap_graph",
     "overlap_group_id_for_thesis",
     "write_thesis_overlap_artifacts",
+    "write_portfolio_decision_trace",
 ]
 
 from project.portfolio.thesis_overlap import (
@@ -40,3 +41,5 @@ from project.portfolio.thesis_overlap import (
     overlap_group_id_for_thesis,
     write_thesis_overlap_artifacts,
 )
+
+from project.portfolio.reporting import write_portfolio_decision_trace
