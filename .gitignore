@@ -81,6 +81,9 @@ gha-creds-*.json
 
 /outputs/
 
+# Reconstructed local archives from committed offline-data parts.
+offline-data/**/bundle.tar.gz
+
 # Legacy/generated project-root artifacts
 project/context_entropy_report.json
 project/extraction_output.txt
