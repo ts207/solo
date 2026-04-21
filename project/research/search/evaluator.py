@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import math
 import logging
+from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional, Tuple
 
 import numpy as np
@@ -104,6 +105,171 @@ METRICS_COLUMNS = [
 ]
 
 _EVALUATION_SPLIT_LABELS = {"train", "validation", "test"}
+_SPLIT_LABEL_CODES = {"train": 1, "validation": 2, "test": 3}
+_SPLIT_CODE_LABELS = {value: key for key, value in _SPLIT_LABEL_CODES.items()}
+
+
+def _trigger_cache_key(spec: HypothesisSpec) -> str:
+    condition = ""
+    if spec.feature_condition is not None:
+        try:
+            condition = spec.feature_condition.label()
+        except Exception:
+            condition = repr(spec.feature_condition)
+    return f"{spec.trigger.label()}||{condition}"
+
+
+def _context_cache_key(context: dict[str, Any], *, use_context_quality: bool) -> str:
+    items = tuple(sorted((str(k), str(v)) for k, v in context.items()))
+    return f"{int(bool(use_context_quality))}:{items!r}"
+
+
+@dataclass
+class EvaluationContext:
+    features: pd.DataFrame
+    time_decay_tau_days: Optional[float] = 60.0
+    fwd_cache: dict[int, pd.Series] = field(default_factory=dict)
+    trigger_cache: dict[str, pd.Series] = field(default_factory=dict)
+    context_cache: dict[str, Optional[pd.Series]] = field(default_factory=dict)
+    shifted_mask_cache: dict[tuple[str, int, str], pd.Series] = field(default_factory=dict)
+    split_compat_cache: dict[tuple[int, int], pd.DataFrame] = field(default_factory=dict)
+    weights: pd.Series = field(init=False)
+    regime_labels: pd.Series = field(init=False)
+    stress_masks: dict[str, pd.Series | None] = field(init=False)
+    position_lookup: pd.Series = field(init=False)
+    split_codes: np.ndarray | None = field(init=False)
+
+    def __post_init__(self) -> None:
+        self.weights = pd.Series(1.0, index=self.features.index)
+        if "timestamp" in self.features.columns and self.time_decay_tau_days:
+            ref_ts = pd.to_datetime(self.features["timestamp"].max(), utc=True)
+            self.weights = _time_decay_weights(
+                self.features["timestamp"],
+                ref_ts=ref_ts,
+                tau_seconds=self.time_decay_tau_days * 86400.0,
+                floor_weight=0.05,
+            )
+        self.regime_labels = label_regimes(self.features)
+        self.stress_masks = {s["name"]: _apply_stress_mask(s, self.features) for s in STRESS_SCENARIOS}
+        self.position_lookup = pd.Series(
+            np.arange(len(self.features), dtype=int), index=self.features.index
+        )
+        if "split_label" in self.features.columns:
+            labels = (
+                self.features["split_label"]
+                .astype(str)
+                .str.strip()
+                .str.lower()
+                .map(_SPLIT_LABEL_CODES)
+                .fillna(0)
+                .astype(np.int8)
+            )
+            self.split_codes = labels.to_numpy()
+        else:
+            self.split_codes = None
+
+    def forward_returns(self, horizon_bars: int) -> pd.Series:
+        if horizon_bars not in self.fwd_cache:
+            self.fwd_cache[horizon_bars] = _forward_log_returns(
+                self.features["close"], horizon_bars
+            )
+        return self.fwd_cache[horizon_bars]
+
+    def raw_trigger_mask(self, spec: HypothesisSpec) -> pd.Series:
+        key = _trigger_cache_key(spec)
+        if key in self.trigger_cache:
+            return self.trigger_cache[key]
+        mask = _trigger_mask(spec, self.features)
+        if spec.feature_condition is not None:
+            fc_spec = HypothesisSpec(
+                trigger=spec.feature_condition,
+                direction=spec.direction,
+                horizon=spec.horizon,
+                template_id=spec.template_id,
+            )
+            mask = mask & _trigger_mask(fc_spec, self.features)
+        self.trigger_cache[key] = mask
+        return mask
+
+    def event_mask(
+        self,
+        spec: HypothesisSpec,
+        *,
+        use_context_quality: bool,
+    ) -> tuple[pd.Series | None, str | None]:
+        if spec.entry_lag < 1:
+            return None, "entry_lag_guardrail"
+        trigger_key = _trigger_cache_key(spec)
+        context_key = ""
+        if spec.context:
+            context_key = _context_cache_key(spec.context, use_context_quality=use_context_quality)
+        shifted_key = (trigger_key, int(spec.entry_lag), context_key)
+        if shifted_key in self.shifted_mask_cache:
+            return self.shifted_mask_cache[shifted_key], None
+
+        mask = self.raw_trigger_mask(spec).astype("boolean").shift(
+            spec.entry_lag, fill_value=False
+        ).astype(bool)
+        if spec.context:
+            if context_key not in self.context_cache:
+                self.context_cache[context_key] = _context_mask(
+                    spec.context,
+                    self.features,
+                    use_context_quality=use_context_quality,
+                )
+            ctx_mask = self.context_cache[context_key]
+            if ctx_mask is None:
+                return None, "context_unresolvable"
+            mask = mask & ctx_mask
+        self.shifted_mask_cache[shifted_key] = mask
+        return mask, None
+
+    def split_labels_for_indices(
+        self,
+        indices: pd.Index,
+        *,
+        entry_lag_bars: int,
+        horizon_bars: int,
+    ) -> pd.Series:
+        if self.split_codes is None or len(indices) == 0:
+            return pd.Series(dtype=object, index=indices)
+
+        key = (int(entry_lag_bars), int(horizon_bars))
+        if key not in self.split_compat_cache:
+            n = len(self.features)
+            positions = np.arange(n, dtype=np.int64)
+            entry_pos = positions + int(entry_lag_bars)
+            future_pos = entry_pos + int(horizon_bars)
+            valid = (entry_pos >= 0) & (future_pos < n)
+            start_codes = np.zeros(n, dtype=np.int8)
+            split_changes = np.zeros(n, dtype=np.int64)
+            if n > 1:
+                split_changes[1:] = self.split_codes[1:] != self.split_codes[:-1]
+            change_prefix = np.cumsum(split_changes)
+            if valid.any():
+                start_codes[valid] = self.split_codes[entry_pos[valid]]
+            no_window_change = np.zeros(n, dtype=bool)
+            if valid.any():
+                no_window_change[valid] = (
+                    change_prefix[future_pos[valid]] == change_prefix[entry_pos[valid]]
+                )
+            compatible = valid & (start_codes > 0) & no_window_change
+            labels = pd.Series("", index=self.features.index, dtype=object)
+            for code, label in _SPLIT_CODE_LABELS.items():
+                labels.iloc[np.where(compatible & (start_codes == code))[0]] = label
+            self.split_compat_cache[key] = pd.DataFrame(
+                {"compatible": compatible, "label": labels}, index=self.features.index
+            )
+
+        compat = self.split_compat_cache[key]
+        present = indices.intersection(compat.index)
+        labels = pd.Series("", index=indices, dtype=object)
+        if len(present):
+            valid_rows = compat.loc[present]
+            labels.loc[present] = valid_rows["label"].where(
+                valid_rows["compatible"].astype(bool), ""
+            )
+        return labels
 
 
 def _normal_p_value(stat: float) -> float:
@@ -268,26 +434,7 @@ def evaluate_hypothesis_batch(
     else:
         ann = annualisation_factor
 
-    # Compute population volatility across full forward distribution to avoid selection bias
-    # Use 15m default if hbars not yet resolved, but better to calculate inside loop per horizon.
-    # However, to avoid redundant computation, we can cache fwd series.
-    fwd_cache: Dict[int, pd.Series] = {}
-
-    # Pre-calculate time decay weights if timestamp is available
-    weights = pd.Series(1.0, index=features.index)
-    if "timestamp" in features.columns and time_decay_tau_days:
-        ref_ts = pd.to_datetime(features["timestamp"].max(), utc=True)
-        weights = _time_decay_weights(
-            features["timestamp"],
-            ref_ts=ref_ts,
-            tau_seconds=time_decay_tau_days * 86400.0,
-            floor_weight=0.05,
-        )
-
-    # Pre-calculate shared masks for robustness evaluation
-    regime_labels = label_regimes(features)
-    stress_masks = {s["name"]: _apply_stress_mask(s, features) for s in STRESS_SCENARIOS}
-    position_lookup = pd.Series(np.arange(len(features), dtype=int), index=features.index)
+    eval_context = EvaluationContext(features, time_decay_tau_days=time_decay_tau_days)
 
     rows: List[Dict[str, Any]] = []
     regime_rows: List[Dict[str, Any]] = []  # Phase 4.2 — per-hypothesis regime breakdown
@@ -309,65 +456,31 @@ def evaluate_hypothesis_batch(
             1.0 if spec.direction == "long" else -1.0 if spec.direction == "short" else 1.0
         )
 
-        # Resolve trigger mask on the trigger bar.
-        mask_raw = _trigger_mask(spec, features)
-
-        # Feature conditions are defined over trigger rows, not shifted entry rows.
-        if spec.feature_condition is not None:
-            fc_spec = HypothesisSpec(
-                trigger=spec.feature_condition,
-                direction=spec.direction,
-                horizon=spec.horizon,
-                template_id=spec.template_id,
-            )
-            fc_mask = _trigger_mask(fc_spec, features)
-            mask_raw = mask_raw & fc_mask
-
-        # Apply entry lag
-        if spec.entry_lag < 1:
-            rows.append(_null_row(spec, 0, "entry_lag_guardrail"))
+        mask, mask_reason = eval_context.event_mask(
+            spec,
+            use_context_quality=use_context_quality,
+        )
+        if mask is None:
+            rows.append(_null_row(spec, 0, mask_reason or "mask_unresolvable"))
             continue
-        mask = mask_raw.astype("boolean").shift(spec.entry_lag, fill_value=False).astype(bool)
-
-        # Apply context filter (regime conditioning)
-        # If context is specified but cannot be resolved to feature columns, skip this hypothesis.
-        if spec.context:
-            ctx_mask = _context_mask(
-                spec.context,
-                features,
-                use_context_quality=use_context_quality,
-            )
-            if ctx_mask is None:
-                rows.append(_null_row(spec, 0, "context_unresolvable"))
-                continue
-            mask = mask & ctx_mask
 
         if not mask.any():
             rows.append(_null_row(spec, 0, "no_trigger_hits"))
             continue
 
         # Compute forward returns and extracts
-        if hbars not in fwd_cache:
-            fwd_cache[hbars] = _forward_log_returns(features["close"], hbars)
-
-        fwd = fwd_cache[hbars]
+        fwd = eval_context.forward_returns(hbars)
         event_returns = fwd[mask].dropna()
+        split_labels = pd.Series(dtype=object)
         if "split_label" in features.columns and not event_returns.empty:
-            resolved_split_labels: Dict[Any, str] = {}
-            kept_indices: List[Any] = []
-            for idx in event_returns.index:
-                split_label = _resolved_split_label_for_window(
-                    features=features,
-                    event_index=idx,
-                    entry_lag_bars=int(spec.entry_lag),
-                    horizon_bars=int(hbars),
-                    position_lookup=position_lookup,
-                )
-                if split_label is None:
-                    continue
-                resolved_split_labels[idx] = split_label
-                kept_indices.append(idx)
-            event_returns = event_returns.loc[kept_indices]
+            split_labels = eval_context.split_labels_for_indices(
+                event_returns.index,
+                entry_lag_bars=int(spec.entry_lag),
+                horizon_bars=int(hbars),
+            )
+            keep_mask = split_labels.astype(str).isin(_EVALUATION_SPLIT_LABELS)
+            event_returns = event_returns.loc[split_labels.index[keep_mask]]
+            split_labels = split_labels.loc[event_returns.index]
             if event_returns.empty:
                 rows.append(_null_row(spec, 0, "no_split_compatible_events"))
                 continue
@@ -380,11 +493,6 @@ def evaluate_hypothesis_batch(
             "test_samples": 0,
         }
         if "split_label" in features.columns and not event_returns.empty:
-            split_labels = pd.Series(
-                [resolved_split_labels.get(idx, "") for idx in event_returns.index],
-                index=event_returns.index,
-                dtype=object,
-            )
             split_counts["train_n_obs"] = int((split_labels == "train").sum())
             split_counts["validation_n_obs"] = int((split_labels == "validation").sum())
             split_counts["test_n_obs"] = int((split_labels == "test").sum())
@@ -395,7 +503,7 @@ def evaluate_hypothesis_batch(
             rows.append(_null_row(spec, n, "min_sample_size"))
             continue
 
-        event_weights = weights[mask].loc[event_returns.index]
+        event_weights = eval_context.weights[mask].loc[event_returns.index]
 
         # ── Refined Statistical Estimators ──
         # Effective Sample Size from time-decay weights
@@ -460,7 +568,13 @@ def evaluate_hypothesis_batch(
         # ── Enhanced Robustness Framework ──
         # 1. Per-Regime Evaluation
         regime_evals = evaluate_by_regime(
-            spec, features, horizon_bars=hbars, min_n_per_regime=5, regime_labels=regime_labels
+            spec,
+            features,
+            horizon_bars=hbars,
+            min_n_per_regime=5,
+            regime_labels=eval_context.regime_labels,
+            event_mask=mask,
+            forward_returns=fwd,
         )
 
         # 2. Composite Robustness Score
@@ -468,7 +582,13 @@ def evaluate_hypothesis_batch(
 
         # 3. Stress Test Score
         stress_evals = evaluate_stress_scenarios(
-            spec, features, horizon_bars=hbars, min_n=5, stress_masks=stress_masks
+            spec,
+            features,
+            horizon_bars=hbars,
+            min_n=5,
+            stress_masks=eval_context.stress_masks,
+            event_mask=mask,
+            forward_returns=fwd,
         )
         if not stress_evals.empty and stress_evals["valid"].any():
             valid_stress = stress_evals[stress_evals["valid"]]
@@ -479,7 +599,14 @@ def evaluate_hypothesis_batch(
             stress_score = 0.0
 
         # 4. Kill-Switch Detection
-        ks_df = detect_kill_switches(spec, features, horizon_bars=hbars, min_n=10)
+        ks_df = detect_kill_switches(
+            spec,
+            features,
+            horizon_bars=hbars,
+            min_n=10,
+            event_mask=mask,
+            forward_returns=fwd,
+        )
         ks_count = len(ks_df) if not ks_df.empty else 0
 
         # Excursions

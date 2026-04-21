@@ -41,6 +41,58 @@ log = logging.getLogger(__name__)
 _FEATURE_CACHE: Dict[Tuple[str, str, str, str, Tuple[str, ...]], pd.DataFrame] = {}
 
 
+def _schema_columns_for_parquet_files(files: List[Path]) -> list[str] | None:
+    if not HAS_PYARROW:
+        return None
+    if not files or any(path.suffix != ".parquet" for path in files):
+        return None
+    try:
+        import pyarrow.parquet as pq
+
+        ordered: list[str] = []
+        seen: set[str] = set()
+        for path in files:
+            for column in pq.ParquetFile(path).schema.names:
+                if column not in seen:
+                    ordered.append(column)
+                    seen.add(column)
+        return ordered
+    except Exception:
+        return None
+
+
+def _read_new_context_columns(files: List[Path], existing_columns: set[str]) -> pd.DataFrame:
+    schema_columns = _schema_columns_for_parquet_files(files)
+    if schema_columns is None:
+        return read_parquet(files)
+    if "timestamp" not in schema_columns:
+        return pd.DataFrame()
+    columns = ["timestamp"] + [
+        column
+        for column in schema_columns
+        if column != "timestamp" and column not in existing_columns
+    ]
+    if len(columns) == 1:
+        return pd.DataFrame(columns=["timestamp"])
+    return read_parquet(files, columns=columns)
+
+
+def _normalize_timestamp_order(df: pd.DataFrame) -> pd.DataFrame:
+    if df.empty or "timestamp" not in df.columns:
+        return pd.DataFrame()
+    df["timestamp"] = pd.to_datetime(df["timestamp"], utc=True, errors="coerce")
+    valid = df["timestamp"].notna()
+    if not bool(valid.all()):
+        df = df.loc[valid].copy()
+    if df.empty:
+        return pd.DataFrame()
+    if not df["timestamp"].is_monotonic_increasing:
+        return df.sort_values("timestamp").reset_index(drop=True)
+    if isinstance(df.index, pd.RangeIndex) and df.index.start == 0 and df.index.step == 1:
+        return df
+    return df.reset_index(drop=True)
+
+
 def clear_feature_cache() -> None:
     """Clear the global feature cache used during tests."""
     _FEATURE_CACHE.clear()
@@ -119,8 +171,9 @@ def load_features(
     if df.empty or "timestamp" not in df.columns:
         return pd.DataFrame()
 
-    df["timestamp"] = pd.to_datetime(df["timestamp"], utc=True, errors="coerce")
-    out = df.dropna(subset=["timestamp"]).sort_values("timestamp").reset_index(drop=True)
+    out = _normalize_timestamp_order(df)
+    if out.empty:
+        return pd.DataFrame()
 
     # 1. Merge Market State Context
     ms_candidates = [
@@ -131,14 +184,14 @@ def load_features(
     if ms_dir:
         ms_files = list_parquet_files(ms_dir)
         if ms_files:
-            ms_df = read_parquet(ms_files)
+            ms_df = _read_new_context_columns(ms_files, set(out.columns))
             if not ms_df.empty and "timestamp" in ms_df.columns:
-                ms_df["timestamp"] = pd.to_datetime(ms_df["timestamp"], utc=True, errors="coerce")
+                ms_df = _normalize_timestamp_order(ms_df)
                 # Filter to only new columns
                 new_cols = [c for c in ms_df.columns if c not in out.columns or c == "timestamp"]
                 out = pd.merge_asof(
-                    out.sort_values("timestamp"),
-                    ms_df[new_cols].sort_values("timestamp"),
+                    out,
+                    ms_df[new_cols],
                     on="timestamp",
                     direction="backward",
                 )
@@ -152,16 +205,14 @@ def load_features(
     if micro_dir:
         micro_files = list_parquet_files(micro_dir)
         if micro_files:
-            micro_df = read_parquet(micro_files)
+            micro_df = _read_new_context_columns(micro_files, set(out.columns))
             if not micro_df.empty and "timestamp" in micro_df.columns:
-                micro_df["timestamp"] = pd.to_datetime(
-                    micro_df["timestamp"], utc=True, errors="coerce"
-                )
+                micro_df = _normalize_timestamp_order(micro_df)
                 # Filter to only new columns
                 new_cols = [c for c in micro_df.columns if c not in out.columns or c == "timestamp"]
                 out = pd.merge_asof(
-                    out.sort_values("timestamp"),
-                    micro_df[new_cols].sort_values("timestamp"),
+                    out,
+                    micro_df[new_cols],
                     on="timestamp",
                     direction="backward",
                 )

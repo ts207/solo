@@ -35,6 +35,8 @@ def evaluate_by_regime(
     horizon_bars: int = 12,
     min_n_per_regime: int = 10,
     regime_labels: pd.Series | None = None,
+    event_mask: pd.Series | None = None,
+    forward_returns: pd.Series | None = None,
 ) -> pd.DataFrame:
     """
     Evaluate spec within each distinct regime in features.
@@ -55,24 +57,31 @@ def evaluate_by_regime(
     if features.empty or "close" not in features.columns:
         return pd.DataFrame()
 
-    mask_raw = trigger_mask(spec, features)
-    if spec.feature_condition is not None:
-        fc_spec = HypothesisSpec(
-            trigger=spec.feature_condition,
-            direction=spec.direction,
-            horizon=spec.horizon,
-            template_id=spec.template_id,
-        )
-        fc_mask = trigger_mask(fc_spec, features)
-        mask_raw = mask_raw & fc_mask
+    if event_mask is None:
+        mask_raw = trigger_mask(spec, features)
+        if spec.feature_condition is not None:
+            fc_spec = HypothesisSpec(
+                trigger=spec.feature_condition,
+                direction=spec.direction,
+                horizon=spec.horizon,
+                template_id=spec.template_id,
+            )
+            fc_mask = trigger_mask(fc_spec, features)
+            mask_raw = mask_raw & fc_mask
 
-    # Trigger mask with explicit entry-lag guardrail
-    if spec.entry_lag < 1:
-        raise ValueError("entry_lag must be >= 1 to prevent same-bar entry leakage")
-    mask = mask_raw.astype("boolean").shift(spec.entry_lag, fill_value=False).astype(bool)
+        # Trigger mask with explicit entry-lag guardrail
+        if spec.entry_lag < 1:
+            raise ValueError("entry_lag must be >= 1 to prevent same-bar entry leakage")
+        mask = mask_raw.astype("boolean").shift(spec.entry_lag, fill_value=False).astype(bool)
+    else:
+        mask = event_mask.astype(bool)
 
     # Forward returns
-    fwd = forward_log_returns(features["close"], horizon_bars)
+    fwd = (
+        forward_returns
+        if forward_returns is not None
+        else forward_log_returns(features["close"], horizon_bars)
+    )
 
     # Regime labels
     if regime_labels is None:

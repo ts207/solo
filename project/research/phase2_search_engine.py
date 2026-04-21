@@ -41,6 +41,7 @@ from project.io.utils import ensure_dir, read_parquet, write_parquet
 from project.research.search.distributed_runner import run_distributed_search
 from project.research._family_event_utils import load_features as load_features
 from project.research.search.search_feature_utils import (
+    ensure_expected_event_columns,
     normalize_search_feature_columns,
     prepare_search_features_for_symbol,
 )
@@ -1223,14 +1224,10 @@ def run(
 
         expected_event_ids = _expected_event_ids_from_hypotheses(hypotheses)
         if experiment_plan is None and expected_event_ids:
-            features = prepare_search_features_for_symbol(
-                run_id=run_id,
-                symbol=symbol,
-                timeframe=timeframe,
-                data_root=data_root,
+            features = ensure_expected_event_columns(
+                features,
                 expected_event_ids=expected_event_ids,
-                load_features_fn=load_features,
-                event_registry_override=event_registry_override,
+                copy=False,
             )
             if features.empty:
                 log.warning(

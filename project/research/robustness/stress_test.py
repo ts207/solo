@@ -79,6 +79,8 @@ def evaluate_stress_scenarios(
     min_n: int = 10,
     scenarios: list[dict] | None = None,
     stress_masks: dict[str, pd.Series | None] | None = None,
+    event_mask: pd.Series | None = None,
+    forward_returns: pd.Series | None = None,
 ) -> pd.DataFrame:
     """
     Evaluate spec within each stress scenario.
@@ -107,27 +109,34 @@ def evaluate_stress_scenarios(
     if features.empty or "close" not in features.columns:
         return pd.DataFrame()
 
-    mask_raw = trigger_mask(spec, features)
-    if spec.feature_condition is not None:
-        fc_spec = HypothesisSpec(
-            trigger=spec.feature_condition,
-            direction=spec.direction,
-            horizon=spec.horizon,
-            template_id=spec.template_id,
-        )
-        mask_raw = mask_raw & trigger_mask(fc_spec, features)
+    if event_mask is None:
+        mask_raw = trigger_mask(spec, features)
+        if spec.feature_condition is not None:
+            fc_spec = HypothesisSpec(
+                trigger=spec.feature_condition,
+                direction=spec.direction,
+                horizon=spec.horizon,
+                template_id=spec.template_id,
+            )
+            mask_raw = mask_raw & trigger_mask(fc_spec, features)
 
-    # Trigger mask with entry lag
-    if spec.entry_lag > 0:
-        mask = mask_raw.astype("boolean").shift(spec.entry_lag, fill_value=False).astype(bool)
+        # Trigger mask with entry lag
+        if spec.entry_lag > 0:
+            mask = mask_raw.astype("boolean").shift(spec.entry_lag, fill_value=False).astype(bool)
+        else:
+            mask = mask_raw
     else:
-        mask = mask_raw
+        mask = event_mask.astype(bool)
 
     base_n = int(mask.sum())
     if base_n < min_n:
         return pd.DataFrame()
 
-    fwd = forward_log_returns(features["close"], horizon_bars)
+    fwd = (
+        forward_returns
+        if forward_returns is not None
+        else forward_log_returns(features["close"], horizon_bars)
+    )
 
     rows: list[dict[str, Any]] = []
     for scenario in scenarios:

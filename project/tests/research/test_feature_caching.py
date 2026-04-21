@@ -2,6 +2,7 @@ import os
 import pandas as pd
 import pytest
 from pathlib import Path
+import project.research.phase2 as phase2
 from project.research.phase2 import load_features, _FEATURE_CACHE, clear_feature_cache
 
 def test_load_features_caching(tmp_path):
@@ -148,3 +149,80 @@ def test_cache_inactive_if_not_testing(tmp_path, monkeypatch):
     df = load_features(data_root, run_id, symbol, timeframe, market=market)
     assert not df.empty
     assert len(_FEATURE_CACHE) == 0
+
+
+def test_load_features_reads_only_new_context_columns(tmp_path, monkeypatch):
+    data_root = tmp_path
+    run_id = "test_run"
+    symbol = "BTCUSDT"
+    timeframe = "5m"
+    market = "perp"
+    feature_dir = (
+        data_root
+        / "lake"
+        / "features"
+        / market
+        / symbol
+        / timeframe
+        / "features_feature_schema_v2"
+    )
+    context_dir = (
+        data_root
+        / "lake"
+        / "features"
+        / market
+        / symbol
+        / timeframe
+        / "market_context"
+    )
+    feature_dir.mkdir(parents=True)
+    context_dir.mkdir(parents=True)
+    base = pd.DataFrame(
+        {
+            "timestamp": pd.to_datetime(["2024-01-01 00:00:00"], utc=True),
+            "close": [100.0],
+            "shared_context": [1.0],
+        }
+    )
+    context = pd.DataFrame(
+        {
+            "timestamp": pd.to_datetime(["2024-01-01 00:00:00"], utc=True),
+            "shared_context": [2.0],
+            "new_context": [3.0],
+        }
+    )
+    base.to_parquet(feature_dir / "data.parquet")
+    context.to_parquet(context_dir / "context.parquet")
+    requested_columns: list[list[str] | None] = []
+    original_read_parquet = phase2.read_parquet
+
+    def _read_parquet(files, columns=None):
+        requested_columns.append(list(columns) if columns is not None else None)
+        return original_read_parquet(files, columns=columns)
+
+    monkeypatch.setattr(phase2, "read_parquet", _read_parquet)
+    monkeypatch.setattr(phase2, "HAS_PYARROW", True)
+    clear_feature_cache()
+
+    observed = load_features(data_root, run_id, symbol, timeframe, market=market)
+
+    assert observed.loc[0, "shared_context"] == 1.0
+    assert observed.loc[0, "new_context"] == 3.0
+    assert requested_columns[0] is None
+    assert requested_columns[1] == ["timestamp", "new_context"]
+
+
+def test_normalize_timestamp_order_sorts_only_when_needed():
+    frame = pd.DataFrame(
+        {
+            "timestamp": pd.to_datetime(
+                ["2024-01-01 00:05:00", "2024-01-01 00:00:00"], utc=True
+            ),
+            "close": [101.0, 100.0],
+        }
+    )
+
+    observed = phase2._normalize_timestamp_order(frame)
+
+    assert observed["close"].tolist() == [100.0, 101.0]
+    assert list(observed.index) == [0, 1]

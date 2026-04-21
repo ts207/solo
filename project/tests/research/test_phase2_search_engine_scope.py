@@ -264,6 +264,66 @@ def test_hierarchical_diagnostics_keep_stage_counts_when_all_candidates_fail_gat
     assert diagnostics["symbol_diagnostics"][0]["gate_funnel"]["phase2_candidates_written"] == 0
 
 
+def test_flat_search_materializes_generated_event_columns_without_reloading_features(
+    tmp_path: Path, monkeypatch
+) -> None:
+    features = pd.DataFrame(
+        {
+            "timestamp": pd.date_range("2024-01-01", periods=80, freq="5min", tz="UTC"),
+            "symbol": ["BTCUSDT"] * 80,
+            "close": [100.0 + idx * 0.01 for idx in range(80)],
+        }
+    )
+    hypothesis = HypothesisSpec(
+        trigger=TriggerSpec.event("VOL_SHOCK"),
+        direction="long",
+        horizon="12b",
+        template_id="continuation",
+    )
+    load_calls = {"count": 0}
+
+    def _load_features(**_kwargs):
+        load_calls["count"] += 1
+        return features.copy()
+
+    def _run_distributed_search(_hypotheses, loaded_features, **_kwargs):
+        signal_col = EVENT_REGISTRY_SPECS["VOL_SHOCK"].signal_column
+        assert signal_col in loaded_features.columns
+        return pd.DataFrame()
+
+    monkeypatch.setattr(search_engine, "load_features", _load_features)
+    monkeypatch.setattr(
+        search_engine,
+        "generate_hypotheses_with_audit",
+        lambda *args, **kwargs: (
+            [hypothesis],
+            {
+                "counts": {"generated": 1, "feasible": 1, "rejected": 0},
+                "rejection_reason_counts": {},
+            },
+        ),
+    )
+    monkeypatch.setattr(search_engine, "_build_required_walkforward_folds", lambda _features: [])
+    monkeypatch.setattr(search_engine, "_load_hierarchical_config", lambda _doc: None)
+    monkeypatch.setattr(search_engine, "run_distributed_search", _run_distributed_search)
+    monkeypatch.setattr(search_engine, "_load_search_spec_doc", lambda _path: {"triggers": {}})
+    monkeypatch.setattr("project.spec_validation.expand_triggers", lambda doc: {"events": []})
+
+    rc = search_engine.run(
+        run_id="single_load_flat_search",
+        symbols="BTCUSDT",
+        data_root=tmp_path,
+        out_dir=tmp_path / "out",
+        timeframe="5m",
+        search_spec=str(tmp_path / "search_spec.yaml"),
+        min_t_stat=1.5,
+        min_n=1,
+    )
+
+    assert rc == 0
+    assert load_calls["count"] == 1
+
+
 def test_materialize_sequence_trigger_columns_builds_expected_mask() -> None:
     features = pd.DataFrame(
         {

@@ -34,11 +34,11 @@ def _load_features_wrapper(
     )
 
 
-def normalize_search_feature_columns(features: pd.DataFrame) -> pd.DataFrame:
+def normalize_search_feature_columns(features: pd.DataFrame, *, copy: bool = True) -> pd.DataFrame:
     if features.empty:
         return features
 
-    out = features.copy()
+    out = features.copy() if copy else features
 
     for state_id, source_col in MATERIALIZED_STATE_COLUMNS_BY_ID.items():
         canonical_col = str(state_id).strip().lower()
@@ -120,15 +120,16 @@ def _build_event_direction_frame(events: pd.DataFrame) -> pd.DataFrame:
     return pivot.rename(columns=rename_map)
 
 
-def _ensure_expected_event_columns(
+def ensure_expected_event_columns(
     features: pd.DataFrame,
     *,
     expected_event_ids: Iterable[str] | None = None,
+    copy: bool = True,
 ) -> pd.DataFrame:
     if features.empty or expected_event_ids is None:
-        return features
+        return features.copy() if copy else features
 
-    out = features.copy()
+    out = features.copy() if copy else features
     for raw_event_id in expected_event_ids:
         event_id = str(raw_event_id or "").strip().upper()
         if not event_id:
@@ -157,7 +158,7 @@ def prepare_search_features_for_symbol(
     if features.empty:
         return features
 
-    features = normalize_search_feature_columns(features)
+    features = normalize_search_feature_columns(features, copy=False)
 
     log.debug(
         "prepare_search_features_for_symbol: event_registry_override=%s",
@@ -217,15 +218,19 @@ def prepare_search_features_for_symbol(
         else:
             features = pd.merge(features, direction_frame, on=["timestamp", "symbol"], how="left")
 
-    features = _ensure_expected_event_columns(
+    features = ensure_expected_event_columns(
         features,
         expected_event_ids=expected_event_ids,
+        copy=False,
     )
 
     if "split_label" not in features.columns:
         features = assign_split_labels(features, time_col="timestamp")
 
     return features
+
+
+_ensure_expected_event_columns = ensure_expected_event_columns
 
 
 def load_search_feature_frame(
