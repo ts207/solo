@@ -385,7 +385,22 @@ def _benchmark_slice(
             ),
         }
 
-    command_results = [_run_command(command) for command in commands]
+    command_results: list[dict[str, Any]] = []
+    for index, command in enumerate(commands):
+        if index == 3:
+            promotion_count = _promotion_metrics(data_root, run_id)["promotion_count"]
+            if promotion_count <= 0:
+                command_results.append(
+                    {
+                        "command": command,
+                        "returncode": 0,
+                        "stdout_tail": "",
+                        "stderr_tail": "",
+                        "status": "skipped_no_promotions",
+                    }
+                )
+                continue
+        command_results.append(_run_command(command))
     metrics = _collect_metrics(
         data_root,
         run_id,

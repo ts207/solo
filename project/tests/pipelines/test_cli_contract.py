@@ -171,6 +171,34 @@ def test_cli_promote_run_rejects_compatibility_bridge_flag(monkeypatch, capsys):
     assert "unrecognized arguments: --use_compatibility_bridge 1" in err
 
 
+def test_cli_promote_export_delegates_to_current_export_api(monkeypatch):
+    cli = _load_cli_module()
+    captured = {}
+
+    class _Result:
+        exit_code = 0
+
+        def to_dict(self):
+            return {"run_id": "unit", "thesis_count": 0}
+
+    def _fake_export(**kwargs):
+        captured["kwargs"] = kwargs
+        return _Result()
+
+    monkeypatch.setattr(promote_module, "export", _fake_export)
+    monkeypatch.setattr(
+        sys,
+        "argv",
+        ["backtest", "promote", "export", "--run_id", "unit", "--data_root", "data"],
+    )
+
+    assert cli.main() == 0
+    assert captured["kwargs"] == {
+        "run_id": "unit",
+        "data_root": Path("data"),
+    }
+
+
 def test_cli_operator_plan_alias_removed(monkeypatch, capsys):
     cli = _load_cli_module()
 

@@ -133,8 +133,6 @@ def _run_promote_export(args: argparse.Namespace) -> int:
     result = promote.export(
         run_id=args.run_id,
         data_root=_path_or_none(args.data_root),
-        status=args.status,
-        out_dir=_path_or_none(args.out_dir),
     )
     if hasattr(result, "to_dict"):
         _emit_json(result.to_dict())
@@ -286,8 +284,6 @@ def build_parser() -> argparse.ArgumentParser:
     promote_export = promote_sub.add_parser("export")
     promote_export.add_argument("--run_id", required=True)
     promote_export.add_argument("--data_root")
-    promote_export.add_argument("--out_dir")
-    promote_export.add_argument("--status", default="active")
     promote_export.set_defaults(func=_run_promote_export)
 
     deploy = sub.add_parser("deploy", help="canonical runtime deployment stage")
@@ -295,8 +291,6 @@ def build_parser() -> argparse.ArgumentParser:
     deploy_export = deploy_sub.add_parser("export")
     deploy_export.add_argument("--run_id", required=True)
     deploy_export.add_argument("--data_root")
-    deploy_export.add_argument("--out_dir")
-    deploy_export.add_argument("--status", default="active")
     deploy_export.set_defaults(func=_run_deploy_export)
     bind_config = deploy_sub.add_parser("bind-config")
     bind_config.add_argument("--run_id", required=True)
