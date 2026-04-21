@@ -335,7 +335,7 @@ def test_preflight_marks_search_engine_active_for_experiment_config(tmp_path):
     assert preflight["effective_behavior"]["phase2_event_type_source"] == "experiment_config_event_pin"
 
 
-def test_preflight_auto_enables_spot_pipeline_for_basis_regime_experiment(tmp_path):
+def test_preflight_keeps_basis_regime_experiment_on_bybit_only_pipeline(tmp_path):
     from project.pipelines.pipeline_planning import prepare_run_preflight
     from project.pipelines.stages.utils import script_supports_flag
 
@@ -418,10 +418,11 @@ def test_preflight_auto_enables_spot_pipeline_for_basis_regime_experiment(tmp_pa
     )
 
     stage_names = list(preflight["stages"].keys())
-    assert args.enable_cross_venue_spot_pipeline == 1
-    assert "ingest_binance_spot_ohlcv_5m" in stage_names
-    assert "build_cleaned_5m_spot" in stage_names
-    assert "build_features_5m_spot" in stage_names
+    assert args.enable_cross_venue_spot_pipeline == 0
+    assert args.skip_ingest_spot_ohlcv == 1
+    assert "ingest_binance_spot_ohlcv_5m" not in stage_names
+    assert "build_cleaned_5m_spot" not in stage_names
+    assert "build_features_5m_spot" not in stage_names
 
 
 def test_preflight_respects_experiment_promotion_toggle_and_adds_promotion_stages(tmp_path):

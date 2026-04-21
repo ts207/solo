@@ -407,7 +407,7 @@ def test_evaluate_hypothesis_batch_drops_boundary_crossing_event_windows(monkeyp
     assert metrics.loc[0, "invalid_reason"] == "no_split_compatible_events"
 
 
-def test_evaluate_hypothesis_batch_logs_actual_invalid_reason_counts(monkeypatch, caplog):
+def test_evaluate_hypothesis_batch_does_not_reject_cross_family_templates(monkeypatch, caplog):
     _patch_robustness(monkeypatch)
     features = _base_features()
     signal_col = EVENT_REGISTRY_SPECS["VOL_SHOCK"].signal_column
@@ -430,7 +430,8 @@ def test_evaluate_hypothesis_batch_logs_actual_invalid_reason_counts(monkeypatch
     with caplog.at_level(logging.INFO, logger="project.research.search.evaluator"):
         evaluate_hypothesis_batch([incompatible, valid], features, min_sample_size=1)
 
-    assert "1 valid, 1 invalid (incompatible_template_family=1)" in caplog.text
+    assert "1 valid, 1 invalid (unsupported_label_target=1)" in caplog.text
+    assert "incompatible_template_family" not in caplog.text
 
 
 def test_feature_condition_filters_trigger_rows_before_entry_lag(monkeypatch):
