@@ -9,10 +9,9 @@ Use this after a mechanism has been frozen.
 
 ## Read first
 
-1. `docs/lifecycle/discover.md`
-2. `docs/reference/spec_authoring.md`
-3. `docs/reference/commands.md`
-4. `project/research/agent_io/proposal_schema.py`
+1. `README.md`
+2. `CONTRIBUTING.md`
+3. `project/research/agent_io/proposal_schema.py`
 
 ## Current front door
 

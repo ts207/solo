@@ -1,146 +1,108 @@
-# Validate stage
+# Validate
 
-The validate stage turns discovery candidate rows into a formal validation bundle.
+Validate converts discovery candidate outputs into canonical validation artifacts. Promotion requires this stage.
 
-It answers this question:
-
-**Which candidate rows remain credible after formal gates, consistency checks, and canonical validation packaging?**
-
-## CLI surface
+## Command Surface
 
 ```bash
-edge validate run            --run_id <run_id>
-edge validate report         --run_id <run_id>
-edge validate diagnose       --run_id <run_id> [--program_id <program_id>]
-edge validate list-artifacts --run_id <run_id>
+edge validate run --run_id <run_id>
 ```
 
-Use `run` for the canonical stage output.
+Spec validation is separate:
 
-Use `report` and `diagnose` when you need additional interpretation of what happened during validation or why a run produced weak survivors.
+```bash
+edge validate specs
+```
 
-## What validate consumes
+## Implementation Surface
 
-Validation looks for discovery-stage candidate tables in a priority order. The service prefers the highest-normalized candidate surface available for the run.
-
-Priority order:
-1. `data/reports/promotions/<run_id>/promotion_statistical_audit.parquet`
-2. `data/reports/edge_candidates/<run_id>/edge_candidates_normalized.parquet`
-3. `data/reports/phase2/<run_id>/phase2_candidates.parquet`
-
-This matters because validate is not tightly coupled to only one upstream table shape. It can consume the best available normalized candidate view for the run.
-
-## Code path
+The CLI calls:
 
 ```text
-project/cli.py
-  → project/validate/__init__.py
-  → project/research/services/evaluation_service.py
-      → project/research/validation/result_writer.py
+project.validate.run()
+  -> project.research.services.evaluation_service.ValidationService
 ```
 
-`evaluation_service.py` is the stage’s real center of gravity.
+The validation service loads candidate tables in this order of preference:
 
-## What the stage does
+1. `data/reports/edge_candidates/<run_id>/edge_candidates_normalized.parquet`
+2. `data/reports/phase2/<run_id>/phase2_candidates.parquet`
 
-At a high level, validation:
+It then writes canonical validation outputs under:
 
-1. locates the candidate table,
-2. maps rows into a canonical candidate representation,
-3. applies status logic,
-4. writes the validation bundle and machine-readable tables,
-5. prepares the promotion intake table.
+```text
+data/reports/validation/<run_id>/
+```
 
-That last output is crucial. Promotion should not have to reinterpret arbitrary discovery tables. It should receive a canonical, already-normalized survivor table.
+## Outputs
 
-## Validation statuses
+Expected validation outputs include:
 
-The service classifies rows into buckets such as:
-- validated,
-- rejected,
-- inconclusive.
+```text
+validation_bundle.json
+validated_candidates.parquet
+rejection_reasons.parquet
+validation_report.json
+effect_stability_report.json
+promotion_ready_candidates.parquet
+artifact_manifest.json
+```
 
-The exact logic depends on the row surface, but in practice validation uses gate fields and candidate metrics such as:
-- out-of-sample gate status,
-- post-cost positivity,
-- stressed post-cost positivity,
-- regime stability,
-- multiplicity controls,
-- support counts such as `n_events`.
+The promotion stage checks specifically for:
 
-Rows can also be treated as inconclusive when the required metrics are absent or the supporting evidence is too thin to certify a decision cleanly.
+```text
+data/reports/validation/<run_id>/promotion_ready_candidates.parquet
+data/reports/validation/<run_id>/validation_bundle.json
+```
 
-## Canonical outputs
+If either is missing, promotion is rejected.
 
-All canonical validation outputs are written under:
+## Decision Model
 
-`data/reports/validation/<run_id>/`
+Validation maps candidate rows into:
 
-| File | Role |
-|------|------|
-| `validation_bundle.json` | canonical summary contract for the run |
-| `validation_report.json` | detailed run/candidate report |
-| `effect_stability_report.json` | effect concentration and stability details |
-| `validated_candidates.parquet` | machine-readable validated set |
-| `rejection_reasons.parquet` | machine-readable rejection explanations |
-| `promotion_ready_candidates.parquet` | canonical handoff table for promotion |
+- validated candidates
+- rejected candidates
+- inconclusive candidates
 
-The single most important output for the next stage is:
+Common gate-derived rejection reasons include:
 
-`promotion_ready_candidates.parquet`
+- failed out-of-sample validation
+- failed cost survival
+- failed regime support
+- failed multiplicity threshold
+- insufficient sample support
+- insufficient data
 
-## Why validation is a separate stage
+Validation is not the same as promotion. It identifies candidates that can enter promotion; promotion applies a stricter governed policy and lineage checks.
 
-Discover is allowed to be broad. Validation is where the repo narrows from "interesting" to "credible enough to package."
+## Inputs Worth Inspecting
 
-This separation gives the system a clean boundary between search and certification. It also means you can improve validation rules without rewriting the discover stage’s role.
+Before validation, inspect:
 
-## Diagnostic commands
+```text
+data/reports/phase2/<run_id>/phase2_candidates.parquet
+data/reports/phase2/<run_id>/phase2_diagnostics.json
+data/reports/edge_candidates/<run_id>/edge_candidates_normalized.parquet
+```
 
-### `edge validate report`
+If `edge_candidates_normalized.parquet` exists and is nonempty, validation will prefer it over raw phase-2 candidates.
 
-Builds regime and stability reporting surfaces useful for manual review of where the effect lives and whether it is concentrated in a suspicious way.
+## Stop Conditions
 
-### `edge validate diagnose`
+Stop before promotion when:
 
-Writes negative-result diagnostics that help answer questions like:
-- why did a run produce no validated survivors?
-- did candidates disappear at candidate selection, validation gates, or stability checks?
-- is the problem likely upstream in discovery rather than in validation?
+- `validation_bundle.json` is missing.
+- `promotion_ready_candidates.parquet` is missing.
+- All candidates are inconclusive due to missing critical data.
+- The source candidate table is empty and that was not expected.
+- Validation output candidate IDs do not correspond to source candidate IDs.
 
-## How to inspect a validation run
+## Minimal Verification
 
-A good reading order is:
+```bash
+edge validate run --run_id <run_id>
+ls data/reports/validation/<run_id>
+```
 
-1. `validation_bundle.json` — what did validation decide overall?
-2. `validated_candidates.parquet` — what survived?
-3. `rejection_reasons.parquet` — why did the others fail?
-4. `effect_stability_report.json` — are survivors stable or narrowly concentrated?
-5. `promotion_ready_candidates.parquet` — what exactly will promotion ingest?
-
-## Common failure modes
-
-### No candidate table found
-
-Discovery did not produce the expected upstream candidate surfaces, or the wrong `run_id` is being inspected.
-
-### Candidate table exists but is empty
-
-Usually an upstream issue. Check discover diagnostics, event/template compatibility, and search-space settings.
-
-### Validation outputs look malformed
-
-Fix the producer or the normalization logic. Do not weaken the canonical writer just to accept bad upstream payloads.
-
-### No promotion-ready survivors
-
-This may be a legitimate validation outcome. Promotion should then produce an empty or no-op packaging result rather than pretending evidence exists.
-
-## What validate hands to the next stage
-
-Promotion should consume:
-- canonical validation artifacts,
-- especially `promotion_ready_candidates.parquet`,
-- plus enough lineage to package promoted theses correctly.
-
-Next: [promote.md](promote.md)
+For programmatic checks, read `validation_bundle.json` and confirm `summary_stats.validated` is greater than zero before expecting promotion to produce promoted theses.

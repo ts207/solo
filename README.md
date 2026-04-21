@@ -17,14 +17,6 @@ This docset was rewritten from the current repository state, not from the previo
 - canonical console entry points defined in `pyproject.toml`
 - a contract-enforced package DAG in `project/tests/test_architectural_integrity.py`
 
-## Start here
-
-- `docs/README.md` — docset index and reading order
-- `docs/lifecycle/overview.md` — system model, invariants, and top-level flow
-- `docs/reference/repository_map.md` — package-by-package repo map
-- `docs/reference/commands.md` — CLI commands, scripts, and Make targets
-- `docs/operator/runbook.md` — end-to-end operator workflow from proposal to runtime
-
 ## Canonical commands
 
 ```bash
@@ -58,7 +50,3 @@ The runtime data root resolves in this order:
 3. `<repo>/data`
 
 This behavior comes from `project/core/config.py:get_data_root()`.
-
-## Documentation policy
-
-The authored docs under `docs/` are the canonical human-readable docset. The files under `docs/generated/` are generated inventories and audits that should be regenerated from code or specs instead of edited by hand.

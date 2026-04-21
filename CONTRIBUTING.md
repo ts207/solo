@@ -34,22 +34,6 @@ python -m ruff format --check .
 make minimum-green-gate
 ```
 
-## Documentation update rule
+## Interface update rule
 
-If you change commands, contracts, workflows, stage ownership, packaging semantics, artifact layouts, or architecture boundaries, update the canonical docs that own those concepts:
-
-- `README.md`
-- `docs/README.md`
-- `docs/00_overview.md`
-- `docs/01_discover.md`
-- `docs/02_validate.md`
-- `docs/03_promote.md`
-- `docs/04_deploy.md`
-- `docs/02_REPOSITORY_MAP.md`
-- `docs/05_specs_and_domain.md`
-- `docs/06_data_and_artifacts.md`
-- `docs/90_architecture.md`
-- `docs/92_assurance_and_benchmarks.md`
-- `docs/operator_command_inventory.md`
-
-Regenerate generated inventories when needed instead of editing them by hand.
+If you change commands, contracts, workflows, stage ownership, packaging semantics, artifact layouts, or architecture boundaries, update `README.md`, relevant package READMEs, and regression tests in the same change.

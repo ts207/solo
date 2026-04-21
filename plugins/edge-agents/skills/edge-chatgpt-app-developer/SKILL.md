@@ -10,9 +10,8 @@ Use this skill for work in `project/apps/chatgpt/`.
 ## Read first
 
 1. `project/apps/chatgpt/README.md`
-2. `docs/reference/commands.md`
-3. `docs/reference/assurance.md`
-4. `docs/lifecycle/overview.md`
+2. `README.md`
+3. `CONTRIBUTING.md`
 
 ## Role
 
@@ -34,7 +33,7 @@ Use this skill for work in `project/apps/chatgpt/`.
 - Read `handlers.py`, `tool_catalog.py`, `resources.py`, `server.py`, `cli.py`, and relevant UI files as interface code.
 - Route proposal, stage, report, and dashboard behavior through canonical helpers.
 - If a requested change belongs in `project.cli`, `project.operator`, or research services, move the change there instead of duplicating logic in the app.
-- Use the maintainer workflow after app-surface changes when docs, generated artifacts, or test-coupled surfaces may drift.
+- Use the maintainer workflow after app-surface changes when generated artifacts or test-coupled surfaces may drift.
 
 ## Verification
 

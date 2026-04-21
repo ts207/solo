@@ -1,171 +1,158 @@
-# Promote stage
+# Promote
 
-The promote stage turns validated candidates into governed thesis artifacts that runtime can consume.
+Promote applies governed policy to validation-ready candidates, writes promotion artifacts, and exports live thesis bundles.
 
-It answers this question:
-
-**Which validated candidates should become deployable thesis contracts, and how should those contracts be packaged for runtime?**
-
-## CLI surface
+## Command Surface
 
 ```bash
-edge promote run            --run_id <run_id> --symbols BTCUSDT
-edge promote export         --run_id <run_id>
-edge promote list-artifacts --run_id <run_id>
+edge promote run --run_id <run_id> --symbols BTCUSDT
 ```
 
-`run` performs the promotion decision flow.
+Export only:
 
-`export` writes or refreshes the runtime-facing thesis package.
+```bash
+edge promote export --run_id <run_id>
+edge deploy export --run_id <run_id>
+```
 
-That distinction matters because promotion decisioning and runtime packaging are related but not identical responsibilities.
+Make wrappers:
 
-## What promote consumes
+```bash
+make promote RUN_ID=<run_id> SYMBOLS=BTCUSDT
+make export RUN_ID=<run_id>
+```
 
-Promotion is downstream of validation.
+## Validation Prerequisite
 
-Its canonical input is the validation surface under:
-
-`data/reports/validation/<run_id>/`
-
-The most important input file is:
-
-`promotion_ready_candidates.parquet`
-
-Promotion should not be treated as a direct consumer of ad hoc discovery outputs. The validation boundary is part of the repo’s evidence-governance model.
-
-## Code path
+Promotion requires canonical validation output:
 
 ```text
-project/cli.py
-  → project/promote/__init__.py
-  → project/research/services/promotion_service.py
-      → project/research/live_export.py
+data/reports/validation/<run_id>/validation_bundle.json
+data/reports/validation/<run_id>/promotion_ready_candidates.parquet
 ```
 
-`promotion_service.py` decides what qualifies and prepares the promoted objects.
+If validation has not run, promotion is rejected. Discovery candidates alone are not promotion input.
 
-`live_export.py` turns those promoted objects into the runtime thesis package and thesis index.
+## Implementation Surface
 
-## What the stage does
+The CLI calls:
 
-Promotion has two distinct responsibilities:
+```text
+project.promote.run()
+  -> build_promotion_config()
+  -> execute_promotion()
+```
 
-### 1. Decide what qualifies
+Promotion policy and artifact writing live in:
 
-This includes:
-- reading validated survivors,
-- applying promotion-profile policy,
-- assigning promotion class,
-- assigning deployment state,
-- producing promotion summaries and audits.
+```text
+project/research/services/promotion_service.py
+project/research/promotion/
+project/research/live_export.py
+```
 
-### 2. Package for runtime
+## Policy Inputs
 
-This includes:
-- building thesis payloads,
-- validating lineage and schema,
-- writing `promoted_theses.json`,
-- updating the thesis batch index.
+Promotion evaluates:
 
-Keep those responsibilities mentally separate. A candidate may be valid enough for promotion evaluation but still fail export if the runtime contract or lineage is incomplete.
+- validation-ready candidates
+- source candidate rows
+- run manifest metadata
+- objective and retail profile contracts
+- ontology hash
+- hypothesis index
+- negative-control summary
+- search-burden summary when available
+- detector governance metadata
+- multiplicity diagnostics
+- cost survival and retail viability metrics
 
-## Promotion profiles and gates
+The default promotion config is stricter than discovery gates. Do not rescue weak claims by relaxing thresholds or cost assumptions without making that choice explicit.
 
-The repo distinguishes research-oriented promotion from stricter production-style gating.
+## Exploratory Versus Confirmatory
 
-For the `research` promotion profile, several defaults are intentionally relaxed relative to stricter promotion rules. This makes the research track usable while preserving the canonical packaging path.
+Promotion distinguishes exploratory and confirmatory run modes. Exploratory discovery is not automatically production-ready. In the canonical path, promotion from exploratory sources is blocked unless policy explicitly allows discovery promotion.
 
-The key idea is:
-- research discovery should not be blocked by every production-grade gate,
-- but runtime packaging should still require coherent contracts and lineage.
+Confirmatory runs require stronger lineage:
 
-## Promotion classes and deployment states
+- locked candidates
+- frozen spec hash alignment
+- confirmatory source run mode
+- validation lineage
 
-Promotion assigns a class and a default deployment state.
+## Outputs
 
-| Promotion class | Default deployment state |
-|----------------|--------------------------|
-| `paper_promoted` | `paper_only` |
-| `production_promoted` | `live_enabled` |
+Promotion reports:
 
-These states matter later because deploy checks deployment state before it allows paper or live startup.
+```text
+data/reports/promotions/<run_id>/promotion_audit.parquet
+data/reports/promotions/<run_id>/promoted_candidates.parquet
+data/reports/promotions/<run_id>/promotion_summary.csv
+data/reports/promotions/<run_id>/promotion_diagnostics.json
+data/reports/promotions/<run_id>/evidence_bundles.jsonl
+data/reports/promotions/<run_id>/evidence_bundle_summary.parquet
+data/reports/promotions/<run_id>/promotion_decisions.parquet
+data/reports/promotions/<run_id>/promoted_thesis_contracts.json
+data/reports/promotions/<run_id>/promoted_thesis_contracts.md
+```
 
-## Promotion outputs
+Live thesis export:
 
-### Promotion reports and audits
+```text
+data/live/theses/<run_id>/promoted_theses.json
+data/live/theses/index.json
+```
 
-Common outputs live under:
-- `data/reports/promotions/<run_id>/`
-- `data/reports/strategy_blueprints/<run_id>/`
+`execute_promotion()` calls `export_promoted_theses_for_run()` after writing promotion reports. A successful promotion run can therefore also materialize live thesis artifacts.
 
-Typical artifacts include:
-- `promotion_summary.json`
-- `promotion_report.json`
-- `promoted_blueprints.jsonl`
-- audit parquet files
+## Promotion Diagnostics
 
-### Runtime thesis package
+The most useful first file is:
 
-The runtime-facing package is written under:
+```text
+data/reports/promotions/<run_id>/promotion_diagnostics.json
+```
 
-`data/live/theses/<run_id>/`
+Inspect:
 
-with the global thesis index under:
+- `promotion_input_mode`
+- `decision_summary`
+- `degraded_states`
+- `detector_governance_policy`
+- `live_thesis_export`
+- `historical_trust`
+- `error`
 
-`data/live/theses/index.json`
+## Detector Governance Effects
 
-Main runtime artifact:
-- `data/live/theses/<run_id>/promoted_theses.json`
+Detector governance can downgrade or block deployment state:
 
-## Export contract
+- Non-trigger roles, non-promotion-eligible detectors, and fragile bands can force `paper_only`.
+- Proxy evidence or non-production maturity can require stronger evidence.
+- Production-promoted and live-eligible states require explicit live approval gates.
 
-`live_export.py` validates the thesis package instead of writing arbitrary JSON.
+Promotion success does not mean live execution approval. It means a governed thesis artifact was created and passed export checks.
 
-The package is treated as a governed runtime contract. That means schema shape, lineage, and thesis details must be coherent enough for the live thesis store to load safely.
+## Stop Conditions
 
-The broad design rule is:
+Stop before deploy when:
 
-**promotion writes deployable contracts, not informal summaries.**
+- `promotion_diagnostics.json` contains `error`.
+- `promoted_candidates.parquet` is empty and that was not expected.
+- `evidence_bundles.jsonl` is missing for promoted rows.
+- `promoted_theses.json` is missing.
+- Thesis export fails validation through `ThesisStore.from_path(..., strict_live_gate=True)`.
 
-## Empty promotion outcomes
-
-If validation produced no promotable survivors, promotion should still behave deterministically.
-
-A clean empty outcome is better than fabricating a thesis package from weak or absent evidence. Treat zero-thesis output as a valid lifecycle state.
-
-## How to inspect a promotion run
-
-A good reading order is:
-
-1. `promotion_summary.json` — how many candidates were considered and promoted?
-2. `promotion_report.json` — what decisions were made and why?
-3. `promoted_blueprints.jsonl` — what strategy/thesis blueprint surface was emitted?
-4. `data/live/theses/<run_id>/promoted_theses.json` — what will runtime actually load?
-5. `data/live/theses/index.json` — how is the batch indexed globally?
-
-## Config binding for paper runtime
-
-After promotion, a common operator step is:
+## Minimal Verification
 
 ```bash
-edge deploy bind-config --run_id <run_id>
+edge validate run --run_id <run_id>
+edge promote run --run_id <run_id> --symbols BTCUSDT
+edge promote export --run_id <run_id>
 ```
 
-This creates a paper runtime config bound to the thesis batch so deployment can launch against the correct `thesis_run_id` without manually editing the template.
+Then inspect:
 
-## Operational rules
-
-- Do not bypass validation and promote directly from arbitrary candidate tables.
-- Do not hand-author `promoted_theses.json` or `index.json`.
-- If thesis schema or export semantics change, update export code, runtime readers, and tests together.
-- If overlap, admission, or runtime eligibility policy changes, review the related logic in `project/portfolio/` and the live runtime tests.
-
-## What promote hands to the next stage
-
-Deploy consumes:
-- a runtime config,
-- a thesis batch under `data/live/theses/<run_id>/`,
-- deployment states compatible with the intended runtime mode.
-
-Next: [deploy.md](deploy.md)
+```bash
+edge deploy inspect --run_id <run_id>
+```

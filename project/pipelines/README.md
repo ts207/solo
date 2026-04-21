@@ -38,12 +38,6 @@ Start from `project.pipelines.run_all`, then the stage builders, then the stage 
 
 Do not start from individual stage scripts unless you already know which stage family you are tracing.
 
-## Relationship to docs
+## Relationship to repo surfaces
 
-See:
-
-- `docs/02_REPOSITORY_MAP.md`
-- `docs/00_overview.md`
-- `docs/01_discover.md`
-- `docs/02_validate.md`
-- `docs/operator_command_inventory.md`
+Use the root `README.md`, package READMEs, and `edge` CLI commands as the current operator-facing surfaces.

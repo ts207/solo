@@ -10,10 +10,9 @@ Use this as the default project skill for `/home/irene/Edge`.
 ## Read first
 
 1. `CLAUDE.md`
-2. `docs/README.md`
-3. `docs/lifecycle/overview.md`
-4. `docs/reference/commands.md`
-5. `docs/reference/assurance.md`
+2. `README.md`
+3. `CONTRIBUTING.md`
+4. `Makefile`
 
 ## Core model
 
@@ -58,7 +57,7 @@ make export RUN_ID=<run_id>
 
 ## Routing
 
-- If the task is repo maintenance, generated-doc drift, validation routing, or plugin upkeep, use `edge-maintainer`.
+- If the task is repo maintenance, generated-artifact drift, validation routing, or plugin upkeep, use `edge-maintainer`.
 - If the task touches `project/apps/chatgpt/`, use `edge-chatgpt-app-developer`.
 - If the task is end-to-end research flow control, use `edge-coordinator`.
 - If the task is diagnosing a completed run, use `edge-analyst`.

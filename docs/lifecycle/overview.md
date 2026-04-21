@@ -1,118 +1,92 @@
-# Lifecycle overview
+# Lifecycle Overview
 
-This repository is built around a governed four-stage lifecycle:
-
-```text
-discover → validate → promote → deploy
-```
-
-That sequence is the core architectural contract of the repo. It is not just the preferred CLI flow. The packages, artifacts, and runtime checks are organized around it.
-
-## What the system is
-
-Edge is a research-to-runtime trading system for event-driven strategies.
-
-Its core unit of authorship is not a Python strategy class. It is a structured market hypothesis expressed through specs and proposals. Its core runtime unit is not a raw candidate row. It is a promoted thesis artifact.
-
-The most important system transition is:
+Edge converts bounded research proposals into deployable thesis packages through a governed lifecycle:
 
 ```text
-proposal → discovery evidence → validation bundle → promoted thesis package → runtime action
+discover -> validate -> promote -> export/bind-config -> deploy
 ```
 
-## Stage boundaries in one table
+The lifecycle is deliberately staged. A discovery result is evidence, not production readiness. Promotion requires validation artifacts. Runtime consumes only exported promoted thesis bundles.
 
-| Stage | Purpose | Canonical input | Canonical output | Main code surface |
-|------|---------|-----------------|------------------|-------------------|
-| Discover | turn a proposal into candidate evidence | `spec/proposals/*.yaml` | experiment artifacts and discovery candidate tables | `project/research/agent_io/*`, `project/pipelines/run_all.py` |
-| Validate | decide whether candidate rows remain credible under formal gates | discovery candidate tables | `data/reports/validation/<run_id>/` | `project/research/services/evaluation_service.py` |
-| Promote | turn validated candidates into governed thesis contracts | `promotion_ready_candidates.parquet` | `data/live/theses/<run_id>/promoted_theses.json` | `project/research/services/promotion_service.py`, `project/research/live_export.py` |
-| Deploy | run paper/live runtime against promoted theses | thesis package + runtime config | runtime actions, audits, snapshots, kill-switch events | `project/scripts/run_live_engine.py`, `project/live/runner.py` |
+## Stage Summary
 
-## The system model
+Discover:
 
-### 1. Specs define the vocabulary
+- Input: structured operator proposal YAML.
+- Front door: `edge discover plan|run --proposal <path>`.
+- Core modules: `project.research.agent_io.issue_proposal`, `project.research.agent_io.proposal_to_experiment`, `project.pipelines.run_all`.
+- Primary output: phase-2 candidates plus experiment memory under the data root.
 
-`spec/` is the authored source of truth for the trading vocabulary.
+Validate:
 
-Important authored subtrees:
-- `spec/events/` — event definitions and event metadata
-- `spec/templates/` — template vocabulary used in research
-- `spec/proposals/` — runnable proposal files
-- `spec/search/` — search-space presets
-- `spec/objectives/` — evaluation and objective semantics
-- `spec/states/`, `spec/features/`, `spec/runtime/` — context and runtime vocabulary
+- Input: completed discovery run ID.
+- Front door: `edge validate run --run_id <run_id>`.
+- Core module: `project.research.services.evaluation_service`.
+- Primary output: validation bundle and `promotion_ready_candidates`.
 
-`spec/domain/domain_graph.yaml` is a generated compiled read model. Treat it as generated output, not as the primary authoring surface.
+Promote:
 
-### 2. Discovery is bounded research, not free search
+- Input: validated run ID.
+- Front door: `edge promote run --run_id <run_id> --symbols BTCUSDT`.
+- Core module: `project.research.services.promotion_service`.
+- Primary output: promoted candidates, promotion audit, evidence bundles, and live thesis export.
 
-A proposal is validated, normalized, and turned into an experiment plan. That plan includes feasibility checks and a bounded hypothesis count. The repo is intentionally structured to constrain search and make run scope explicit.
+Export and bind config:
 
-### 3. Validation is a separate legal stage
+- Input: promoted run ID.
+- Front doors: `edge promote export`, `edge deploy export`, `edge deploy bind-config`.
+- Core modules: `project.research.live_export`, `project.cli`.
+- Primary output: `data/live/theses/<run_id>/promoted_theses.json` and a runtime config YAML.
 
-Discovery can produce rows that look statistically interesting. Validation decides whether those rows survive formal gates and can become promotion candidates.
+Deploy:
 
-### 4. Promotion is the bridge to runtime
+- Input: explicit thesis bundle via `strategy_runtime.thesis_run_id` or `strategy_runtime.thesis_path`.
+- Front doors: `edge deploy paper-run --config <config>` and `edge deploy live-run --config <config>`.
+- Core modules: `project.scripts.run_live_engine`, `project.live.runner`, `project.live.thesis_store`.
 
-The runtime does not consume raw discovery output. It consumes promoted thesis contracts exported from validated candidates. That is one of the strongest safety and governance rules in the codebase.
+## Invariants
 
-### 5. Deploy is thesis-driven runtime
+- Structured proposals are the canonical operator input.
+- Entry lag must be at least 1 bar to avoid same-bar leakage.
+- Event and template compatibility is checked at planning time.
+- Incompatible event/template hypotheses can be dropped before evaluation.
+- Validation is mandatory before promotion.
+- Promotion from exploratory discovery is blocked unless explicitly allowed by promotion policy.
+- Runtime thesis loading is explicit. Implicit latest thesis resolution is disabled on the canonical path.
+- Live thesis artifacts are schema checked and trust checked before use.
 
-The live and paper runtime loads a thesis batch, reconciles it against prior runtime state, and decides trade intent only in the context of active theses, risk policy, and runtime health.
+## Boundary Between Research and Runtime
 
-## Canonical run identity and artifact flow
-
-Each lifecycle instance is centered on a `run_id`.
-
-A `run_id` ties together:
-- the discovery lake under `data/lake/runs/<run_id>/`
-- stage reports under `data/reports/*/<run_id>/`
-- validation outputs under `data/reports/validation/<run_id>/`
-- thesis export under `data/live/theses/<run_id>/`
-
-A useful simplification is:
+Research stages can explore, reject, and package evidence. Runtime stages should not reinterpret discovery results. The boundary artifact is the promoted thesis bundle:
 
 ```text
-run_id = the identity that binds discovery, validation, promotion, and deployment artifacts together
+data/live/theses/<run_id>/promoted_theses.json
 ```
 
-## Repo-wide invariants
+The runtime decides only against exported theses and current live market/account state. It does not discover new hypotheses.
 
-### Runtime should consume only promoted theses
+## Data Root
 
-The codebase is designed so that research and runtime communicate through exported thesis artifacts. Bypassing that contract removes the main evidence-to-runtime safety boundary.
+The canonical data root resolution in `project/core/config.py` is:
 
-### Specs are authored; compiled outputs are generated
+1. `EDGE_DATA_ROOT`
+2. `BACKTEST_DATA_ROOT`
+3. `<repo>/data`
 
-Change the authored specs and rebuild generated views. Do not patch the compiled domain graph or generated audits by hand unless the generators are broken.
+Many pipeline subprocesses receive `BACKTEST_DATA_ROOT` from the proposal execution layer. When debugging artifact paths, always check the resolved data root first.
 
-### Package boundaries matter
+## Minimum Health Checks
 
-`project/tests/test_architectural_integrity.py` enforces allowed package dependencies. Package placement is part of correctness.
+Use targeted checks before trusting a run:
 
-### Shared risk policy should remain shared
+```bash
+PYTHONPATH=. ./.venv/bin/python project/scripts/check_domain_graph_freshness.py
+PYTHONPATH=. ./.venv/bin/python project/scripts/spec_qa_linter.py
+PYTHONPATH=. ./.venv/bin/python -m pytest -s -q project/tests/architecture
+```
 
-Overlap, admission, and sizing logic lives in `project/portfolio/` so both execution-side simulation and live runtime can share policy instead of diverging.
+Run the broader gate before landing structural platform changes:
 
-### Artifacts and manifests are first-class
-
-Runs are tracked through manifests, reports, and thesis exports. This is an artifact-driven system, not just a collection of scripts.
-
-## The shortest correct mental model
-
-Use this model when reading the repo:
-
-1. a proposal defines what to test,
-2. discovery runs the bounded search and writes evidence,
-3. validation decides what survives,
-4. promotion turns survivors into runtime-safe thesis contracts,
-5. deploy loads those thesis contracts and trades only when runtime and risk gates allow it.
-
-## Where to go next
-
-- For the proposal-to-candidate path: [discover.md](discover.md)
-- For the candidate-to-bundle path: [validate.md](validate.md)
-- For the bundle-to-thesis path: [promote.md](promote.md)
-- For the thesis-to-runtime path: [deploy.md](deploy.md)
-- For the full code/package map: [../reference/full_repo_surface.md](../reference/full_repo_surface.md)
+```bash
+make minimum-green-gate
+```

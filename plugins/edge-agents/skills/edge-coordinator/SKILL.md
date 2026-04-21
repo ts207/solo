@@ -9,11 +9,9 @@ Use this when coordinating a research loop.
 
 ## Read first
 
-1. `docs/lifecycle/overview.md`
-2. `docs/lifecycle/discover.md`
-3. `docs/lifecycle/validate.md`
-4. `docs/lifecycle/promote.md`
-5. `docs/reference/commands.md`
+1. `README.md`
+2. `CONTRIBUTING.md`
+3. `project/research/README.md`
 
 ## Role
 

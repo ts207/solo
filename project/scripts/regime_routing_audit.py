@@ -49,22 +49,24 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Audit authored regime routing against the ontology.")
     parser.add_argument(
         "--json-out",
-        default=str(PROJECT_ROOT.parent / "docs" / "generated" / "regime_routing_audit.json"),
+        default=None,
     )
     parser.add_argument(
         "--md-out",
-        default=str(PROJECT_ROOT.parent / "docs" / "generated" / "regime_routing_audit.md"),
+        default=None,
     )
     parser.add_argument("--check", action="store_true")
     args = parser.parse_args(argv)
 
     payload = validate_regime_routing_spec()
-    json_out = Path(args.json_out)
-    md_out = Path(args.md_out)
-    json_out.parent.mkdir(parents=True, exist_ok=True)
-    md_out.parent.mkdir(parents=True, exist_ok=True)
-    json_out.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8")
-    md_out.write_text(render_markdown(payload), encoding="utf-8")
+    if args.json_out:
+        json_out = Path(args.json_out)
+        json_out.parent.mkdir(parents=True, exist_ok=True)
+        json_out.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    if args.md_out:
+        md_out = Path(args.md_out)
+        md_out.parent.mkdir(parents=True, exist_ok=True)
+        md_out.write_text(render_markdown(payload), encoding="utf-8")
     if args.check and not payload.get("is_valid", False):
         return 1
     return 0

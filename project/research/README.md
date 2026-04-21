@@ -36,13 +36,6 @@ Read and depend on these first:
 
 Keep policy in services and contract-aware modules. Do not spread research policy across wrappers or convenience scripts.
 
-## Relationship to docs
+## Relationship to repo surfaces
 
-See:
-
-- `docs/00_overview.md`
-- `docs/01_discover.md`
-- `docs/02_validate.md`
-- `docs/03_promote.md`
-- `docs/91_advanced_research.md`
-- `docs/92_assurance_and_benchmarks.md`
+Use the root `README.md`, package READMEs, and `edge` CLI commands as the current operator-facing surfaces.

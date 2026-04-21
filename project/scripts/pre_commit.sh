@@ -34,15 +34,11 @@ $PYTHON_BIN project/scripts/pipeline_governance.py --audit
 echo "Running Detector Coverage Audit..."
 $PYTHON_BIN -m project.scripts.detector_coverage_audit
 
-# 3. Run Event Deep Analysis Artifact Check
-echo "Running Event Deep Analysis Artifact Check..."
-$PYTHON_BIN -m project.scripts.build_event_deep_analysis_suite --check
-
-# 4. Run Repo Hygiene Check
+# 3. Run Repo Hygiene Check
 echo "Running Repo Hygiene Check..."
 bash project/scripts/check_repo_hygiene.sh
 
-# 5. Sync Schemas (optional, can be part of commit if needed)
+# 4. Sync Schemas (optional, can be part of commit if needed)
 echo "Syncing Schemas..."
 $PYTHON_BIN project/scripts/pipeline_governance.py --sync
 

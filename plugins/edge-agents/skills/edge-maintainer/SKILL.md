@@ -1,6 +1,6 @@
 ---
 name: edge-maintainer
-description: Route Edge repo changes through the correct validation, generated-artifact regeneration, plugin sync, and maintenance commands. Use for developer upkeep, doc drift, plugin upkeep, app-surface maintenance, or choosing the smallest correct verification loop.
+description: Route Edge repo changes through the correct validation, generated-artifact regeneration, plugin sync, and maintenance commands. Use for developer upkeep, generated-artifact drift, plugin upkeep, app-surface maintenance, or choosing the smallest correct verification loop.
 ---
 
 # Edge Maintainer
@@ -9,16 +9,15 @@ Use this skill for developer maintenance and repo-upkeep work in `/home/irene/Ed
 
 ## Read first
 
-1. `docs/reference/assurance.md`
-2. `docs/reference/commands.md`
-3. `docs/README.md`
-4. `Makefile`
+1. `README.md`
+2. `CONTRIBUTING.md`
+3. `Makefile`
 
 ## Role
 
 - Route the current change through the smallest correct maintenance loop.
 - Prefer canonical repo entrypoints over ad hoc script sequences.
-- Regenerate generated docs instead of editing them by hand.
+- Regenerate derived artifacts instead of editing generated outputs by hand.
 - Keep plugin maintenance thin and repo-aligned.
 
 ## Primary routing table
@@ -40,12 +39,7 @@ Use the broader gate when command behavior, stage wiring, or shared lifecycle lo
 ./plugins/edge-agents/scripts/edge_validate_repo.sh minimum-green
 ```
 
-Then inspect:
-
-- `README.md`
-- `docs/README.md`
-- `docs/reference/commands.md`
-- `docs/lifecycle/overview.md`
+Then inspect `README.md`, relevant package READMEs, and tests for drift.
 
 ### Event, ontology, or registry change
 
@@ -56,12 +50,7 @@ make governance
 ./plugins/edge-agents/scripts/edge_validate_repo.sh minimum-green
 ```
 
-Then inspect:
-
-- `docs/generated/event_contract_reference.md`
-- `docs/generated/event_ontology_mapping.md`
-- `docs/generated/system_map.md`
-- `docs/reference/spec_authoring.md`
+Then inspect generated artifact outputs, relevant package READMEs, and tests for drift.
 
 ### Runtime-thesis export or overlap change
 
@@ -76,8 +65,7 @@ Then inspect:
 
 - `data/live/theses/<run_id>/promoted_theses.json`
 - `data/live/theses/index.json`
-- `docs/lifecycle/promote.md`
-- `docs/lifecycle/deploy.md`
+- relevant package READMEs and tests
 
 ### Architectural boundary change
 
@@ -88,11 +76,7 @@ Use:
 PYTHONPATH=. ./.venv/bin/python -m project.scripts.build_system_map --check
 ```
 
-Then inspect:
-
-- `docs/reference/architecture.md`
-- `docs/reference/repository_map.md`
-- `docs/generated/system_map.md`
+Then inspect `README.md`, relevant package READMEs, generated map outputs, and tests.
 
 ### Plugin change
 
@@ -129,6 +113,6 @@ Treat this as an interface layer around canonical lifecycle surfaces, not a sepa
 ## Hard rules
 
 - Do not teach wrappers as if they own repo policy.
-- Do not manually edit `docs/generated/*` when a generator exists.
+- Do not manually edit generated outputs when a generator exists.
 - Do not stop at a narrow check if the change type implies additional regeneration.
 - If plugin source changes, remember the installed plugin cache is stale until synced.

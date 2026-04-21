@@ -66,12 +66,6 @@ The plugin now helps route common developer change types:
 - `edge_sync_plugin.sh targets|check|sync`
 - `edge_export_theses.sh`
 
-## Relationship to docs
+## Relationship to repo surfaces
 
-See:
-
-- `docs/README.md`
-- `docs/lifecycle/overview.md`
-- `docs/reference/commands.md`
-- `docs/reference/assurance.md`
-- `docs/operator/runbook.md`
+Use the root `README.md`, package READMEs, Make targets, and `edge` CLI commands as the current operator-facing surfaces.

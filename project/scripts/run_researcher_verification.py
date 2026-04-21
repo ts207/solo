@@ -54,11 +54,7 @@ def _verify_contracts(repo_root: Path) -> None:
         [sys.executable, "-m", "project.scripts.regime_routing_audit", "--check"],
         cwd=repo_root,
     )
-    _run(
-        [sys.executable, "-m", "project.scripts.build_event_deep_analysis_suite", "--check"],
-        cwd=repo_root,
-    )
-    _run([sys.executable, "-m", "pytest", *CONTRACT_TESTS, "-q"], cwd=repo_root)
+    _run([sys.executable, "-m", "pytest", "-s", *CONTRACT_TESTS, "-q"], cwd=repo_root)
 
 
 def _verify_experiment_artifacts(

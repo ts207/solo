@@ -34,10 +34,6 @@ This layer should call the canonical repo surfaces:
 
 It should not redefine proposal policy or promotion logic.
 
-## Relationship to docs
+## Relationship to repo surfaces
 
-See:
-
-- `docs/README.md`
-- `docs/operator_command_inventory.md`
-- `docs/02_REPOSITORY_MAP.md`
+Use the root `README.md`, package READMEs, and `edge` CLI commands as the current operator-facing surfaces.

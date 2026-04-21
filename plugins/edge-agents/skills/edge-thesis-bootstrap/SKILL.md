@@ -9,10 +9,9 @@ Use this for packaging maintenance, not for raw discovery.
 
 ## Read first
 
-1. `docs/lifecycle/promote.md`
-2. `docs/lifecycle/deploy.md`
-3. `docs/operator/runbook.md`
-4. `docs/reference/assurance.md`
+1. `README.md`
+2. `CONTRIBUTING.md`
+3. `project/research/README.md`
 
 ## Preferred front door
 
@@ -28,7 +27,6 @@ Use package and overlap builders only when repairing or inspecting a specific pa
 
 - `data/live/theses/<run_id>/promoted_theses.json`
 - `data/live/theses/index.json`
-- `docs/generated/thesis_overlap_graph.*` when overlap artifacts are in scope
 - `project/research/live_export.py`
 - `project/live/`
 
