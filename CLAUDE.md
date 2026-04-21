@@ -171,24 +171,16 @@ Startup certification (no credentials needed): `PYTHONPATH=. python3 project/scr
 
 ## Current research state
 
-No promoted theses. All prior results cleared — re-run from scratch with hardened gates.
+Clean slate as of 2026-04-20. No promoted theses, no prior results, no cached runs.
 
-Lake data must be re-ingested. The historical BTC lake runs from April 2026 are not present on disk. Run a new proposal with `edge discover run --proposal <path>` to rebuild the lake, then use `--run_id` reuse for subsequent proposals over the same data.
+Raw lake data is present at `data/lake/cleaned/` and `data/lake/features/` covering BTCUSDT 2021–2024 and ETHUSDT 2022–2024. No run-scoped lake exists — the pipeline will fall back to the global lake automatically.
 
 ### Starting a new discovery run
 
 ```bash
-# First run: builds lake + runs discovery
-edge discover run --proposal spec/proposals/broad_vol-spike_long_mr_24b.yaml
+# First run (uses global lake, no --run_id needed)
+edge discover run --proposal spec/proposals/<proposal>.yaml
 
 # Subsequent runs over the same data: reuse the lake
 edge discover run --proposal spec/proposals/<other>.yaml --run_id <run_id_from_first_run>
 ```
-
-The highest-priority re-runs based on prior campaign evidence (before gates were fixed):
-
-| Event | Best prior result | Proposal |
-|-------|-------------------|---------|
-| VOL_SPIKE long 24b | t=3.59, rob=0.62 | `spec/proposals/broad_vol-spike_long_mr_24b.yaml` |
-| OI_SPIKE_NEGATIVE long 48b | t=2.37, rob=0.87 | `spec/proposals/campaign_pe_oi-spike-negative_48b.yaml` |
-| LIQUIDATION_CASCADE long 24b | t=1.78, rob=0.82 | `spec/proposals/broad_liquidation-exhaustion-reversal.yaml` |

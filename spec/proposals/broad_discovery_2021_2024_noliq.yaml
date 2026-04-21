@@ -1,0 +1,24 @@
+program_id: broad_discovery_2021_2024_noliq
+description: >
+  Full broad discovery sweep, BTCUSDT 2021-2024, no liquidation events.
+  67 events across all non-liquidation families. Hierarchical search:
+  trigger viability -> template refinement -> execution refinement -> context refinement.
+  Fixed ontology, pre-specified gates, all variants logged.
+run_mode: research
+objective_name: retail_profitability
+promotion_profile: research
+symbols:
+  - BTCUSDT
+timeframe: 5m
+start: "2021-01-01"
+end: "2024-12-31"
+instrument_classes:
+  - crypto
+search_spec:
+  path: spec/search_space_noliq.yaml
+hypothesis:
+  anchor:
+    type: event
+  filters: {}
+  sampling_policy:
+    entry_lag_bars: 1

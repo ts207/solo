@@ -86,7 +86,12 @@ class LiquidationCascadeDetectorV2(EpisodeBaseDetectorV2):
         return int(params.get('liq_median_window', params.get('median_window', 288)))
 
     @staticmethod
-    def _resolve_liq_abs_floor(params: dict[str, Any]) -> float:
+    def _resolve_liq_abs_floor(params: dict[str, Any], liq: pd.Series | None = None) -> float:
+        pct = params.get('liq_vol_th_pct')
+        if pct is not None and liq is not None:
+            nonzero = liq[liq > 0]
+            if len(nonzero) >= 10:
+                return float(np.nanpercentile(np.asarray(nonzero, dtype=float), float(pct) * 100.0))
         return float(params.get('liq_vol_th', 0.0) or 0.0)
 
     @staticmethod
@@ -121,10 +126,12 @@ class LiquidationCascadeDetectorV2(EpisodeBaseDetectorV2):
         oi_notional = pd.to_numeric(df['oi_notional'], errors='coerce').astype(float)
         close = pd.to_numeric(df['close'], errors='coerce').astype(float)
         low = pd.to_numeric(df['low'], errors='coerce').astype(float)
+        liq_abs_floor = self._resolve_liq_abs_floor(params, liq)
         return {
             'liquidation_notional': liq,
             'liq_median': liq_median,
             'liq_th': liq_th,
+            'liq_abs_floor': liq_abs_floor,
             'oi_delta_1h': oi_delta,
             'oi_notional': oi_notional,
             'close': close,
@@ -133,7 +140,7 @@ class LiquidationCascadeDetectorV2(EpisodeBaseDetectorV2):
 
     def compute_raw_mask(self, df: pd.DataFrame, *, features: Mapping[str, pd.Series], **params: Any) -> pd.Series:
         pct_threshold, abs_threshold = self._resolve_oi_thresholds(params)
-        liq_abs_floor = self._resolve_liq_abs_floor(params)
+        liq_abs_floor = float(features.get('liq_abs_floor', self._resolve_liq_abs_floor(params)))
         liq = features['liquidation_notional']
         liq_th = features['liq_th']
         oi_delta = features['oi_delta_1h']

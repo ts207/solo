@@ -2907,8 +2907,9 @@ events:
       liq_multiplier: 3.0
       median_window: 288
       min_periods: 24
-      liq_vol_th: 35671013.12
-      oi_drop_pct_th: 0.005
+      liq_vol_th_pct: 0.95
+      liq_vol_th: 0.0
+      oi_drop_pct_th: 0.003
       max_gap: 6
       anchor_rule: last
     templates:
@@ -2943,10 +2944,10 @@ events:
     strategy_only: false
     default_executable: true
     detector_band: composite_or_fragile
-    planning_eligible: false
+    planning_eligible: true
     runtime_eligible: false
-    promotion_eligible: false
-    primary_anchor_eligible: false
+    promotion_eligible: true
+    primary_anchor_eligible: true
     deconflict_priority: 0
     notes: Use when liquidation_notional data is unavailable (e.g., Bybit native data
       without cross-exchange liquidation feed). Expected to have lower precision than

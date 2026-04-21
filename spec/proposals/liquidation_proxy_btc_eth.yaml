@@ -1,0 +1,35 @@
+program_id: liquidation_proxy_btc_eth
+description: >
+  LIQUIDATION_CASCADE_PROXY long exhaustion_reversal 24b, rv_pct_17280 > 70,
+  2022-2024, BTC+ETH. Uses OI/volume/price proxy — no liquidation snapshot data required.
+run_mode: research
+objective_name: retail_profitability
+promotion_profile: research
+symbols:
+  - BTCUSDT
+  - ETHUSDT
+timeframe: 5m
+start: "2022-01-01"
+end: "2024-12-31"
+instrument_classes:
+  - crypto
+search_spec:
+  path: spec/productive_search.yaml
+knobs:
+  - name: discovery_profile
+    value: synthetic
+hypothesis:
+  anchor:
+    type: event
+    event_id: LIQUIDATION_CASCADE_PROXY
+  filters:
+    feature_predicates:
+      - feature: rv_pct_17280
+        operator: ">"
+        threshold: 70
+  sampling_policy:
+    entry_lag_bars: 1
+  template:
+    id: exhaustion_reversal
+  direction: long
+  horizon_bars: 24

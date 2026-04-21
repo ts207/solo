@@ -4,8 +4,8 @@ metadata:
   status: generated
   graph_role: runtime_read_model
   schema_version: 2
-  generated_at_utc: '2026-04-20T05:45:43Z'
-  spec_sources_digest: 73f251998292187c074fe872945beec74d7da494247af9c6c37008e074eb9e16
+  generated_at_utc: '2026-04-21T02:40:30Z'
+  spec_sources_digest: 9132ec228a08258ab43021919837e133b406c43868bee111c3350a5da324e9d7
   notes: Compiled runtime read model. Semantic nodes are normalized for direct runtime/search
     loading.
 events:
@@ -2948,8 +2948,9 @@ events:
       liq_multiplier: 3.0
       median_window: 288
       min_periods: 24
-      liq_vol_th: 35671013.12
-      oi_drop_pct_th: 0.005
+      liq_vol_th_pct: 0.95
+      liq_vol_th: 0.0
+      oi_drop_pct_th: 0.003
       max_gap: 6
     runtime:
       templates:
@@ -3006,10 +3007,10 @@ events:
     maturity: experimental
     default_executable: true
     detector_band: composite_or_fragile
-    planning_eligible: false
+    planning_eligible: true
     runtime_eligible: false
-    promotion_eligible: false
-    primary_anchor_eligible: false
+    promotion_eligible: true
+    primary_anchor_eligible: true
     enabled: true
     detector_name: LiquidationCascadeProxyDetector
     instrument_classes:
