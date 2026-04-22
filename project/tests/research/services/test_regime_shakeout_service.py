@@ -105,6 +105,9 @@ def test_build_shakeout_proposal_payload_switches_trigger_surface():
     assert regime_payload["trigger_space"]["events"] == {}
     assert raw_payload["trigger_space"]["events"]["include"] == [raw_slice.baseline_event_type]
     assert raw_payload["trigger_space"]["canonical_regimes"] == []
+    assert regime_payload["discovery_profile"] == "exploratory"
+    assert regime_payload["phase2_gate_profile"] == "discovery"
+    assert raw_payload["search_spec"] == "spec/search_space.yaml"
 
 
 def test_summarize_shakeout_run_reports_contract_health(tmp_path):

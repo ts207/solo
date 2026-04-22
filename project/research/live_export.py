@@ -1303,33 +1303,47 @@ def export_promoted_theses_for_run(
         if promoted_df is not None
         else _load_promoted_candidates(run_id, resolved_root)
     )
-    if effective_promoted.empty and not allow_bundle_only_export:
-        raise DataIntegrityError(
-            f"Promoted candidates DataFrame is empty for run {run_id}. "
-            "Set allow_bundle_only_export=True to proceed with bundle-only export."
-        )
     effective_blueprints = (
         list(blueprints) if blueprints is not None else _load_blueprints(run_id, resolved_root)
-    )
-    skip_validation_lineage = (
-        allow_bundle_only_export and effective_promoted.empty and not effective_bundles
-    )
-    _validate_promotion_evidence_alignment(
-        run_id=run_id,
-        bundles=effective_bundles,
-        promoted_df=effective_promoted,
     )
 
     validation_metadata: dict[str, dict[str, Any]] = {}
     from project.research.validation.result_writer import load_validation_bundle
 
-    if not skip_validation_lineage:
+    val_bundle = None
+    bundle_only_export_allowed = bool(allow_bundle_only_export)
+    if effective_promoted.empty and not bundle_only_export_allowed:
+        val_bundle = load_validation_bundle(
+            run_id,
+            resolved_root / "reports" / "validation",
+            strict=False,
+            compatibility_mode=compatibility_mode,
+        )
+        if val_bundle is not None and not list(getattr(val_bundle, "validated_candidates", []) or []):
+            bundle_only_export_allowed = True
+
+    if effective_promoted.empty and not bundle_only_export_allowed:
+        raise DataIntegrityError(
+            f"Promoted candidates DataFrame is empty for run {run_id}. "
+            "Set allow_bundle_only_export=True to proceed with bundle-only export."
+        )
+    skip_validation_lineage = (
+        bundle_only_export_allowed and effective_promoted.empty and not effective_bundles
+    )
+    if val_bundle is None and not skip_validation_lineage:
         val_bundle = load_validation_bundle(
             run_id,
             resolved_root / "reports" / "validation",
             strict=not compatibility_mode,
             compatibility_mode=compatibility_mode,
         )
+    _validate_promotion_evidence_alignment(
+        run_id=run_id,
+        bundles=effective_bundles,
+        promoted_df=effective_promoted,
+    )
+
+    if not skip_validation_lineage:
         if val_bundle:
             all_candidates = (
                 val_bundle.validated_candidates

@@ -3,6 +3,7 @@ from __future__ import annotations
 import argparse
 import json
 import logging
+import math
 from collections import Counter, defaultdict
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta, timezone
@@ -17,8 +18,13 @@ from project.core.exceptions import DataIntegrityError
 from project.events.event_specs import EVENT_REGISTRY_SPECS
 from project.events.governance import event_matches_filters, get_event_governance_metadata
 from project.io.utils import atomic_write_text
+from project.research.agent_io.generated_proposal_policy import (
+    resolve_generated_proposal_controls,
+    summarize_viability_for_event,
+)
 from project.research.agent_io.issue_proposal import generate_run_id, issue_proposal
 from project.research.agent_io.proposal_schema import load_operator_proposal
+from project.research.feature_surface_viability import analyze_feature_surface_viability
 from project.research.knowledge.memory import ensure_memory_store, read_memory_table
 from project.research.knowledge.schemas import canonical_json, region_key
 from project.research.semantic_registry_views import build_canonical_semantic_registry_views
@@ -335,6 +341,174 @@ def _failure_penalty_components(tested_regions: pd.DataFrame) -> Dict[str, dict[
     return penalties
 
 
+def _coerce_float(value: Any, default: float = 0.0) -> float:
+    try:
+        if value is None:
+            return float(default)
+        numeric = float(value)
+        if math.isnan(numeric) or math.isinf(numeric):
+            return float(default)
+        return numeric
+    except Exception:
+        return float(default)
+
+
+def _coerce_int(value: Any, default: int = 0) -> int:
+    try:
+        if value is None:
+            return int(default)
+        return int(float(value))
+    except Exception:
+        return int(default)
+
+
+def _empty_economics_signal() -> dict[str, Any]:
+    return {
+        "score": 0.0,
+        "evidence_weight": 0.0,
+        "times_evaluated": 0,
+        "times_promoted": 0,
+        "promotion_rate": 0.0,
+        "avg_after_cost_expectancy": 0.0,
+        "median_after_cost_expectancy": 0.0,
+        "recent_after_cost_expectancy": 0.0,
+        "avg_stressed_after_cost_expectancy": 0.0,
+        "median_stressed_after_cost_expectancy": 0.0,
+        "recent_stressed_after_cost_expectancy": 0.0,
+        "positive_after_cost_rate": 0.0,
+        "positive_stressed_after_cost_rate": 0.0,
+        "tradable_rate": 0.0,
+        "statistical_pass_rate": 0.0,
+        "avg_q_value": 0.0,
+        "dominant_fail_gate": "",
+        "expectancy_component": 0.0,
+        "stressed_component": 0.0,
+        "positive_rate_component": 0.0,
+        "stressed_positive_rate_component": 0.0,
+        "tradability_component": 0.0,
+        "statistical_component": 0.0,
+        "promotion_component": 0.0,
+        "quality_component": 0.0,
+        "cost_drag": 0.0,
+        "status": "unknown",
+    }
+
+
+def _is_cost_fail_gate(value: Any) -> bool:
+    token = str(value or "").strip().lower()
+    if not token:
+        return False
+    return ("cost" in token) or ("after_cost" in token) or token in {
+        "gate_after_cost_positive",
+        "gate_after_cost_stressed_positive",
+    }
+
+
+def _bounded_rate(value: Any, default: float = 0.0) -> float:
+    numeric = _coerce_float(value, default)
+    if not math.isfinite(numeric):
+        return float(default)
+    return float(min(max(numeric, 0.0), 1.0))
+
+
+def _event_economics_signals(event_statistics: pd.DataFrame) -> Dict[str, dict[str, Any]]:
+    signals: Dict[str, dict[str, Any]] = {}
+    if event_statistics.empty or "event_type" not in event_statistics.columns:
+        return signals
+    for row in event_statistics.to_dict(orient="records"):
+        event_type = str(row.get("event_type", "")).strip()
+        if not event_type:
+            continue
+        times_evaluated = max(_coerce_int(row.get("times_evaluated"), 0), 0)
+        times_promoted = max(_coerce_int(row.get("times_promoted"), 0), 0)
+        avg_after_cost = _coerce_float(row.get("avg_after_cost_expectancy"), 0.0)
+        median_after_cost = _coerce_float(row.get("median_after_cost_expectancy"), avg_after_cost)
+        recent_after_cost = _coerce_float(row.get("recent_after_cost_expectancy"), median_after_cost)
+        avg_stressed_after_cost = _coerce_float(
+            row.get("avg_stressed_after_cost_expectancy"),
+            avg_after_cost,
+        )
+        median_stressed_after_cost = _coerce_float(
+            row.get("median_stressed_after_cost_expectancy"),
+            avg_stressed_after_cost,
+        )
+        recent_stressed_after_cost = _coerce_float(
+            row.get("recent_stressed_after_cost_expectancy"),
+            median_stressed_after_cost,
+        )
+        positive_after_cost_rate = _bounded_rate(
+            row.get("positive_after_cost_rate"),
+            1.0 if avg_after_cost > 0.0 else 0.0,
+        )
+        positive_stressed_after_cost_rate = _bounded_rate(
+            row.get("positive_stressed_after_cost_rate"),
+            1.0 if median_stressed_after_cost > 0.0 else 0.0,
+        )
+        tradable_rate = _bounded_rate(row.get("tradable_rate"), 0.0)
+        statistical_pass_rate = _bounded_rate(row.get("statistical_pass_rate"), 0.0)
+        avg_q = _coerce_float(row.get("avg_q_value"), 0.5)
+        dominant_fail_gate = str(row.get("dominant_fail_gate", "") or "").strip()
+
+        evidence_weight = min(times_evaluated / 5.0, 1.0) if times_evaluated > 0 else 0.0
+        promotion_rate = min(times_promoted / max(times_evaluated, 1), 1.0)
+        blended_expectancy = (0.35 * avg_after_cost) + (0.30 * median_after_cost) + (0.35 * recent_after_cost)
+        blended_stressed = (0.25 * avg_stressed_after_cost) + (0.35 * median_stressed_after_cost) + (0.40 * recent_stressed_after_cost)
+        expectancy_component = 0.95 * math.tanh(blended_expectancy / 4.0) * evidence_weight
+        stressed_component = 0.90 * math.tanh(blended_stressed / 4.0) * evidence_weight
+        positive_rate_component = 0.35 * ((positive_after_cost_rate - 0.5) * 2.0) * evidence_weight
+        stressed_positive_rate_component = 0.55 * ((positive_stressed_after_cost_rate - 0.5) * 2.0) * evidence_weight
+        tradability_component = 0.25 * ((tradable_rate - 0.5) * 2.0) * evidence_weight
+        statistical_component = 0.25 * ((statistical_pass_rate - 0.5) * 2.0) * evidence_weight
+        promotion_component = 0.55 * promotion_rate * evidence_weight
+        quality_edge = max(-1.0, min((0.35 - avg_q) / 0.35, 1.0))
+        quality_component = 0.30 * quality_edge * evidence_weight
+        cost_drag = 0.45 * evidence_weight if _is_cost_fail_gate(dominant_fail_gate) else 0.0
+        if blended_stressed <= 0.0:
+            cost_drag += 0.20 * evidence_weight
+        score = (
+            expectancy_component
+            + stressed_component
+            + positive_rate_component
+            + stressed_positive_rate_component
+            + tradability_component
+            + statistical_component
+            + promotion_component
+            + quality_component
+            - cost_drag
+        )
+        status = "positive" if score > 0.15 else "negative" if score < -0.15 else "neutral"
+        signals[event_type] = {
+            "score": float(score),
+            "evidence_weight": float(evidence_weight),
+            "times_evaluated": int(times_evaluated),
+            "times_promoted": int(times_promoted),
+            "promotion_rate": float(promotion_rate),
+            "avg_after_cost_expectancy": float(avg_after_cost),
+            "median_after_cost_expectancy": float(median_after_cost),
+            "recent_after_cost_expectancy": float(recent_after_cost),
+            "avg_stressed_after_cost_expectancy": float(avg_stressed_after_cost),
+            "median_stressed_after_cost_expectancy": float(median_stressed_after_cost),
+            "recent_stressed_after_cost_expectancy": float(recent_stressed_after_cost),
+            "positive_after_cost_rate": float(positive_after_cost_rate),
+            "positive_stressed_after_cost_rate": float(positive_stressed_after_cost_rate),
+            "tradable_rate": float(tradable_rate),
+            "statistical_pass_rate": float(statistical_pass_rate),
+            "avg_q_value": float(avg_q),
+            "dominant_fail_gate": dominant_fail_gate,
+            "expectancy_component": float(expectancy_component),
+            "stressed_component": float(stressed_component),
+            "positive_rate_component": float(positive_rate_component),
+            "stressed_positive_rate_component": float(stressed_positive_rate_component),
+            "tradability_component": float(tradability_component),
+            "statistical_component": float(statistical_component),
+            "promotion_component": float(promotion_component),
+            "quality_component": float(quality_component),
+            "cost_drag": float(cost_drag),
+            "status": status,
+        }
+    return signals
+
+
 def _normalize_horizon(value: Any) -> str:
     token = str(value or "").strip().lower()
     return token[:-1] if token.endswith("b") and token[:-1].isdigit() else token
@@ -565,6 +739,7 @@ class CampaignPlanner:
         self.event_weights = self._event_priority_weights(self.search_space_path)
         self._last_duplicate_excluded_region_keys: set[str] = set()
         self._last_duplicate_exclusion_details: list[dict[str, Any]] = []
+        self._last_surface_viability_summary: dict[str, Any] = {}
 
     def _load_yaml(self, path: Path) -> Dict[str, Any]:
         if not path.exists():
@@ -581,6 +756,30 @@ class CampaignPlanner:
             return load_event_priority_weights(search_space_path)
         except Exception:
             return {}
+
+    def _feature_surface_viability(self, event_types: Sequence[str]) -> dict[str, Any]:
+        requested = sorted({str(event).strip().upper() for event in event_types if str(event).strip()})
+        if not requested:
+            return {"status": "unknown", "detectors": {}}
+        start, end = _default_date_scope(self.config.lookback_days)
+        try:
+            return analyze_feature_surface_viability(
+                data_root=self.data_root,
+                run_id="campaign_planner_preflight",
+                symbols=self.config.symbols,
+                timeframe=self.config.timeframe,
+                start=start,
+                end=end,
+                event_types=requested,
+            )
+        except Exception:
+            _LOG.warning("Campaign planner feature-surface viability analysis failed", exc_info=True)
+            return {
+                "status": "unknown",
+                "event_types": requested,
+                "detectors": {},
+                "issues": ["feature_surface_viability_failed"],
+            }
 
     def _memory(self) -> Dict[str, pd.DataFrame]:
         return {
@@ -609,7 +808,12 @@ class CampaignPlanner:
             ),
         }
 
-    def _candidate_events(self, tested_regions: pd.DataFrame) -> list[dict[str, Any]]:
+    def _candidate_events(
+        self,
+        tested_regions: pd.DataFrame,
+        *,
+        event_statistics: pd.DataFrame | None = None,
+    ) -> list[dict[str, Any]]:
         events_registry = self.registry.get("events", {}).get("events", {})
         event_to_family = {
             event_type: _family_from_event_type(event_type, events_registry)
@@ -621,12 +825,14 @@ class CampaignPlanner:
         mechanical_region_keys = _mechanical_exclusions(tested_regions)
         penalties = _failure_penalty_components(tested_regions)
         tested_scope_keys = _tested_scope_keys(tested_regions)
+        economics = _event_economics_signals(event_statistics if event_statistics is not None else pd.DataFrame())
         weights = self.event_weights
         max_weight = max(weights.values(), default=DEFAULT_EVENT_PRIORITY_WEIGHT)
         candidates: list[dict[str, Any]] = []
         self._last_duplicate_excluded_region_keys = set()
         self._last_duplicate_exclusion_details = []
 
+        eligible_events: list[tuple[str, dict[str, Any], dict[str, Any], str, int, int]] = []
         for event_type, meta in events_registry.items():
             if not bool(meta.get("enabled", True)):
                 continue
@@ -637,7 +843,6 @@ class CampaignPlanner:
                 trade_trigger_eligible=True,
             ):
                 continue
-
             governance = get_event_governance_metadata(event_type)
             family = event_to_family.get(event_type, "")
             event_count = int(event_counts.get(event_type, 0))
@@ -647,6 +852,19 @@ class CampaignPlanner:
                 and event_count >= self.config.min_region_test_count
             ):
                 continue
+            eligible_events.append((event_type, meta, governance, family, event_count, family_count))
+
+        viability_report = self._feature_surface_viability([row[0] for row in eligible_events])
+        blocked_events: list[dict[str, Any]] = []
+        warn_events: list[dict[str, Any]] = []
+
+        for event_type, _meta, governance, family, event_count, family_count in eligible_events:
+            viability = summarize_viability_for_event(viability_report, event_type)
+            if viability["status"] == "block":
+                blocked_events.append({"event_type": event_type, **viability})
+                continue
+            if viability["status"] == "warn":
+                warn_events.append({"event_type": event_type, **viability})
 
             weight = float(weights.get(event_type, DEFAULT_EVENT_PRIORITY_WEIGHT))
             priority_score = weight / max_weight if max_weight > 0 else 0.5
@@ -666,6 +884,7 @@ class CampaignPlanner:
 
             failure_penalty = penalties.get(event_type, _empty_failure_penalty())
             history_penalty = float(failure_penalty.get("total_penalty", 0.0))
+            economics_signal = economics.get(event_type, _empty_economics_signal())
             maturity_bonus = 0.4 if governance["tier"] == "A" else 0.15
             governance_penalty = float(governance.get("rank_penalty", 0.0)) * 0.35
             score_components = {
@@ -674,6 +893,7 @@ class CampaignPlanner:
                 "event_gap_score": 0.9 * event_gap_score,
                 "regime_score": 0.8 * regime_score,
                 "maturity_bonus": maturity_bonus,
+                "economics_score": 1.1 * float(economics_signal.get("score", 0.0)),
                 "history_penalty": -history_penalty,
                 "governance_penalty": -governance_penalty,
             }
@@ -719,14 +939,21 @@ class CampaignPlanner:
                 event_gap_score=event_gap_score,
                 history_penalty=history_penalty,
                 failure_penalty=failure_penalty,
+                economics_signal=economics_signal,
                 score_components=score_components,
                 regime_gap=regime_gap,
                 governance=governance,
                 excluded_region_keys=mechanical_region_keys,
+                viability=viability,
             )
             if proposal is not None:
                 candidates.append(proposal)
 
+        self._last_surface_viability_summary = {
+            "status": str(viability_report.get("status", "unknown") or "unknown"),
+            "blocked_events": blocked_events,
+            "warn_events": warn_events,
+        }
         candidates.sort(key=lambda item: item["score"], reverse=True)
         return candidates
 
@@ -747,14 +974,24 @@ class CampaignPlanner:
         event_gap_score: float,
         history_penalty: float,
         failure_penalty: Dict[str, float],
+        economics_signal: Dict[str, Any],
         score_components: Dict[str, float],
         regime_gap: Dict[str, Any],
         governance: Dict[str, Any],
         excluded_region_keys: set[str] | None = None,
+        viability: Dict[str, Any] | None = None,
     ) -> Dict[str, Any] | None:
         if score <= -10.0:
             return None
         start, end = _default_date_scope(self.config.lookback_days)
+        resolved_controls = resolve_generated_proposal_controls(
+            templates=templates,
+            horizons_bars=self.config.horizon_bars,
+            directions=self.config.directions,
+            entry_lags=self.config.entry_lags,
+            promotion_profile=self.config.promotion_profile,
+            run_mode=self.config.run_mode,
+        )
         proposal = {
             "program_id": self.config.program_id,
             "start": start,
@@ -783,6 +1020,9 @@ class CampaignPlanner:
             "directions": list(self.config.directions),
             "entry_lags": list(self.config.entry_lags),
             "contexts": contexts,
+            "discovery_profile": resolved_controls["discovery_profile"],
+            "phase2_gate_profile": resolved_controls["phase2_gate_profile"],
+            "search_spec": resolved_controls["search_spec"],
             "search_control": {
                 "max_hypotheses_total": 1000,
                 "max_hypotheses_per_template": 500,
@@ -797,6 +1037,7 @@ class CampaignPlanner:
             "knobs": {},
         }
         rationale = {
+            "surface_viability": dict(viability or {}),
             "event_weight": weight,
             "priority_score": priority_score,
             "family_gap_score": family_gap_score,
@@ -805,6 +1046,7 @@ class CampaignPlanner:
             "regime_gap": dict(regime_gap),
             "history_penalty": history_penalty,
             "failure_penalty": dict(failure_penalty),
+            "economics_signal": dict(economics_signal),
             "score_components": dict(score_components),
             "event_count": event_count,
             "family_count": family_count,
@@ -843,7 +1085,10 @@ class CampaignPlanner:
     def plan(self) -> CampaignPlanResult:
         memory = self._memory()
         tested_regions = memory["tested_regions"]
-        candidate_rows = self._candidate_events(tested_regions)
+        candidate_rows = self._candidate_events(
+            tested_regions,
+            event_statistics=memory.get("event_statistics"),
+        )
         ranked = [
             PlannedCampaignProposal(
                 score=float(row["score"]),
@@ -857,6 +1102,8 @@ class CampaignPlanner:
         summary = {
             "tested_regions": int(len(tested_regions)),
             "candidate_pool": int(len(candidate_rows)),
+            "surface_blocked_events": list(self._last_surface_viability_summary.get("blocked_events", [])),
+            "surface_warn_events": list(self._last_surface_viability_summary.get("warn_events", [])),
             "top_event_type": ranked[0].event_type if ranked else "",
             "top_family": ranked[0].family if ranked else "",
             "search_space_path": str(self.search_space_path),

@@ -113,6 +113,15 @@ _TABLES = {
         "promotion_rate",
         "avg_q_value",
         "avg_after_cost_expectancy",
+        "median_after_cost_expectancy",
+        "avg_stressed_after_cost_expectancy",
+        "median_stressed_after_cost_expectancy",
+        "recent_after_cost_expectancy",
+        "recent_stressed_after_cost_expectancy",
+        "positive_after_cost_rate",
+        "positive_stressed_after_cost_rate",
+        "tradable_rate",
+        "statistical_pass_rate",
         "avg_robustness_score",
         "dominant_fail_gate",
         "last_tested_at",
@@ -122,18 +131,40 @@ _TABLES = {
         "runs_tested",
         "times_evaluated",
         "times_promoted",
+        "promotion_rate",
         "avg_q_value",
         "avg_after_cost_expectancy",
+        "median_after_cost_expectancy",
+        "avg_stressed_after_cost_expectancy",
+        "median_stressed_after_cost_expectancy",
+        "recent_after_cost_expectancy",
+        "recent_stressed_after_cost_expectancy",
+        "positive_after_cost_rate",
+        "positive_stressed_after_cost_rate",
+        "tradable_rate",
+        "statistical_pass_rate",
         "dominant_fail_gate",
+        "last_tested_at",
     ],
     "template_statistics": [
         "template_id",
         "runs_tested",
         "times_evaluated",
         "times_promoted",
+        "promotion_rate",
         "avg_q_value",
         "avg_after_cost_expectancy",
+        "median_after_cost_expectancy",
+        "avg_stressed_after_cost_expectancy",
+        "median_stressed_after_cost_expectancy",
+        "recent_after_cost_expectancy",
+        "recent_stressed_after_cost_expectancy",
+        "positive_after_cost_rate",
+        "positive_stressed_after_cost_rate",
+        "tradable_rate",
+        "statistical_pass_rate",
         "dominant_fail_gate",
+        "last_tested_at",
     ],
     "context_statistics": [
         "context_hash",
@@ -141,9 +172,20 @@ _TABLES = {
         "runs_tested",
         "times_evaluated",
         "times_promoted",
+        "promotion_rate",
         "avg_q_value",
         "avg_after_cost_expectancy",
+        "median_after_cost_expectancy",
+        "avg_stressed_after_cost_expectancy",
+        "median_stressed_after_cost_expectancy",
+        "recent_after_cost_expectancy",
+        "recent_stressed_after_cost_expectancy",
+        "positive_after_cost_rate",
+        "positive_stressed_after_cost_rate",
+        "tradable_rate",
+        "statistical_pass_rate",
         "dominant_fail_gate",
+        "last_tested_at",
     ],
     "failures": FAILURE_COLUMNS,
     "proposals": PROPOSAL_AUDIT_COLUMNS,
@@ -223,6 +265,7 @@ def ensure_memory_store(program_id: str, *, data_root: Path | None = None) -> Me
                 {
                     "repair": [],
                     "exploit": [],
+                    "retest": [],
                     "explore_adjacent": [],
                     "hold": [],
                 },
@@ -799,40 +842,118 @@ def _dominant_fail_gate(series: pd.Series) -> str:
     return str(cleaned.value_counts().idxmax())
 
 
-def compute_region_statistics(tested_regions: pd.DataFrame) -> pd.DataFrame:
+def _truthy_rate(series: pd.Series) -> float:
+    if series.empty:
+        return 0.0
+    normalized = (
+        series.astype("object")
+        .where(series.notna(), "")
+        .astype(str)
+        .str.strip()
+        .str.lower()
+    )
+    mapped = normalized.map(
+        {
+            "pass": True,
+            "true": True,
+            "1": True,
+            "1.0": True,
+            "fail": False,
+            "false": False,
+            "0": False,
+            "0.0": False,
+        }
+    )
+    bool_values = mapped.apply(lambda value: bool(value) if pd.notna(value) else False)
+    if bool_values.empty:
+        return 0.0
+    return float(bool_values.mean())
+
+
+def _positive_rate(series: pd.Series) -> float:
+    numeric = pd.to_numeric(series, errors="coerce").dropna()
+    if numeric.empty:
+        return 0.0
+    return float((numeric > 0.0).mean())
+
+
+def _recent_metric(group: pd.DataFrame, column: str, *, tail_count: int = 3) -> float:
+    if column not in group.columns:
+        return float("nan")
+    work = group.copy()
+    if "updated_at" in work.columns:
+        work["__updated_at"] = pd.to_datetime(work["updated_at"], errors="coerce", utc=True)
+    else:
+        work["__updated_at"] = pd.NaT
+    work["__row_order"] = range(len(work))
+    work = work.sort_values(["__updated_at", "__row_order"], ascending=[True, True], na_position="last")
+    numeric = pd.to_numeric(work[column], errors="coerce").dropna()
+    if numeric.empty:
+        return float("nan")
+    return float(numeric.tail(max(int(tail_count), 1)).mean())
+
+
+def _stats_row(group: pd.DataFrame) -> dict[str, Any]:
+    times_evaluated = int(len(group))
+    times_promoted = int((group.get("eval_status", pd.Series(dtype=object)).astype(str) == "promoted").sum())
+    runs_tested = int(group.get("run_id", pd.Series(dtype=object)).nunique()) if "run_id" in group.columns else times_evaluated
+    after_cost = pd.to_numeric(group.get("after_cost_expectancy", pd.Series(dtype=float)), errors="coerce")
+    stressed = pd.to_numeric(group.get("stressed_after_cost_expectancy", pd.Series(dtype=float)), errors="coerce")
+    robustness = pd.to_numeric(group.get("robustness_score", pd.Series(dtype=float)), errors="coerce")
+    q_value = pd.to_numeric(group.get("q_value", pd.Series(dtype=float)), errors="coerce")
+    return {
+        "runs_tested": runs_tested,
+        "times_evaluated": times_evaluated,
+        "times_promoted": times_promoted,
+        "promotion_rate": float(times_promoted / max(times_evaluated, 1)),
+        "avg_q_value": float(q_value.mean()) if not q_value.dropna().empty else float("nan"),
+        "avg_after_cost_expectancy": float(after_cost.mean()) if not after_cost.dropna().empty else float("nan"),
+        "median_after_cost_expectancy": float(after_cost.median()) if not after_cost.dropna().empty else float("nan"),
+        "avg_stressed_after_cost_expectancy": float(stressed.mean()) if not stressed.dropna().empty else float("nan"),
+        "median_stressed_after_cost_expectancy": float(stressed.median()) if not stressed.dropna().empty else float("nan"),
+        "recent_after_cost_expectancy": _recent_metric(group, "after_cost_expectancy"),
+        "recent_stressed_after_cost_expectancy": _recent_metric(group, "stressed_after_cost_expectancy"),
+        "positive_after_cost_rate": _positive_rate(after_cost),
+        "positive_stressed_after_cost_rate": _positive_rate(stressed),
+        "tradable_rate": _truthy_rate(group.get("gate_bridge_tradable", pd.Series(dtype=object))),
+        "statistical_pass_rate": _truthy_rate(group.get("gate_promo_statistical", pd.Series(dtype=object))),
+        "avg_robustness_score": float(robustness.mean()) if not robustness.dropna().empty else float("nan"),
+        "dominant_fail_gate": _dominant_fail_gate(group.get("primary_fail_gate", pd.Series(dtype=object))),
+        "last_tested_at": str(group.get("updated_at", pd.Series(dtype=object)).dropna().astype(str).max()) if "updated_at" in group.columns and not group.get("updated_at", pd.Series(dtype=object)).dropna().empty else "",
+    }
+
+
+def _build_dimension_statistics(
+    tested_regions: pd.DataFrame,
+    group_columns: list[str],
+    output_columns: List[str],
+) -> pd.DataFrame:
     if tested_regions.empty:
-        return pd.DataFrame(columns=_TABLES["region_statistics"])
-    grouped = tested_regions.groupby("region_key", dropna=False)
-    out = grouped.agg(
-        runs_tested=("run_id", "nunique"),
-        times_evaluated=("candidate_id", "count"),
-        times_promoted=("eval_status", lambda s: int((s.astype(str) == "promoted").sum())),
-        avg_q_value=("q_value", "mean"),
-        avg_after_cost_expectancy=("after_cost_expectancy", "mean"),
-        avg_robustness_score=("robustness_score", "mean"),
-        dominant_fail_gate=("primary_fail_gate", _dominant_fail_gate),
-        last_tested_at=("updated_at", "max"),
-    ).reset_index()
-    out["eval_rate"] = out["times_evaluated"] / out["runs_tested"].clip(lower=1)
-    out["promotion_rate"] = out["times_promoted"] / out["times_evaluated"].clip(lower=1)
-    return out.reindex(columns=_TABLES["region_statistics"])
+        return pd.DataFrame(columns=output_columns)
+    records: list[dict[str, Any]] = []
+    grouped = tested_regions.groupby(group_columns, dropna=False)
+    for key, group in grouped:
+        row: dict[str, Any] = {}
+        if isinstance(key, tuple):
+            for column, value in zip(group_columns, key):
+                row[column] = value
+        else:
+            row[group_columns[0]] = key
+        row.update(_stats_row(group))
+        if "eval_rate" in output_columns:
+            row["eval_rate"] = float(row["times_evaluated"] / max(row["runs_tested"], 1))
+        records.append(row)
+    return pd.DataFrame(records).reindex(columns=output_columns)
+
+
+def compute_region_statistics(tested_regions: pd.DataFrame) -> pd.DataFrame:
+    return _build_dimension_statistics(tested_regions, ["region_key"], _TABLES["region_statistics"])
 
 
 def _aggregate_dimension(
     tested_regions: pd.DataFrame, column: str, output_columns: List[str]
 ) -> pd.DataFrame:
-    if tested_regions.empty:
-        return pd.DataFrame(columns=output_columns)
-    grouped = tested_regions.groupby(column, dropna=False)
-    out = grouped.agg(
-        runs_tested=("run_id", "nunique"),
-        times_evaluated=("candidate_id", "count"),
-        times_promoted=("eval_status", lambda s: int((s.astype(str) == "promoted").sum())),
-        avg_q_value=("q_value", "mean"),
-        avg_after_cost_expectancy=("after_cost_expectancy", "mean"),
-        dominant_fail_gate=("primary_fail_gate", _dominant_fail_gate),
-    ).reset_index()
-    return out.reindex(columns=output_columns)
+    return _build_dimension_statistics(tested_regions, [column], output_columns)
 
 
 def compute_event_statistics(tested_regions: pd.DataFrame) -> pd.DataFrame:
@@ -844,15 +965,8 @@ def compute_template_statistics(tested_regions: pd.DataFrame) -> pd.DataFrame:
 
 
 def compute_context_statistics(tested_regions: pd.DataFrame) -> pd.DataFrame:
-    if tested_regions.empty:
-        return pd.DataFrame(columns=_TABLES["context_statistics"])
-    grouped = tested_regions.groupby(["context_hash", "context_json"], dropna=False)
-    out = grouped.agg(
-        runs_tested=("run_id", "nunique"),
-        times_evaluated=("candidate_id", "count"),
-        times_promoted=("eval_status", lambda s: int((s.astype(str) == "promoted").sum())),
-        avg_q_value=("q_value", "mean"),
-        avg_after_cost_expectancy=("after_cost_expectancy", "mean"),
-        dominant_fail_gate=("primary_fail_gate", _dominant_fail_gate),
-    ).reset_index()
-    return out.reindex(columns=_TABLES["context_statistics"])
+    return _build_dimension_statistics(
+        tested_regions,
+        ["context_hash", "context_json"],
+        _TABLES["context_statistics"],
+    )

@@ -20,6 +20,7 @@ from project.domain.compiled_registry import get_domain_registry
 from project.events.config import compose_event_config
 from project.io.utils import ensure_dir, read_parquet
 from project.research.agent_io.execute_proposal import build_run_all_command
+from project.research.agent_io.generated_proposal_policy import resolve_generated_proposal_controls
 from project.research.agent_io.proposal_schema import _proposal_settable_knobs, load_agent_proposal
 from project.research.agent_io.proposal_to_experiment import translate_and_validate_proposal
 from project.research.regime_routing import executable_regime_event_fanout, routing_entry_for_regime
@@ -327,6 +328,17 @@ def build_shakeout_proposal_payload(
         defaults.get("program_id", matrix.get("matrix_id", "regime_shakeout"))
     ).strip()
     program_id = f"{_slug(base_program_id)}__{slice_def.run_id}"
+    run_mode = str(defaults.get("run_mode", "research")).strip() or "research"
+    promotion_profile = str(defaults.get("promotion_profile", "disabled")).strip() or "disabled"
+    timeframe = str(defaults.get("timeframe", "5m")).strip() or "5m"
+    resolved_controls = resolve_generated_proposal_controls(
+        templates=slice_def.templates,
+        horizons_bars=tuple(defaults.get("horizons_bars", [12, 24])),
+        directions=tuple(defaults.get("directions", ["long", "short"])),
+        entry_lags=tuple(defaults.get("entry_lags", [1])),
+        promotion_profile=promotion_profile,
+        run_mode=run_mode,
+    )
     payload: Dict[str, Any] = {
         "program_id": program_id,
         "objective_name": str(defaults.get("objective_name", "retail_profitability")).strip()
@@ -335,11 +347,10 @@ def build_shakeout_proposal_payload(
             f"{slice_def.slice_type} shakeout for {slice_def.canonical_regime} "
             f"on {slice_def.symbol} during {slice_def.window_label}"
         ),
-        "run_mode": str(defaults.get("run_mode", "research")).strip() or "research",
-        "promotion_profile": str(defaults.get("promotion_profile", "disabled")).strip()
-        or "disabled",
+        "run_mode": run_mode,
+        "promotion_profile": promotion_profile,
         "symbols": [slice_def.symbol],
-        "timeframe": str(defaults.get("timeframe", "5m")).strip() or "5m",
+        "timeframe": timeframe,
         "start": slice_def.start,
         "end": slice_def.end,
         "trigger_space": {
@@ -354,6 +365,9 @@ def build_shakeout_proposal_payload(
         "horizons_bars": list(defaults.get("horizons_bars", [12, 24])),
         "directions": list(defaults.get("directions", ["long", "short"])),
         "entry_lags": list(defaults.get("entry_lags", [1])),
+        "discovery_profile": resolved_controls["discovery_profile"],
+        "phase2_gate_profile": resolved_controls["phase2_gate_profile"],
+        "search_spec": resolved_controls["search_spec"],
         "contexts": dict(slice_def.contexts),
         "search_control": dict(defaults.get("search_control", {})),
         "artifacts": dict(defaults.get("artifacts", {})),

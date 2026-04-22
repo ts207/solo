@@ -24,3 +24,16 @@ def test_synthetic_profile_still_redirects_default_search_to_synthetic_truth() -
     assert resolved["search_spec"] == "synthetic_truth"
     assert resolved["min_n"] == 8
     assert resolved["min_t_stat"] == 0.25
+
+
+def test_exploratory_profile_relaxes_discovery_thresholds_and_exposes_overrides() -> None:
+    resolved = resolve_search_profile(
+        discovery_profile="exploratory",
+        search_spec="spec/search_space.yaml",
+        min_n=30,
+        min_t_stat=None,
+    )
+    assert resolved["min_n"] == 24
+    assert resolved["min_t_stat"] == 1.0
+    assert resolved["hierarchical_overrides"]["trigger_viability"]["max_templates"] == 2
+    assert resolved["hierarchical_overrides"]["execution_refinement"]["max_horizons"] == 3

@@ -523,3 +523,15 @@ def test_export_promoted_theses_rejects_unknown_override_target(tmp_path: Path) 
             promoted_df=promoted_df,
             deployment_state_overrides={"missing_selector": "live_enabled"},
         )
+
+
+def test_export_promoted_theses_allows_zero_thesis_export_for_canonical_empty_validation(tmp_path: Path) -> None:
+    _write_validation_lineage(tmp_path, run_id="run_empty", candidate_id="cand_0", status="rejected")
+
+    result = export_promoted_theses_for_run("run_empty", data_root=tmp_path)
+    payload = json.loads(result.output_path.read_text(encoding="utf-8"))
+
+    assert result.thesis_count == 0
+    assert result.active_count == 0
+    assert result.pending_count == 0
+    assert payload["theses"] == []

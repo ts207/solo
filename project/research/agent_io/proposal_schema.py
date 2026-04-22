@@ -168,7 +168,7 @@ def _normalize_promotion_profile(raw: Any) -> str:
 
 def _normalize_discovery_profile(raw: Any) -> str:
     value = str(raw or "standard").strip().lower()
-    if value not in {"standard", "synthetic"}:
+    if value not in {"standard", "exploratory", "synthetic"}:
         raise ValueError(f"Unsupported discovery profile: {raw}")
     return value
 

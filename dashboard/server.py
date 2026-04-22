@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
 Edge Research Platform — Backend
-Run: python dashboard/server.py [port]
-Default port: 7477
+Run: python dashboard/server.py [port] [host]
+Default: port=7477 host=127.0.0.1
 """
 
 from __future__ import annotations
@@ -1199,38 +1199,40 @@ class Handler(BaseHTTPRequestHandler):
                     if not run_id:
                         self.send_json({"ok": False, "error": "run_id required"}, 400)
                         return
-                    cmd = ["python3", "-m", "project.cli", "deploy", "paper", "--run_id", run_id]
-                    label = f"deploy-paper·{run_id}"
-
-                elif stage == "ingest":
-                    run_id = args.get("run_id", "")
+                    out_dir = args.get("out_dir", "project/configs")
+                    runtime_mode = args.get("runtime_mode", "monitor_only")
                     symbols = args.get("symbols", "BTCUSDT,ETHUSDT")
-                    start = args.get("start", "2021-01-01")
-                    end = args.get("end", "2024-12-31")
-                    timeframe = args.get("timeframe", "5m")
-                    exchange = args.get("exchange", "bybit")
-                    data_type = args.get("data_type", "ohlcv")
                     cmd = [
                         "python3",
                         "-m",
                         "project.cli",
-                        "ingest",
+                        "deploy",
+                        "bind-config",
                         "--run_id",
                         run_id,
+                        "--out_dir",
+                        out_dir,
+                        "--runtime_mode",
+                        runtime_mode,
                         "--symbols",
                         symbols,
-                        "--start",
-                        start,
-                        "--end",
-                        end,
-                        "--timeframe",
-                        timeframe,
-                        "--exchange",
-                        exchange,
-                        "--data_type",
-                        data_type,
                     ]
-                    label = f"ingest·{run_id}"
+                    label = f"bind-config·{run_id}"
+
+                elif stage == "deploy" and subcmd == "status":
+                    run_id = args.get("run_id", "")
+                    if not run_id:
+                        self.send_json({"ok": False, "error": "run_id required"}, 400)
+                        return
+                    cmd = ["python3", "-m", "project.cli", "deploy", "status", "--run_id", run_id]
+                    label = f"deploy-status·{run_id}"
+
+                elif stage == "ingest":
+                    self.send_json({
+                        "ok": False,
+                        "error": "dashboard ingest launch is disabled in this bundle because there is no canonical edge ingest CLI subcommand"
+                    }, 400)
+                    return
 
                 elif stage == "build-graph":
                     cmd = ["python3", "project/scripts/build_domain_graph.py"]
@@ -1304,6 +1306,7 @@ class Handler(BaseHTTPRequestHandler):
 
 def main():
     port = int(sys.argv[1]) if len(sys.argv) > 1 else 7477
+    host = sys.argv[2] if len(sys.argv) > 2 else "127.0.0.1"
 
     print("Edge Research Platform")
     print("=" * 44)
@@ -1322,9 +1325,9 @@ def main():
         f"@ {data['overview']['best_signal_bps']} bps"
     )
 
-    httpd = HTTPServer(("", port), Handler)
+    httpd = HTTPServer((host, port), Handler)
     print()
-    print(f"  Platform → http://localhost:{port}")
+    print(f"  Platform → http://{host}:{port}")
     print("  Ctrl+C to stop")
     print()
     try:

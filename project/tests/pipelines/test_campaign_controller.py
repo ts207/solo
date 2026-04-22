@@ -329,6 +329,7 @@ def test_propose_next_request_honors_repair_focus_with_actionable_queue(test_env
                     }
                 ],
                 "exploit": [],
+                "retest": [],
                 "explore_adjacent": [],
                 "hold": [],
             }
@@ -358,12 +359,111 @@ def test_propose_next_request_fails_closed_when_repair_focus_has_no_action(test_
         encoding="utf-8",
     )
     paths.next_actions.write_text(
-        json.dumps({"repair": [], "exploit": [], "explore_adjacent": [], "hold": []}),
+        json.dumps({"repair": [], "exploit": [], "retest": [], "explore_adjacent": [], "hold": []}),
         encoding="utf-8",
     )
 
     with pytest.raises(CampaignMemoryIntegrityError, match="current_focus=repair_pipeline"):
         controller._propose_next_request()
+
+
+def test_step_exploit_queue_consumes_explicit_exploit_action(test_env):
+    controller = test_env
+    proposal = controller._step_exploit_queue(
+        {
+            "next_actions": {
+                "exploit": [
+                    {
+                        "proposed_scope": {
+                            "trigger_type": "EVENT",
+                            "event_type": "VOL_SHOCK",
+                            "template_id": "mean_reversion",
+                            "direction": "long",
+                            "horizon": "24b",
+                            "entry_lag": 1,
+                        }
+                    }
+                ]
+            }
+        }
+    )
+
+    assert proposal is not None
+    assert proposal["trigger_space"]["events"]["include"] == ["VOL_SHOCK"]
+    assert proposal["promotion"]["enabled"] is True
+    assert proposal["evaluation"]["horizons_bars"] == [24]
+
+
+def test_step_retest_queue_consumes_explicit_retest_action(test_env):
+    controller = test_env
+    proposal = controller._step_retest_queue(
+        {
+            "next_actions": {
+                "retest": [
+                    {
+                        "proposed_scope": {
+                            "trigger_type": "EVENT",
+                            "event_type": "VOL_SHOCK",
+                            "template_id": "mean_reversion",
+                            "direction": "short",
+                            "horizon": "12b",
+                            "entry_lag": 2,
+                        }
+                    }
+                ]
+            }
+        }
+    )
+
+    assert proposal is not None
+    assert proposal["trigger_space"]["events"]["include"] == ["VOL_SHOCK"]
+    assert proposal["promotion"]["enabled"] is False
+    assert proposal["evaluation"]["entry_lags"] == [2]
+
+
+def test_propose_next_request_prefers_explicit_exploit_queue_over_scan(test_env):
+    controller = test_env
+    paths = ensure_memory_store("test_campaign", data_root=controller.data_root)
+    paths.belief_state.write_text(
+        json.dumps(
+            {
+                "current_focus": "",
+                "avoid_regions": [],
+                "promising_regions": [],
+                "open_repairs": [],
+            }
+        ),
+        encoding="utf-8",
+    )
+    paths.next_actions.write_text(
+        json.dumps(
+            {
+                "repair": [],
+                "exploit": [
+                    {
+                        "proposed_scope": {
+                            "trigger_type": "EVENT",
+                            "event_type": "VOL_SHOCK",
+                            "template_id": "continuation",
+                            "direction": "long",
+                            "horizon": "24b",
+                            "entry_lag": 1,
+                        }
+                    }
+                ],
+                "retest": [],
+                "explore_adjacent": [],
+                "hold": [],
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    proposal = controller._propose_next_request()
+
+    assert proposal is not None
+    assert proposal["trigger_space"]["events"]["include"] == ["VOL_SHOCK"]
+    assert proposal["promotion"]["enabled"] is True
 
 
 def test_context_for_proposal_uses_registry_dimensions(test_env):

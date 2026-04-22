@@ -31,7 +31,7 @@ def build_candidate_discovery_parser() -> argparse.ArgumentParser:
     parser.add_argument("--embargo_bars", type=int, default=0)
     parser.add_argument("--purge_bars", type=int, default=0)
     parser.add_argument("--train_only_lambda_used", type=float, default=0.0)
-    parser.add_argument("--discovery_profile", default="standard")
+    parser.add_argument("--discovery_profile", choices=["standard", "exploratory", "synthetic"], default="standard")
     parser.add_argument("--candidate_generation_method", default="phase2_v1")
     parser.add_argument("--concept_file", default=None)
     parser.add_argument("--entry_lag_bars", type=int, default=1)

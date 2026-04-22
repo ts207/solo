@@ -47,6 +47,7 @@ from project.research.knowledge.memory import (
     compute_context_statistics,
 )
 from project.research.knowledge.reflection import build_run_reflection
+from project.research.update_campaign_memory import _build_next_actions
 
 _LOG = logging.getLogger(__name__)
 
@@ -140,7 +141,7 @@ class CampaignCycleRunner:
                 return json.loads(path.read_text(encoding="utf-8"))
             except Exception as e:
                 raise DataIntegrityError(f"Failed to load next actions {path}: {e}") from e
-        return {"repair": [], "exploit": [], "explore_adjacent": [], "hold": []}
+        return {"repair": [], "exploit": [], "retest": [], "explore_adjacent": [], "hold": []}
 
     def _save_next_actions(self, next_actions: Dict[str, List[str]]) -> None:
         atomic_write_json(
@@ -171,7 +172,12 @@ class CampaignCycleRunner:
                 existing = read_memory_table(
                     self.config.program_id, "tested_regions", data_root=self.data_root
                 )
-                merged = pd.concat([existing, tested], ignore_index=True)
+                if existing.empty:
+                    merged = tested.copy()
+                elif tested.empty:
+                    merged = existing.copy()
+                else:
+                    merged = pd.concat([existing, tested], ignore_index=True)
                 merged = merged.drop_duplicates(subset=["region_key"], keep="last")
                 write_memory_table(
                     self.config.program_id, "tested_regions", merged, data_root=self.data_root
@@ -233,23 +239,24 @@ class CampaignCycleRunner:
         next_actions: Dict[str, List[str]],
         reflection: Dict[str, Any],
     ) -> Dict[str, List[str]]:
-        """Update next actions based on reflection."""
-        action = reflection.get("recommended_next_action", "hold")
-        run_id = reflection.get("run_id", "")
-
-        if action == "repair_pipeline":
-            next_actions.setdefault("repair", []).insert(0, run_id)
-        elif action == "exploit_promising_region":
-            next_actions.setdefault("exploit", []).insert(0, run_id)
-        elif action == "explore_adjacent_region":
-            next_actions.setdefault("explore_adjacent", []).insert(0, run_id)
-        elif action == "hold":
-            next_actions.setdefault("hold", []).insert(0, run_id)
-
-        for key in next_actions:
-            next_actions[key] = next_actions[key][:50]
-
-        return next_actions
+        """Rebuild next actions from current memory using the shared action policy."""
+        tested_regions = read_memory_table(
+            self.config.program_id, "tested_regions", data_root=self.data_root
+        )
+        failures = read_memory_table(
+            self.config.program_id, "failures", data_root=self.data_root
+        )
+        rebuilt = _build_next_actions(
+            reflection=reflection,
+            tested_regions=tested_regions,
+            failures=failures,
+            regime_conditional_candidates=pd.DataFrame(),
+            exploit_top_k=3,
+            repair_top_k=3,
+        )
+        for key in list(rebuilt.keys()):
+            rebuilt[key] = list(rebuilt.get(key, []))[:50]
+        return rebuilt
 
     def _record_reflection(self, reflection: Dict[str, Any]) -> None:
         """Record reflection to memory."""

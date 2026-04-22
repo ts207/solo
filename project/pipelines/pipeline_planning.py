@@ -17,8 +17,10 @@ from project.io.utils import (
     discover_external_cleaned_root,
     external_cleaned_dataset_dir,
     materialize_external_cleaned_dataset,
+    unreadable_parquet_samples,
 )
 from project.pipelines.effective_config import resolve_effective_args
+from project.research.feature_surface_viability import analyze_feature_surface_viability
 from project.pipelines.execution_plan import (
     ExecutionPlan,
     PlannedArtifactObligation,
@@ -191,7 +193,7 @@ def build_parser() -> argparse.ArgumentParser:
         default="auto",
     )
     parser.add_argument(
-        "--discovery_profile", choices=["standard", "synthetic"], default="standard"
+        "--discovery_profile", choices=["standard", "exploratory", "synthetic"], default="standard"
     )
     parser.add_argument(
         "--discovery-mode",
@@ -799,6 +801,14 @@ def _discover_local_cleaned_coverage(
                 coverage_gaps.append(
                     f"perp/{symbol}/bars_{tf} does not cover requested window {args.start}..{args.end}"
                 )
+                continue
+            unreadable_samples = unreadable_parquet_samples(dataset_root, limit=2)
+            if unreadable_samples:
+                timeframe_ok = False
+                sample_text = ", ".join(str(path) for path in unreadable_samples)
+                coverage_gaps.append(
+                    f"perp/{symbol}/bars_{tf} uses native parquet bytes that are unreadable in the current runtime: {sample_text}"
+                )
         if timeframe_ok:
             covered_perp.append(tf)
             for symbol in parsed_symbols:
@@ -1029,6 +1039,45 @@ def prepare_run_preflight(
     args.phase2_gate_profile_resolved = (
         str(getattr(args, "phase2_gate_profile", "auto") or "auto").strip().lower()
     )
+
+    viability_target_events, _ = _experiment_trigger_hints(args, include_phase2_event_type=True)
+    feature_surface_viability = {
+        "schema_version": "feature_surface_viability_v1",
+        "status": "unknown",
+        "event_types": sorted(viability_target_events),
+        "symbols": {},
+        "detectors": {},
+        "issues": [],
+    }
+    if int(getattr(args, "run_phase2_conditional", 0) or 0) and viability_target_events:
+        analysis_timeframe = parse_timeframes_csv(getattr(args, "timeframes", "5m"))[0]
+        feature_surface_viability = analyze_feature_surface_viability(
+            data_root=data_root,
+            run_id=run_id,
+            symbols=parsed_symbols,
+            timeframe=analysis_timeframe,
+            start=str(args.start),
+            end=str(args.end),
+            event_types=sorted(viability_target_events),
+            market="perp",
+        )
+        if str(feature_surface_viability.get("status", "unknown") or "unknown").strip().lower() == "block":
+            for event_name, payload in sorted(feature_surface_viability.get("detectors", {}).items()):
+                blocked_symbols = list(payload.get("block_symbols", []))
+                if blocked_symbols:
+                    print(
+                        f"ERROR: feature surface viability gate blocked detector {event_name} for symbols {blocked_symbols}.",
+                        file=sys.stderr,
+                    )
+            for issue in list(feature_surface_viability.get("issues", [])):
+                print(f"ERROR: {issue}", file=sys.stderr)
+            return {
+                "exit_code": 2,
+                "run_id": run_id,
+                "local_cleaned": local_cleaned,
+        "feature_surface_viability": feature_surface_viability,
+                "feature_surface_viability": feature_surface_viability,
+            }
 
     # Build Plan
     stages = build_pipeline_plan(

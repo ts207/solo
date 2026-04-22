@@ -34,6 +34,12 @@ def main(argv: list[str] | None = None) -> int:
         default=None,
         help="Explicit override in the form '<thesis_id_or_candidate_id>=<deployment_state>'. Repeat as needed.",
     )
+    parser.add_argument(
+        "--allow-bundle-only-export",
+        type=int,
+        default=0,
+        help="Permit zero-thesis exports when validation produced no promotable candidates.",
+    )
     args = parser.parse_args(argv)
 
     try:
@@ -47,6 +53,7 @@ def main(argv: list[str] | None = None) -> int:
             data_root=Path(args.data_root) if args.data_root else None,
             deployment_state_overrides=deployment_state_overrides,
             register_runtime_name=args.register_runtime,
+            allow_bundle_only_export=bool(args.allow_bundle_only_export),
         )
     except ValueError as exc:
         logging.error("%s", exc)

@@ -14,11 +14,11 @@ def _write_frame(path: Path, timestamps: list[str]) -> None:
     frame = pd.DataFrame(
         {
             "timestamp": timestamps,
-            "open": [1.0] * len(timestamps),
-            "high": [1.0] * len(timestamps),
-            "low": [1.0] * len(timestamps),
-            "close": [1.0] * len(timestamps),
-            "volume": [1.0] * len(timestamps),
+            "open": [float(i + 1) for i in range(len(timestamps))],
+            "high": [float(i + 2) for i in range(len(timestamps))],
+            "low": [float(i + 0.5) for i in range(len(timestamps))],
+            "close": [float(i + 1.5) for i in range(len(timestamps))],
+            "volume": [float(10 * (i + 1)) for i in range(len(timestamps))],
         }
     )
     write_parquet(frame, path)
@@ -111,7 +111,7 @@ def test_operator_preflight_passes_with_vendorless_local_raw_layout(tmp_path, mo
     assert btc["ohlcv"]["resolved_path"].endswith("lake/raw/perp/BTCUSDT/ohlcv_5m")
     assert out_json.exists()
     payload = json.loads(out_json.read_text(encoding="utf-8"))
-    assert payload["schema_version"] == "operator_preflight_v1"
+    assert payload["schema_version"] == "operator_preflight_v2"
 
 
 def test_operator_preflight_blocks_when_ohlcv_is_missing(tmp_path, monkeypatch) -> None:
@@ -207,3 +207,70 @@ def test_operator_preflight_warns_when_some_local_raw_shards_are_unreadable(
     assert ohlcv["coverage"] == "full"
     assert ohlcv["unreadable_file_count"] == 1
     assert ohlcv["status"] == "warn"
+
+
+def test_operator_preflight_blocks_when_required_detector_surface_is_degenerate(tmp_path, monkeypatch) -> None:
+    data_root = tmp_path / "data"
+    raw_dir = data_root / "lake" / "raw" / "perp" / "BTCUSDT" / "ohlcv_5m"
+    raw_dir.mkdir(parents=True, exist_ok=True)
+    frame = pd.DataFrame(
+        {
+            "timestamp": [
+                "2021-01-01T00:00:00Z",
+                "2021-01-01T00:05:00Z",
+                "2021-01-01T00:10:00Z",
+                "2021-01-01T00:15:00Z",
+            ],
+            "open": [100.0, 101.0, 102.0, 103.0],
+            "high": [101.0, 102.0, 103.0, 104.0],
+            "low": [99.0, 100.0, 101.0, 102.0],
+            "close": [100.5, 101.5, 102.5, 103.5],
+            "volume": [10.0, 11.0, 12.0, 13.0],
+        }
+    )
+    write_parquet(frame, raw_dir / "part-000.parquet")
+    search_spec = tmp_path / "search_space.yaml"
+    search_spec.write_text("search: {}\n", encoding="utf-8")
+    proposal_path = tmp_path / "proposal.yaml"
+    import yaml
+
+    payload = _proposal_payload(search_spec)
+    payload["hypothesis"]["anchor"]["event_id"] = "LIQUIDATION_EXHAUSTION_REVERSAL"
+    proposal_path.write_text(yaml.safe_dump(payload), encoding="utf-8")
+
+    monkeypatch.setattr(
+        "project.research.agent_io.proposal_to_experiment._build_experiment_plan",
+        lambda *args, **kwargs: SimpleNamespace(
+            program_id="btc_campaign",
+            estimated_hypothesis_count=1,
+            required_detectors=["LIQUIDATION_EXHAUSTION_REVERSAL"],
+            required_features=["oi_delta_1h"],
+            required_states=[],
+        ),
+    )
+    monkeypatch.setattr(
+        "project.operator.preflight.translate_and_validate_proposal",
+        lambda *args, **kwargs: {
+            "validated_plan": {
+                "program_id": "btc_campaign",
+                "estimated_hypothesis_count": 1,
+                "required_detectors": ["LIQUIDATION_EXHAUSTION_REVERSAL"],
+                "required_features": ["oi_delta_1h"],
+                "required_states": [],
+            }
+        },
+    )
+
+    result = run_preflight(
+        proposal_path=proposal_path,
+        registry_root=Path("project/configs/registries"),
+        data_root=data_root,
+        out_dir=tmp_path / "out",
+    )
+
+    assert result["status"] == "block"
+    viability = next(item for item in result["checks"] if item["name"] == "feature_surface_viability")
+    assert viability["status"] == "block"
+    detector = viability["details"]["detectors"]["LIQUIDATION_EXHAUSTION_REVERSAL"]
+    assert detector["status"] == "block"
+    assert "BTCUSDT" in detector["block_symbols"]

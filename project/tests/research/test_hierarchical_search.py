@@ -117,8 +117,23 @@ class TestStageAGenerator:
 
         events = ["VOL_SHOCK", "LIQUIDATION_CASCADE", "VOL_SPIKE"]
         specs = generate_trigger_probe_candidates(events, _MINIMAL_SEARCH_SPEC, _HIERARCHICAL_CONFIG)
-        # Max: 3 events × 2 directions × 1 template × 1 horizon = 6
+        # Max: 3 events × 2 directions × 1 template × 1 horizon × 1 lag = 6
         assert len(specs) <= len(events) * 2
+
+    def test_max_templates_cap_is_respected(self):
+        from project.research.search.generator import generate_trigger_probe_candidates
+
+        cfg = {
+            **_HIERARCHICAL_CONFIG,
+            "trigger_viability": {
+                **_HIERARCHICAL_CONFIG["trigger_viability"],
+                "max_templates": 2,
+            },
+        }
+        spec_doc = {**_MINIMAL_SEARCH_SPEC, "expression_templates": ["continuation", "mean_reversion", "momentum_fade"]}
+        specs = generate_trigger_probe_candidates(["VOL_SHOCK"], spec_doc, cfg)
+        templates = {s.template_id for s in specs}
+        assert len(templates) <= 2
 
     def test_no_context_expansion(self):
         """Stage A probes must have no context (all None)."""
@@ -214,6 +229,26 @@ class TestStageCGenerator:
         # Both directions must be present
         assert "long" in directions
         assert "short" in directions
+
+    def test_stage_c_respects_horizon_and_lag_caps(self):
+        from project.research.search.generator import generate_execution_refinement_candidates
+
+        cfg = {
+            **_HIERARCHICAL_CONFIG,
+            "execution_refinement": {
+                **_HIERARCHICAL_CONFIG["execution_refinement"],
+                "max_horizons": 1,
+                "max_entry_lags": 1,
+            },
+        }
+        spec_doc = {
+            **_MINIMAL_SEARCH_SPEC,
+            "entry_lags": [1, 2, 3],
+            "horizons": ["12b", "24b", "48b"],
+        }
+        specs = generate_execution_refinement_candidates([("VOL_SHOCK", "continuation")], spec_doc, cfg)
+        assert {s.horizon for s in specs} == {"12b"}
+        assert {s.entry_lag for s in specs} == {1}
 
 
 class TestStageDGenerator:
@@ -577,6 +612,26 @@ class TestLoadHierarchicalConfig:
         doc = {"discovery_search": {"mode": "Hierarchical"}}
         cfg = _load_hierarchical_config(doc)
         assert cfg is not None
+
+    def test_profile_overrides_merge_into_hierarchical_config(self):
+        from project.research.phase2_search_engine import (
+            _apply_hierarchical_profile_overrides,
+            _load_hierarchical_config,
+        )
+
+        doc = _make_spec_doc("hierarchical")
+        cfg = _load_hierarchical_config(doc)
+        merged = _apply_hierarchical_profile_overrides(
+            cfg,
+            {
+                "trigger_viability": {"max_templates": 2},
+                "execution_refinement": {"max_horizons": 3},
+            },
+        )
+        assert merged is not None
+        assert merged["trigger_viability"]["max_templates"] == 2
+        assert merged["execution_refinement"]["max_horizons"] == 3
+        assert merged["template_refinement"]["top_k_templates_per_trigger"] == 2
 
 
 # ---------------------------------------------------------------------------

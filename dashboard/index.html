@@ -1183,7 +1183,7 @@ tbody tr.expanded:nth-child(even) td { background: rgba(0,212,255,.05); }
       </div>
       <div class="op-layout mb">
         <div class="card">
-          <div class="card-head"><span class="ch-title">Execution Context</span><span class="ch-note">Proposal, run, market window, and ingest scope</span></div>
+          <div class="card-head"><span class="ch-title">Execution Context</span><span class="ch-note">Proposal, run, market window, and runtime config scope</span></div>
           <div class="card-body">
             <div class="stack">
               <div class="pb-section">
@@ -1837,7 +1837,7 @@ function renderOverview(){
         ${chip(job.status, job.status==="done"?"ok":job.status==="failed"?"fail":"warn")}
         <div><strong>${job.label}</strong>${job.started_at||"—"}<br><span class="mono">${job.cmd}</span></div>
       </div>`).join("")}</div>`
-    : '<div class="empty">No recent jobs. Use Operator to launch discover, validate, promote, deploy, ingest, or graph actions.</div>';
+    : '<div class="empty">No recent jobs. Use Operator to launch discover, validate, promote, deploy, or graph actions.</div>';
 
   $("ov-commits").innerHTML=(D.gitActivity||[]).length
     ? `<div class="hero-list">${D.gitActivity.slice(0,4).map(commit=>`<div class="hero-item">
@@ -2033,7 +2033,7 @@ function renderPipeline(){
      desc:"Thesis packaging and governance. Cap profiles, approval metadata, deployment disposition.",
      stats:[["Theses promoted","—"],["Promotion gate","Multi-gate"],["Live eligible","Pending"]],
      status:"neutral"},
-    {num:"04",name:"Deploy",cmd:"edge deploy paper --run_id <run_id>",
+    {num:"04",name:"Deploy",cmd:"edge deploy bind-config --run_id <run_id> --out_dir project/configs",
      desc:"Runtime execution. Paper trading (dry-run) → live_enabled after operator approval.",
      stats:[["Active theses","0"],["Paper sessions","—"],["Live sessions","—"]],
      status:"neutral"},
@@ -2087,9 +2087,8 @@ function renderPipeline(){
     {stage:"Discover",cmds:["edge discover plan --proposal <yaml>","edge discover run --proposal <yaml>","edge discover list-artifacts"]},
     {stage:"Validate",cmds:["edge validate run --run_id <id>","edge validate report --run_id <id>","edge validate diagnose --run_id <id>"]},
     {stage:"Promote", cmds:["edge promote run --run_id <id> --symbols BTCUSDT,ETHUSDT","edge promote export --run_id <id>"]},
-    {stage:"Deploy",  cmds:["edge deploy paper --run_id <id>","edge deploy list-theses","edge deploy status"]},
-    {stage:"Ingest",  cmds:["edge ingest --run_id <id> --symbols BTCUSDT,ETHUSDT --start 2021-01-01 --end 2024-12-31"]},
-    {stage:"Catalog", cmds:["edge catalog list --stage discover","edge catalog compare --run_id_a <a> --run_id_b <b>"]},
+    {stage:"Deploy",  cmds:["edge deploy bind-config --run_id <id> --out_dir project/configs","edge deploy paper-run --config project/configs/live_paper_<id>.yaml","edge deploy status --run_id <id>"]},
+        {stage:"Catalog", cmds:["edge catalog list --stage discover","edge catalog compare --run_id_a <a> --run_id_b <b>"]},
   ];
   $("pipeline-cli").innerHTML=`<div style="display:grid;gap:8px;grid-template-columns:repeat(auto-fit,minmax(270px,1fr))">
     ${cmds.map(c=>`<div class="sym-card">
@@ -2224,15 +2223,15 @@ function renderOperator(){
       </div>
       <div class="workflow-card">
         <div class="workflow-top"><div class="workflow-name">Deploy + Infra</div>${chip("runtime","neutral")}</div>
-        <div class="workflow-note">Paper deployment, ingest refresh, and ontology rebuild remain available directly from the same surface.</div>
+        <div class="workflow-note">Config binding, runtime launch, and ontology rebuild remain available directly from the same surface.</div>
         <div class="workflow-list">
-          <div class="workflow-item"><span class="k">Deploy paper</span><span class="v">Dry-run thesis activation</span></div>
-          <div class="workflow-item"><span class="k">Ingest</span><span class="v">Refresh market inputs</span></div>
+          <div class="workflow-item"><span class="k">Bind config</span><span class="v">Generate runtime config from promoted thesis</span></div>
+          <div class="workflow-item"><span class="k">Deploy status</span><span class="v">Inspect thesis/config readiness</span></div>
           <div class="workflow-item"><span class="k">Build graph</span><span class="v">Rebuild domain ontology</span></div>
         </div>
         <div class="inline-actions">
-          <button class="btn btn-secondary" onclick="runStage('deploy','paper')">Deploy Paper</button>
-          <button class="btn btn-secondary" onclick="runStage('ingest')">Ingest</button>
+          <button class="btn btn-secondary" onclick="runStage('deploy','paper')">Bind Config</button>
+          <button class="btn btn-secondary" onclick="runStage('deploy','status')">Deploy Status</button>
           <button class="btn btn-primary" onclick="runStage('build-graph')">Build Graph</button>
         </div>
       </div>
@@ -2248,7 +2247,7 @@ function renderOperator(){
     <div class="kv"><span class="k">Run ID</span><span class="v mono">${runId || "—"}</span></div>
     <div class="kv"><span class="k">Symbols</span><span class="v">${$("op-symbols").value || "—"}</span></div>
     <div class="kv"><span class="k">Window</span><span class="v">${$("op-start").value} → ${$("op-end").value}</span></div>
-    <div class="kv"><span class="k">Ingest</span><span class="v">${$("op-exchange").value} · ${$("op-data-type").value} · ${$("op-timeframe").value}</span></div>
+    <div class="kv"><span class="k">Runtime config</span><span class="v">project/configs/live_paper_${runId || "<run_id>"}.yaml</span></div>
     <div class="kv"><span class="k">Run status</span><span class="v">${selectedRun ? `${selectedRun.phase2_candidates_written||0} candidates` : "No matching run selected"}</span></div>
   </div>`;
   renderJobsPanel();
@@ -2280,10 +2279,10 @@ function opArgsFor(stage, subcmd){
     return {run_id: runId, symbols};
   }
   if(stage==="deploy"&&subcmd==="paper"){
-    return {run_id: runId};
+    return {run_id: runId, symbols, out_dir:"project/configs", runtime_mode:"monitor_only"};
   }
-  if(stage==="ingest"){
-    return {run_id: runId, symbols, start, end, timeframe, exchange, data_type: dataType};
+  if(stage==="deploy"&&subcmd==="status"){
+    return {run_id: runId};
   }
   return {};
 }

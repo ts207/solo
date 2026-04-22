@@ -533,6 +533,7 @@ def generate_trigger_probe_candidates(
     No context expansion.
     """
     stage_cfg = hierarchical_config.get("trigger_viability", {})
+    max_templates = int(stage_cfg.get("max_templates", 1))
     max_horizons = int(stage_cfg.get("max_horizons", 1))
     max_entry_lags = int(stage_cfg.get("max_entry_lags", 1))
     allow_both = bool(stage_cfg.get("allow_both_directions", True))
@@ -557,7 +558,7 @@ def generate_trigger_probe_candidates(
         event_templates = _canonical_templates_for_event(
             event_id, fallback_templates=templates_all, registry=registry
         )
-        probe_templates = _first_n(event_templates, 1)
+        probe_templates = _first_n(event_templates, max_templates)
 
         for spec in _build_hypotheses(
             TriggerType.EVENT,
@@ -581,9 +582,10 @@ def generate_trigger_probe_candidates(
             hypotheses.append(spec)
 
     log.info(
-        "Stage A probes: %d hypotheses from %d triggers (no context, 1 template each)",
+        "Stage A probes: %d hypotheses from %d triggers (no context, up to %d templates each)",
         len(hypotheses),
         len(events),
+        max_templates,
     )
     return hypotheses
 
@@ -674,12 +676,16 @@ def generate_execution_refinement_candidates(
     if not surviving_trigger_templates:
         return []
 
+    stage_cfg = hierarchical_config.get("execution_refinement", {})
+    max_horizons = int(stage_cfg.get("max_horizons", 2))
+    max_entry_lags = int(stage_cfg.get("max_entry_lags", max(1, len(resolve_entry_lags(search_spec_doc)))))
+
     horizons_all = [str(h) for h in search_spec_doc.get("horizons", ["24b"])]
     entry_lags_all = resolve_entry_lags(search_spec_doc)
     directions_all = [str(d) for d in search_spec_doc.get("directions", ["long", "short"])]
 
-    # At most first 2 horizon variants; all lags; all directions
-    exec_horizons = _first_n(horizons_all, 2)
+    exec_horizons = _first_n(horizons_all, max_horizons)
+    exec_lags = _first_n(entry_lags_all, max_entry_lags)
     exec_contexts: List[Optional[Dict[str, Any]]] = [None]
 
     hypotheses: List[HypothesisSpec] = []
@@ -691,7 +697,7 @@ def generate_execution_refinement_candidates(
             [event_id],
             exec_horizons,
             directions_all,
-            entry_lags_all,
+            exec_lags,
             exec_contexts,
             [template_id],
         ):
@@ -712,7 +718,7 @@ def generate_execution_refinement_candidates(
         len(hypotheses),
         len(surviving_trigger_templates),
         len(directions_all),
-        len(entry_lags_all),
+        len(exec_lags),
         len(exec_horizons),
     )
     return hypotheses

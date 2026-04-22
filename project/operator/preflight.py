@@ -13,6 +13,7 @@ from project.core.config import get_data_root
 from project.io.utils import list_parquet_files, resolve_raw_dataset_dir
 from project.research.agent_io.proposal_schema import load_operator_proposal
 from project.research.agent_io.proposal_to_experiment import translate_and_validate_proposal
+from project.research.feature_surface_viability import analyze_feature_surface_viability
 
 _PARTITION_YEAR_RE = re.compile(r"year=(\d{4})")
 _PARTITION_MONTH_RE = re.compile(r"month=(\d{2})")
@@ -214,6 +215,34 @@ def _proposal_preflight_checks(
     )
     checks.append({"name": "local_data_resolution", "status": local_data_status, "details": per_symbol})
 
+    required_detectors = [
+        str(item).strip().upper()
+        for item in translation.get("validated_plan", {}).get("required_detectors", [])
+        if str(item).strip()
+    ]
+    viability = analyze_feature_surface_viability(
+        data_root=data_root,
+        run_id="",
+        symbols=list(proposal.symbols),
+        timeframe=str(proposal.timeframe),
+        start=str(proposal.start),
+        end=str(proposal.end),
+        event_types=required_detectors,
+        market="perp",
+    )
+    viability_status = str(viability.get("status", "unknown") or "unknown").strip().lower()
+    if viability_status == "unknown":
+        viability_check_status = "warn"
+    else:
+        viability_check_status = viability_status
+    checks.append(
+        {
+            "name": "feature_surface_viability",
+            "status": viability_check_status,
+            "details": viability,
+        }
+    )
+
     out_dir.mkdir(parents=True, exist_ok=True)
     writable_status = "pass"
     writable_detail: dict[str, Any] = {"path": str(out_dir), "exists": True}
@@ -229,7 +258,7 @@ def _proposal_preflight_checks(
     statuses = [item["status"] for item in checks]
     overall = "block" if "block" in statuses else "warn" if "warn" in statuses else "pass"
     return {
-        "schema_version": "operator_preflight_v1",
+        "schema_version": "operator_preflight_v2",
         "status": overall,
         "proposal_path": str(proposal_path),
         "registry_root": str(registry_root),

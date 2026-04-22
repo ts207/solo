@@ -27,6 +27,7 @@ from project.research.knowledge.memory import (
 )
 from project.research.knowledge.reflection import build_run_reflection
 from project.research.knowledge.schemas import canonical_json
+from project.research.action_policy import build_action_policy_queues
 from project.research.services.campaign_memory_rollup_service import write_campaign_memory_rollup
 from project.specs.manifest import finalize_manifest, load_run_manifest, start_manifest
 
@@ -331,50 +332,66 @@ def _build_next_actions(
     with context conditioning derived from the best-performing regime slice,
     so the controller's follow-up run targets the specific regime.
     """
-    exploit = []
+    policy_actions = build_action_policy_queues(
+        tested_regions,
+        exploit_top_k=int(exploit_top_k),
+        retest_top_k=int(exploit_top_k),
+        hold_top_k=int(exploit_top_k),
+    )
+    exploit = list(policy_actions.get("exploit", []))
+    retest = list(policy_actions.get("retest", []))
+    hold = list(policy_actions.get("hold", []))
+
     recommended_next_action = str(reflection.get("recommended_next_action", "")).strip()
     allow_exploit = recommended_next_action in {
         "exploit_promising_region",
         "explore_adjacent_region",
     }
-    if allow_exploit and not tested_regions.empty:
+    if allow_exploit and not exploit and not tested_regions.empty:
         ranked_df = tested_regions.copy()
         if "gate_promo_statistical" in ranked_df.columns:
             ranked_df["_gate_rank"] = ranked_df["gate_promo_statistical"].apply(_gate_rank)
         else:
             ranked_df["_gate_rank"] = 0
 
-        exploit = (
-            ranked_df.sort_values(
-                ["_gate_rank", "after_cost_expectancy", "q_value"],
-                ascending=[False, False, True],
-            )
-            .head(int(exploit_top_k))[
-                [
-                    c
-                    for c in [
-                        "event_type",
-                        "trigger_type",
-                        "trigger_key",
-                        "trigger_payload_json",
-                        "template_id",
-                        "direction",
-                        "horizon",
-                        "entry_lag",
-                        "context_json",
-                        "state_id",
-                        "region_key",
-                        "feature",
-                        "operator",
-                        "threshold",
-                        "from_state",
-                        "to_state",
+        exploit = [
+            {
+                "reason": "best observed region by statistical and expectancy filters",
+                "priority": "medium",
+                "proposed_scope": row,
+            }
+            for row in (
+                ranked_df.sort_values(
+                    ["_gate_rank", "after_cost_expectancy", "q_value"],
+                    ascending=[False, False, True],
+                )
+                .head(int(exploit_top_k))[
+                    [
+                        c
+                        for c in [
+                            "event_type",
+                            "trigger_type",
+                            "trigger_key",
+                            "trigger_payload_json",
+                            "template_id",
+                            "direction",
+                            "horizon",
+                            "entry_lag",
+                            "context_json",
+                            "state_id",
+                            "region_key",
+                            "feature",
+                            "operator",
+                            "threshold",
+                            "from_state",
+                            "to_state",
+                        ]
+                        if c in tested_regions.columns
                     ]
-                    if c in tested_regions.columns
                 ]
-            ]
-            .to_dict(orient="records")
-        )
+                .to_dict(orient="records")
+            )
+        ]
 
     active_failures = _active_failures(failures)
     repair = []
@@ -465,16 +482,10 @@ def _build_next_actions(
             }
             for row in repair
         ],
-        "exploit": [
-            {
-                "reason": "best observed region by statistical and expectancy filters",
-                "priority": "medium",
-                "proposed_scope": row,
-            }
-            for row in exploit
-        ],
+        "exploit": exploit,
+        "retest": retest,
         "explore_adjacent": explore_adjacent,
-        "hold": [],
+        "hold": hold,
     }
 def _load_regime_conditional_candidates(*, run_id: str, data_root: Path) -> pd.DataFrame:
     """Phase 4.2 — Load regime_conditional_candidates.parquet for this run.

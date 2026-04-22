@@ -1,27 +1,25 @@
-from typing import Any, Dict, List, Optional, Set, Tuple
+from typing import List, Optional, Tuple
 
 from project.domain.compiled_registry import get_domain_registry
-from project.spec_validation.loaders import load_ontology_events, load_ontology_states
+from project.spec_validation.loaders import load_family_registry, load_ontology_events, load_ontology_states
 
 
 def validate_ontology() -> List[Tuple[str, str]]:
     errors = []
     events = load_ontology_events()
     states = load_ontology_states()
-    registry = get_domain_registry()
+    family_registry = load_family_registry()
 
-    event_fams = registry.event_family_rows()
-    state_fams = registry.state_family_rows()
+    event_fams = set((family_registry or {}).get("event_families", {}))
+    state_fams = set((family_registry or {}).get("state_families", {}))
 
-    # Validate events
     for eid, spec in events.items():
-        fam = spec.get("family") or spec.get("research_family") or spec.get("canonical_family")
+        fam = spec.get("canonical_family") or spec.get("family") or spec.get("research_family")
         if not fam:
             errors.append((f"ontology/events/{eid}.yaml", "Missing family/research_family"))
         elif fam not in event_fams:
             errors.append((f"ontology/events/{eid}.yaml", f"Undefined event family: {fam}"))
 
-    # Validate states
     for sid, spec in states.items():
         fam = spec.get("family")
         if not fam:

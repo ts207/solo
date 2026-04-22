@@ -94,6 +94,23 @@ def _write_tested_regions(tmp_path: Path, rows: list[dict]) -> None:
     )
 
 
+def _write_event_statistics(tmp_path: Path, rows: list[dict]) -> None:
+    base = {
+        "runs_tested": 0,
+        "times_evaluated": 0,
+        "times_promoted": 0,
+        "avg_q_value": 0.5,
+        "avg_after_cost_expectancy": 0.0,
+        "dominant_fail_gate": "",
+    }
+    write_memory_table(
+        "program_1",
+        "event_statistics",
+        pd.DataFrame([{**base, **row} for row in rows]),
+        data_root=tmp_path / "data",
+    )
+
+
 def test_campaign_planner_prefers_high_priority_event_when_scope_is_unseen(
     patched_planner_registry,
     tmp_path: Path,
@@ -268,3 +285,144 @@ def test_campaign_planner_downgrades_mechanical_failure_below_clean_lower_priori
     assert selection["selected_event_type"] == "EVENT_B"
     assert selection["runner_up_event_type"] == "EVENT_A"
     assert selection["runner_up_dominant_penalties"][0]["factor"] == "history_penalty"
+
+
+def test_campaign_planner_blocks_surface_dead_events_and_marks_generated_profile(
+    patched_planner_registry,
+    monkeypatch,
+    tmp_path: Path,
+) -> None:
+    monkeypatch.setattr(
+        planner_mod,
+        "analyze_feature_surface_viability",
+        lambda **kwargs: {
+            "status": "warn",
+            "detectors": {
+                "EVENT_A": {
+                    "status": "block",
+                    "blocking_columns": ["oi_notional"],
+                    "blocked_symbols": ["BTCUSDT"],
+                },
+                "EVENT_B": {"status": "pass", "blocking_columns": [], "blocked_symbols": []},
+            },
+        },
+    )
+
+    plan = _planner(tmp_path, horizon_bars=(12, 24), directions=("long", "short")).plan()
+
+    assert [proposal.event_type for proposal in plan.ranked_proposals] == ["EVENT_B"]
+    assert plan.summary["surface_blocked_events"][0]["event_type"] == "EVENT_A"
+    proposal = plan.ranked_proposals[0].proposal
+    assert proposal["discovery_profile"] == "exploratory"
+    assert proposal["phase2_gate_profile"] == "discovery"
+    assert plan.ranked_proposals[0].rationale["surface_viability"]["status"] == "pass"
+
+
+def test_campaign_planner_prefers_positive_post_cost_history_over_raw_priority(
+    patched_planner_registry,
+    monkeypatch,
+    tmp_path: Path,
+) -> None:
+    monkeypatch.setattr(
+        planner_mod,
+        "load_event_priority_weights",
+        lambda _path: {"EVENT_A": 4.0, "EVENT_B": 1.0},
+    )
+    _write_event_statistics(
+        tmp_path,
+        [
+            {
+                "event_type": "EVENT_A",
+                "runs_tested": 6,
+                "times_evaluated": 6,
+                "times_promoted": 0,
+                "avg_q_value": 0.82,
+                "avg_after_cost_expectancy": -7.5,
+                "dominant_fail_gate": "gate_after_cost_positive",
+            },
+            {
+                "event_type": "EVENT_B",
+                "runs_tested": 6,
+                "times_evaluated": 6,
+                "times_promoted": 4,
+                "avg_q_value": 0.08,
+                "avg_after_cost_expectancy": 6.5,
+                "dominant_fail_gate": "",
+            },
+        ],
+    )
+
+    plan = _planner(tmp_path).plan()
+
+    assert plan.ranked_proposals[0].event_type == "EVENT_B"
+    top = plan.ranked_proposals[0]
+    runner_up = plan.ranked_proposals[1]
+    assert top.rationale["economics_signal"]["status"] == "positive"
+    assert top.rationale["score_components"]["economics_score"] > 0
+    assert runner_up.rationale["economics_signal"]["status"] == "negative"
+    assert runner_up.rationale["score_components"]["economics_score"] < 0
+    assert plan.summary["selection_rationale"]["dominant_positive_factors"][0]["factor"] in {
+        "economics_score",
+        "family_gap_score",
+        "event_gap_score",
+        "maturity_bonus",
+    }
+
+
+def test_campaign_planner_keeps_economics_neutral_without_event_statistics(
+    patched_planner_registry,
+    tmp_path: Path,
+) -> None:
+    plan = _planner(tmp_path).plan()
+
+    top = plan.ranked_proposals[0]
+    assert top.rationale["economics_signal"]["status"] == "unknown"
+    assert top.rationale["score_components"]["economics_score"] == 0.0
+
+
+
+def test_event_economics_signals_prefer_recent_stressed_resilience() -> None:
+    signals = planner_mod._event_economics_signals(
+        pd.DataFrame(
+            [
+                {
+                    "event_type": "EVENT_A",
+                    "times_evaluated": 6,
+                    "times_promoted": 1,
+                    "avg_q_value": 0.18,
+                    "avg_after_cost_expectancy": 1.0,
+                    "median_after_cost_expectancy": 1.2,
+                    "recent_after_cost_expectancy": 3.5,
+                    "avg_stressed_after_cost_expectancy": 0.8,
+                    "median_stressed_after_cost_expectancy": 1.0,
+                    "recent_stressed_after_cost_expectancy": 2.8,
+                    "positive_after_cost_rate": 0.83,
+                    "positive_stressed_after_cost_rate": 0.83,
+                    "tradable_rate": 0.9,
+                    "statistical_pass_rate": 0.75,
+                    "dominant_fail_gate": "",
+                },
+                {
+                    "event_type": "EVENT_B",
+                    "times_evaluated": 6,
+                    "times_promoted": 1,
+                    "avg_q_value": 0.18,
+                    "avg_after_cost_expectancy": 1.0,
+                    "median_after_cost_expectancy": 1.2,
+                    "recent_after_cost_expectancy": -1.5,
+                    "avg_stressed_after_cost_expectancy": -0.8,
+                    "median_stressed_after_cost_expectancy": -1.0,
+                    "recent_stressed_after_cost_expectancy": -2.8,
+                    "positive_after_cost_rate": 0.45,
+                    "positive_stressed_after_cost_rate": 0.15,
+                    "tradable_rate": 0.3,
+                    "statistical_pass_rate": 0.2,
+                    "dominant_fail_gate": "gate_promo_retail_net_expectancy",
+                },
+            ]
+        )
+    )
+
+    assert signals["EVENT_A"]["score"] > signals["EVENT_B"]["score"]
+    assert signals["EVENT_A"]["stressed_component"] > 0.0
+    assert signals["EVENT_B"]["cost_drag"] > signals["EVENT_A"]["cost_drag"]

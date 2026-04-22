@@ -403,6 +403,208 @@ class TestBuildNextActionsRegimeCandidates:
         assert result["exploit"] == []
 
 
+    def test_economics_policy_builds_exploit_queue_for_strengthening_event(self):
+        tested_regions = pd.DataFrame([
+            {
+                "event_type": "VOL_SHOCK",
+                "trigger_type": "EVENT",
+                "template_id": "continuation",
+                "direction": "long",
+                "horizon": "24b",
+                "entry_lag": 1,
+                "context_json": "{}",
+                "region_key": "rk_exploit",
+                "after_cost_expectancy": 2.0,
+                "stressed_after_cost_expectancy": 1.4,
+                "q_value": 0.10,
+                "eval_status": "promoted",
+                "gate_bridge_tradable": True,
+                "gate_promo_statistical": True,
+                "updated_at": "2026-01-01T00:00:00+00:00",
+            },
+            {
+                "event_type": "VOL_SHOCK",
+                "trigger_type": "EVENT",
+                "template_id": "continuation",
+                "direction": "long",
+                "horizon": "24b",
+                "entry_lag": 1,
+                "context_json": "{}",
+                "region_key": "rk_exploit_2",
+                "after_cost_expectancy": 2.6,
+                "stressed_after_cost_expectancy": 1.8,
+                "q_value": 0.08,
+                "eval_status": "promoted",
+                "gate_bridge_tradable": True,
+                "gate_promo_statistical": True,
+                "updated_at": "2026-01-02T00:00:00+00:00",
+            },
+            {
+                "event_type": "VOL_SHOCK",
+                "trigger_type": "EVENT",
+                "template_id": "continuation",
+                "direction": "long",
+                "horizon": "24b",
+                "entry_lag": 1,
+                "context_json": "{}",
+                "region_key": "rk_exploit_3",
+                "after_cost_expectancy": 3.0,
+                "stressed_after_cost_expectancy": 2.1,
+                "q_value": 0.06,
+                "eval_status": "promoted",
+                "gate_bridge_tradable": True,
+                "gate_promo_statistical": True,
+                "updated_at": "2026-01-03T00:00:00+00:00",
+            },
+        ])
+        result = _build_next_actions(
+            reflection={},
+            tested_regions=tested_regions,
+            failures=pd.DataFrame(),
+            exploit_top_k=3,
+            repair_top_k=3,
+            regime_conditional_candidates=pd.DataFrame(),
+        )
+        assert len(result["exploit"]) >= 1
+        assert result["exploit"][0]["policy_action"] == "exploit"
+        assert result["exploit"][0]["proposed_scope"]["event_type"] == "VOL_SHOCK"
+
+    def test_economics_policy_builds_retest_queue_for_structurally_viable_unstable_event(self):
+        tested_regions = pd.DataFrame([
+            {
+                "event_type": "FUNDING_FLIP",
+                "trigger_type": "EVENT",
+                "template_id": "mean_reversion",
+                "direction": "short",
+                "horizon": "12b",
+                "entry_lag": 2,
+                "context_json": "{}",
+                "region_key": "rk_retest_1",
+                "after_cost_expectancy": -0.2,
+                "stressed_after_cost_expectancy": -0.6,
+                "q_value": 0.22,
+                "eval_status": "evaluated",
+                "gate_bridge_tradable": True,
+                "gate_promo_statistical": False,
+                "updated_at": "2026-01-01T00:00:00+00:00",
+            },
+            {
+                "event_type": "FUNDING_FLIP",
+                "trigger_type": "EVENT",
+                "template_id": "mean_reversion",
+                "direction": "short",
+                "horizon": "12b",
+                "entry_lag": 2,
+                "context_json": "{}",
+                "region_key": "rk_retest_2",
+                "after_cost_expectancy": 1.2,
+                "stressed_after_cost_expectancy": -0.2,
+                "q_value": 0.18,
+                "eval_status": "evaluated",
+                "gate_bridge_tradable": True,
+                "gate_promo_statistical": True,
+                "updated_at": "2026-01-02T00:00:00+00:00",
+            },
+            {
+                "event_type": "FUNDING_FLIP",
+                "trigger_type": "EVENT",
+                "template_id": "mean_reversion",
+                "direction": "short",
+                "horizon": "12b",
+                "entry_lag": 2,
+                "context_json": "{}",
+                "region_key": "rk_retest_3",
+                "after_cost_expectancy": 0.8,
+                "stressed_after_cost_expectancy": -0.1,
+                "q_value": 0.16,
+                "eval_status": "evaluated",
+                "gate_bridge_tradable": True,
+                "gate_promo_statistical": True,
+                "updated_at": "2026-01-03T00:00:00+00:00",
+            },
+        ])
+        result = _build_next_actions(
+            reflection={},
+            tested_regions=tested_regions,
+            failures=pd.DataFrame(),
+            exploit_top_k=3,
+            repair_top_k=3,
+            regime_conditional_candidates=pd.DataFrame(),
+        )
+        assert len(result["retest"]) >= 1
+        assert result["retest"][0]["policy_action"] == "retest"
+        assert result["retest"][0]["proposed_scope"]["event_type"] == "FUNDING_FLIP"
+
+    def test_economics_policy_builds_hold_queue_for_repeated_cost_drag(self):
+        tested_regions = pd.DataFrame([
+            {
+                "event_type": "VOL_SPIKE",
+                "trigger_type": "EVENT",
+                "template_id": "continuation",
+                "direction": "short",
+                "horizon": "24b",
+                "entry_lag": 1,
+                "context_json": "{}",
+                "region_key": "rk_hold_1",
+                "after_cost_expectancy": -1.0,
+                "stressed_after_cost_expectancy": -1.4,
+                "q_value": 0.40,
+                "eval_status": "evaluated",
+                "gate_bridge_tradable": False,
+                "gate_promo_statistical": False,
+                "primary_fail_gate": "gate_after_cost_positive",
+                "updated_at": "2026-01-01T00:00:00+00:00",
+            },
+            {
+                "event_type": "VOL_SPIKE",
+                "trigger_type": "EVENT",
+                "template_id": "continuation",
+                "direction": "short",
+                "horizon": "24b",
+                "entry_lag": 1,
+                "context_json": "{}",
+                "region_key": "rk_hold_2",
+                "after_cost_expectancy": -1.2,
+                "stressed_after_cost_expectancy": -1.5,
+                "q_value": 0.45,
+                "eval_status": "evaluated",
+                "gate_bridge_tradable": False,
+                "gate_promo_statistical": False,
+                "primary_fail_gate": "gate_after_cost_positive",
+                "updated_at": "2026-01-02T00:00:00+00:00",
+            },
+            {
+                "event_type": "VOL_SPIKE",
+                "trigger_type": "EVENT",
+                "template_id": "continuation",
+                "direction": "short",
+                "horizon": "24b",
+                "entry_lag": 1,
+                "context_json": "{}",
+                "region_key": "rk_hold_3",
+                "after_cost_expectancy": -1.3,
+                "stressed_after_cost_expectancy": -1.6,
+                "q_value": 0.50,
+                "eval_status": "evaluated",
+                "gate_bridge_tradable": False,
+                "gate_promo_statistical": False,
+                "primary_fail_gate": "gate_after_cost_positive",
+                "updated_at": "2026-01-03T00:00:00+00:00",
+            },
+        ])
+        result = _build_next_actions(
+            reflection={},
+            tested_regions=tested_regions,
+            failures=pd.DataFrame(),
+            exploit_top_k=3,
+            repair_top_k=3,
+            regime_conditional_candidates=pd.DataFrame(),
+        )
+        assert len(result["hold"]) >= 1
+        assert result["hold"][0]["policy_action"] == "hold"
+        assert result["hold"][0]["proposed_scope"]["event_type"] == "VOL_SPIKE"
+
+
 class TestBuildBeliefState:
 
     def test_hold_reflection_suppresses_promising_regions(self):

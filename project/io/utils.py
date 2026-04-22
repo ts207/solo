@@ -17,6 +17,10 @@ try:
 
     HAS_PYARROW = True
 except ImportError:  # pragma: no cover - optional dependency
+    import types
+
+    pa = types.SimpleNamespace(Table=None)
+    pq = types.SimpleNamespace(read_table=None, ParquetFile=None, write_table=None)
     HAS_PYARROW = False
 
 
@@ -114,6 +118,50 @@ def _strict_run_scoped_reads_enabled() -> bool:
         "yes",
         "YES",
     }
+
+
+def _looks_like_native_parquet_bytes(path: Path) -> bool:
+    try:
+        with Path(path).open("rb") as handle:
+            return handle.read(4) == b"PAR1"
+    except OSError:
+        return False
+
+
+def parquet_path_runtime_readable(path: Path | str) -> bool:
+    """Return True when the current runtime can read ``path`` through the canonical IO surface.
+
+    Native parquet bytes require a parquet engine unless a CSV sidecar exists.
+    Pickle-backed logical parquet remains readable through the repository fallback.
+    """
+    target = Path(path)
+    if not target.exists():
+        return False
+    if target.suffix.lower() == ".csv":
+        return True
+    csv_sidecar = target.with_suffix(".csv")
+    if csv_sidecar.exists():
+        return True
+    if HAS_PYARROW and not _force_parquet_fallback_enabled():
+        return True
+    if target.suffix.lower() != ".parquet":
+        return True
+    return not _looks_like_native_parquet_bytes(target)
+
+
+def unreadable_parquet_samples(root: Path | str, *, limit: int = 8) -> list[Path]:
+    """Collect representative logical parquet paths that are not readable in this runtime."""
+    base = Path(root)
+    if not base.exists():
+        return []
+    unreadable: list[Path] = []
+    for path in sorted(base.rglob("*.parquet")):
+        if parquet_path_runtime_readable(path):
+            continue
+        unreadable.append(path)
+        if len(unreadable) >= max(1, int(limit)):
+            break
+    return unreadable
 
 
 def choose_partition_dir(candidates: Sequence[Path]) -> Path | None:
@@ -469,6 +517,11 @@ def read_parquet(
                     continue
                 except Exception:
                     pass
+            if not parquet_path_runtime_readable(resolved_path):
+                raise RuntimeError(
+                    f"Native parquet engine unavailable for real parquet artifact: {resolved_path}. "
+                    "Install pyarrow/fastparquet or materialize a CSV sidecar."
+                )
             frame = read_parquet_compat(resolved_path, columns=columns)
             frames.append(frame)
     if not frames:

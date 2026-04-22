@@ -933,6 +933,28 @@ def _load_hierarchical_config(search_spec_doc: dict) -> dict | None:
     return block
 
 
+def _apply_hierarchical_profile_overrides(
+    config: dict | None,
+    overrides: Mapping[str, Any] | None,
+) -> dict | None:
+    if config is None:
+        return None
+    if not overrides:
+        return dict(config)
+
+    merged = dict(config)
+    for key, value in dict(overrides).items():
+        if isinstance(value, Mapping):
+            base = merged.get(key, {})
+            if isinstance(base, Mapping):
+                merged[key] = {**dict(base), **dict(value)}
+            else:
+                merged[key] = dict(value)
+        else:
+            merged[key] = value
+    return merged
+
+
 def _write_hierarchical_stage_artifacts(
     stage_artifacts: dict[str, "pd.DataFrame"],
     out_dir: Path,
@@ -1336,6 +1358,10 @@ def run(
             except Exception as _h_exc:
                 log.warning("Failed to load search spec for hierarchical config: %s", _h_exc)
         _h_config = _load_hierarchical_config(_h_spec_doc) if not experiment_plan else None
+        _h_config = _apply_hierarchical_profile_overrides(
+            _h_config,
+            search_profile.get("hierarchical_overrides"),
+        )
 
         if _h_config is not None:
             # ── HIERARCHICAL MODE ────────────────────────────────────────────
@@ -2007,7 +2033,7 @@ def main(argv=None) -> int:
     parser.add_argument("--symbols", required=True)
     parser.add_argument("--data_root", default=None)
     parser.add_argument("--timeframe", default="5m")
-    parser.add_argument("--discovery_profile", default="standard")
+    parser.add_argument("--discovery_profile", choices=["standard", "exploratory", "synthetic"], default="standard")
     parser.add_argument("--gate_profile", default="auto")
     parser.add_argument("--search_spec", default="spec/search_space.yaml")
     parser.add_argument("--phase2_event_type", default="")

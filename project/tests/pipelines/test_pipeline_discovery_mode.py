@@ -5,6 +5,9 @@ import types
 from pathlib import Path
 
 import yaml
+import pandas as pd
+
+from project.io.utils import write_parquet
 
 # Add project root to path
 sys.path.insert(0, str(Path(__file__).parents[2]))
@@ -680,3 +683,69 @@ def test_preflight_enables_edge_registry_update_for_expectancy_tail_without_prom
     stage_names = list(preflight["stages"].keys())
     assert args.run_edge_registry_update == 1
     assert "update_edge_registry" in stage_names
+
+
+def test_prepare_run_preflight_blocks_when_feature_surface_gate_fails(tmp_path):
+    from project.pipelines.pipeline_planning import prepare_run_preflight
+    from project.pipelines.stages.utils import script_supports_flag
+
+    project_root = Path(__file__).parents[3] / "project"
+    data_root = tmp_path / "data"
+    cleaned_dir = (
+        data_root
+        / "lake"
+        / "cleaned"
+        / "perp"
+        / "BTCUSDT"
+        / "bars_5m"
+        / "year=2024"
+        / "month=01"
+    )
+    cleaned_dir.mkdir(parents=True, exist_ok=True)
+    frame = pd.DataFrame(
+        {
+            "timestamp": pd.date_range("2024-01-01", periods=32, freq="5min", tz="UTC"),
+            "open": [100.0 + i for i in range(32)],
+            "high": [101.0 + i for i in range(32)],
+            "low": [99.0 + i for i in range(32)],
+            "close": [100.5 + i for i in range(32)],
+            "volume": [10.0 + i for i in range(32)],
+        }
+    )
+    write_parquet(frame, cleaned_dir / "part-000.parquet")
+
+    args = _make_args(
+        run_id="r_viability_block",
+        symbols="BTCUSDT",
+        start="2024-01-01",
+        end="2024-01-02",
+        timeframes="5m",
+        phase2_event_type="LIQUIDATION_EXHAUSTION_REVERSAL",
+        objective_name="retail_profitability",
+        objective_spec=None,
+        retail_profiles_spec=None,
+        force=0,
+        allow_missing_funding=0,
+        enable_cross_venue_spot_pipeline=0,
+        runtime_invariants_mode="warn",
+        emit_run_hash=0,
+        determinism_replay_checks=0,
+        oms_replay_checks=0,
+        performance_mode=0,
+        run_strategy_blueprint_compiler=0,
+        run_strategy_builder=0,
+    )
+
+    preflight = prepare_run_preflight(
+        args=args,
+        project_root=project_root,
+        data_root=data_root,
+        cli_flag_present=lambda _flag: False,
+        run_id_default=lambda: "unused",
+        script_supports_flag=script_supports_flag,
+    )
+
+    assert preflight["exit_code"] == 2
+    assert preflight["feature_surface_viability"]["status"] == "block"
+    detector = preflight["feature_surface_viability"]["detectors"]["LIQUIDATION_EXHAUSTION_REVERSAL"]
+    assert detector["status"] == "block"

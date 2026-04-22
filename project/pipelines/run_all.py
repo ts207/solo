@@ -357,17 +357,20 @@ def _run_all_impl(raw_argv: List[str] | None = None) -> int:
             verification_report=verification_report,
             data_root=DATA_ROOT,
         )
-        run_manifest["execution_report_paths"] = execution_report_paths
-        run_manifest["contract_conformance_status"] = (
+        latest_manifest = read_run_manifest(run_id, data_root=DATA_ROOT) or dict(run_manifest)
+        latest_manifest["execution_report_paths"] = execution_report_paths
+        latest_manifest["contract_conformance_status"] = (
             "pass" if verification_report.passed else "fail"
         )
-        run_manifest["contract_conformance_stage_mismatch_count"] = len(
+        latest_manifest["contract_conformance_stage_mismatch_count"] = len(
             verification_report.mismatches
         )
-        run_manifest["contract_conformance_artifact_mismatch_count"] = len(
+        latest_manifest["contract_conformance_artifact_mismatch_count"] = len(
             verification_report.artifact_mismatches
         )
-        write_run_manifest_internal(run_id, run_manifest)
+        write_run_manifest_internal(run_id, latest_manifest)
+        run_manifest.clear()
+        run_manifest.update(latest_manifest)
         return 1
 
     postflight_exit = handle_runtime_postflight(
@@ -416,15 +419,18 @@ def _run_all_impl(raw_argv: List[str] | None = None) -> int:
         verification_report=verification_report,
         data_root=DATA_ROOT,
     )
-    run_manifest["execution_report_paths"] = execution_report_paths
-    run_manifest["contract_conformance_status"] = "pass" if verification_report.passed else "fail"
-    run_manifest["contract_conformance_stage_mismatch_count"] = len(
+    latest_manifest = read_run_manifest(run_id, data_root=DATA_ROOT) or dict(run_manifest)
+    latest_manifest["execution_report_paths"] = execution_report_paths
+    latest_manifest["contract_conformance_status"] = "pass" if verification_report.passed else "fail"
+    latest_manifest["contract_conformance_stage_mismatch_count"] = len(
         verification_report.mismatches
     )
-    run_manifest["contract_conformance_artifact_mismatch_count"] = len(
+    latest_manifest["contract_conformance_artifact_mismatch_count"] = len(
         verification_report.artifact_mismatches
     )
-    write_run_manifest_internal(run_id, run_manifest)
+    write_run_manifest_internal(run_id, latest_manifest)
+    run_manifest.clear()
+    run_manifest.update(latest_manifest)
     return exit_code
 
 

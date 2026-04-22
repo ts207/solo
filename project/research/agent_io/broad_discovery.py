@@ -25,7 +25,12 @@ import pandas as pd
 
 from project.core.config import get_data_root
 from project.research.agent_io.campaign_planner import CampaignPlanner, CampaignPlannerConfig
+from project.research.agent_io.generated_proposal_policy import (
+    resolve_generated_proposal_controls,
+    summarize_viability_for_event,
+)
 from project.research.agent_io.issue_proposal import generate_run_id, issue_proposal
+from project.research.feature_surface_viability import analyze_feature_surface_viability
 from project.research.knowledge.memory import (
     ensure_memory_store,
     read_memory_table,
@@ -324,6 +329,14 @@ def _build_broad_proposal(
         entry_lags=config.entry_lags,
     )
 
+    controls = resolve_generated_proposal_controls(
+        templates=templates,
+        horizons_bars=config.horizon_bars,
+        directions=config.directions,
+        entry_lags=config.entry_lags,
+        promotion_profile=config.promotion_profile,
+        run_mode="research",
+    )
     return {
         "program_id": config.program_id,
         "start": start,
@@ -343,6 +356,9 @@ def _build_broad_proposal(
         "horizons_bars": list(config.horizon_bars),
         "directions": list(config.directions),
         "entry_lags": list(config.entry_lags),
+        "discovery_profile": controls["discovery_profile"],
+        "phase2_gate_profile": controls["phase2_gate_profile"],
+        "search_spec": controls["search_spec"],
         "contexts": {},
         "search_control": {
             "max_hypotheses_total": config.max_hypotheses_total,
@@ -603,8 +619,49 @@ class BroadDiscoveryRunner:
 
         events = events[: self.config.max_events_per_family]
         event_types = [e.event_type for e in events]
+        start, end = _default_date_scope(self.config.lookback_days)
+        viability_report = analyze_feature_surface_viability(
+            data_root=self.data_root,
+            run_id="broad_discovery_preflight",
+            symbols=self.config.symbols,
+            timeframe=self.config.timeframe,
+            start=start,
+            end=end,
+            event_types=event_types,
+        )
+        viable_events = [
+            event for event in events
+            if summarize_viability_for_event(viability_report, event.event_type).get("status") != "block"
+        ]
+        blocked_events = [
+            {"event_type": event.event_type, **summarize_viability_for_event(viability_report, event.event_type)}
+            for event in events
+            if summarize_viability_for_event(viability_report, event.event_type).get("status") == "block"
+        ]
+        if viable_events:
+            events = viable_events
+            event_types = [e.event_type for e in events]
+        elif blocked_events:
+            return FamilyDiscoveryResult(
+                family=self.config.family,
+                run_id="",
+                timestamp=datetime.now(timezone.utc).isoformat(),
+                events_tested=0,
+                events_significant=0,
+                events_with_family_effect=0,
+                events_with_specific_effect=0,
+                attributions=[],
+                family_level_q_value=1.0,
+                is_family_level_effect=False,
+                summary={
+                    "error": f"No viable events found for family {self.config.family}",
+                    "surface_blocked_events": blocked_events,
+                },
+                errors=[f"No viable events found for family {self.config.family}"],
+            )
 
         proposal = _build_broad_proposal(self.config.family, events, self.config)
+        proposal.setdefault("broad_discovery", {})["surface_blocked_events"] = blocked_events
 
         if self.config.plan_only:
             return FamilyDiscoveryResult(
@@ -622,6 +679,7 @@ class BroadDiscoveryRunner:
                     "events_planned": len(events),
                     "event_types": event_types,
                     "status": "planned_only",
+                    "surface_blocked_events": blocked_events,
                 },
             )
 
@@ -641,6 +699,7 @@ class BroadDiscoveryRunner:
                     "events_planned": len(events),
                     "event_types": event_types,
                     "status": "skipped",
+                    "surface_blocked_events": blocked_events,
                 },
             )
 
