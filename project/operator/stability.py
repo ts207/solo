@@ -48,18 +48,23 @@ def _normalize_run_ids(run_ids: Iterable[str]) -> list[str]:
     return out
 
 
-def _load_candidate_table(run_id: str, *, data_root: Path) -> pd.DataFrame:
+def _load_candidate_table_with_source(run_id: str, *, data_root: Path) -> tuple[pd.DataFrame, Path | None]:
     for relative in (
         data_root / "reports" / "promotions" / run_id / "promotion_statistical_audit.parquet",
         data_root / "reports" / "edge_candidates" / run_id / "edge_candidates_normalized.parquet",
         data_root / "reports" / "phase2" / run_id / "phase2_candidates.parquet",
     ):
         if relative.exists():
-            return pd.read_parquet(relative)
+            return pd.read_parquet(relative), relative
         csv = relative.with_suffix(".csv")
         if csv.exists():
-            return pd.read_csv(csv)
-    return pd.DataFrame()
+            return pd.read_csv(csv), csv
+    return pd.DataFrame(), None
+
+
+def _load_candidate_table(run_id: str, *, data_root: Path) -> pd.DataFrame:
+    candidates, _source = _load_candidate_table_with_source(run_id, data_root=data_root)
+    return candidates
 
 
 def _metric_sign(value: Any) -> int:
@@ -182,11 +187,14 @@ def build_regime_split_report(*, run_id: str, data_root: Path | None = None) -> 
     from project.research.reports.operator_reporting import build_operator_summary
 
     summary = build_operator_summary(run_id=run_id, data_root=resolved)
-    candidates = _load_candidate_table(run_id, data_root=resolved)
+    candidates, candidate_source = _load_candidate_table_with_source(run_id, data_root=resolved)
     rows: list[dict[str, Any]] = []
     if not candidates.empty:
         for _, row in candidates.head(10).iterrows():
-            stability = build_stability_result_from_row(dict(row))
+            stability = build_stability_result_from_row(
+                dict(row),
+                source_artifact=str(candidate_source) if candidate_source is not None else None,
+            )
             rows.append(
                 {
                     "label": " / ".join(

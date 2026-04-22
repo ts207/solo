@@ -412,3 +412,87 @@ Plan review checklist:
 - Horizon is exactly 24 or 48 bars.
 - Symbol is exactly `BTCUSDT`.
 - Promotion remains disabled until validation artifacts exist.
+
+## Funding Continuation Forward Outcome
+
+FC2 (`FUNDING_EXTREME_ONSET`, long `48b`, `continuation`) passed internal
+2023-2024 validation but failed full-2025 forward confirmation.
+
+Forward confirmation run:
+
+```text
+funding_continuation_ext_confirm_2025_20260421T230400Z
+```
+
+Result:
+
+- n: 164
+- after-cost expectancy: 13.7546 bps
+- t-stat: 1.3124
+- robustness: 0.4087
+- Phase 2 candidates: 0
+- fail reason: `min_t_stat`
+- release signoff: `BLOCK_RELEASE`
+
+The bounded rescue branch (`chop_regime == 1`) also failed:
+
+```text
+funding_continuation_ext_chop_nonbear_2025_20260422T001600Z
+```
+
+- n: 85
+- after-cost expectancy: 8.2750 bps
+- t-stat: 0.8219
+- Phase 2 candidates: 0
+- release signoff: `BLOCK_RELEASE`
+
+The bear-trend falsification control also failed:
+
+```text
+funding_continuation_ext_bear_control_2025_20260422T001800Z
+```
+
+- n: 38
+- after-cost expectancy: 40.5868 bps
+- t-stat: 0.9558
+- Phase 2 candidates: 0
+- release signoff: `BLOCK_RELEASE`
+
+Decision: retire FC2 broad form and keep the `FUNDING_EXTREME_ONSET` long
+`48b` continuation branch research-only. Do not promote or export the FC2
+rescue/control variants.
+
+Supporting artifacts:
+
+- `data/reports/funding_continuation_validation/fc2_regime_break_postmortem.md`
+- `data/reports/funding_continuation_validation/fc2_rescue_control_2025.md`
+
+FC4 (`FUNDING_PERSISTENCE_TRIGGER`, long `48b`, `continuation`) was then tested
+as a separate persistence thesis on full 2025, without using it as an FC2 rescue.
+
+Forward confirmation run:
+
+```text
+funding_continuation_per_confirm_2025_20260422T002320Z
+```
+
+Result:
+
+- n: 3609
+- after-cost expectancy: -3.0987 bps
+- t-stat: -0.2359
+- robustness: 0.4746
+- Phase 2 candidates: 0
+- fail reason: `min_t_stat`
+- release signoff: `BLOCK_RELEASE`
+
+Decision: FC4 is not forward-confirmed. Do not promote or export it. Keep
+`FUNDING_PERSISTENCE_TRIGGER` long `48b` continuation research-only.
+
+Supporting artifact:
+
+- `data/reports/funding_continuation_validation/fc4_forward_confirmation_2025.md`
+
+Tracked lifecycle postmortem:
+
+- [Funding continuation 2025 postmortem](funding-continuation-2025-postmortem.md)

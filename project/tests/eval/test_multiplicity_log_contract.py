@@ -39,6 +39,56 @@ def test_update_program_hypothesis_log_normalizes_mixed_direction_types(tmp_path
     assert list(persisted["direction"]) == ["long", "short", "long", "short"]
 
 
+def test_update_program_hypothesis_log_normalizes_mixed_gate_bool_types(tmp_path: Path):
+    data_root = tmp_path
+    program_id = "prog_bool"
+    existing_path = multiplicity.get_program_hypothesis_log_path(program_id, data_root)
+    existing_path.parent.mkdir(parents=True, exist_ok=True)
+
+    pd.DataFrame(
+        [
+            {
+                "hypothesis_id": "old_pass",
+                "p_value": 0.01,
+                "gate_bridge_tradable": "True",
+            },
+            {
+                "hypothesis_id": "old_fail",
+                "p_value": 0.02,
+                "gate_bridge_tradable": "False",
+            },
+        ]
+    ).to_parquet(existing_path, index=False)
+
+    new_hypotheses = pd.DataFrame(
+        [
+            {
+                "hypothesis_id": "new_pass",
+                "p_value": 0.03,
+                "gate_bridge_tradable": True,
+            },
+            {
+                "hypothesis_id": "new_missing",
+                "p_value": 0.04,
+                "gate_bridge_tradable": None,
+            },
+        ]
+    )
+
+    combined = multiplicity.update_program_hypothesis_log(
+        program_id=program_id,
+        data_root=data_root,
+        new_hypotheses=new_hypotheses,
+    )
+
+    assert str(combined["gate_bridge_tradable"].dtype) == "boolean"
+    assert combined["gate_bridge_tradable"].tolist() == [True, False, True, pd.NA]
+
+    persisted = pd.read_parquet(existing_path)
+    assert str(persisted["gate_bridge_tradable"].dtype) == "boolean"
+    assert persisted["gate_bridge_tradable"].tolist() == [True, False, True, pd.NA]
+
+
 def test_apply_program_multiplicity_control_preserves_candidate_level_q_metrics(tmp_path: Path):
     data_root = tmp_path
     program_id = "prog_2"

@@ -152,6 +152,7 @@ class StructuredProposal:
     symbols: List[str]
     timeframe: str
     hypothesis: StructuredHypothesisSpec
+    run_mode: str = "research"
     instrument_classes: List[str] = field(default_factory=list)
     objective_name: str = "default"
     promotion_profile: str = "research"
@@ -169,6 +170,7 @@ class StructuredProposal:
             "symbols": list(self.symbols),
             "timeframe": self.timeframe,
             "hypothesis": self.hypothesis.to_dict(),
+            "run_mode": self.run_mode,
             "instrument_classes": list(self.instrument_classes),
             "objective_name": self.objective_name,
             "promotion_profile": self.promotion_profile,
@@ -224,6 +226,7 @@ def normalize_structured_proposal(
     warnings.extend(hypothesis_warnings)
 
     instrument_classes = _as_str_list(raw.get("instrument_classes"), "instrument_classes")
+    run_mode = str(raw.get("run_mode", "research") or "research").strip()
     objective_name = str(raw.get("objective_name", "default")).strip()
     promotion_profile = str(raw.get("promotion_profile", "research")).strip()
 
@@ -259,6 +262,7 @@ def normalize_structured_proposal(
         symbols=symbols,
         timeframe=timeframe,
         hypothesis=hypothesis,
+        run_mode=run_mode,
         instrument_classes=instrument_classes,
         objective_name=objective_name,
         promotion_profile=promotion_profile,

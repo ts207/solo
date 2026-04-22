@@ -140,11 +140,71 @@ def rolling_stability_metrics(values: Iterable[float], *, window: int = 3) -> Di
     return {"rolling_instability_score": max(0.0, score), "rolling_means": rolled.tolist()}
 
 
-def build_stability_result_from_row(row: Dict[str, Any]) -> StabilityResult:
+def _is_missing_value(value: Any) -> bool:
+    if value is None:
+        return True
+    try:
+        missing = pd.isna(value)
+    except (TypeError, ValueError):
+        return False
+    if isinstance(missing, bool):
+        return missing
+    return False
+
+
+def _stability_context(
+    row: Dict[str, Any], field: str, source_artifact: str | None = None
+) -> str:
+    parts = [
+        f"field={field}",
+        f"candidate_id={row.get('candidate_id', '') or 'unknown'}",
+        f"run_id={row.get('run_id', '') or 'unknown'}",
+    ]
+    if source_artifact:
+        parts.append(f"source_artifact={source_artifact}")
+    return " ".join(parts)
+
+
+def _first_finite_row_float(
+    row: Dict[str, Any],
+    fields: tuple[str, ...],
+    *,
+    default: float,
+    source_artifact: str | None = None,
+) -> float:
+    for field in fields:
+        if field not in row:
+            continue
+        value = row.get(field)
+        if _is_missing_value(value):
+            safe_float(value, np.nan, context=_stability_context(row, field, source_artifact))
+            continue
+        numeric = safe_float(
+            value,
+            np.nan,
+            context=_stability_context(row, field, source_artifact),
+        )
+        if numeric is not None and np.isfinite(numeric):
+            return float(numeric)
+    return float(default)
+
+
+def build_stability_result_from_row(
+    row: Dict[str, Any], *, source_artifact: str | None = None
+) -> StabilityResult:
     effect = safe_float(
-        row.get("effect_shrunk_state", row.get("expectancy", row.get("estimate", 0.0))), 0.0
+        row.get("effect_shrunk_state", row.get("expectancy", row.get("estimate", 0.0))),
+        0.0,
+        context=_stability_context(row, "effect", source_artifact),
     )
-    std_return = abs(safe_float(row.get("std_return", row.get("stderr", 0.0)), 0.0))
+    std_return = abs(
+        _first_finite_row_float(
+            row,
+            ("std_return", "stderr"),
+            default=0.0,
+            source_artifact=source_artifact,
+        )
+    )
     sign_consistency = safe_float(row.get("sign_consistency"), np.nan)
     if not np.isfinite(sign_consistency):
         t_stats = [

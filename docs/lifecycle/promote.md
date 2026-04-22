@@ -80,6 +80,14 @@ Confirmatory runs require stronger lineage:
 - confirmatory source run mode
 - validation lineage
 
+When an unseen forward window exists, validation lineage alone is not enough for
+release interpretation. Promotion/export should be blocked operationally unless
+the candidate has survived a documented forward confirmation run or the lifecycle
+record states why such confirmation is unavailable. A source run that validates
+only the origin window remains research-valid but non-deployable. The forward
+confirmation role can be documented in proposal artifacts even when the pipeline
+execution mode remains `research`.
+
 ## Outputs
 
 Promotion reports:

@@ -76,6 +76,28 @@ Common gate-derived rejection reasons include:
 
 Validation is not the same as promotion. It identifies candidates that can enter promotion; promotion applies a stricter governed policy and lineage checks.
 
+## Forward Confirmation Boundary
+
+Origin-window validation is research validation only. It must not be treated as
+release readiness when an unseen forward window is available.
+
+Before promotion/export, a candidate needs either:
+
+- a successful forward-window confirmation run with nonempty Phase 2
+  candidates, positive after-cost expectancy, and passing statistical gates; or
+- an explicit lifecycle note explaining why forward confirmation is unavailable
+  and why promotion is still governed under the current policy.
+
+`confirmatory` is a lifecycle role, not currently a `run_all --mode` value. A
+forward confirmation run may still execute under `run_mode=research` when
+promotion is disabled and the proposal records its forward-falsification role in
+artifacts.
+
+The funding-continuation branch is the canonical failure example:
+2023-2024 validation passed, but full-2025 confirmation failed on `min_t_stat`
+with zero edge candidates. See
+[`funding-continuation-2025-postmortem.md`](funding-continuation-2025-postmortem.md).
+
 ## Inputs Worth Inspecting
 
 Before validation, inspect:

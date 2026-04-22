@@ -39,12 +39,80 @@ def _normalize_direction_value(value: Any) -> str:
     return text
 
 
+def _is_boolish_log_column(column: str) -> bool:
+    return (
+        column.startswith("gate_")
+        or column.startswith("is_discovery")
+        or column
+        in {
+            "confirmatory_locked",
+            "duplicate_like_flag",
+            "multiplicity_pool_eligible",
+            "rare_event_flag",
+            "search_burden_estimated",
+            "shrinkage_borrowing_dominant",
+            "shrinkage_loso_stable",
+        }
+    )
+
+
+def _normalize_boolish_value(value: Any) -> tuple[bool, Any]:
+    if value is None or value is pd.NA:
+        return True, pd.NA
+    try:
+        if pd.isna(value):
+            return True, pd.NA
+    except (TypeError, ValueError):
+        pass
+    if isinstance(value, (bool, np.bool_)):
+        return True, bool(value)
+    if isinstance(value, bytes):
+        try:
+            value = value.decode("utf-8")
+        except UnicodeDecodeError:
+            return False, value
+    if isinstance(value, str):
+        text = value.strip().lower()
+        if text in {"", "nan", "none", "null"}:
+            return True, pd.NA
+        if text in {"true", "t", "yes", "y", "1", "1.0", "pass", "passed"}:
+            return True, True
+        if text in {"false", "f", "no", "n", "0", "0.0", "fail", "failed"}:
+            return True, False
+        return False, value
+    if isinstance(value, (int, float, np.integer, np.floating)):
+        numeric = float(value)
+        if not np.isfinite(numeric):
+            return True, pd.NA
+        if numeric == 1.0:
+            return True, True
+        if numeric == 0.0:
+            return True, False
+    return False, value
+
+
+def _normalize_boolish_log_columns(df: pd.DataFrame) -> pd.DataFrame:
+    out = df.copy()
+    for column in out.columns:
+        if not _is_boolish_log_column(str(column)):
+            continue
+        normalized = out[column].apply(_normalize_boolish_value)
+        if not normalized.apply(lambda item: item[0]).all():
+            continue
+        out[column] = pd.array(
+            normalized.apply(lambda item: item[1]).tolist(),
+            dtype="boolean",
+        )
+    return out
+
+
 def _normalize_hypothesis_log_frame(df: pd.DataFrame) -> pd.DataFrame:
     if df.empty:
         return df
     out = df.copy()
     if "direction" in out.columns:
         out["direction"] = out["direction"].apply(_normalize_direction_value)
+    out = _normalize_boolish_log_columns(out)
     return out
 
 
@@ -179,6 +247,7 @@ def update_program_hypothesis_log(
     else:
         combined = normalized_new
 
+    combined = _normalize_hypothesis_log_frame(combined)
     write_parquet(combined, log_path)
     return combined
 

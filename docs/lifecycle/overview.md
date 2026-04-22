@@ -75,6 +75,10 @@ Deprecated: removed CLI aliases, implicit latest thesis selection, and downstrea
   follow-up decisions. The sweep supports a bounded BTCUSDT long funding
   continuation validation branch and rejects broad standalone expansion from
   the other event families under current artifacts.
+- [Funding continuation 2025 postmortem](funding-continuation-2025-postmortem.md)
+  records the forward-confirmation failure of the funding-continuation branch:
+  both `FUNDING_EXTREME_ONSET` and `FUNDING_PERSISTENCE_TRIGGER` failed full
+  2025 Phase 2 confirmation on `min_t_stat` with zero edge candidates.
 - [Liquidation exhaustion matrix](liquidation-exhaustion-matrix.md) records the
   bounded `LIQUIDATION_EXHAUSTION_REVERSAL` matrix and its non-promotable
   outcome under current gates.

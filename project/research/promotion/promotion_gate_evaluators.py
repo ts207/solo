@@ -593,7 +593,16 @@ def _evaluate_deploy_oos_and_low_capital(
             )
             robustness_pass = False
 
-    bridge_validation_trades = safe_int(row.get("bridge_validation_trades", 0), 0)
+    bridge_validation_trades = safe_int(
+        row.get("bridge_validation_trades", 0),
+        0,
+        context=(
+            "field=bridge_validation_trades "
+            f"candidate_id={row.get('candidate_id', '') or 'unknown'} "
+            f"run_id={row.get('run_id', '') or 'unknown'} "
+            f"source_artifact={row.get('_source_artifact', '') or 'unknown'}"
+        ),
+    )
     validation_samples_raw = coerce_numeric_nan(row.get("validation_samples"))
     test_samples_raw = coerce_numeric_nan(row.get("test_samples"))
     validation_samples = (

@@ -1,0 +1,70 @@
+program_id: funding_template_discovery_btc_2023_2025_v1
+run_mode: research
+description: >
+  Discovery-first BTCUSDT funding template matrix after the 2025 continuation
+  failure. Test canonical mechanism-fit expression templates for the two
+  funding events that previously showed signal, across 24/48 bar horizons and
+  both directions. This is evidence generation only; no validation, promotion,
+  export, or runtime readiness is implied.
+
+instrument_scope:
+  instrument_classes:
+    - crypto
+  symbols:
+    - BTCUSDT
+  timeframe: 5m
+  start: "2023-01-01"
+  end: "2025-12-31"
+
+trigger_space:
+  allowed_trigger_types:
+    - EVENT
+  events:
+    include:
+      - FUNDING_EXTREME_ONSET
+      - FUNDING_PERSISTENCE_TRIGGER
+
+templates:
+  include:
+    - reversal_or_squeeze
+    - mean_reversion
+    - continuation
+    - exhaustion_reversal
+    - convexity_capture
+
+evaluation:
+  horizons_bars:
+    - 24
+    - 48
+  directions:
+    - long
+    - short
+  entry_lags:
+    - 1
+
+contexts:
+  include: {}
+
+avoid_region_keys: []
+
+search_control:
+  max_hypotheses_total: 40
+  max_hypotheses_per_template: 8
+  max_hypotheses_per_event_family: 40
+  random_seed: 42
+
+promotion:
+  enabled: false
+  track: standard
+  multiplicity_scope: program_id
+
+artifacts:
+  matrix_phase: funding_template_discovery
+  discovery_only: true
+  no_promotion_or_export: true
+  current_data_window: "2023-01-01..2025-12-31"
+  symbol_scope: BTCUSDT
+  excluded_templates: >
+    Filter-only overlays are not standalone hypotheses. trend_continuation is
+    not canonical-compatible with POSITIONING_EXTREMES funding events in the
+    current registry.

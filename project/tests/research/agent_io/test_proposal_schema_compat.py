@@ -99,8 +99,13 @@ def test_load_normalized_from_single_hypo() -> None:
 
 def test_load_operator_proposal_from_structured() -> None:
     # This should return an AgentProposal (the executable shape)
-    agent_proposal = load_operator_proposal(_structured_payload())
+    payload = _structured_payload()
+    payload["run_mode"] = "confirmatory"
+
+    agent_proposal = load_operator_proposal(payload)
+
     assert agent_proposal.program_id == "structured_program"
+    assert agent_proposal.run_mode == "confirmatory"
     assert agent_proposal.templates == ["test_template"]
     assert agent_proposal.trigger_space["allowed_trigger_types"] == ["EVENT"]
     assert agent_proposal.trigger_space["events"]["include"] == ["TEST_EVENT"]

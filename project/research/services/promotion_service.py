@@ -531,6 +531,34 @@ def execute_promotion(config: PromotionConfig) -> PromotionServiceResult:
             validation_svc = ValidationService(data_root=data_root)
             source_tables = validation_svc.load_candidate_tables(config.run_id)
             source_candidates_df = select_stage_candidate_table(source_tables)
+            selected_source_name = ""
+            selected_source_artifact = ""
+            for source_name, source_artifact in (
+                (
+                    "edge_candidates",
+                    data_root
+                    / "reports"
+                    / "edge_candidates"
+                    / config.run_id
+                    / "edge_candidates_normalized.parquet",
+                ),
+                (
+                    "phase2_candidates",
+                    data_root
+                    / "reports"
+                    / "phase2"
+                    / config.run_id
+                    / "phase2_candidates.parquet",
+                ),
+            ):
+                table = source_tables.get(source_name, pd.DataFrame())
+                if not table.empty:
+                    selected_source_name = source_name
+                    selected_source_artifact = str(source_artifact)
+                    break
+            if not source_candidates_df.empty:
+                source_candidates_df["_source_artifact"] = selected_source_artifact
+                source_candidates_df["_source_table"] = selected_source_name
 
             if source_candidates_df.empty:
                 raise IncompleteLineageError(

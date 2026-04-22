@@ -309,7 +309,10 @@ def build_evidence_bundle(
         or "UNKNOWN_EVENT"
     )
     run_id = str(row.get("run_id", "")).strip() or "__adhoc__"
-    stability = build_stability_result_from_row(row)
+    stability = build_stability_result_from_row(
+        row,
+        source_artifact=str(row.get("_source_artifact", "") or "").strip() or None,
+    )
     falsification = evaluate_negative_controls(
         row=row,
         control_rate=control_rate,

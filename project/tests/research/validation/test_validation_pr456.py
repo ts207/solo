@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import logging
 from pathlib import Path
 
 import numpy as np
@@ -51,6 +52,29 @@ def test_build_stability_result_from_row_raises_on_malformed_regime_mapping():
 
     with pytest.raises(DataIntegrityError, match="Failed to parse stability mapping JSON"):
         build_stability_result_from_row(row)
+
+
+def test_build_stability_result_from_row_logs_nullable_std_return_context(caplog):
+    row = {
+        "candidate_id": "cand_missing_std",
+        "run_id": "run_missing_std",
+        "expectancy": 0.02,
+        "std_return": np.nan,
+        "stability_score": 0.5,
+        "sign_consistency": 1.0,
+    }
+
+    with caplog.at_level(logging.WARNING):
+        result = build_stability_result_from_row(
+            row,
+            source_artifact="reports/edge_candidates/run_missing_std/edge_candidates_normalized.parquet",
+        )
+
+    assert result.stability_score == 0.5
+    assert "field=std_return" in caplog.text
+    assert "candidate_id=cand_missing_std" in caplog.text
+    assert "run_id=run_missing_std" in caplog.text
+    assert "source_artifact=reports/edge_candidates/run_missing_std/edge_candidates_normalized.parquet" in caplog.text
 
 
 def test_evidence_bundle_policy_and_serialization(tmp_path: Path):
