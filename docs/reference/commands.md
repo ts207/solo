@@ -31,6 +31,20 @@ edge discover run --proposal spec/proposals/other.yaml --run_id <existing_run_id
 edge discover list-artifacts --run_id <run_id>
 ```
 
+Cell-first discovery:
+
+```bash
+edge discover cells verify-data --run_id <run_id> --symbols BTCUSDT --start 2024-01-01 --end 2025-12-31
+edge discover cells plan --run_id <run_id> --symbols BTCUSDT --start 2024-01-01 --end 2025-12-31
+edge discover cells run --run_id <run_id> --symbols BTCUSDT --start 2024-01-01 --end 2025-12-31
+edge discover cells summarize --run_id <run_id>
+edge discover cells assemble-theses --run_id <run_id>
+```
+
+This lane compiles authored cell specs into canonical phase-2 execution and
+returns generated proposal YAML for canonical handoff. It does not promote
+scoreboard rows directly.
+
 Advanced internal trigger discovery:
 
 ```bash
@@ -85,6 +99,7 @@ make deploy-paper CONFIG=project/configs/live_paper_<run_id>.yaml
 make liquidation-exhaustion-plan-matrix
 make benchmark-supported-path EXECUTE=0
 make benchmark-supported-path EXECUTE=1 OFFLINE_PARQUET_EXECUTION_FIXED=1
+make benchmark-edge-cells
 ```
 
 Maintenance:

@@ -274,6 +274,91 @@ class TestPromotionDecisionAuthority:
         assert "sign_consistency" in result or "sc" in result
         assert "cost_survival_ratio" in result or "csr" in result
 
+    @patch("project.research.promotion.promotion_decisions.evaluate_promotion_bundle")
+    @patch("project.research.promotion.promotion_decisions.validate_evidence_bundle")
+    def test_cell_origin_governance_overrides_forged_bundle_promotion(
+        self, mock_validate: MagicMock, mock_evaluate: MagicMock
+    ) -> None:
+        """A cell-origin row cannot promote without representative/forward/contrast/mapping proof."""
+        mock_evaluate.return_value = PROMOTED_BUNDLE_DECISION.copy()
+        row = MINIMAL_VALID_ROW.copy()
+        row.update(
+            {
+                "source_discovery_mode": "edge_cells",
+                "source_cell_id": "cell_001",
+                "is_representative": False,
+                "forward_pass": False,
+                "contrast_pass": False,
+                "runtime_executable": False,
+                "context_translation": "",
+                "context_dimension_count": 1,
+            }
+        )
+
+        result = evaluate_row(
+            row=row,
+            hypothesis_index={},
+            negative_control_summary={},
+            max_q_value=0.1,
+            min_events=50,
+            min_stability_score=0.5,
+            min_sign_consistency=0.5,
+            min_cost_survival_ratio=0.3,
+            max_negative_control_pass_rate=0.01,
+            min_tob_coverage=0.5,
+            require_hypothesis_audit=False,
+            allow_missing_negative_controls=True,
+        )
+
+        assert result["promotion_decision"] == "rejected"
+        assert result["eligible"] is False
+        assert result["gate_promo_cell_origin"] == "fail"
+        assert "cell_origin_not_cluster_representative" in result["reject_reason"]
+        assert "cell_origin_forward_missing" in result["reject_reason"]
+        assert "cell_origin_contrast_missing" in result["reject_reason"]
+        assert "cell_origin_runtime_mapping_missing" in result["reject_reason"]
+
+    @patch("project.research.promotion.promotion_decisions.evaluate_promotion_bundle")
+    @patch("project.research.promotion.promotion_decisions.validate_evidence_bundle")
+    def test_cell_origin_governance_accepts_explicit_mapped_representative(
+        self, mock_validate: MagicMock, mock_evaluate: MagicMock
+    ) -> None:
+        mock_evaluate.return_value = PROMOTED_BUNDLE_DECISION.copy()
+        row = MINIMAL_VALID_ROW.copy()
+        row.update(
+            {
+                "source_discovery_mode": "edge_cells",
+                "source_cell_id": "cell_001",
+                "is_representative": True,
+                "forward_pass": True,
+                "contrast_pass": True,
+                "runtime_executable": False,
+                "context_translation": "supportive_only_context_downgraded",
+                "supportive_context": {"canonical_regime": "VOLATILITY"},
+                "context_dimension_count": 1,
+            }
+        )
+
+        result = evaluate_row(
+            row=row,
+            hypothesis_index={},
+            negative_control_summary={},
+            max_q_value=0.1,
+            min_events=50,
+            min_stability_score=0.5,
+            min_sign_consistency=0.5,
+            min_cost_survival_ratio=0.3,
+            max_negative_control_pass_rate=0.01,
+            min_tob_coverage=0.5,
+            require_hypothesis_audit=False,
+            allow_missing_negative_controls=True,
+        )
+
+        assert result["promotion_decision"] == "promoted"
+        assert result["gate_promo_cell_origin"] == "pass"
+        assert result["cell_origin_pass"] is True
+        assert result["cell_origin_gate_reasons"] == ""
+
 
 class TestApplyAuthoritativeBundleDecision:
     """Direct unit tests for _apply_authoritative_bundle_decision helper."""

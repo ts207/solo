@@ -202,6 +202,43 @@ def test_export_promoted_theses_pending_then_active_with_blueprint(tmp_path: Pat
     assert thesis["invalidation"]["metric"] == "adverse_proxy"
 
 
+def test_export_promoted_theses_preserves_edge_cell_lineage(tmp_path: Path) -> None:
+    _write_validation_lineage(tmp_path, run_id="run_1", candidate_id="cand_1")
+    promoted_df = pd.DataFrame(
+        [
+            {
+                "candidate_id": "cand_1",
+                "event_type": "VOL_SHOCK",
+                "status": "PROMOTED",
+                "source_discovery_mode": "edge_cells",
+                "source_cell_id": "vol_shock_core::high_vol::long::12b",
+                "source_scoreboard_run_id": "CELL_SCOREBOARD_1",
+                "source_event_atom": "vol_shock_core",
+                "source_context_cell": "high_vol",
+                "source_contrast_lift_bps": 8.0,
+            }
+        ]
+    )
+
+    result = export_promoted_theses_for_run(
+        "run_1",
+        data_root=tmp_path,
+        bundles=[_bundle()],
+        promoted_df=promoted_df,
+    )
+
+    thesis = json.loads(result.output_path.read_text(encoding="utf-8"))["theses"][0]
+    contract = json.loads(result.contract_json_path.read_text(encoding="utf-8"))["contracts"][0]
+    assert thesis["lineage"]["source_discovery_mode"] == "edge_cells"
+    assert thesis["lineage"]["source_cell_id"] == "vol_shock_core::high_vol::long::12b"
+    assert thesis["lineage"]["source_scoreboard_run_id"] == "CELL_SCOREBOARD_1"
+    assert thesis["lineage"]["source_event_atom"] == "vol_shock_core"
+    assert thesis["lineage"]["source_context_cell"] == "high_vol"
+    assert thesis["lineage"]["source_contrast_lift_bps"] == 8.0
+    assert contract["source_discovery_mode"] == "edge_cells"
+    assert contract["source_cell_id"] == "vol_shock_core::high_vol::long::12b"
+
+
 def test_export_promoted_theses_fails_on_corrupted_existing_index(tmp_path: Path) -> None:
     _write_validation_lineage(tmp_path, run_id="run_1", candidate_id="cand_1")
     promoted_df = pd.DataFrame(

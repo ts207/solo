@@ -163,6 +163,18 @@ def _resolve_detector_lineage(bundle: Mapping[str, Any], promoted_row: Mapping[s
     }
 
 
+def _lineage_value(
+    *,
+    key: str,
+    metadata: Mapping[str, Any],
+    promoted_row: Mapping[str, Any],
+) -> Any:
+    value = promoted_row.get(key, "")
+    if value not in (None, ""):
+        return value
+    return metadata.get(key, "")
+
+
 def _utc_now() -> str:
     return datetime.now(timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z")
 
@@ -815,6 +827,12 @@ def _contract_row(thesis: PromotedThesis) -> dict[str, Any]:
         "source_campaign_id": str(thesis.source.source_campaign_id or "").strip(),
         "source_run_mode": str(thesis.source.source_run_mode or "").strip(),
         "objective_name": str(thesis.source.objective_name or "").strip(),
+        "source_discovery_mode": str(thesis.lineage.source_discovery_mode or "").strip(),
+        "source_cell_id": str(thesis.lineage.source_cell_id or "").strip(),
+        "source_scoreboard_run_id": str(thesis.lineage.source_scoreboard_run_id or "").strip(),
+        "source_event_atom": str(thesis.lineage.source_event_atom or "").strip(),
+        "source_context_cell": str(thesis.lineage.source_context_cell or "").strip(),
+        "source_contrast_lift_bps": thesis.lineage.source_contrast_lift_bps,
     }
 
 
@@ -1100,6 +1118,48 @@ def _build_thesis(
             source_evidence_mode=detector_lineage.get("source_evidence_mode", ""),
             source_threshold_version=detector_lineage.get("source_threshold_version", ""),
             source_calibration_artifact=detector_lineage.get("source_calibration_artifact", ""),
+            source_discovery_mode=str(
+                _lineage_value(
+                    key="source_discovery_mode",
+                    metadata=metadata if isinstance(metadata, Mapping) else {},
+                    promoted_row=promoted_row,
+                )
+            ).strip(),
+            source_cell_id=str(
+                _lineage_value(
+                    key="source_cell_id",
+                    metadata=metadata if isinstance(metadata, Mapping) else {},
+                    promoted_row=promoted_row,
+                )
+            ).strip(),
+            source_scoreboard_run_id=str(
+                _lineage_value(
+                    key="source_scoreboard_run_id",
+                    metadata=metadata if isinstance(metadata, Mapping) else {},
+                    promoted_row=promoted_row,
+                )
+            ).strip(),
+            source_event_atom=str(
+                _lineage_value(
+                    key="source_event_atom",
+                    metadata=metadata if isinstance(metadata, Mapping) else {},
+                    promoted_row=promoted_row,
+                )
+            ).strip(),
+            source_context_cell=str(
+                _lineage_value(
+                    key="source_context_cell",
+                    metadata=metadata if isinstance(metadata, Mapping) else {},
+                    promoted_row=promoted_row,
+                )
+            ).strip(),
+            source_contrast_lift_bps=_finite_or_none(
+                _lineage_value(
+                    key="source_contrast_lift_bps",
+                    metadata=metadata if isinstance(metadata, Mapping) else {},
+                    promoted_row=promoted_row,
+                )
+            ),
         ),
         governance=ThesisGovernance(
             readiness_status=str(promoted_row.get("readiness_status", "")),

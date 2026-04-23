@@ -1,9 +1,12 @@
 from __future__ import annotations
 
+from pathlib import Path
+
 import pytest
 
 from project.tests.synthetic_truth.scenarios.registry import SCENARIO_REGISTRY
-from project.tests.synthetic_truth.scenarios.factory import ScenarioFactory
+
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
 
 
 @pytest.fixture

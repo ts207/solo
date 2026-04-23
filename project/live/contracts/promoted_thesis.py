@@ -138,6 +138,12 @@ class ThesisLineage(BaseModel):
     source_evidence_mode: str = ""
     source_threshold_version: str = ""
     source_calibration_artifact: str = ""
+    source_discovery_mode: str = ""
+    source_cell_id: str = ""
+    source_scoreboard_run_id: str = ""
+    source_event_atom: str = ""
+    source_context_cell: str = ""
+    source_contrast_lift_bps: float | None = None
 
 
 class ThesisGovernance(BaseModel):

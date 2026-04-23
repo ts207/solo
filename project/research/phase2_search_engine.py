@@ -210,6 +210,69 @@ def _attach_candidate_run_lineage(frame: pd.DataFrame, *, run_id: str) -> pd.Dat
     return out
 
 
+def _load_edge_cell_lineage(lineage_path: str | Path | None) -> pd.DataFrame:
+    if not lineage_path:
+        return pd.DataFrame()
+    path = Path(lineage_path)
+    if not path.exists():
+        raise FileNotFoundError(f"edge-cell lineage artifact not found: {path}")
+    frame = read_parquet([path])
+    if frame.empty:
+        return frame
+    if "hypothesis_id" not in frame.columns:
+        raise ValueError(f"edge-cell lineage artifact lacks hypothesis_id: {path}")
+    subset = ["hypothesis_id"]
+    if "symbol" in frame.columns:
+        subset.append("symbol")
+    return frame.drop_duplicates(subset=subset, keep="last")
+
+
+def _merge_edge_cell_lineage(frame: pd.DataFrame, lineage: pd.DataFrame) -> pd.DataFrame:
+    if frame.empty or lineage.empty or "hypothesis_id" not in frame.columns:
+        return frame
+    existing = set(frame.columns)
+    if "symbol" in frame.columns and "symbol" in lineage.columns:
+        left = frame.copy()
+        right = lineage.copy()
+        left["__edge_cell_symbol_key"] = left["symbol"].fillna("").astype(str).str.upper()
+        right["__edge_cell_symbol_key"] = right["symbol"].fillna("").astype(str).str.upper()
+        lineage_cols = [
+            col
+            for col in right.columns
+            if col in {"hypothesis_id", "__edge_cell_symbol_key"} or col not in existing
+        ]
+        merged = left.merge(
+            right[lineage_cols],
+            on=["hypothesis_id", "__edge_cell_symbol_key"],
+            how="left",
+        )
+        return merged.drop(columns=["__edge_cell_symbol_key"])
+    lineage_cols = [
+        col for col in lineage.columns if col == "hypothesis_id" or col not in existing
+    ]
+    return frame.merge(lineage[lineage_cols], on="hypothesis_id", how="left")
+
+
+def _filter_edge_cell_authorized_hypotheses(
+    hypotheses: list[Any],
+    lineage: pd.DataFrame,
+    *,
+    symbol: str | None = None,
+) -> list[Any]:
+    if not hypotheses or lineage.empty or "hypothesis_id" not in lineage.columns:
+        return []
+    scoped = lineage
+    if symbol is not None and "symbol" in scoped.columns:
+        symbol_key = str(symbol).strip().upper()
+        scoped = scoped[scoped["symbol"].fillna("").astype(str).str.upper() == symbol_key]
+        if scoped.empty:
+            return []
+    allowed = set(scoped["hypothesis_id"].dropna().astype(str))
+    if not allowed:
+        return []
+    return [spec for spec in hypotheses if str(spec.hypothesis_id()) in allowed]
+
+
 def _classify_metrics_counts(
     metrics: pd.DataFrame,
     *,
@@ -1082,6 +1145,8 @@ def run(
     enable_discovery_v2_scoring: bool = True,
     phase2_event_type: str = "",
     event_registry_override: Optional[str] = None,
+    discovery_mode: str = "search",
+    lineage_path: str | Path | None = None,
 ) -> int:
     """
     Discovery v2 Search Engine Orchestrator. [STATUS: STABLE]
@@ -1144,6 +1209,11 @@ def run(
     symbol_diagnostics = []
     metrics_frames = []
     candidate_universe_frames = []
+    edge_cell_lineage = (
+        _load_edge_cell_lineage(lineage_path)
+        if str(discovery_mode or "search").strip() == "edge_cells"
+        else pd.DataFrame()
+    )
 
     total_feature_rows = 0
     total_event_flag_rows = 0
@@ -1242,6 +1312,21 @@ def run(
                 max_hypotheses=int(search_budget) if search_budget is not None else None,
                 features=features,
             )
+            if str(discovery_mode or "search").strip() == "edge_cells":
+                before_filter = len(hypotheses)
+                hypotheses = _filter_edge_cell_authorized_hypotheses(
+                    hypotheses,
+                    edge_cell_lineage,
+                    symbol=symbol,
+                )
+                generation_audit.setdefault("edge_cell_authorization", {})
+                generation_audit["edge_cell_authorization"] = {
+                    "authorized_hypotheses": len(hypotheses),
+                    "unauthorized_hypotheses_filtered": before_filter - len(hypotheses),
+                    "lineage_hypothesis_count": int(len(edge_cell_lineage)),
+                }
+                generation_audit.setdefault("counts", {})
+                generation_audit["counts"]["feasible"] = len(hypotheses)
             _write_hypothesis_audit_artifacts(
                 phase2_hypotheses_dir(data_root=data_root, run_id=run_id),
                 symbol,
@@ -1391,6 +1476,11 @@ def run(
 
             candidates = h_result.final_candidates
             h_candidate_universe = _latest_hierarchical_stage_frame(h_result.stage_artifacts)
+            h_candidate_universe = _merge_edge_cell_lineage(
+                h_candidate_universe,
+                edge_cell_lineage,
+            )
+            candidates = _merge_edge_cell_lineage(candidates, edge_cell_lineage)
             h_metrics_for_funnel = h_candidate_universe.copy()
             if not h_metrics_for_funnel.empty and "valid" not in h_metrics_for_funnel.columns:
                 h_metrics_for_funnel["valid"] = True
@@ -1633,6 +1723,7 @@ def run(
             prefilter_min_n=True,
             prefilter_min_t_stat=False,
         )
+        candidate_universe = _merge_edge_cell_lineage(candidate_universe, edge_cell_lineage)
 
         if (
             not candidate_universe.empty
@@ -1647,6 +1738,7 @@ def run(
                 mode="research",
                 min_sample_size=resolved_min_n,
             )
+            candidate_universe = _merge_edge_cell_lineage(candidate_universe, edge_cell_lineage)
         if not candidate_universe.empty:
             candidate_universe_frames.append(candidate_universe.copy())
 
@@ -1730,6 +1822,7 @@ def run(
 
     final_df = _annotate_candidate_regime_metadata(final_df)
     final_df = _attach_candidate_run_lineage(final_df, run_id=run_id)
+    final_df = _merge_edge_cell_lineage(final_df, edge_cell_lineage)
     final_df = _annotate_promotion_gate_fields(final_df)
 
     if not final_df.empty:
@@ -1812,6 +1905,14 @@ def run(
             raise RuntimeError("Phase 3 concept ledger write failed") from _ledger_exc
 
     # 6. Write output
+    candidate_universe_df = (
+        _safe_concat(candidate_universe_frames, ignore_index=True)
+        if candidate_universe_frames
+        else pd.DataFrame()
+    )
+    if str(discovery_mode or "search").strip() == "edge_cells":
+        write_parquet(candidate_universe_df, out_dir / "phase2_candidate_universe.parquet")
+
     final_df = _normalize_phase2_candidate_artifact(final_df)
     write_parquet(final_df, output_path)
     validate_schema_at_producer(final_df, "phase2_candidates", context="phase2_search_engine")
@@ -2050,6 +2151,8 @@ def main(argv=None) -> int:
     parser.add_argument(
         "--registry_root", default="project/configs/registries", help="Root for event registries."
     )
+    parser.add_argument("--discovery_mode", choices=["search", "edge_cells"], default="search")
+    parser.add_argument("--lineage_path", default=None)
     parser.add_argument("--log_path", default=None)
 
     args = parser.parse_args(argv)
@@ -2097,6 +2200,8 @@ def main(argv=None) -> int:
             experiment_config=args.experiment_config,
             registry_root=args.registry_root,
             phase2_event_type=args.phase2_event_type,
+            discovery_mode=args.discovery_mode,
+            lineage_path=args.lineage_path,
         )
         if diagnostics_path.exists():
             try:

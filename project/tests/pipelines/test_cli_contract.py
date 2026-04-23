@@ -10,6 +10,7 @@ import yaml
 
 import project.discover as discover_module
 import project.promote as promote_module
+from project.research.cell_discovery import cells_cli as cells_cli_module
 from project.tests.conftest import PROJECT_ROOT
 
 CLI_PATH = PROJECT_ROOT / "cli.py"
@@ -111,6 +112,98 @@ def test_cli_discover_plan_rejects_legacy_compatibility_flag(monkeypatch, capsys
     assert int(exc.value.code) == 2
     err = capsys.readouterr().err
     assert "unrecognized arguments: --legacy_compatibility 1" in err
+
+
+def test_cli_discover_cells_plan_delegates_to_cell_lane(monkeypatch, tmp_path: Path):
+    cli = _load_cli_module()
+    captured = {}
+
+    def _fake_run_from_namespace(args):
+        captured["args"] = args
+        return {
+            "exit_code": 0,
+            "status": "planned",
+            "run_id": args.run_id,
+        }
+
+    monkeypatch.setattr(cells_cli_module, "run_from_namespace", _fake_run_from_namespace)
+    monkeypatch.setattr(
+        sys,
+        "argv",
+        [
+            "backtest",
+            "discover",
+            "cells",
+            "plan",
+            "--run_id",
+            "unit_cells",
+            "--symbols",
+            "BTCUSDT,ETHUSDT",
+            "--data_root",
+            str(tmp_path),
+        ],
+    )
+
+    assert cli.main() == 0
+    assert captured["args"].cells_action == "plan"
+    assert captured["args"].run_id == "unit_cells"
+    assert captured["args"].symbols == "BTCUSDT,ETHUSDT"
+    assert captured["args"].data_root == str(tmp_path)
+
+
+def test_cli_discover_cells_rejects_compat_discovery_flag(monkeypatch, capsys):
+    cli = _load_cli_module()
+    monkeypatch.setattr(
+        sys,
+        "argv",
+        [
+            "backtest",
+            "discover",
+            "cells",
+            "plan",
+            "--run_id",
+            "unit_cells",
+            "--use_candidate_discovery",
+            "1",
+        ],
+    )
+
+    with pytest.raises(SystemExit) as exc:
+        cli.main()
+
+    assert int(exc.value.code) == 2
+    assert "unrecognized arguments: --use_candidate_discovery 1" in capsys.readouterr().err
+
+
+def test_cli_discover_cells_assemble_theses_delegates(monkeypatch, tmp_path: Path):
+    cli = _load_cli_module()
+    captured = {}
+
+    def _fake_run_from_namespace(args):
+        captured["args"] = args
+        return {"exit_code": 0, "status": "ok", "generated_count": 0}
+
+    monkeypatch.setattr(cells_cli_module, "run_from_namespace", _fake_run_from_namespace)
+    monkeypatch.setattr(
+        sys,
+        "argv",
+        [
+            "backtest",
+            "discover",
+            "cells",
+            "assemble-theses",
+            "--run_id",
+            "unit_cells",
+            "--data_root",
+            str(tmp_path),
+            "--limit",
+            "3",
+        ],
+    )
+
+    assert cli.main() == 0
+    assert captured["args"].cells_action == "assemble-theses"
+    assert captured["args"].limit == 3
 
 
 def test_cli_promote_run_delegates_without_compatibility_bridge(monkeypatch):

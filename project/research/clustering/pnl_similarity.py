@@ -1,6 +1,5 @@
-import pandas as pd
 import numpy as np
-from typing import Dict, List
+import pandas as pd
 
 
 def calculate_similarity_matrix(pnl_df: pd.DataFrame) -> pd.DataFrame:
@@ -8,8 +7,12 @@ def calculate_similarity_matrix(pnl_df: pd.DataFrame) -> pd.DataFrame:
     Calculate similarity between hypotheses based on PnL correlation and overlap.
     pnl_df: columns are hypothesis_ids, index is signal_ts
     """
-    # 1. Return correlation
-    corr_matrix = pnl_df.corr().fillna(0)
+    if pnl_df.empty:
+        return pd.DataFrame()
+    corr_matrix = pnl_df.corr().fillna(0.0).clip(-1.0, 1.0)
+    for column in corr_matrix.columns:
+        corr_matrix.loc[column, column] = 1.0
+    return corr_matrix.abs()
 
 def calculate_trigger_overlap(trigger_df: pd.DataFrame) -> pd.DataFrame:
     """
@@ -19,13 +22,13 @@ def calculate_trigger_overlap(trigger_df: pd.DataFrame) -> pd.DataFrame:
     """
     if trigger_df.empty:
         return pd.DataFrame()
-        
+
     cols = trigger_df.columns
     n = len(cols)
     overlap = pd.DataFrame(np.eye(n), index=cols, columns=cols)
-    
+
     triggers = trigger_df.fillna(0).astype(bool).values
-    
+
     for i in range(n):
         for j in range(i + 1, n):
             intersection = np.logical_and(triggers[:, i], triggers[:, j]).sum()
@@ -33,7 +36,7 @@ def calculate_trigger_overlap(trigger_df: pd.DataFrame) -> pd.DataFrame:
             sim = intersection / union if union > 0 else 0.0
             overlap.iloc[i, j] = sim
             overlap.iloc[j, i] = sim
-            
+
     return overlap
 
 

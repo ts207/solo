@@ -44,6 +44,12 @@ def test_promoted_thesis_contract_model_dump() -> None:
             plan_row_id="plan_1",
             blueprint_id="bp_1",
             proposal_id="proposal_1",
+            source_discovery_mode="edge_cells",
+            source_cell_id="cell_1",
+            source_scoreboard_run_id="score_1",
+            source_event_atom="vol_shock_core",
+            source_context_cell="high_vol",
+            source_contrast_lift_bps=8.0,
         ),
     )
 
@@ -64,6 +70,9 @@ def test_promoted_thesis_contract_model_dump() -> None:
     assert payload["overlap_group_id"] == ""
     assert payload["evidence"]["net_expectancy_bps"] == 9.0
     assert payload["lineage"]["blueprint_id"] == "bp_1"
+    assert payload["lineage"]["source_discovery_mode"] == "edge_cells"
+    assert payload["lineage"]["source_cell_id"] == "cell_1"
+    assert payload["lineage"]["source_contrast_lift_bps"] == 8.0
 
 
 def test_promoted_thesis_primary_event_id_does_not_backfill_event_family() -> None:

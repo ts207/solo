@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from typing import Any, Dict
 from pathlib import Path
+from typing import Any, Dict
 
 import numpy as np
 
@@ -20,6 +20,7 @@ from project.research.promotion.promotion_decision_support import (
 )
 from project.research.promotion.promotion_eligibility import _ReasonRecorder
 from project.research.promotion.promotion_result_support import _assemble_promotion_result
+from project.research.promotion.promotion_scoring import _context_complexity_penalty
 from project.research.promotion.promotion_thresholds import _build_bundle_policy
 from project.research.utils.decision_safety import coerce_numeric_nan, finite_le
 from project.research.validation.evidence_bundle import (
@@ -27,6 +28,140 @@ from project.research.validation.evidence_bundle import (
     evaluate_promotion_bundle,
     validate_evidence_bundle,
 )
+
+
+_CELL_ORIGIN_MODE = "edge_cells"
+_CELL_ORIGIN_MAX_COMPLEXITY_PENALTY = 0.20
+_CELL_ORIGIN_MAPPED_STATUSES = {
+    "runtime_executable",
+}
+_CELL_ORIGIN_SUPPORTIVE_STATUSES = {
+    "supportive_only_context_downgraded",
+    "supportive_downgraded",
+}
+
+
+def _is_cell_origin_row(row: Dict[str, Any]) -> bool:
+    return str(row.get("source_discovery_mode", "") or "").strip().lower() == _CELL_ORIGIN_MODE
+
+
+def _has_explicit_runtime_mapping(row: Dict[str, Any]) -> bool:
+    if as_bool(row.get("runtime_executable", False)):
+        return True
+    mapping_status = str(
+        row.get("context_translation", row.get("runtime_mapping_status", ""))
+        or ""
+    ).strip()
+    if mapping_status in _CELL_ORIGIN_MAPPED_STATUSES:
+        return True
+    if mapping_status in _CELL_ORIGIN_SUPPORTIVE_STATUSES:
+        return bool(row.get("supportive_context") or row.get("supportive_context_json"))
+    return False
+
+
+def _evaluate_cell_origin_governance(
+    row: Dict[str, Any],
+    reasons: _ReasonRecorder,
+) -> Dict[str, Any]:
+    if not _is_cell_origin_row(row):
+        return {
+            "applies": False,
+            "pass": True,
+            "fail_reasons": [],
+            "complexity_penalty": 0.0,
+            "runtime_mapping_status": "",
+        }
+
+    fail_reasons: list[str] = []
+    if not as_bool(row.get("is_representative", False)):
+        fail_reasons.append("cell_origin_not_cluster_representative")
+    if not as_bool(row.get("forward_pass", False)):
+        fail_reasons.append("cell_origin_forward_missing")
+    if not as_bool(row.get("contrast_pass", False)):
+        fail_reasons.append("cell_origin_contrast_missing")
+
+    runtime_mapped = _has_explicit_runtime_mapping(row)
+    if not runtime_mapped:
+        fail_reasons.append("cell_origin_runtime_mapping_missing")
+
+    dimension_count = _quiet_int(
+        row.get("context_dimension_count", row.get("context_dim_count", 0)),
+        0,
+    )
+    complexity_penalty = _context_complexity_penalty(dimension_count)
+    if complexity_penalty > _CELL_ORIGIN_MAX_COMPLEXITY_PENALTY:
+        fail_reasons.append("cell_origin_complexity_excessive")
+
+    if fail_reasons:
+        for reason in fail_reasons:
+            reasons.add_pair(
+                reject_reason=reason,
+                promo_fail_reason="gate_promo_cell_origin",
+                category="cell_origin_governance",
+            )
+
+    mapping_status = str(
+        row.get("context_translation", row.get("runtime_mapping_status", ""))
+        or ("runtime_executable" if as_bool(row.get("runtime_executable", False)) else "")
+    ).strip()
+    return {
+        "applies": True,
+        "pass": not fail_reasons,
+        "fail_reasons": fail_reasons,
+        "complexity_penalty": float(complexity_penalty),
+        "runtime_mapping_status": mapping_status,
+    }
+
+
+def _apply_cell_origin_authority(
+    result: Dict[str, Any],
+    cell_origin_eval: Dict[str, Any],
+) -> Dict[str, Any]:
+    out = dict(result)
+    applies = bool(cell_origin_eval.get("applies", False))
+    passed = bool(cell_origin_eval.get("pass", True))
+    fail_reasons = [str(r) for r in cell_origin_eval.get("fail_reasons", []) if str(r)]
+
+    out["cell_origin_governance_applies"] = applies
+    out["cell_origin_pass"] = passed
+    out["gate_promo_cell_origin"] = "pass" if passed else "fail"
+    out["cell_origin_gate_reasons"] = "|".join(fail_reasons)
+    out["cell_origin_complexity_penalty"] = float(
+        cell_origin_eval.get("complexity_penalty", 0.0) or 0.0
+    )
+    out["cell_origin_runtime_mapping_status"] = str(
+        cell_origin_eval.get("runtime_mapping_status", "") or ""
+    )
+    if applies and not passed:
+        out["eligible"] = False
+        out["promotion_status"] = "rejected"
+        out["promotion_decision"] = "rejected"
+        out["promotion_track"] = "fallback_only"
+        out["fallback_used"] = True
+        out["fallback_reason"] = "gate_promo_cell_origin"
+        existing = [r for r in str(out.get("reject_reason", "")).split("|") if r]
+        out["reject_reason"] = "|".join(sorted(set(existing + fail_reasons)))
+        out["promotion_fail_gate_primary"] = (
+            str(out.get("promotion_fail_gate_primary", "") or "")
+            or "gate_promo_cell_origin"
+        )
+        out["promotion_fail_reason_primary"] = (
+            str(out.get("promotion_fail_reason_primary", "") or "")
+            or "failed_gate_promo_cell_origin"
+        )
+        rejection_reasons = list(out.get("rejection_reasons", []) or [])
+        out["rejection_reasons"] = sorted(set(rejection_reasons + fail_reasons))
+        gate_results = dict(out.get("gate_results", {}) or {})
+        gate_results["cell_origin_governance"] = "fail"
+        out["gate_results"] = gate_results
+    elif applies:
+        gate_results = dict(out.get("gate_results", {}) or {})
+        gate_results.setdefault("cell_origin_governance", "pass")
+        out["gate_results"] = gate_results
+    audit = dict(out.get("promotion_audit", {}) or {})
+    audit["gate_promo_cell_origin"] = out["gate_promo_cell_origin"]
+    out["promotion_audit"] = audit
+    return out
 
 
 def _apply_authoritative_bundle_decision(
@@ -290,6 +425,7 @@ def evaluate_row(
             dsr_pass=control_eval["dsr_pass"],
             reasons=reasons,
         )
+        cell_origin_eval = _evaluate_cell_origin_governance(row, reasons)
 
         result = _assemble_promotion_result(
             reasons=reasons,
@@ -366,6 +502,20 @@ def evaluate_row(
             is_reduced_evidence=is_reduced_evidence,
             benchmark_pass=bench_pass,
             sensitivity_pass=sensitivity_pass,
+            cell_origin_pass=bool(cell_origin_eval["pass"]),
+        )
+        result.update(
+            {
+                "cell_origin_governance_applies": bool(cell_origin_eval["applies"]),
+                "cell_origin_pass": bool(cell_origin_eval["pass"]),
+                "cell_origin_gate_reasons": "|".join(cell_origin_eval["fail_reasons"]),
+                "cell_origin_complexity_penalty": float(
+                    cell_origin_eval["complexity_penalty"]
+                ),
+                "cell_origin_runtime_mapping_status": str(
+                    cell_origin_eval["runtime_mapping_status"]
+                ),
+            }
         )
         result["is_continuation_template_family"] = continuation_eval[
             "is_continuation_template_family"
@@ -424,6 +574,7 @@ def evaluate_row(
         bundle["promotion_decision"] = dict(bundle_decision)
         bundle["rejection_reasons"] = list(bundle_decision.get("rejection_reasons", []))
         result = _apply_authoritative_bundle_decision(result, bundle, bundle_decision)
+        result = _apply_cell_origin_authority(result, cell_origin_eval)
         return _restore_boolean_compat_gates(result)
     except Exception as e:
         if isinstance(e, PromotionDecisionError):

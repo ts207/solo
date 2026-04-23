@@ -18,6 +18,13 @@ strategy_runtime.event_detector.adapter = governed_runtime_core
 ```
 
 - Portfolio decision-engine allocation path in `project.portfolio.engine`.
+- Cell-first discovery when it hands off through canonical proposal artifacts:
+
+```text
+edge discover cells run -> edge discover cells assemble-theses
+-> edge discover plan|run -> edge validate run -> edge promote run
+```
+
 - Docs/governance refresh and check path:
 
 ```bash
@@ -42,6 +49,10 @@ edge discover triggers emit-registry-payload --proposal <proposal.yaml>
 ```
 
 These lanes can emit proposal material, but they are not the canonical discovery path.
+
+Cell-first discovery is research-first rather than directly deployable. Its
+scoreboard and cluster artifacts are not runtime instructions; only generated
+proposal YAML files that re-enter the canonical lifecycle are supported.
 
 ## Deprecated
 

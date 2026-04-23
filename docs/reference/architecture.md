@@ -48,6 +48,7 @@ Edge is a Python repository with contract-enforced package boundaries. Package o
 
 - proposal ingestion and translation
 - phase-2 search engine
+- cell-first discovery compilation, scoreboard ranking, and canonical proposal handoff
 - candidate evaluation
 - validation services
 - promotion policy
@@ -191,6 +192,13 @@ data/live/theses/<run_id>/promoted_theses.json
 ```
 
 Runtime consumes exported theses and current live state. It should not interpret unpromoted discovery artifacts as deployable instructions.
+
+Cell-first discovery preserves this boundary. `edge discover cells run` may rank
+research-only cells, but `edge discover cells assemble-theses` only writes
+canonical proposal YAML for runtime-routed representatives or mapped
+supportive-only representatives whose context is downgraded into proposal
+metadata. Those proposals must re-enter `edge discover plan|run`, `edge validate
+run`, and `edge promote run` before runtime export.
 
 ## Change Strategy
 

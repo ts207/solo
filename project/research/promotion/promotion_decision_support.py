@@ -73,6 +73,7 @@ def _apply_bundle_policy_result(
         "dsr": "gate_promo_dsr",
         "robustness": "gate_promo_robustness",
         "regime": "gate_promo_regime",
+        "cell_origin_governance": "gate_promo_cell_origin",
     }
     gate_results = dict(bundle_decision.get("gate_results", {}))
     for src_key, dst_key in gate_map.items():
