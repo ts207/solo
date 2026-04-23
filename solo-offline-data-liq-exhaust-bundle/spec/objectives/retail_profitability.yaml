@@ -1,0 +1,19 @@
+objective:
+  id: retail_profitability
+  description: Maximize deployable net performance for non-institutional capital.
+  score_weights:
+    net_return_after_cost: 1.0
+    max_drawdown: -0.7
+    turnover_penalty: -0.4
+    fragility_penalty: -0.5
+    complexity_penalty: -0.3
+  hard_gates:
+    min_trade_count: 150
+    max_drawdown_pct: 0.20
+    min_oos_sign_consistency: 0.67
+    min_p95_cost_survival_bps: 0.0
+    max_capacity_utilization: 0.50
+  constraints:
+    require_retail_viability: true
+    forbid_fallback_in_deploy_mode: true
+    require_low_capital_contract: true

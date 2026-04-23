@@ -1,0 +1,6 @@
+campaign_id: example_campaign
+initial_proposal: spec/proposals/templates/confirmation.yaml
+registry_root: project/configs/registries
+max_cycles: 3
+stop_conditions:
+  max_fail_streak: 2

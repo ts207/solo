@@ -1,0 +1,787 @@
+events:
+  ABSORPTION_PROXY:
+    detector: AbsorptionProxyDetector
+    enabled: true
+    family: LIQUIDITY_DISLOCATION
+    instrument_classes: []
+    requires_features: []
+    sequence_eligible: true
+    tags: []
+  BAND_BREAK:
+    detector: BandBreakDetector
+    enabled: true
+    family: STATISTICAL_DISLOCATION
+    instrument_classes:
+    - crypto
+    - futures
+    requires_features: []
+    sequence_eligible: true
+    tags:
+    - statistical_stretch
+  BASIS_DISLOC:
+    detector: BasisDislocationDetector
+    enabled: true
+    family: STATISTICAL_DISLOCATION
+    instrument_classes:
+    - crypto
+    - futures
+    requires_features: []
+    sequence_eligible: true
+    tags:
+    - basis_dislocation
+  BETA_SPIKE_EVENT:
+    detector: BetaSpikeDetector
+    enabled: true
+    family: REGIME_TRANSITION
+    instrument_classes:
+    - crypto
+    - futures
+    requires_features: []
+    sequence_eligible: true
+    tags:
+    - regime_shift
+  BREAKOUT_TRIGGER:
+    detector: BreakoutTriggerDetector
+    enabled: true
+    family: VOLATILITY_TRANSITION
+    instrument_classes:
+    - crypto
+    - futures
+    requires_features: []
+    sequence_eligible: true
+    tags:
+    - vol_regime
+    - trend_momentum
+  CHOP_TO_TREND_SHIFT:
+    detector: ChopToTrendDetector
+    enabled: true
+    family: REGIME_TRANSITION
+    instrument_classes:
+    - crypto
+    - futures
+    requires_features: []
+    sequence_eligible: true
+    tags:
+    - regime_shift
+    - trend_momentum
+  CLIMAX_VOLUME_BAR:
+    detector: ClimaxVolumeDetector
+    enabled: true
+    family: FORCED_FLOW_AND_EXHAUSTION
+    instrument_classes:
+    - crypto
+    - futures
+    requires_features: []
+    sequence_eligible: true
+    tags:
+    - exhaustion
+    - high_urgency
+  COPULA_PAIRS_TRADING:
+    detector: CopulaPairsTradingDetector
+    enabled: true
+    family: STATISTICAL_DISLOCATION
+    instrument_classes:
+    - crypto
+    - futures
+    requires_features: []
+    sequence_eligible: true
+    tags:
+    - basis_dislocation
+  CORRELATION_BREAKDOWN_EVENT:
+    detector: CorrelationBreakdownDetector
+    enabled: true
+    family: REGIME_TRANSITION
+    instrument_classes:
+    - crypto
+    - futures
+    requires_features: []
+    sequence_eligible: true
+    tags:
+    - regime_shift
+  CROSS_ASSET_DESYNC_EVENT:
+    detector: CrossAssetDesyncDetector
+    enabled: true
+    family: INFORMATION_DESYNC
+    instrument_classes:
+    - crypto
+    - futures
+    requires_features: []
+    sequence_eligible: true
+    tags:
+    - desync
+  CROSS_VENUE_DESYNC:
+    detector: CrossVenueDesyncDetector
+    enabled: true
+    family: INFORMATION_DESYNC
+    instrument_classes:
+    - crypto
+    - futures
+    requires_features: []
+    sequence_eligible: true
+    tags:
+    - desync
+  DELEVERAGING_WAVE:
+    detector: DeleveragingWaveDetector
+    enabled: true
+    family: POSITIONING_EXTREMES
+    instrument_classes:
+    - crypto
+    - futures
+    requires_features: []
+    sequence_eligible: true
+    tags:
+    - forced_liquidation
+    - oi_dynamic
+  DEPTH_COLLAPSE:
+    detector: DepthCollapseDetector
+    enabled: true
+    family: LIQUIDITY_DISLOCATION
+    instrument_classes:
+    - crypto
+    - futures
+    requires_features: []
+    sequence_eligible: true
+    tags:
+    - liquidity_stress
+  DEPTH_STRESS_PROXY:
+    detector: DepthStressProxyDetector
+    enabled: true
+    family: LIQUIDITY_DISLOCATION
+    instrument_classes: []
+    requires_features: []
+    sequence_eligible: true
+    tags: []
+  FAILED_CONTINUATION:
+    detector: FailedContinuationDetector
+    enabled: true
+    family: FORCED_FLOW_AND_EXHAUSTION
+    instrument_classes:
+    - crypto
+    - futures
+    requires_features: []
+    sequence_eligible: true
+    tags:
+    - exhaustion
+  FALSE_BREAKOUT:
+    detector: FalseBreakoutDetector
+    enabled: true
+    family: TREND_STRUCTURE
+    instrument_classes:
+    - crypto
+    - futures
+    requires_features: []
+    sequence_eligible: true
+    tags:
+    - trend_momentum
+    - exhaustion
+  FEE_REGIME_CHANGE_EVENT:
+    detector: FeeRegimeChangeDetector
+    enabled: true
+    family: EXECUTION_FRICTION
+    instrument_classes:
+    - crypto
+    - futures
+    requires_features: []
+    sequence_eligible: true
+    tags:
+    - execution_cost
+  FLOW_EXHAUSTION_PROXY:
+    detector: FlowExhaustionDetector
+    enabled: true
+    family: FORCED_FLOW_AND_EXHAUSTION
+    instrument_classes: []
+    requires_features: []
+    sequence_eligible: true
+    tags: []
+  FND_DISLOC:
+    detector: FndDislocDetector
+    enabled: true
+    family: STATISTICAL_DISLOCATION
+    instrument_classes:
+    - crypto
+    - futures
+    requires_features: []
+    sequence_eligible: true
+    tags:
+    - basis_dislocation
+  FORCED_FLOW_EXHAUSTION:
+    detector: ForcedFlowExhaustionDetector
+    enabled: true
+    family: FORCED_FLOW_AND_EXHAUSTION
+    instrument_classes:
+    - crypto
+    - futures
+    requires_features: []
+    sequence_eligible: true
+    tags:
+    - exhaustion
+    - forced_liquidation
+  FUNDING_EXTREME_ONSET:
+    detector: FundingExtremeOnsetDetector
+    enabled: true
+    family: POSITIONING_EXTREMES
+    instrument_classes:
+    - crypto
+    - futures
+    requires_features: []
+    sequence_eligible: true
+    tags:
+    - funding_crowding
+  FUNDING_FLIP:
+    detector: FundingFlipDetector
+    enabled: true
+    family: POSITIONING_EXTREMES
+    instrument_classes:
+    - crypto
+    - futures
+    requires_features: []
+    sequence_eligible: true
+    tags:
+    - funding_crowding
+    - high_urgency
+  FUNDING_NORMALIZATION_TRIGGER:
+    detector: FundingNormalizationDetector
+    enabled: true
+    family: POSITIONING_EXTREMES
+    instrument_classes:
+    - crypto
+    - futures
+    requires_features: []
+    sequence_eligible: true
+    tags:
+    - funding_crowding
+  FUNDING_PERSISTENCE_TRIGGER:
+    detector: FundingPersistenceDetector
+    enabled: true
+    family: POSITIONING_EXTREMES
+    instrument_classes:
+    - crypto
+    - futures
+    requires_features: []
+    sequence_eligible: true
+    tags:
+    - funding_crowding
+  FUNDING_TIMESTAMP_EVENT:
+    detector: FundingTimestampDetector
+    enabled: true
+    family: TEMPORAL_STRUCTURE
+    instrument_classes:
+    - crypto
+    - futures
+    requires_features: []
+    sequence_eligible: true
+    tags:
+    - temporal_anchor
+    - funding_crowding
+  GAP_OVERSHOOT:
+    detector: GapOvershootDetector
+    enabled: true
+    family: STATISTICAL_DISLOCATION
+    instrument_classes:
+    - crypto
+    - futures
+    requires_features: []
+    sequence_eligible: true
+    tags:
+    - statistical_stretch
+  INDEX_COMPONENT_DIVERGENCE:
+    detector: IndexComponentDivergenceDetector
+    enabled: true
+    family: INFORMATION_DESYNC
+    instrument_classes:
+    - crypto
+    - futures
+    requires_features: []
+    sequence_eligible: true
+    tags:
+    - desync
+  LEAD_LAG_BREAK:
+    detector: LeadLagBreakDetector
+    enabled: true
+    family: INFORMATION_DESYNC
+    instrument_classes:
+    - crypto
+    - futures
+    requires_features: []
+    sequence_eligible: true
+    tags:
+    - desync
+  LIQUIDATION_CASCADE:
+    detector: LiquidationCascadeDetector
+    enabled: true
+    family: POSITIONING_EXTREMES
+    instrument_classes:
+    - crypto
+    - futures
+    requires_features: []
+    sequence_eligible: true
+    tags:
+    - forced_liquidation
+    - high_urgency
+  LIQUIDATION_CASCADE_PROXY:
+    detector: LiquidationCascadeProxyDetector
+    enabled: true
+    family: POSITIONING_EXTREMES
+    instrument_classes:
+    - crypto
+    - futures
+    requires_features: []
+    sequence_eligible: true
+    tags:
+    - oi_dynamic
+    - liquidation_proxy
+  LIQUIDATION_EXHAUSTION_REVERSAL:
+    detector: PostDeleveragingReboundDetector
+    enabled: true
+    family: FORCED_FLOW_AND_EXHAUSTION
+    instrument_classes:
+    - crypto
+    - futures
+    requires_features: []
+    sequence_eligible: true
+    tags:
+    - forced_liquidation
+  LIQUIDITY_GAP_PRINT:
+    detector: LiquidityGapDetector
+    enabled: true
+    family: LIQUIDITY_DISLOCATION
+    instrument_classes:
+    - crypto
+    - futures
+    requires_features: []
+    sequence_eligible: true
+    tags:
+    - liquidity_stress
+  LIQUIDITY_SHOCK:
+    detector: LiquidityStressDetector
+    enabled: true
+    family: LIQUIDITY_DISLOCATION
+    instrument_classes:
+    - crypto
+    - futures
+    requires_features: []
+    sequence_eligible: true
+    tags:
+    - liquidity_stress
+    - high_urgency
+  LIQUIDITY_STRESS_DIRECT:
+    detector: DirectLiquidityStressDetector
+    enabled: true
+    family: LIQUIDITY_DISLOCATION
+    instrument_classes: []
+    requires_features: []
+    sequence_eligible: true
+    tags: []
+  LIQUIDITY_STRESS_PROXY:
+    detector: ProxyLiquidityStressDetector
+    enabled: true
+    family: LIQUIDITY_DISLOCATION
+    instrument_classes: []
+    requires_features: []
+    sequence_eligible: true
+    tags: []
+  LIQUIDITY_VACUUM:
+    detector: LiquidityVacuumDetector
+    enabled: true
+    family: LIQUIDITY_DISLOCATION
+    instrument_classes:
+    - crypto
+    - futures
+    requires_features: []
+    sequence_eligible: true
+    tags:
+    - liquidity_stress
+    - high_urgency
+  MOMENTUM_DIVERGENCE_TRIGGER:
+    detector: MomentumDivergenceDetector
+    enabled: true
+    family: FORCED_FLOW_AND_EXHAUSTION
+    instrument_classes:
+    - crypto
+    - futures
+    requires_features: []
+    sequence_eligible: true
+    tags:
+    - exhaustion
+  OI_FLUSH:
+    detector: OIFlushDetector
+    enabled: true
+    family: POSITIONING_EXTREMES
+    instrument_classes:
+    - crypto
+    - futures
+    requires_features: []
+    sequence_eligible: true
+    tags:
+    - oi_dynamic
+    - high_urgency
+  OI_SPIKE_NEGATIVE:
+    detector: OISpikeNegativeDetector
+    enabled: true
+    family: POSITIONING_EXTREMES
+    instrument_classes:
+    - crypto
+    - futures
+    requires_features: []
+    sequence_eligible: true
+    tags:
+    - oi_dynamic
+  OI_SPIKE_POSITIVE:
+    detector: OISpikePositiveDetector
+    enabled: true
+    family: POSITIONING_EXTREMES
+    instrument_classes:
+    - crypto
+    - futures
+    requires_features: []
+    sequence_eligible: true
+    tags:
+    - oi_dynamic
+  ORDERFLOW_IMBALANCE_SHOCK:
+    detector: OrderflowImbalanceDetector
+    enabled: true
+    family: LIQUIDITY_DISLOCATION
+    instrument_classes:
+    - crypto
+    - futures
+    requires_features: []
+    sequence_eligible: true
+    tags:
+    - orderflow_imbalance
+  OVERSHOOT_AFTER_SHOCK:
+    detector: OvershootDetector
+    enabled: true
+    family: STATISTICAL_DISLOCATION
+    instrument_classes:
+    - crypto
+    - futures
+    requires_features: []
+    sequence_eligible: true
+    tags:
+    - statistical_stretch
+  POST_DELEVERAGING_REBOUND:
+    detector: PostDeleveragingReboundDetector
+    enabled: true
+    family: FORCED_FLOW_AND_EXHAUSTION
+    instrument_classes: []
+    requires_features: []
+    sequence_eligible: true
+    tags: []
+  PRICE_VOL_IMBALANCE_PROXY:
+    detector: PriceVolImbalanceProxyDetector
+    enabled: true
+    family: LIQUIDITY_DISLOCATION
+    instrument_classes: []
+    requires_features: []
+    sequence_eligible: true
+    tags: []
+  PULLBACK_PIVOT:
+    detector: PullbackPivotDetector
+    enabled: true
+    family: TREND_STRUCTURE
+    instrument_classes:
+    - crypto
+    - futures
+    requires_features: []
+    sequence_eligible: true
+    tags:
+    - trend_momentum
+  RANGE_BREAKOUT:
+    detector: RangeBreakoutDetector
+    enabled: true
+    family: TREND_STRUCTURE
+    instrument_classes:
+    - crypto
+    - futures
+    requires_features: []
+    sequence_eligible: true
+    tags:
+    - trend_momentum
+  RANGE_COMPRESSION_END:
+    detector: RangeCompressionDetector
+    enabled: true
+    family: VOLATILITY_TRANSITION
+    instrument_classes:
+    - crypto
+    - futures
+    requires_features: []
+    sequence_eligible: true
+    tags:
+    - vol_regime
+  SCHEDULED_NEWS_WINDOW_EVENT:
+    detector: ScheduledNewsDetector
+    enabled: true
+    family: TEMPORAL_STRUCTURE
+    instrument_classes:
+    - crypto
+    - futures
+    requires_features: []
+    sequence_eligible: true
+    tags:
+    - temporal_anchor
+  SEQ_FND_EXTREME_THEN_BREAKOUT:
+    detector: EventSequenceDetector
+    enabled: true
+    family: POSITIONING_EXTREMES
+    instrument_classes:
+    - crypto
+    - futures
+    requires_features: []
+    sequence_eligible: false
+    tags:
+    - funding_crowding
+    - sequence
+  SEQ_LIQ_VACUUM_THEN_DEPTH_RECOVERY:
+    detector: EventSequenceDetector
+    enabled: true
+    family: LIQUIDITY_DISLOCATION
+    instrument_classes:
+    - crypto
+    - futures
+    requires_features: []
+    sequence_eligible: false
+    tags:
+    - liquidity_stress
+    - absorption_recovery
+    - sequence
+  SEQ_OI_SPIKEPOS_THEN_VOL_SPIKE:
+    detector: EventSequenceDetector
+    enabled: true
+    family: POSITIONING_EXTREMES
+    instrument_classes:
+    - crypto
+    - futures
+    requires_features: []
+    sequence_eligible: false
+    tags:
+    - oi_dynamic
+    - sequence
+  SEQ_VOL_COMP_THEN_BREAKOUT:
+    detector: EventSequenceDetector
+    enabled: true
+    family: VOLATILITY_TRANSITION
+    instrument_classes:
+    - crypto
+    - futures
+    requires_features: []
+    sequence_eligible: false
+    tags:
+    - vol_regime
+    - sequence
+  SESSION_CLOSE_EVENT:
+    detector: SessionCloseDetector
+    enabled: true
+    family: TEMPORAL_STRUCTURE
+    instrument_classes:
+    - crypto
+    - futures
+    requires_features: []
+    sequence_eligible: true
+    tags:
+    - temporal_anchor
+  SESSION_OPEN_EVENT:
+    detector: SessionOpenDetector
+    enabled: true
+    family: TEMPORAL_STRUCTURE
+    instrument_classes:
+    - crypto
+    - futures
+    requires_features: []
+    sequence_eligible: true
+    tags:
+    - temporal_anchor
+  SLIPPAGE_SPIKE_EVENT:
+    detector: SlippageSpikeDetector
+    enabled: true
+    family: EXECUTION_FRICTION
+    instrument_classes:
+    - crypto
+    - futures
+    requires_features: []
+    sequence_eligible: true
+    tags:
+    - execution_cost
+    - high_urgency
+  SPOT_PERP_BASIS_SHOCK:
+    detector: SpotPerpBasisShockDetector
+    enabled: true
+    family: INFORMATION_DESYNC
+    instrument_classes:
+    - crypto
+    - futures
+    requires_features: []
+    sequence_eligible: true
+    tags:
+    - desync
+    - basis_dislocation
+    - high_urgency
+  SPREAD_BLOWOUT:
+    detector: SpreadBlowoutDetector
+    enabled: true
+    family: LIQUIDITY_DISLOCATION
+    instrument_classes:
+    - crypto
+    - futures
+    requires_features: []
+    sequence_eligible: true
+    tags:
+    - liquidity_stress
+    - execution_cost
+  SPREAD_REGIME_WIDENING_EVENT:
+    detector: SpreadRegimeWideningDetector
+    enabled: true
+    family: EXECUTION_FRICTION
+    instrument_classes:
+    - crypto
+    - futures
+    requires_features: []
+    sequence_eligible: true
+    tags:
+    - execution_cost
+    - liquidity_stress
+  SUPPORT_RESISTANCE_BREAK:
+    detector: SREventDetector
+    enabled: true
+    family: TREND_STRUCTURE
+    instrument_classes:
+    - crypto
+    - futures
+    requires_features: []
+    sequence_eligible: true
+    tags:
+    - trend_momentum
+  SWEEP_STOPRUN:
+    detector: StopRunDetector
+    enabled: true
+    family: LIQUIDITY_DISLOCATION
+    instrument_classes:
+    - crypto
+    - futures
+    requires_features: []
+    sequence_eligible: true
+    tags:
+    - orderflow_imbalance
+    - high_urgency
+  TREND_ACCELERATION:
+    detector: TrendAccelerationDetector
+    enabled: true
+    family: TREND_STRUCTURE
+    instrument_classes:
+    - crypto
+    - futures
+    requires_features: []
+    sequence_eligible: true
+    tags:
+    - trend_momentum
+  TREND_DECELERATION:
+    detector: TrendDecelerationDetector
+    enabled: true
+    family: TREND_STRUCTURE
+    instrument_classes:
+    - crypto
+    - futures
+    requires_features: []
+    sequence_eligible: true
+    tags:
+    - trend_momentum
+  TREND_EXHAUSTION_TRIGGER:
+    detector: TrendExhaustionDetector
+    enabled: true
+    family: FORCED_FLOW_AND_EXHAUSTION
+    instrument_classes:
+    - crypto
+    - futures
+    requires_features: []
+    sequence_eligible: true
+    tags:
+    - exhaustion
+    - trend_momentum
+  TREND_TO_CHOP_SHIFT:
+    detector: TrendToChopDetector
+    enabled: true
+    family: REGIME_TRANSITION
+    instrument_classes:
+    - crypto
+    - futures
+    requires_features: []
+    sequence_eligible: true
+    tags:
+    - regime_shift
+    - trend_momentum
+  VOL_CLUSTER_SHIFT:
+    detector: VolClusterShiftDetector
+    enabled: true
+    family: VOLATILITY_TRANSITION
+    instrument_classes:
+    - crypto
+    - futures
+    requires_features: []
+    sequence_eligible: true
+    tags:
+    - vol_regime
+  VOL_REGIME_SHIFT_EVENT:
+    detector: VolRegimeShiftDetector
+    enabled: true
+    family: REGIME_TRANSITION
+    instrument_classes:
+    - crypto
+    - futures
+    requires_features: []
+    sequence_eligible: true
+    tags:
+    - regime_shift
+    - vol_regime
+  VOL_RELAXATION_START:
+    detector: VolRelaxationDetector
+    enabled: true
+    family: VOLATILITY_TRANSITION
+    instrument_classes:
+    - crypto
+    - futures
+    requires_features: []
+    sequence_eligible: true
+    tags:
+    - vol_regime
+  VOL_SHOCK:
+    detector: VolShockRelaxationDetector
+    enabled: true
+    family: VOLATILITY_TRANSITION
+    instrument_classes:
+    - crypto
+    - futures
+    requires_features: []
+    sequence_eligible: true
+    tags:
+    - vol_regime
+    - high_urgency
+  VOL_SPIKE:
+    detector: VolSpikeDetector
+    enabled: true
+    family: VOLATILITY_TRANSITION
+    instrument_classes:
+    - crypto
+    - futures
+    requires_features: []
+    sequence_eligible: true
+    tags:
+    - vol_regime
+    - high_urgency
+  WICK_REVERSAL_PROXY:
+    detector: WickReversalProxyDetector
+    enabled: true
+    family: LIQUIDITY_DISLOCATION
+    instrument_classes: []
+    requires_features: []
+    sequence_eligible: true
+    tags: []
+  ZSCORE_STRETCH:
+    detector: ZScoreStretchDetector
+    enabled: true
+    family: STATISTICAL_DISLOCATION
+    instrument_classes:
+    - crypto
+    - futures
+    requires_features: []
+    sequence_eligible: true
+    tags:
+    - statistical_stretch

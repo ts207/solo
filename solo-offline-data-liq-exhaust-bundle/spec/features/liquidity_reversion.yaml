@@ -1,0 +1,24 @@
+feature_family: liquidity_reversion
+version: 1.0.0
+base_timeframe: 1m
+inputs:
+  - dataset: perp_ohlcv_1m
+    columns: [close, volume]
+  - dataset: tob_1s
+    columns: [bid_price, ask_price, bid_qty, ask_qty]
+  - dataset: basis_1m
+    columns: [basis_bps]
+features:
+  - name: basis_zscore
+    description: Standardized basis dislocation relative to a rolling daily baseline
+    formula: (basis_bps - rolling_mean(basis_bps, 24h)) / rolling_std(basis_bps, 24h)
+    params: {window: 1440}
+  - name: vwap_deviation_bps
+    description: Price distance from one-hour VWAP expressed in basis points
+    formula: (price - vwap_1h) / vwap_1h * 10000
+    params: {window: 60}
+  - name: depth_imbalance
+    description: Relative bid depth versus total quoted depth
+    formula: bid_depth / (bid_depth + ask_depth)
+provenance:
+  pit_constraint: "asof <= t0"

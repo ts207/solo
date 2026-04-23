@@ -1,0 +1,361 @@
+version: 1
+kind: event_contract_overrides
+metadata:
+  status: generated
+  notes: Generated from per-event governance fields via compiled event contracts.
+events:
+  ABSORPTION_PROXY:
+    tier: B
+    operational_role: trigger
+    deployment_disposition: secondary_or_confirm
+    runtime_category: active_runtime_event
+  BAND_BREAK:
+    tier: B
+    operational_role: trigger
+    deployment_disposition: secondary_or_confirm
+    runtime_category: active_runtime_event
+  BASIS_DISLOC:
+    tier: A
+    operational_role: trigger
+    deployment_disposition: primary_trigger_candidate
+    runtime_category: active_runtime_event
+  BETA_SPIKE_EVENT:
+    tier: B
+    operational_role: trigger
+    deployment_disposition: secondary_or_confirm
+    runtime_category: active_runtime_event
+  BREAKOUT_TRIGGER:
+    tier: B
+    operational_role: trigger
+    deployment_disposition: secondary_or_confirm
+    runtime_category: active_runtime_event
+  CHOP_TO_TREND_SHIFT:
+    tier: B
+    operational_role: trigger
+    deployment_disposition: secondary_or_confirm
+    runtime_category: active_runtime_event
+  CLIMAX_VOLUME_BAR:
+    tier: B
+    operational_role: trigger
+    deployment_disposition: secondary_or_confirm
+    runtime_category: active_runtime_event
+  COPULA_PAIRS_TRADING:
+    tier: D
+    operational_role: research_only
+    deployment_disposition: research_only
+    runtime_category: research_only
+  CORRELATION_BREAKDOWN_EVENT:
+    tier: B
+    operational_role: trigger
+    deployment_disposition: secondary_or_confirm
+    runtime_category: active_runtime_event
+  CROSS_ASSET_DESYNC_EVENT:
+    tier: C
+    operational_role: filter
+    deployment_disposition: repair_before_promotion
+    runtime_category: active_runtime_event
+  CROSS_VENUE_DESYNC:
+    tier: B
+    operational_role: trigger
+    deployment_disposition: secondary_or_confirm
+    runtime_category: active_runtime_event
+  DELEVERAGING_WAVE:
+    tier: B
+    operational_role: trigger
+    deployment_disposition: secondary_or_confirm
+    runtime_category: active_runtime_event
+  DEPTH_COLLAPSE:
+    tier: B
+    operational_role: trigger
+    deployment_disposition: secondary_or_confirm
+    runtime_category: active_runtime_event
+  DEPTH_STRESS_PROXY:
+    tier: B
+    operational_role: trigger
+    deployment_disposition: secondary_or_confirm
+    runtime_category: active_runtime_event
+  FAILED_CONTINUATION:
+    tier: B
+    operational_role: trigger
+    deployment_disposition: secondary_or_confirm
+    runtime_category: active_runtime_event
+  FALSE_BREAKOUT:
+    tier: B
+    operational_role: trigger
+    deployment_disposition: secondary_or_confirm
+    runtime_category: active_runtime_event
+  FEE_REGIME_CHANGE_EVENT:
+    tier: B
+    operational_role: trigger
+    deployment_disposition: secondary_or_confirm
+    runtime_category: active_runtime_event
+  FLOW_EXHAUSTION_PROXY:
+    tier: B
+    operational_role: trigger
+    deployment_disposition: secondary_or_confirm
+    runtime_category: active_runtime_event
+  FND_DISLOC:
+    tier: A
+    operational_role: trigger
+    deployment_disposition: primary_trigger_candidate
+    runtime_category: active_runtime_event
+  FORCED_FLOW_EXHAUSTION:
+    tier: B
+    operational_role: trigger
+    deployment_disposition: secondary_or_confirm
+    runtime_category: active_runtime_event
+  FUNDING_EXTREME_ONSET:
+    tier: B
+    operational_role: trigger
+    deployment_disposition: secondary_or_confirm
+    runtime_category: active_runtime_event
+  FUNDING_FLIP:
+    tier: B
+    operational_role: trigger
+    deployment_disposition: secondary_or_confirm
+    runtime_category: active_runtime_event
+  FUNDING_NORMALIZATION_TRIGGER:
+    tier: B
+    operational_role: trigger
+    deployment_disposition: secondary_or_confirm
+    runtime_category: active_runtime_event
+  FUNDING_PERSISTENCE_TRIGGER:
+    tier: B
+    operational_role: trigger
+    deployment_disposition: secondary_or_confirm
+    runtime_category: active_runtime_event
+  FUNDING_TIMESTAMP_EVENT:
+    tier: C
+    operational_role: context
+    deployment_disposition: context_only
+    runtime_category: active_runtime_event
+  GAP_OVERSHOOT:
+    tier: B
+    operational_role: trigger
+    deployment_disposition: secondary_or_confirm
+    runtime_category: active_runtime_event
+  INDEX_COMPONENT_DIVERGENCE:
+    tier: B
+    operational_role: trigger
+    deployment_disposition: secondary_or_confirm
+    runtime_category: active_runtime_event
+  LEAD_LAG_BREAK:
+    tier: B
+    operational_role: trigger
+    deployment_disposition: secondary_or_confirm
+    runtime_category: active_runtime_event
+  LIQUIDATION_CASCADE:
+    tier: A
+    operational_role: trigger
+    deployment_disposition: primary_trigger_candidate
+    runtime_category: active_runtime_event
+  LIQUIDATION_CASCADE_PROXY:
+    tier: C
+    operational_role: trigger
+    deployment_disposition: secondary_or_confirm
+    runtime_category: active_runtime_event
+  LIQUIDATION_EXHAUSTION_REVERSAL:
+    tier: B
+    operational_role: trigger
+    deployment_disposition: secondary_or_confirm
+    runtime_category: active_runtime_event
+  LIQUIDITY_GAP_PRINT:
+    tier: B
+    operational_role: trigger
+    deployment_disposition: secondary_or_confirm
+    runtime_category: active_runtime_event
+  LIQUIDITY_SHOCK:
+    tier: A
+    operational_role: trigger
+    deployment_disposition: primary_trigger_candidate
+    runtime_category: active_runtime_event
+  LIQUIDITY_STRESS_DIRECT:
+    tier: B
+    operational_role: trigger
+    deployment_disposition: secondary_or_confirm
+    runtime_category: active_runtime_event
+  LIQUIDITY_STRESS_PROXY:
+    tier: B
+    operational_role: trigger
+    deployment_disposition: secondary_or_confirm
+    runtime_category: active_runtime_event
+  LIQUIDITY_VACUUM:
+    tier: A
+    operational_role: trigger
+    deployment_disposition: primary_trigger_candidate
+    runtime_category: active_runtime_event
+  MOMENTUM_DIVERGENCE_TRIGGER:
+    tier: B
+    operational_role: trigger
+    deployment_disposition: secondary_or_confirm
+    runtime_category: active_runtime_event
+  OI_FLUSH:
+    tier: B
+    operational_role: trigger
+    deployment_disposition: secondary_or_confirm
+    runtime_category: active_runtime_event
+  OI_SPIKE_NEGATIVE:
+    tier: B
+    operational_role: trigger
+    deployment_disposition: secondary_or_confirm
+    runtime_category: active_runtime_event
+  OI_SPIKE_POSITIVE:
+    tier: B
+    operational_role: trigger
+    deployment_disposition: secondary_or_confirm
+    runtime_category: active_runtime_event
+  ORDERFLOW_IMBALANCE_SHOCK:
+    tier: B
+    operational_role: trigger
+    deployment_disposition: secondary_or_confirm
+    runtime_category: active_runtime_event
+  OVERSHOOT_AFTER_SHOCK:
+    tier: B
+    operational_role: trigger
+    deployment_disposition: secondary_or_confirm
+    runtime_category: active_runtime_event
+  POST_DELEVERAGING_REBOUND:
+    tier: B
+    operational_role: trigger
+    deployment_disposition: secondary_or_confirm
+    runtime_category: active_runtime_event
+  PRICE_VOL_IMBALANCE_PROXY:
+    tier: B
+    operational_role: trigger
+    deployment_disposition: secondary_or_confirm
+    runtime_category: active_runtime_event
+  PULLBACK_PIVOT:
+    tier: B
+    operational_role: trigger
+    deployment_disposition: secondary_or_confirm
+    runtime_category: active_runtime_event
+  RANGE_BREAKOUT:
+    tier: B
+    operational_role: trigger
+    deployment_disposition: secondary_or_confirm
+    runtime_category: active_runtime_event
+  RANGE_COMPRESSION_END:
+    tier: B
+    operational_role: trigger
+    deployment_disposition: secondary_or_confirm
+    runtime_category: active_runtime_event
+  SCHEDULED_NEWS_WINDOW_EVENT:
+    tier: C
+    operational_role: context
+    deployment_disposition: context_only
+    runtime_category: active_runtime_event
+  SEQ_FND_EXTREME_THEN_BREAKOUT:
+    tier: D
+    operational_role: sequence_component
+    deployment_disposition: research_only
+    runtime_category: research_only
+  SEQ_LIQ_VACUUM_THEN_DEPTH_RECOVERY:
+    tier: D
+    operational_role: sequence_component
+    deployment_disposition: research_only
+    runtime_category: research_only
+  SEQ_OI_SPIKEPOS_THEN_VOL_SPIKE:
+    tier: D
+    operational_role: sequence_component
+    deployment_disposition: research_only
+    runtime_category: research_only
+  SEQ_VOL_COMP_THEN_BREAKOUT:
+    tier: D
+    operational_role: sequence_component
+    deployment_disposition: research_only
+    runtime_category: research_only
+  SESSION_CLOSE_EVENT:
+    tier: C
+    operational_role: context
+    deployment_disposition: context_only
+    runtime_category: active_runtime_event
+  SESSION_OPEN_EVENT:
+    tier: C
+    operational_role: context
+    deployment_disposition: context_only
+    runtime_category: active_runtime_event
+  SLIPPAGE_SPIKE_EVENT:
+    tier: B
+    operational_role: trigger
+    deployment_disposition: secondary_or_confirm
+    runtime_category: active_runtime_event
+  SPOT_PERP_BASIS_SHOCK:
+    tier: A
+    operational_role: trigger
+    deployment_disposition: primary_trigger_candidate
+    runtime_category: active_runtime_event
+  SPREAD_BLOWOUT:
+    tier: B
+    operational_role: trigger
+    deployment_disposition: secondary_or_confirm
+    runtime_category: active_runtime_event
+  SPREAD_REGIME_WIDENING_EVENT:
+    tier: B
+    operational_role: trigger
+    deployment_disposition: secondary_or_confirm
+    runtime_category: active_runtime_event
+  SUPPORT_RESISTANCE_BREAK:
+    tier: B
+    operational_role: trigger
+    deployment_disposition: secondary_or_confirm
+    runtime_category: active_runtime_event
+  SWEEP_STOPRUN:
+    tier: B
+    operational_role: trigger
+    deployment_disposition: secondary_or_confirm
+    runtime_category: active_runtime_event
+  TREND_ACCELERATION:
+    tier: B
+    operational_role: trigger
+    deployment_disposition: secondary_or_confirm
+    runtime_category: active_runtime_event
+  TREND_DECELERATION:
+    tier: B
+    operational_role: trigger
+    deployment_disposition: secondary_or_confirm
+    runtime_category: active_runtime_event
+  TREND_EXHAUSTION_TRIGGER:
+    tier: B
+    operational_role: trigger
+    deployment_disposition: secondary_or_confirm
+    runtime_category: active_runtime_event
+  TREND_TO_CHOP_SHIFT:
+    tier: B
+    operational_role: trigger
+    deployment_disposition: secondary_or_confirm
+    runtime_category: active_runtime_event
+  VOL_CLUSTER_SHIFT:
+    tier: B
+    operational_role: trigger
+    deployment_disposition: secondary_or_confirm
+    runtime_category: active_runtime_event
+  VOL_REGIME_SHIFT_EVENT:
+    tier: B
+    operational_role: trigger
+    deployment_disposition: secondary_or_confirm
+    runtime_category: active_runtime_event
+  VOL_RELAXATION_START:
+    tier: B
+    operational_role: trigger
+    deployment_disposition: secondary_or_confirm
+    runtime_category: active_runtime_event
+  VOL_SHOCK:
+    tier: A
+    operational_role: trigger
+    deployment_disposition: primary_trigger_candidate
+    runtime_category: active_runtime_event
+  VOL_SPIKE:
+    tier: A
+    operational_role: trigger
+    deployment_disposition: primary_trigger_candidate
+    runtime_category: active_runtime_event
+  WICK_REVERSAL_PROXY:
+    tier: B
+    operational_role: trigger
+    deployment_disposition: secondary_or_confirm
+    runtime_category: active_runtime_event
+  ZSCORE_STRETCH:
+    tier: B
+    operational_role: trigger
+    deployment_disposition: secondary_or_confirm
+    runtime_category: active_runtime_event

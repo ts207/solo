@@ -1,0 +1,40 @@
+{
+  "alias_count": 3,
+  "band_counts": {
+    "composite_or_fragile": 12,
+    "context_only": 5,
+    "deployable_core": 10,
+    "research_trigger": 44
+  },
+  "governed_detectors": 71,
+  "legacy_detectors": 40,
+  "legacy_retired_safe": 40,
+  "migration_bucket_counts": {
+    "promotion_eligible_middle_layer": 19,
+    "research_perimeter": 42,
+    "runtime_core_first": 10
+  },
+  "migration_owner_counts": {
+    "workstream_b": 42,
+    "workstream_c": 29
+  },
+  "migration_target_counts": {
+    "demote": 2,
+    "keep_v1": 26,
+    "migrate_to_v2": 29,
+    "wrap_v1": 14
+  },
+  "role_counts": {
+    "composite": 4,
+    "context": 5,
+    "research_only": 1,
+    "trigger": 61
+  },
+  "runtime_non_v2": 0,
+  "runtime_v2": 10,
+  "v2_detectors": 31,
+  "version_counts": {
+    "v1": 40,
+    "v2": 31
+  }
+}

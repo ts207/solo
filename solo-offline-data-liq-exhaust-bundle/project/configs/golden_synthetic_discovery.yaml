@@ -1,0 +1,16 @@
+workflow_id: golden_synthetic_discovery_v1
+description: Deterministic synthetic discovery workflow with truth-map validation.
+run_id: golden_synthetic_discovery
+symbols: BTCUSDT,ETHUSDT
+start_date: 2026-01-01
+end_date: 2026-02-28
+discovery_profile: synthetic
+phase2_gate_profile: synthetic
+search_spec: synthetic_truth
+search_min_n: 8
+required_outputs:
+  - synthetic/golden_synthetic_discovery/synthetic_generation_manifest.json
+  - synthetic/golden_synthetic_discovery/synthetic_regime_segments.json
+  - reports/phase2/golden_synthetic_discovery/phase2_candidates.parquet
+  - reports/phase2/golden_synthetic_discovery/phase2_diagnostics.json
+  - reliability/golden_synthetic_discovery_summary.json

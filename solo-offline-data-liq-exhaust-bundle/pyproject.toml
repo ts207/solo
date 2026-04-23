@@ -1,0 +1,58 @@
+[build-system]
+requires = ["setuptools>=69", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "edge"
+version = "0.1.0"
+description = "Trading backtest project"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+  "numpy==1.26.0",
+  "numba==0.59.1",
+  "pandas==2.2.2",
+  "pyarrow==17.0.0",
+  "requests==2.32.4",
+  "PyYAML==6.0.1",
+  "pandera==0.19.3",
+  "scikit-learn==1.5.0",
+  "scipy==1.13.1",
+  "statsmodels==0.14.2",
+  "websockets",
+  "pydantic==2.8.0",
+  "aiohttp==3.9.5",
+  "networkx",
+  "mcp[cli]",
+]
+
+[project.optional-dependencies]
+dev = ["pyright==1.1.350", "pytest==8.2.2", "pytest-xdist==3.6.1", "ruff==0.15.4"]
+
+[tool.setuptools]
+include-package-data = true
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["project*"]
+
+[project.scripts]
+edge = "project.cli:main"
+backtest = "project.cli:main"
+edge-backtest = "project.cli:main"
+edge-chatgpt-app = "project.apps.chatgpt.cli:main"
+edge-run-all = "project.pipelines.run_all:main"
+edge-live-engine = "project.scripts.run_live_engine:main"
+edge-phase2-discovery = "project.research.cli.candidate_discovery_cli:main"
+edge-promote = "project.research.cli.promotion_cli:main"
+edge-smoke = "project.reliability.cli_smoke:main"
+compile-strategy-blueprints = "project.research.compile_strategy_blueprints:main"
+build-strategy-candidates = "project.research.build_strategy_candidates:main"
+ontology-consistency-audit = "project.scripts.ontology_consistency_audit:main"
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+extend-exclude = ["data", ".venv", "MEMORY", ".agents"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "W", "E9", "F63", "F7", "F82"]

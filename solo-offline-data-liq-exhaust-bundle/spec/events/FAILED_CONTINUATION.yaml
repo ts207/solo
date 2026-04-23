@@ -1,0 +1,64 @@
+event_type: FAILED_CONTINUATION
+synthetic_coverage: covered
+reports_dir: forced_flow_and_exhaustion
+events_file: forced_flow_and_exhaustion_events.parquet
+signal_column: failed_continuation_event
+parameters:
+  breakout_window: 48
+  reversal_window: 12
+  breakout_strength_min: 0.003
+  cooldown_bars: 24
+  merge_gap_bars: 0
+research_family: FORCED_FLOW_AND_EXHAUSTION
+trigger: Detector triggers on failed continuation pattern
+confirmation: Post-detection price action confirms signal validity
+expected_behavior:
+  holding_horizon_bars: 2-12
+  invalidation_conditions:
+  - Volume normalizes
+  - Momentum diverges further
+  disabled_regimes:
+  - 'Low volume: flow signals unreliable'
+cluster_id: exhaustion
+identity:
+  canonical_regime: TREND_FAILURE_EXHAUSTION
+  subtype: failed_continuation
+  phase: failure
+  evidence_mode: hybrid
+  layer: canonical
+  disposition: keep
+  asset_scope: single_asset
+  venue_scope: single_venue
+governance:
+  event_kind: market_event
+  default_executable: true
+  research_only: false
+  strategy_only: false
+  context_tag: false
+  is_composite: false
+  maturity: ''
+  tier: B
+  operational_role: trigger
+  deployment_disposition: secondary_or_confirm
+  runtime_category: active_runtime_event
+runtime:
+  detector: FailedContinuationDetector
+  enabled: true
+  signal_column: failed_continuation_event
+  events_file: forced_flow_and_exhaustion_events.parquet
+  reports_dir: forced_flow_and_exhaustion
+  instrument_classes:
+  - crypto
+  - futures
+  requires_features: []
+  sequence_eligible: true
+  runtime_tags:
+  - exhaustion
+semantics:
+  cluster_id: exhaustion
+  notes: Trend-follow signal failure belongs in exhaustion/failure regime.
+  precedence_rank: 0
+interaction:
+  suppresses: []
+  suppressed_by: []
+routing: {}

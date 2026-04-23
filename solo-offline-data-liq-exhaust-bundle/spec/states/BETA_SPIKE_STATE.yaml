@@ -1,0 +1,12 @@
+version: 1
+kind: state_definition
+state_id: BETA_SPIKE_STATE
+family: REGIME_TRANSITION
+source_event_type: BETA_SPIKE_EVENT
+activation_rule: beta spike detected
+decay_rule: beta normalizes
+features_required:
+- beta
+allowed_templates:
+- only_if_regime
+- tail_risk_avoid

@@ -1,0 +1,10 @@
+version: 1
+kind: state_context_dimension
+state_name: funding_regime
+source_feature: funding_regime
+allowed_values:
+  - crowded
+  - normalizing
+mapping:
+  crowded: CROWDING_STATE
+  normalizing: FUNDING_NORMALIZATION_STATE

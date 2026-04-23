@@ -1,0 +1,17 @@
+version: 1
+kind: state_definition
+state_id: TRENDING_STATE
+family: TREND_STRUCTURE
+source_event_type: TREND_ACCELERATION
+state_scope: family_safe
+min_events: 250
+activation_rule: trend slope and ADX above threshold
+decay_rule: exit when slope falls below threshold
+features_required:
+- trend_return_96
+- adx
+allowed_templates:
+- pullback_entry
+- trend_continuation
+- continuation
+- only_if_trend

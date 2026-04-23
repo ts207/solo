@@ -1,0 +1,67 @@
+event_type: FUNDING_FLIP
+synthetic_coverage: covered
+reports_dir: positioning_extremes
+events_file: positioning_extremes_events.parquet
+signal_column: funding_flip_event
+parameters:
+  funding_extreme_quantile: 0.99
+  oi_change_z_threshold: 3.0
+  min_flip_abs: 0.00025
+  persistence_bars: 2
+  min_spacing: 24
+  cooldown_bars: 24
+  merge_gap_bars: 0
+research_family: POSITIONING_EXTREMES
+trigger: Detector triggers on funding flip pattern
+confirmation: Post-detection price action confirms signal validity
+expected_behavior:
+  holding_horizon_bars: 4-24
+  invalidation_conditions:
+  - Position unwinds within expected horizon
+  - Funding reverses sign
+  disabled_regimes:
+  - 'Low liquidity regime: OI/vol signals unreliable'
+cluster_id: funding_crowding
+identity:
+  canonical_regime: BASIS_FUNDING_DISLOCATION
+  subtype: funding_flip
+  phase: flip
+  evidence_mode: direct
+  layer: canonical
+  disposition: merge
+  asset_scope: single_asset
+  venue_scope: cross_venue
+governance:
+  event_kind: market_event
+  default_executable: true
+  research_only: false
+  strategy_only: false
+  context_tag: false
+  is_composite: false
+  maturity: ''
+  tier: B
+  operational_role: trigger
+  deployment_disposition: secondary_or_confirm
+  runtime_category: active_runtime_event
+runtime:
+  detector: FundingFlipDetector
+  enabled: true
+  signal_column: funding_flip_event
+  events_file: positioning_extremes_events.parquet
+  reports_dir: positioning_extremes
+  instrument_classes:
+  - crypto
+  - futures
+  requires_features: []
+  sequence_eligible: true
+  runtime_tags:
+  - funding_crowding
+  - high_urgency
+semantics:
+  cluster_id: funding_crowding
+  notes: Funding sign inversion as subtype metadata.
+  precedence_rank: 0
+interaction:
+  suppresses: []
+  suppressed_by: []
+routing: {}

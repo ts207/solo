@@ -1,0 +1,82 @@
+event_type: TREND_EXHAUSTION_TRIGGER
+synthetic_coverage: covered
+reports_dir: forced_flow_and_exhaustion
+events_file: forced_flow_and_exhaustion_events.parquet
+signal_column: trend_exhaustion_trigger_event
+parameters:
+  context_min_confidence: 0.55
+  context_max_entropy: 0.9
+  trend_window: 96
+  vol_window: 288
+  slope_fast_window: 12
+  slope_slow_window: 48
+  pullback_window: 96
+  threshold_window: 2880
+  trend_quantile: 0.95
+  cooldown_quantile: 0.35
+  pullback_quantile: 0.7
+  reversal_window: 3
+  reversal_quantile: 0.65
+  trend_peak_multiplier: 1.3
+  trend_strength_ratio: 3.0
+  min_trend_duration_bars: 72
+  cooldown_ratio: 0.9
+  reversal_alignment_window: 3
+  liquidation_spike_z_threshold: 3.0
+  cascade_window_bars: 12
+  cooldown_bars: 96
+  merge_gap_bars: 0
+research_family: FORCED_FLOW_AND_EXHAUSTION
+trigger: Detector triggers on trend exhaustion trigger pattern
+confirmation: Post-detection price action confirms signal validity
+expected_behavior:
+  holding_horizon_bars: 2-12
+  invalidation_conditions:
+  - Volume normalizes
+  - Momentum diverges further
+  disabled_regimes:
+  - 'Low volume: flow signals unreliable'
+cluster_id: exhaustion
+identity:
+  canonical_regime: TREND_FAILURE_EXHAUSTION
+  subtype: trend_exhaustion
+  phase: onset
+  evidence_mode: hybrid
+  layer: canonical
+  disposition: keep
+  asset_scope: single_asset
+  venue_scope: single_venue
+governance:
+  event_kind: market_event
+  default_executable: true
+  research_only: false
+  strategy_only: false
+  context_tag: false
+  is_composite: false
+  maturity: ''
+  tier: B
+  operational_role: trigger
+  deployment_disposition: secondary_or_confirm
+  runtime_category: active_runtime_event
+runtime:
+  detector: TrendExhaustionDetector
+  enabled: true
+  signal_column: trend_exhaustion_trigger_event
+  events_file: forced_flow_and_exhaustion_events.parquet
+  reports_dir: forced_flow_and_exhaustion
+  instrument_classes:
+  - crypto
+  - futures
+  requires_features: []
+  sequence_eligible: true
+  runtime_tags:
+  - exhaustion
+  - trend_momentum
+semantics:
+  cluster_id: exhaustion
+  notes: Canonical exhaustion onset.
+  precedence_rank: 0
+interaction:
+  suppresses: []
+  suppressed_by: []
+routing: {}

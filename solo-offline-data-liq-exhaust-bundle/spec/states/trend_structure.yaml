@@ -1,0 +1,10 @@
+version: 1
+kind: state_context_dimension
+state_name: trend_structure
+source_feature: trend_structure
+allowed_values:
+  - trend
+  - chop
+mapping:
+  trend: TRENDING_STATE
+  chop: CHOP_STATE

@@ -1,0 +1,19 @@
+version: 1
+
+limits:
+  max_events_per_run: 20
+  max_templates_per_run: 6
+  max_horizons_per_run: 5
+  max_directions_per_run: 2
+  max_entry_lags_per_run: 4
+  max_sequence_length: 3
+  max_sequence_gap_values_per_run: 3
+  max_context_slices_per_run: 8
+  max_hypotheses_total: 1000
+  max_hypotheses_per_template: 250
+  max_hypotheses_per_event_family: 300
+
+defaults:
+  horizons_bars: [12, 24, 48] # Tier 1 default search horizons
+  directions: [long, short]
+  entry_lags: [1]

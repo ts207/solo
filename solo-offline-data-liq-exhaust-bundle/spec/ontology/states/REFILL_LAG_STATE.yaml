@@ -1,0 +1,25 @@
+version: 1
+kind: state_ontology_spec
+metadata:
+  status: generated
+  authored_source: spec/states/REFILL_LAG_STATE.yaml
+  generated_notice: GENERATED FILE - DO NOT EDIT
+  generated_from: spec/states/*.yaml
+state_id: REFILL_LAG_STATE
+family: LIQUIDITY_DISLOCATION
+source_event_type: LIQUIDITY_VACUUM
+activation_rule: elapsed_bars <= refill_horizon AND depth_recovery_ratio < refill_threshold
+decay_rule: exit when depth_recovery_ratio >= refill_threshold OR elapsed_bars > refill_horizon
+allowed_templates:
+- mean_reversion
+- stop_run_repair
+- overshoot_repair
+- continuation
+- only_if_liquidity
+- slippage_aware_filter
+state_scope: source_only
+min_events: 200
+features_required:
+- market_depth
+- quote_volume
+- spread_bps

@@ -1,0 +1,28 @@
+id: m0_strong_event
+label: Strong bull trend on BTC perpetual
+symbols:
+- BTCUSDT
+timeframe: 5m
+start: '2024-07-01'
+end: '2024-08-01'
+search_spec:
+  version: 1
+  kind: search_spec
+  search_mode: subset
+  triggers:
+    events:
+    - VOL_SPIKE
+  contexts: {}
+  horizons:
+  - 5m
+  - 15m
+  directions:
+  - long
+  - short
+  entry_lag: 1
+  cost_profiles:
+  - standard
+  expression_templates: '*'
+  max_candidates_per_run: 50
+event_source: fixture
+fixture_event_registry: data/reports/benchmarks/fixtures/m0_strong_event_event_registry.parquet

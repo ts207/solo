@@ -1,0 +1,95 @@
+.venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+htmlcov/
+.coverage
+.coverage.*
+__pycache__/
+*.pyc
+*.pyo
+*.swp
+*.tmp
+.ipynb_checkpoints/
+.idea/
+.vscode/
+.DS_Store
+.agents/
+MEMORY/WORK/
+
+# Windows ADS sidecars from copied files.
+*:Zone.Identifier
+*Zone.Identifier
+
+# Generated runtime artifacts
+data/*
+!data/.gitkeep
+!data/lake/
+data/lake/*
+!data/lake/.gitkeep
+!data/runs/
+data/runs/*
+!data/runs/.gitkeep
+
+# Alternate local data roots
+.data/
+data-local/
+
+# Local run outputs
+project/runs/
+project/backtest_project.egg-info/
+*.egg-info/
+
+# Local runtime intermediates
+project/**/__pycache__/
+data/lake/cleaned/
+data/lake/features/
+data/lake/runs/
+data/reports/
+data/runs/
+data/events/
+data/research/
+project/data/
+
+.gemini/
+gha-creds-*.json
+
+# Root debug scratch scripts (canonical location: project/scripts/debug/)
+/debug_*.py
+/show_candidates.py
+/check_diagnostics.py
+/run_condition_certification.py
+/analyze_phase2_candidates.py
+/check_blocked.py
+/find_all_raw.py
+/find_blocked_conditions.py
+/debug.log
+/debug*.log
+/debug*.txt
+/diag_out.txt
+/ingest_run.log
+/nohup.out
+/out.log
+/verify_hydra.py
+/artifacts/
+/logs/
+/tmp/
+/.tmp/
+/live/persist/
+/outputs/
+
+# Legacy/generated project-root artifacts
+project/context_entropy_report.json
+project/extraction_output.txt
+project/ontology_dedup_map.json
+project/ontology_dedup_summary.csv
+
+# Runtime logs
+*.log
+pytest.log
+pytest_smoke.log
+
+# Large data pipeline binaries
+fragments.jsonl
+knowledge_atlas.json
+features_v1*.parquet

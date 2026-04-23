@@ -1,0 +1,20 @@
+version: 1
+kind: state_ontology_spec
+metadata:
+  status: generated
+  authored_source: spec/states/REVERSION_IN_PROGRESS_STATE.yaml
+  generated_notice: GENERATED FILE - DO NOT EDIT
+  generated_from: spec/states/*.yaml
+state_id: REVERSION_IN_PROGRESS_STATE
+family: STATISTICAL_DISLOCATION
+source_event_type: BAND_BREAK
+activation_rule: return path toward central tendency detected
+decay_rule: exit when baseline is reached
+allowed_templates:
+- mean_reversion
+- overshoot_repair
+- tail_risk_avoid
+state_scope: source_only
+min_events: 200
+features_required:
+- band_distance

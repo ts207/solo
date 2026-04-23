@@ -1,0 +1,13 @@
+version: 1
+kind: state_definition
+state_id: LOW_FRICTION_STATE
+family: EXECUTION_FRICTION
+source_event_type: SPREAD_REGIME_WIDENING_EVENT
+activation_rule: spread_pct <= p30 AND slippage_pct <= p30
+decay_rule: exit when friction rises above baseline
+features_required:
+- spread_bps
+- slippage_bps
+allowed_templates:
+- continuation
+- pullback_entry

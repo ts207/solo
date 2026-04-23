@@ -1,0 +1,308 @@
+from __future__ import annotations
+from project.core.config import get_data_root
+
+import argparse
+import json
+import sys
+from dataclasses import dataclass
+from datetime import datetime, timezone
+from pathlib import Path
+from typing import Dict, List, Optional, Tuple
+
+import numpy as np
+import pandas as pd
+from project.io.utils import ensure_dir, list_parquet_files, read_parquet, write_parquet
+from project.specs.manifest import finalize_manifest, start_manifest
+from project.core.validation import ensure_utc_timestamp
+
+
+def sequential_residualize(Xz: np.ndarray) -> tuple[np.ndarray, list[list[float] | None]]:
+    """Sequentially residualize columns of Xz.
+
+    For j=1..k-1:
+      Xz[:,j] <- residual from regressing Xz[:,j] on Xz[:,0..j-1].
+
+    Returns:
+      Xo: residualized matrix
+      betas: list where betas[j] is length-j regression beta (or None for j=0)
+    """
+    n, k = Xz.shape
+    Xo = Xz.copy()
+    betas: list[list[float] | None] = [None]
+    for j in range(1, k):
+        Xprev = Xo[:, :j]
+        y = Xo[:, j]
+
+        # Guard against collinearity
+        # If Xprev is ill-conditioned, OLS is unstable.
+        # Check condition number or rank.
+        # Since calculating svd/cond is expensive, we can use a cheaper heuristic?
+        # Or just use `lstsq` but warn if residuals are suspiciously small or coefficients large?
+        # Better to check singular values.
+
+        # Cheap check: if any column in Xprev is highly correlated with others?
+        # Or just catch the near-zero residual case.
+
+        # Proper fix: check condition number if dimension is small enough.
+        # Or use rcond explicitly in lstsq to zero out small singular values.
+
+        # Let's use a dynamic rcond based on machine precision
+        b, residuals, rank, s = np.linalg.lstsq(Xprev, y, rcond=1e-5)
+
+        # If rank < j, the preceding columns are collinear; the minimum-norm
+        # lstsq solution is numerically unstable. Preserve the original signal
+        # rather than residualizing against a near-singular basis.
+        if rank < j:
+            import logging
+
+            logging.getLogger(__name__).warning(
+                "sequential_residualize: collinearity detected at signal column %d "
+                "(effective rank %d < %d). Skipping residualization for this column; "
+                "original signal preserved. Consider deduplicating correlated signals.",
+                j,
+                rank,
+                j,
+            )
+            betas.append(None)
+            continue
+
+        Xo[:, j] = y - Xprev @ b
+        betas.append(b.astype(float).tolist())
+    return Xo, betas
+
+
+def time_block_splits(n: int, k_blocks: int) -> list[tuple[np.ndarray, np.ndarray]]:
+    """Deterministic forward-chaining splits for walk-forward CV.
+
+    Splits indices into k_blocks contiguous chunks.
+    For block b>=1: train = [0:cut_b), val = chunk_b.
+    """
+    k_blocks = max(2, int(k_blocks))
+    cuts = np.linspace(0, n, k_blocks + 1, dtype=int)
+    splits = []
+    for b in range(1, k_blocks):
+        tr = np.arange(cuts[0], cuts[b])
+        va = np.arange(cuts[b], cuts[b + 1])
+        if len(tr) < 100 or len(va) < 50:
+            continue
+        splits.append((tr, va))
+    return splits
+
+
+def ridge_fit(X: np.ndarray, y: np.ndarray, lam: float) -> tuple[np.ndarray, float]:
+    """Fit ridge regression with intercept on centered y."""
+    XtX = X.T @ X
+    Xty = X.T @ y
+    beta = np.linalg.solve(XtX + float(lam) * np.eye(XtX.shape[0]), Xty)
+    intercept = float(y.mean() - (X @ beta).mean())
+    return beta, intercept
+
+
+def corr_ic(a: np.ndarray, b: np.ndarray) -> float:
+    a = np.asarray(a, dtype=np.float64)
+    b = np.asarray(b, dtype=np.float64)
+    mask = np.isfinite(a) & np.isfinite(b)
+    if mask.sum() < 30:
+        return 0.0
+    aa = a[mask]
+    bb = b[mask]
+    if np.std(aa) == 0.0 or np.std(bb) == 0.0:
+        return 0.0
+    return float(np.corrcoef(aa, bb)[0, 1])
+
+
+def main() -> int:
+    p = argparse.ArgumentParser(description="Fit OrthSpec + Ridge (offline)")
+    p.add_argument("--run_id", required=True)
+    p.add_argument(
+        "--signals_path", required=True, help="Parquet with ts_event, symbol, and signal columns"
+    )
+    p.add_argument(
+        "--label_path", required=True, help="Parquet with ts_event, symbol, and y column"
+    )
+    p.add_argument(
+        "--signal_cols",
+        required=True,
+        help="Comma-separated signal column names in deterministic order",
+    )
+    p.add_argument("--label_col", default="y")
+    p.add_argument(
+        "--orth_method",
+        default="residualization",
+        choices=["residualization", "standardize_only"],
+        help="Orthogonalization method",
+    )
+    p.add_argument(
+        "--lambda_", type=float, default=1e-3, help="Used if --lambda_grid is not provided"
+    )
+    p.add_argument(
+        "--lambda_grid",
+        default=None,
+        help="Optional comma-separated lambda grid for walk-forward CV",
+    )
+    p.add_argument("--cv_blocks", type=int, default=6)
+    p.add_argument("--out_dir", default=None)
+    args = p.parse_args()
+
+    run_id = args.run_id
+    data_root = get_data_root()
+    out_dir = Path(args.out_dir) if args.out_dir else data_root / "model_registry"
+    ensure_dir(out_dir)
+
+    stage = "alpha_fit_orth_ridge"
+    manifest = start_manifest(
+        stage,
+        run_id,
+        params={
+            "orth_method": args.orth_method,
+            "lambda": args.lambda_,
+            "lambda_grid": args.lambda_grid,
+            "cv_blocks": args.cv_blocks,
+        },
+        inputs=[{"path": args.signals_path}, {"path": args.label_path}],
+        outputs=[{"path": str(out_dir)}],
+    )
+
+    sig = read_parquet([Path(args.signals_path)])
+    lab = read_parquet([Path(args.label_path)])
+    tcol = "ts_event" if "ts_event" in sig.columns else "timestamp"
+    lcol = "ts_event" if "ts_event" in lab.columns else "timestamp"
+    sig[tcol] = ensure_utc_timestamp(sig[tcol], tcol)
+    lab[lcol] = ensure_utc_timestamp(lab[lcol], lcol)
+    if lcol != tcol:
+        lab = lab.rename(columns={lcol: tcol})
+
+    # Multi-universe: merge by (ts_event, symbol)
+    if "symbol" not in sig.columns or "symbol" not in lab.columns:
+        raise ValueError(
+            "signals_path and label_path must include a 'symbol' column for multi-universe fitting"
+        )
+    df = pd.merge(sig, lab[[tcol, "symbol", args.label_col]], on=[tcol, "symbol"], how="inner")
+    cols = [c.strip() for c in args.signal_cols.split(",") if c.strip()]
+    required_cols = [tcol, "symbol", args.label_col, *cols]
+    df = df.dropna(subset=required_cols)
+    # Deterministic row ordering
+    df = df.sort_values([tcol, "symbol"], kind="mergesort").reset_index(drop=True)
+    X = df[cols].to_numpy(dtype=np.float64)
+    y = df[args.label_col].to_numpy(dtype=np.float64)
+
+    # Standardize
+    mean = X.mean(axis=0)
+    std = X.std(axis=0, ddof=1)
+    Xz = (X - mean) / (std + 1e-12)
+
+    # Orthogonalize
+    if args.orth_method == "residualization":
+        Xo, resid_betas = sequential_residualize(Xz)
+        orth_spec = {
+            "signal_cols": cols,
+            "mean": mean.tolist(),
+            "std": std.tolist(),
+            "method": "sequential_residualization_v1",
+            "resid_betas": resid_betas,
+        }
+        X_used = Xo
+    else:
+        orth_spec = {
+            "signal_cols": cols,
+            "mean": mean.tolist(),
+            "std": std.tolist(),
+            "method": "standardize_only_v1",
+        }
+        X_used = Xz
+
+    # Choose lambda
+    if args.lambda_grid:
+        grid = [float(x.strip()) for x in args.lambda_grid.split(",") if x.strip()]
+        splits = time_block_splits(len(df), args.cv_blocks) if grid else []
+        best_lam = None
+        best_ic = float("-inf")
+        selection_reason = "grid_search"
+        # Precompute split-isolated data
+        split_data = []
+        for tr, va in splits:
+            X_tr = X[tr]
+            X_va = X[va]
+            mean_tr = X_tr.mean(axis=0)
+            std_tr = X_tr.std(axis=0, ddof=1)
+            Xz_tr = (X_tr - mean_tr) / (std_tr + 1e-12)
+            Xz_va = (X_va - mean_tr) / (std_tr + 1e-12)
+
+            if args.orth_method == "residualization":
+                Xo_tr, resid_betas_tr = sequential_residualize(Xz_tr)
+                Xo_va = Xz_va.copy()
+                for j in range(1, X.shape[1]):
+                    if resid_betas_tr[j] is not None:
+                        b = np.array(resid_betas_tr[j])
+                        Xo_va[:, j] = Xo_va[:, j] - Xo_va[:, :j] @ b
+                X_used_tr = Xo_tr
+                X_used_va = Xo_va
+            else:
+                X_used_tr = Xz_tr
+                X_used_va = Xz_va
+            split_data.append((tr, va, X_used_tr, X_used_va))
+
+        if not grid:
+            lam = float(args.lambda_)
+            best_ic = float("nan")
+            selection_reason = "fallback_empty_grid"
+        elif not split_data:
+            lam = float(args.lambda_)
+            best_ic = float("nan")
+            selection_reason = "fallback_no_valid_splits"
+        else:
+            for lam_candidate in grid:
+                weighted_ic_sum = 0.0
+                total_weight = 0.0
+                for tr, va, X_used_tr, X_used_va in split_data:
+                    beta_tr, intercept_tr = ridge_fit(X_used_tr, y[tr], lam_candidate)
+                    pred = intercept_tr + X_used_va @ beta_tr
+                    ic = corr_ic(pred, y[va])
+                    weight = len(va)
+                    weighted_ic_sum += ic * weight
+                    total_weight += weight
+
+                mean_ic = weighted_ic_sum / total_weight if total_weight > 0 else 0.0
+                if mean_ic > best_ic:
+                    best_ic = mean_ic
+                    best_lam = lam_candidate
+            lam = float(best_lam if best_lam is not None else args.lambda_)
+        cv_stats = {
+            "mean_ic": None if not np.isfinite(best_ic) else float(best_ic),
+            "splits": len(splits),
+            "grid": grid,
+            "selection_reason": selection_reason,
+        }
+    else:
+        lam = float(args.lambda_)
+        cv_stats = None
+
+    beta, intercept = ridge_fit(X_used, y, lam)
+
+    model = {
+        "type": "ridge_linear",
+        "lambda": lam,
+        "beta": beta.tolist(),
+        "intercept": intercept,
+        "signal_cols": cols,
+        "orth_spec": orth_spec,
+        "cv_stats": cv_stats,
+    }
+
+    import hashlib
+
+    blob = json.dumps(model, sort_keys=True).encode("utf-8")
+    model["artifact_hash"] = hashlib.sha256(blob).hexdigest()
+
+    out_path = out_dir / f"CombModelRidge_{model['artifact_hash']}.json"
+    with out_path.open("w", encoding="utf-8") as f:
+        json.dump(model, f, indent=2, sort_keys=True)
+
+    finalize_manifest(
+        manifest, status="success", stats={"rows": int(len(df)), "out": str(out_path)}
+    )
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

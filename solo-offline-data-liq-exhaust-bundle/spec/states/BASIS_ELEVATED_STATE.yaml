@@ -1,0 +1,16 @@
+version: 1
+kind: state_definition
+state_id: BASIS_ELEVATED_STATE
+family: INFORMATION_DESYNC
+source_event_type: SPOT_PERP_BASIS_SHOCK
+activation_rule: basis_zscore >= basis_threshold
+decay_rule: exit when basis_zscore <= recovery_threshold
+features_required:
+- basis_zscore
+- funding_rate_scaled
+allowed_templates:
+- desync_repair
+- convergence
+- basis_repair
+- lead_lag_follow
+- divergence_continuation

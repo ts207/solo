@@ -1,0 +1,30 @@
+id: m1_noisy_event
+label: Noisy crash on BTC perpetual
+symbols:
+- BTCUSDT
+timeframe: 5m
+start: '2023-09-01'
+end: '2023-12-01'
+search_spec:
+  version: 1
+  kind: search_spec
+  search_mode: subset
+  triggers:
+    events:
+    - FUNDING_PERSISTENCE_TRIGGER
+    - TREND_DECELERATION
+  contexts: {}
+  horizons:
+  - 5m
+  - 15m
+  - 1h
+  directions:
+  - long
+  - short
+  entry_lag: 1
+  cost_profiles:
+  - standard
+  expression_templates: '*'
+  max_candidates_per_run: 50
+event_source: fixture
+fixture_event_registry: data/reports/benchmarks/fixtures/m1_noisy_event_event_registry.parquet

@@ -1,0 +1,11 @@
+version: 1
+kind: discovery_benchmark_spec
+cases:
+  - id: smoke_test
+    description: "Tiny smoke test"
+    symbol: "BTCUSDT"
+    search_spec:
+      events: ["VOL_SPIKE"]
+      horizons: ["1h"]
+      expression_templates: ["continuation"]
+      max_candidates_per_run: 5

@@ -1,0 +1,71 @@
+version: 1
+kind: event
+event_type: WICK_REVERSAL_PROXY
+maturity: standard
+synthetic_coverage: covered
+active: true
+status: validated
+description: 'Compatibility wick-reversal surface using hybrid evidence: wick and
+  reclaim structure confirmed by realized-volume expansion.'
+reports_dir: liquidity_dislocation
+events_file: liquidity_dislocation_events.parquet
+signal_column: wick_reversal_proxy_event
+parameters:
+  lookback_window: 288
+  z_threshold: 3.0
+  cooldown_bars: 12
+  merge_gap_bars: 0
+  min_volume_quantile: 0.2
+research_family: LIQUIDITY_DISLOCATION
+trigger: Detector triggers when wick-dominance and reclaim structure align with abnormal
+  realized volume.
+confirmation: Follow-through should hold the reclaimed range while realized volume
+  remains elevated versus baseline.
+expected_behavior:
+  holding_horizon_bars: 1-12
+  invalidation_conditions:
+  - Volume returns above median within 1-2 bars
+  - Spread compresses back to baseline
+  disabled_regimes:
+  - 'SPREAD_BLOWOUT active: spread elevated, unreliable signal'
+identity:
+  canonical_regime: LIQUIDITY_STRESS
+  subtype: wick_reversal
+  phase: recovery
+  evidence_mode: hybrid
+  layer: canonical
+  disposition: merge
+  asset_scope: single_asset
+  venue_scope: single_venue
+governance:
+  event_kind: market_event
+  default_executable: true
+  research_only: false
+  strategy_only: false
+  context_tag: false
+  is_composite: false
+  maturity: standard
+  tier: B
+  operational_role: trigger
+  deployment_disposition: secondary_or_confirm
+  runtime_category: active_runtime_event
+runtime:
+  detector: ''
+  enabled: true
+  signal_column: wick_reversal_proxy_event
+  events_file: liquidity_dislocation_events.parquet
+  reports_dir: liquidity_dislocation
+  instrument_classes: []
+  requires_features: []
+  sequence_eligible: true
+  runtime_tags: []
+semantics:
+  summary: 'Compatibility wick-reversal surface using hybrid evidence: wick and reclaim
+    structure confirmed by realized-volume expansion.'
+  notes: 'Hybrid liquidity-stress recovery evidence: wick and reclaim structure confirmed
+    by realized-volume expansion.'
+  precedence_rank: 0
+interaction:
+  suppresses: []
+  suppressed_by: []
+routing: {}

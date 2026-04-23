@@ -1,0 +1,19 @@
+version: 1
+kind: state_ontology_spec
+metadata:
+  status: generated
+  authored_source: spec/states/CLOSE_WINDOW_STATE.yaml
+  generated_notice: GENERATED FILE - DO NOT EDIT
+  generated_from: spec/states/*.yaml
+state_id: CLOSE_WINDOW_STATE
+family: TEMPORAL_STRUCTURE
+source_event_type: SESSION_CLOSE_EVENT
+activation_rule: elapsed_minutes_to_close <= close_window
+decay_rule: exit after session close
+allowed_templates:
+- mean_reversion
+- tail_risk_avoid
+state_scope: source_only
+min_events: 200
+features_required:
+- timestamp

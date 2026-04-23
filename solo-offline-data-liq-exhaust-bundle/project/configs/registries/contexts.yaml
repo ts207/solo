@@ -1,0 +1,23 @@
+version: 1
+
+context_dimensions:
+  vol_regime:
+    allowed_values: [low, high]
+  carry_state:
+    allowed_values: [funding_pos, funding_neg]
+  funding_bps:
+    allowed_values: [extreme_positive, positive, neutral, negative, extreme_negative]
+  ms_trend_state:
+    allowed_values: [bullish, bearish, chop]
+  ms_spread_state:
+    allowed_values: [compressed, normal, wide, blown_out]
+  severity_bucket:
+    allowed_values: [mild, moderate, severe, extreme]
+  session:
+    allowed_values: [open, midday, close, overnight]
+  regime:
+    allowed_values: [calm, stress, trend, chop, high_vol, low_vol]
+  instrument_class:
+    allowed_values: [crypto, equities, futures, fx, rates]
+  news_window:
+    allowed_values: [include, exclude, only]

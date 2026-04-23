@@ -1,0 +1,5 @@
+name: skew
+family: VOLATILITY
+description: Skewness of the log-returns.
+parameters:
+  lookback: 288

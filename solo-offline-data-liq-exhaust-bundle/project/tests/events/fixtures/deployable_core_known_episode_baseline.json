@@ -1,0 +1,700 @@
+{
+  "baseline_schema_version": 1,
+  "baseline_type": "deployable_core_known_episode_replay",
+  "episodes": [
+    {
+      "detector_results": [
+        {
+          "confidence": {
+            "max": 0.9,
+            "mean": 0.9,
+            "min": 0.9
+          },
+          "data_quality_counts": {
+            "ok": 1
+          },
+          "detector_class": "BasisDislocationDetectorV2",
+          "event_count": 1,
+          "event_name": "BASIS_DISLOC",
+          "event_version": "v2",
+          "first_ts_end": "2024-02-12T02:15:00+00:00",
+          "first_ts_start": "2024-02-12T02:15:00+00:00",
+          "last_ts_end": "2024-02-12T02:15:00+00:00",
+          "last_ts_start": "2024-02-12T02:15:00+00:00",
+          "phase_counts": {
+            "shock": 1
+          },
+          "severity": {
+            "max": 1.0,
+            "mean": 1.0,
+            "min": 1.0
+          },
+          "signature_digest": "3e4deed66b30d95d3ec19376cc96f10c71d104e93233ee7f0af8435eab1e7246",
+          "symbol": "BTCUSDT",
+          "timeframe": "5m",
+          "trigger_value": {
+            "max": 78.262379212499,
+            "mean": 78.262379212499,
+            "min": 78.262379212499
+          }
+        },
+        {
+          "confidence": {
+            "max": 0.9,
+            "mean": 0.9,
+            "min": 0.9
+          },
+          "data_quality_counts": {
+            "ok": 1
+          },
+          "detector_class": "FndDislocDetectorV2",
+          "event_count": 1,
+          "event_name": "FND_DISLOC",
+          "event_version": "v2",
+          "first_ts_end": "2024-02-12T02:25:00+00:00",
+          "first_ts_start": "2024-02-12T02:25:00+00:00",
+          "last_ts_end": "2024-02-12T02:25:00+00:00",
+          "last_ts_start": "2024-02-12T02:25:00+00:00",
+          "phase_counts": {
+            "shock": 1
+          },
+          "severity": {
+            "max": 1.0,
+            "mean": 1.0,
+            "min": 1.0
+          },
+          "signature_digest": "71aa00c2ed05001f6c835c7fd549887f9d445fed73f5b6bcad0c269098392971",
+          "symbol": "BTCUSDT",
+          "timeframe": "5m",
+          "trigger_value": {
+            "max": 23.684381169986,
+            "mean": 23.684381169986,
+            "min": 23.684381169986
+          }
+        },
+        {
+          "confidence": {
+            "max": null,
+            "mean": null,
+            "min": null
+          },
+          "data_quality_counts": {},
+          "detector_class": "LiquidationCascadeDetectorV2",
+          "event_count": 0,
+          "event_name": "LIQUIDATION_CASCADE",
+          "event_version": "v2",
+          "first_ts_end": null,
+          "first_ts_start": null,
+          "last_ts_end": null,
+          "last_ts_start": null,
+          "phase_counts": {},
+          "severity": {
+            "max": null,
+            "mean": null,
+            "min": null
+          },
+          "signature_digest": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+          "symbol": "BTCUSDT",
+          "timeframe": "5m",
+          "trigger_value": {
+            "max": null,
+            "mean": null,
+            "min": null
+          }
+        },
+        {
+          "confidence": {
+            "max": null,
+            "mean": null,
+            "min": null
+          },
+          "data_quality_counts": {},
+          "detector_class": "LiquidityShockDetectorV2",
+          "event_count": 0,
+          "event_name": "LIQUIDITY_SHOCK",
+          "event_version": "v2",
+          "first_ts_end": null,
+          "first_ts_start": null,
+          "last_ts_end": null,
+          "last_ts_start": null,
+          "phase_counts": {},
+          "severity": {
+            "max": null,
+            "mean": null,
+            "min": null
+          },
+          "signature_digest": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+          "symbol": "BTCUSDT",
+          "timeframe": "5m",
+          "trigger_value": {
+            "max": null,
+            "mean": null,
+            "min": null
+          }
+        },
+        {
+          "confidence": {
+            "max": null,
+            "mean": null,
+            "min": null
+          },
+          "data_quality_counts": {},
+          "detector_class": "DirectLiquidityStressDetectorV2",
+          "event_count": 0,
+          "event_name": "LIQUIDITY_STRESS_DIRECT",
+          "event_version": "v2",
+          "first_ts_end": null,
+          "first_ts_start": null,
+          "last_ts_end": null,
+          "last_ts_start": null,
+          "phase_counts": {},
+          "severity": {
+            "max": null,
+            "mean": null,
+            "min": null
+          },
+          "signature_digest": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+          "symbol": "BTCUSDT",
+          "timeframe": "5m",
+          "trigger_value": {
+            "max": null,
+            "mean": null,
+            "min": null
+          }
+        },
+        {
+          "confidence": {
+            "max": null,
+            "mean": null,
+            "min": null
+          },
+          "data_quality_counts": {},
+          "detector_class": "LiquidityVacuumDetectorV2",
+          "event_count": 0,
+          "event_name": "LIQUIDITY_VACUUM",
+          "event_version": "v2",
+          "first_ts_end": null,
+          "first_ts_start": null,
+          "last_ts_end": null,
+          "last_ts_start": null,
+          "phase_counts": {},
+          "severity": {
+            "max": null,
+            "mean": null,
+            "min": null
+          },
+          "signature_digest": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+          "symbol": "BTCUSDT",
+          "timeframe": "5m",
+          "trigger_value": {
+            "max": null,
+            "mean": null,
+            "min": null
+          }
+        },
+        {
+          "confidence": {
+            "max": null,
+            "mean": null,
+            "min": null
+          },
+          "data_quality_counts": {},
+          "detector_class": "OISpikeNegativeDetectorV2",
+          "event_count": 0,
+          "event_name": "OI_SPIKE_NEGATIVE",
+          "event_version": "v2",
+          "first_ts_end": null,
+          "first_ts_start": null,
+          "last_ts_end": null,
+          "last_ts_start": null,
+          "phase_counts": {},
+          "severity": {
+            "max": null,
+            "mean": null,
+            "min": null
+          },
+          "signature_digest": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+          "symbol": "BTCUSDT",
+          "timeframe": "5m",
+          "trigger_value": {
+            "max": null,
+            "mean": null,
+            "min": null
+          }
+        },
+        {
+          "confidence": {
+            "max": 1.0,
+            "mean": 1.0,
+            "min": 1.0
+          },
+          "data_quality_counts": {
+            "ok": 1
+          },
+          "detector_class": "SpotPerpBasisShockDetectorV2",
+          "event_count": 1,
+          "event_name": "SPOT_PERP_BASIS_SHOCK",
+          "event_version": "v2",
+          "first_ts_end": "2024-02-12T02:15:00+00:00",
+          "first_ts_start": "2024-02-12T02:15:00+00:00",
+          "last_ts_end": "2024-02-12T02:15:00+00:00",
+          "last_ts_start": "2024-02-12T02:15:00+00:00",
+          "phase_counts": {
+            "shock": 1
+          },
+          "severity": {
+            "max": 1.0,
+            "mean": 1.0,
+            "min": 1.0
+          },
+          "signature_digest": "c50c3407197d32f02627b9626eaa5707155cd5523b125752eaf636fa6f8620ca",
+          "symbol": "BTCUSDT",
+          "timeframe": "5m",
+          "trigger_value": {
+            "max": 78.262379212499,
+            "mean": 78.262379212499,
+            "min": 78.262379212499
+          }
+        },
+        {
+          "confidence": {
+            "max": null,
+            "mean": null,
+            "min": null
+          },
+          "data_quality_counts": {},
+          "detector_class": "VolShockDetectorV2",
+          "event_count": 0,
+          "event_name": "VOL_SHOCK",
+          "event_version": "v2",
+          "first_ts_end": null,
+          "first_ts_start": null,
+          "last_ts_end": null,
+          "last_ts_start": null,
+          "phase_counts": {},
+          "severity": {
+            "max": null,
+            "mean": null,
+            "min": null
+          },
+          "signature_digest": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+          "symbol": "BTCUSDT",
+          "timeframe": "5m",
+          "trigger_value": {
+            "max": null,
+            "mean": null,
+            "min": null
+          }
+        },
+        {
+          "confidence": {
+            "max": null,
+            "mean": null,
+            "min": null
+          },
+          "data_quality_counts": {},
+          "detector_class": "VolSpikeDetectorV2",
+          "event_count": 0,
+          "event_name": "VOL_SPIKE",
+          "event_version": "v2",
+          "first_ts_end": null,
+          "first_ts_start": null,
+          "last_ts_end": null,
+          "last_ts_start": null,
+          "phase_counts": {},
+          "severity": {
+            "max": null,
+            "mean": null,
+            "min": null
+          },
+          "signature_digest": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+          "symbol": "BTCUSDT",
+          "timeframe": "5m",
+          "trigger_value": {
+            "max": null,
+            "mean": null,
+            "min": null
+          }
+        }
+      ],
+      "episode_id": "basis_funding_dislocation_2024_02_synthetic",
+      "expected_absent": [
+        "LIQUIDATION_CASCADE",
+        "LIQUIDITY_SHOCK",
+        "LIQUIDITY_STRESS_DIRECT",
+        "LIQUIDITY_VACUUM",
+        "OI_SPIKE_NEGATIVE",
+        "VOL_SHOCK",
+        "VOL_SPIKE"
+      ],
+      "expected_present": [
+        "BASIS_DISLOC",
+        "FND_DISLOC",
+        "SPOT_PERP_BASIS_SHOCK"
+      ],
+      "frame_digest": "1a4e8e9c6fec7ad564c8af9ffa49020f6caaba8f847cfaf6a91a85732ede314e",
+      "frame_end": "2024-02-12T02:35:00+00:00",
+      "frame_rows": 3200,
+      "frame_start": "2024-02-01T00:00:00+00:00",
+      "generator_version": "known_episode_replay_v1",
+      "label": "Basis and funding dislocation replay slice",
+      "lineage": "reproducible_synthetic_market_slice: basis widens while funding aligns with perp premium",
+      "symbol": "BTCUSDT",
+      "timeframe": "5m"
+    },
+    {
+      "detector_results": [
+        {
+          "confidence": {
+            "max": null,
+            "mean": null,
+            "min": null
+          },
+          "data_quality_counts": {},
+          "detector_class": "BasisDislocationDetectorV2",
+          "event_count": 0,
+          "event_name": "BASIS_DISLOC",
+          "event_version": "v2",
+          "first_ts_end": null,
+          "first_ts_start": null,
+          "last_ts_end": null,
+          "last_ts_start": null,
+          "phase_counts": {},
+          "severity": {
+            "max": null,
+            "mean": null,
+            "min": null
+          },
+          "signature_digest": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+          "symbol": "BTCUSDT",
+          "timeframe": "5m",
+          "trigger_value": {
+            "max": null,
+            "mean": null,
+            "min": null
+          }
+        },
+        {
+          "confidence": {
+            "max": null,
+            "mean": null,
+            "min": null
+          },
+          "data_quality_counts": {},
+          "detector_class": "FndDislocDetectorV2",
+          "event_count": 0,
+          "event_name": "FND_DISLOC",
+          "event_version": "v2",
+          "first_ts_end": null,
+          "first_ts_start": null,
+          "last_ts_end": null,
+          "last_ts_start": null,
+          "phase_counts": {},
+          "severity": {
+            "max": null,
+            "mean": null,
+            "min": null
+          },
+          "signature_digest": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+          "symbol": "BTCUSDT",
+          "timeframe": "5m",
+          "trigger_value": {
+            "max": null,
+            "mean": null,
+            "min": null
+          }
+        },
+        {
+          "confidence": {
+            "max": 0.9,
+            "mean": 0.9,
+            "min": 0.9
+          },
+          "data_quality_counts": {
+            "ok": 1
+          },
+          "detector_class": "LiquidationCascadeDetectorV2",
+          "event_count": 1,
+          "event_name": "LIQUIDATION_CASCADE",
+          "event_version": "v2",
+          "first_ts_end": "2024-03-16T02:35:00+00:00",
+          "first_ts_start": "2024-03-16T01:50:00+00:00",
+          "last_ts_end": "2024-03-16T02:35:00+00:00",
+          "last_ts_start": "2024-03-16T01:50:00+00:00",
+          "phase_counts": {
+            "cascade": 1
+          },
+          "severity": {
+            "max": 1.0,
+            "mean": 1.0,
+            "min": 1.0
+          },
+          "signature_digest": "fb70acc53896cf0d7142d5c2435df1e0d00bcd712d6c2fd51b420d807779cff8",
+          "symbol": "BTCUSDT",
+          "timeframe": "5m",
+          "trigger_value": {
+            "max": 400.0,
+            "mean": 400.0,
+            "min": 400.0
+          }
+        },
+        {
+          "confidence": {
+            "max": 0.8,
+            "mean": 0.8,
+            "min": 0.8
+          },
+          "data_quality_counts": {
+            "ok": 12
+          },
+          "detector_class": "LiquidityShockDetectorV2",
+          "event_count": 12,
+          "event_name": "LIQUIDITY_SHOCK",
+          "event_version": "v2",
+          "first_ts_end": "2024-03-16T01:40:00+00:00",
+          "first_ts_start": "2024-03-16T01:40:00+00:00",
+          "last_ts_end": "2024-03-16T02:35:00+00:00",
+          "last_ts_start": "2024-03-16T02:35:00+00:00",
+          "phase_counts": {
+            "shock": 12
+          },
+          "severity": {
+            "max": 1.0,
+            "mean": 1.0,
+            "min": 1.0
+          },
+          "signature_digest": "21464157a0ad8839ec60dda49a2dda7f72664cebf7efd10412a48eec8590db25",
+          "symbol": "BTCUSDT",
+          "timeframe": "5m",
+          "trigger_value": {
+            "max": 314.5,
+            "mean": 180.270701440025,
+            "min": 51.666666666667
+          }
+        },
+        {
+          "confidence": {
+            "max": 0.8,
+            "mean": 0.8,
+            "min": 0.8
+          },
+          "data_quality_counts": {
+            "ok": 12
+          },
+          "detector_class": "DirectLiquidityStressDetectorV2",
+          "event_count": 12,
+          "event_name": "LIQUIDITY_STRESS_DIRECT",
+          "event_version": "v2",
+          "first_ts_end": "2024-03-16T01:40:00+00:00",
+          "first_ts_start": "2024-03-16T01:40:00+00:00",
+          "last_ts_end": "2024-03-16T02:35:00+00:00",
+          "last_ts_start": "2024-03-16T02:35:00+00:00",
+          "phase_counts": {
+            "shock": 12
+          },
+          "severity": {
+            "max": 1.0,
+            "mean": 1.0,
+            "min": 1.0
+          },
+          "signature_digest": "b5037adc58e40e57a625aff28cc0576c300e19608e21991e023d06ed1640195a",
+          "symbol": "BTCUSDT",
+          "timeframe": "5m",
+          "trigger_value": {
+            "max": 314.5,
+            "mean": 180.270701440025,
+            "min": 51.666666666667
+          }
+        },
+        {
+          "confidence": {
+            "max": 0.8,
+            "mean": 0.8,
+            "min": 0.8
+          },
+          "data_quality_counts": {
+            "ok": 1
+          },
+          "detector_class": "LiquidityVacuumDetectorV2",
+          "event_count": 1,
+          "event_name": "LIQUIDITY_VACUUM",
+          "event_version": "v2",
+          "first_ts_end": "2024-03-16T01:40:00+00:00",
+          "first_ts_start": "2024-03-16T01:40:00+00:00",
+          "last_ts_end": "2024-03-16T01:40:00+00:00",
+          "last_ts_start": "2024-03-16T01:40:00+00:00",
+          "phase_counts": {
+            "collapse": 1
+          },
+          "severity": {
+            "max": 1.0,
+            "mean": 1.0,
+            "min": 1.0
+          },
+          "signature_digest": "8b9a87ffd8d449436beb105a34111dcac6b538ca5f9279d4a86e21544bbc5658",
+          "symbol": "BTCUSDT",
+          "timeframe": "5m",
+          "trigger_value": {
+            "max": 47.140452079103,
+            "mean": 47.140452079103,
+            "min": 47.140452079103
+          }
+        },
+        {
+          "confidence": {
+            "max": null,
+            "mean": null,
+            "min": null
+          },
+          "data_quality_counts": {},
+          "detector_class": "OISpikeNegativeDetectorV2",
+          "event_count": 0,
+          "event_name": "OI_SPIKE_NEGATIVE",
+          "event_version": "v2",
+          "first_ts_end": null,
+          "first_ts_start": null,
+          "last_ts_end": null,
+          "last_ts_start": null,
+          "phase_counts": {},
+          "severity": {
+            "max": null,
+            "mean": null,
+            "min": null
+          },
+          "signature_digest": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+          "symbol": "BTCUSDT",
+          "timeframe": "5m",
+          "trigger_value": {
+            "max": null,
+            "mean": null,
+            "min": null
+          }
+        },
+        {
+          "confidence": {
+            "max": null,
+            "mean": null,
+            "min": null
+          },
+          "data_quality_counts": {},
+          "detector_class": "SpotPerpBasisShockDetectorV2",
+          "event_count": 0,
+          "event_name": "SPOT_PERP_BASIS_SHOCK",
+          "event_version": "v2",
+          "first_ts_end": null,
+          "first_ts_start": null,
+          "last_ts_end": null,
+          "last_ts_start": null,
+          "phase_counts": {},
+          "severity": {
+            "max": null,
+            "mean": null,
+            "min": null
+          },
+          "signature_digest": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+          "symbol": "BTCUSDT",
+          "timeframe": "5m",
+          "trigger_value": {
+            "max": null,
+            "mean": null,
+            "min": null
+          }
+        },
+        {
+          "confidence": {
+            "max": 0.85,
+            "mean": 0.85,
+            "min": 0.85
+          },
+          "data_quality_counts": {
+            "ok": 18
+          },
+          "detector_class": "VolShockDetectorV2",
+          "event_count": 18,
+          "event_name": "VOL_SHOCK",
+          "event_version": "v2",
+          "first_ts_end": "2024-03-16T01:10:00+00:00",
+          "first_ts_start": "2024-03-16T01:10:00+00:00",
+          "last_ts_end": "2024-03-16T02:35:00+00:00",
+          "last_ts_start": "2024-03-16T02:35:00+00:00",
+          "phase_counts": {
+            "shock": 18
+          },
+          "severity": {
+            "max": 1.0,
+            "mean": 0.480555555556,
+            "min": 0.45
+          },
+          "signature_digest": "bd998493fd025565113edea7f9a8b703886cf26ed0ef9d82aa18ff162d1e9468",
+          "symbol": "BTCUSDT",
+          "timeframe": "5m",
+          "trigger_value": {
+            "max": 5.269883954661,
+            "mean": 1.237215775259,
+            "min": 1.0
+          }
+        },
+        {
+          "confidence": {
+            "max": 0.85,
+            "mean": 0.85,
+            "min": 0.85
+          },
+          "data_quality_counts": {
+            "ok": 3
+          },
+          "detector_class": "VolSpikeDetectorV2",
+          "event_count": 3,
+          "event_name": "VOL_SPIKE",
+          "event_version": "v2",
+          "first_ts_end": "2024-03-16T01:10:00+00:00",
+          "first_ts_start": "2024-03-16T01:10:00+00:00",
+          "last_ts_end": "2024-03-16T02:10:00+00:00",
+          "last_ts_start": "2024-03-16T02:10:00+00:00",
+          "phase_counts": {
+            "shock": 3
+          },
+          "severity": {
+            "max": 1.0,
+            "mean": 0.916666666667,
+            "min": 0.75
+          },
+          "signature_digest": "8de835d90686da434f11a291db92518a6087c1130b79ede36bdcd94eedc8d434",
+          "symbol": "BTCUSDT",
+          "timeframe": "5m",
+          "trigger_value": {
+            "max": 9999.999999999998,
+            "mean": 3335.835169693019,
+            "min": 3.070637508321
+          }
+        }
+      ],
+      "episode_id": "liquidity_liquidation_vol_cascade_2024_03_synthetic",
+      "expected_absent": [
+        "BASIS_DISLOC",
+        "FND_DISLOC",
+        "OI_SPIKE_NEGATIVE",
+        "SPOT_PERP_BASIS_SHOCK"
+      ],
+      "expected_present": [
+        "LIQUIDITY_STRESS_DIRECT",
+        "LIQUIDITY_SHOCK",
+        "LIQUIDITY_VACUUM",
+        "LIQUIDATION_CASCADE",
+        "VOL_SPIKE",
+        "VOL_SHOCK"
+      ],
+      "frame_digest": "f5eed2b4cb9e55f6a8af04d39c0ea445ab9968069eaea0e61ffd113f510a38db",
+      "frame_end": "2024-03-16T02:35:00+00:00",
+      "frame_rows": 3200,
+      "frame_start": "2024-03-05T00:00:00+00:00",
+      "generator_version": "known_episode_replay_v1",
+      "label": "Liquidity vacuum, liquidation cascade, and volatility shock replay slice",
+      "lineage": "reproducible_synthetic_market_slice: book thins, liquidation flow spikes, price/realized-vol shock unfolds",
+      "symbol": "BTCUSDT",
+      "timeframe": "5m"
+    }
+  ],
+  "fixture_lineage": "checked_in_reproducible_market_slice_generators",
+  "generator_version": "known_episode_replay_v1"
+}

@@ -1,0 +1,61 @@
+program_id: funding_continuation_timeslice_v1
+run_mode: research
+description: >
+  Time-slice validation for BTCUSDT funding continuation. This 2023 slice tests
+  the canonical continuation template only for the two surviving funding events,
+  long direction, and 24/48 bar horizons. Persistence 48b is retained as an
+  explicit control after failing the 2023-2025 template discovery pass.
+
+instrument_scope:
+  instrument_classes:
+    - crypto
+  symbols:
+    - BTCUSDT
+  timeframe: 5m
+  start: "2023-01-01"
+  end: "2023-12-31"
+
+trigger_space:
+  allowed_trigger_types:
+    - EVENT
+  events:
+    include:
+      - FUNDING_EXTREME_ONSET
+      - FUNDING_PERSISTENCE_TRIGGER
+
+templates:
+  include:
+    - continuation
+
+evaluation:
+  horizons_bars:
+    - 24
+    - 48
+  directions:
+    - long
+  entry_lags:
+    - 1
+
+contexts:
+  include: {}
+
+avoid_region_keys: []
+
+search_control:
+  max_hypotheses_total: 4
+  max_hypotheses_per_template: 4
+  max_hypotheses_per_event_family: 4
+  random_seed: 42
+
+promotion:
+  enabled: false
+  track: standard
+  multiplicity_scope: program_id
+
+artifacts:
+  matrix_phase: funding_continuation_timeslice
+  time_slice: "2023"
+  discovery_parent_run_id: funding_template_discovery_20260422T0100Z
+  validation_parent_run_id: funding_template_discovery_20260422T0100Z
+  no_promotion_or_export: true
+  decision_rule: compare_year_slices_before_promotion

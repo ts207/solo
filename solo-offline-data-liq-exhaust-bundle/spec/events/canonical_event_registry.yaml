@@ -1,0 +1,28 @@
+version: 1
+kind: canonical_event_registry
+metadata:
+  status: generated
+  notes: Generated compatibility registry for legacy proxy-tier event metadata.
+event_metadata:
+  ABSORPTION_EVENT:
+    evidence_tier: proxy
+    family: LIQUIDITY_DISLOCATION
+    description: 'Hybrid absorption detector: microstructure imbalance stall confirmed
+      by spread and realized-volatility stress.'
+  DEPTH_COLLAPSE:
+    evidence_tier: proxy
+    family: LIQUIDITY_DISLOCATION
+    description: 'Hybrid depth-stress detector: direct micro-depth depletion confirmed
+      by spread and realized-volatility stress.'
+  FORCED_FLOW_EXHAUSTION:
+    evidence_tier: proxy
+    family: FORCED_FLOW_AND_EXHAUSTION
+    description: FORCED_FLOW_EXHAUSTION canonical proxy compatibility entry.
+  ORDERFLOW_IMBALANCE_SHOCK:
+    evidence_tier: proxy
+    family: LIQUIDITY_DISLOCATION
+    description: ORDERFLOW_IMBALANCE_SHOCK canonical proxy compatibility entry.
+  SWEEP_STOPRUN:
+    evidence_tier: proxy
+    family: LIQUIDITY_DISLOCATION
+    description: SWEEP_STOPRUN canonical proxy compatibility entry.

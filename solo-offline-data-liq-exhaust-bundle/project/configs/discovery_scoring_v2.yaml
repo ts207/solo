@@ -1,0 +1,16 @@
+# Discovery v2 Scoring — [STATUS: STABLE-INTERNAL]
+#
+# Stable internal default scoring config for canonical discovery path.
+# Canonical quality-score components used to rank discovery candidates.
+# Significance, Tradability, Novelty, and Falsification are the core pillars.
+version: 1
+kind: discovery_scoring
+v2_scoring:
+  default_turnover_penalty_thresh: 0.8
+  default_coverage_thresh: 0.01
+  min_acceptable_regime_support_ratio: 0.4
+  falsification_weight: 1.0
+  tradability_weight: 1.0
+  novelty_weight: 1.0
+  overlap_penalty_weight: 1.0
+  fragility_penalty_weight: 1.0

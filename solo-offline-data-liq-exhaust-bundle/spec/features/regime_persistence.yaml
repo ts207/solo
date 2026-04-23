@@ -1,0 +1,15 @@
+feature_family: regime
+version: 1.0.0
+base_timeframe: 1m
+inputs:
+  - dataset: regime_labels
+    columns: [regime]
+features:
+  - name: regime_persistence
+    description: "Number of bars the current regime has been active."
+    formula: "bars_since(regime != regime[1])"
+    params: {}
+provenance:
+  source_id: "synthetic"
+  claim_id: []
+  pit_constraint: "asof <= t0"

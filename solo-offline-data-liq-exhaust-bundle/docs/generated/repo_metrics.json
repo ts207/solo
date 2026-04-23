@@ -1,0 +1,58 @@
+{
+  "docs_markdown_files": 13,
+  "project_python_files": 1605,
+  "schema_version": "repo_metrics_v1",
+  "spec_yaml_files": 421,
+  "test_files": 643,
+  "test_python_files": 721,
+  "top_packages": [
+    {
+      "package": "tests",
+      "python_files": 721
+    },
+    {
+      "package": "research",
+      "python_files": 269
+    },
+    {
+      "package": "scripts",
+      "python_files": 111
+    },
+    {
+      "package": "events",
+      "python_files": 105
+    },
+    {
+      "package": "pipelines",
+      "python_files": 84
+    },
+    {
+      "package": "live",
+      "python_files": 59
+    },
+    {
+      "package": "strategy",
+      "python_files": 35
+    },
+    {
+      "package": "core",
+      "python_files": 28
+    },
+    {
+      "package": "eval",
+      "python_files": 27
+    },
+    {
+      "package": "engine",
+      "python_files": 19
+    },
+    {
+      "package": "features",
+      "python_files": 16
+    },
+    {
+      "package": "portfolio",
+      "python_files": 13
+    }
+  ]
+}

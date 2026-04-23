@@ -1,0 +1,1978 @@
+version: 2
+kind: event_template_registry
+metadata:
+  status: generated
+  generated_views:
+  - spec/templates/event_template_registry.yaml
+  - spec/ontology/templates/template_registry.yaml
+  - project/configs/registries/templates.yaml
+  legacy_specs_read_only:
+  - spec/multiplicity/families.yaml
+  - spec/multiplicity/taxonomy.yaml
+  notes: Canonical authored template source. Generated runtime and ontology template
+    registries are rebuilt from this file. Event rows use research_family as the coarse
+    search/template grouping key; canonical_family is generated only for compatibility
+    sidecars.
+  phase2_search_unit: trigger_x_expression_template
+  template_kind_policy: Expression templates are the primary search unit. Filter templates
+    are optional overlays. Execution-template-only search branches are reserved and
+    must not be emitted as standalone hypotheses.
+  authored_source: spec/templates/registry.yaml
+defaults:
+  templates:
+  - mean_reversion
+  - continuation
+  - trend_continuation
+  - pullback_entry
+  horizons:
+  - 5m
+  - 15m
+  - 60m
+  conditioning_cols:
+  - vol_regime
+  - carry_state
+  - funding_bps
+  - ms_trend_state
+  - ms_spread_state
+  - severity_bucket
+  max_candidates_per_run: 1000
+  template_param_grid_defaults:
+    common:
+      entry_lag_bars:
+      - 1
+      - 2
+      - 3
+      horizon_bars:
+      - 6
+      - 12
+      - 24
+      - 48
+      cooldown_bars:
+      - 6
+      - 12
+      - 24
+    risk:
+      stop_loss_bps:
+      - 20
+      - 40
+      - 80
+      take_profit_bps:
+      - 20
+      - 40
+      - 80
+      - 160
+      stop_loss_atr_multipliers:
+      - 1.0
+      - 2.0
+      - 3.0
+      take_profit_atr_multipliers:
+      - 1.5
+      - 3.0
+      - 5.0
+families:
+  LIQUIDITY_STRESS:
+    templates:
+    - mean_reversion
+    - continuation
+    - stop_run_repair
+    - overshoot_repair
+    - only_if_liquidity
+    - slippage_aware_filter
+    - only_if_regime
+    - only_if_highvol
+  LIQUIDITY_DISLOCATION:
+    templates:
+    - mean_reversion
+    - continuation
+    - stop_run_repair
+    - overshoot_repair
+    - only_if_liquidity
+    - slippage_aware_filter
+  VOLATILITY_TRANSITION:
+    templates:
+    - mean_reversion
+    - continuation
+    - trend_continuation
+    - volatility_expansion_follow
+    - pullback_entry
+    - only_if_regime
+  POSITIONING_EXTREMES:
+    templates:
+    - reversal_or_squeeze
+    - mean_reversion
+    - continuation
+    - exhaustion_reversal
+    - convexity_capture
+    - only_if_funding
+    - only_if_oi
+    - tail_risk_avoid
+  BASIS_FUNDING_DISLOCATION:
+    templates:
+    - reversal_or_squeeze
+    - mean_reversion
+    - continuation
+    - exhaustion_reversal
+    - convexity_capture
+    - only_if_funding
+    - only_if_oi
+    - only_if_regime
+    - only_if_highvol
+    - only_if_trend
+    - tail_risk_avoid
+  FORCED_FLOW_AND_EXHAUSTION:
+    templates:
+    - mean_reversion
+    - exhaustion_reversal
+    - momentum_fade
+    - range_reversion
+    - only_if_trend
+    - only_if_regime
+    - drawdown_filter
+  TREND_FAILURE_EXHAUSTION:
+    templates:
+    - mean_reversion
+    - exhaustion_reversal
+    - momentum_fade
+    - range_reversion
+    - only_if_trend
+    - only_if_regime
+    - only_if_highvol
+    - drawdown_filter
+  TREND_STRUCTURE:
+    templates:
+    - breakout_followthrough
+    - false_breakout_reversal
+    - pullback_entry
+    - trend_continuation
+    - continuation
+    - only_if_trend
+  STATISTICAL_DISLOCATION:
+    templates:
+    - mean_reversion
+    - overshoot_repair
+    - tail_risk_avoid
+  REGIME_TRANSITION:
+    templates:
+    - only_if_regime
+    - continuation
+    - mean_reversion
+    - drawdown_filter
+    - tail_risk_avoid
+  INFORMATION_DESYNC:
+    templates:
+    - desync_repair
+    - convergence
+    - basis_repair
+    - lead_lag_follow
+    - divergence_continuation
+  TEMPORAL_STRUCTURE:
+    templates:
+    - mean_reversion
+    - continuation
+    - tail_risk_avoid
+    - only_if_no_news_window
+  EXECUTION_FRICTION:
+    templates:
+    - slippage_aware_filter
+    - tail_risk_avoid
+  POSITIONING_UNWIND_DELEVERAGING:
+    templates:
+    - reversal_or_squeeze
+    - mean_reversion
+    - continuation
+    - exhaustion_reversal
+    - convexity_capture
+    - only_if_funding
+    - only_if_oi
+    - only_if_regime
+    - tail_risk_avoid
+events:
+  LIQUIDITY_VACUUM:
+    research_family: LIQUIDITY_DISLOCATION
+    templates:
+    - mean_reversion
+    - stop_run_repair
+    - overshoot_repair
+    - continuation
+    - only_if_liquidity
+    - slippage_aware_filter
+    horizons:
+    - 15m
+    max_candidates_per_run: 1000
+    conditioning_cols: []
+    canonical_family: LIQUIDITY_DISLOCATION
+  LIQUIDITY_SHOCK:
+    research_family: LIQUIDITY_DISLOCATION
+    templates:
+    - mean_reversion
+    - continuation
+    - stop_run_repair
+    - overshoot_repair
+    - only_if_liquidity
+    - slippage_aware_filter
+    horizons:
+    - 15m
+    max_candidates_per_run: 600
+    canonical_family: LIQUIDITY_DISLOCATION
+  DEPTH_COLLAPSE:
+    research_family: LIQUIDITY_DISLOCATION
+    templates:
+    - mean_reversion
+    - continuation
+    - stop_run_repair
+    - overshoot_repair
+    - only_if_liquidity
+    - slippage_aware_filter
+    horizons:
+    - 15m
+    max_candidates_per_run: 600
+    canonical_family: LIQUIDITY_DISLOCATION
+  DEPTH_STRESS_PROXY:
+    research_family: LIQUIDITY_DISLOCATION
+    templates:
+    - mean_reversion
+    - continuation
+    - stop_run_repair
+    - overshoot_repair
+    - only_if_liquidity
+    - slippage_aware_filter
+    horizons:
+    - 15m
+    max_candidates_per_run: 600
+    canonical_family: LIQUIDITY_DISLOCATION
+  SPREAD_BLOWOUT:
+    research_family: LIQUIDITY_DISLOCATION
+    templates:
+    - mean_reversion
+    - continuation
+    - stop_run_repair
+    - overshoot_repair
+    - only_if_liquidity
+    - slippage_aware_filter
+    horizons:
+    - 15m
+    max_candidates_per_run: 600
+    canonical_family: LIQUIDITY_DISLOCATION
+  ORDERFLOW_IMBALANCE_SHOCK:
+    research_family: LIQUIDITY_DISLOCATION
+    templates:
+    - mean_reversion
+    - continuation
+    - stop_run_repair
+    - overshoot_repair
+    - only_if_liquidity
+    - slippage_aware_filter
+    horizons:
+    - 15m
+    max_candidates_per_run: 600
+    canonical_family: LIQUIDITY_DISLOCATION
+  SWEEP_STOPRUN:
+    research_family: LIQUIDITY_DISLOCATION
+    templates:
+    - mean_reversion
+    - continuation
+    - stop_run_repair
+    - overshoot_repair
+    - only_if_liquidity
+    - slippage_aware_filter
+    - only_if_regime
+    horizons:
+    - 15m
+    max_candidates_per_run: 600
+    canonical_family: LIQUIDITY_DISLOCATION
+  ABSORPTION_EVENT:
+    active: false
+    research_family: LIQUIDITY_DISLOCATION
+    templates:
+    - mean_reversion
+    - continuation
+    - stop_run_repair
+    - overshoot_repair
+    - only_if_liquidity
+    - slippage_aware_filter
+    horizons:
+    - 15m
+    max_candidates_per_run: 600
+    canonical_family: LIQUIDITY_DISLOCATION
+  ABSORPTION_PROXY:
+    research_family: LIQUIDITY_DISLOCATION
+    templates:
+    - mean_reversion
+    - stop_run_repair
+    - overshoot_repair
+    - only_if_liquidity
+    - slippage_aware_filter
+    horizons:
+    - 15m
+    max_candidates_per_run: 600
+    canonical_family: LIQUIDITY_DISLOCATION
+  LIQUIDITY_GAP_PRINT:
+    research_family: LIQUIDITY_DISLOCATION
+    templates:
+    - mean_reversion
+    - continuation
+    - stop_run_repair
+    - overshoot_repair
+    - only_if_liquidity
+    - slippage_aware_filter
+    - only_if_regime
+    - only_if_highvol
+    horizons:
+    - 12b
+    - 24b
+    - 48b
+    max_candidates_per_run: 600
+    canonical_family: LIQUIDITY_DISLOCATION
+  LIQUIDITY_STRESS_DIRECT:
+    research_family: LIQUIDITY_DISLOCATION
+    templates:
+    - mean_reversion
+    - continuation
+    - stop_run_repair
+    - overshoot_repair
+    - only_if_liquidity
+    - slippage_aware_filter
+    horizons:
+    - 15m
+    max_candidates_per_run: 600
+    canonical_family: LIQUIDITY_DISLOCATION
+  LIQUIDITY_STRESS_PROXY:
+    research_family: LIQUIDITY_DISLOCATION
+    templates:
+    - mean_reversion
+    - continuation
+    - stop_run_repair
+    - overshoot_repair
+    - only_if_liquidity
+    - slippage_aware_filter
+    horizons:
+    - 15m
+    max_candidates_per_run: 600
+    canonical_family: LIQUIDITY_DISLOCATION
+  PRICE_VOL_IMBALANCE_PROXY:
+    research_family: LIQUIDITY_DISLOCATION
+    templates:
+    - mean_reversion
+    - continuation
+    - stop_run_repair
+    - overshoot_repair
+    - only_if_liquidity
+    - slippage_aware_filter
+    horizons:
+    - 15m
+    max_candidates_per_run: 600
+    canonical_family: LIQUIDITY_DISLOCATION
+  WICK_REVERSAL_PROXY:
+    research_family: LIQUIDITY_DISLOCATION
+    templates:
+    - mean_reversion
+    - stop_run_repair
+    - overshoot_repair
+    - only_if_liquidity
+    - slippage_aware_filter
+    horizons:
+    - 15m
+    max_candidates_per_run: 500
+    canonical_family: LIQUIDITY_DISLOCATION
+  VOL_SHOCK:
+    research_family: VOLATILITY_TRANSITION
+    templates:
+    - mean_reversion
+    - continuation
+    - trend_continuation
+    horizons:
+    - 60m
+    max_candidates_per_run: 500
+    canonical_family: VOLATILITY_TRANSITION
+  VOL_SPIKE:
+    research_family: VOLATILITY_TRANSITION
+    templates:
+    - mean_reversion
+    - continuation
+    - trend_continuation
+    - volatility_expansion_follow
+    - pullback_entry
+    - only_if_regime
+    horizons:
+    - 60m
+    max_candidates_per_run: 500
+    canonical_family: VOLATILITY_TRANSITION
+  VOL_RELAXATION_START:
+    research_family: VOLATILITY_TRANSITION
+    templates:
+    - mean_reversion
+    - continuation
+    - trend_continuation
+    - volatility_expansion_follow
+    - pullback_entry
+    - only_if_regime
+    horizons:
+    - 60m
+    max_candidates_per_run: 500
+    canonical_family: VOLATILITY_TRANSITION
+  VOL_CLUSTER_SHIFT:
+    research_family: VOLATILITY_TRANSITION
+    templates:
+    - mean_reversion
+    - continuation
+    - trend_continuation
+    - volatility_expansion_follow
+    - pullback_entry
+    - only_if_regime
+    horizons:
+    - 60m
+    max_candidates_per_run: 500
+    canonical_family: VOLATILITY_TRANSITION
+  RANGE_COMPRESSION_END:
+    research_family: VOLATILITY_TRANSITION
+    templates:
+    - mean_reversion
+    - continuation
+    - trend_continuation
+    - volatility_expansion_follow
+    - pullback_entry
+    - only_if_regime
+    horizons:
+    - 60m
+    max_candidates_per_run: 500
+    canonical_family: VOLATILITY_TRANSITION
+  BREAKOUT_TRIGGER:
+    research_family: VOLATILITY_TRANSITION
+    templates:
+    - mean_reversion
+    - continuation
+    - trend_continuation
+    - volatility_expansion_follow
+    - pullback_entry
+    - only_if_regime
+    horizons:
+    - 60m
+    max_candidates_per_run: 500
+    canonical_family: VOLATILITY_TRANSITION
+  FUNDING_EXTREME_ONSET:
+    research_family: POSITIONING_EXTREMES
+    templates:
+    - reversal_or_squeeze
+    - mean_reversion
+    - continuation
+    - exhaustion_reversal
+    - convexity_capture
+    - only_if_funding
+    - only_if_oi
+    - only_if_regime
+    - only_if_highvol
+    - only_if_trend
+    - tail_risk_avoid
+    horizons:
+    - 5m
+    - 60m
+    max_candidates_per_run: 500
+    canonical_family: POSITIONING_EXTREMES
+  FUNDING_FLIP:
+    research_family: POSITIONING_EXTREMES
+    templates:
+    - reversal_or_squeeze
+    - mean_reversion
+    - continuation
+    - exhaustion_reversal
+    - convexity_capture
+    - only_if_funding
+    - only_if_oi
+    - tail_risk_avoid
+    horizons:
+    - 5m
+    - 60m
+    max_candidates_per_run: 500
+    canonical_family: POSITIONING_EXTREMES
+  FUNDING_PERSISTENCE_TRIGGER:
+    research_family: POSITIONING_EXTREMES
+    templates:
+    - reversal_or_squeeze
+    - mean_reversion
+    - continuation
+    - exhaustion_reversal
+    - convexity_capture
+    - only_if_funding
+    - only_if_oi
+    - tail_risk_avoid
+    - only_if_regime
+    horizons:
+    - 5m
+    - 60m
+    max_candidates_per_run: 500
+    canonical_family: POSITIONING_EXTREMES
+  FUNDING_NORMALIZATION_TRIGGER:
+    research_family: POSITIONING_EXTREMES
+    templates:
+    - reversal_or_squeeze
+    - mean_reversion
+    - continuation
+    - exhaustion_reversal
+    - convexity_capture
+    - only_if_funding
+    - only_if_oi
+    - tail_risk_avoid
+    horizons:
+    - 60m
+    max_candidates_per_run: 500
+    canonical_family: POSITIONING_EXTREMES
+  OI_SPIKE_POSITIVE:
+    research_family: POSITIONING_EXTREMES
+    templates:
+    - reversal_or_squeeze
+    - mean_reversion
+    - continuation
+    - exhaustion_reversal
+    - convexity_capture
+    - only_if_funding
+    - only_if_oi
+    - tail_risk_avoid
+    horizons:
+    - 60m
+    max_candidates_per_run: 250
+    canonical_family: POSITIONING_EXTREMES
+  OI_SPIKE_NEGATIVE:
+    research_family: POSITIONING_EXTREMES
+    templates:
+    - reversal_or_squeeze
+    - mean_reversion
+    - continuation
+    - exhaustion_reversal
+    - convexity_capture
+    - only_if_funding
+    - only_if_oi
+    - tail_risk_avoid
+    horizons:
+    - 5m
+    - 60m
+    max_candidates_per_run: 250
+    canonical_family: POSITIONING_EXTREMES
+  OI_FLUSH:
+    research_family: POSITIONING_EXTREMES
+    templates:
+    - reversal_or_squeeze
+    - mean_reversion
+    - continuation
+    - exhaustion_reversal
+    - convexity_capture
+    - only_if_funding
+    - only_if_oi
+    - only_if_regime
+    - only_if_highvol
+    - tail_risk_avoid
+    horizons:
+    - 5m
+    - 60m
+    max_candidates_per_run: 500
+    canonical_family: POSITIONING_EXTREMES
+  LIQUIDATION_CASCADE:
+    research_family: POSITIONING_EXTREMES
+    templates:
+    - reversal_or_squeeze
+    - mean_reversion
+    - continuation
+    - exhaustion_reversal
+    - convexity_capture
+    - only_if_funding
+    - only_if_oi
+    - tail_risk_avoid
+    horizons:
+    - 5m
+    - 15m
+    - 60m
+    canonical_family: POSITIONING_EXTREMES
+  LIQUIDATION_CASCADE_PROXY:
+    research_family: POSITIONING_EXTREMES
+    templates:
+    - reversal_or_squeeze
+    - mean_reversion
+    - continuation
+    - exhaustion_reversal
+    - convexity_capture
+    - only_if_funding
+    - only_if_oi
+    - tail_risk_avoid
+    horizons:
+    - 5m
+    - 15m
+    - 60m
+    max_candidates_per_run: 300
+    canonical_family: POSITIONING_EXTREMES
+  DELEVERAGING_WAVE:
+    research_family: POSITIONING_EXTREMES
+    templates:
+    - reversal_or_squeeze
+    - mean_reversion
+    - continuation
+    - exhaustion_reversal
+    - convexity_capture
+    - only_if_funding
+    - only_if_oi
+    - tail_risk_avoid
+    horizons:
+    - 5m
+    - 60m
+    max_candidates_per_run: 500
+    canonical_family: POSITIONING_EXTREMES
+  FORCED_FLOW_EXHAUSTION:
+    research_family: FORCED_FLOW_AND_EXHAUSTION
+    templates:
+    - mean_reversion
+    - exhaustion_reversal
+    - momentum_fade
+    - range_reversion
+    - only_if_trend
+    - only_if_regime
+    - only_if_highvol
+    - drawdown_filter
+    horizons:
+    - 60m
+    max_candidates_per_run: 500
+    canonical_family: FORCED_FLOW_AND_EXHAUSTION
+  TREND_EXHAUSTION_TRIGGER:
+    research_family: FORCED_FLOW_AND_EXHAUSTION
+    templates:
+    - mean_reversion
+    - exhaustion_reversal
+    - momentum_fade
+    - range_reversion
+    - only_if_trend
+    - drawdown_filter
+    horizons:
+    - 60m
+    max_candidates_per_run: 500
+    canonical_family: FORCED_FLOW_AND_EXHAUSTION
+  MOMENTUM_DIVERGENCE_TRIGGER:
+    research_family: FORCED_FLOW_AND_EXHAUSTION
+    templates:
+    - mean_reversion
+    - exhaustion_reversal
+    - momentum_fade
+    - range_reversion
+    - only_if_trend
+    - drawdown_filter
+    - only_if_regime
+    horizons:
+    - 60m
+    max_candidates_per_run: 500
+    canonical_family: FORCED_FLOW_AND_EXHAUSTION
+  CLIMAX_VOLUME_BAR:
+    research_family: FORCED_FLOW_AND_EXHAUSTION
+    templates:
+    - mean_reversion
+    - exhaustion_reversal
+    - momentum_fade
+    - range_reversion
+    - only_if_trend
+    - only_if_regime
+    - only_if_highvol
+    - drawdown_filter
+    horizons:
+    - 60m
+    max_candidates_per_run: 500
+    canonical_family: FORCED_FLOW_AND_EXHAUSTION
+  FAILED_CONTINUATION:
+    research_family: FORCED_FLOW_AND_EXHAUSTION
+    templates:
+    - mean_reversion
+    - exhaustion_reversal
+    - momentum_fade
+    - range_reversion
+    - only_if_trend
+    - drawdown_filter
+    horizons:
+    - 60m
+    max_candidates_per_run: 500
+    canonical_family: FORCED_FLOW_AND_EXHAUSTION
+  FLOW_EXHAUSTION_PROXY:
+    research_family: FORCED_FLOW_AND_EXHAUSTION
+    templates:
+    - mean_reversion
+    - exhaustion_reversal
+    - momentum_fade
+    - range_reversion
+    - only_if_trend
+    - drawdown_filter
+    horizons:
+    - 60m
+    max_candidates_per_run: 500
+    canonical_family: FORCED_FLOW_AND_EXHAUSTION
+  LIQUIDATION_EXHAUSTION_REVERSAL:
+    research_family: FORCED_FLOW_AND_EXHAUSTION
+    templates:
+    - mean_reversion
+    - exhaustion_reversal
+    - momentum_fade
+    - range_reversion
+    - only_if_trend
+    - drawdown_filter
+    horizons:
+    - 60m
+    max_candidates_per_run: 400
+    canonical_family: FORCED_FLOW_AND_EXHAUSTION
+  POST_DELEVERAGING_REBOUND:
+    research_family: FORCED_FLOW_AND_EXHAUSTION
+    templates:
+    - mean_reversion
+    - exhaustion_reversal
+    - momentum_fade
+    - range_reversion
+    - only_if_trend
+    - drawdown_filter
+    horizons:
+    - 60m
+    max_candidates_per_run: 400
+    canonical_family: FORCED_FLOW_AND_EXHAUSTION
+  RANGE_BREAKOUT:
+    research_family: TREND_STRUCTURE
+    templates:
+    - breakout_followthrough
+    - false_breakout_reversal
+    - pullback_entry
+    - trend_continuation
+    - continuation
+    - only_if_trend
+    - only_if_regime
+    horizons:
+    - 15m
+    - 60m
+    max_candidates_per_run: 450
+    canonical_family: TREND_STRUCTURE
+  FALSE_BREAKOUT:
+    research_family: TREND_STRUCTURE
+    templates:
+    - breakout_followthrough
+    - false_breakout_reversal
+    - pullback_entry
+    - trend_continuation
+    - continuation
+    - only_if_trend
+    horizons:
+    - 15m
+    - 60m
+    max_candidates_per_run: 450
+    canonical_family: TREND_STRUCTURE
+  TREND_ACCELERATION:
+    research_family: TREND_STRUCTURE
+    templates:
+    - breakout_followthrough
+    - false_breakout_reversal
+    - pullback_entry
+    - trend_continuation
+    - continuation
+    - only_if_trend
+    horizons:
+    - 15m
+    - 60m
+    max_candidates_per_run: 450
+    canonical_family: TREND_STRUCTURE
+  TREND_DECELERATION:
+    research_family: TREND_STRUCTURE
+    templates:
+    - breakout_followthrough
+    - false_breakout_reversal
+    - pullback_entry
+    - trend_continuation
+    - continuation
+    - only_if_trend
+    horizons:
+    - 15m
+    - 60m
+    max_candidates_per_run: 450
+    canonical_family: TREND_STRUCTURE
+  PULLBACK_PIVOT:
+    research_family: TREND_STRUCTURE
+    templates:
+    - breakout_followthrough
+    - false_breakout_reversal
+    - pullback_entry
+    - trend_continuation
+    - continuation
+    - only_if_trend
+    horizons:
+    - 15m
+    - 60m
+    max_candidates_per_run: 450
+    canonical_family: TREND_STRUCTURE
+  SUPPORT_RESISTANCE_BREAK:
+    research_family: TREND_STRUCTURE
+    templates:
+    - breakout_followthrough
+    - false_breakout_reversal
+    - pullback_entry
+    - trend_continuation
+    - continuation
+    - only_if_trend
+    horizons:
+    - 15m
+    - 60m
+    max_candidates_per_run: 450
+    canonical_family: TREND_STRUCTURE
+  ZSCORE_STRETCH:
+    research_family: STATISTICAL_DISLOCATION
+    templates:
+    - mean_reversion
+    - overshoot_repair
+    - tail_risk_avoid
+    horizons:
+    - 15m
+    - 60m
+    max_candidates_per_run: 350
+    canonical_family: STATISTICAL_DISLOCATION
+  BAND_BREAK:
+    research_family: STATISTICAL_DISLOCATION
+    templates:
+    - mean_reversion
+    - overshoot_repair
+    - tail_risk_avoid
+    horizons:
+    - 15m
+    - 60m
+    max_candidates_per_run: 350
+    canonical_family: STATISTICAL_DISLOCATION
+  OVERSHOOT_AFTER_SHOCK:
+    research_family: STATISTICAL_DISLOCATION
+    templates:
+    - mean_reversion
+    - overshoot_repair
+    - tail_risk_avoid
+    horizons:
+    - 15m
+    - 60m
+    max_candidates_per_run: 350
+    canonical_family: STATISTICAL_DISLOCATION
+  GAP_OVERSHOOT:
+    research_family: STATISTICAL_DISLOCATION
+    templates:
+    - mean_reversion
+    - overshoot_repair
+    - tail_risk_avoid
+    horizons:
+    - 15m
+    - 60m
+    max_candidates_per_run: 350
+    canonical_family: STATISTICAL_DISLOCATION
+  COPULA_PAIRS_TRADING:
+    research_family: STATISTICAL_DISLOCATION
+    templates:
+    - mean_reversion
+    - overshoot_repair
+    - tail_risk_avoid
+    horizons:
+    - 15m
+    - 60m
+    max_candidates_per_run: 350
+    canonical_family: STATISTICAL_DISLOCATION
+  FND_DISLOC:
+    research_family: STATISTICAL_DISLOCATION
+    templates:
+    - mean_reversion
+    - overshoot_repair
+    - tail_risk_avoid
+    horizons:
+    - 15m
+    - 60m
+    max_candidates_per_run: 350
+    canonical_family: STATISTICAL_DISLOCATION
+  BASIS_DISLOC:
+    research_family: STATISTICAL_DISLOCATION
+    templates:
+    - mean_reversion
+    - overshoot_repair
+    - tail_risk_avoid
+    horizons:
+    - 15m
+    - 60m
+    max_candidates_per_run: 350
+    canonical_family: STATISTICAL_DISLOCATION
+  VOL_REGIME_SHIFT_EVENT:
+    research_family: REGIME_TRANSITION
+    templates:
+    - only_if_regime
+    - continuation
+    - mean_reversion
+    - drawdown_filter
+    - tail_risk_avoid
+    horizons:
+    - 60m
+    max_candidates_per_run: 350
+    canonical_family: REGIME_TRANSITION
+  TREND_TO_CHOP_SHIFT:
+    research_family: REGIME_TRANSITION
+    templates:
+    - only_if_regime
+    - continuation
+    - mean_reversion
+    - drawdown_filter
+    - tail_risk_avoid
+    horizons:
+    - 60m
+    max_candidates_per_run: 350
+    canonical_family: REGIME_TRANSITION
+  CHOP_TO_TREND_SHIFT:
+    research_family: REGIME_TRANSITION
+    templates:
+    - only_if_regime
+    - continuation
+    - mean_reversion
+    - drawdown_filter
+    - tail_risk_avoid
+    horizons:
+    - 60m
+    max_candidates_per_run: 350
+    canonical_family: REGIME_TRANSITION
+  CORRELATION_BREAKDOWN_EVENT:
+    research_family: REGIME_TRANSITION
+    templates:
+    - only_if_regime
+    - continuation
+    - mean_reversion
+    - drawdown_filter
+    - tail_risk_avoid
+    horizons:
+    - 60m
+    max_candidates_per_run: 350
+    canonical_family: REGIME_TRANSITION
+  BETA_SPIKE_EVENT:
+    research_family: REGIME_TRANSITION
+    templates:
+    - only_if_regime
+    - continuation
+    - mean_reversion
+    - drawdown_filter
+    - tail_risk_avoid
+    horizons:
+    - 60m
+    max_candidates_per_run: 350
+    canonical_family: REGIME_TRANSITION
+  CROSS_VENUE_DESYNC:
+    research_family: INFORMATION_DESYNC
+    templates:
+    - desync_repair
+    - convergence
+    - basis_repair
+    - lead_lag_follow
+    - divergence_continuation
+    horizons:
+    - 5m
+    - 15m
+    - 60m
+    max_candidates_per_run: 600
+    canonical_family: INFORMATION_DESYNC
+  INDEX_COMPONENT_DIVERGENCE:
+    research_family: INFORMATION_DESYNC
+    templates:
+    - desync_repair
+    - convergence
+    - basis_repair
+    - lead_lag_follow
+    - divergence_continuation
+    horizons:
+    - 5m
+    - 15m
+    - 60m
+    max_candidates_per_run: 500
+    canonical_family: INFORMATION_DESYNC
+  SPOT_PERP_BASIS_SHOCK:
+    research_family: INFORMATION_DESYNC
+    templates:
+    - desync_repair
+    - convergence
+    - basis_repair
+    - lead_lag_follow
+    - divergence_continuation
+    horizons:
+    - 5m
+    - 15m
+    - 60m
+    max_candidates_per_run: 500
+    canonical_family: INFORMATION_DESYNC
+  LEAD_LAG_BREAK:
+    research_family: INFORMATION_DESYNC
+    templates:
+    - desync_repair
+    - convergence
+    - basis_repair
+    - lead_lag_follow
+    - divergence_continuation
+    horizons:
+    - 5m
+    - 15m
+    - 60m
+    max_candidates_per_run: 500
+    canonical_family: INFORMATION_DESYNC
+  CROSS_ASSET_DESYNC_EVENT:
+    research_family: INFORMATION_DESYNC
+    templates:
+    - desync_repair
+    - convergence
+    - basis_repair
+    - lead_lag_follow
+    - divergence_continuation
+    horizons:
+    - 5m
+    - 15m
+    - 60m
+    max_candidates_per_run: 600
+    canonical_family: INFORMATION_DESYNC
+  SEQ_FND_EXTREME_THEN_BREAKOUT:
+    research_family: POSITIONING_EXTREMES
+    templates:
+    - reversal_or_squeeze
+    - mean_reversion
+    - continuation
+    - exhaustion_reversal
+    - convexity_capture
+    - only_if_funding
+    - only_if_oi
+    - tail_risk_avoid
+    horizons:
+    - 5m
+    - 60m
+    max_candidates_per_run: 250
+    canonical_family: POSITIONING_EXTREMES
+  SEQ_LIQ_VACUUM_THEN_DEPTH_RECOVERY:
+    research_family: LIQUIDITY_DISLOCATION
+    templates:
+    - mean_reversion
+    - stop_run_repair
+    - overshoot_repair
+    - continuation
+    - only_if_liquidity
+    - slippage_aware_filter
+    horizons:
+    - 15m
+    max_candidates_per_run: 400
+    canonical_family: LIQUIDITY_DISLOCATION
+  SEQ_OI_SPIKEPOS_THEN_VOL_SPIKE:
+    research_family: POSITIONING_EXTREMES
+    templates:
+    - reversal_or_squeeze
+    - mean_reversion
+    - continuation
+    - exhaustion_reversal
+    - convexity_capture
+    - only_if_funding
+    - only_if_oi
+    - tail_risk_avoid
+    horizons:
+    - 5m
+    - 60m
+    max_candidates_per_run: 250
+    canonical_family: POSITIONING_EXTREMES
+  SEQ_VOL_COMP_THEN_BREAKOUT:
+    research_family: VOLATILITY_TRANSITION
+    templates:
+    - mean_reversion
+    - continuation
+    - trend_continuation
+    - volatility_expansion_follow
+    - pullback_entry
+    - only_if_regime
+    horizons:
+    - 60m
+    max_candidates_per_run: 350
+    canonical_family: VOLATILITY_TRANSITION
+  SESSION_OPEN_EVENT:
+    research_family: TEMPORAL_STRUCTURE
+    templates:
+    - mean_reversion
+    - continuation
+    horizons:
+    - 5m
+    - 15m
+    max_candidates_per_run: 300
+    canonical_family: TEMPORAL_STRUCTURE
+  SESSION_CLOSE_EVENT:
+    research_family: TEMPORAL_STRUCTURE
+    templates:
+    - mean_reversion
+    - continuation
+    horizons:
+    - 5m
+    - 15m
+    max_candidates_per_run: 300
+    canonical_family: TEMPORAL_STRUCTURE
+  FUNDING_TIMESTAMP_EVENT:
+    research_family: TEMPORAL_STRUCTURE
+    templates:
+    - mean_reversion
+    - continuation
+    horizons:
+    - 5m
+    - 15m
+    max_candidates_per_run: 300
+    canonical_family: TEMPORAL_STRUCTURE
+  SCHEDULED_NEWS_WINDOW_EVENT:
+    research_family: TEMPORAL_STRUCTURE
+    templates:
+    - mean_reversion
+    - continuation
+    horizons:
+    - 5m
+    - 15m
+    max_candidates_per_run: 300
+    canonical_family: TEMPORAL_STRUCTURE
+  SPREAD_REGIME_WIDENING_EVENT:
+    research_family: EXECUTION_FRICTION
+    templates:
+    - slippage_aware_filter
+    - tail_risk_avoid
+    horizons:
+    - 5m
+    - 15m
+    max_candidates_per_run: 300
+    canonical_family: EXECUTION_FRICTION
+  SLIPPAGE_SPIKE_EVENT:
+    research_family: EXECUTION_FRICTION
+    templates:
+    - slippage_aware_filter
+    - tail_risk_avoid
+    horizons:
+    - 5m
+    - 15m
+    max_candidates_per_run: 300
+    canonical_family: EXECUTION_FRICTION
+  FEE_REGIME_CHANGE_EVENT:
+    research_family: EXECUTION_FRICTION
+    templates:
+    - slippage_aware_filter
+    - tail_risk_avoid
+    horizons:
+    - 5m
+    - 15m
+    max_candidates_per_run: 300
+    canonical_family: EXECUTION_FRICTION
+filter_templates:
+  only_if_funding:
+    feature: funding_rate
+    operator: '>'
+    threshold: 0.0
+  only_if_oi:
+    feature: oi_delta_1h
+    operator: '>'
+    threshold: 0.0
+  only_if_liquidity:
+    feature: liquidation_count
+    operator: '>'
+    threshold: 0.0
+  slippage_aware_filter:
+    feature: spread_zscore
+    operator: '>'
+    threshold: 1.0
+  tail_risk_avoid:
+    feature: rv_pct_17280
+    operator: <
+    threshold: 0.9
+  drawdown_filter:
+    feature: logret_1
+    operator: <
+    threshold: -0.002
+  only_if_regime:
+    feature: rv_pct_17280
+    operator: '>'
+    threshold: 0.7
+  only_if_highvol:
+    feature: rv_pct_17280
+    operator: '>'
+    threshold: 0.85
+  only_if_trend:
+    feature: logret_1
+    operator: '>'
+    threshold: 0.001
+  only_if_no_news_window:
+    feature: calendar_event
+    operator: ==
+    threshold: 0
+operators:
+  basis_repair:
+    enabled: true
+    supports_contexts: true
+    supports_directions:
+    - long
+    - short
+    supports_trigger_types:
+    - EVENT
+    operator_id: op.basis_repair
+    operator_version: v1
+    requires_direction: false
+    side_policy: contrarian
+    label_target: basis_repair_h
+    test_spec: mean_gt_0
+    compatible_families:
+    - INFORMATION_DESYNC
+    default_conditioning: {}
+    risk_metrics_required: []
+    template_kind: expression_template
+    feature: basis_zscore
+    operator: '>'
+    threshold: 1.0
+  breakout_followthrough:
+    enabled: true
+    supports_contexts: true
+    supports_directions:
+    - long
+    - short
+    supports_trigger_types:
+    - EVENT
+    - SEQUENCE
+    operator_id: op.breakout_followthrough
+    operator_version: v1
+    requires_direction: true
+    side_policy: directional
+    label_target: fwd_return_h
+    test_spec: mean_gt_0
+    compatible_families:
+    - TREND_STRUCTURE
+    - VOLATILITY_TRANSITION
+    - LIQUIDITY_DISLOCATION
+    - ABSORPTION_PROXY
+    - DEPTH_STRESS_PROXY
+    - FLOW_EXHAUSTION_PROXY
+    - LIQUIDITY_STRESS_DIRECT
+    - LIQUIDITY_STRESS_PROXY
+    - PRICE_VOL_IMBALANCE_PROXY
+    - WICK_REVERSAL_PROXY
+    - LIQUIDATION_EXHAUSTION_REVERSAL
+    default_conditioning: {}
+    risk_metrics_required: []
+    template_kind: expression_template
+  continuation:
+    enabled: true
+    supports_contexts: true
+    supports_directions:
+    - long
+    - short
+    supports_trigger_types:
+    - EVENT
+    - STATE
+    - SEQUENCE
+    - INTERACTION
+    operator_id: op.continuation
+    operator_version: v1
+    requires_direction: true
+    side_policy: directional
+    label_target: fwd_return_h
+    test_spec: mean_gt_0
+    compatible_families:
+    - LIQUIDITY_DISLOCATION
+    - POSITIONING_EXTREMES
+    - REGIME_TRANSITION
+    - TEMPORAL_STRUCTURE
+    - TREND_STRUCTURE
+    - VOLATILITY_TRANSITION
+    - ABSORPTION_PROXY
+    - DEPTH_STRESS_PROXY
+    - FLOW_EXHAUSTION_PROXY
+    - LIQUIDITY_STRESS_DIRECT
+    - LIQUIDITY_STRESS_PROXY
+    - PRICE_VOL_IMBALANCE_PROXY
+    - WICK_REVERSAL_PROXY
+    - LIQUIDATION_EXHAUSTION_REVERSAL
+    default_conditioning: {}
+    risk_metrics_required: []
+    template_kind: expression_template
+  convergence:
+    enabled: true
+    supports_contexts: true
+    supports_directions:
+    - long
+    - short
+    supports_trigger_types:
+    - EVENT
+    operator_id: op.convergence
+    operator_version: v1
+    requires_direction: false
+    side_policy: contrarian
+    label_target: basis_repair_h
+    test_spec: mean_gt_0
+    compatible_families:
+    - INFORMATION_DESYNC
+    default_conditioning: {}
+    risk_metrics_required: []
+    template_kind: expression_template
+  convexity_capture:
+    enabled: true
+    supports_contexts: true
+    supports_directions:
+    - long
+    - short
+    supports_trigger_types:
+    - EVENT
+    operator_id: op.convexity_capture
+    operator_version: v1
+    requires_direction: true
+    side_policy: both
+    label_target: mfe_h
+    test_spec: upper_quantile_gt_0
+    compatible_families:
+    - POSITIONING_EXTREMES
+    default_conditioning: {}
+    risk_metrics_required:
+    - tail_risk_avoid
+    template_kind: expression_template
+    feature: oi_delta_1h
+    operator: <
+    threshold: 0.0
+  desync_repair:
+    enabled: true
+    supports_contexts: true
+    supports_directions:
+    - long
+    - short
+    supports_trigger_types:
+    - EVENT
+    operator_id: op.desync_repair
+    operator_version: v1
+    requires_direction: false
+    side_policy: contrarian
+    label_target: basis_repair_h
+    test_spec: mean_gt_0
+    compatible_families:
+    - INFORMATION_DESYNC
+    default_conditioning: {}
+    risk_metrics_required: []
+    template_kind: expression_template
+    feature: cross_exchange_spread_z
+    operator: '>'
+    threshold: 1.5
+  divergence_continuation:
+    enabled: true
+    supports_contexts: true
+    supports_directions:
+    - long
+    - short
+    supports_trigger_types:
+    - EVENT
+    operator_id: op.divergence_continuation
+    operator_version: v1
+    requires_direction: true
+    side_policy: directional
+    label_target: basis_repair_h
+    test_spec: hit_rate_gt_threshold
+    compatible_families:
+    - INFORMATION_DESYNC
+    - REGIME_TRANSITION
+    default_conditioning: {}
+    risk_metrics_required:
+    - tail_risk_avoid
+    template_kind: expression_template
+    feature: cross_exchange_spread_z
+    operator: '>'
+    threshold: 1.0
+  drawdown_filter:
+    enabled: true
+    supports_contexts: true
+    supports_directions:
+    - long
+    - short
+    supports_trigger_types:
+    - EVENT
+    - STATE
+    operator_id: op.drawdown_filter
+    operator_version: v1
+    requires_direction: false
+    side_policy: both
+    label_target: path_class_h
+    test_spec: drawdown_lt_threshold
+    compatible_families:
+    - FORCED_FLOW_AND_EXHAUSTION
+    - REGIME_TRANSITION
+    default_conditioning: {}
+    risk_metrics_required: []
+    template_kind: filter_template
+    feature: logret_1
+    operator: <
+    threshold: -0.002
+  exhaustion_reversal:
+    enabled: true
+    supports_contexts: true
+    supports_directions:
+    - long
+    - short
+    supports_trigger_types:
+    - EVENT
+    - SEQUENCE
+    operator_id: op.exhaustion_reversal
+    operator_version: v1
+    requires_direction: true
+    side_policy: contrarian
+    label_target: fwd_return_h
+    test_spec: mean_gt_0
+    compatible_families:
+    - FORCED_FLOW_AND_EXHAUSTION
+    - POSITIONING_EXTREMES
+    default_conditioning: {}
+    risk_metrics_required:
+    - drawdown_filter
+    template_kind: expression_template
+    feature: rv_pct_17280
+    operator: '>'
+    threshold: 0.8
+  false_breakout_reversal:
+    enabled: true
+    supports_contexts: true
+    supports_directions:
+    - long
+    - short
+    supports_trigger_types:
+    - EVENT
+    operator_id: op.false_breakout_reversal
+    operator_version: v1
+    requires_direction: true
+    side_policy: contrarian
+    label_target: fwd_return_h
+    test_spec: mean_gt_0
+    compatible_families:
+    - TREND_STRUCTURE
+    - ABSORPTION_PROXY
+    - DEPTH_STRESS_PROXY
+    - FLOW_EXHAUSTION_PROXY
+    - LIQUIDITY_STRESS_DIRECT
+    - LIQUIDITY_STRESS_PROXY
+    - PRICE_VOL_IMBALANCE_PROXY
+    - WICK_REVERSAL_PROXY
+    - LIQUIDATION_EXHAUSTION_REVERSAL
+    default_conditioning: {}
+    risk_metrics_required: []
+    template_kind: expression_template
+  lead_lag_follow:
+    enabled: true
+    supports_contexts: true
+    supports_directions:
+    - long
+    - short
+    supports_trigger_types:
+    - EVENT
+    - SEQUENCE
+    operator_id: op.lead_lag_follow
+    operator_version: v1
+    requires_direction: true
+    side_policy: directional
+    label_target: fwd_return_h
+    test_spec: mean_gt_0
+    compatible_families:
+    - INFORMATION_DESYNC
+    default_conditioning: {}
+    risk_metrics_required: []
+    template_kind: expression_template
+  mean_reversion:
+    enabled: true
+    supports_contexts: true
+    supports_directions:
+    - long
+    - short
+    supports_trigger_types:
+    - EVENT
+    - STATE
+    - SEQUENCE
+    - INTERACTION
+    operator_id: op.mean_reversion
+    operator_version: v1
+    requires_direction: false
+    side_policy: contrarian
+    label_target: fwd_return_h
+    test_spec: mean_gt_0
+    compatible_families:
+    - FORCED_FLOW_AND_EXHAUSTION
+    - LIQUIDITY_DISLOCATION
+    - POSITIONING_EXTREMES
+    - REGIME_TRANSITION
+    - STATISTICAL_DISLOCATION
+    - TEMPORAL_STRUCTURE
+    - VOLATILITY_TRANSITION
+    - ABSORPTION_PROXY
+    - DEPTH_STRESS_PROXY
+    - FLOW_EXHAUSTION_PROXY
+    - LIQUIDITY_STRESS_DIRECT
+    - LIQUIDITY_STRESS_PROXY
+    - PRICE_VOL_IMBALANCE_PROXY
+    - WICK_REVERSAL_PROXY
+    - LIQUIDATION_EXHAUSTION_REVERSAL
+    default_conditioning: {}
+    risk_metrics_required:
+    - tail_risk_avoid
+    template_kind: expression_template
+  momentum_fade:
+    enabled: true
+    supports_contexts: true
+    supports_directions:
+    - long
+    - short
+    supports_trigger_types:
+    - EVENT
+    operator_id: op.momentum_fade
+    operator_version: v1
+    requires_direction: true
+    side_policy: contrarian
+    label_target: fwd_return_h
+    test_spec: mean_gt_0
+    compatible_families:
+    - FORCED_FLOW_AND_EXHAUSTION
+    - TREND_STRUCTURE
+    default_conditioning: {}
+    risk_metrics_required: []
+    template_kind: expression_template
+    feature: logret_1
+    operator: <
+    threshold: -0.001
+  only_if_funding:
+    enabled: true
+    supports_contexts: true
+    supports_directions:
+    - long
+    - short
+    supports_trigger_types:
+    - EVENT
+    - STATE
+    operator_id: op.only_if_funding
+    operator_version: v1
+    requires_direction: false
+    side_policy: both
+    label_target: gate
+    test_spec: binary_gate
+    compatible_families:
+    - POSITIONING_EXTREMES
+    default_conditioning: {}
+    risk_metrics_required: []
+    template_kind: filter_template
+    feature: funding_rate
+    operator: '>'
+    threshold: 0.0
+  only_if_liquidity:
+    enabled: true
+    supports_contexts: true
+    supports_directions:
+    - long
+    - short
+    supports_trigger_types:
+    - EVENT
+    - STATE
+    operator_id: op.only_if_liquidity
+    operator_version: v1
+    requires_direction: false
+    side_policy: both
+    label_target: gate
+    test_spec: binary_gate
+    compatible_families:
+    - LIQUIDITY_DISLOCATION
+    default_conditioning: {}
+    risk_metrics_required: []
+    template_kind: filter_template
+    feature: liquidation_count
+    operator: '>'
+    threshold: 0.0
+  only_if_no_news_window:
+    enabled: true
+    supports_contexts: true
+    supports_directions:
+    - long
+    - short
+    supports_trigger_types:
+    - EVENT
+    - STATE
+    operator_id: op.only_if_no_news_window
+    operator_version: v1
+    requires_direction: false
+    side_policy: both
+    label_target: gate
+    test_spec: binary_gate
+    compatible_families:
+    - TEMPORAL_STRUCTURE
+    default_conditioning: {}
+    risk_metrics_required: []
+    template_kind: filter_template
+    feature: calendar_event
+    operator: ==
+    threshold: 0
+  only_if_oi:
+    enabled: true
+    supports_contexts: true
+    supports_directions:
+    - long
+    - short
+    supports_trigger_types:
+    - EVENT
+    - STATE
+    operator_id: op.only_if_oi
+    operator_version: v1
+    requires_direction: false
+    side_policy: both
+    label_target: gate
+    test_spec: binary_gate
+    compatible_families:
+    - POSITIONING_EXTREMES
+    default_conditioning: {}
+    risk_metrics_required: []
+    template_kind: filter_template
+    feature: oi_delta_1h
+    operator: '>'
+    threshold: 0.0
+  only_if_regime:
+    enabled: true
+    supports_contexts: true
+    supports_directions:
+    - long
+    - short
+    supports_trigger_types:
+    - EVENT
+    - STATE
+    operator_id: op.only_if_regime
+    operator_version: v1
+    requires_direction: false
+    side_policy: both
+    label_target: gate
+    test_spec: binary_gate
+    compatible_families:
+    - REGIME_TRANSITION
+    - VOLATILITY_TRANSITION
+    - POSITIONING_EXTREMES
+    - BASIS_FUNDING_DISLOCATION
+    - POSITIONING_UNWIND_DELEVERAGING
+    - FORCED_FLOW_AND_EXHAUSTION
+    - TREND_FAILURE_EXHAUSTION
+    - LIQUIDITY_STRESS
+    default_conditioning: {}
+    risk_metrics_required: []
+    template_kind: filter_template
+    feature: rv_pct_17280
+    operator: '>'
+    threshold: 0.7
+  only_if_highvol:
+    enabled: true
+    supports_contexts: true
+    supports_directions:
+    - long
+    - short
+    supports_trigger_types:
+    - EVENT
+    - STATE
+    operator_id: op.only_if_highvol
+    operator_version: v1
+    requires_direction: false
+    side_policy: both
+    label_target: gate
+    test_spec: binary_gate
+    compatible_families:
+    - REGIME_TRANSITION
+    - VOLATILITY_TRANSITION
+    - POSITIONING_EXTREMES
+    - BASIS_FUNDING_DISLOCATION
+    - FORCED_FLOW_AND_EXHAUSTION
+    - TREND_FAILURE_EXHAUSTION
+    - LIQUIDITY_STRESS
+    default_conditioning: {}
+    risk_metrics_required: []
+    template_kind: filter_template
+    feature: rv_pct_17280
+    operator: '>'
+    threshold: 0.85
+  only_if_trend:
+    enabled: true
+    supports_contexts: true
+    supports_directions:
+    - long
+    - short
+    supports_trigger_types:
+    - EVENT
+    - STATE
+    operator_id: op.only_if_trend
+    operator_version: v1
+    requires_direction: false
+    side_policy: both
+    label_target: gate
+    test_spec: binary_gate
+    compatible_families:
+    - FORCED_FLOW_AND_EXHAUSTION
+    - TREND_STRUCTURE
+    - BASIS_FUNDING_DISLOCATION
+    default_conditioning: {}
+    risk_metrics_required: []
+    template_kind: filter_template
+    feature: logret_1
+    operator: '>'
+    threshold: 0.001
+  overshoot_repair:
+    enabled: true
+    supports_contexts: true
+    supports_directions:
+    - long
+    - short
+    supports_trigger_types:
+    - EVENT
+    operator_id: op.overshoot_repair
+    operator_version: v1
+    requires_direction: false
+    side_policy: contrarian
+    label_target: fwd_return_h
+    test_spec: mean_gt_0
+    compatible_families:
+    - LIQUIDITY_DISLOCATION
+    - STATISTICAL_DISLOCATION
+    - ABSORPTION_PROXY
+    - DEPTH_STRESS_PROXY
+    - FLOW_EXHAUSTION_PROXY
+    - LIQUIDITY_STRESS_DIRECT
+    - LIQUIDITY_STRESS_PROXY
+    - PRICE_VOL_IMBALANCE_PROXY
+    - WICK_REVERSAL_PROXY
+    - LIQUIDATION_EXHAUSTION_REVERSAL
+    default_conditioning: {}
+    risk_metrics_required:
+    - tail_risk_avoid
+    template_kind: expression_template
+    feature: basis_zscore
+    operator: '>'
+    threshold: 1.5
+  pullback_entry:
+    enabled: true
+    supports_contexts: true
+    supports_directions:
+    - long
+    - short
+    supports_trigger_types:
+    - EVENT
+    - STATE
+    operator_id: op.pullback_entry
+    operator_version: v1
+    requires_direction: true
+    side_policy: directional
+    label_target: fwd_return_h
+    test_spec: mean_gt_0
+    compatible_families:
+    - TREND_STRUCTURE
+    - VOLATILITY_TRANSITION
+    - LIQUIDITY_DISLOCATION
+    - ABSORPTION_PROXY
+    - DEPTH_STRESS_PROXY
+    - FLOW_EXHAUSTION_PROXY
+    - LIQUIDITY_STRESS_DIRECT
+    - LIQUIDITY_STRESS_PROXY
+    - PRICE_VOL_IMBALANCE_PROXY
+    - WICK_REVERSAL_PROXY
+    - LIQUIDATION_EXHAUSTION_REVERSAL
+    default_conditioning: {}
+    risk_metrics_required:
+    - drawdown_filter
+    template_kind: expression_template
+  range_reversion:
+    enabled: true
+    supports_contexts: true
+    supports_directions:
+    - long
+    - short
+    supports_trigger_types:
+    - EVENT
+    - STATE
+    operator_id: op.range_reversion
+    operator_version: v1
+    requires_direction: false
+    side_policy: contrarian
+    label_target: fwd_return_h
+    test_spec: mean_gt_0
+    compatible_families:
+    - FORCED_FLOW_AND_EXHAUSTION
+    - STATISTICAL_DISLOCATION
+    default_conditioning: {}
+    risk_metrics_required: []
+    template_kind: expression_template
+    feature: basis_zscore
+    operator: '>'
+    threshold: 0.5
+  reversal_or_squeeze:
+    enabled: true
+    supports_contexts: true
+    supports_directions:
+    - long
+    - short
+    supports_trigger_types:
+    - EVENT
+    - SEQUENCE
+    operator_id: op.reversal_or_squeeze
+    operator_version: v1
+    requires_direction: true
+    side_policy: both
+    label_target: fwd_return_h
+    test_spec: mean_gt_0_or_tail_positive
+    compatible_families:
+    - POSITIONING_EXTREMES
+    default_conditioning: {}
+    risk_metrics_required:
+    - tail_risk_avoid
+    template_kind: expression_template
+    feature: funding_rate_scaled
+    operator: '>'
+    threshold: 1.0
+  slippage_aware_filter:
+    enabled: true
+    supports_contexts: true
+    supports_directions:
+    - long
+    - short
+    supports_trigger_types:
+    - EVENT
+    operator_id: op.slippage_aware_filter
+    operator_version: v1
+    requires_direction: false
+    side_policy: both
+    label_target: path_class_h
+    test_spec: cost_ratio_lt_threshold
+    compatible_families:
+    - LIQUIDITY_DISLOCATION
+    - EXECUTION_FRICTION
+    default_conditioning: {}
+    risk_metrics_required: []
+    template_kind: filter_template
+    feature: spread_zscore
+    operator: '>'
+    threshold: 1.0
+  stop_run_repair:
+    enabled: true
+    supports_contexts: true
+    supports_directions:
+    - long
+    - short
+    supports_trigger_types:
+    - EVENT
+    operator_id: op.stop_run_repair
+    operator_version: v1
+    requires_direction: false
+    side_policy: contrarian
+    label_target: fwd_return_h
+    test_spec: mean_gt_0
+    compatible_families:
+    - LIQUIDITY_DISLOCATION
+    default_conditioning: {}
+    risk_metrics_required:
+    - slippage_aware_filter
+    template_kind: expression_template
+    feature: liquidation_count
+    operator: '>'
+    threshold: 0.0
+  tail_risk_avoid:
+    enabled: true
+    supports_contexts: true
+    supports_directions:
+    - long
+    - short
+    supports_trigger_types:
+    - EVENT
+    - STATE
+    operator_id: op.tail_risk_avoid
+    operator_version: v1
+    requires_direction: false
+    side_policy: both
+    label_target: path_class_h
+    test_spec: tail_loss_lt_threshold
+    compatible_families:
+    - EXECUTION_FRICTION
+    - POSITIONING_EXTREMES
+    - REGIME_TRANSITION
+    - STATISTICAL_DISLOCATION
+    default_conditioning: {}
+    risk_metrics_required:
+    - drawdown_filter
+    template_kind: filter_template
+    feature: rv_pct_17280
+    operator: <
+    threshold: 0.9
+  trend_continuation:
+    enabled: true
+    supports_contexts: true
+    supports_directions:
+    - long
+    - short
+    supports_trigger_types:
+    - EVENT
+    - STATE
+    - SEQUENCE
+    operator_id: op.trend_continuation
+    operator_version: v1
+    requires_direction: true
+    side_policy: directional
+    label_target: fwd_return_h
+    test_spec: mean_gt_0
+    compatible_families:
+    - TREND_STRUCTURE
+    - VOLATILITY_TRANSITION
+    - LIQUIDITY_DISLOCATION
+    - ABSORPTION_PROXY
+    - DEPTH_STRESS_PROXY
+    - FLOW_EXHAUSTION_PROXY
+    - LIQUIDITY_STRESS_DIRECT
+    - LIQUIDITY_STRESS_PROXY
+    - PRICE_VOL_IMBALANCE_PROXY
+    - WICK_REVERSAL_PROXY
+    - LIQUIDATION_EXHAUSTION_REVERSAL
+    default_conditioning: {}
+    risk_metrics_required:
+    - drawdown_filter
+    template_kind: expression_template
+  volatility_expansion_follow:
+    enabled: true
+    supports_contexts: true
+    supports_directions:
+    - long
+    - short
+    supports_trigger_types:
+    - EVENT
+    operator_id: op.volatility_expansion_follow
+    operator_version: v1
+    requires_direction: true
+    side_policy: directional
+    label_target: path_class_h
+    test_spec: hit_rate_gt_threshold
+    compatible_families:
+    - VOLATILITY_TRANSITION
+    default_conditioning: {}
+    risk_metrics_required:
+    - drawdown_filter
+    template_kind: expression_template
+    feature: rv_96
+    operator: '>'
+    threshold: 0.0
+expression_templates:
+  basis_repair:
+    feature: basis_zscore
+    operator: '>'
+    threshold: 1.0
+  convexity_capture:
+    feature: oi_delta_1h
+    operator: <
+    threshold: 0.0
+  desync_repair:
+    feature: cross_exchange_spread_z
+    operator: '>'
+    threshold: 1.5
+  divergence_continuation:
+    feature: cross_exchange_spread_z
+    operator: '>'
+    threshold: 1.0
+  exhaustion_reversal:
+    feature: rv_pct_17280
+    operator: '>'
+    threshold: 0.8
+  momentum_fade:
+    feature: logret_1
+    operator: <
+    threshold: -0.001
+  overshoot_repair:
+    feature: basis_zscore
+    operator: '>'
+    threshold: 1.5
+  range_reversion:
+    feature: basis_zscore
+    operator: '>'
+    threshold: 0.5
+  reversal_or_squeeze:
+    feature: funding_rate_scaled
+    operator: '>'
+    threshold: 1.0
+  stop_run_repair:
+    feature: liquidation_count
+    operator: '>'
+    threshold: 0.0
+  volatility_expansion_follow:
+    feature: rv_96
+    operator: '>'
+    threshold: 0.0

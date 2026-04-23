@@ -1,0 +1,12 @@
+# Golden regression tolerance configuration.
+defaults:
+  numeric_abs_tolerance: 0.01
+
+metric_tolerances:
+  kpi_scorecard.net_expectancy_bps: 1.0
+  kpi_scorecard.max_drawdown_pct: 0.02
+  kpi_scorecard.oos_sign_consistency: 0.05
+  kpi_scorecard.trade_count: 5
+  kpi_scorecard.turnover_proxy_mean: 0.05
+  promotion_summary.candidates_promoted_final: 0
+  promotion_summary.rejected_total: 0

@@ -1,0 +1,25 @@
+version: 1
+kind: search_spec
+metadata:
+  phase: full
+  description: 'Maximum coverage: all ontology-defined searchable families.'
+search_mode: full
+triggers:
+  event_families: '*'
+  state_families: '*'
+contexts:
+  vol_regime: '*'
+  carry_state: '*'
+  ms_trend_state: '*'
+  ms_spread_state: '*'
+horizons:
+- 5m
+- 15m
+- 60m
+directions:
+- long
+- short
+entry_lag: '*'
+cost_profiles:
+- standard
+expression_templates: '*'

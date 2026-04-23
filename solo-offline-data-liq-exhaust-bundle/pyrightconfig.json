@@ -1,0 +1,15 @@
+{
+    "include": [
+        "project"
+    ],
+    "exclude": [
+        "**/__pycache__",
+        "data",
+        ".venv",
+        "MEMORY"
+    ],
+    "reportMissingImports": true,
+    "reportMissingTypeStubs": false,
+    "pythonVersion": "3.11",
+    "typeCheckingMode": "basic"
+}

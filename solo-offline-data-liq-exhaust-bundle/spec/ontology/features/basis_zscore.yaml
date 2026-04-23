@@ -1,0 +1,6 @@
+name: basis_zscore
+family: DISLOCATIONS
+description: Z-score of the spot-perp basis.
+parameters:
+  lookback: 288
+  method: standard

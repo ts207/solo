@@ -1,0 +1,5 @@
+venue_id: bybit
+exchange_standard: bybit_v5
+funding_convention: longs_pay_positive
+fee_bps: 2.0
+slippage_bps: 1.0

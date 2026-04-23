@@ -1,0 +1,63 @@
+event_type: INDEX_COMPONENT_DIVERGENCE
+synthetic_coverage: covered
+reports_dir: information_desync
+events_file: information_desync_events.parquet
+signal_column: index_component_divergence_event
+parameters:
+  desync_z_threshold: 3.0
+  lead_lag_window: 60
+  cooldown_bars: 12
+  merge_gap_bars: 0
+research_family: INFORMATION_DESYNC
+trigger: Detector triggers on index component divergence pattern
+confirmation: Post-detection price action confirms signal validity
+expected_behavior:
+  holding_horizon_bars: 4-24
+  invalidation_conditions:
+  - Desync resolves (assets converge)
+  - Lead-lag relationship resumes
+  disabled_regimes:
+  - 'Low correlation assets: desync undefined'
+cluster_id: desync
+identity:
+  canonical_regime: CROSS_ASSET_DESYNCHRONIZATION
+  subtype: index_component_divergence
+  phase: divergence
+  evidence_mode: inferred_cross_asset
+  layer: canonical
+  disposition: keep
+  asset_scope: cross_asset
+  venue_scope: multi_venue
+governance:
+  event_kind: market_event
+  default_executable: true
+  research_only: false
+  strategy_only: false
+  context_tag: false
+  is_composite: false
+  maturity: ''
+  tier: B
+  operational_role: trigger
+  deployment_disposition: secondary_or_confirm
+  runtime_category: active_runtime_event
+runtime:
+  detector: IndexComponentDivergenceDetector
+  enabled: true
+  signal_column: index_component_divergence_event
+  events_file: information_desync_events.parquet
+  reports_dir: information_desync
+  instrument_classes:
+  - crypto
+  - futures
+  requires_features: []
+  sequence_eligible: true
+  runtime_tags:
+  - desync
+semantics:
+  cluster_id: desync
+  notes: Cross-asset divergence between index and components.
+  precedence_rank: 0
+interaction:
+  suppresses: []
+  suppressed_by: []
+routing: {}

@@ -1,0 +1,24 @@
+version: 1
+kind: state_ontology_spec
+metadata:
+  status: generated
+  authored_source: spec/states/AFTERSHOCK_STATE.yaml
+  generated_notice: GENERATED FILE - DO NOT EDIT
+  generated_from: spec/states/*.yaml
+state_id: AFTERSHOCK_STATE
+family: VOLATILITY_TRANSITION
+source_event_type: VOL_SHOCK
+activation_rule: elapsed_bars <= aftershock_horizon
+decay_rule: exit when shock_ratio < shock_threshold
+allowed_templates:
+- continuation
+- trend_continuation
+- volatility_expansion_follow
+- pullback_entry
+- mean_reversion
+- only_if_regime
+state_scope: source_only
+min_events: 200
+features_required:
+- rv_96
+- rv_base

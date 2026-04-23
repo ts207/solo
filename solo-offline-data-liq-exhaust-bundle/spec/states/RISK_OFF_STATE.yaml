@@ -1,0 +1,18 @@
+version: 1
+kind: state_definition
+state_id: RISK_OFF_STATE
+family: REGIME_TRANSITION
+source_event_type: TREND_TO_CHOP_SHIFT
+state_scope: family_safe
+min_events: 300
+activation_rule: volatility and downside skew indicate risk-off
+decay_rule: exit on risk normalization
+features_required:
+- rv_96
+- skew
+allowed_templates:
+- only_if_regime
+- continuation
+- mean_reversion
+- drawdown_filter
+- tail_risk_avoid

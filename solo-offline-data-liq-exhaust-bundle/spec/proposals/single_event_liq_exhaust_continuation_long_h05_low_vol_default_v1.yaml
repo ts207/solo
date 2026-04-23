@@ -1,0 +1,51 @@
+program_id: single_event_liq_exhaust_continuation_long_h05_low_vol_default_v1
+description: >
+  Phase S3 template falsification: test whether the low-vol 5-bar
+  LIQUIDATION_EXHAUSTION_REVERSAL response behaves as continuation instead of
+  repair/reversion. Detector parameters and Phase 2 gates are unchanged.
+start: "2024-01-01"
+end: "2024-12-31"
+symbols:
+  - BTCUSDT
+timeframe: 5m
+instrument_classes:
+  - crypto
+objective_name: retail_profitability
+promotion_profile: disabled
+search_spec:
+  path: spec/search/single_event_liquidation_exhaustion_low_vol_continuation_h05_v1.yaml
+avoid_region_keys: []
+contexts:
+  vol_regime:
+    - low
+hypothesis:
+  anchor:
+    type: event
+    event_id: LIQUIDATION_EXHAUSTION_REVERSAL
+  filters:
+    contexts:
+      vol_regime:
+        - low
+  sampling_policy:
+    mode: episodic
+    entry_lag_bars: 1
+    overlap_policy: suppress
+  template:
+    id: continuation
+  direction: long
+  horizon_bars: 5
+artifacts:
+  matrix_phase: S
+  matrix_run: S3
+  context: low_vol_control
+  template_config: continuation
+  detector_profile: default
+  parent_run_id: single_event_liq_exhaust_20260421T103141Z_ccb04aff6a
+  research_question: >
+    Does a continuation expression falsify the short-horizon repair story?
+  decision_rules:
+    falsification_branch: true
+    require_bridge_candidate_for_survival: true
+    min_events: 50
+    phase2_gates_unchanged: true
+version: 1

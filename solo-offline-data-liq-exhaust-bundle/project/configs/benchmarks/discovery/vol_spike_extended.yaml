@@ -1,0 +1,14 @@
+benchmark_modes:
+  D:
+    mode_id: D
+    label: hierarchical_v2_with_folds
+    scoring_version: v2
+    search_topology: hierarchical
+    fold_validation: enabled
+    ledger_adjustment: disabled
+    shortlist_selection: disabled
+
+slices:
+  - vol_spike_2022_05.yaml
+  - vol_spike_2024_07.yaml
+  - vol_spike_2023_11.yaml

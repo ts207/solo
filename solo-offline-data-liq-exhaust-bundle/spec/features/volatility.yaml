@@ -1,0 +1,20 @@
+feature_family: volatility
+version: 1.0.0
+base_timeframe: 1m
+inputs:
+  - dataset: perp_ohlcv_1m
+    columns: [high, low, close]
+features:
+  - name: realized_vol_bps
+    description: Annualized realized volatility expressed in basis points
+    formula: std(log_returns) * sqrt(periods_per_year) * 10000
+    params: {window: 60, annualization_periods: 525600}
+  - name: atr_percentile
+    description: Rank percentile of ATR against a one-year lookback
+    formula: rank(atr_20) / count(atr_20)
+    params: {window: 20, lookback: 525600}
+  - name: vol_compression_flag
+    description: Boolean marker for compressed volatility regimes
+    formula: atr_percentile < 0.20
+provenance:
+  pit_constraint: "asof <= t0"

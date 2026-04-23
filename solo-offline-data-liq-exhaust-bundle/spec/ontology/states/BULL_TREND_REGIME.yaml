@@ -1,0 +1,17 @@
+version: 1
+kind: state_ontology_spec
+metadata:
+  status: generated
+  authored_source: spec/states/BULL_TREND_REGIME.yaml
+  generated_notice: GENERATED FILE - DO NOT EDIT
+  generated_from: spec/states/*.yaml
+state_id: BULL_TREND_REGIME
+family: REGIME_CONTEXT
+source_event_type: TREND_EXHAUSTION_TRIGGER
+activation_rule: regime detector signals bullish trend
+decay_rule: regime transitions to neutral or bear
+allowed_templates:
+- continuation
+state_scope: global
+min_events: 1
+description: Market is trending upwards.

@@ -1,0 +1,11 @@
+version: edge_cells_v2
+ranking_policy:
+  min_support: 30
+  min_forward_net_mean_bps: 0.0
+  min_contrast_lift_bps: 0.0
+  max_search_hypotheses: 5000
+  forward_weight: 0.40
+  expectancy_weight: 0.25
+  stability_weight: 0.15
+  contrast_weight: 0.15
+  simplicity_weight: 0.05

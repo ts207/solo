@@ -1,0 +1,11 @@
+workflow_id: synthetic_single_event_v1
+description: Single event synthetic discovery (LIQUIDITY_STRESS_DIRECT)
+run_id: synthetic_single_event
+symbols: BTCUSDT
+start_date: 2026-01-01
+end_date: 2026-01-14
+discovery_profile: synthetic
+phase2_gate_profile: synthetic
+search_spec: synthetic_truth
+search_min_n: 4
+required_outputs: []

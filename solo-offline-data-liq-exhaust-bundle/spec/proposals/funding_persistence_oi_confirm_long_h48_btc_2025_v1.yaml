@@ -1,0 +1,65 @@
+program_id: funding_persistence_oi_confirm_long_h48_btc_2025_v1
+description: >
+  Forward-falsification branch after the 2025 funding-continuation postmortem:
+  test whether BTCUSDT FUNDING_PERSISTENCE_TRIGGER only retains a long 48-bar
+  continuation effect when confirmed by a subsequent OI_SPIKE_POSITIVE event.
+  This is not a rescue by relaxed thresholds; detector parameters, costs,
+  symbol, direction, horizon, and template remain fixed and bounded.
+run_mode: research
+start: "2025-01-01"
+end: "2025-12-31"
+symbols:
+  - BTCUSDT
+timeframe: 5m
+instrument_classes:
+  - crypto
+objective_name: retail_profitability
+promotion_profile: disabled
+search_spec:
+  path: spec/search/sequence_funding_persistence_oi_confirm_btc_h48_2025_v1.yaml
+avoid_region_keys: []
+hypothesis:
+  anchor:
+    type: sequence
+    events:
+      - FUNDING_PERSISTENCE_TRIGGER
+      - OI_SPIKE_POSITIVE
+    max_gap_bars: 24
+  filters: {}
+  sampling_policy:
+    mode: episodic
+    entry_lag_bars: 1
+    overlap_policy: suppress
+  template:
+    id: continuation
+  direction: long
+  horizon_bars: 48
+artifacts:
+  matrix_phase: funding_continuation_forward_falsification
+  matrix_run: FCOI1
+  forward_confirmation_role: confirmatory_falsification
+  execution_mode_note: >
+    This remains run_mode=research because run_all supports research,
+    production, and certification modes; confirmatory is a lifecycle role
+    recorded in artifacts, not a run_all execution mode.
+  parent_postmortem: docs/lifecycle/funding-continuation-2025-postmortem.md
+  parent_failed_runs:
+    - funding_continuation_ext_confirm_2025_20260421T230400Z
+    - funding_continuation_ext_chop_nonbear_2025_20260422T001600Z
+    - funding_continuation_ext_bear_control_2025_20260422T001800Z
+    - funding_continuation_per_confirm_2025_20260422T002320Z
+  mechanism_statement: >
+    Positive funding persistence is only actionable when it is followed by
+    OI expansion, indicating fresh positioning rather than stale crowded carry.
+  research_question: >
+    Does OI confirmation repair the 2025 failure of BTCUSDT funding persistence
+    long continuation without changing detector thresholds or costs?
+  decision_rules:
+    forward_window_first_gate: true
+    kill_if_phase2_candidates_zero: true
+    kill_if_t_stat_below: 2.0
+    kill_if_after_cost_expectancy_non_positive: true
+    require_standard_costs: true
+    require_no_detector_threshold_relaxation: true
+    require_no_promotion_before_forward_survival: true
+version: 1

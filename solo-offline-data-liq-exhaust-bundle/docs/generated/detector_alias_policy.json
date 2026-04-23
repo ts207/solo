@@ -1,0 +1,29 @@
+[
+  {
+    "alias": "ABSORPTION_EVENT",
+    "canonical_event_type": "ABSORPTION_PROXY",
+    "planning_identity": false,
+    "promotion_identity": false,
+    "reason": "Legacy detector registration name retained for old artifacts.",
+    "runtime_identity": false,
+    "scope": "load_time_compatibility"
+  },
+  {
+    "alias": "BASIS_DISLOCATION",
+    "canonical_event_type": "BASIS_DISLOC",
+    "planning_identity": false,
+    "promotion_identity": false,
+    "reason": "Historical spelling retained for old proposals and reports.",
+    "runtime_identity": false,
+    "scope": "load_time_compatibility"
+  },
+  {
+    "alias": "VOL_REGIME_SHIFT",
+    "canonical_event_type": "VOL_REGIME_SHIFT_EVENT",
+    "planning_identity": false,
+    "promotion_identity": false,
+    "reason": "Historical event id retained for old detector registrations.",
+    "runtime_identity": false,
+    "scope": "load_time_compatibility"
+  }
+]

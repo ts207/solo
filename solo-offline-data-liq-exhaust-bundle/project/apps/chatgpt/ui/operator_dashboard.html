@@ -1,0 +1,1000 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Edge Operator Dashboard</title>
+    <style>
+      :root {
+        --paper: #f7f0e3;
+        --wash: #dbe7eb;
+        --panel: rgba(255, 252, 246, 0.9);
+        --panel-strong: rgba(255, 248, 236, 0.96);
+        --ink: #18313b;
+        --muted: #61767f;
+        --line: rgba(24, 49, 59, 0.12);
+        --accent: #ad4d19;
+        --accent-soft: rgba(173, 77, 25, 0.12);
+        --ok: #2f6f4e;
+        --ok-soft: rgba(47, 111, 78, 0.12);
+        --warn: #8b6317;
+        --warn-soft: rgba(139, 99, 23, 0.12);
+        --fail: #8b3131;
+        --fail-soft: rgba(139, 49, 49, 0.12);
+        --shadow: 0 18px 44px rgba(24, 49, 59, 0.12);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        color: var(--ink);
+        font-family: "Iosevka Curly", "IBM Plex Sans", "Segoe UI", sans-serif;
+        background:
+          radial-gradient(circle at top left, rgba(173, 77, 25, 0.2), transparent 28%),
+          radial-gradient(circle at top right, rgba(24, 49, 59, 0.1), transparent 26%),
+          linear-gradient(180deg, var(--paper), var(--wash));
+      }
+
+      body::before {
+        content: "";
+        position: fixed;
+        inset: 0;
+        pointer-events: none;
+        background-image:
+          linear-gradient(rgba(24, 49, 59, 0.03) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(24, 49, 59, 0.03) 1px, transparent 1px);
+        background-size: 26px 26px;
+        opacity: 0.6;
+      }
+
+      .shell {
+        position: relative;
+        padding: 18px;
+      }
+
+      .frame {
+        border: 1px solid var(--line);
+        border-radius: 24px;
+        overflow: hidden;
+        background: var(--panel);
+        box-shadow: var(--shadow);
+        backdrop-filter: blur(10px);
+      }
+
+      .hero {
+        padding: 20px 20px 16px;
+        border-bottom: 1px solid var(--line);
+        background:
+          linear-gradient(135deg, rgba(255, 255, 255, 0.74), rgba(255, 243, 228, 0.82)),
+          linear-gradient(180deg, rgba(24, 49, 59, 0.02), transparent);
+      }
+
+      .eyebrow {
+        margin: 0 0 10px;
+        color: var(--accent);
+        font-size: 11px;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+      }
+
+      h1 {
+        margin: 0;
+        font-size: 27px;
+        line-height: 1.05;
+      }
+
+      .subtitle {
+        margin: 10px 0 0;
+        max-width: 72ch;
+        color: var(--muted);
+        font-size: 14px;
+        line-height: 1.55;
+      }
+
+      .hero-row {
+        display: flex;
+        gap: 12px;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+      }
+
+      .status {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 6px 11px;
+        border-radius: 999px;
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        border: 1px solid transparent;
+      }
+
+      .status.pass {
+        color: var(--ok);
+        background: var(--ok-soft);
+        border-color: rgba(47, 111, 78, 0.18);
+      }
+
+      .status.warn {
+        color: var(--warn);
+        background: var(--warn-soft);
+        border-color: rgba(139, 99, 23, 0.2);
+      }
+
+      .status.fail,
+      .status.block {
+        color: var(--fail);
+        background: var(--fail-soft);
+        border-color: rgba(139, 49, 49, 0.22);
+      }
+
+      .metrics {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+        gap: 12px;
+        padding: 16px 20px;
+      }
+
+      .metric {
+        padding: 13px 14px;
+        border-radius: 16px;
+        border: 1px solid var(--line);
+        background: rgba(255, 255, 255, 0.68);
+      }
+
+      .metric-label {
+        margin: 0;
+        color: var(--muted);
+        font-size: 11px;
+        letter-spacing: 0.09em;
+        text-transform: uppercase;
+      }
+
+      .metric-value {
+        margin: 6px 0 0;
+        font-size: 19px;
+        font-weight: 800;
+        line-height: 1.1;
+        word-break: break-all;
+      }
+
+      .dashboard {
+        display: grid;
+        gap: 16px;
+        padding: 0 20px 24px;
+        opacity: 0;
+        transform: translateY(10px);
+        transition: opacity 0.4s ease, transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+      }
+
+      .dashboard.visible {
+        opacity: 1;
+        transform: translateY(0);
+      }
+
+      .dashboard-grid {
+        display: grid;
+        gap: 14px;
+        grid-template-columns: minmax(0, 1.05fr) minmax(0, 1.55fr);
+      }
+
+      .column {
+        display: grid;
+        gap: 14px;
+      }
+
+      .panel {
+        border: 1px solid var(--line);
+        border-radius: 18px;
+        background: var(--panel-strong);
+        overflow: hidden;
+      }
+
+      .panel-head {
+        display: flex;
+        gap: 10px;
+        align-items: baseline;
+        justify-content: space-between;
+        padding: 14px 16px 10px;
+        border-bottom: 1px solid rgba(24, 49, 59, 0.08);
+      }
+
+      .panel-title {
+        margin: 0;
+        font-size: 14px;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+      }
+
+      .panel-note {
+        margin: 0;
+        color: var(--muted);
+        font-size: 12px;
+      }
+
+      .panel-body {
+        padding: 14px 16px 16px;
+        transition: max-height 0.3s ease-out, opacity 0.2s ease;
+        max-height: 800px;
+        opacity: 1;
+        overflow-y: auto;
+      }
+
+      .panel.collapsed .panel-body {
+        max-height: 0;
+        padding-top: 0;
+        padding-bottom: 0;
+        opacity: 0;
+        pointer-events: none;
+      }
+
+      .panel-head {
+        cursor: pointer;
+        user-select: none;
+        transition: background 0.2s ease;
+      }
+
+      .panel-head:hover {
+        background: rgba(24, 49, 59, 0.03);
+      }
+
+      .panel-head::after {
+        content: "▾";
+        font-size: 12px;
+        color: var(--muted);
+        transition: transform 0.3s ease;
+      }
+
+      .panel.collapsed .panel-head::after {
+        transform: rotate(-90deg);
+      }
+
+      .stack {
+        display: grid;
+        gap: 10px;
+      }
+
+      .list-card {
+        border: 1px solid rgba(24, 49, 59, 0.08);
+        border-radius: 14px;
+        background: rgba(255, 255, 255, 0.72);
+        padding: 12px 13px;
+      }
+
+      .list-card.active {
+        border-color: rgba(173, 77, 25, 0.26);
+        background: linear-gradient(180deg, rgba(255, 247, 236, 0.96), rgba(255, 255, 255, 0.78));
+      }
+
+      .card-topline {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+      }
+
+      .card-title {
+        margin: 0;
+        font-size: 14px;
+        font-weight: 700;
+        line-height: 1.35;
+      }
+
+      .card-kicker {
+        margin: 6px 0 0;
+        color: var(--muted);
+        font-size: 12px;
+        line-height: 1.45;
+      }
+
+      .micro-grid {
+        display: grid;
+        gap: 8px;
+        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+        margin-top: 10px;
+      }
+
+      .micro {
+        padding: 8px 9px;
+        border-radius: 12px;
+        background: rgba(24, 49, 59, 0.04);
+      }
+
+      .micro span {
+        display: block;
+      }
+
+      .micro-label {
+        color: var(--muted);
+        font-size: 10px;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
+      .micro-value {
+        margin-top: 4px;
+        font-size: 13px;
+        font-weight: 700;
+      }
+
+      .chips {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+      }
+
+      .chip {
+        display: inline-flex;
+        align-items: center;
+        padding: 6px 10px;
+        border-radius: 999px;
+        background: var(--accent-soft);
+        color: var(--accent);
+        font-size: 12px;
+        line-height: 1.2;
+      }
+
+      .chip.muted {
+        background: rgba(24, 49, 59, 0.07);
+        color: var(--muted);
+      }
+
+      .keyvals {
+        display: grid;
+        gap: 10px;
+      }
+
+      .keyval {
+        display: grid;
+        gap: 4px;
+      }
+
+      .key {
+        color: var(--muted);
+        font-size: 11px;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
+      .value {
+        font-size: 13px;
+        line-height: 1.55;
+        white-space: pre-wrap;
+        word-break: break-word;
+      }
+
+      .mono {
+        font-family: "Iosevka Curly", "IBM Plex Mono", monospace;
+        font-size: 12px;
+      }
+
+      .empty {
+        padding: 16px;
+        border-radius: 14px;
+        border: 1px dashed rgba(24, 49, 59, 0.14);
+        color: var(--muted);
+        font-size: 13px;
+        line-height: 1.55;
+        background: rgba(255, 255, 255, 0.42);
+      }
+
+      .legacy {
+        padding: 0 20px 20px;
+      }
+
+      .legacy-sections {
+        display: grid;
+        gap: 10px;
+      }
+
+      @media (max-width: 640px) {
+        .dashboard-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .shell {
+          padding: 10px;
+        }
+
+        h1 {
+          font-size: 21px;
+        }
+      }
+
+      /* Loading State */
+      .skeleton {
+        background: linear-gradient(90deg, var(--panel-strong) 25%, var(--wash) 50%, var(--panel-strong) 75%);
+        background-size: 200% 100%;
+        animation: loading 1.5s infinite;
+        border-radius: 12px;
+        height: 24px;
+        margin-bottom: 12px;
+      }
+
+      @keyframes loading {
+        0% { background-position: 200% 0; }
+        100% { background-position: -200% 0; }
+      }
+
+      #loader {
+        padding: 40px;
+        text-align: center;
+        color: var(--muted);
+        font-size: 14px;
+        letter-spacing: 0.05em;
+      }
+    </style>
+  </head>
+  <body>
+    <main class="shell">
+      <section class="frame">
+        <div class="hero">
+          <p class="eyebrow">Edge Operator</p>
+          <div class="hero-row">
+            <h1 id="title">Waiting for tool output</h1>
+            <div id="status" class="status" hidden></div>
+          </div>
+          <p id="subtitle" class="subtitle">Call a data tool and then render its structured payload here.</p>
+        </div>
+
+        <div id="loader">
+          <div class="skeleton" style="width: 80%; margin: 0 auto 16px;"></div>
+          <div class="skeleton" style="width: 60%; margin: 0 auto;"></div>
+          <p>Analyzing Edge artifacts...</p>
+        </div>
+
+        <section id="metrics" class="metrics"></section>
+
+        <section id="dashboard" class="dashboard" hidden>
+          <div class="dashboard-grid">
+            <div class="column">
+              <section class="panel">
+                <div class="panel-head" onclick="togglePanel(this)">
+                  <h2 class="panel-title">Programs</h2>
+                  <p id="program-note" class="panel-note"></p>
+                </div>
+                <div id="programs" class="panel-body stack"></div>
+              </section>
+
+              <section class="panel">
+                <div class="panel-head" onclick="togglePanel(this)">
+                  <h2 class="panel-title">Candidate Board</h2>
+                  <p id="candidate-note" class="panel-note">Unified current candidate status across recent runs.</p>
+                </div>
+                <div id="candidate-board" class="panel-body stack"></div>
+              </section>
+
+              <section class="panel">
+                <div class="panel-head" onclick="togglePanel(this)">
+                  <h2 class="panel-title">Memory</h2>
+                  <p class="panel-note">Belief state, repairs, and carry-forward context.</p>
+                </div>
+                <div id="memory" class="panel-body stack"></div>
+              </section>
+            </div>
+
+            <div class="column">
+              <section class="panel">
+                <div class="panel-head" onclick="togglePanel(this)">
+                  <h2 class="panel-title">Selected Run</h2>
+                  <p class="panel-note">Pinned prior result and its run manifest highlights.</p>
+                </div>
+                <div id="selected-run" class="panel-body"></div>
+              </section>
+
+              <section class="panel">
+                <div class="panel-head" onclick="togglePanel(this)">
+                  <h2 class="panel-title">Recent Runs</h2>
+                  <p class="panel-note">Latest bounded results for the active program.</p>
+                </div>
+                <div id="recent-runs" class="panel-body stack"></div>
+              </section>
+
+              <section class="panel">
+                <div class="panel-head" onclick="togglePanel(this)">
+                  <h2 class="panel-title">Recent Proposals</h2>
+                  <p class="panel-note">Issued plans and runs recorded in proposal memory.</p>
+                </div>
+                <div id="recent-proposals" class="panel-body stack"></div>
+              </section>
+            </div>
+          </div>
+        </section>
+
+        <section id="legacy" class="legacy" hidden>
+          <div id="legacy-sections" class="legacy-sections"></div>
+        </section>
+      </section>
+    </main>
+
+    <script>
+      const titleEl = document.getElementById("title");
+      const subtitleEl = document.getElementById("subtitle");
+      const statusEl = document.getElementById("status");
+      const metricsEl = document.getElementById("metrics");
+      const dashboardEl = document.getElementById("dashboard");
+      const legacyEl = document.getElementById("legacy");
+      const loaderEl = document.getElementById("loader");
+      const legacySectionsEl = document.getElementById("legacy-sections");
+      const programsEl = document.getElementById("programs");
+      const programNoteEl = document.getElementById("program-note");
+      const candidateBoardEl = document.getElementById("candidate-board");
+      const candidateNoteEl = document.getElementById("candidate-note");
+      const memoryEl = document.getElementById("memory");
+      const selectedRunEl = document.getElementById("selected-run");
+      const recentRunsEl = document.getElementById("recent-runs");
+      const recentProposalsEl = document.getElementById("recent-proposals");
+
+      function togglePanel(header) {
+        const panel = header.parentElement;
+        panel.classList.toggle("collapsed");
+      }
+
+      function unwrap(obj) {
+        if (!obj || typeof obj !== "object") return obj;
+        // Handle common bridge wrappers
+        if (obj.output && typeof obj.output === "object") return unwrap(obj.output);
+        if (obj.toolOutput && typeof obj.toolOutput === "object") return unwrap(obj.toolOutput);
+        if (obj.result && typeof obj.result === "object") return unwrap(obj.result);
+        if (obj.dashboard && typeof obj.dashboard === "object") return unwrap(obj.dashboard);
+        return obj;
+      }
+
+      function normalizePayload(payload) {
+        const data = unwrap(payload);
+        return data && typeof data === "object" ? data : {};
+      }
+
+      function isDashboardPayload(payload) {
+        return (
+          payload.layout === "dashboard" ||
+          Array.isArray(payload.programs) ||
+          Array.isArray(payload.candidate_board) ||
+          Array.isArray(payload.recent_runs) ||
+          Array.isArray(payload.recent_proposals) ||
+          (payload.memory && typeof payload.memory === "object")
+        );
+      }
+
+      function statusTone(status) {
+        const normalized = typeof status === "string" ? status.toLowerCase() : "";
+        if (["success", "pass", "executed", "completed", "planned", "ready"].includes(normalized)) return "pass";
+        if (["promoted", "tradable"].includes(normalized)) return "pass";
+        if (["warning", "warn", "planned_warning"].includes(normalized)) return "warn";
+        if (["phase2_survivor", "edge_candidate", "bridge_reject"].includes(normalized)) return "warn";
+        if (["failed", "fail", "error", "aborted_stale_run", "block"].includes(normalized)) return "fail";
+        if (["search_reject", "no_signal"].includes(normalized)) return "fail";
+        return normalized;
+      }
+
+      function setStatus(status) {
+        const normalized = statusTone(status);
+        statusEl.hidden = !normalized;
+        statusEl.className = "status" + (normalized ? " " + normalized : "");
+        statusEl.textContent = typeof status === "string" ? status : "";
+      }
+
+      function clearChildren(node) {
+        while (node.firstChild) node.removeChild(node.firstChild);
+      }
+
+      function metricCard(label, value) {
+        const card = document.createElement("article");
+        card.className = "metric";
+        const labelEl = document.createElement("p");
+        labelEl.className = "metric-label";
+        labelEl.textContent = label.replaceAll("_", " ");
+        const valueEl = document.createElement("p");
+        valueEl.className = "metric-value";
+        valueEl.textContent = value === null || value === undefined || value === "" ? "n/a" : String(value);
+        card.appendChild(labelEl);
+        card.appendChild(valueEl);
+        return card;
+      }
+
+      function statusChip(status) {
+        if (!status) return null;
+        const chip = document.createElement("span");
+        chip.className = "status " + statusTone(status);
+        chip.textContent = String(status);
+        return chip;
+      }
+
+      function chip(text, muted = false) {
+        const el = document.createElement("span");
+        el.className = "chip" + (muted ? " muted" : "");
+        el.textContent = text;
+        return el;
+      }
+
+      function microGrid(items) {
+        const grid = document.createElement("div");
+        grid.className = "micro-grid";
+        items.forEach(([label, value]) => {
+          const item = document.createElement("div");
+          item.className = "micro";
+          const labelEl = document.createElement("span");
+          labelEl.className = "micro-label";
+          labelEl.textContent = label;
+          const valueEl = document.createElement("span");
+          valueEl.className = "micro-value";
+          valueEl.textContent = value === null || value === undefined || value === "" ? "n/a" : String(value);
+          item.appendChild(labelEl);
+          item.appendChild(valueEl);
+          grid.appendChild(item);
+        });
+        return grid;
+      }
+
+      function emptyCard(text) {
+        const el = document.createElement("div");
+        el.className = "empty";
+        el.textContent = text;
+        return el;
+      }
+
+      function renderMetrics(summary) {
+        clearChildren(metricsEl);
+        const entries = summary && typeof summary === "object" ? Object.entries(summary) : [];
+        if (!entries.length) {
+          metricsEl.appendChild(metricCard("widget", "operator_dashboard"));
+          return;
+        }
+        entries.forEach(([label, value]) => metricsEl.appendChild(metricCard(label, value)));
+      }
+
+      function renderPrograms(programs, activeProgramId) {
+        clearChildren(programsEl);
+        programNoteEl.textContent = activeProgramId ? `Active: ${activeProgramId}` : "No active program";
+        if (!Array.isArray(programs) || !programs.length) {
+          programsEl.appendChild(emptyCard("No proposal memory or prior runs discovered."));
+          return;
+        }
+
+        programs.forEach((program) => {
+          const card = document.createElement("article");
+          card.className = "list-card" + (program.program_id === activeProgramId ? " active" : "");
+          const top = document.createElement("div");
+          top.className = "card-topline";
+          const title = document.createElement("p");
+          title.className = "card-title mono";
+          title.textContent = program.program_id || "unknown";
+          top.appendChild(title);
+          if (program.latest_run_status) top.appendChild(statusChip(program.latest_run_status));
+          const kicker = document.createElement("p");
+          kicker.className = "card-kicker";
+          kicker.textContent = `Activity: ${program.latest_run_finished_at || program.latest_proposal_at || "n/a"}`;
+          card.appendChild(top);
+          card.appendChild(kicker);
+          card.appendChild(
+            microGrid([
+              ["Proposals", program.proposal_count],
+              ["Runs", program.recent_run_count],
+              ["Repairs", program.repair_count],
+              ["Exploit", program.exploit_count],
+            ])
+          );
+          programsEl.appendChild(card);
+        });
+      }
+
+      function renderMemory(memory) {
+        clearChildren(memoryEl);
+        if (!memory || typeof memory !== "object" || !memory.available) {
+          memoryEl.appendChild(emptyCard("No memory store found for active program."));
+          return;
+        }
+
+        const belief = memory.belief_state || {};
+        const actions = memory.next_actions || {};
+
+        const beliefCard = document.createElement("article");
+        beliefCard.className = "list-card";
+        const beliefTitle = document.createElement("p");
+        beliefTitle.className = "card-title";
+        beliefTitle.textContent = "Belief state";
+        const beliefBody = document.createElement("div");
+        beliefBody.className = "keyvals";
+        [
+          ["Current focus", belief.current_focus || "none"],
+          ["Last reflection", belief.last_reflection_run_id || "none"],
+        ].forEach(([label, value]) => {
+          const row = document.createElement("div");
+          row.className = "keyval";
+          const key = document.createElement("span");
+          key.className = "key";
+          key.textContent = label;
+          const val = document.createElement("span");
+          val.className = "value";
+          val.textContent = value;
+          row.appendChild(key);
+          row.appendChild(val);
+          beliefBody.appendChild(row);
+        });
+
+        const lists = document.createElement("div");
+        lists.className = "chips";
+        const promising = Array.isArray(belief.promising_regions) ? belief.promising_regions : [];
+        const avoid = Array.isArray(belief.avoid_regions) ? belief.avoid_regions : [];
+        if (promising.length) lists.appendChild(chip(`promising: ${promising.slice(0, 3).join("|")}`));
+        if (avoid.length) lists.appendChild(chip(`avoid: ${avoid.slice(0, 3).join("|")}`, true));
+        beliefCard.appendChild(beliefTitle);
+        beliefCard.appendChild(beliefBody);
+        if (lists.childNodes.length) beliefCard.appendChild(lists);
+        memoryEl.appendChild(beliefCard);
+
+        const actionCard = document.createElement("article");
+        actionCard.className = "list-card";
+        const actionTitle = document.createElement("p");
+        actionTitle.className = "card-title";
+        actionTitle.textContent = "Next actions";
+        actionCard.appendChild(actionTitle);
+        const actionGroups = [
+          ["repair", actions.repair],
+          ["exploit", actions.exploit],
+          ["explore", actions.explore_adjacent],
+        ];
+        const actionStack = document.createElement("div");
+        actionStack.className = "keyvals";
+        actionGroups.forEach(([label, values]) => {
+          if (!Array.isArray(values) || !values.length) return;
+          const row = document.createElement("div");
+          row.className = "keyval";
+          const key = document.createElement("span");
+          key.className = "key";
+          key.textContent = label;
+          const val = document.createElement("span");
+          val.className = "value";
+          val.textContent = values.slice(0, 3).join(", ");
+          row.appendChild(key);
+          row.appendChild(val);
+          actionStack.appendChild(row);
+        });
+        actionCard.appendChild(actionStack);
+        memoryEl.appendChild(actionCard);
+      }
+
+      function renderCandidateBoard(summary, board) {
+        clearChildren(candidateBoardEl);
+        const s = summary || {};
+        candidateNoteEl.textContent =
+          `Runs: ${s.runs_tracked || 0} | Phase-2: ${s.phase2_survivors || 0} | Tradable: ${s.bridge_tradable || 0} | Promoted: ${s.promoted || 0}`;
+
+        if (!Array.isArray(board) || !board.length) {
+          candidateBoardEl.appendChild(emptyCard("No candidate history found."));
+          return;
+        }
+
+        board.forEach((row) => {
+          const card = document.createElement("article");
+          card.className = "list-card";
+          const top = document.createElement("div");
+          top.className = "card-topline";
+          const title = document.createElement("p");
+          title.className = "card-title mono";
+          title.textContent = row.run_id || "run";
+          top.appendChild(title);
+          if (row.pipeline_status) top.appendChild(statusChip(row.pipeline_status));
+          const kicker = document.createElement("p");
+          kicker.className = "card-kicker";
+          kicker.textContent = row.pipeline_note || "No status note.";
+          card.appendChild(top);
+          card.appendChild(kicker);
+
+          const c = row.best_candidate;
+          if (c && c.label) {
+            const detail = document.createElement("div");
+            detail.className = "value";
+            detail.textContent = c.label;
+            card.appendChild(detail);
+            card.appendChild(microGrid([
+              ["events", c.n_events],
+              ["raw bps", c.raw_bps],
+              ["net bps", c.after_cost_bps],
+              ["t-stat", c.t_stat],
+            ]));
+          } else {
+            card.appendChild(microGrid([
+              ["Phase-2", row.phase2_candidate_count],
+              ["Tradable", row.tradable_count],
+              ["Promoted", row.promoted_count],
+            ]));
+          }
+          candidateBoardEl.appendChild(card);
+        });
+      }
+
+      function renderSelectedRun(selected) {
+        clearChildren(selectedRunEl);
+        if (!selected || !selected.run_id) {
+          selectedRunEl.appendChild(emptyCard("No run pinned."));
+          return;
+        }
+
+        const shell = document.createElement("div");
+        shell.className = "stack";
+
+        const header = document.createElement("article");
+        header.className = "list-card active";
+        const top = document.createElement("div");
+        top.className = "card-topline";
+        const title = document.createElement("p");
+        title.className = "card-title mono";
+        title.textContent = selected.run_id;
+        top.appendChild(title);
+        if (selected.status) top.appendChild(statusChip(selected.status));
+        const kicker = document.createElement("p");
+        kicker.className = "card-kicker";
+        kicker.textContent = `${selected.objective_name} | ${selected.finished_at || selected.started_at}`;
+        header.appendChild(top);
+        header.appendChild(kicker);
+        header.appendChild(microGrid([
+          ["Checklist", selected.checklist_decision],
+          ["Artifacts", selected.artifact_count],
+          ["Candidates", selected.candidate_count],
+        ]));
+        shell.appendChild(header);
+
+        if (selected.candidate_snapshot) {
+          const snap = selected.candidate_snapshot;
+          const card = document.createElement("article");
+          card.className = "list-card";
+          const t = document.createElement("p");
+          t.className = "card-title";
+          t.textContent = "Pipeline Snapshot";
+          card.appendChild(t);
+          if (snap.pipeline_status) card.appendChild(statusChip(snap.pipeline_status));
+          const kick = document.createElement("p");
+          kick.className = "card-kicker";
+          kick.textContent = snap.pipeline_note || "No notes.";
+          card.appendChild(kick);
+          shell.appendChild(card);
+        }
+
+        selectedRunEl.appendChild(shell);
+      }
+
+      function renderRuns(activeRuns) {
+        clearChildren(recentRunsEl);
+        if (!Array.isArray(activeRuns) || !activeRuns.length) {
+          recentRunsEl.appendChild(emptyCard("No recent runs."));
+          return;
+        }
+        activeRuns.forEach((run) => {
+          const card = document.createElement("article");
+          card.className = "list-card";
+          const top = document.createElement("div");
+          top.className = "card-topline";
+          const title = document.createElement("p");
+          title.className = "card-title mono";
+          title.textContent = run.run_id;
+          top.appendChild(title);
+          if (run.status) top.appendChild(statusChip(run.status));
+          const kicker = document.createElement("p");
+          kicker.className = "card-kicker";
+          kicker.textContent = run.finished_at || run.started_at;
+          card.appendChild(top);
+          card.appendChild(kicker);
+          card.appendChild(microGrid([
+            ["Checklist", run.checklist_decision],
+            ["Candidates", run.candidate_count],
+          ]));
+          recentRunsEl.appendChild(card);
+        });
+      }
+
+      function renderProposals(props) {
+        clearChildren(recentProposalsEl);
+        if (!Array.isArray(props) || !props.length) {
+          recentProposalsEl.appendChild(emptyCard("No recent proposals."));
+          return;
+        }
+        props.forEach((p) => {
+          const card = document.createElement("article");
+          card.className = "list-card";
+          const top = document.createElement("div");
+          top.className = "card-topline";
+          const title = document.createElement("p");
+          title.className = "card-title mono";
+          title.textContent = p.run_id || "proposal";
+          top.appendChild(title);
+          if (p.status) top.appendChild(statusChip(p.status));
+          const kicker = document.createElement("p");
+          kicker.className = "card-kicker";
+          kicker.textContent = p.issued_at || "n/a";
+          card.appendChild(top);
+          card.appendChild(kicker);
+          card.appendChild(microGrid([
+            ["Profile", p.promotion_profile],
+            ["RetCode", p.returncode],
+          ]));
+          recentProposalsEl.appendChild(card);
+        });
+      }
+
+      function renderLegacy(data) {
+        dashboardEl.hidden = true;
+        legacyEl.hidden = false;
+        clearChildren(legacySectionsEl);
+        const sections = Array.isArray(data.sections) ? data.sections : [];
+        if (!sections.length) {
+          legacySectionsEl.appendChild(emptyCard("Call a tool to see results here."));
+          return;
+        }
+        sections.forEach((s) => {
+          const card = document.createElement("article");
+          card.className = "panel";
+          const body = document.createElement("div");
+          body.className = "panel-body";
+          const h = document.createElement("p");
+          h.className = "card-title";
+          h.textContent = s.heading || "Detail";
+          const v = document.createElement("p");
+          v.className = "value";
+          v.textContent = s.body || "";
+          body.appendChild(h);
+          body.appendChild(v);
+          card.appendChild(body);
+          legacySectionsEl.appendChild(card);
+        });
+      }
+
+      function renderDashboard(data) {
+        legacyEl.hidden = true;
+        dashboardEl.hidden = false;
+        renderPrograms(data.programs, data.active_program_id);
+        renderCandidateBoard(data.candidate_summary, data.candidate_board);
+        renderMemory(data.memory);
+        renderSelectedRun(data.selected_run);
+        renderRuns(data.recent_runs);
+        renderProposals(data.recent_proposals);
+        
+        // Trigger fade-in
+        setTimeout(() => dashboardEl.classList.add("visible"), 50);
+      }
+
+      function render(rawPayload) {
+        const data = normalizePayload(rawPayload);
+        if (Object.keys(data).length === 0) return;
+
+        // Hide loader once we have data
+        loaderEl.hidden = true;
+        
+        titleEl.textContent = data.title || "Edge Operator Dashboard";
+        subtitleEl.textContent = data.subtitle || "Real-time state from Edge core.";
+        setStatus(data.status);
+        renderMetrics(data.summary);
+
+        if (isDashboardPayload(data)) {
+          renderDashboard(data);
+        } else {
+          renderLegacy(data);
+        }
+      }
+
+      // Initial check in case data was injected before JS execution
+      requestAnimationFrame(() => {
+        render(window.openai?.toolOutput);
+      });
+
+      window.addEventListener("openai:set_globals", (e) => {
+        render(e.detail?.globals?.toolOutput || window.openai?.toolOutput);
+      }, { passive: true });
+
+      window.addEventListener("message", (e) => {
+        // Broaden origin check as ChatGPT embeds in various cross-origin iframes
+        if (e.data?.type === "ui/notifications/tool-result") {
+          render(e.data.toolOutput || window.openai?.toolOutput);
+        }
+      }, { passive: true });
+    </script>
+  </body>
+</html>

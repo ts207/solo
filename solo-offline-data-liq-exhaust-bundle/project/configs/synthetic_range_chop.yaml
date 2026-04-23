@@ -1,0 +1,16 @@
+workflow_id: synthetic_range_chop_v1
+description: Synthetic discovery on range-bound chop with more frequent resets.
+run_id: synthetic_range_chop
+symbols: BTCUSDT,ETHUSDT,SOLUSDT
+start_date: 2026-03-01
+end_date: 2026-05-31
+volatility_profile: range_chop
+noise_scale: 0.9
+discovery_profile: synthetic
+phase2_gate_profile: synthetic
+search_spec: synthetic_truth
+search_min_n: 8
+required_outputs:
+  - synthetic/synthetic_range_chop/synthetic_generation_manifest.json
+  - synthetic/synthetic_range_chop/synthetic_regime_segments.json
+  - reports/phase2/synthetic_range_chop/phase2_candidates.parquet

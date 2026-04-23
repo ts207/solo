@@ -1,0 +1,18 @@
+[Unit]
+Description=Edge Live Engine Paper
+After=network-online.target
+Wants=network-online.target
+StartLimitIntervalSec=30
+StartLimitBurst=3
+
+[Service]
+Type=simple
+WorkingDirectory=/opt/edge
+Environment=PYTHONUNBUFFERED=1
+EnvironmentFile=/etc/edge/edge-live-engine-paper.env
+ExecStart=/opt/edge/.venv/bin/edge-live-engine --config ${EDGE_LIVE_CONFIG} --snapshot_path ${EDGE_LIVE_SNAPSHOT_PATH}
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

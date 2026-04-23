@@ -1,0 +1,27 @@
+version: 1
+kind: benchmark_governance_spec
+
+canonical_path:
+  mode_id: D
+  label: hierarchical_v2_with_folds
+  status: STABLE
+  description: >
+    Single operator-facing discovery path: hierarchical search with v2 scoring
+    and repeated walk-forward folds. Ledger adjustment and diversified shortlist
+    are disabled.
+  config_overrides:
+    search_topology: hierarchical
+    scoring_version: v2
+    fold_validation: enabled
+    ledger_adjustment: disabled
+    shortlist_selection: disabled
+
+retired_modes: []
+
+reclassification:
+  canonical_path_locked:
+    requires_modes: [D]
+    success_criterion: >
+      Core benchmark preset executes only mode D for every non-negative-control
+      slice, with no ledger or shortlist overlay.
+    current_status: STABLE

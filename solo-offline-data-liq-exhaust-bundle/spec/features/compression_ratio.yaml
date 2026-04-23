@@ -1,0 +1,15 @@
+feature_family: volatility
+version: 1.0.0
+base_timeframe: 1m
+inputs:
+  - dataset: perp_ohlcv_1m
+    columns: [high, low, close]
+features:
+  - name: compression_ratio
+    description: "Ratio of short-term volatility to long-term volatility."
+    formula: "atr(short_window) / atr(long_window)"
+    params: {short_window: 14, long_window: 96}
+provenance:
+  source_id: "synthetic"
+  claim_id: []
+  pit_constraint: "asof <= t0"

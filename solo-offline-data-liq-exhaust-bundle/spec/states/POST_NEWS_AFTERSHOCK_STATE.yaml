@@ -1,0 +1,13 @@
+version: 1
+kind: state_definition
+state_id: POST_NEWS_AFTERSHOCK_STATE
+family: TEMPORAL_STRUCTURE
+source_event_type: SCHEDULED_NEWS_WINDOW_EVENT
+activation_rule: elapsed_bars <= post_news_aftershock_horizon
+decay_rule: exit when rv normalizes
+features_required:
+- rv_96
+- calendar_event
+allowed_templates:
+- volatility_expansion_follow
+- drawdown_filter

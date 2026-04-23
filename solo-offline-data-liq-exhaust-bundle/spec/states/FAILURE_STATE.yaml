@@ -1,0 +1,14 @@
+version: 1
+kind: state_definition
+state_id: FAILURE_STATE
+family: TREND_STRUCTURE
+source_event_type: FALSE_BREAKOUT
+activation_rule: breakout fails within fail_window bars
+decay_rule: exit on mean re-entry completion
+features_required:
+- close
+- breakout_level
+allowed_templates:
+- false_breakout_reversal
+- continuation
+- only_if_trend

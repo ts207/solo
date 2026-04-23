@@ -1,0 +1,27 @@
+version: 1
+kind: state_ontology_spec
+metadata:
+  status: generated
+  authored_source: spec/states/POST_EXTREME_CARRY_STATE.yaml
+  generated_notice: GENERATED FILE - DO NOT EDIT
+  generated_from: spec/states/*.yaml
+state_id: POST_EXTREME_CARRY_STATE
+family: POSITIONING_EXTREMES
+source_event_type: FUNDING_EXTREME_ONSET
+activation_rule: funding extreme detected and still elevated
+decay_rule: exit when funding returns to neutral band
+allowed_templates:
+- reversal_or_squeeze
+- mean_reversion
+- continuation
+- exhaustion_reversal
+- convexity_capture
+- only_if_funding
+- only_if_oi
+- tail_risk_avoid
+state_scope: source_only
+min_events: 200
+features_required:
+- funding_rate_scaled
+- funding_abs_pct
+- rv_96

@@ -1,0 +1,14 @@
+version: 1
+kind: state_definition
+state_id: DISTRIBUTION_ACCUMULATION_STATE
+family: FORCED_FLOW_AND_EXHAUSTION
+source_event_type: CLIMAX_VOLUME_BAR
+activation_rule: climax volume followed by absorption signatures
+decay_rule: exit on breakout failure or trend resumption
+features_required:
+- volume
+- order_book
+allowed_templates:
+- range_reversion
+- mean_reversion
+- only_if_trend

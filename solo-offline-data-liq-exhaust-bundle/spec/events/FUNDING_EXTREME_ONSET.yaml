@@ -1,0 +1,156 @@
+event_type: FUNDING_EXTREME_ONSET
+synthetic_coverage: covered
+reports_dir: funding_events
+events_file: funding_episode_events.parquet
+signal_column: funding_extreme_onset_event
+identity:
+  canonical_regime: BASIS_FUNDING_DISLOCATION
+  subtype: funding_extreme
+  phase: onset
+  evidence_mode: direct
+  layer: canonical
+  disposition: merge
+  asset_scope: single_asset
+  venue_scope: cross_venue
+governance:
+  event_kind: market_event
+  default_executable: true
+  research_only: false
+  strategy_only: false
+  context_tag: false
+  maturity: standard
+  tier: B
+  operational_role: trigger
+  deployment_disposition: secondary_or_confirm
+  runtime_category: active_runtime_event
+  is_composite: false
+runtime:
+  detector: FundingExtremeOnsetDetector
+  enabled: true
+  instrument_classes:
+  - crypto
+  - futures
+  requires_features: []
+  runtime_tags:
+  - funding_crowding
+  sequence_eligible: true
+  reports_dir: funding_events
+  events_file: funding_episode_events.parquet
+  signal_column: funding_extreme_onset_event
+research_family: POSITIONING_EXTREMES
+detector_contract: true
+parameters:
+  funding_pct_window: 2880
+  extreme_pct: 95.0
+  accel_pct: 95.0
+  accel_lookback: 32
+  persistence_pct: 85.0
+  persistence_bars: 3
+  normalization_pct: 50.0
+  normalization_lookback: 96
+  min_event_spacing: 96
+  event_lookahead: 96
+  liquidation_abs_return: 0.03
+  drawdown_abs_return: 0.03
+  vol_burst_quantile: 0.9
+  htf_window: 384
+  htf_lookback: 96
+  pre_window: 96
+  post_window: 96
+  baseline_samples_per_event: 3
+  baseline_seed: 7
+  vol_auc_horizon: 8
+  liq_auc_horizon: 96
+  phase_tolerance_bars: 16
+  crossover_confirm_bars: 4
+  auc_bootstrap_iters: 2000
+  accel_quantile: 0.995
+  accel_persistence_intervals: 2
+  accel_near_zero_cutoff: 5
+  persistence_norm_horizon: 96
+  interaction_min_rows_per_year: 150
+  min_hazard_events: 50
+semantics:
+  summary: Funding extreme onset under basis/funding dislocation.
+  cluster_id: funding_crowding
+  overlap_group: basis_funding_extreme
+  notes: Funding extreme onset under basis/funding dislocation.
+  precedence_rank: 0
+routing:
+  routing_profile_ref: BASIS_FUNDING_DISLOCATION
+detector:
+  signal_definition: 'Detects the onset of a funding rate extreme: funding crosses
+    the extreme_pct percentile of its rolling history AND shows acceleration (accel_pct
+    of recent delta distribution). Requires persistence across persistence_bars intervals.
+
+    '
+  formula: 'funding_pct_rank[i] = percentile_rank(funding_rate[i], lookback=funding_pct_window)
+
+    accel[i]            = funding_rate[i] - funding_rate[i - accel_lookback]
+
+    accel_pct_rank[i]   = percentile_rank(accel[i], lookback=funding_pct_window)
+
+    extreme_flag[i]     = (funding_pct_rank[i] >= extreme_pct / 100)
+
+    accel_flag[i]       = (accel_pct_rank[i] >= accel_pct / 100)
+
+    persist_flag[i]     = all(extreme_flag[i-k] for k in 0..persistence_bars-1)
+
+    event onset         = first bar where extreme_flag AND accel_flag AND persist_flag
+
+    '
+  required_columns:
+  - timestamp
+  - funding_rate
+  lookback_bars: 2880
+  warmup_bars: 2880
+  bar_type: bar_close
+  timestamp_alignment: 'Event detected at bar close when all conditions first simultaneously
+    satisfied. No intrabar data used.
+
+    '
+  minimum_sample_size: 100
+calibration:
+  default_threshold: 95.0
+  search_range:
+  - 85.0
+  - 90.0
+  - 92.0
+  - 95.0
+  - 97.0
+  - 99.0
+  calibration_target: 'Maximize AUC of forward return vs funding normalization probability.
+    Require at least min_hazard_events = 50 events over calibration window.
+
+    '
+  stability_requirement: 'Threshold must produce >= 30 events on both first-half and
+    second-half of in-sample period. Threshold deviation across assets < 5 percentile
+    points.
+
+    '
+  failure_modes:
+  - Funding data gaps >5% of bars: percentile ranking unstable
+  - Near-zero funding regime: percentile compression, all ranks cluster at 50th
+  - Funding rate regime change (exchange policy change): recalibrate required
+expected_behavior:
+  holding_horizon_bars: 48-288
+  invalidation_conditions:
+  - Funding rate drops below normalization_pct within normalization_lookback bars
+  - OI increases significantly (new longs entering, not an exhaustion setup)
+  false_positive_scenarios:
+  - Anticipated funding resets (8h schedule): onset may be mechanistic not informational
+  - Low-OI instruments: funding extremes do not cause forced liquidations
+  - Regime of persistent one-sided funding (trending market)
+  disabled_regimes:
+  - DELEVERAGING_WAVE active and unresolved: already in exhaustion
+  - CHOP_TO_TREND_SHIFT: trend onset may reinforce funding direction, not reverse
+  expected_overlap:
+  - OI_FLUSH: high co-occurrence; OI flush often follows funding extreme
+  - LIQUIDATION_CASCADE: moderate co-occurrence if extreme is on losing side
+  - SPREAD_BLOWOUT: low co-occurrence; funding and spread are independent signals
+trigger: Detector triggers on funding extreme onset pattern
+confirmation: Post-detection price action confirms signal validity
+cluster_id: funding_crowding
+interaction:
+  suppresses: []
+  suppressed_by: []

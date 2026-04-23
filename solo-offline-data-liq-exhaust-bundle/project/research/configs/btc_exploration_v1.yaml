@@ -1,0 +1,29 @@
+program_id: "btc_exploration_v1"
+run_mode: "research"
+description: "BTC 15m experiment with BAND_BREAK event and Trend regimes"
+instrument_scope:
+  instrument_classes: ["crypto"]
+  symbols: ["BTCUSDT"]
+  timeframe: "15m"
+  start: "2024-01-01"
+  end: "2024-03-01"
+trigger_space:
+  allowed_trigger_types: ["EVENT", "STATE"]
+  events:
+    include: ["BAND_BREAK"]
+  states:
+    include: ["BULL_TREND_REGIME", "BEAR_TREND_REGIME"]
+templates:
+  include: ["mean_reversion"]
+evaluation:
+  horizons_bars: [8, 16]
+  directions: ["long", "short"]
+  entry_lags: [0]
+contexts:
+  include: {}
+search_control:
+  max_hypotheses_total: 100
+  max_hypotheses_per_template: 50
+  max_hypotheses_per_event_family: 50
+promotion:
+  enabled: false

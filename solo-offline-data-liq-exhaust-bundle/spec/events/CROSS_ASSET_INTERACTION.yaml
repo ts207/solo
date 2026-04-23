@@ -1,0 +1,9 @@
+kind: event_family_defaults
+version: 1
+families:
+  CROSS_ASSET_INTERACTION:
+    parameters:
+      lag: 3
+    templates:
+    - cross_asset_mean_reversion
+    - lead_lag_continuation
