@@ -115,7 +115,7 @@ def _run_validate(args: argparse.Namespace) -> int:
 
 
 def _run_validate_specs(args: argparse.Namespace) -> int:
-    from project.specs.validate_repo import run_all_validations
+    from project.spec_validation.cli import run_all_validations
 
     return int(run_all_validations(root=Path(args.root), verbose=args.verbose))
 

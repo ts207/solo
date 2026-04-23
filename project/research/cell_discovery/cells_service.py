@@ -208,19 +208,49 @@ def run_cells(
         discovery_mode="edge_cells",
         lineage_path=str(compiled.lineage_path),
     )
-    summary = build_scoreboard(
-        registry=registry,
-        run_id=run_id,
-        data_root=resolved_root,
-        timeframe=timeframe,
-    )
+    if int(rc) != 0:
+        return {
+            "exit_code": int(rc),
+            "status": "failed",
+            "phase2_returncode": int(rc),
+            "run_dir": str(paths.run_dir),
+        }
+
+    # Canonical contract: do not emit the main scoreboard unless fold-forward
+    # evidence exists (phase2_candidate_fold_metrics.parquet).
+    contract_error_path = paths.run_dir / "edge_scoreboard_contract_error.json"
+    try:
+        summary = build_scoreboard(
+            registry=registry,
+            run_id=run_id,
+            data_root=resolved_root,
+            timeframe=timeframe,
+        )
+    except Exception as e:
+        payload = {
+            "schema_version": "edge_scoreboard_contract_error_v1",
+            "run_id": run_id,
+            "status": "contract_error",
+            "error": str(e),
+        }
+        contract_error_path.write_text(json.dumps(payload, indent=2, sort_keys=True))
+        return {
+            "exit_code": 1,
+            "status": "contract_error",
+            "phase2_returncode": int(rc),
+            "run_dir": str(paths.run_dir),
+            "contract_error_path": str(contract_error_path),
+            "error": str(e),
+        }
+
     clusters = build_redundancy_clusters(run_id=run_id, data_root=resolved_root)
     return {
         "exit_code": int(rc),
-        "status": "executed" if int(rc) == 0 else "failed",
+        "status": "executed",
         "phase2_returncode": int(rc),
         "scoreboard_summary": summary,
         "cluster_summary": clusters,
+        "run_dir": str(paths.run_dir),
     }
 
 

@@ -692,11 +692,25 @@ def evaluate_hypothesis_batch(
                     row[k] = np.nan
         
         if folds:
+            # Fold windows are defined in timestamp space. In this pipeline the
+            # returns series is typically indexed by feature-row id, not epoch-ms,
+            # so we must explicitly pass event timestamps for fold masking.
+            event_timestamps = None
+            if "timestamp" in features.columns and not signed.empty:
+                try:
+                    event_timestamps = pd.to_datetime(
+                        features.loc[signed.index, "timestamp"],
+                        utc=True,
+                        errors="coerce",
+                    )
+                except Exception:
+                    event_timestamps = None
             fold_details, fold_aggs = evaluate_candidate_across_folds(
                 signed_returns=signed,
                 event_weights=event_weights,
                 folds=folds,
-                cost_bps=cost_bps
+                cost_bps=cost_bps,
+                timestamps=event_timestamps,
             )
             for k, v in fold_aggs.items():
                 row[k] = v
@@ -792,22 +806,35 @@ def evaluate_candidate_across_folds(
     signed_returns: pd.Series,
     event_weights: pd.Series,
     folds: list[Any],
-    cost_bps: float
+    cost_bps: float,
+    timestamps: pd.Series | None = None,
 ) -> tuple[list[dict], dict]:
     fold_metrics = []
-    
+
+    def _to_utc_ts(value: Any) -> pd.Timestamp:
+        ts = pd.Timestamp(value)
+        if ts.tzinfo is None:
+            return ts.tz_localize("UTC")
+        return ts.tz_convert("UTC")
+
     for fold in folds:
-        test_start = fold.test_split.start
-        test_end = fold.test_split.end
-        
-        if pd.api.types.is_integer_dtype(signed_returns.index):
-            t_start = int(pd.Timestamp(test_start).value // 10**6)
-            t_end = int(pd.Timestamp(test_end).value // 10**6)
+        test_start = _to_utc_ts(fold.test_split.start)
+        test_end = _to_utc_ts(fold.test_split.end)
+
+        if timestamps is not None:
+            ts = pd.to_datetime(timestamps, utc=True, errors="coerce")
+            # `ts` is aligned by index to signed_returns/event_weights.
+            mask = ts.notna() & (ts >= test_start) & (ts <= test_end)
         else:
-            t_start = test_start
-            t_end = test_end
-            
-        mask = (signed_returns.index >= t_start) & (signed_returns.index <= t_end)
+            # Fallback: attempt to interpret the signed_returns index as a time axis.
+            # Prefer epoch-ms if the dtype is integer, else do direct comparisons.
+            if pd.api.types.is_integer_dtype(signed_returns.index):
+                t_start = int(test_start.value // 10**6)
+                t_end = int(test_end.value // 10**6)
+            else:
+                t_start = test_start
+                t_end = test_end
+            mask = (signed_returns.index >= t_start) & (signed_returns.index <= t_end)
         
         fold_n = mask.sum()
         if fold_n < 3:

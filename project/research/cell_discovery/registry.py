@@ -6,6 +6,7 @@ from typing import Any
 import yaml
 
 from project.domain.compiled_registry import get_domain_registry
+from project.research.context_labels import canonicalize_context_label
 from project.research.cell_discovery.models import (
     ContrastRule,
     ContextCell,
@@ -14,6 +15,7 @@ from project.research.cell_discovery.models import (
     HorizonSet,
     RankingPolicy,
 )
+from project.spec_registry.loaders import load_yaml_relative
 
 REQUIRED_SPEC_FILES = (
     "event_atoms.yaml",
@@ -48,6 +50,12 @@ def _validate_unique(ids: list[str], *, label: str) -> None:
         raise ValueError(f"Duplicate {label} ids: {', '.join(duplicates)}")
 
 
+def _authoritative_context_dimensions() -> dict[str, dict[str, Any]]:
+    payload = load_yaml_relative("project/configs/registries/contexts.yaml")
+    raw = payload.get("context_dimensions", {}) if isinstance(payload, dict) else {}
+    return dict(raw) if isinstance(raw, dict) else {}
+
+
 def load_registry(spec_dir: str | Path = "spec/discovery") -> DiscoveryRegistry:
     base = Path(spec_dir)
     for filename in REQUIRED_SPEC_FILES:
@@ -61,6 +69,7 @@ def load_registry(spec_dir: str | Path = "spec/discovery") -> DiscoveryRegistry:
     ranking_doc = _read_yaml(base / "ranking_policy.yaml")
 
     registry = get_domain_registry()
+    authoritative_contexts = _authoritative_context_dimensions()
     event_atoms: list[EventAtom] = []
     for item in list(events_doc.get("event_atoms", []) or []):
         if not isinstance(item, dict):
@@ -109,6 +118,24 @@ def load_registry(spec_dir: str | Path = "spec/discovery") -> DiscoveryRegistry:
             raise ValueError("context cell id is required")
         if cell.max_conjunction_depth > 1:
             raise ValueError("edge-cell v1 only supports max_conjunction_depth <= 1")
+        allowed_meta = authoritative_contexts.get(cell.dimension)
+        if not isinstance(allowed_meta, dict):
+            raise ValueError(f"Unknown context dimension in discovery cell {cell.cell_id}: {cell.dimension}")
+        allowed_values = {
+            str(item).strip()
+            for item in list(allowed_meta.get("allowed_values", []) or [])
+            if str(item).strip()
+        }
+        invalid_values = [
+            value
+            for value in cell.values
+            if canonicalize_context_label(cell.dimension, value) not in allowed_values
+        ]
+        if invalid_values:
+            raise ValueError(
+                f"Context cell {cell.cell_id} has invalid values for {cell.dimension}: "
+                + ", ".join(invalid_values)
+            )
         context_cells.append(cell)
     _validate_unique([item.cell_id for item in context_cells], label="context cell")
 

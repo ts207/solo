@@ -18,7 +18,7 @@ from project.domain.compiled_registry import get_domain_registry
 from project.domain.hypotheses import HypothesisSpec, TriggerType
 from project.core.column_registry import ColumnRegistry
 from project.events.event_specs import EVENT_REGISTRY_SPECS
-from project.research.context_labels import canonicalize_context_label
+from project.research.context_labels import canonicalize_context_label, expand_dimension_values
 
 log = logging.getLogger(__name__)
 
@@ -227,6 +227,31 @@ def load_context_state_map() -> Dict[Tuple[str, str], str]:
     return dict(registry.context_state_map)
 
 
+def _normalize_context_scalar(value: Any) -> str:
+    if pd.isna(value):
+        return ""
+    return str(value).strip().lower()
+
+
+def _series_matches_values(series: pd.Series, values: list[object]) -> pd.Series:
+    if series.empty:
+        return pd.Series(False, index=series.index, dtype=bool)
+    numeric_targets: list[float] = []
+    all_numeric = True
+    for value in values:
+        try:
+            numeric_targets.append(float(str(value).strip()))
+        except Exception:
+            all_numeric = False
+            break
+    coerced = pd.to_numeric(series, errors="coerce")
+    if all_numeric and coerced.notna().any():
+        return coerced.isin(numeric_targets)
+    return series.map(_normalize_context_scalar).isin(
+        {_normalize_context_scalar(value) for value in values}
+    )
+
+
 # Cache for the context state map to avoid repeated file I/O
 _CACHED_CONTEXT_MAP: Optional[Dict[Tuple[str, str], str]] = None
 
@@ -253,18 +278,24 @@ def context_mask(
     combined = pd.Series(True, index=features.index)
     for family, label in context.items():
         canonical_label = canonicalize_context_label(family, label)
+        expanded_values = expand_dimension_values(family, [canonical_label])
+        if family in features.columns:
+            vals = _series_matches_values(features[family], expanded_values)
+        else:
+            vals = None
         state_id = _CACHED_CONTEXT_MAP.get((family, canonical_label))
-        if state_id is None:
+        if vals is None and state_id is None:
             log.debug("No state mapping for context (%r, %r) — context unresolvable", family, label)
             return None
-        cols = ColumnRegistry.state_cols(state_id)
-        col = next((c for c in cols if c in features.columns), None)
-        if col is None:
-            log.debug(
-                "Context state column %r not found in features — context unresolvable", state_id
-            )
-            return None
-        vals = pd.to_numeric(features[col], errors="coerce").fillna(0)
+        if vals is None:
+            cols = ColumnRegistry.state_cols(state_id)
+            col = next((c for c in cols if c in features.columns), None)
+            if col is None:
+                log.debug(
+                    "Context state column %r not found in features — context unresolvable", state_id
+                )
+                return None
+            vals = pd.to_numeric(features[col], errors="coerce").fillna(0) == 1
         quality_mask = pd.Series(True, index=features.index)
         if use_context_quality:
             family_key = str(family).strip().lower()
@@ -283,7 +314,7 @@ def context_mask(
                     False
                 )
 
-        combined = combined & (vals == 1) & quality_mask
+        combined = combined & vals.fillna(False) & quality_mask
     return combined
 
 

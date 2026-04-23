@@ -9,7 +9,6 @@ from typing import Any, Dict, List, Optional, Set
 import pandas as pd
 import yaml
 from project.core.exceptions import DataIntegrityError
-from project.domain.compiled_registry import get_domain_registry
 from project.research.search.bridge_adapter import canonical_bridge_event_type
 from project.research.context_labels import canonicalize_context_label
 from project.spec_registry.search_space import DEFAULT_EVENT_PRIORITY_WEIGHT as _DEFAULT_QUALITY
@@ -839,19 +838,15 @@ def context_for_proposal(ctrl: Any) -> Dict[str, List[str]]:
     if not ctrl.config.enable_context_conditioning:
         return {}
     allowed_contexts = ctrl.registries.contexts.get("context_dimensions", {})
-    registry = get_domain_registry()
     selected_dimensions = list(getattr(ctrl.config, "proposal_context_dimensions", []) or [])
     out: Dict[str, List[str]] = {}
     for dimension in selected_dimensions:
         meta = allowed_contexts.get(str(dimension), {})
         values: list[str] = []
         seen: set[str] = set()
-        compiled_labels = set(registry.context_labels_for_family(str(dimension)))
         for raw_value in list(meta.get("allowed_values", [])):
             token = canonicalize_context_label(str(dimension), raw_value)
             if not token or token in seen:
-                continue
-            if compiled_labels and token not in compiled_labels:
                 continue
             values.append(token)
             seen.add(token)

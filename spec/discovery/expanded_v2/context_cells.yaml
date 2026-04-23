@@ -2,7 +2,7 @@ version: edge_cells_v2
 context_cells:
   - id: high_vol
     dimension: vol_regime
-    values: [high, shock]
+    values: [high]
     required_feature_key: high_vol_regime
     executability_class: runtime
     max_conjunction_depth: 1
@@ -32,27 +32,15 @@ context_cells:
       support_dimension: carry_state
       support_values: [funding_neg]
     max_conjunction_depth: 1
-  - id: persistent_funding
-    dimension: funding_persistence_state
-    values: ['1.0']
-    required_feature_key: funding_persistence_state
+  - id: crowded_funding
+    dimension: funding_regime
+    values: [crowded]
+    required_feature_key: crowding_state
     executability_class: supportive_only
     max_conjunction_depth: 1
-  - id: bull_trend
-    dimension: bull_trend_regime
-    values: ['1.0']
-    required_feature_key: bull_trend_regime
-    executability_class: runtime
-    max_conjunction_depth: 1
-  - id: bear_trend
-    dimension: bear_trend_regime
-    values: ['1.0']
-    required_feature_key: bear_trend_regime
-    executability_class: runtime
-    max_conjunction_depth: 1
   - id: low_liquidity
-    dimension: low_liquidity_state
-    values: ['1.0']
+    dimension: liquidity_regime
+    values: [low]
     required_feature_key: low_liquidity_state
     executability_class: supportive_only
     max_conjunction_depth: 1

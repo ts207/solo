@@ -76,6 +76,31 @@ def _context_combinations(contexts: Dict[str, Any]) -> List[Optional[Dict[str, s
     return combos
 
 
+def _edge_cell_contexts(contexts: Dict[str, Any]) -> List[Optional[Dict[str, str]]]:
+    """
+    Edge-cell discovery treats each context family independently (1D contexts),
+    plus an unconditional baseline. It intentionally does not emit cartesian
+    products across multiple context families.
+    """
+    if not contexts:
+        return [None]
+
+    registry = get_domain_registry()
+    combos: List[Optional[Dict[str, str]]] = [None]
+    for family, raw in contexts.items():
+        if raw == "*":
+            values = list(registry.context_labels_for_family(family))
+        else:
+            values = raw if isinstance(raw, list) else [raw]
+        for label in values:
+            token = str(label).strip()
+            fam = str(family).strip()
+            if not fam or not token:
+                continue
+            combos.append({fam: token})
+    return combos
+
+
 def _build_hypotheses(
     trigger_type: str,
     ids_or_configs: List[Any],
@@ -216,7 +241,11 @@ def generate_hypotheses_with_audit(
     selected_filter_templates = resolve_filter_template_names(doc)
 
     raw_contexts = doc.get("contexts", {})
-    contexts = _context_combinations(raw_contexts)
+    source_mode = str((doc.get("metadata", {}) or {}).get("source_discovery_mode", "") or "").strip()
+    if source_mode == "edge_cells":
+        contexts = _edge_cell_contexts(raw_contexts)
+    else:
+        contexts = _context_combinations(raw_contexts)
 
     # Budgets and Quotas
     quotas = doc.get("quotas", {})

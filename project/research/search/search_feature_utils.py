@@ -7,6 +7,7 @@ from typing import Iterable, Optional
 import pandas as pd
 
 from project.core.column_registry import ColumnRegistry
+from project.events.detectors.registry import get_detector_class
 from project.events.event_flags import load_registry_flags
 from project.events.event_repository import load_registry_events
 from project.events.event_specs import EVENT_REGISTRY_SPECS
@@ -16,6 +17,53 @@ from project.research.validation import assign_split_labels
 from project.specs.ontology import MATERIALIZED_STATE_COLUMNS_BY_ID
 
 log = logging.getLogger(__name__)
+
+
+def _materialize_event_flags_from_detectors(
+    features: pd.DataFrame,
+    *,
+    symbol: str,
+    expected_event_ids: Iterable[str],
+) -> pd.DataFrame:
+    if features.empty:
+        return features
+    if "timestamp" not in features.columns:
+        return features
+
+    out = features
+    ts = pd.to_datetime(out["timestamp"], utc=True, errors="coerce")
+    if ts.isna().all():
+        return out
+
+    sym = str(symbol).strip().upper()
+    for raw_event_id in expected_event_ids:
+        event_id = str(raw_event_id or "").strip().upper()
+        if not event_id:
+            continue
+        detector_cls = get_detector_class(event_id)
+        if detector_cls is None:
+            continue
+        spec = EVENT_REGISTRY_SPECS.get(event_id)
+        signal_col = spec.signal_column if spec is not None else None
+        event_cols = ColumnRegistry.event_cols(event_id, signal_col=signal_col)
+        if not event_cols:
+            continue
+        col = event_cols[0]
+        if col not in out.columns:
+            out[col] = False
+
+        try:
+            detector = detector_cls()
+            events = detector.detect(out.copy(), symbol=sym)
+        except Exception:
+            continue
+        if events is None or events.empty or "timestamp" not in events.columns:
+            continue
+        ev_ts = pd.to_datetime(events["timestamp"], utc=True, errors="coerce").dropna().drop_duplicates()
+        if ev_ts.empty:
+            continue
+        out.loc[ts.isin(set(ev_ts.tolist())), col] = True
+    return out
 
 
 def _load_features_wrapper(
@@ -184,6 +232,16 @@ def prepare_search_features_for_symbol(
                 features[bool_cols] = features[bool_cols].fillna(False).astype(bool)
             for column in direction_cols:
                 features[column] = pd.to_numeric(features[column], errors="coerce")
+
+    # Fallback: cell discovery often runs without a run-scoped event registry. When that's the
+    # case, materialize minimal event flag columns directly from detectors so event triggers
+    # aren't silently all-false (which yields n=0 and invalid metrics everywhere).
+    if event_registry_override is None and event_flags.empty and expected_event_ids is not None:
+        features = _materialize_event_flags_from_detectors(
+            features,
+            symbol=str(symbol).upper(),
+            expected_event_ids=expected_event_ids,
+        )
 
     if event_registry_override:
         fixture_events = pd.read_parquet(event_registry_override)

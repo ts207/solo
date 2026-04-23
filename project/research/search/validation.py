@@ -6,11 +6,11 @@ from __future__ import annotations
 
 from typing import List
 
-from project.domain.compiled_registry import get_domain_registry
 from project.core.constants import parse_horizon_bars
 from project.research.search.feasibility import check_hypothesis_feasibility
 from project.domain.hypotheses import HypothesisSpec, TriggerType
 from project.research.context_labels import canonicalize_context_label
+from project.spec_registry.loaders import load_yaml_relative
 from project.strategy.templates.validation import validate_template_stack
 
 VALID_DIRECTIONS = {"long", "short", "both"}
@@ -83,19 +83,28 @@ def validate_hypothesis_spec(spec: HypothesisSpec) -> List[str]:
 
     if spec.context:
         try:
-            registry = get_domain_registry()
+            allowed_contexts = (
+                load_yaml_relative("project/configs/registries/contexts.yaml").get(
+                    "context_dimensions", {}
+                )
+            )
             for family, label in spec.context.items():
-                labels = set(registry.context_labels_for_family(family))
+                meta = allowed_contexts.get(family, {})
+                labels = {
+                    str(item).strip()
+                    for item in list(meta.get("allowed_values", []) or [])
+                    if str(item).strip()
+                }
                 if not labels:
                     errors.append(
-                        f"Context family {family!r} not found in compiled domain registry"
+                        f"Context family {family!r} not found in authoritative context registry"
                     )
                 elif canonicalize_context_label(family, label) not in labels:
                     errors.append(
-                        f"Context label {label!r} not found for family {family!r} in compiled domain registry"
+                        f"Context label {label!r} not found for family {family!r} in authoritative context registry"
                     )
         except Exception as e:
-            errors.append(f"Failed to load compiled domain registry for context validation: {e}")
+            errors.append(f"Failed to load authoritative context registry for context validation: {e}")
 
     feasibility = check_hypothesis_feasibility(spec)
     for reason in feasibility.reasons:

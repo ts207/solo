@@ -20,6 +20,7 @@ from project.research.cell_discovery.data_contract import (
     required_condition_keys,
     required_event_types,
 )
+from project.research.context_labels import expand_dimension_values
 from project.research.cell_discovery.models import DataFeasibilityResult, DiscoveryRegistry
 from project.research.cell_discovery.paths import paths_for_run
 from project.research.condition_key_contract import (
@@ -243,8 +244,11 @@ def _condition_symbol_status(
             "missing_condition_keys": sorted(missing),
             "required_condition_keys": sorted(required_keys),
         }
+    # Treat condition-key feasibility as cell-local: a symbol can be missing keys for some
+    # context cells without blocking unrelated cells (including unconditional).
+    payload_status = str(payload.get("status", "unknown") or "unknown")
     return {
-        "status": str(payload.get("status", "unknown") or "unknown"),
+        "status": "unknown" if payload_status == "unknown" else "pass",
         "missing_condition_keys": [],
         "required_condition_keys": sorted(required_keys),
     }
@@ -279,7 +283,8 @@ def _context_state_mask(context_frame: pd.DataFrame, context: Any | None) -> pd.
     if context is None:
         return pd.Series(True, index=context_frame.index, dtype=bool)
     if context.dimension and context.dimension in context_frame.columns:
-        return _value_mask(context_frame[context.dimension], list(context.values))
+        vals = expand_dimension_values(context.dimension, list(context.values))
+        return _value_mask(context_frame[context.dimension], vals)
     if context.required_feature_key and context.required_feature_key in context_frame.columns:
         series = context_frame[context.required_feature_key]
         numeric = pd.to_numeric(series, errors="coerce")
@@ -400,6 +405,8 @@ def _cell_matrix(
     data_root: Path,
     run_id: str,
     timeframe: str,
+    start: str,
+    end: str,
 ) -> list[dict[str, Any]]:
     rows: list[dict[str, Any]] = []
     feature_frames = {
@@ -408,8 +415,8 @@ def _cell_matrix(
             run_id=run_id,
             symbol=symbol,
             timeframe=timeframe,
-            start="",
-            end="",
+            start=start,
+            end=end,
         )
         for symbol in symbols
     }
@@ -419,8 +426,8 @@ def _cell_matrix(
             run_id=run_id,
             symbol=symbol,
             timeframe=timeframe,
-            start="",
-            end="",
+            start=start,
+            end=end,
         )
         for symbol in symbols
     }
@@ -570,6 +577,8 @@ def verify_data_contract(
         data_root=data_root,
         run_id=run_id,
         timeframe=timeframe,
+        start=start,
+        end=end,
     )
     cell_status_counts = {
         status: sum(1 for row in matrix if row["status"] == status)

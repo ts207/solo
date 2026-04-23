@@ -163,10 +163,25 @@ def build_scoreboard(
     candidate_universe = _read_optional(paths.candidate_universe_path)
     final_candidates = _read_optional(phase2_candidates_path(data_root=data_root, run_id=run_id))
     lineage = _read_optional(paths.lineage_path)
-    folds = _read_optional(paths.run_dir / "phase2_candidate_fold_metrics.parquet")
+    fold_path = paths.run_dir / "phase2_candidate_fold_metrics.parquet"
+    folds = _read_optional(fold_path)
     unauthorized_rows_filtered = 0
 
     source = candidate_universe if not candidate_universe.empty else final_candidates
+    # Contract: if we have anything to score, fold-forward evidence must exist.
+    # Do not silently produce an "all blocked" scoreboard that can be misread as
+    # "no edge"; fail loudly instead.
+    if not source.empty:
+        if not fold_path.exists():
+            raise RuntimeError("missing_required_artifact: phase2_candidate_fold_metrics.parquet")
+        if folds.empty:
+            raise RuntimeError(
+                "invalid_required_artifact: phase2_candidate_fold_metrics.parquet (empty)"
+            )
+        if "valid" in folds.columns and not bool(pd.to_numeric(folds["valid"], errors="coerce").fillna(False).astype(bool).any()):
+            raise RuntimeError(
+                "invalid_required_artifact: phase2_candidate_fold_metrics.parquet (no valid folds)"
+            )
     if source.empty:
         raw = pd.DataFrame(columns=RAW_COLUMNS)
     else:

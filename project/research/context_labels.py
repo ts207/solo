@@ -14,6 +14,18 @@ _CONTEXT_LABEL_ALIASES: dict[str, dict[str, str]] = {
     }
 }
 
+DIMENSION_VALUE_MAP: dict[str, dict[str, list[object]]] = {
+    "ms_trend_state": {
+        "chop": [0.0, 0, "0", "0.0", "chop"],
+        "bullish": [1.0, 1, "1", "1.0", "bullish"],
+        "bearish": [2.0, 2, "2", "2.0", "bearish"],
+    },
+    "ms_spread_state": {
+        "tight": [0.0, 0, "0", "0.0", "tight"],
+        "wide": [1.0, 1, "1", "1.0", "wide"],
+    },
+}
+
 
 def canonicalize_context_label(family: str, label: Any) -> str:
     family_key = str(family or "").strip().lower()
@@ -40,3 +52,25 @@ def canonicalize_contexts(contexts: dict[str, Any] | None) -> dict[str, list[str
                 seen.add(token)
         out[family] = normalized
     return out
+
+
+def expand_dimension_values(dimension: str, values: list[str]) -> list[object]:
+    dimension_key = str(dimension or "").strip().lower()
+    mapping = DIMENSION_VALUE_MAP.get(dimension_key)
+    if not mapping:
+        return list(values)
+
+    expanded: list[object] = []
+    seen: set[tuple[str, str]] = set()
+    for raw_value in values:
+        token = str(raw_value or "").strip()
+        if not token:
+            continue
+        candidates = mapping.get(token.lower(), [raw_value])
+        for candidate in candidates:
+            marker = (type(candidate).__name__, str(candidate).strip().lower())
+            if marker in seen:
+                continue
+            expanded.append(candidate)
+            seen.add(marker)
+    return expanded
