@@ -90,6 +90,8 @@ def verify_data(
         "status": result.status,
         "report_path": str(result.report_path),
         "blocked_reasons": result.payload.get("blocked_reasons", []),
+        "cell_status_counts": result.payload.get("cell_status_counts", {}),
+        "support_status_counts": result.payload.get("support_status_counts", {}),
     }
 
 
@@ -137,6 +139,7 @@ def plan_cells(
         "cell_count": compiled.cell_count,
         "family_counts": compiled.family_counts,
         "cell_status_counts": feasibility.payload.get("cell_status_counts", {}),
+        "support_status_counts": feasibility.payload.get("support_status_counts", {}),
         "blocked_reasons": feasibility.payload.get("blocked_reasons", []),
     }
 
@@ -185,6 +188,7 @@ def run_cells(
             "skipped_cells_path": str(compiled.skipped_cells_path),
             "estimated_hypothesis_count": compiled.estimated_hypothesis_count,
             "skipped_cell_count": compiled.skipped_cell_count,
+            "support_status_counts": feasibility.payload.get("support_status_counts", {}),
             "blocked_reasons": feasibility.payload.get("blocked_reasons", []),
         }
     from project.research.phase2_search_engine import run as run_phase2

@@ -1,6 +1,0 @@
-name: funding_abs_pct
-family: POSITIONING
-description: Absolute value of the funding rate as a percentile.
-parameters:
-  lookback: 17280
-  quantile_normalize: true

@@ -1,4 +1,0 @@
-contract_id: confirmatory_rerun_execution
-family: execution
-purpose: Confirmatory rerun contract for execution benchmarks.
-version: 1

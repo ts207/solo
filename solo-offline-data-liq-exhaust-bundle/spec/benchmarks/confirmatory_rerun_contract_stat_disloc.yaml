@@ -1,4 +1,0 @@
-contract_id: confirmatory_rerun_stat_disloc
-family: stat_disloc
-purpose: Confirmatory rerun contract for statistical dislocation benchmarks.
-version: 1

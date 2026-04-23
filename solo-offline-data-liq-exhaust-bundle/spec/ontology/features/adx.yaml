@@ -1,5 +1,0 @@
-name: adx
-family: TREND
-description: Average Directional Index (trend strength indicator).
-parameters:
-  lookback: 14

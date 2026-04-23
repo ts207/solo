@@ -1,5 +1,0 @@
-name: logret_1
-family: MOMENTUM
-description: 1-bar log return.
-parameters:
-  lookback: 1

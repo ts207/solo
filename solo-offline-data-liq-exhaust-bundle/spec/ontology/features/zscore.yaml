@@ -1,6 +1,0 @@
-name: zscore
-family: DISLOCATIONS
-description: Generic z-score of a feature.
-parameters:
-  lookback: 288
-  method: standard

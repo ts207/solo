@@ -1,6 +1,0 @@
-name: beta
-family: SYSTEMATIC_RISK
-description: Beta of the symbol to a market benchmark.
-parameters:
-  lookback: 288
-  benchmark: BTCUSDT

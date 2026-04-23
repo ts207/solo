@@ -4,8 +4,8 @@ metadata:
   status: generated
   graph_role: runtime_read_model
   schema_version: 2
-  generated_at_utc: '2026-04-21T04:23:04Z'
-  spec_sources_digest: 863f7055a59b34815ff3279dee2fd3c5e0c3c73c4336a64d0d9e76d32ba58566
+  generated_at_utc: '2026-04-23T06:22:59Z'
+  spec_sources_digest: 81ed6723dcfaf6219a71b8b9778ad8c37fdf1bbc48b7c9cf51591a24034e83cd
   notes: Compiled runtime read model. Semantic nodes are normalized for direct runtime/search
     loading.
 events:
@@ -11734,10 +11734,14 @@ runtime:
   searchable_state_families:
   - BASIS_FUNDING_DISLOCATION
   - EXECUTION_FRICTION
+  - FORCED_FLOW_AND_EXHAUSTION
+  - INFORMATION_DESYNC
   - LIQUIDITY_DISLOCATION
   - LIQUIDITY_STRESS
+  - MICROSTRUCTURE_CONTEXT
   - POSITIONING_EXTREMES
   - POSITIONING_UNWIND_DELEVERAGING
+  - REGIME_CONTEXT
   - REGIME_TRANSITION
   - STATISTICAL_DISLOCATION
   - TEMPORAL_STRUCTURE
