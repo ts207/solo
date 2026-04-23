@@ -1,0 +1,15 @@
+{
+  "end": "2025-06-30T23:59:59",
+  "estimated_hypothesis_count": 180,
+  "lineage_path": "/home/irene/Edge/data/reports/phase2/CTXEXP_BTCUSDT_2025_H1/generated/edge_cell_lineage.parquet",
+  "run_id": "CTXEXP_BTCUSDT_2025_H1",
+  "schema_version": "edge_cell_experiment_v1",
+  "search_spec_path": "/home/irene/Edge/data/reports/phase2/CTXEXP_BTCUSDT_2025_H1/generated/generated_edge_cell_search_space.yaml",
+  "skipped_cell_count": 0,
+  "skipped_cells_path": "/home/irene/Edge/data/reports/phase2/CTXEXP_BTCUSDT_2025_H1/generated/edge_cell_skipped_cells.json",
+  "start": "2025-01-01T00:00:00",
+  "symbols": [
+    "BTCUSDT"
+  ],
+  "timeframe": "5m"
+}

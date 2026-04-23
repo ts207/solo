@@ -1,0 +1,2077 @@
+{
+  "run_id": "CTXUPLIFT_BTCUSDT_2024_H1",
+  "schema_version": "edge_cell_skipped_cells_v1",
+  "skipped_cell_count": 39,
+  "skipped_cells": [
+    {
+      "blocked_reasons": [
+        "blocked_missing_condition_keys"
+      ],
+      "condition_status": {
+        "missing_condition_keys": [
+          "funding_regime"
+        ],
+        "required_condition_keys": [
+          "crowding_state",
+          "funding_regime"
+        ],
+        "status": "block"
+      },
+      "context_cell": "crowded_funding",
+      "event_atom_id": "vol_shock_core",
+      "event_family": "volatility",
+      "event_status": {
+        "blocking_columns": [],
+        "degraded_columns": [],
+        "required_columns": [
+          "timestamp",
+          "close",
+          "rv_96",
+          "range_96",
+          "range_med_2880"
+        ],
+        "status": "pass"
+      },
+      "event_type": "VOL_SHOCK",
+      "executability_class": "supportive_only",
+      "split_detail": {
+        "bar_count": 52416,
+        "bars_source": "cleaned",
+        "coverage_ratio": 1.0,
+        "expected_bar_count": 52416,
+        "fold_count": 3,
+        "mode": "real",
+        "status": "pass",
+        "timestamp_max_utc": "2024-06-30 23:55:00+00:00",
+        "timestamp_min_utc": "2024-01-01 00:00:00+00:00"
+      },
+      "split_status": "pass",
+      "status": "block",
+      "support": {
+        "event_count": 159,
+        "reason": "support_ok",
+        "state_density_ratio": 0.3324125230202578,
+        "state_row_count": 17328,
+        "status": "pass",
+        "support_count": 37,
+        "support_ratio": 0.23270440251572327
+      },
+      "symbol": "BTCUSDT"
+    },
+    {
+      "blocked_reasons": [
+        "blocked_missing_condition_keys",
+        "blocked_zero_event_support"
+      ],
+      "condition_status": {
+        "missing_condition_keys": [
+          "liquidity_regime"
+        ],
+        "required_condition_keys": [
+          "liquidity_regime",
+          "low_liquidity_state"
+        ],
+        "status": "block"
+      },
+      "context_cell": "low_liquidity",
+      "event_atom_id": "vol_shock_core",
+      "event_family": "volatility",
+      "event_status": {
+        "blocking_columns": [],
+        "degraded_columns": [],
+        "required_columns": [
+          "timestamp",
+          "close",
+          "rv_96",
+          "range_96",
+          "range_med_2880"
+        ],
+        "status": "pass"
+      },
+      "event_type": "VOL_SHOCK",
+      "executability_class": "supportive_only",
+      "split_detail": {
+        "bar_count": 52416,
+        "bars_source": "cleaned",
+        "coverage_ratio": 1.0,
+        "expected_bar_count": 52416,
+        "fold_count": 3,
+        "mode": "real",
+        "status": "pass",
+        "timestamp_max_utc": "2024-06-30 23:55:00+00:00",
+        "timestamp_min_utc": "2024-01-01 00:00:00+00:00"
+      },
+      "split_status": "pass",
+      "status": "block",
+      "support": {
+        "event_count": 159,
+        "reason": "blocked_zero_event_support",
+        "state_density_ratio": 0.3173534376918355,
+        "state_row_count": 16543,
+        "status": "block",
+        "support_count": 0,
+        "support_ratio": 0.0
+      },
+      "symbol": "BTCUSDT"
+    },
+    {
+      "blocked_reasons": [
+        "blocked_zero_event_support"
+      ],
+      "condition_status": {
+        "missing_condition_keys": [],
+        "required_condition_keys": [],
+        "status": "pass"
+      },
+      "context_cell": "unconditional",
+      "event_atom_id": "vol_spike_core",
+      "event_family": "volatility",
+      "event_status": {
+        "blocking_columns": [],
+        "degraded_columns": [],
+        "required_columns": [
+          "timestamp",
+          "close",
+          "rv_96",
+          "range_96",
+          "range_med_2880"
+        ],
+        "status": "pass"
+      },
+      "event_type": "VOL_SPIKE",
+      "executability_class": "unconditional",
+      "split_detail": {
+        "bar_count": 52416,
+        "bars_source": "cleaned",
+        "coverage_ratio": 1.0,
+        "expected_bar_count": 52416,
+        "fold_count": 3,
+        "mode": "real",
+        "status": "pass",
+        "timestamp_max_utc": "2024-06-30 23:55:00+00:00",
+        "timestamp_min_utc": "2024-01-01 00:00:00+00:00"
+      },
+      "split_status": "pass",
+      "status": "block",
+      "support": {
+        "event_count": 0,
+        "reason": "blocked_zero_event_support",
+        "state_density_ratio": 1.0,
+        "state_row_count": 52129,
+        "status": "block",
+        "support_count": 0,
+        "support_ratio": 0.0
+      },
+      "symbol": "BTCUSDT"
+    },
+    {
+      "blocked_reasons": [
+        "blocked_zero_event_support"
+      ],
+      "condition_status": {
+        "missing_condition_keys": [],
+        "required_condition_keys": [
+          "high_vol_regime",
+          "vol_regime"
+        ],
+        "status": "pass"
+      },
+      "context_cell": "high_vol",
+      "event_atom_id": "vol_spike_core",
+      "event_family": "volatility",
+      "event_status": {
+        "blocking_columns": [],
+        "degraded_columns": [],
+        "required_columns": [
+          "timestamp",
+          "close",
+          "rv_96",
+          "range_96",
+          "range_med_2880"
+        ],
+        "status": "pass"
+      },
+      "event_type": "VOL_SPIKE",
+      "executability_class": "runtime",
+      "split_detail": {
+        "bar_count": 52416,
+        "bars_source": "cleaned",
+        "coverage_ratio": 1.0,
+        "expected_bar_count": 52416,
+        "fold_count": 3,
+        "mode": "real",
+        "status": "pass",
+        "timestamp_max_utc": "2024-06-30 23:55:00+00:00",
+        "timestamp_min_utc": "2024-01-01 00:00:00+00:00"
+      },
+      "split_status": "pass",
+      "status": "block",
+      "support": {
+        "event_count": 0,
+        "reason": "blocked_zero_event_support",
+        "state_density_ratio": 0.20848680171884593,
+        "state_row_count": 10868,
+        "status": "block",
+        "support_count": 0,
+        "support_ratio": 0.0
+      },
+      "symbol": "BTCUSDT"
+    },
+    {
+      "blocked_reasons": [
+        "blocked_zero_event_support"
+      ],
+      "condition_status": {
+        "missing_condition_keys": [],
+        "required_condition_keys": [
+          "low_vol_regime",
+          "vol_regime"
+        ],
+        "status": "pass"
+      },
+      "context_cell": "low_vol",
+      "event_atom_id": "vol_spike_core",
+      "event_family": "volatility",
+      "event_status": {
+        "blocking_columns": [],
+        "degraded_columns": [],
+        "required_columns": [
+          "timestamp",
+          "close",
+          "rv_96",
+          "range_96",
+          "range_med_2880"
+        ],
+        "status": "pass"
+      },
+      "event_type": "VOL_SPIKE",
+      "executability_class": "runtime",
+      "split_detail": {
+        "bar_count": 52416,
+        "bars_source": "cleaned",
+        "coverage_ratio": 1.0,
+        "expected_bar_count": 52416,
+        "fold_count": 3,
+        "mode": "real",
+        "status": "pass",
+        "timestamp_max_utc": "2024-06-30 23:55:00+00:00",
+        "timestamp_min_utc": "2024-01-01 00:00:00+00:00"
+      },
+      "split_status": "pass",
+      "status": "block",
+      "support": {
+        "event_count": 0,
+        "reason": "blocked_zero_event_support",
+        "state_density_ratio": 0.3842272866789441,
+        "state_row_count": 20029,
+        "status": "block",
+        "support_count": 0,
+        "support_ratio": 0.0
+      },
+      "symbol": "BTCUSDT"
+    },
+    {
+      "blocked_reasons": [
+        "blocked_zero_event_support"
+      ],
+      "condition_status": {
+        "missing_condition_keys": [],
+        "required_condition_keys": [
+          "carry_state",
+          "carry_state"
+        ],
+        "status": "pass"
+      },
+      "context_cell": "positive_funding",
+      "event_atom_id": "vol_spike_core",
+      "event_family": "volatility",
+      "event_status": {
+        "blocking_columns": [],
+        "degraded_columns": [],
+        "required_columns": [
+          "timestamp",
+          "close",
+          "rv_96",
+          "range_96",
+          "range_med_2880"
+        ],
+        "status": "pass"
+      },
+      "event_type": "VOL_SPIKE",
+      "executability_class": "supportive_only",
+      "split_detail": {
+        "bar_count": 52416,
+        "bars_source": "cleaned",
+        "coverage_ratio": 1.0,
+        "expected_bar_count": 52416,
+        "fold_count": 3,
+        "mode": "real",
+        "status": "pass",
+        "timestamp_max_utc": "2024-06-30 23:55:00+00:00",
+        "timestamp_min_utc": "2024-01-01 00:00:00+00:00"
+      },
+      "split_status": "pass",
+      "status": "block",
+      "support": {
+        "event_count": 0,
+        "reason": "blocked_zero_event_support",
+        "state_density_ratio": 0.9162254450583179,
+        "state_row_count": 47761,
+        "status": "block",
+        "support_count": 0,
+        "support_ratio": 0.0
+      },
+      "symbol": "BTCUSDT"
+    },
+    {
+      "blocked_reasons": [
+        "blocked_zero_event_support"
+      ],
+      "condition_status": {
+        "missing_condition_keys": [],
+        "required_condition_keys": [
+          "carry_state",
+          "carry_state"
+        ],
+        "status": "pass"
+      },
+      "context_cell": "negative_funding",
+      "event_atom_id": "vol_spike_core",
+      "event_family": "volatility",
+      "event_status": {
+        "blocking_columns": [],
+        "degraded_columns": [],
+        "required_columns": [
+          "timestamp",
+          "close",
+          "rv_96",
+          "range_96",
+          "range_med_2880"
+        ],
+        "status": "pass"
+      },
+      "event_type": "VOL_SPIKE",
+      "executability_class": "supportive_only",
+      "split_detail": {
+        "bar_count": 52416,
+        "bars_source": "cleaned",
+        "coverage_ratio": 1.0,
+        "expected_bar_count": 52416,
+        "fold_count": 3,
+        "mode": "real",
+        "status": "pass",
+        "timestamp_max_utc": "2024-06-30 23:55:00+00:00",
+        "timestamp_min_utc": "2024-01-01 00:00:00+00:00"
+      },
+      "split_status": "pass",
+      "status": "block",
+      "support": {
+        "event_count": 0,
+        "reason": "blocked_zero_event_support",
+        "state_density_ratio": 0.08377455494168201,
+        "state_row_count": 4367,
+        "status": "block",
+        "support_count": 0,
+        "support_ratio": 0.0
+      },
+      "symbol": "BTCUSDT"
+    },
+    {
+      "blocked_reasons": [
+        "blocked_missing_condition_keys",
+        "blocked_zero_event_support"
+      ],
+      "condition_status": {
+        "missing_condition_keys": [
+          "funding_regime"
+        ],
+        "required_condition_keys": [
+          "crowding_state",
+          "funding_regime"
+        ],
+        "status": "block"
+      },
+      "context_cell": "crowded_funding",
+      "event_atom_id": "vol_spike_core",
+      "event_family": "volatility",
+      "event_status": {
+        "blocking_columns": [],
+        "degraded_columns": [],
+        "required_columns": [
+          "timestamp",
+          "close",
+          "rv_96",
+          "range_96",
+          "range_med_2880"
+        ],
+        "status": "pass"
+      },
+      "event_type": "VOL_SPIKE",
+      "executability_class": "supportive_only",
+      "split_detail": {
+        "bar_count": 52416,
+        "bars_source": "cleaned",
+        "coverage_ratio": 1.0,
+        "expected_bar_count": 52416,
+        "fold_count": 3,
+        "mode": "real",
+        "status": "pass",
+        "timestamp_max_utc": "2024-06-30 23:55:00+00:00",
+        "timestamp_min_utc": "2024-01-01 00:00:00+00:00"
+      },
+      "split_status": "pass",
+      "status": "block",
+      "support": {
+        "event_count": 0,
+        "reason": "blocked_zero_event_support",
+        "state_density_ratio": 0.3324125230202578,
+        "state_row_count": 17328,
+        "status": "block",
+        "support_count": 0,
+        "support_ratio": 0.0
+      },
+      "symbol": "BTCUSDT"
+    },
+    {
+      "blocked_reasons": [
+        "blocked_zero_event_support"
+      ],
+      "condition_status": {
+        "missing_condition_keys": [],
+        "required_condition_keys": [
+          "ms_trend_state",
+          "ms_trend_state"
+        ],
+        "status": "pass"
+      },
+      "context_cell": "bullish_trend",
+      "event_atom_id": "vol_spike_core",
+      "event_family": "volatility",
+      "event_status": {
+        "blocking_columns": [],
+        "degraded_columns": [],
+        "required_columns": [
+          "timestamp",
+          "close",
+          "rv_96",
+          "range_96",
+          "range_med_2880"
+        ],
+        "status": "pass"
+      },
+      "event_type": "VOL_SPIKE",
+      "executability_class": "runtime",
+      "split_detail": {
+        "bar_count": 52416,
+        "bars_source": "cleaned",
+        "coverage_ratio": 1.0,
+        "expected_bar_count": 52416,
+        "fold_count": 3,
+        "mode": "real",
+        "status": "pass",
+        "timestamp_max_utc": "2024-06-30 23:55:00+00:00",
+        "timestamp_min_utc": "2024-01-01 00:00:00+00:00"
+      },
+      "split_status": "pass",
+      "status": "block",
+      "support": {
+        "event_count": 0,
+        "reason": "blocked_zero_event_support",
+        "state_density_ratio": 0.21303330263965622,
+        "state_row_count": 11105,
+        "status": "block",
+        "support_count": 0,
+        "support_ratio": 0.0
+      },
+      "symbol": "BTCUSDT"
+    },
+    {
+      "blocked_reasons": [
+        "blocked_zero_event_support"
+      ],
+      "condition_status": {
+        "missing_condition_keys": [],
+        "required_condition_keys": [
+          "ms_trend_state",
+          "ms_trend_state"
+        ],
+        "status": "pass"
+      },
+      "context_cell": "bearish_trend",
+      "event_atom_id": "vol_spike_core",
+      "event_family": "volatility",
+      "event_status": {
+        "blocking_columns": [],
+        "degraded_columns": [],
+        "required_columns": [
+          "timestamp",
+          "close",
+          "rv_96",
+          "range_96",
+          "range_med_2880"
+        ],
+        "status": "pass"
+      },
+      "event_type": "VOL_SPIKE",
+      "executability_class": "runtime",
+      "split_detail": {
+        "bar_count": 52416,
+        "bars_source": "cleaned",
+        "coverage_ratio": 1.0,
+        "expected_bar_count": 52416,
+        "fold_count": 3,
+        "mode": "real",
+        "status": "pass",
+        "timestamp_max_utc": "2024-06-30 23:55:00+00:00",
+        "timestamp_min_utc": "2024-01-01 00:00:00+00:00"
+      },
+      "split_status": "pass",
+      "status": "block",
+      "support": {
+        "event_count": 0,
+        "reason": "blocked_zero_event_support",
+        "state_density_ratio": 0.23073971761817066,
+        "state_row_count": 12028,
+        "status": "block",
+        "support_count": 0,
+        "support_ratio": 0.0
+      },
+      "symbol": "BTCUSDT"
+    },
+    {
+      "blocked_reasons": [
+        "blocked_zero_event_support"
+      ],
+      "condition_status": {
+        "missing_condition_keys": [],
+        "required_condition_keys": [
+          "ms_trend_state",
+          "ms_trend_state"
+        ],
+        "status": "pass"
+      },
+      "context_cell": "chop",
+      "event_atom_id": "vol_spike_core",
+      "event_family": "volatility",
+      "event_status": {
+        "blocking_columns": [],
+        "degraded_columns": [],
+        "required_columns": [
+          "timestamp",
+          "close",
+          "rv_96",
+          "range_96",
+          "range_med_2880"
+        ],
+        "status": "pass"
+      },
+      "event_type": "VOL_SPIKE",
+      "executability_class": "runtime",
+      "split_detail": {
+        "bar_count": 52416,
+        "bars_source": "cleaned",
+        "coverage_ratio": 1.0,
+        "expected_bar_count": 52416,
+        "fold_count": 3,
+        "mode": "real",
+        "status": "pass",
+        "timestamp_max_utc": "2024-06-30 23:55:00+00:00",
+        "timestamp_min_utc": "2024-01-01 00:00:00+00:00"
+      },
+      "split_status": "pass",
+      "status": "block",
+      "support": {
+        "event_count": 0,
+        "reason": "blocked_zero_event_support",
+        "state_density_ratio": 0.5562077961939841,
+        "state_row_count": 28994,
+        "status": "block",
+        "support_count": 0,
+        "support_ratio": 0.0
+      },
+      "symbol": "BTCUSDT"
+    },
+    {
+      "blocked_reasons": [
+        "blocked_zero_event_support"
+      ],
+      "condition_status": {
+        "missing_condition_keys": [],
+        "required_condition_keys": [
+          "ms_spread_state",
+          "ms_spread_state"
+        ],
+        "status": "pass"
+      },
+      "context_cell": "wide_spread",
+      "event_atom_id": "vol_spike_core",
+      "event_family": "volatility",
+      "event_status": {
+        "blocking_columns": [],
+        "degraded_columns": [],
+        "required_columns": [
+          "timestamp",
+          "close",
+          "rv_96",
+          "range_96",
+          "range_med_2880"
+        ],
+        "status": "pass"
+      },
+      "event_type": "VOL_SPIKE",
+      "executability_class": "runtime",
+      "split_detail": {
+        "bar_count": 52416,
+        "bars_source": "cleaned",
+        "coverage_ratio": 1.0,
+        "expected_bar_count": 52416,
+        "fold_count": 3,
+        "mode": "real",
+        "status": "pass",
+        "timestamp_max_utc": "2024-06-30 23:55:00+00:00",
+        "timestamp_min_utc": "2024-01-01 00:00:00+00:00"
+      },
+      "split_status": "pass",
+      "status": "block",
+      "support": {
+        "event_count": 0,
+        "reason": "blocked_zero_event_support",
+        "state_density_ratio": 0.3290937691835482,
+        "state_row_count": 17155,
+        "status": "block",
+        "support_count": 0,
+        "support_ratio": 0.0
+      },
+      "symbol": "BTCUSDT"
+    },
+    {
+      "blocked_reasons": [
+        "blocked_missing_condition_keys",
+        "blocked_zero_event_support"
+      ],
+      "condition_status": {
+        "missing_condition_keys": [
+          "liquidity_regime"
+        ],
+        "required_condition_keys": [
+          "liquidity_regime",
+          "low_liquidity_state"
+        ],
+        "status": "block"
+      },
+      "context_cell": "low_liquidity",
+      "event_atom_id": "vol_spike_core",
+      "event_family": "volatility",
+      "event_status": {
+        "blocking_columns": [],
+        "degraded_columns": [],
+        "required_columns": [
+          "timestamp",
+          "close",
+          "rv_96",
+          "range_96",
+          "range_med_2880"
+        ],
+        "status": "pass"
+      },
+      "event_type": "VOL_SPIKE",
+      "executability_class": "supportive_only",
+      "split_detail": {
+        "bar_count": 52416,
+        "bars_source": "cleaned",
+        "coverage_ratio": 1.0,
+        "expected_bar_count": 52416,
+        "fold_count": 3,
+        "mode": "real",
+        "status": "pass",
+        "timestamp_max_utc": "2024-06-30 23:55:00+00:00",
+        "timestamp_min_utc": "2024-01-01 00:00:00+00:00"
+      },
+      "split_status": "pass",
+      "status": "block",
+      "support": {
+        "event_count": 0,
+        "reason": "blocked_zero_event_support",
+        "state_density_ratio": 0.3173534376918355,
+        "state_row_count": 16543,
+        "status": "block",
+        "support_count": 0,
+        "support_ratio": 0.0
+      },
+      "symbol": "BTCUSDT"
+    },
+    {
+      "blocked_reasons": [
+        "blocked_zero_event_support"
+      ],
+      "condition_status": {
+        "missing_condition_keys": [],
+        "required_condition_keys": [],
+        "status": "pass"
+      },
+      "context_cell": "unconditional",
+      "event_atom_id": "vol_relaxation_core",
+      "event_family": "volatility",
+      "event_status": {
+        "blocking_columns": [],
+        "degraded_columns": [],
+        "required_columns": [
+          "timestamp",
+          "close",
+          "rv_96",
+          "range_96",
+          "range_med_2880"
+        ],
+        "status": "pass"
+      },
+      "event_type": "VOL_RELAXATION_START",
+      "executability_class": "unconditional",
+      "split_detail": {
+        "bar_count": 52416,
+        "bars_source": "cleaned",
+        "coverage_ratio": 1.0,
+        "expected_bar_count": 52416,
+        "fold_count": 3,
+        "mode": "real",
+        "status": "pass",
+        "timestamp_max_utc": "2024-06-30 23:55:00+00:00",
+        "timestamp_min_utc": "2024-01-01 00:00:00+00:00"
+      },
+      "split_status": "pass",
+      "status": "block",
+      "support": {
+        "event_count": 0,
+        "reason": "blocked_zero_event_support",
+        "state_density_ratio": 1.0,
+        "state_row_count": 52129,
+        "status": "block",
+        "support_count": 0,
+        "support_ratio": 0.0
+      },
+      "symbol": "BTCUSDT"
+    },
+    {
+      "blocked_reasons": [
+        "blocked_zero_event_support"
+      ],
+      "condition_status": {
+        "missing_condition_keys": [],
+        "required_condition_keys": [
+          "high_vol_regime",
+          "vol_regime"
+        ],
+        "status": "pass"
+      },
+      "context_cell": "high_vol",
+      "event_atom_id": "vol_relaxation_core",
+      "event_family": "volatility",
+      "event_status": {
+        "blocking_columns": [],
+        "degraded_columns": [],
+        "required_columns": [
+          "timestamp",
+          "close",
+          "rv_96",
+          "range_96",
+          "range_med_2880"
+        ],
+        "status": "pass"
+      },
+      "event_type": "VOL_RELAXATION_START",
+      "executability_class": "runtime",
+      "split_detail": {
+        "bar_count": 52416,
+        "bars_source": "cleaned",
+        "coverage_ratio": 1.0,
+        "expected_bar_count": 52416,
+        "fold_count": 3,
+        "mode": "real",
+        "status": "pass",
+        "timestamp_max_utc": "2024-06-30 23:55:00+00:00",
+        "timestamp_min_utc": "2024-01-01 00:00:00+00:00"
+      },
+      "split_status": "pass",
+      "status": "block",
+      "support": {
+        "event_count": 0,
+        "reason": "blocked_zero_event_support",
+        "state_density_ratio": 0.20848680171884593,
+        "state_row_count": 10868,
+        "status": "block",
+        "support_count": 0,
+        "support_ratio": 0.0
+      },
+      "symbol": "BTCUSDT"
+    },
+    {
+      "blocked_reasons": [
+        "blocked_zero_event_support"
+      ],
+      "condition_status": {
+        "missing_condition_keys": [],
+        "required_condition_keys": [
+          "low_vol_regime",
+          "vol_regime"
+        ],
+        "status": "pass"
+      },
+      "context_cell": "low_vol",
+      "event_atom_id": "vol_relaxation_core",
+      "event_family": "volatility",
+      "event_status": {
+        "blocking_columns": [],
+        "degraded_columns": [],
+        "required_columns": [
+          "timestamp",
+          "close",
+          "rv_96",
+          "range_96",
+          "range_med_2880"
+        ],
+        "status": "pass"
+      },
+      "event_type": "VOL_RELAXATION_START",
+      "executability_class": "runtime",
+      "split_detail": {
+        "bar_count": 52416,
+        "bars_source": "cleaned",
+        "coverage_ratio": 1.0,
+        "expected_bar_count": 52416,
+        "fold_count": 3,
+        "mode": "real",
+        "status": "pass",
+        "timestamp_max_utc": "2024-06-30 23:55:00+00:00",
+        "timestamp_min_utc": "2024-01-01 00:00:00+00:00"
+      },
+      "split_status": "pass",
+      "status": "block",
+      "support": {
+        "event_count": 0,
+        "reason": "blocked_zero_event_support",
+        "state_density_ratio": 0.3842272866789441,
+        "state_row_count": 20029,
+        "status": "block",
+        "support_count": 0,
+        "support_ratio": 0.0
+      },
+      "symbol": "BTCUSDT"
+    },
+    {
+      "blocked_reasons": [
+        "blocked_zero_event_support"
+      ],
+      "condition_status": {
+        "missing_condition_keys": [],
+        "required_condition_keys": [
+          "carry_state",
+          "carry_state"
+        ],
+        "status": "pass"
+      },
+      "context_cell": "positive_funding",
+      "event_atom_id": "vol_relaxation_core",
+      "event_family": "volatility",
+      "event_status": {
+        "blocking_columns": [],
+        "degraded_columns": [],
+        "required_columns": [
+          "timestamp",
+          "close",
+          "rv_96",
+          "range_96",
+          "range_med_2880"
+        ],
+        "status": "pass"
+      },
+      "event_type": "VOL_RELAXATION_START",
+      "executability_class": "supportive_only",
+      "split_detail": {
+        "bar_count": 52416,
+        "bars_source": "cleaned",
+        "coverage_ratio": 1.0,
+        "expected_bar_count": 52416,
+        "fold_count": 3,
+        "mode": "real",
+        "status": "pass",
+        "timestamp_max_utc": "2024-06-30 23:55:00+00:00",
+        "timestamp_min_utc": "2024-01-01 00:00:00+00:00"
+      },
+      "split_status": "pass",
+      "status": "block",
+      "support": {
+        "event_count": 0,
+        "reason": "blocked_zero_event_support",
+        "state_density_ratio": 0.9162254450583179,
+        "state_row_count": 47761,
+        "status": "block",
+        "support_count": 0,
+        "support_ratio": 0.0
+      },
+      "symbol": "BTCUSDT"
+    },
+    {
+      "blocked_reasons": [
+        "blocked_zero_event_support"
+      ],
+      "condition_status": {
+        "missing_condition_keys": [],
+        "required_condition_keys": [
+          "carry_state",
+          "carry_state"
+        ],
+        "status": "pass"
+      },
+      "context_cell": "negative_funding",
+      "event_atom_id": "vol_relaxation_core",
+      "event_family": "volatility",
+      "event_status": {
+        "blocking_columns": [],
+        "degraded_columns": [],
+        "required_columns": [
+          "timestamp",
+          "close",
+          "rv_96",
+          "range_96",
+          "range_med_2880"
+        ],
+        "status": "pass"
+      },
+      "event_type": "VOL_RELAXATION_START",
+      "executability_class": "supportive_only",
+      "split_detail": {
+        "bar_count": 52416,
+        "bars_source": "cleaned",
+        "coverage_ratio": 1.0,
+        "expected_bar_count": 52416,
+        "fold_count": 3,
+        "mode": "real",
+        "status": "pass",
+        "timestamp_max_utc": "2024-06-30 23:55:00+00:00",
+        "timestamp_min_utc": "2024-01-01 00:00:00+00:00"
+      },
+      "split_status": "pass",
+      "status": "block",
+      "support": {
+        "event_count": 0,
+        "reason": "blocked_zero_event_support",
+        "state_density_ratio": 0.08377455494168201,
+        "state_row_count": 4367,
+        "status": "block",
+        "support_count": 0,
+        "support_ratio": 0.0
+      },
+      "symbol": "BTCUSDT"
+    },
+    {
+      "blocked_reasons": [
+        "blocked_missing_condition_keys",
+        "blocked_zero_event_support"
+      ],
+      "condition_status": {
+        "missing_condition_keys": [
+          "funding_regime"
+        ],
+        "required_condition_keys": [
+          "crowding_state",
+          "funding_regime"
+        ],
+        "status": "block"
+      },
+      "context_cell": "crowded_funding",
+      "event_atom_id": "vol_relaxation_core",
+      "event_family": "volatility",
+      "event_status": {
+        "blocking_columns": [],
+        "degraded_columns": [],
+        "required_columns": [
+          "timestamp",
+          "close",
+          "rv_96",
+          "range_96",
+          "range_med_2880"
+        ],
+        "status": "pass"
+      },
+      "event_type": "VOL_RELAXATION_START",
+      "executability_class": "supportive_only",
+      "split_detail": {
+        "bar_count": 52416,
+        "bars_source": "cleaned",
+        "coverage_ratio": 1.0,
+        "expected_bar_count": 52416,
+        "fold_count": 3,
+        "mode": "real",
+        "status": "pass",
+        "timestamp_max_utc": "2024-06-30 23:55:00+00:00",
+        "timestamp_min_utc": "2024-01-01 00:00:00+00:00"
+      },
+      "split_status": "pass",
+      "status": "block",
+      "support": {
+        "event_count": 0,
+        "reason": "blocked_zero_event_support",
+        "state_density_ratio": 0.3324125230202578,
+        "state_row_count": 17328,
+        "status": "block",
+        "support_count": 0,
+        "support_ratio": 0.0
+      },
+      "symbol": "BTCUSDT"
+    },
+    {
+      "blocked_reasons": [
+        "blocked_zero_event_support"
+      ],
+      "condition_status": {
+        "missing_condition_keys": [],
+        "required_condition_keys": [
+          "ms_trend_state",
+          "ms_trend_state"
+        ],
+        "status": "pass"
+      },
+      "context_cell": "bullish_trend",
+      "event_atom_id": "vol_relaxation_core",
+      "event_family": "volatility",
+      "event_status": {
+        "blocking_columns": [],
+        "degraded_columns": [],
+        "required_columns": [
+          "timestamp",
+          "close",
+          "rv_96",
+          "range_96",
+          "range_med_2880"
+        ],
+        "status": "pass"
+      },
+      "event_type": "VOL_RELAXATION_START",
+      "executability_class": "runtime",
+      "split_detail": {
+        "bar_count": 52416,
+        "bars_source": "cleaned",
+        "coverage_ratio": 1.0,
+        "expected_bar_count": 52416,
+        "fold_count": 3,
+        "mode": "real",
+        "status": "pass",
+        "timestamp_max_utc": "2024-06-30 23:55:00+00:00",
+        "timestamp_min_utc": "2024-01-01 00:00:00+00:00"
+      },
+      "split_status": "pass",
+      "status": "block",
+      "support": {
+        "event_count": 0,
+        "reason": "blocked_zero_event_support",
+        "state_density_ratio": 0.21303330263965622,
+        "state_row_count": 11105,
+        "status": "block",
+        "support_count": 0,
+        "support_ratio": 0.0
+      },
+      "symbol": "BTCUSDT"
+    },
+    {
+      "blocked_reasons": [
+        "blocked_zero_event_support"
+      ],
+      "condition_status": {
+        "missing_condition_keys": [],
+        "required_condition_keys": [
+          "ms_trend_state",
+          "ms_trend_state"
+        ],
+        "status": "pass"
+      },
+      "context_cell": "bearish_trend",
+      "event_atom_id": "vol_relaxation_core",
+      "event_family": "volatility",
+      "event_status": {
+        "blocking_columns": [],
+        "degraded_columns": [],
+        "required_columns": [
+          "timestamp",
+          "close",
+          "rv_96",
+          "range_96",
+          "range_med_2880"
+        ],
+        "status": "pass"
+      },
+      "event_type": "VOL_RELAXATION_START",
+      "executability_class": "runtime",
+      "split_detail": {
+        "bar_count": 52416,
+        "bars_source": "cleaned",
+        "coverage_ratio": 1.0,
+        "expected_bar_count": 52416,
+        "fold_count": 3,
+        "mode": "real",
+        "status": "pass",
+        "timestamp_max_utc": "2024-06-30 23:55:00+00:00",
+        "timestamp_min_utc": "2024-01-01 00:00:00+00:00"
+      },
+      "split_status": "pass",
+      "status": "block",
+      "support": {
+        "event_count": 0,
+        "reason": "blocked_zero_event_support",
+        "state_density_ratio": 0.23073971761817066,
+        "state_row_count": 12028,
+        "status": "block",
+        "support_count": 0,
+        "support_ratio": 0.0
+      },
+      "symbol": "BTCUSDT"
+    },
+    {
+      "blocked_reasons": [
+        "blocked_zero_event_support"
+      ],
+      "condition_status": {
+        "missing_condition_keys": [],
+        "required_condition_keys": [
+          "ms_trend_state",
+          "ms_trend_state"
+        ],
+        "status": "pass"
+      },
+      "context_cell": "chop",
+      "event_atom_id": "vol_relaxation_core",
+      "event_family": "volatility",
+      "event_status": {
+        "blocking_columns": [],
+        "degraded_columns": [],
+        "required_columns": [
+          "timestamp",
+          "close",
+          "rv_96",
+          "range_96",
+          "range_med_2880"
+        ],
+        "status": "pass"
+      },
+      "event_type": "VOL_RELAXATION_START",
+      "executability_class": "runtime",
+      "split_detail": {
+        "bar_count": 52416,
+        "bars_source": "cleaned",
+        "coverage_ratio": 1.0,
+        "expected_bar_count": 52416,
+        "fold_count": 3,
+        "mode": "real",
+        "status": "pass",
+        "timestamp_max_utc": "2024-06-30 23:55:00+00:00",
+        "timestamp_min_utc": "2024-01-01 00:00:00+00:00"
+      },
+      "split_status": "pass",
+      "status": "block",
+      "support": {
+        "event_count": 0,
+        "reason": "blocked_zero_event_support",
+        "state_density_ratio": 0.5562077961939841,
+        "state_row_count": 28994,
+        "status": "block",
+        "support_count": 0,
+        "support_ratio": 0.0
+      },
+      "symbol": "BTCUSDT"
+    },
+    {
+      "blocked_reasons": [
+        "blocked_zero_event_support"
+      ],
+      "condition_status": {
+        "missing_condition_keys": [],
+        "required_condition_keys": [
+          "ms_spread_state",
+          "ms_spread_state"
+        ],
+        "status": "pass"
+      },
+      "context_cell": "wide_spread",
+      "event_atom_id": "vol_relaxation_core",
+      "event_family": "volatility",
+      "event_status": {
+        "blocking_columns": [],
+        "degraded_columns": [],
+        "required_columns": [
+          "timestamp",
+          "close",
+          "rv_96",
+          "range_96",
+          "range_med_2880"
+        ],
+        "status": "pass"
+      },
+      "event_type": "VOL_RELAXATION_START",
+      "executability_class": "runtime",
+      "split_detail": {
+        "bar_count": 52416,
+        "bars_source": "cleaned",
+        "coverage_ratio": 1.0,
+        "expected_bar_count": 52416,
+        "fold_count": 3,
+        "mode": "real",
+        "status": "pass",
+        "timestamp_max_utc": "2024-06-30 23:55:00+00:00",
+        "timestamp_min_utc": "2024-01-01 00:00:00+00:00"
+      },
+      "split_status": "pass",
+      "status": "block",
+      "support": {
+        "event_count": 0,
+        "reason": "blocked_zero_event_support",
+        "state_density_ratio": 0.3290937691835482,
+        "state_row_count": 17155,
+        "status": "block",
+        "support_count": 0,
+        "support_ratio": 0.0
+      },
+      "symbol": "BTCUSDT"
+    },
+    {
+      "blocked_reasons": [
+        "blocked_missing_condition_keys",
+        "blocked_zero_event_support"
+      ],
+      "condition_status": {
+        "missing_condition_keys": [
+          "liquidity_regime"
+        ],
+        "required_condition_keys": [
+          "liquidity_regime",
+          "low_liquidity_state"
+        ],
+        "status": "block"
+      },
+      "context_cell": "low_liquidity",
+      "event_atom_id": "vol_relaxation_core",
+      "event_family": "volatility",
+      "event_status": {
+        "blocking_columns": [],
+        "degraded_columns": [],
+        "required_columns": [
+          "timestamp",
+          "close",
+          "rv_96",
+          "range_96",
+          "range_med_2880"
+        ],
+        "status": "pass"
+      },
+      "event_type": "VOL_RELAXATION_START",
+      "executability_class": "supportive_only",
+      "split_detail": {
+        "bar_count": 52416,
+        "bars_source": "cleaned",
+        "coverage_ratio": 1.0,
+        "expected_bar_count": 52416,
+        "fold_count": 3,
+        "mode": "real",
+        "status": "pass",
+        "timestamp_max_utc": "2024-06-30 23:55:00+00:00",
+        "timestamp_min_utc": "2024-01-01 00:00:00+00:00"
+      },
+      "split_status": "pass",
+      "status": "block",
+      "support": {
+        "event_count": 0,
+        "reason": "blocked_zero_event_support",
+        "state_density_ratio": 0.3173534376918355,
+        "state_row_count": 16543,
+        "status": "block",
+        "support_count": 0,
+        "support_ratio": 0.0
+      },
+      "symbol": "BTCUSDT"
+    },
+    {
+      "blocked_reasons": [
+        "blocked_zero_event_support"
+      ],
+      "condition_status": {
+        "missing_condition_keys": [],
+        "required_condition_keys": [],
+        "status": "pass"
+      },
+      "context_cell": "unconditional",
+      "event_atom_id": "liquidity_vacuum_core",
+      "event_family": "liquidity",
+      "event_status": {
+        "blocking_columns": [],
+        "degraded_columns": [],
+        "required_columns": [
+          "timestamp",
+          "close",
+          "high",
+          "low"
+        ],
+        "status": "pass"
+      },
+      "event_type": "LIQUIDITY_VACUUM",
+      "executability_class": "unconditional",
+      "split_detail": {
+        "bar_count": 52416,
+        "bars_source": "cleaned",
+        "coverage_ratio": 1.0,
+        "expected_bar_count": 52416,
+        "fold_count": 3,
+        "mode": "real",
+        "status": "pass",
+        "timestamp_max_utc": "2024-06-30 23:55:00+00:00",
+        "timestamp_min_utc": "2024-01-01 00:00:00+00:00"
+      },
+      "split_status": "pass",
+      "status": "block",
+      "support": {
+        "event_count": 0,
+        "reason": "blocked_zero_event_support",
+        "state_density_ratio": 1.0,
+        "state_row_count": 52129,
+        "status": "block",
+        "support_count": 0,
+        "support_ratio": 0.0
+      },
+      "symbol": "BTCUSDT"
+    },
+    {
+      "blocked_reasons": [
+        "blocked_zero_event_support"
+      ],
+      "condition_status": {
+        "missing_condition_keys": [],
+        "required_condition_keys": [
+          "high_vol_regime",
+          "vol_regime"
+        ],
+        "status": "pass"
+      },
+      "context_cell": "high_vol",
+      "event_atom_id": "liquidity_vacuum_core",
+      "event_family": "liquidity",
+      "event_status": {
+        "blocking_columns": [],
+        "degraded_columns": [],
+        "required_columns": [
+          "timestamp",
+          "close",
+          "high",
+          "low"
+        ],
+        "status": "pass"
+      },
+      "event_type": "LIQUIDITY_VACUUM",
+      "executability_class": "runtime",
+      "split_detail": {
+        "bar_count": 52416,
+        "bars_source": "cleaned",
+        "coverage_ratio": 1.0,
+        "expected_bar_count": 52416,
+        "fold_count": 3,
+        "mode": "real",
+        "status": "pass",
+        "timestamp_max_utc": "2024-06-30 23:55:00+00:00",
+        "timestamp_min_utc": "2024-01-01 00:00:00+00:00"
+      },
+      "split_status": "pass",
+      "status": "block",
+      "support": {
+        "event_count": 0,
+        "reason": "blocked_zero_event_support",
+        "state_density_ratio": 0.20848680171884593,
+        "state_row_count": 10868,
+        "status": "block",
+        "support_count": 0,
+        "support_ratio": 0.0
+      },
+      "symbol": "BTCUSDT"
+    },
+    {
+      "blocked_reasons": [
+        "blocked_zero_event_support"
+      ],
+      "condition_status": {
+        "missing_condition_keys": [],
+        "required_condition_keys": [
+          "low_vol_regime",
+          "vol_regime"
+        ],
+        "status": "pass"
+      },
+      "context_cell": "low_vol",
+      "event_atom_id": "liquidity_vacuum_core",
+      "event_family": "liquidity",
+      "event_status": {
+        "blocking_columns": [],
+        "degraded_columns": [],
+        "required_columns": [
+          "timestamp",
+          "close",
+          "high",
+          "low"
+        ],
+        "status": "pass"
+      },
+      "event_type": "LIQUIDITY_VACUUM",
+      "executability_class": "runtime",
+      "split_detail": {
+        "bar_count": 52416,
+        "bars_source": "cleaned",
+        "coverage_ratio": 1.0,
+        "expected_bar_count": 52416,
+        "fold_count": 3,
+        "mode": "real",
+        "status": "pass",
+        "timestamp_max_utc": "2024-06-30 23:55:00+00:00",
+        "timestamp_min_utc": "2024-01-01 00:00:00+00:00"
+      },
+      "split_status": "pass",
+      "status": "block",
+      "support": {
+        "event_count": 0,
+        "reason": "blocked_zero_event_support",
+        "state_density_ratio": 0.3842272866789441,
+        "state_row_count": 20029,
+        "status": "block",
+        "support_count": 0,
+        "support_ratio": 0.0
+      },
+      "symbol": "BTCUSDT"
+    },
+    {
+      "blocked_reasons": [
+        "blocked_zero_event_support"
+      ],
+      "condition_status": {
+        "missing_condition_keys": [],
+        "required_condition_keys": [
+          "carry_state",
+          "carry_state"
+        ],
+        "status": "pass"
+      },
+      "context_cell": "positive_funding",
+      "event_atom_id": "liquidity_vacuum_core",
+      "event_family": "liquidity",
+      "event_status": {
+        "blocking_columns": [],
+        "degraded_columns": [],
+        "required_columns": [
+          "timestamp",
+          "close",
+          "high",
+          "low"
+        ],
+        "status": "pass"
+      },
+      "event_type": "LIQUIDITY_VACUUM",
+      "executability_class": "supportive_only",
+      "split_detail": {
+        "bar_count": 52416,
+        "bars_source": "cleaned",
+        "coverage_ratio": 1.0,
+        "expected_bar_count": 52416,
+        "fold_count": 3,
+        "mode": "real",
+        "status": "pass",
+        "timestamp_max_utc": "2024-06-30 23:55:00+00:00",
+        "timestamp_min_utc": "2024-01-01 00:00:00+00:00"
+      },
+      "split_status": "pass",
+      "status": "block",
+      "support": {
+        "event_count": 0,
+        "reason": "blocked_zero_event_support",
+        "state_density_ratio": 0.9162254450583179,
+        "state_row_count": 47761,
+        "status": "block",
+        "support_count": 0,
+        "support_ratio": 0.0
+      },
+      "symbol": "BTCUSDT"
+    },
+    {
+      "blocked_reasons": [
+        "blocked_zero_event_support"
+      ],
+      "condition_status": {
+        "missing_condition_keys": [],
+        "required_condition_keys": [
+          "carry_state",
+          "carry_state"
+        ],
+        "status": "pass"
+      },
+      "context_cell": "negative_funding",
+      "event_atom_id": "liquidity_vacuum_core",
+      "event_family": "liquidity",
+      "event_status": {
+        "blocking_columns": [],
+        "degraded_columns": [],
+        "required_columns": [
+          "timestamp",
+          "close",
+          "high",
+          "low"
+        ],
+        "status": "pass"
+      },
+      "event_type": "LIQUIDITY_VACUUM",
+      "executability_class": "supportive_only",
+      "split_detail": {
+        "bar_count": 52416,
+        "bars_source": "cleaned",
+        "coverage_ratio": 1.0,
+        "expected_bar_count": 52416,
+        "fold_count": 3,
+        "mode": "real",
+        "status": "pass",
+        "timestamp_max_utc": "2024-06-30 23:55:00+00:00",
+        "timestamp_min_utc": "2024-01-01 00:00:00+00:00"
+      },
+      "split_status": "pass",
+      "status": "block",
+      "support": {
+        "event_count": 0,
+        "reason": "blocked_zero_event_support",
+        "state_density_ratio": 0.08377455494168201,
+        "state_row_count": 4367,
+        "status": "block",
+        "support_count": 0,
+        "support_ratio": 0.0
+      },
+      "symbol": "BTCUSDT"
+    },
+    {
+      "blocked_reasons": [
+        "blocked_missing_condition_keys",
+        "blocked_zero_event_support"
+      ],
+      "condition_status": {
+        "missing_condition_keys": [
+          "funding_regime"
+        ],
+        "required_condition_keys": [
+          "crowding_state",
+          "funding_regime"
+        ],
+        "status": "block"
+      },
+      "context_cell": "crowded_funding",
+      "event_atom_id": "liquidity_vacuum_core",
+      "event_family": "liquidity",
+      "event_status": {
+        "blocking_columns": [],
+        "degraded_columns": [],
+        "required_columns": [
+          "timestamp",
+          "close",
+          "high",
+          "low"
+        ],
+        "status": "pass"
+      },
+      "event_type": "LIQUIDITY_VACUUM",
+      "executability_class": "supportive_only",
+      "split_detail": {
+        "bar_count": 52416,
+        "bars_source": "cleaned",
+        "coverage_ratio": 1.0,
+        "expected_bar_count": 52416,
+        "fold_count": 3,
+        "mode": "real",
+        "status": "pass",
+        "timestamp_max_utc": "2024-06-30 23:55:00+00:00",
+        "timestamp_min_utc": "2024-01-01 00:00:00+00:00"
+      },
+      "split_status": "pass",
+      "status": "block",
+      "support": {
+        "event_count": 0,
+        "reason": "blocked_zero_event_support",
+        "state_density_ratio": 0.3324125230202578,
+        "state_row_count": 17328,
+        "status": "block",
+        "support_count": 0,
+        "support_ratio": 0.0
+      },
+      "symbol": "BTCUSDT"
+    },
+    {
+      "blocked_reasons": [
+        "blocked_zero_event_support"
+      ],
+      "condition_status": {
+        "missing_condition_keys": [],
+        "required_condition_keys": [
+          "ms_trend_state",
+          "ms_trend_state"
+        ],
+        "status": "pass"
+      },
+      "context_cell": "bullish_trend",
+      "event_atom_id": "liquidity_vacuum_core",
+      "event_family": "liquidity",
+      "event_status": {
+        "blocking_columns": [],
+        "degraded_columns": [],
+        "required_columns": [
+          "timestamp",
+          "close",
+          "high",
+          "low"
+        ],
+        "status": "pass"
+      },
+      "event_type": "LIQUIDITY_VACUUM",
+      "executability_class": "runtime",
+      "split_detail": {
+        "bar_count": 52416,
+        "bars_source": "cleaned",
+        "coverage_ratio": 1.0,
+        "expected_bar_count": 52416,
+        "fold_count": 3,
+        "mode": "real",
+        "status": "pass",
+        "timestamp_max_utc": "2024-06-30 23:55:00+00:00",
+        "timestamp_min_utc": "2024-01-01 00:00:00+00:00"
+      },
+      "split_status": "pass",
+      "status": "block",
+      "support": {
+        "event_count": 0,
+        "reason": "blocked_zero_event_support",
+        "state_density_ratio": 0.21303330263965622,
+        "state_row_count": 11105,
+        "status": "block",
+        "support_count": 0,
+        "support_ratio": 0.0
+      },
+      "symbol": "BTCUSDT"
+    },
+    {
+      "blocked_reasons": [
+        "blocked_zero_event_support"
+      ],
+      "condition_status": {
+        "missing_condition_keys": [],
+        "required_condition_keys": [
+          "ms_trend_state",
+          "ms_trend_state"
+        ],
+        "status": "pass"
+      },
+      "context_cell": "bearish_trend",
+      "event_atom_id": "liquidity_vacuum_core",
+      "event_family": "liquidity",
+      "event_status": {
+        "blocking_columns": [],
+        "degraded_columns": [],
+        "required_columns": [
+          "timestamp",
+          "close",
+          "high",
+          "low"
+        ],
+        "status": "pass"
+      },
+      "event_type": "LIQUIDITY_VACUUM",
+      "executability_class": "runtime",
+      "split_detail": {
+        "bar_count": 52416,
+        "bars_source": "cleaned",
+        "coverage_ratio": 1.0,
+        "expected_bar_count": 52416,
+        "fold_count": 3,
+        "mode": "real",
+        "status": "pass",
+        "timestamp_max_utc": "2024-06-30 23:55:00+00:00",
+        "timestamp_min_utc": "2024-01-01 00:00:00+00:00"
+      },
+      "split_status": "pass",
+      "status": "block",
+      "support": {
+        "event_count": 0,
+        "reason": "blocked_zero_event_support",
+        "state_density_ratio": 0.23073971761817066,
+        "state_row_count": 12028,
+        "status": "block",
+        "support_count": 0,
+        "support_ratio": 0.0
+      },
+      "symbol": "BTCUSDT"
+    },
+    {
+      "blocked_reasons": [
+        "blocked_zero_event_support"
+      ],
+      "condition_status": {
+        "missing_condition_keys": [],
+        "required_condition_keys": [
+          "ms_trend_state",
+          "ms_trend_state"
+        ],
+        "status": "pass"
+      },
+      "context_cell": "chop",
+      "event_atom_id": "liquidity_vacuum_core",
+      "event_family": "liquidity",
+      "event_status": {
+        "blocking_columns": [],
+        "degraded_columns": [],
+        "required_columns": [
+          "timestamp",
+          "close",
+          "high",
+          "low"
+        ],
+        "status": "pass"
+      },
+      "event_type": "LIQUIDITY_VACUUM",
+      "executability_class": "runtime",
+      "split_detail": {
+        "bar_count": 52416,
+        "bars_source": "cleaned",
+        "coverage_ratio": 1.0,
+        "expected_bar_count": 52416,
+        "fold_count": 3,
+        "mode": "real",
+        "status": "pass",
+        "timestamp_max_utc": "2024-06-30 23:55:00+00:00",
+        "timestamp_min_utc": "2024-01-01 00:00:00+00:00"
+      },
+      "split_status": "pass",
+      "status": "block",
+      "support": {
+        "event_count": 0,
+        "reason": "blocked_zero_event_support",
+        "state_density_ratio": 0.5562077961939841,
+        "state_row_count": 28994,
+        "status": "block",
+        "support_count": 0,
+        "support_ratio": 0.0
+      },
+      "symbol": "BTCUSDT"
+    },
+    {
+      "blocked_reasons": [
+        "blocked_zero_event_support"
+      ],
+      "condition_status": {
+        "missing_condition_keys": [],
+        "required_condition_keys": [
+          "ms_spread_state",
+          "ms_spread_state"
+        ],
+        "status": "pass"
+      },
+      "context_cell": "wide_spread",
+      "event_atom_id": "liquidity_vacuum_core",
+      "event_family": "liquidity",
+      "event_status": {
+        "blocking_columns": [],
+        "degraded_columns": [],
+        "required_columns": [
+          "timestamp",
+          "close",
+          "high",
+          "low"
+        ],
+        "status": "pass"
+      },
+      "event_type": "LIQUIDITY_VACUUM",
+      "executability_class": "runtime",
+      "split_detail": {
+        "bar_count": 52416,
+        "bars_source": "cleaned",
+        "coverage_ratio": 1.0,
+        "expected_bar_count": 52416,
+        "fold_count": 3,
+        "mode": "real",
+        "status": "pass",
+        "timestamp_max_utc": "2024-06-30 23:55:00+00:00",
+        "timestamp_min_utc": "2024-01-01 00:00:00+00:00"
+      },
+      "split_status": "pass",
+      "status": "block",
+      "support": {
+        "event_count": 0,
+        "reason": "blocked_zero_event_support",
+        "state_density_ratio": 0.3290937691835482,
+        "state_row_count": 17155,
+        "status": "block",
+        "support_count": 0,
+        "support_ratio": 0.0
+      },
+      "symbol": "BTCUSDT"
+    },
+    {
+      "blocked_reasons": [
+        "blocked_missing_condition_keys",
+        "blocked_zero_event_support"
+      ],
+      "condition_status": {
+        "missing_condition_keys": [
+          "liquidity_regime"
+        ],
+        "required_condition_keys": [
+          "liquidity_regime",
+          "low_liquidity_state"
+        ],
+        "status": "block"
+      },
+      "context_cell": "low_liquidity",
+      "event_atom_id": "liquidity_vacuum_core",
+      "event_family": "liquidity",
+      "event_status": {
+        "blocking_columns": [],
+        "degraded_columns": [],
+        "required_columns": [
+          "timestamp",
+          "close",
+          "high",
+          "low"
+        ],
+        "status": "pass"
+      },
+      "event_type": "LIQUIDITY_VACUUM",
+      "executability_class": "supportive_only",
+      "split_detail": {
+        "bar_count": 52416,
+        "bars_source": "cleaned",
+        "coverage_ratio": 1.0,
+        "expected_bar_count": 52416,
+        "fold_count": 3,
+        "mode": "real",
+        "status": "pass",
+        "timestamp_max_utc": "2024-06-30 23:55:00+00:00",
+        "timestamp_min_utc": "2024-01-01 00:00:00+00:00"
+      },
+      "split_status": "pass",
+      "status": "block",
+      "support": {
+        "event_count": 0,
+        "reason": "blocked_zero_event_support",
+        "state_density_ratio": 0.3173534376918355,
+        "state_row_count": 16543,
+        "status": "block",
+        "support_count": 0,
+        "support_ratio": 0.0
+      },
+      "symbol": "BTCUSDT"
+    },
+    {
+      "blocked_reasons": [
+        "blocked_missing_condition_keys"
+      ],
+      "condition_status": {
+        "missing_condition_keys": [
+          "funding_regime"
+        ],
+        "required_condition_keys": [
+          "crowding_state",
+          "funding_regime"
+        ],
+        "status": "block"
+      },
+      "context_cell": "crowded_funding",
+      "event_atom_id": "funding_extreme_core",
+      "event_family": "funding",
+      "event_status": {
+        "blocking_columns": [],
+        "degraded_columns": [],
+        "required_columns": [
+          "timestamp",
+          "funding_abs_pct",
+          "funding_abs"
+        ],
+        "status": "pass"
+      },
+      "event_type": "FUNDING_EXTREME_ONSET",
+      "executability_class": "supportive_only",
+      "split_detail": {
+        "bar_count": 52416,
+        "bars_source": "cleaned",
+        "coverage_ratio": 1.0,
+        "expected_bar_count": 52416,
+        "fold_count": 3,
+        "mode": "real",
+        "status": "pass",
+        "timestamp_max_utc": "2024-06-30 23:55:00+00:00",
+        "timestamp_min_utc": "2024-01-01 00:00:00+00:00"
+      },
+      "split_status": "pass",
+      "status": "block",
+      "support": {
+        "event_count": 148,
+        "reason": "support_ok",
+        "state_density_ratio": 0.3324125230202578,
+        "state_row_count": 17328,
+        "status": "pass",
+        "support_count": 59,
+        "support_ratio": 0.39864864864864863
+      },
+      "symbol": "BTCUSDT"
+    },
+    {
+      "blocked_reasons": [
+        "blocked_missing_condition_keys"
+      ],
+      "condition_status": {
+        "missing_condition_keys": [
+          "liquidity_regime"
+        ],
+        "required_condition_keys": [
+          "liquidity_regime",
+          "low_liquidity_state"
+        ],
+        "status": "block"
+      },
+      "context_cell": "low_liquidity",
+      "event_atom_id": "funding_extreme_core",
+      "event_family": "funding",
+      "event_status": {
+        "blocking_columns": [],
+        "degraded_columns": [],
+        "required_columns": [
+          "timestamp",
+          "funding_abs_pct",
+          "funding_abs"
+        ],
+        "status": "pass"
+      },
+      "event_type": "FUNDING_EXTREME_ONSET",
+      "executability_class": "supportive_only",
+      "split_detail": {
+        "bar_count": 52416,
+        "bars_source": "cleaned",
+        "coverage_ratio": 1.0,
+        "expected_bar_count": 52416,
+        "fold_count": 3,
+        "mode": "real",
+        "status": "pass",
+        "timestamp_max_utc": "2024-06-30 23:55:00+00:00",
+        "timestamp_min_utc": "2024-01-01 00:00:00+00:00"
+      },
+      "split_status": "pass",
+      "status": "block",
+      "support": {
+        "event_count": 148,
+        "reason": "support_ok",
+        "state_density_ratio": 0.3173534376918355,
+        "state_row_count": 16543,
+        "status": "pass",
+        "support_count": 31,
+        "support_ratio": 0.20945945945945946
+      },
+      "symbol": "BTCUSDT"
+    },
+    {
+      "blocked_reasons": [
+        "blocked_missing_condition_keys"
+      ],
+      "condition_status": {
+        "missing_condition_keys": [
+          "funding_regime"
+        ],
+        "required_condition_keys": [
+          "crowding_state",
+          "funding_regime"
+        ],
+        "status": "block"
+      },
+      "context_cell": "crowded_funding",
+      "event_atom_id": "funding_persistence_core",
+      "event_family": "funding",
+      "event_status": {
+        "blocking_columns": [],
+        "degraded_columns": [],
+        "required_columns": [
+          "timestamp",
+          "funding_abs_pct",
+          "funding_abs"
+        ],
+        "status": "pass"
+      },
+      "event_type": "FUNDING_PERSISTENCE_TRIGGER",
+      "executability_class": "supportive_only",
+      "split_detail": {
+        "bar_count": 52416,
+        "bars_source": "cleaned",
+        "coverage_ratio": 1.0,
+        "expected_bar_count": 52416,
+        "fold_count": 3,
+        "mode": "real",
+        "status": "pass",
+        "timestamp_max_utc": "2024-06-30 23:55:00+00:00",
+        "timestamp_min_utc": "2024-01-01 00:00:00+00:00"
+      },
+      "split_status": "pass",
+      "status": "block",
+      "support": {
+        "event_count": 148,
+        "reason": "support_ok",
+        "state_density_ratio": 0.3324125230202578,
+        "state_row_count": 17328,
+        "status": "pass",
+        "support_count": 56,
+        "support_ratio": 0.3783783783783784
+      },
+      "symbol": "BTCUSDT"
+    },
+    {
+      "blocked_reasons": [
+        "blocked_missing_condition_keys"
+      ],
+      "condition_status": {
+        "missing_condition_keys": [
+          "liquidity_regime"
+        ],
+        "required_condition_keys": [
+          "liquidity_regime",
+          "low_liquidity_state"
+        ],
+        "status": "block"
+      },
+      "context_cell": "low_liquidity",
+      "event_atom_id": "funding_persistence_core",
+      "event_family": "funding",
+      "event_status": {
+        "blocking_columns": [],
+        "degraded_columns": [],
+        "required_columns": [
+          "timestamp",
+          "funding_abs_pct",
+          "funding_abs"
+        ],
+        "status": "pass"
+      },
+      "event_type": "FUNDING_PERSISTENCE_TRIGGER",
+      "executability_class": "supportive_only",
+      "split_detail": {
+        "bar_count": 52416,
+        "bars_source": "cleaned",
+        "coverage_ratio": 1.0,
+        "expected_bar_count": 52416,
+        "fold_count": 3,
+        "mode": "real",
+        "status": "pass",
+        "timestamp_max_utc": "2024-06-30 23:55:00+00:00",
+        "timestamp_min_utc": "2024-01-01 00:00:00+00:00"
+      },
+      "split_status": "pass",
+      "status": "block",
+      "support": {
+        "event_count": 148,
+        "reason": "support_ok",
+        "state_density_ratio": 0.3173534376918355,
+        "state_row_count": 16543,
+        "status": "pass",
+        "support_count": 54,
+        "support_ratio": 0.36486486486486486
+      },
+      "symbol": "BTCUSDT"
+    }
+  ]
+}

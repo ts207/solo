@@ -1,0 +1,154 @@
+{
+  "files": [
+    {
+      "bytes": 108612,
+      "mtime_epoch": 1776940814.5571275,
+      "path": "edge_cell_data_contract.json",
+      "sha256": "01d1622d15a707faf0097044260756949719520c821ac22dc35e5dec2e33925f"
+    },
+    {
+      "bytes": 12269,
+      "mtime_epoch": 1776941107.264083,
+      "path": "edge_cells_contrast.parquet",
+      "sha256": "4c3aff683bdf6866735a41a01bd7c1c25bf561a25f6f29952f99af40835c5fe6"
+    },
+    {
+      "bytes": 40444,
+      "mtime_epoch": 1776941107.2597008,
+      "path": "edge_cells_raw.parquet",
+      "sha256": "47ace34af8b6c0bd117a2a2a1ad10a2b8aba3d649c4028d23de8d9692a419469"
+    },
+    {
+      "bytes": 50309,
+      "mtime_epoch": 1776941107.3166678,
+      "path": "edge_cluster_representatives.parquet",
+      "sha256": "06af6178440437e11accf48146ae750d7b15351a007a457aa12675422b097cac"
+    },
+    {
+      "bytes": 56302,
+      "mtime_epoch": 1776941107.3079035,
+      "path": "edge_clusters.parquet",
+      "sha256": "5ddce685ad7db74996d7043eaee90f41cdff7220f5ab9b3cef8bf1c0ef90b642"
+    },
+    {
+      "bytes": 51052,
+      "mtime_epoch": 1776941107.2684648,
+      "path": "edge_scoreboard.parquet",
+      "sha256": "f49d1cc8edadf02375a03a8cb85e5fb010fb9d826e523ebc9aabcebbaea036aa"
+    },
+    {
+      "bytes": 603,
+      "mtime_epoch": 1776941107.2684648,
+      "path": "edge_scoreboard_summary.json",
+      "sha256": "04ea26375c61e0872b3b5eef26c1aa49765201ec49b89b5043d385f8a630d94e"
+    },
+    {
+      "bytes": 27217,
+      "mtime_epoch": 1776940814.6275275,
+      "path": "generated/edge_cell_lineage.parquet",
+      "sha256": "ed8d06f4c8f1b59c69e0e720d31e302a9d05260d04e486f7ae0562488dbaa687"
+    },
+    {
+      "bytes": 57490,
+      "mtime_epoch": 1776940814.6231275,
+      "path": "generated/edge_cell_skipped_cells.json",
+      "sha256": "3bacae6c9eecfa3b2b2644397730a927fc8bffa27bc2428909ae9cabd966d69b"
+    },
+    {
+      "bytes": 653,
+      "mtime_epoch": 1776940814.6187274,
+      "path": "generated/generated_edge_cell_experiment.json",
+      "sha256": "b2cf714727e0936d9dbeb3608a4ce250d65909cbe54b13481f7d485eb98fd7ec"
+    },
+    {
+      "bytes": 742,
+      "mtime_epoch": 1776940814.6143274,
+      "path": "generated/generated_edge_cell_search_space.yaml",
+      "sha256": "23f1c8ce37ace99e0bd1aca0c23a78b98c5b897f88a47562983a45073ad3a3c6"
+    },
+    {
+      "bytes": 64674,
+      "mtime_epoch": 1776941106.812729,
+      "path": "hypotheses/BTCUSDT/evaluated_hypotheses.parquet",
+      "sha256": "8f776a99acc0e6a3c0b1b2ac088f9cc526ef23f8723efc6c902bb7e5f90d95d0"
+    },
+    {
+      "bytes": 17832,
+      "mtime_epoch": 1776940976.8875413,
+      "path": "hypotheses/BTCUSDT/feasible_hypotheses.parquet",
+      "sha256": "da7e7ebfb2852a873d41d400107e52052e40c7ed1b17953bc89c6e98f4d690a4"
+    },
+    {
+      "bytes": 62582,
+      "mtime_epoch": 1776941106.821493,
+      "path": "hypotheses/BTCUSDT/gate_failures.parquet",
+      "sha256": "73fffae58a07481e43da174773d66c960d4db511a9d05d9c6ab8e87ab58934c8"
+    },
+    {
+      "bytes": 15959,
+      "mtime_epoch": 1776940976.8788753,
+      "path": "hypotheses/BTCUSDT/generated_hypotheses.parquet",
+      "sha256": "e3e09ebbb6e00e49b24362b7ce4c329069e299d676e72d6f57063eba0cc9cfa2"
+    },
+    {
+      "bytes": 976,
+      "mtime_epoch": 1776940976.8788753,
+      "path": "hypotheses/BTCUSDT/rejected_hypotheses.parquet",
+      "sha256": "5f0fe291f20640edb5490ad103a5ac89f86277f4a49ee3897b76228a390b8183"
+    },
+    {
+      "bytes": 5188,
+      "mtime_epoch": 1776941107.0318327,
+      "path": "hypothesis_registry.parquet",
+      "sha256": "715978365180a75d56c6fa7d628ebe83ea6bd265d105d69cf4252d0065e3e94d"
+    },
+    {
+      "bytes": 16524,
+      "mtime_epoch": 1776941107.0405967,
+      "path": "phase2_candidate_fold_metrics.parquet",
+      "sha256": "68cb4fe8c34afac0f2bf09c878176dcd6657e06f55ca2b996ce649158704169b"
+    },
+    {
+      "bytes": 3109,
+      "mtime_epoch": 1776941107.049361,
+      "path": "phase2_candidate_overlap_metrics.parquet",
+      "sha256": "4ae07c13039af271693197ee912f0166377980adc0ab5880f57b77fb93a504f0"
+    },
+    {
+      "bytes": 90570,
+      "mtime_epoch": 1776941107.0099223,
+      "path": "phase2_candidate_universe.parquet",
+      "sha256": "dd81724f4370c6344f0856057a4fc31f001675cc9c9b1e7023d33de35646c3d9"
+    },
+    {
+      "bytes": 90078,
+      "mtime_epoch": 1776941107.0581253,
+      "path": "phase2_candidates.parquet",
+      "sha256": "3ced4affb0fd3ac6f90e8a377c791734d847cd7d52c20a0c533a6034831bf38f"
+    },
+    {
+      "bytes": 2856,
+      "mtime_epoch": 1776941107.0625072,
+      "path": "phase2_diagnostics.json",
+      "sha256": "6d5fb17b6adb5e6019170c255f147f49ebf97678d4a47c6bf3de55d13e58966c"
+    },
+    {
+      "bytes": 10080,
+      "mtime_epoch": 1776941107.0362148,
+      "path": "regime_conditional_candidates.parquet",
+      "sha256": "070115600fd9e535d061329d7d851596e1c98c935fbb17350873526fa849aad0"
+    },
+    {
+      "bytes": 475,
+      "mtime_epoch": 1776941107.0625072,
+      "path": "search_burden_summary.json",
+      "sha256": "6c2743d3e86f01cec60c21ab1f6fdec9e900bf7733626b7c7378bf3fb5219556"
+    }
+  ],
+  "meta": {
+    "file_count": 24,
+    "generated_at_epoch": 1776941107.3166678,
+    "run_id": "CTXUPLIFT_BTCUSDT_2024_H1",
+    "snapshot_root": "/home/irene/Edge/analysis/context_uplift/BTCUSDT/h1_2024"
+  }
+}

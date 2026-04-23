@@ -1,0 +1,484 @@
+{
+  "blocked_by_reason": {},
+  "blocked_reasons": [],
+  "cell_feasibility": [
+    {
+      "blocked_reasons": [],
+      "condition_status": {
+        "missing_condition_keys": [],
+        "required_condition_keys": [],
+        "status": "pass"
+      },
+      "context_cell": "unconditional",
+      "event_atom_id": "funding_persistence_probe",
+      "event_family": "funding",
+      "event_status": {
+        "blocking_columns": [],
+        "degraded_columns": [],
+        "required_columns": [
+          "timestamp",
+          "funding_abs_pct",
+          "funding_abs"
+        ],
+        "status": "pass"
+      },
+      "event_type": "FUNDING_PERSISTENCE_TRIGGER",
+      "executability_class": "unconditional",
+      "split_detail": {
+        "bar_count": 52992,
+        "bars_source": "cleaned",
+        "coverage_ratio": 1.0,
+        "expected_bar_count": 52992,
+        "fold_count": 3,
+        "mode": "real",
+        "status": "pass",
+        "timestamp_max_utc": "2023-12-31 23:55:00+00:00",
+        "timestamp_min_utc": "2023-07-01 00:00:00+00:00"
+      },
+      "split_status": "pass",
+      "status": "pass",
+      "support": {
+        "event_count": 195,
+        "reason": "support_ok",
+        "state_density_ratio": 1.0,
+        "state_row_count": 52705,
+        "status": "pass",
+        "support_count": 195,
+        "support_ratio": 1.0
+      },
+      "symbol": "BTCUSDT"
+    },
+    {
+      "blocked_reasons": [],
+      "condition_status": {
+        "missing_condition_keys": [],
+        "required_condition_keys": [
+          "carry_state",
+          "carry_state"
+        ],
+        "status": "pass"
+      },
+      "context_cell": "positive_funding",
+      "event_atom_id": "funding_persistence_probe",
+      "event_family": "funding",
+      "event_status": {
+        "blocking_columns": [],
+        "degraded_columns": [],
+        "required_columns": [
+          "timestamp",
+          "funding_abs_pct",
+          "funding_abs"
+        ],
+        "status": "pass"
+      },
+      "event_type": "FUNDING_PERSISTENCE_TRIGGER",
+      "executability_class": "supportive_only",
+      "split_detail": {
+        "bar_count": 52992,
+        "bars_source": "cleaned",
+        "coverage_ratio": 1.0,
+        "expected_bar_count": 52992,
+        "fold_count": 3,
+        "mode": "real",
+        "status": "pass",
+        "timestamp_max_utc": "2023-12-31 23:55:00+00:00",
+        "timestamp_min_utc": "2023-07-01 00:00:00+00:00"
+      },
+      "split_status": "pass",
+      "status": "pass",
+      "support": {
+        "event_count": 195,
+        "reason": "support_ok",
+        "state_density_ratio": 0.9107468123861566,
+        "state_row_count": 48000,
+        "status": "pass",
+        "support_count": 176,
+        "support_ratio": 0.9025641025641026
+      },
+      "symbol": "BTCUSDT"
+    },
+    {
+      "blocked_reasons": [],
+      "condition_status": {
+        "missing_condition_keys": [],
+        "required_condition_keys": [
+          "ms_trend_state",
+          "ms_trend_state"
+        ],
+        "status": "pass"
+      },
+      "context_cell": "chop",
+      "event_atom_id": "funding_persistence_probe",
+      "event_family": "funding",
+      "event_status": {
+        "blocking_columns": [],
+        "degraded_columns": [],
+        "required_columns": [
+          "timestamp",
+          "funding_abs_pct",
+          "funding_abs"
+        ],
+        "status": "pass"
+      },
+      "event_type": "FUNDING_PERSISTENCE_TRIGGER",
+      "executability_class": "runtime",
+      "split_detail": {
+        "bar_count": 52992,
+        "bars_source": "cleaned",
+        "coverage_ratio": 1.0,
+        "expected_bar_count": 52992,
+        "fold_count": 3,
+        "mode": "real",
+        "status": "pass",
+        "timestamp_max_utc": "2023-12-31 23:55:00+00:00",
+        "timestamp_min_utc": "2023-07-01 00:00:00+00:00"
+      },
+      "split_status": "pass",
+      "status": "pass",
+      "support": {
+        "event_count": 195,
+        "reason": "support_ok",
+        "state_density_ratio": 0.5516659077109897,
+        "state_row_count": 29075,
+        "status": "pass",
+        "support_count": 105,
+        "support_ratio": 0.5384615384615384
+      },
+      "symbol": "BTCUSDT"
+    },
+    {
+      "blocked_reasons": [],
+      "condition_status": {
+        "missing_condition_keys": [],
+        "required_condition_keys": [
+          "carry_state",
+          "carry_state"
+        ],
+        "status": "pass"
+      },
+      "context_cell": "negative_funding",
+      "event_atom_id": "funding_persistence_probe",
+      "event_family": "funding",
+      "event_status": {
+        "blocking_columns": [],
+        "degraded_columns": [],
+        "required_columns": [
+          "timestamp",
+          "funding_abs_pct",
+          "funding_abs"
+        ],
+        "status": "pass"
+      },
+      "event_type": "FUNDING_PERSISTENCE_TRIGGER",
+      "executability_class": "supportive_only",
+      "split_detail": {
+        "bar_count": 52992,
+        "bars_source": "cleaned",
+        "coverage_ratio": 1.0,
+        "expected_bar_count": 52992,
+        "fold_count": 3,
+        "mode": "real",
+        "status": "pass",
+        "timestamp_max_utc": "2023-12-31 23:55:00+00:00",
+        "timestamp_min_utc": "2023-07-01 00:00:00+00:00"
+      },
+      "split_status": "pass",
+      "status": "warn",
+      "support": {
+        "event_count": 195,
+        "reason": "warn_low_support",
+        "state_density_ratio": 0.08925318761384335,
+        "state_row_count": 4704,
+        "status": "warn",
+        "support_count": 19,
+        "support_ratio": 0.09743589743589744
+      },
+      "symbol": "BTCUSDT"
+    },
+    {
+      "blocked_reasons": [],
+      "condition_status": {
+        "missing_condition_keys": [],
+        "required_condition_keys": [
+          "ms_trend_state",
+          "ms_trend_state"
+        ],
+        "status": "pass"
+      },
+      "context_cell": "bullish_trend",
+      "event_atom_id": "funding_persistence_probe",
+      "event_family": "funding",
+      "event_status": {
+        "blocking_columns": [],
+        "degraded_columns": [],
+        "required_columns": [
+          "timestamp",
+          "funding_abs_pct",
+          "funding_abs"
+        ],
+        "status": "pass"
+      },
+      "event_type": "FUNDING_PERSISTENCE_TRIGGER",
+      "executability_class": "runtime",
+      "split_detail": {
+        "bar_count": 52992,
+        "bars_source": "cleaned",
+        "coverage_ratio": 1.0,
+        "expected_bar_count": 52992,
+        "fold_count": 3,
+        "mode": "real",
+        "status": "pass",
+        "timestamp_max_utc": "2023-12-31 23:55:00+00:00",
+        "timestamp_min_utc": "2023-07-01 00:00:00+00:00"
+      },
+      "split_status": "pass",
+      "status": "pass",
+      "support": {
+        "event_count": 195,
+        "reason": "support_ok",
+        "state_density_ratio": 0.22546675774134792,
+        "state_row_count": 11883,
+        "status": "pass",
+        "support_count": 47,
+        "support_ratio": 0.24102564102564103
+      },
+      "symbol": "BTCUSDT"
+    }
+  ],
+  "cell_status_counts": {
+    "block": 0,
+    "pass": 4,
+    "unknown": 0,
+    "warn": 1
+  },
+  "condition_keys": {
+    "BTCUSDT": {
+      "available_key_count": 125,
+      "available_keys": [
+        "aftershock_state",
+        "ask_depth_usd",
+        "basis_bps",
+        "basis_spot_coverage",
+        "basis_zscore",
+        "bear_trend_regime",
+        "bid_depth_usd",
+        "bull_trend_regime",
+        "canonical_event_type",
+        "canonical_family",
+        "carry_state",
+        "carry_state_code",
+        "chop_regime",
+        "close",
+        "compression_state_flag",
+        "cross_exchange_spread_z",
+        "crowding_state",
+        "deleveraging_state",
+        "depth_usd",
+        "enter_ts",
+        "event_id",
+        "event_type",
+        "exit_ts",
+        "fp_active",
+        "fp_age_bars",
+        "fp_def_version",
+        "fp_enter_ts",
+        "fp_event_id",
+        "fp_exit_ts",
+        "fp_norm_due",
+        "fp_run_start_index",
+        "fp_severity",
+        "fp_source_event_type",
+        "funding_abs",
+        "funding_abs_pct",
+        "funding_bps",
+        "funding_event_ts",
+        "funding_missing",
+        "funding_persistence_state",
+        "funding_rate",
+        "funding_rate_bps",
+        "funding_rate_feature",
+        "funding_rate_realized",
+        "funding_rate_scaled",
+        "gap_len",
+        "high",
+        "high_96",
+        "high_vol_regime",
+        "imbalance",
+        "is_gap",
+        "liquidation_count",
+        "liquidation_notional",
+        "logret_1",
+        "low",
+        "low_96",
+        "low_liquidity_state",
+        "low_vol_regime",
+        "micro_depth_depletion",
+        "month",
+        "ms_context_state_code",
+        "ms_funding_confidence",
+        "ms_funding_entropy",
+        "ms_funding_state",
+        "ms_imbalance_24",
+        "ms_liq_confidence",
+        "ms_liq_entropy",
+        "ms_liq_state",
+        "ms_liquidation_state",
+        "ms_oi_confidence",
+        "ms_oi_entropy",
+        "ms_oi_state",
+        "ms_spread_confidence",
+        "ms_spread_entropy",
+        "ms_spread_state",
+        "ms_trend_confidence",
+        "ms_trend_entropy",
+        "ms_trend_state",
+        "ms_vol_confidence",
+        "ms_vol_entropy",
+        "ms_vol_state",
+        "oi_delta_1h",
+        "oi_notional",
+        "open",
+        "prob_funding_extreme",
+        "prob_funding_neutral",
+        "prob_funding_persistent",
+        "prob_liq_flush",
+        "prob_liq_normal",
+        "prob_liq_thin",
+        "prob_oi_accel",
+        "prob_oi_decel",
+        "prob_oi_stable",
+        "prob_spread_tight",
+        "prob_spread_wide",
+        "prob_trend_bear",
+        "prob_trend_bull",
+        "prob_trend_chop",
+        "prob_vol_high",
+        "prob_vol_low",
+        "prob_vol_mid",
+        "prob_vol_shock",
+        "quote_volume",
+        "range_96",
+        "range_med_2880",
+        "refill_lag_state",
+        "research_family",
+        "revision_lag_bars",
+        "revision_lag_minutes",
+        "run_id",
+        "runtime_event_type",
+        "rv_96",
+        "rv_pct_17280",
+        "signal_column",
+        "source",
+        "spot_close",
+        "spread_bps",
+        "spread_elevated_state",
+        "spread_zscore",
+        "symbol",
+        "taker_base_volume",
+        "timestamp",
+        "vol_regime",
+        "vol_regime_code",
+        "volume",
+        "year"
+      ],
+      "missing_condition_keys": [],
+      "status": "pass"
+    }
+  },
+  "context_cell_count": 4,
+  "end": "2023-12-31T23:59:59",
+  "event_atom_count": 1,
+  "event_types": [
+    "FUNDING_PERSISTENCE_TRIGGER"
+  ],
+  "feature_surface": {
+    "detectors": {
+      "FUNDING_PERSISTENCE_TRIGGER": {
+        "block_symbols": [],
+        "pass_symbols": [
+          "BTCUSDT"
+        ],
+        "status": "pass",
+        "unknown_symbols": [],
+        "warn_symbols": []
+      }
+    },
+    "event_types": [
+      "FUNDING_PERSISTENCE_TRIGGER"
+    ],
+    "issues": [],
+    "schema_version": "feature_surface_viability_v1",
+    "status": "pass",
+    "symbols": {
+      "BTCUSDT": {
+        "bar_count": 52992,
+        "bars_source": "cleaned",
+        "detectors": {
+          "FUNDING_PERSISTENCE_TRIGGER": {
+            "blocking_columns": [],
+            "column_status": {
+              "funding_abs": {
+                "coverage_ratio": 0.9999811292270532,
+                "sample_size": 52992,
+                "status": "ok",
+                "unique_non_null": 344
+              },
+              "funding_abs_pct": {
+                "coverage_ratio": 1.0,
+                "sample_size": 52992,
+                "status": "ok",
+                "unique_non_null": 274
+              },
+              "timestamp": {
+                "coverage_ratio": 1.0,
+                "sample_size": 52992,
+                "status": "ok",
+                "unique_non_null": 52992
+              }
+            },
+            "degraded_columns": [],
+            "required_columns": [
+              "timestamp",
+              "funding_abs_pct",
+              "funding_abs"
+            ],
+            "status": "pass"
+          }
+        },
+        "feature_row_count": 52992,
+        "status": "pass"
+      }
+    },
+    "timeframe": "5m"
+  },
+  "run_id": "CHOP_BTC_FPT_48B_2023_H2",
+  "schema_version": "edge_cell_data_contract_v2",
+  "split_feasibility": {
+    "expected_bar_count": 52992,
+    "mode": "real",
+    "per_symbol": {
+      "BTCUSDT": {
+        "bar_count": 52992,
+        "bars_source": "cleaned",
+        "coverage_ratio": 1.0,
+        "expected_bar_count": 52992,
+        "fold_count": 3,
+        "mode": "real",
+        "status": "pass",
+        "timestamp_max_utc": "2023-12-31 23:55:00+00:00",
+        "timestamp_min_utc": "2023-07-01 00:00:00+00:00"
+      }
+    },
+    "status": "pass"
+  },
+  "start": "2023-07-01T00:00:00",
+  "status": "warn",
+  "support_status_counts": {
+    "pass": 4,
+    "warn": 1
+  },
+  "symbols": [
+    "BTCUSDT"
+  ],
+  "timeframe": "5m"
+}

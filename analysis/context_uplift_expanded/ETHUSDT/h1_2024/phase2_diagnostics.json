@@ -1,0 +1,96 @@
+{
+  "bridge_candidates_rows": 48,
+  "discovery_profile": "standard",
+  "event_flag_columns_merged": 4,
+  "event_flag_rows": 315361,
+  "feasible_hypotheses": 243,
+  "feature_columns": 139,
+  "feature_rows": 315361,
+  "gate_funnel": {
+    "bridge_candidate_universe": 156,
+    "feasible": 243,
+    "generated": 243,
+    "metrics_emitted": 243,
+    "pass_after_cost_positive": 13,
+    "pass_after_cost_stressed_positive": 13,
+    "pass_min_sample_size": 156,
+    "pass_multiplicity": 13,
+    "pass_oos_validation": 26,
+    "pass_regime_stable": 13,
+    "phase2_candidates_written": 48,
+    "phase2_final": 13,
+    "valid_metrics": 156
+  },
+  "hypotheses_generated": 243,
+  "metrics_rows": 243,
+  "min_n": 30,
+  "min_t_stat": 2.0,
+  "multiplicity_discoveries": 24,
+  "primary_symbol": "ETHUSDT",
+  "rejected_by_min_n": 0,
+  "rejected_by_min_t_stat": 108,
+  "rejected_hypotheses": 195,
+  "rejected_invalid_metrics": 87,
+  "rejection_reason_counts": {
+    "invalid_metrics": 87,
+    "min_t_stat": 108
+  },
+  "run_id": "CTXUPLIFT_ETHUSDT_2024_H1",
+  "search_budget": null,
+  "search_spec": "/home/irene/Edge/data/reports/phase2/CTXUPLIFT_ETHUSDT_2024_H1/generated/generated_edge_cell_search_space.yaml",
+  "symbol_diagnostics": [
+    {
+      "bridge_candidates_rows": 48,
+      "discovery_profile": "standard",
+      "event_flag_columns_merged": 4,
+      "event_flag_rows": 315361,
+      "feasible_hypotheses": 243,
+      "feature_columns": 139,
+      "feature_rows": 315361,
+      "gate_funnel": {
+        "bridge_candidate_universe": 156,
+        "feasible": 243,
+        "generated": 243,
+        "metrics_emitted": 243,
+        "pass_after_cost_positive": 13,
+        "pass_after_cost_stressed_positive": 13,
+        "pass_min_sample_size": 156,
+        "pass_multiplicity": 13,
+        "pass_oos_validation": 26,
+        "pass_regime_stable": 13,
+        "phase2_candidates_written": 48,
+        "phase2_final": 13,
+        "valid_metrics": 156
+      },
+      "hypotheses_generated": 243,
+      "metrics_rows": 243,
+      "min_n": 30,
+      "min_t_stat": 2.0,
+      "multiplicity_discoveries": 0,
+      "primary_symbol": "ETHUSDT",
+      "rejected_by_min_n": 0,
+      "rejected_by_min_t_stat": 108,
+      "rejected_hypotheses": 195,
+      "rejected_invalid_metrics": 87,
+      "rejection_reason_counts": {
+        "invalid_metrics": 87,
+        "min_t_stat": 108
+      },
+      "run_id": "CTXUPLIFT_ETHUSDT_2024_H1",
+      "search_budget": null,
+      "search_spec": "/home/irene/Edge/data/reports/phase2/CTXUPLIFT_ETHUSDT_2024_H1/generated/generated_edge_cell_search_space.yaml",
+      "symbols_requested": [
+        "ETHUSDT"
+      ],
+      "timeframe": "5m",
+      "use_context_quality": true,
+      "valid_metrics_rows": 156
+    }
+  ],
+  "symbols_requested": [
+    "ETHUSDT"
+  ],
+  "timeframe": "5m",
+  "use_context_quality": true,
+  "valid_metrics_rows": 156
+}

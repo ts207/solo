@@ -38,6 +38,30 @@ context_cells:
     required_feature_key: crowding_state
     executability_class: supportive_only
     max_conjunction_depth: 1
+  - id: bullish_trend
+    dimension: ms_trend_state
+    values: [bullish]
+    required_feature_key: ms_trend_state
+    executability_class: runtime
+    max_conjunction_depth: 1
+  - id: bearish_trend
+    dimension: ms_trend_state
+    values: [bearish]
+    required_feature_key: ms_trend_state
+    executability_class: runtime
+    max_conjunction_depth: 1
+  - id: chop
+    dimension: ms_trend_state
+    values: [chop]
+    required_feature_key: ms_trend_state
+    executability_class: runtime
+    max_conjunction_depth: 1
+  - id: wide_spread
+    dimension: ms_spread_state
+    values: [wide]
+    required_feature_key: ms_spread_state
+    executability_class: runtime
+    max_conjunction_depth: 1
   - id: low_liquidity
     dimension: liquidity_regime
     values: [low]

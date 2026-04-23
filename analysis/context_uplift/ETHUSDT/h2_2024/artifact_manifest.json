@@ -1,0 +1,154 @@
+{
+  "files": [
+    {
+      "bytes": 108492,
+      "mtime_epoch": 1776942133.0266712,
+      "path": "edge_cell_data_contract.json",
+      "sha256": "4774ac16a6fe4d5fdc7b643526c5548faa2f360bae5ef20b17a361af673e54a2"
+    },
+    {
+      "bytes": 12217,
+      "mtime_epoch": 1776942280.6960187,
+      "path": "edge_cells_contrast.parquet",
+      "sha256": "4f1ba0881666d758d1c0c3c4f0147514ac6b3cf212815b468b3ae79cd048d1d5"
+    },
+    {
+      "bytes": 41015,
+      "mtime_epoch": 1776942280.6960187,
+      "path": "edge_cells_raw.parquet",
+      "sha256": "c1c9413541704f33ad10c9ee8760a4e7aae49d6e59c2ea1e63e220b2ac08a32b"
+    },
+    {
+      "bytes": 49996,
+      "mtime_epoch": 1776942280.7608156,
+      "path": "edge_cluster_representatives.parquet",
+      "sha256": "0532022c588d4322a62dcd67f14fc838743b9e84c7dfcfeca67ff27fb8b81087"
+    },
+    {
+      "bytes": 56355,
+      "mtime_epoch": 1776942280.752176,
+      "path": "edge_clusters.parquet",
+      "sha256": "896c77bb6701574a9ef912571152e1f852aa445183516941e755c13549e3523a"
+    },
+    {
+      "bytes": 51457,
+      "mtime_epoch": 1776942280.7046583,
+      "path": "edge_scoreboard.parquet",
+      "sha256": "97f81290ec0add838e8ff41cfa8e0ff8ed504bd5d6213493b68a00e2771376be"
+    },
+    {
+      "bytes": 594,
+      "mtime_epoch": 1776942280.7046583,
+      "path": "edge_scoreboard_summary.json",
+      "sha256": "7644c0a702e5cf5dd0c7b018b9e0f402899fa5eb8ef83361c12cc5c7e365e967"
+    },
+    {
+      "bytes": 27217,
+      "mtime_epoch": 1776942133.117362,
+      "path": "generated/edge_cell_lineage.parquet",
+      "sha256": "11c7aaa103571dc5ee85f30490e5ec820ed76614cbb2b5daeb3a048d6fba4a27"
+    },
+    {
+      "bytes": 57312,
+      "mtime_epoch": 1776942133.1130433,
+      "path": "generated/edge_cell_skipped_cells.json",
+      "sha256": "ad6c249dabc10258aaf5c7d8e165c9f2ec87637a41727c7411552ffd76265089"
+    },
+    {
+      "bytes": 653,
+      "mtime_epoch": 1776942133.104406,
+      "path": "generated/generated_edge_cell_experiment.json",
+      "sha256": "079587601a7c4741994dc63e55acf6a9ae846f44ba8dab85f6d9253f55200ba7"
+    },
+    {
+      "bytes": 742,
+      "mtime_epoch": 1776942133.0871317,
+      "path": "generated/generated_edge_cell_search_space.yaml",
+      "sha256": "23f1c8ce37ace99e0bd1aca0c23a78b98c5b897f88a47562983a45073ad3a3c6"
+    },
+    {
+      "bytes": 64077,
+      "mtime_epoch": 1776942280.3115563,
+      "path": "hypotheses/ETHUSDT/evaluated_hypotheses.parquet",
+      "sha256": "0fa774572c2f8bc573a4091db8bf869f548f35def899a848f860c2e000e8df79"
+    },
+    {
+      "bytes": 17832,
+      "mtime_epoch": 1776942218.8610353,
+      "path": "hypotheses/ETHUSDT/feasible_hypotheses.parquet",
+      "sha256": "e0c5edb739c7719c0d721be506df4065747053f2cdf88c84fc8905a6c7c9d863"
+    },
+    {
+      "bytes": 59023,
+      "mtime_epoch": 1776942280.3201962,
+      "path": "hypotheses/ETHUSDT/gate_failures.parquet",
+      "sha256": "909401539d3a5858877a616b408e6041bbf6ea2948816e6521213f1442bcfe5b"
+    },
+    {
+      "bytes": 15959,
+      "mtime_epoch": 1776942218.8523943,
+      "path": "hypotheses/ETHUSDT/generated_hypotheses.parquet",
+      "sha256": "60f58222b5bee3e31185349096f3d81ad8fefdb0ea39d031f4d10b4f118c68c8"
+    },
+    {
+      "bytes": 976,
+      "mtime_epoch": 1776942218.8523943,
+      "path": "hypotheses/ETHUSDT/rejected_hypotheses.parquet",
+      "sha256": "5f0fe291f20640edb5490ad103a5ac89f86277f4a49ee3897b76228a390b8183"
+    },
+    {
+      "bytes": 5910,
+      "mtime_epoch": 1776942280.4886682,
+      "path": "hypothesis_registry.parquet",
+      "sha256": "50f3c306a5886ad26a2c42abbc1668fa0c876d917434ce9185fc8dc01fb8c746"
+    },
+    {
+      "bytes": 16226,
+      "mtime_epoch": 1776942280.4973078,
+      "path": "phase2_candidate_fold_metrics.parquet",
+      "sha256": "70c974a7b9c5ec81d0bbddb61a84aa483c4d5d67e0adf8ca9349db408a2a2f0d"
+    },
+    {
+      "bytes": 3432,
+      "mtime_epoch": 1776942280.5016277,
+      "path": "phase2_candidate_overlap_metrics.parquet",
+      "sha256": "0bfcc9df6d071740f146e51409148f04912d1fa0946675a4e269d3993c77cfe1"
+    },
+    {
+      "bytes": 90914,
+      "mtime_epoch": 1776942280.471389,
+      "path": "phase2_candidate_universe.parquet",
+      "sha256": "13e24fa401e572a6557b44d1f71a1d2aad539a6bd329ee6a557c0b4c0c1eec1f"
+    },
+    {
+      "bytes": 93703,
+      "mtime_epoch": 1776942280.5102673,
+      "path": "phase2_candidates.parquet",
+      "sha256": "fb01fe90f9f1e084c9c8e8c599813c6776791dac2b866abe0e2ea71cc6209b0d"
+    },
+    {
+      "bytes": 2863,
+      "mtime_epoch": 1776942280.5102673,
+      "path": "phase2_diagnostics.json",
+      "sha256": "8a4bf83eb727f191c65b27bd71bfa28c16f82deac2a864c9211d9d55ead5b8a8"
+    },
+    {
+      "bytes": 10085,
+      "mtime_epoch": 1776942280.492988,
+      "path": "regime_conditional_candidates.parquet",
+      "sha256": "d1dfdf25cab6b49c7fda7f82f5f59640582b5fae4d588f5e5f0de2ab7db1f19f"
+    },
+    {
+      "bytes": 475,
+      "mtime_epoch": 1776942280.514587,
+      "path": "search_burden_summary.json",
+      "sha256": "8fcea570e33a007550e8870d862f0dae83006a4129361be99c671bf1edebd897"
+    }
+  ],
+  "meta": {
+    "file_count": 24,
+    "generated_at_epoch": 1776942280.7608156,
+    "run_id": "CTXUPLIFT_ETHUSDT_2024_H2",
+    "snapshot_root": "/home/irene/Edge/analysis/context_uplift/ETHUSDT/h2_2024"
+  }
+}

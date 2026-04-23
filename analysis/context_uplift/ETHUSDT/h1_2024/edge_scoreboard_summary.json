@@ -1,0 +1,14 @@
+{
+  "artifacts": {
+    "edge_cells_contrast": "/home/irene/Edge/data/reports/phase2/CTXUPLIFT_ETHUSDT_2024_H1/edge_cells_contrast.parquet",
+    "edge_cells_raw": "/home/irene/Edge/data/reports/phase2/CTXUPLIFT_ETHUSDT_2024_H1/edge_cells_raw.parquet",
+    "edge_scoreboard": "/home/irene/Edge/data/reports/phase2/CTXUPLIFT_ETHUSDT_2024_H1/edge_scoreboard.parquet"
+  },
+  "rankable_rows": 27,
+  "raw_rows": 156,
+  "run_id": "CTXUPLIFT_ETHUSDT_2024_H1",
+  "schema_version": "edge_scoreboard_summary_v1",
+  "scoreboard_rows": 156,
+  "top_rank_score": 0.6153108,
+  "unauthorized_rows_filtered": 0
+}

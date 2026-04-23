@@ -69,9 +69,20 @@ def _write_minimal_discovery_spec(base: Path, *, context_values: list[str]) -> N
 
 def test_context_state_mask_matches_dimension_encoded_values() -> None:
     frame = pd.DataFrame({"ms_trend_state": [0.0, 1.0, 2.0]})
+    bullish = SimpleNamespace(dimension="ms_trend_state", values=("bullish",), required_feature_key="")
+    bearish = SimpleNamespace(dimension="ms_trend_state", values=("bearish",), required_feature_key="")
+    chop = SimpleNamespace(dimension="ms_trend_state", values=("chop",), required_feature_key="")
+
+    assert _context_state_mask(frame, bullish).tolist() == [False, True, False]
+    assert _context_state_mask(frame, bearish).tolist() == [False, False, True]
+    assert _context_state_mask(frame, chop).tolist() == [True, False, False]
+
+
+def test_context_state_mask_matches_wide_spread_code() -> None:
+    frame = pd.DataFrame({"ms_spread_state": [0.0, 1.0, 0.0]})
     context = SimpleNamespace(
-        dimension="ms_trend_state",
-        values=("bullish",),
+        dimension="ms_spread_state",
+        values=("wide",),
         required_feature_key="",
     )
 
@@ -98,3 +109,11 @@ def test_load_registry_rejects_context_values_outside_authoritative_registry(tmp
 
     with pytest.raises(ValueError, match="invalid values for ms_trend_state: trend"):
         load_registry(tmp_path)
+
+
+def test_load_registry_accepts_authoritative_trend_value(tmp_path: Path) -> None:
+    _write_minimal_discovery_spec(tmp_path, context_values=["bullish"])
+
+    registry = load_registry(tmp_path)
+
+    assert registry.context_cells[0].values == ("bullish",)

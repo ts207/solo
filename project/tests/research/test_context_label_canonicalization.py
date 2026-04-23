@@ -4,6 +4,7 @@ import pandas as pd
 
 from project.domain.hypotheses import HypothesisSpec, TriggerSpec
 from project.research.context_labels import expand_dimension_values
+from project.research.search.feasibility import check_hypothesis_feasibility
 from project.research.search.evaluator_utils import context_mask
 from project.research.search.validation import validate_hypothesis_spec
 
@@ -91,3 +92,41 @@ def test_validate_hypothesis_spec_uses_authoritative_context_registry() -> None:
 
     assert not any("Context label" in err for err in validate_hypothesis_spec(valid))
     assert any("Context label 'trend'" in err for err in validate_hypothesis_spec(invalid))
+
+
+def test_check_hypothesis_feasibility_accepts_context_dimension_columns() -> None:
+    features = pd.DataFrame({"ms_trend_state": [0.0, 1.0, 2.0], "ms_spread_state": [0.0, 1.0, 0.0]})
+    trend_spec = HypothesisSpec(
+        trigger=TriggerSpec.event("VOL_SHOCK"),
+        direction="long",
+        horizon="24b",
+        template_id="continuation",
+        entry_lag=1,
+        context={"ms_trend_state": "bullish"},
+    )
+    spread_spec = HypothesisSpec(
+        trigger=TriggerSpec.event("VOL_SHOCK"),
+        direction="long",
+        horizon="24b",
+        template_id="continuation",
+        entry_lag=1,
+        context={"ms_spread_state": "wide"},
+    )
+
+    assert "missing_context_state_column" not in check_hypothesis_feasibility(trend_spec, features=features).reasons
+    assert "missing_context_state_column" not in check_hypothesis_feasibility(spread_spec, features=features).reasons
+
+
+def test_check_hypothesis_feasibility_without_features_accepts_valid_context_labels() -> None:
+    spec = HypothesisSpec(
+        trigger=TriggerSpec.event("VOL_SHOCK"),
+        direction="long",
+        horizon="24b",
+        template_id="continuation",
+        entry_lag=1,
+        context={"ms_trend_state": "bullish", "ms_spread_state": "wide"},
+    )
+
+    reasons = check_hypothesis_feasibility(spec).reasons
+
+    assert "unknown_context_mapping" not in reasons

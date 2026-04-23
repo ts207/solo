@@ -5,8 +5,12 @@ context_dimensions:
     allowed_values: [low, high]
   carry_state:
     allowed_values: [funding_pos, funding_neg]
+  funding_regime:
+    allowed_values: [crowded, normalizing]
   funding_bps:
     allowed_values: [extreme_positive, positive, neutral, negative, extreme_negative]
+  liquidity_regime:
+    allowed_values: [low, refill]
   ms_trend_state:
     allowed_values: [bullish, bearish, chop]
   ms_spread_state:

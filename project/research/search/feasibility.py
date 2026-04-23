@@ -9,6 +9,7 @@ from project.core.column_registry import ColumnRegistry
 from project.domain.compiled_registry import get_domain_registry
 from project.domain.models import DomainRegistry
 from project.domain.hypotheses import HypothesisSpec, TriggerType
+from project.research.context_labels import canonicalize_context_label
 from project.research.search.evaluator_utils import load_context_state_map
 
 
@@ -61,12 +62,15 @@ def _context_feasibility(
         return ["context_registry_unavailable"], details
 
     for family, label in context.items():
-        state_id = context_map.get((family, label))
+        canonical_label = canonicalize_context_label(family, label)
+        if available_columns is not None and str(family) in available_columns:
+            continue
+        if available_columns is None:
+            continue
+        state_id = context_map.get((family, canonical_label))
         if state_id is None:
             reasons.append("unknown_context_mapping")
             details[f"context:{family}:{label}"] = "unmapped"
-            continue
-        if available_columns is None:
             continue
         column = _existing_column(ColumnRegistry.state_cols(state_id), available_columns)
         if column is None:
