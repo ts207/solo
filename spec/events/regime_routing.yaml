@@ -17,7 +17,11 @@ regimes:
     bucket: trade_generating
     eligible_templates:
     - basis_repair
+    - basis_convergence
+    - basis_funding_convergence
     - convergence
+    - carry_unwind_reversal
+    - carry_continuation_confirmed
     - mean_reversion
     forbidden_templates:
     - tail_risk_avoid
@@ -55,6 +59,9 @@ regimes:
   LIQUIDATION_CASCADE:
     bucket: trade_generating
     eligible_templates:
+    - forced_flow_rebound
+    - cooldown_reversal
+    - liquidity_refill_repair
     - exhaustion_reversal
     - reversal_or_squeeze
     - convexity_capture
@@ -69,7 +76,8 @@ regimes:
     bucket: trade_generating
     eligible_templates:
     - stop_run_repair
-    - mean_reversion
+    - liquidity_refill_repair
+    - tail_risk_avoid
     forbidden_templates:
     - range_reversion
     risk_posture: reduced_size
@@ -97,6 +105,9 @@ regimes:
   POSITIONING_UNWIND_DELEVERAGING:
     bucket: trade_generating
     eligible_templates:
+    - positioning_flush_reversal
+    - long_flush_rebound
+    - forced_flow_rebound
     - exhaustion_reversal
     - mean_reversion
     - reversal_or_squeeze
@@ -120,6 +131,19 @@ regimes:
     holding_horizon_profile: intraday_to_swing
     stop_logic_profile: transition_reversal
     profit_taking_profile: regime_follow_trail
+  FORCED_FLOW_EXHAUSTION:
+    bucket: trade_generating
+    eligible_templates:
+    - forced_flow_rebound
+    - cooldown_reversal
+    - liquidity_refill_repair
+    forbidden_templates:
+    - trend_continuation
+    risk_posture: reduced_size_until_refill
+    execution_style: wait_for_cooldown_and_refill
+    holding_horizon_profile: short_horizon
+    stop_logic_profile: cascade_reacceleration
+    profit_taking_profile: liquidity_snapback
   STATISTICAL_STRETCH_OVERSHOOT:
     bucket: trade_generating
     eligible_templates:

@@ -1,0 +1,32 @@
+version: 1
+kind: event_directionality_contract
+metadata:
+  status: authored
+
+required_fields:
+  direction_hint:
+    allowed_values: [long, short, both, none]
+  sign_source:
+    allowed_values: [price, oi, funding, liquidation_side, basis, spread, none]
+  sign_required:
+    type: boolean
+  sign_field:
+    required_when_sign_required: true
+
+quadrant_events:
+  PRICE_UP_OI_UP:
+    price_direction: up
+    oi_direction: up
+    interpretation: long_build_or_trend_participation
+  PRICE_UP_OI_DOWN:
+    price_direction: up
+    oi_direction: down
+    interpretation: short_squeeze_or_covering
+  PRICE_DOWN_OI_UP:
+    price_direction: down
+    oi_direction: up
+    interpretation: short_build_or_bearish_expansion
+  PRICE_DOWN_OI_DOWN:
+    price_direction: down
+    oi_direction: down
+    interpretation: long_flush_or_deleveraging

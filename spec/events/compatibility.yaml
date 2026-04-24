@@ -1,23 +1,117 @@
 kind: event_compatibility
 version: 1
 
-# suppression_rules: when when_active event is present in the bar window,
-# events in suppress list are penalized (penalty_factor) or hard-blocked (block: true).
-suppression_rules: []
+# suppression_rules: when when_active event/state is present in the bar window,
+# templates in block_templates are hard-blocked and suppress entries are penalized
+# or hard-blocked.
+suppression_rules:
+  - when_active: DATA_STALE_STATE
+    block_all_trade_templates: true
+    reason: no signal without point-in-time required data
+
+  - when_active: SPREAD_BLOWOUT
+    block_templates:
+      - basis_convergence
+      - mean_reversion
+      - generic_continuation
+    block: true
+    reason: spread too wide for reliable entry
+
+  - when_active: LIQUIDITY_ABSENCE_STATE
+    block_templates:
+      - carry_continuation_confirmed
+      - basis_convergence
+    allow_only:
+      - tail_risk_avoid
+    reason: no executable market
+
+  - when_active: LIQUIDITY_VACUUM
+    suppress:
+      - generic_continuation
+      - unconditioned_mean_reversion
+    penalty_factor: 0.25
+    reason: thin-book noise; require refill confirmation
+
+  - when_active: CASCADE_REACCELERATION_STATE
+    block_templates:
+      - forced_flow_rebound
+      - liquidity_refill_repair
+    block: true
+    reason: reversal setup invalidated by renewed forced flow
+
+  - when_active: PRE_NEWS_STATE
+    block_templates:
+      - statistical_mean_reversion
+      - funding_reset_reversion
+    block: true
+    reason: scheduled information window invalidates mechanical fades
 
 # composite_events: when all required events co-occur within co_occur_window_bars,
 # emit a synthetic composite event at the primary event's timestamp.
 composite_events:
-  - name: EXHAUSTION_REVERSAL_SETUP
+  - name: FORCED_FLOW_REBOUND_SETUP
     required:
       - LIQUIDATION_CASCADE
       - OI_FLUSH
+      - POST_CASCADE_REBOUND_CONFIRM
+    states_required:
+      - LIQUIDATION_COOLDOWN_STATE
+      - LIQUIDITY_REFILL_STATE
     stabilization_required: true
     stabilization_bars: 8
     co_occur_window_bars: 24
+    allowed_templates:
+      - forced_flow_rebound
     description: >
-      Liquidation cascade + OI flush co-occurrence after a stabilization window
-      indicates forced flow has exhausted. Promotes exhaustion_reversal template.
+      Liquidation cascade + OI flush + rebound confirmation after cooldown/refill
+      is the tradable forced-flow rebound setup.
+
+  - name: CARRY_UNWIND_SETUP
+    required:
+      - FUNDING_PERSISTENCE_TRIGGER
+      - OI_FLUSH
+      - FUNDING_NORMALIZATION_TRIGGER
+    states_required:
+      - liquidity_phase != blocked
+      - trend_phase != strong_continuation_against_trade
+    stabilization_required: false
+    co_occur_window_bars: 24
+    allowed_templates:
+      - carry_unwind_reversal
+    description: >
+      Persistent funding followed by OI flush and funding normalization is a
+      research-only carry unwind setup until sign-aware funding events are split.
+
+  - name: CONFIRMED_CARRY_CONTINUATION
+    required:
+      - FUNDING_PERSISTENCE_TRIGGER
+      - OI_SPIKE_POSITIVE
+      - TREND_ACCELERATION
+    states_required:
+      - liquidity_phase: normal
+      - execution_friction: [low, normal]
+    stabilization_required: false
+    co_occur_window_bars: 24
+    allowed_templates:
+      - carry_continuation_confirmed
+    description: >
+      Funding continuation requires OI expansion, trend confirmation, and executable liquidity.
+
+  - name: LIQUIDITY_REPAIR_SETUP
+    required:
+      - LIQUIDITY_VACUUM
+      - DEPTH_RECOVERY_CONFIRM
+    states_required:
+      - liquidity_phase: refill
+    forbidden_states:
+      - SPREAD_BLOWOUT
+    stabilization_required: true
+    stabilization_bars: 3
+    co_occur_window_bars: 12
+    allowed_templates:
+      - liquidity_refill_repair
+    description: >
+      Liquidity repair begins only after vacuum/depth stress is followed by recovery confirmation.
 
   - name: FORCED_FLOW_DESYNC
     required:

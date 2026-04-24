@@ -525,6 +525,36 @@ def build_event_contract(event_type: str) -> dict[str, Any]:
                 row.get("primary_anchor_eligible", False),
             )
         ),
+        "detector_runtime": {
+            "can_emit_events": True,
+            "can_emit_states": bool(
+                row.get("is_context_tag", False)
+                or getattr(detector_contract, "context_only", False)
+                or getattr(detector_contract, "role", "") == "context"
+            ),
+            "can_emit_context_tags": bool(
+                row.get("is_context_tag", False)
+                or getattr(detector_contract, "context_only", False)
+                or getattr(detector_contract, "role", "") == "context"
+            ),
+        },
+        "trade_runtime": {
+            "eligible": bool(
+                getattr(detector_contract, "runtime_default", row.get("runtime_eligible", False))
+            ),
+            "source_of_truth": "docs/generated/detector_eligibility_matrix.json",
+            "reason": (
+                "generated_governance_runtime_true"
+                if bool(
+                    getattr(
+                        detector_contract,
+                        "runtime_default",
+                        row.get("runtime_eligible", False),
+                    )
+                )
+                else "generated_governance_runtime_false"
+            ),
+        },
         "description": _coalesce_text(
             row.get("description"),
             semantics.get("summary"),

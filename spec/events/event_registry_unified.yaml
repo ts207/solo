@@ -29,7 +29,18 @@ defaults:
   - 60m
   conditioning_cols:
   - vol_regime
+  - vol_phase
   - carry_state
+  - funding_phase
+  - oi_phase
+  - price_oi_quadrant
+  - forced_flow_phase
+  - liquidity_phase
+  - execution_friction
+  - trend_phase
+  - basis_phase
+  - temporal_phase
+  - data_quality_state
   - funding_bps
   - ms_trend_state
   - ms_spread_state
@@ -39,10 +50,10 @@ families:
   BASIS_FUNDING_DISLOCATION:
     parameters: {}
     templates:
-    - reversal_or_squeeze
-    - mean_reversion
-    - continuation
-    - exhaustion_reversal
+    - carry_unwind_reversal
+    - carry_continuation_confirmed
+    - basis_funding_convergence
+    - basis_convergence
     - convexity_capture
     - only_if_funding
     - only_if_oi
@@ -60,8 +71,9 @@ families:
   FORCED_FLOW_AND_EXHAUSTION:
     parameters: {}
     templates:
-    - mean_reversion
-    - exhaustion_reversal
+    - forced_flow_rebound
+    - cooldown_reversal
+    - liquidity_refill_repair
     - momentum_fade
     - range_reversion
     - only_if_trend
@@ -71,15 +83,14 @@ families:
     parameters: {}
     templates:
     - desync_repair
-    - convergence
+    - basis_convergence
     - basis_repair
     - lead_lag_follow
     - divergence_continuation
   LIQUIDITY_DISLOCATION:
     parameters: {}
     templates:
-    - mean_reversion
-    - continuation
+    - liquidity_refill_repair
     - stop_run_repair
     - overshoot_repair
     - only_if_liquidity
@@ -100,10 +111,9 @@ families:
   POSITIONING_EXTREMES:
     parameters: {}
     templates:
-    - reversal_or_squeeze
-    - mean_reversion
-    - continuation
-    - exhaustion_reversal
+    - carry_unwind_reversal
+    - carry_continuation_confirmed
+    - squeeze_followthrough_confirmed
     - convexity_capture
     - only_if_funding
     - only_if_oi
@@ -211,6 +221,11 @@ canonical_regimes:
     - FEE_REGIME_CHANGE_EVENT
     - SLIPPAGE_SPIKE_EVENT
     - SPREAD_REGIME_WIDENING_EVENT
+  FORCED_FLOW_EXHAUSTION:
+    event_types:
+    - LIQUIDATION_EXHAUSTION_REVERSAL
+    default_executable_event_types:
+    - LIQUIDATION_EXHAUSTION_REVERSAL
   LIQUIDATION_CASCADE:
     event_types:
     - LIQUIDATION_CASCADE
@@ -250,20 +265,20 @@ canonical_regimes:
     - WICK_REVERSAL_PROXY
   POSITIONING_EXPANSION:
     event_types:
-    - OI_SPIKE_NEGATIVE
     - OI_SPIKE_POSITIVE
     - SEQ_OI_SPIKEPOS_THEN_VOL_SPIKE
     default_executable_event_types:
-    - OI_SPIKE_NEGATIVE
     - OI_SPIKE_POSITIVE
   POSITIONING_UNWIND_DELEVERAGING:
     event_types:
     - DELEVERAGING_WAVE
     - OI_FLUSH
+    - OI_SPIKE_NEGATIVE
     - POST_DELEVERAGING_REBOUND
     default_executable_event_types:
     - DELEVERAGING_WAVE
     - OI_FLUSH
+    - OI_SPIKE_NEGATIVE
     - POST_DELEVERAGING_REBOUND
   REGIME_TRANSITION:
     event_types:
@@ -315,7 +330,6 @@ canonical_regimes:
     - FALSE_BREAKOUT
     - FLOW_EXHAUSTION_PROXY
     - FORCED_FLOW_EXHAUSTION
-    - LIQUIDATION_EXHAUSTION_REVERSAL
     - MOMENTUM_DIVERGENCE_TRIGGER
     - TREND_DECELERATION
     - TREND_EXHAUSTION_TRIGGER
@@ -325,7 +339,6 @@ canonical_regimes:
     - FALSE_BREAKOUT
     - FLOW_EXHAUSTION_PROXY
     - FORCED_FLOW_EXHAUSTION
-    - LIQUIDATION_EXHAUSTION_REVERSAL
     - MOMENTUM_DIVERGENCE_TRIGGER
     - TREND_DECELERATION
     - TREND_EXHAUSTION_TRIGGER
@@ -370,11 +383,6 @@ events:
     research_only: false
     strategy_only: false
     default_executable: true
-    detector_band: composite_or_fragile
-    planning_eligible: false
-    runtime_eligible: false
-    promotion_eligible: false
-    primary_anchor_eligible: false
     deconflict_priority: 0
     notes: 'Hybrid liquidity-stress evidence: direct imbalance-stall confirmation
       combined with spread and RV stress.'
@@ -383,6 +391,11 @@ events:
     operational_role: trigger
     deployment_disposition: secondary_or_confirm
     runtime_category: active_runtime_event
+    detector_band: ''
+    planning_eligible: false
+    runtime_eligible: false
+    promotion_eligible: false
+    primary_anchor_eligible: false
     enabled: true
     detector_name: AbsorptionProxyDetector
     runtime_tags: []
@@ -449,11 +462,6 @@ events:
     research_only: false
     strategy_only: false
     default_executable: true
-    detector_band: research_trigger
-    planning_eligible: true
-    runtime_eligible: false
-    promotion_eligible: false
-    primary_anchor_eligible: false
     deconflict_priority: 0
     notes: Statistical band escape; retained as subtype under stretch/overshoot.
     maturity: ''
@@ -461,6 +469,11 @@ events:
     operational_role: trigger
     deployment_disposition: secondary_or_confirm
     runtime_category: active_runtime_event
+    detector_band: ''
+    planning_eligible: false
+    runtime_eligible: false
+    promotion_eligible: false
+    primary_anchor_eligible: false
     enabled: true
     detector_name: BandBreakDetector
     runtime_tags:
@@ -506,8 +519,8 @@ events:
     - 60m
     max_candidates_per_run: 350
   BASIS_DISLOC:
-    research_family: STATISTICAL_DISLOCATION
-    canonical_family: STATISTICAL_DISLOCATION
+    research_family: BASIS_FUNDING_DISLOCATION
+    canonical_family: BASIS_FUNDING_DISLOCATION
     canonical_regime: BASIS_FUNDING_DISLOCATION
     event_kind: market_event
     subtype: basis_dislocation
@@ -523,11 +536,6 @@ events:
     research_only: false
     strategy_only: false
     default_executable: true
-    detector_band: deployable_core
-    planning_eligible: true
-    runtime_eligible: true
-    promotion_eligible: true
-    primary_anchor_eligible: true
     deconflict_priority: 0
     notes: Canonical basis dislocation surface.
     maturity: ''
@@ -535,6 +543,11 @@ events:
     operational_role: trigger
     deployment_disposition: primary_trigger_candidate
     runtime_category: active_runtime_event
+    detector_band: ''
+    planning_eligible: false
+    runtime_eligible: false
+    promotion_eligible: false
+    primary_anchor_eligible: false
     enabled: true
     detector_name: BasisDislocationDetector
     runtime_tags:
@@ -568,9 +581,9 @@ events:
       cooldown_bars: 12
       min_basis_bps: 10.0
     templates:
-    - mean_reversion
-    - overshoot_repair
-    - tail_risk_avoid
+    - basis_convergence
+    - basis_repair
+    - basis_funding_convergence
     horizons:
     - 15m
     - 60m
@@ -593,11 +606,6 @@ events:
     research_only: false
     strategy_only: false
     default_executable: true
-    detector_band: research_trigger
-    planning_eligible: true
-    runtime_eligible: false
-    promotion_eligible: true
-    primary_anchor_eligible: true
     deconflict_priority: 0
     notes: Cross-asset transition evidence via beta instability.
     maturity: ''
@@ -605,6 +613,11 @@ events:
     operational_role: trigger
     deployment_disposition: secondary_or_confirm
     runtime_category: active_runtime_event
+    detector_band: ''
+    planning_eligible: false
+    runtime_eligible: false
+    promotion_eligible: false
+    primary_anchor_eligible: false
     enabled: true
     detector_name: BetaSpikeDetector
     runtime_tags:
@@ -668,11 +681,6 @@ events:
     research_only: false
     strategy_only: false
     default_executable: true
-    detector_band: research_trigger
-    planning_eligible: true
-    runtime_eligible: false
-    promotion_eligible: false
-    primary_anchor_eligible: false
     deconflict_priority: 0
     notes: Compression-release bridge event; not a standalone canonical regime.
     maturity: ''
@@ -680,6 +688,11 @@ events:
     operational_role: trigger
     deployment_disposition: secondary_or_confirm
     runtime_category: active_runtime_event
+    detector_band: ''
+    planning_eligible: false
+    runtime_eligible: false
+    promotion_eligible: false
+    primary_anchor_eligible: false
     enabled: true
     detector_name: BreakoutTriggerDetector
     runtime_tags:
@@ -748,11 +761,6 @@ events:
     research_only: false
     strategy_only: false
     default_executable: true
-    detector_band: research_trigger
-    planning_eligible: true
-    runtime_eligible: false
-    promotion_eligible: false
-    primary_anchor_eligible: false
     deconflict_priority: 0
     notes: Transition from choppy to directional conditions.
     maturity: ''
@@ -760,6 +768,11 @@ events:
     operational_role: trigger
     deployment_disposition: secondary_or_confirm
     runtime_category: active_runtime_event
+    detector_band: ''
+    planning_eligible: false
+    runtime_eligible: false
+    promotion_eligible: false
+    primary_anchor_eligible: false
     enabled: true
     detector_name: ChopToTrendDetector
     runtime_tags:
@@ -824,11 +837,6 @@ events:
     research_only: false
     strategy_only: false
     default_executable: true
-    detector_band: research_trigger
-    planning_eligible: true
-    runtime_eligible: false
-    promotion_eligible: false
-    primary_anchor_eligible: false
     deconflict_priority: 0
     notes: Exhaustion marker rather than standalone family.
     maturity: ''
@@ -836,6 +844,11 @@ events:
     operational_role: trigger
     deployment_disposition: secondary_or_confirm
     runtime_category: active_runtime_event
+    detector_band: ''
+    planning_eligible: false
+    runtime_eligible: false
+    promotion_eligible: false
+    primary_anchor_eligible: false
     enabled: true
     detector_name: ClimaxVolumeDetector
     runtime_tags:
@@ -906,11 +919,6 @@ events:
     research_only: false
     strategy_only: true
     default_executable: false
-    detector_band: composite_or_fragile
-    planning_eligible: false
-    runtime_eligible: false
-    promotion_eligible: false
-    primary_anchor_eligible: false
     deconflict_priority: 0
     notes: Relative-value strategy/search construct, not a canonical market event.
     maturity: ''
@@ -918,6 +926,11 @@ events:
     operational_role: research_only
     deployment_disposition: research_only
     runtime_category: research_only
+    detector_band: ''
+    planning_eligible: false
+    runtime_eligible: false
+    promotion_eligible: false
+    primary_anchor_eligible: false
     enabled: true
     detector_name: CopulaPairsTradingDetector
     runtime_tags:
@@ -980,11 +993,6 @@ events:
     research_only: false
     strategy_only: false
     default_executable: true
-    detector_band: research_trigger
-    planning_eligible: true
-    runtime_eligible: false
-    promotion_eligible: true
-    primary_anchor_eligible: true
     deconflict_priority: 0
     notes: Cross-asset regime transition via correlation instability.
     maturity: ''
@@ -992,6 +1000,11 @@ events:
     operational_role: trigger
     deployment_disposition: secondary_or_confirm
     runtime_category: active_runtime_event
+    detector_band: ''
+    planning_eligible: false
+    runtime_eligible: false
+    promotion_eligible: false
+    primary_anchor_eligible: false
     enabled: true
     detector_name: CorrelationBreakdownDetector
     runtime_tags:
@@ -1055,11 +1068,6 @@ events:
     research_only: false
     strategy_only: false
     default_executable: true
-    detector_band: context_only
-    planning_eligible: true
-    runtime_eligible: false
-    promotion_eligible: false
-    primary_anchor_eligible: false
     deconflict_priority: 0
     notes: First-class cross-asset desynchronization regime.
     maturity: ''
@@ -1067,6 +1075,11 @@ events:
     operational_role: filter
     deployment_disposition: repair_before_promotion
     runtime_category: active_runtime_event
+    detector_band: ''
+    planning_eligible: false
+    runtime_eligible: false
+    promotion_eligible: false
+    primary_anchor_eligible: false
     enabled: true
     detector_name: CrossAssetDesyncDetector
     runtime_tags:
@@ -1183,11 +1196,6 @@ events:
     research_only: false
     strategy_only: false
     default_executable: true
-    detector_band: research_trigger
-    planning_eligible: true
-    runtime_eligible: false
-    promotion_eligible: true
-    primary_anchor_eligible: true
     deconflict_priority: 0
     notes: Cross-venue basis persistence folded into basis/funding dislocation.
     maturity: standard
@@ -1195,6 +1203,11 @@ events:
     operational_role: trigger
     deployment_disposition: secondary_or_confirm
     runtime_category: active_runtime_event
+    detector_band: ''
+    planning_eligible: false
+    runtime_eligible: false
+    promotion_eligible: false
+    primary_anchor_eligible: false
     enabled: true
     detector_name: CrossVenueDesyncDetector
     runtime_tags:
@@ -1328,11 +1341,6 @@ events:
     research_only: false
     strategy_only: false
     default_executable: true
-    detector_band: research_trigger
-    planning_eligible: true
-    runtime_eligible: false
-    promotion_eligible: false
-    primary_anchor_eligible: false
     deconflict_priority: 0
     notes: Positioning unwind regime with explicit deleveraging dynamics.
     maturity: ''
@@ -1340,6 +1348,11 @@ events:
     operational_role: trigger
     deployment_disposition: secondary_or_confirm
     runtime_category: active_runtime_event
+    detector_band: ''
+    planning_eligible: false
+    runtime_eligible: false
+    promotion_eligible: false
+    primary_anchor_eligible: false
     enabled: true
     detector_name: DeleveragingWaveDetector
     runtime_tags:
@@ -1423,11 +1436,6 @@ events:
     research_only: false
     strategy_only: false
     default_executable: true
-    detector_band: research_trigger
-    planning_eligible: true
-    runtime_eligible: false
-    promotion_eligible: true
-    primary_anchor_eligible: false
     deconflict_priority: 0
     notes: Direct depth failure evidence for liquidity stress.
     maturity: standard
@@ -1435,6 +1443,11 @@ events:
     operational_role: trigger
     deployment_disposition: secondary_or_confirm
     runtime_category: active_runtime_event
+    detector_band: ''
+    planning_eligible: false
+    runtime_eligible: false
+    promotion_eligible: false
+    primary_anchor_eligible: false
     enabled: true
     detector_name: DepthCollapseDetector
     runtime_tags:
@@ -1477,8 +1490,7 @@ events:
       merge_gap_bars: 0
       min_volume_quantile: 0.2
     templates:
-    - mean_reversion
-    - continuation
+    - liquidity_refill_repair
     - stop_run_repair
     - overshoot_repair
     - only_if_liquidity
@@ -1504,11 +1516,6 @@ events:
     research_only: false
     strategy_only: false
     default_executable: true
-    detector_band: composite_or_fragile
-    planning_eligible: false
-    runtime_eligible: false
-    promotion_eligible: false
-    primary_anchor_eligible: false
     deconflict_priority: 0
     notes: 'Hybrid liquidity-stress evidence: direct micro-depth depletion combined
       with spread and RV stress.'
@@ -1517,6 +1524,11 @@ events:
     operational_role: trigger
     deployment_disposition: secondary_or_confirm
     runtime_category: active_runtime_event
+    detector_band: ''
+    planning_eligible: false
+    runtime_eligible: false
+    promotion_eligible: false
+    primary_anchor_eligible: false
     enabled: true
     detector_name: DepthStressProxyDetector
     runtime_tags: []
@@ -1587,11 +1599,6 @@ events:
     research_only: false
     strategy_only: false
     default_executable: true
-    detector_band: research_trigger
-    planning_eligible: true
-    runtime_eligible: false
-    promotion_eligible: false
-    primary_anchor_eligible: false
     deconflict_priority: 0
     notes: Trend-follow signal failure belongs in exhaustion/failure regime.
     maturity: ''
@@ -1599,6 +1606,11 @@ events:
     operational_role: trigger
     deployment_disposition: secondary_or_confirm
     runtime_category: active_runtime_event
+    detector_band: ''
+    planning_eligible: false
+    runtime_eligible: false
+    promotion_eligible: false
+    primary_anchor_eligible: false
     enabled: true
     detector_name: FailedContinuationDetector
     runtime_tags:
@@ -1664,11 +1676,6 @@ events:
     research_only: false
     strategy_only: false
     default_executable: true
-    detector_band: research_trigger
-    planning_eligible: true
-    runtime_eligible: false
-    promotion_eligible: false
-    primary_anchor_eligible: false
     deconflict_priority: 0
     notes: Breakout failure surface under trend failure/exhaustion.
     maturity: ''
@@ -1676,6 +1683,11 @@ events:
     operational_role: trigger
     deployment_disposition: secondary_or_confirm
     runtime_category: active_runtime_event
+    detector_band: ''
+    planning_eligible: false
+    runtime_eligible: false
+    promotion_eligible: false
+    primary_anchor_eligible: false
     enabled: true
     detector_name: FalseBreakoutDetector
     runtime_tags:
@@ -1743,11 +1755,6 @@ events:
     research_only: false
     strategy_only: false
     default_executable: true
-    detector_band: research_trigger
-    planning_eligible: true
-    runtime_eligible: false
-    promotion_eligible: false
-    primary_anchor_eligible: false
     deconflict_priority: 0
     notes: Execution-cost regime shift.
     maturity: ''
@@ -1755,6 +1762,11 @@ events:
     operational_role: trigger
     deployment_disposition: secondary_or_confirm
     runtime_category: active_runtime_event
+    detector_band: ''
+    planning_eligible: false
+    runtime_eligible: false
+    promotion_eligible: false
+    primary_anchor_eligible: false
     enabled: true
     detector_name: FeeRegimeChangeDetector
     runtime_tags:
@@ -1816,11 +1828,6 @@ events:
     research_only: false
     strategy_only: false
     default_executable: true
-    detector_band: composite_or_fragile
-    planning_eligible: false
-    runtime_eligible: false
-    promotion_eligible: false
-    primary_anchor_eligible: false
     deconflict_priority: 0
     notes: 'Hybrid exhaustion evidence: liquidation and OI unwind confirmation combined
       with price and volatility exhaustion.'
@@ -1829,6 +1836,11 @@ events:
     operational_role: trigger
     deployment_disposition: secondary_or_confirm
     runtime_category: active_runtime_event
+    detector_band: ''
+    planning_eligible: false
+    runtime_eligible: false
+    promotion_eligible: false
+    primary_anchor_eligible: false
     enabled: true
     detector_name: FlowExhaustionDetector
     runtime_tags: []
@@ -1891,8 +1903,8 @@ events:
     - 60m
     max_candidates_per_run: 500
   FND_DISLOC:
-    research_family: STATISTICAL_DISLOCATION
-    canonical_family: STATISTICAL_DISLOCATION
+    research_family: BASIS_FUNDING_DISLOCATION
+    canonical_family: BASIS_FUNDING_DISLOCATION
     canonical_regime: BASIS_FUNDING_DISLOCATION
     event_kind: market_event
     subtype: funding_dislocation
@@ -1908,11 +1920,6 @@ events:
     research_only: false
     strategy_only: false
     default_executable: true
-    detector_band: deployable_core
-    planning_eligible: true
-    runtime_eligible: true
-    promotion_eligible: true
-    primary_anchor_eligible: true
     deconflict_priority: 0
     notes: Funding dislocation folded into basis/funding regime.
     maturity: ''
@@ -1920,6 +1927,11 @@ events:
     operational_role: trigger
     deployment_disposition: primary_trigger_candidate
     runtime_category: active_runtime_event
+    detector_band: ''
+    planning_eligible: false
+    runtime_eligible: false
+    promotion_eligible: false
+    primary_anchor_eligible: false
     enabled: true
     detector_name: FndDislocDetector
     runtime_tags:
@@ -1957,9 +1969,9 @@ events:
       cooldown_bars: 12
       min_basis_bps: 5.0
     templates:
-    - mean_reversion
-    - overshoot_repair
-    - tail_risk_avoid
+    - basis_funding_convergence
+    - basis_convergence
+    - basis_repair
     horizons:
     - 15m
     - 60m
@@ -1982,11 +1994,6 @@ events:
     research_only: false
     strategy_only: false
     default_executable: true
-    detector_band: research_trigger
-    planning_eligible: true
-    runtime_eligible: false
-    promotion_eligible: false
-    primary_anchor_eligible: false
     deconflict_priority: 0
     notes: Exhaustion regime with forced-flow mechanics.
     maturity: standard
@@ -1994,6 +2001,11 @@ events:
     operational_role: trigger
     deployment_disposition: secondary_or_confirm
     runtime_category: active_runtime_event
+    detector_band: ''
+    planning_eligible: false
+    runtime_eligible: false
+    promotion_eligible: false
+    primary_anchor_eligible: false
     enabled: true
     detector_name: ForcedFlowExhaustionDetector
     runtime_tags:
@@ -2076,11 +2088,6 @@ events:
     research_only: false
     strategy_only: false
     default_executable: true
-    detector_band: research_trigger
-    planning_eligible: true
-    runtime_eligible: false
-    promotion_eligible: true
-    primary_anchor_eligible: true
     deconflict_priority: 0
     notes: Funding extreme onset under basis/funding dislocation.
     maturity: standard
@@ -2088,6 +2095,11 @@ events:
     operational_role: trigger
     deployment_disposition: secondary_or_confirm
     runtime_category: active_runtime_event
+    detector_band: ''
+    planning_eligible: false
+    runtime_eligible: false
+    promotion_eligible: false
+    primary_anchor_eligible: false
     enabled: true
     detector_name: FundingExtremeOnsetDetector
     runtime_tags:
@@ -2252,11 +2264,6 @@ events:
     research_only: false
     strategy_only: false
     default_executable: true
-    detector_band: research_trigger
-    planning_eligible: true
-    runtime_eligible: false
-    promotion_eligible: true
-    primary_anchor_eligible: true
     deconflict_priority: 0
     notes: Funding sign inversion as subtype metadata.
     maturity: ''
@@ -2264,6 +2271,11 @@ events:
     operational_role: trigger
     deployment_disposition: secondary_or_confirm
     runtime_category: active_runtime_event
+    detector_band: ''
+    planning_eligible: false
+    runtime_eligible: false
+    promotion_eligible: false
+    primary_anchor_eligible: false
     enabled: true
     detector_name: FundingFlipDetector
     runtime_tags:
@@ -2335,11 +2347,6 @@ events:
     research_only: false
     strategy_only: false
     default_executable: true
-    detector_band: research_trigger
-    planning_eligible: true
-    runtime_eligible: false
-    promotion_eligible: true
-    primary_anchor_eligible: false
     deconflict_priority: 0
     notes: Normalization phase of funding dislocation.
     maturity: ''
@@ -2347,6 +2354,11 @@ events:
     operational_role: trigger
     deployment_disposition: secondary_or_confirm
     runtime_category: active_runtime_event
+    detector_band: ''
+    planning_eligible: false
+    runtime_eligible: false
+    promotion_eligible: false
+    primary_anchor_eligible: false
     enabled: true
     detector_name: FundingNormalizationDetector
     runtime_tags:
@@ -2441,11 +2453,6 @@ events:
     research_only: false
     strategy_only: false
     default_executable: true
-    detector_band: research_trigger
-    planning_eligible: true
-    runtime_eligible: false
-    promotion_eligible: true
-    primary_anchor_eligible: true
     deconflict_priority: 0
     notes: Persistence phase of funding dislocation.
     maturity: ''
@@ -2453,6 +2460,11 @@ events:
     operational_role: trigger
     deployment_disposition: secondary_or_confirm
     runtime_category: active_runtime_event
+    detector_band: research_trigger
+    planning_eligible: true
+    runtime_eligible: false
+    promotion_eligible: true
+    primary_anchor_eligible: true
     enabled: true
     detector_name: FundingPersistenceDetector
     runtime_tags:
@@ -2485,6 +2497,46 @@ events:
         disabled_regimes:
         - 'Low liquidity regime: OI/vol signals unreliable'
       cluster_id: funding_crowding
+      detector_runtime:
+        can_emit_events: true
+        can_emit_states: false
+        can_emit_context_tags: true
+      trade_runtime:
+        eligible: false
+        source_of_truth: docs/generated/detector_eligibility_matrix.json
+        reason: generated_governance_runtime_false
+      role:
+        detector_role: trigger
+        trade_role: secondary_confirm
+        state_role: none
+        guard_role: none
+      directionality:
+        direction_hint: both
+        sign_source: funding
+        sign_required: true
+        sign_field: funding_sign
+      timing:
+        detection_timestamp: funding_interval_close
+        availability_lag_bars: 1
+        cooldown_bars: 576
+        max_action_delay_bars: 12
+        decay_half_life_bars: 24
+      required_features:
+      - timestamp
+      - close
+      - funding_rate
+      - open_interest
+      data_quality:
+        min_coverage: 0.98
+        max_stale_bars: 1
+        synthetic_allowed: false
+      allowed_templates:
+      - carry_unwind_reversal
+      - squeeze_followthrough_confirmed
+      - basis_funding_convergence
+      forbidden_templates:
+      - generic_continuation
+      - unconditioned_mean_reversion
       funding_pct_window: 2880
       extreme_pct: 95.0
       accel_pct: 95.0
@@ -2518,11 +2570,10 @@ events:
       interaction_min_rows_per_year: 150
       min_hazard_events: 50
     templates:
-    - reversal_or_squeeze
-    - mean_reversion
-    - continuation
-    - exhaustion_reversal
-    - convexity_capture
+    - carry_unwind_reversal
+    - carry_continuation_confirmed
+    - basis_funding_convergence
+    - squeeze_followthrough_confirmed
     - only_if_funding
     - only_if_oi
     - tail_risk_avoid
@@ -2549,11 +2600,6 @@ events:
     research_only: false
     strategy_only: false
     default_executable: false
-    detector_band: context_only
-    planning_eligible: true
-    runtime_eligible: false
-    promotion_eligible: false
-    primary_anchor_eligible: false
     deconflict_priority: 0
     notes: Mechanical funding window context; not a canonical regime.
     maturity: ''
@@ -2561,6 +2607,11 @@ events:
     operational_role: context
     deployment_disposition: context_only
     runtime_category: active_runtime_event
+    detector_band: ''
+    planning_eligible: false
+    runtime_eligible: false
+    promotion_eligible: false
+    primary_anchor_eligible: false
     enabled: true
     detector_name: FundingTimestampDetector
     runtime_tags:
@@ -2637,11 +2688,6 @@ events:
     research_only: false
     strategy_only: false
     default_executable: true
-    detector_band: research_trigger
-    planning_eligible: true
-    runtime_eligible: false
-    promotion_eligible: false
-    primary_anchor_eligible: false
     deconflict_priority: 0
     notes: Gap-extension overshoot state.
     maturity: ''
@@ -2649,6 +2695,11 @@ events:
     operational_role: trigger
     deployment_disposition: secondary_or_confirm
     runtime_category: active_runtime_event
+    detector_band: ''
+    planning_eligible: false
+    runtime_eligible: false
+    promotion_eligible: false
+    primary_anchor_eligible: false
     enabled: true
     detector_name: GapOvershootDetector
     runtime_tags:
@@ -2712,11 +2763,6 @@ events:
     research_only: false
     strategy_only: false
     default_executable: true
-    detector_band: research_trigger
-    planning_eligible: true
-    runtime_eligible: false
-    promotion_eligible: true
-    primary_anchor_eligible: true
     deconflict_priority: 0
     notes: Cross-asset divergence between index and components.
     maturity: ''
@@ -2724,6 +2770,11 @@ events:
     operational_role: trigger
     deployment_disposition: secondary_or_confirm
     runtime_category: active_runtime_event
+    detector_band: ''
+    planning_eligible: false
+    runtime_eligible: false
+    promotion_eligible: false
+    primary_anchor_eligible: false
     enabled: true
     detector_name: IndexComponentDivergenceDetector
     runtime_tags:
@@ -2789,11 +2840,6 @@ events:
     research_only: false
     strategy_only: false
     default_executable: true
-    detector_band: research_trigger
-    planning_eligible: true
-    runtime_eligible: false
-    promotion_eligible: true
-    primary_anchor_eligible: true
     deconflict_priority: 0
     notes: Lead/lag structure break.
     maturity: ''
@@ -2801,6 +2847,11 @@ events:
     operational_role: trigger
     deployment_disposition: secondary_or_confirm
     runtime_category: active_runtime_event
+    detector_band: ''
+    planning_eligible: false
+    runtime_eligible: false
+    promotion_eligible: false
+    primary_anchor_eligible: false
     enabled: true
     detector_name: LeadLagBreakDetector
     runtime_tags:
@@ -2849,8 +2900,8 @@ events:
     - 60m
     max_candidates_per_run: 500
   LIQUIDATION_CASCADE:
-    research_family: POSITIONING_EXTREMES
-    canonical_family: POSITIONING_EXTREMES
+    research_family: FORCED_FLOW_AND_EXHAUSTION
+    canonical_family: FORCED_FLOW_AND_EXHAUSTION
     canonical_regime: LIQUIDATION_CASCADE
     event_kind: market_event
     subtype: liquidation_cascade
@@ -2866,11 +2917,6 @@ events:
     research_only: false
     strategy_only: false
     default_executable: true
-    detector_band: deployable_core
-    planning_eligible: true
-    runtime_eligible: true
-    promotion_eligible: true
-    primary_anchor_eligible: true
     deconflict_priority: 0
     notes: Structurally distinct canonical cascade regime.
     maturity: ''
@@ -2878,6 +2924,11 @@ events:
     operational_role: trigger
     deployment_disposition: primary_trigger_candidate
     runtime_category: active_runtime_event
+    detector_band: deployable_core
+    planning_eligible: true
+    runtime_eligible: true
+    promotion_eligible: true
+    primary_anchor_eligible: true
     enabled: true
     detector_name: LiquidationCascadeDetector
     runtime_tags:
@@ -2907,20 +2958,50 @@ events:
         - Funding reverses sign
         disabled_regimes:
         - 'Low liquidity regime: OI/vol signals unreliable'
+      detector_runtime:
+        can_emit_events: true
+        can_emit_states: false
+        can_emit_context_tags: false
+      trade_runtime:
+        eligible: true
+        source_of_truth: docs/generated/detector_eligibility_matrix.json
+        reason: generated_governance_runtime_true
+      role:
+        detector_role: trigger
+        trade_role: primary_trigger_candidate
+        state_role: none
+        guard_role: none
+      directionality:
+        direction_hint: both
+        sign_source: liquidation_side
+        sign_required: true
+        sign_field: event_sign
+      timing:
+        detection_timestamp: bar_close
+        availability_lag_bars: 1
+        cooldown_bars: 12
+        max_action_delay_bars: 6
+        decay_half_life_bars: 6
+      required_features:
+      - timestamp
+      - close
+      - open_interest
+      - liquidation_notional
+      data_quality:
+        min_coverage: 0.98
+        max_stale_bars: 1
+        synthetic_allowed: false
       liq_multiplier: 3.0
       median_window: 288
       min_periods: 24
-      liq_vol_th_pct: 0.95
-      liq_vol_th: 0.0
-      oi_drop_pct_th: 0.003
+      liq_vol_th: 35671013.12
+      oi_drop_pct_th: 0.005
       max_gap: 6
       anchor_rule: last
     templates:
-    - reversal_or_squeeze
-    - mean_reversion
-    - continuation
-    - exhaustion_reversal
-    - convexity_capture
+    - forced_flow_rebound
+    - cooldown_reversal
+    - liquidity_refill_repair
     - only_if_funding
     - only_if_oi
     - tail_risk_avoid
@@ -2946,11 +3027,6 @@ events:
     research_only: false
     strategy_only: false
     default_executable: true
-    detector_band: composite_or_fragile
-    planning_eligible: true
-    runtime_eligible: false
-    promotion_eligible: true
-    primary_anchor_eligible: true
     deconflict_priority: 0
     notes: Use when liquidation_notional data is unavailable (e.g., Bybit native data
       without cross-exchange liquidation feed). Expected to have lower precision than
@@ -2960,6 +3036,11 @@ events:
     operational_role: trigger
     deployment_disposition: secondary_or_confirm
     runtime_category: active_runtime_event
+    detector_band: ''
+    planning_eligible: false
+    runtime_eligible: false
+    promotion_eligible: false
+    primary_anchor_eligible: false
     enabled: true
     detector_name: LiquidationCascadeProxyDetector
     runtime_tags:
@@ -3089,7 +3170,7 @@ events:
   LIQUIDATION_EXHAUSTION_REVERSAL:
     research_family: FORCED_FLOW_AND_EXHAUSTION
     canonical_family: FORCED_FLOW_AND_EXHAUSTION
-    canonical_regime: TREND_FAILURE_EXHAUSTION
+    canonical_regime: FORCED_FLOW_EXHAUSTION
     event_kind: market_event
     subtype: liquidation_exhaustion_reversal
     phase: recovery
@@ -3103,20 +3184,20 @@ events:
     is_strategy_construct: false
     research_only: false
     strategy_only: false
-    default_executable: true
-    detector_band: research_trigger
-    planning_eligible: true
-    runtime_eligible: false
-    promotion_eligible: false
-    primary_anchor_eligible: false
+    default_executable: false
     deconflict_priority: 0
     notes: Reversal after forced liquidation exhaustion.
     maturity: ''
     tier: B
     operational_role: trigger
     deployment_disposition: secondary_or_confirm
-    runtime_category: active_runtime_event
-    enabled: true
+    runtime_category: research_only
+    detector_band: research_trigger
+    planning_eligible: true
+    runtime_eligible: false
+    promotion_eligible: false
+    primary_anchor_eligible: false
+    enabled: false
     detector_name: PostDeleveragingReboundDetector
     runtime_tags:
     - forced_liquidation
@@ -3151,6 +3232,40 @@ events:
         disabled_regimes:
         - 'Low volume: flow signals unreliable'
       cluster_id: forced_liquidation
+      detector_runtime:
+        can_emit_events: true
+        can_emit_states: false
+        can_emit_context_tags: false
+      trade_runtime:
+        eligible: false
+        source_of_truth: docs/generated/detector_eligibility_matrix.json
+        reason: generated_governance_runtime_false
+      role:
+        detector_role: trigger
+        trade_role: secondary_confirm
+        state_role: none
+        guard_role: none
+      directionality:
+        direction_hint: both
+        sign_source: liquidation_side
+        sign_required: true
+        sign_field: event_sign
+      timing:
+        detection_timestamp: bar_close
+        availability_lag_bars: 1
+        cooldown_bars: 24
+        max_action_delay_bars: 6
+        decay_half_life_bars: 6
+      required_features:
+      - timestamp
+      - close
+      - open_interest
+      - liquidation_notional
+      - spread_zscore
+      data_quality:
+        min_coverage: 0.98
+        max_stale_bars: 1
+        synthetic_allowed: false
       threshold_window: 2880
       oi_drop_quantile: 0.8
       liquidation_quantile: 0.85
@@ -3177,10 +3292,10 @@ events:
       cooldown_bars: 24
       merge_gap_bars: 0
     templates:
-    - mean_reversion
-    - exhaustion_reversal
+    - forced_flow_rebound
+    - cooldown_reversal
+    - liquidity_refill_repair
     - momentum_fade
-    - range_reversion
     - only_if_trend
     - drawdown_filter
     horizons:
@@ -3204,11 +3319,6 @@ events:
     research_only: false
     strategy_only: false
     default_executable: true
-    detector_band: research_trigger
-    planning_eligible: true
-    runtime_eligible: false
-    promotion_eligible: false
-    primary_anchor_eligible: false
     deconflict_priority: 0
     notes: Gap print inside liquidity-stress regime.
     maturity: ''
@@ -3216,6 +3326,11 @@ events:
     operational_role: trigger
     deployment_disposition: secondary_or_confirm
     runtime_category: active_runtime_event
+    detector_band: ''
+    planning_eligible: false
+    runtime_eligible: false
+    promotion_eligible: false
+    primary_anchor_eligible: false
     enabled: true
     detector_name: LiquidityGapDetector
     runtime_tags:
@@ -3285,11 +3400,6 @@ events:
     research_only: false
     strategy_only: false
     default_executable: true
-    detector_band: deployable_core
-    planning_eligible: true
-    runtime_eligible: true
-    promotion_eligible: true
-    primary_anchor_eligible: true
     deconflict_priority: 0
     notes: High-level liquidity stress onset.
     maturity: ''
@@ -3297,6 +3407,11 @@ events:
     operational_role: trigger
     deployment_disposition: primary_trigger_candidate
     runtime_category: active_runtime_event
+    detector_band: ''
+    planning_eligible: false
+    runtime_eligible: false
+    promotion_eligible: false
+    primary_anchor_eligible: false
     enabled: true
     detector_name: LiquidityStressDetector
     runtime_tags:
@@ -3334,8 +3449,7 @@ events:
       spread_spike_th: 3.0
       median_window: 288
     templates:
-    - mean_reversion
-    - continuation
+    - liquidity_refill_repair
     - stop_run_repair
     - overshoot_repair
     - only_if_liquidity
@@ -3361,11 +3475,6 @@ events:
     research_only: false
     strategy_only: false
     default_executable: true
-    detector_band: deployable_core
-    planning_eligible: true
-    runtime_eligible: true
-    promotion_eligible: true
-    primary_anchor_eligible: true
     deconflict_priority: 0
     notes: Direct evidence mode for liquidity stress.
     maturity: ''
@@ -3373,6 +3482,11 @@ events:
     operational_role: trigger
     deployment_disposition: secondary_or_confirm
     runtime_category: active_runtime_event
+    detector_band: ''
+    planning_eligible: false
+    runtime_eligible: false
+    promotion_eligible: false
+    primary_anchor_eligible: false
     enabled: true
     detector_name: DirectLiquidityStressDetector
     runtime_tags: []
@@ -3433,11 +3547,6 @@ events:
     research_only: false
     strategy_only: false
     default_executable: true
-    detector_band: composite_or_fragile
-    planning_eligible: false
-    runtime_eligible: false
-    promotion_eligible: false
-    primary_anchor_eligible: false
     deconflict_priority: 0
     notes: 'Hybrid liquidity-stress evidence: direct book stress when available plus
       bar-range expansion and optional trade-flow collapse confirmation.'
@@ -3446,6 +3555,11 @@ events:
     operational_role: trigger
     deployment_disposition: secondary_or_confirm
     runtime_category: active_runtime_event
+    detector_band: ''
+    planning_eligible: false
+    runtime_eligible: false
+    promotion_eligible: false
+    primary_anchor_eligible: false
     enabled: true
     detector_name: ProxyLiquidityStressDetector
     runtime_tags: []
@@ -3508,11 +3622,6 @@ events:
     research_only: false
     strategy_only: false
     default_executable: true
-    detector_band: deployable_core
-    planning_eligible: true
-    runtime_eligible: true
-    promotion_eligible: true
-    primary_anchor_eligible: true
     deconflict_priority: 0
     notes: Thin-book vacuum regime.
     maturity: ''
@@ -3520,6 +3629,11 @@ events:
     operational_role: trigger
     deployment_disposition: primary_trigger_candidate
     runtime_category: active_runtime_event
+    detector_band: deployable_core
+    planning_eligible: true
+    runtime_eligible: true
+    promotion_eligible: true
+    primary_anchor_eligible: true
     enabled: true
     detector_name: LiquidityVacuumDetector
     runtime_tags:
@@ -3627,6 +3741,45 @@ events:
       trigger: Detector triggers on liquidity vacuum pattern
       confirmation: Post-detection price action confirms signal validity
       cluster_id: liquidity_stress
+      detector_runtime:
+        can_emit_events: true
+        can_emit_states: true
+        can_emit_context_tags: true
+      trade_runtime:
+        eligible: true
+        source_of_truth: docs/generated/detector_eligibility_matrix.json
+        reason: generated_governance_runtime_true
+      role:
+        detector_role: guard
+        trade_role: execution_guard
+        state_role: liquidity_phase
+        guard_role: execution_guard
+      directionality:
+        direction_hint: none
+        sign_source: spread
+        sign_required: false
+        sign_field: none
+      timing:
+        detection_timestamp: bar_close
+        availability_lag_bars: 1
+        cooldown_bars: 12
+        max_action_delay_bars: 3
+        decay_half_life_bars: 6
+      required_features:
+      - timestamp
+      - close
+      - spread_zscore
+      - depth_imbalance
+      data_quality:
+        min_coverage: 0.98
+        max_stale_bars: 1
+        synthetic_allowed: false
+      allowed_templates:
+      - tail_risk_avoid
+      - liquidity_refill_repair
+      forbidden_templates:
+      - generic_continuation
+      - unconditioned_mean_reversion
       profile: lenient
       min_events_calibration: 1
       shock_quantiles: 0.5,0.6,0.7
@@ -3647,10 +3800,8 @@ events:
       anchor_rule: max_intensity
       min_occurrences: 3
     templates:
-    - mean_reversion
-    - stop_run_repair
-    - overshoot_repair
-    - continuation
+    - tail_risk_avoid
+    - liquidity_refill_repair
     - only_if_liquidity
     - slippage_aware_filter
     horizons:
@@ -3675,11 +3826,6 @@ events:
     research_only: false
     strategy_only: false
     default_executable: true
-    detector_band: research_trigger
-    planning_eligible: true
-    runtime_eligible: false
-    promotion_eligible: false
-    primary_anchor_eligible: false
     deconflict_priority: 0
     notes: Divergence-based exhaustion signal.
     maturity: ''
@@ -3687,6 +3833,11 @@ events:
     operational_role: trigger
     deployment_disposition: secondary_or_confirm
     runtime_category: active_runtime_event
+    detector_band: ''
+    planning_eligible: false
+    runtime_eligible: false
+    promotion_eligible: false
+    primary_anchor_eligible: false
     enabled: true
     detector_name: MomentumDivergenceDetector
     runtime_tags:
@@ -3754,11 +3905,6 @@ events:
     research_only: false
     strategy_only: false
     default_executable: true
-    detector_band: research_trigger
-    planning_eligible: true
-    runtime_eligible: false
-    promotion_eligible: true
-    primary_anchor_eligible: true
     deconflict_priority: 0
     notes: OI flush folded into unwind/deleveraging regime.
     maturity: ''
@@ -3766,6 +3912,11 @@ events:
     operational_role: trigger
     deployment_disposition: secondary_or_confirm
     runtime_category: active_runtime_event
+    detector_band: ''
+    planning_eligible: false
+    runtime_eligible: false
+    promotion_eligible: false
+    primary_anchor_eligible: false
     enabled: true
     detector_name: OIFlushDetector
     runtime_tags:
@@ -3820,10 +3971,10 @@ events:
   OI_SPIKE_NEGATIVE:
     research_family: POSITIONING_EXTREMES
     canonical_family: POSITIONING_EXTREMES
-    canonical_regime: POSITIONING_EXPANSION
+    canonical_regime: POSITIONING_UNWIND_DELEVERAGING
     event_kind: market_event
-    subtype: oi_spike_negative
-    phase: expansion
+    subtype: oi_flush
+    phase: unwind
     evidence_mode: direct
     layer: canonical
     disposition: merge
@@ -3835,18 +3986,19 @@ events:
     research_only: false
     strategy_only: false
     default_executable: true
-    detector_band: deployable_core
-    planning_eligible: true
-    runtime_eligible: true
-    promotion_eligible: true
-    primary_anchor_eligible: true
     deconflict_priority: 0
-    notes: Direction stays in subtype; canonical regime is positioning expansion.
+    notes: Negative OI spike is normalized as OI contraction/unwind, not directional
+      alpha.
     maturity: ''
     tier: B
     operational_role: trigger
-    deployment_disposition: primary
+    deployment_disposition: secondary_or_confirm
     runtime_category: active_runtime_event
+    detector_band: deployable_core
+    planning_eligible: true
+    runtime_eligible: true
+    promotion_eligible: false
+    primary_anchor_eligible: true
     enabled: true
     detector_name: OISpikeNegativeDetector
     runtime_tags:
@@ -3879,14 +4031,45 @@ events:
         disabled_regimes:
         - 'Low liquidity regime: OI/vol signals unreliable'
       cluster_id: oi_dynamic
+      detector_runtime:
+        can_emit_events: true
+        can_emit_states: false
+        can_emit_context_tags: false
+      trade_runtime:
+        eligible: true
+        source_of_truth: docs/generated/detector_eligibility_matrix.json
+        reason: generated_governance_runtime_true
+      role:
+        detector_role: trigger
+        trade_role: secondary_confirm
+        state_role: none
+        guard_role: none
+      directionality:
+        direction_hint: both
+        sign_source: oi
+        sign_required: true
+        sign_field: oi_delta_sign
+      timing:
+        detection_timestamp: bar_close
+        availability_lag_bars: 1
+        cooldown_bars: 12
+        max_action_delay_bars: 6
+        decay_half_life_bars: 6
+      required_features:
+      - timestamp
+      - close
+      - open_interest
+      data_quality:
+        min_coverage: 0.98
+        max_stale_bars: 1
+        synthetic_allowed: false
       oi_window: 96
       spike_z_th: 2.5
       flush_pct_th: -0.005
     templates:
-    - reversal_or_squeeze
-    - mean_reversion
-    - continuation
-    - exhaustion_reversal
+    - positioning_flush_reversal
+    - long_flush_rebound
+    - forced_flow_rebound
     - convexity_capture
     - only_if_funding
     - only_if_oi
@@ -3913,11 +4096,6 @@ events:
     research_only: false
     strategy_only: false
     default_executable: true
-    detector_band: research_trigger
-    planning_eligible: true
-    runtime_eligible: false
-    promotion_eligible: true
-    primary_anchor_eligible: true
     deconflict_priority: 0
     notes: Direction stays in subtype; canonical regime is positioning expansion.
     maturity: ''
@@ -3925,6 +4103,11 @@ events:
     operational_role: trigger
     deployment_disposition: secondary_or_confirm
     runtime_category: active_runtime_event
+    detector_band: ''
+    planning_eligible: false
+    runtime_eligible: false
+    promotion_eligible: false
+    primary_anchor_eligible: false
     enabled: true
     detector_name: OISpikePositiveDetector
     runtime_tags:
@@ -3990,11 +4173,6 @@ events:
     research_only: false
     strategy_only: false
     default_executable: true
-    detector_band: research_trigger
-    planning_eligible: true
-    runtime_eligible: false
-    promotion_eligible: false
-    primary_anchor_eligible: false
     deconflict_priority: 0
     notes: Orderflow imbalance is treated as a liquidity-stress subtype.
     maturity: standard
@@ -4002,6 +4180,11 @@ events:
     operational_role: trigger
     deployment_disposition: secondary_or_confirm
     runtime_category: active_runtime_event
+    detector_band: ''
+    planning_eligible: false
+    runtime_eligible: false
+    promotion_eligible: false
+    primary_anchor_eligible: false
     enabled: true
     detector_name: OrderflowImbalanceDetector
     runtime_tags:
@@ -4075,11 +4258,6 @@ events:
     research_only: false
     strategy_only: false
     default_executable: true
-    detector_band: research_trigger
-    planning_eligible: true
-    runtime_eligible: false
-    promotion_eligible: false
-    primary_anchor_eligible: false
     deconflict_priority: 0
     notes: Statistical overshoot conditional on preceding shock.
     maturity: ''
@@ -4087,6 +4265,11 @@ events:
     operational_role: trigger
     deployment_disposition: secondary_or_confirm
     runtime_category: active_runtime_event
+    detector_band: ''
+    planning_eligible: false
+    runtime_eligible: false
+    promotion_eligible: false
+    primary_anchor_eligible: false
     enabled: true
     detector_name: OvershootDetector
     runtime_tags:
@@ -4151,11 +4334,6 @@ events:
     research_only: false
     strategy_only: false
     default_executable: true
-    detector_band: research_trigger
-    planning_eligible: true
-    runtime_eligible: false
-    promotion_eligible: false
-    primary_anchor_eligible: false
     deconflict_priority: 0
     notes: Recovery phase following deleveraging wave.
     maturity: ''
@@ -4163,6 +4341,11 @@ events:
     operational_role: trigger
     deployment_disposition: secondary_or_confirm
     runtime_category: active_runtime_event
+    detector_band: ''
+    planning_eligible: false
+    runtime_eligible: false
+    promotion_eligible: false
+    primary_anchor_eligible: false
     enabled: true
     detector_name: PostDeleveragingReboundDetector
     runtime_tags: []
@@ -4244,11 +4427,6 @@ events:
     research_only: false
     strategy_only: false
     default_executable: true
-    detector_band: composite_or_fragile
-    planning_eligible: false
-    runtime_eligible: false
-    promotion_eligible: false
-    primary_anchor_eligible: false
     deconflict_priority: 0
     notes: Hybrid liquidity-stress evidence via synchronized return, realized-volatility,
       volume, and flow-pressure imbalance.
@@ -4257,6 +4435,11 @@ events:
     operational_role: trigger
     deployment_disposition: secondary_or_confirm
     runtime_category: active_runtime_event
+    detector_band: ''
+    planning_eligible: false
+    runtime_eligible: false
+    promotion_eligible: false
+    primary_anchor_eligible: false
     enabled: true
     detector_name: PriceVolImbalanceProxyDetector
     runtime_tags: []
@@ -4327,11 +4510,6 @@ events:
     research_only: false
     strategy_only: false
     default_executable: true
-    detector_band: research_trigger
-    planning_eligible: true
-    runtime_eligible: false
-    promotion_eligible: false
-    primary_anchor_eligible: false
     deconflict_priority: 0
     notes: Pullback continuation setup.
     maturity: ''
@@ -4339,6 +4517,11 @@ events:
     operational_role: trigger
     deployment_disposition: secondary_or_confirm
     runtime_category: active_runtime_event
+    detector_band: ''
+    planning_eligible: false
+    runtime_eligible: false
+    promotion_eligible: false
+    primary_anchor_eligible: false
     enabled: true
     detector_name: PullbackPivotDetector
     runtime_tags:
@@ -4404,11 +4587,6 @@ events:
     research_only: false
     strategy_only: false
     default_executable: true
-    detector_band: research_trigger
-    planning_eligible: true
-    runtime_eligible: false
-    promotion_eligible: false
-    primary_anchor_eligible: false
     deconflict_priority: 0
     notes: Directional breakout retained under trend continuation.
     maturity: ''
@@ -4416,6 +4594,11 @@ events:
     operational_role: trigger
     deployment_disposition: secondary_or_confirm
     runtime_category: active_runtime_event
+    detector_band: ''
+    planning_eligible: false
+    runtime_eligible: false
+    promotion_eligible: false
+    primary_anchor_eligible: false
     enabled: true
     detector_name: RangeBreakoutDetector
     runtime_tags:
@@ -4482,11 +4665,6 @@ events:
     research_only: false
     strategy_only: false
     default_executable: true
-    detector_band: research_trigger
-    planning_eligible: true
-    runtime_eligible: false
-    promotion_eligible: false
-    primary_anchor_eligible: false
     deconflict_priority: 0
     notes: Compression-release subtype rather than standalone family.
     maturity: ''
@@ -4494,6 +4672,11 @@ events:
     operational_role: trigger
     deployment_disposition: secondary_or_confirm
     runtime_category: active_runtime_event
+    detector_band: ''
+    planning_eligible: false
+    runtime_eligible: false
+    promotion_eligible: false
+    primary_anchor_eligible: false
     enabled: true
     detector_name: RangeCompressionDetector
     runtime_tags:
@@ -4559,11 +4742,6 @@ events:
     research_only: false
     strategy_only: false
     default_executable: false
-    detector_band: context_only
-    planning_eligible: true
-    runtime_eligible: false
-    promotion_eligible: false
-    primary_anchor_eligible: false
     deconflict_priority: 0
     notes: Context gate for scheduled news windows.
     maturity: ''
@@ -4571,6 +4749,11 @@ events:
     operational_role: context
     deployment_disposition: context_only
     runtime_category: active_runtime_event
+    detector_band: ''
+    planning_eligible: false
+    runtime_eligible: false
+    promotion_eligible: false
+    primary_anchor_eligible: false
     enabled: true
     detector_name: ScheduledNewsDetector
     runtime_tags:
@@ -4650,11 +4833,6 @@ events:
     research_only: true
     strategy_only: false
     default_executable: false
-    detector_band: composite_or_fragile
-    planning_eligible: false
-    runtime_eligible: false
-    promotion_eligible: false
-    primary_anchor_eligible: false
     deconflict_priority: 0
     notes: Composite research hypothesis, not a canonical event.
     maturity: ''
@@ -4662,6 +4840,11 @@ events:
     operational_role: sequence_component
     deployment_disposition: research_only
     runtime_category: research_only
+    detector_band: ''
+    planning_eligible: false
+    runtime_eligible: false
+    promotion_eligible: false
+    primary_anchor_eligible: false
     enabled: true
     detector_name: EventSequenceDetector
     runtime_tags:
@@ -4728,11 +4911,6 @@ events:
     research_only: true
     strategy_only: false
     default_executable: false
-    detector_band: composite_or_fragile
-    planning_eligible: false
-    runtime_eligible: false
-    promotion_eligible: false
-    primary_anchor_eligible: false
     deconflict_priority: 0
     notes: Composite liquidity repair motif.
     maturity: ''
@@ -4740,6 +4918,11 @@ events:
     operational_role: sequence_component
     deployment_disposition: research_only
     runtime_category: research_only
+    detector_band: ''
+    planning_eligible: false
+    runtime_eligible: false
+    promotion_eligible: false
+    primary_anchor_eligible: false
     enabled: true
     detector_name: EventSequenceDetector
     runtime_tags:
@@ -4804,11 +4987,6 @@ events:
     research_only: true
     strategy_only: false
     default_executable: false
-    detector_band: composite_or_fragile
-    planning_eligible: false
-    runtime_eligible: false
-    promotion_eligible: false
-    primary_anchor_eligible: false
     deconflict_priority: 0
     notes: Composite positioning/volatility hypothesis.
     maturity: ''
@@ -4816,6 +4994,11 @@ events:
     operational_role: sequence_component
     deployment_disposition: research_only
     runtime_category: research_only
+    detector_band: ''
+    planning_eligible: false
+    runtime_eligible: false
+    promotion_eligible: false
+    primary_anchor_eligible: false
     enabled: true
     detector_name: EventSequenceDetector
     runtime_tags:
@@ -4882,11 +5065,6 @@ events:
     research_only: true
     strategy_only: false
     default_executable: false
-    detector_band: composite_or_fragile
-    planning_eligible: false
-    runtime_eligible: false
-    promotion_eligible: false
-    primary_anchor_eligible: false
     deconflict_priority: 0
     notes: Composite compression-release hypothesis.
     maturity: ''
@@ -4894,6 +5072,11 @@ events:
     operational_role: sequence_component
     deployment_disposition: research_only
     runtime_category: research_only
+    detector_band: ''
+    planning_eligible: false
+    runtime_eligible: false
+    promotion_eligible: false
+    primary_anchor_eligible: false
     enabled: true
     detector_name: EventSequenceDetector
     runtime_tags:
@@ -4957,11 +5140,6 @@ events:
     research_only: false
     strategy_only: false
     default_executable: false
-    detector_band: context_only
-    planning_eligible: true
-    runtime_eligible: false
-    promotion_eligible: false
-    primary_anchor_eligible: false
     deconflict_priority: 0
     notes: Session close context tag.
     maturity: ''
@@ -4969,6 +5147,11 @@ events:
     operational_role: context
     deployment_disposition: context_only
     runtime_category: active_runtime_event
+    detector_band: ''
+    planning_eligible: false
+    runtime_eligible: false
+    promotion_eligible: false
+    primary_anchor_eligible: false
     enabled: true
     detector_name: SessionCloseDetector
     runtime_tags:
@@ -5036,11 +5219,6 @@ events:
     research_only: false
     strategy_only: false
     default_executable: false
-    detector_band: context_only
-    planning_eligible: true
-    runtime_eligible: false
-    promotion_eligible: false
-    primary_anchor_eligible: false
     deconflict_priority: 0
     notes: Session open context tag.
     maturity: ''
@@ -5048,6 +5226,11 @@ events:
     operational_role: context
     deployment_disposition: context_only
     runtime_category: active_runtime_event
+    detector_band: ''
+    planning_eligible: false
+    runtime_eligible: false
+    promotion_eligible: false
+    primary_anchor_eligible: false
     enabled: true
     detector_name: SessionOpenDetector
     runtime_tags:
@@ -5115,11 +5298,6 @@ events:
     research_only: false
     strategy_only: false
     default_executable: true
-    detector_band: research_trigger
-    planning_eligible: true
-    runtime_eligible: false
-    promotion_eligible: false
-    primary_anchor_eligible: false
     deconflict_priority: 0
     notes: Execution friction shock.
     maturity: ''
@@ -5127,6 +5305,11 @@ events:
     operational_role: trigger
     deployment_disposition: secondary_or_confirm
     runtime_category: active_runtime_event
+    detector_band: ''
+    planning_eligible: false
+    runtime_eligible: false
+    promotion_eligible: false
+    primary_anchor_eligible: false
     enabled: true
     detector_name: SlippageSpikeDetector
     runtime_tags:
@@ -5189,11 +5372,6 @@ events:
     research_only: false
     strategy_only: false
     default_executable: true
-    detector_band: deployable_core
-    planning_eligible: true
-    runtime_eligible: true
-    promotion_eligible: true
-    primary_anchor_eligible: true
     deconflict_priority: 0
     notes: Spot/perp basis shock is a basis/funding subtype.
     maturity: ''
@@ -5201,6 +5379,11 @@ events:
     operational_role: trigger
     deployment_disposition: primary_trigger_candidate
     runtime_category: active_runtime_event
+    detector_band: ''
+    planning_eligible: false
+    runtime_eligible: false
+    promotion_eligible: false
+    primary_anchor_eligible: false
     enabled: true
     detector_name: SpotPerpBasisShockDetector
     runtime_tags:
@@ -5270,11 +5453,6 @@ events:
     research_only: false
     strategy_only: false
     default_executable: true
-    detector_band: research_trigger
-    planning_eligible: true
-    runtime_eligible: false
-    promotion_eligible: false
-    primary_anchor_eligible: false
     deconflict_priority: 0
     notes: Spread blowout retained as liquidity-stress subtype.
     maturity: ''
@@ -5282,6 +5460,11 @@ events:
     operational_role: trigger
     deployment_disposition: secondary_or_confirm
     runtime_category: active_runtime_event
+    detector_band: ''
+    planning_eligible: false
+    runtime_eligible: false
+    promotion_eligible: false
+    primary_anchor_eligible: false
     enabled: true
     detector_name: SpreadBlowoutDetector
     runtime_tags:
@@ -5346,8 +5529,8 @@ events:
       merge_gap_bars: 0
       min_volume_quantile: 0.2
     templates:
-    - mean_reversion
-    - continuation
+    - tail_risk_avoid
+    - liquidity_refill_repair
     - stop_run_repair
     - overshoot_repair
     - only_if_liquidity
@@ -5373,11 +5556,6 @@ events:
     research_only: false
     strategy_only: false
     default_executable: true
-    detector_band: research_trigger
-    planning_eligible: true
-    runtime_eligible: false
-    promotion_eligible: false
-    primary_anchor_eligible: false
     deconflict_priority: 0
     notes: Persistent execution-friction regime widening.
     maturity: ''
@@ -5385,6 +5563,11 @@ events:
     operational_role: trigger
     deployment_disposition: secondary_or_confirm
     runtime_category: active_runtime_event
+    detector_band: ''
+    planning_eligible: false
+    runtime_eligible: false
+    promotion_eligible: false
+    primary_anchor_eligible: false
     enabled: true
     detector_name: SpreadRegimeWideningDetector
     runtime_tags:
@@ -5450,11 +5633,6 @@ events:
     research_only: false
     strategy_only: false
     default_executable: true
-    detector_band: research_trigger
-    planning_eligible: true
-    runtime_eligible: false
-    promotion_eligible: false
-    primary_anchor_eligible: false
     deconflict_priority: 0
     notes: Structural breakout subtype within trend continuation.
     maturity: ''
@@ -5462,6 +5640,11 @@ events:
     operational_role: trigger
     deployment_disposition: secondary_or_confirm
     runtime_category: active_runtime_event
+    detector_band: ''
+    planning_eligible: false
+    runtime_eligible: false
+    promotion_eligible: false
+    primary_anchor_eligible: false
     enabled: true
     detector_name: SREventDetector
     runtime_tags:
@@ -5527,11 +5710,6 @@ events:
     research_only: false
     strategy_only: false
     default_executable: true
-    detector_band: research_trigger
-    planning_eligible: true
-    runtime_eligible: false
-    promotion_eligible: false
-    primary_anchor_eligible: false
     deconflict_priority: 0
     notes: Stop-run style liquidity stress.
     maturity: standard
@@ -5539,6 +5717,11 @@ events:
     operational_role: trigger
     deployment_disposition: secondary_or_confirm
     runtime_category: active_runtime_event
+    detector_band: ''
+    planning_eligible: false
+    runtime_eligible: false
+    promotion_eligible: false
+    primary_anchor_eligible: false
     enabled: true
     detector_name: StopRunDetector
     runtime_tags:
@@ -5607,11 +5790,6 @@ events:
     research_only: false
     strategy_only: false
     default_executable: true
-    detector_band: research_trigger
-    planning_eligible: true
-    runtime_eligible: false
-    promotion_eligible: false
-    primary_anchor_eligible: false
     deconflict_priority: 0
     notes: Continuation regime with accelerating trend.
     maturity: ''
@@ -5619,6 +5797,11 @@ events:
     operational_role: trigger
     deployment_disposition: secondary_or_confirm
     runtime_category: active_runtime_event
+    detector_band: ''
+    planning_eligible: false
+    runtime_eligible: false
+    promotion_eligible: false
+    primary_anchor_eligible: false
     enabled: true
     detector_name: TrendAccelerationDetector
     runtime_tags:
@@ -5684,11 +5867,6 @@ events:
     research_only: false
     strategy_only: false
     default_executable: true
-    detector_band: research_trigger
-    planning_eligible: true
-    runtime_eligible: false
-    promotion_eligible: false
-    primary_anchor_eligible: false
     deconflict_priority: 0
     notes: Deceleration belongs with trend failure/exhaustion.
     maturity: ''
@@ -5696,6 +5874,11 @@ events:
     operational_role: trigger
     deployment_disposition: secondary_or_confirm
     runtime_category: active_runtime_event
+    detector_band: ''
+    planning_eligible: false
+    runtime_eligible: false
+    promotion_eligible: false
+    primary_anchor_eligible: false
     enabled: true
     detector_name: TrendDecelerationDetector
     runtime_tags:
@@ -5761,11 +5944,6 @@ events:
     research_only: false
     strategy_only: false
     default_executable: true
-    detector_band: research_trigger
-    planning_eligible: true
-    runtime_eligible: false
-    promotion_eligible: false
-    primary_anchor_eligible: false
     deconflict_priority: 0
     notes: Canonical exhaustion onset.
     maturity: ''
@@ -5773,6 +5951,11 @@ events:
     operational_role: trigger
     deployment_disposition: secondary_or_confirm
     runtime_category: active_runtime_event
+    detector_band: ''
+    planning_eligible: false
+    runtime_eligible: false
+    promotion_eligible: false
+    primary_anchor_eligible: false
     enabled: true
     detector_name: TrendExhaustionDetector
     runtime_tags:
@@ -5856,11 +6039,6 @@ events:
     research_only: false
     strategy_only: false
     default_executable: true
-    detector_band: research_trigger
-    planning_eligible: true
-    runtime_eligible: false
-    promotion_eligible: false
-    primary_anchor_eligible: false
     deconflict_priority: 0
     notes: Transition from directional to choppy conditions.
     maturity: ''
@@ -5868,6 +6046,11 @@ events:
     operational_role: trigger
     deployment_disposition: secondary_or_confirm
     runtime_category: active_runtime_event
+    detector_band: ''
+    planning_eligible: false
+    runtime_eligible: false
+    promotion_eligible: false
+    primary_anchor_eligible: false
     enabled: true
     detector_name: TrendToChopDetector
     runtime_tags:
@@ -5932,11 +6115,6 @@ events:
     research_only: false
     strategy_only: false
     default_executable: true
-    detector_band: research_trigger
-    planning_eligible: true
-    runtime_eligible: false
-    promotion_eligible: false
-    primary_anchor_eligible: false
     deconflict_priority: 0
     notes: Volatility cluster migration under expansion regime.
     maturity: ''
@@ -5944,6 +6122,11 @@ events:
     operational_role: trigger
     deployment_disposition: secondary_or_confirm
     runtime_category: active_runtime_event
+    detector_band: ''
+    planning_eligible: false
+    runtime_eligible: false
+    promotion_eligible: false
+    primary_anchor_eligible: false
     enabled: true
     detector_name: VolClusterShiftDetector
     runtime_tags:
@@ -6009,11 +6192,6 @@ events:
     research_only: false
     strategy_only: false
     default_executable: true
-    detector_band: research_trigger
-    planning_eligible: true
-    runtime_eligible: false
-    promotion_eligible: false
-    primary_anchor_eligible: false
     deconflict_priority: 0
     notes: Regime transition expressed through volatility-state change.
     maturity: ''
@@ -6021,6 +6199,11 @@ events:
     operational_role: trigger
     deployment_disposition: secondary_or_confirm
     runtime_category: active_runtime_event
+    detector_band: ''
+    planning_eligible: false
+    runtime_eligible: false
+    promotion_eligible: false
+    primary_anchor_eligible: false
     enabled: true
     detector_name: VolRegimeShiftDetector
     runtime_tags:
@@ -6085,11 +6268,6 @@ events:
     research_only: false
     strategy_only: false
     default_executable: true
-    detector_band: research_trigger
-    planning_eligible: true
-    runtime_eligible: false
-    promotion_eligible: true
-    primary_anchor_eligible: false
     deconflict_priority: 0
     notes: Start of volatility normalization after expansion.
     maturity: ''
@@ -6097,6 +6275,11 @@ events:
     operational_role: trigger
     deployment_disposition: secondary_or_confirm
     runtime_category: active_runtime_event
+    detector_band: ''
+    planning_eligible: false
+    runtime_eligible: false
+    promotion_eligible: false
+    primary_anchor_eligible: false
     enabled: true
     detector_name: VolRelaxationDetector
     runtime_tags:
@@ -6162,11 +6345,6 @@ events:
     research_only: false
     strategy_only: false
     default_executable: true
-    detector_band: deployable_core
-    planning_eligible: true
-    runtime_eligible: true
-    promotion_eligible: true
-    primary_anchor_eligible: true
     deconflict_priority: 0
     notes: Canonical volatility shock; current detector implementation also models
       relaxation boundary.
@@ -6175,6 +6353,11 @@ events:
     operational_role: trigger
     deployment_disposition: primary_trigger_candidate
     runtime_category: active_runtime_event
+    detector_band: ''
+    planning_eligible: false
+    runtime_eligible: false
+    promotion_eligible: false
+    primary_anchor_eligible: false
     enabled: true
     detector_name: VolShockRelaxationDetector
     runtime_tags:
@@ -6306,11 +6489,6 @@ events:
     research_only: false
     strategy_only: false
     default_executable: true
-    detector_band: deployable_core
-    planning_eligible: true
-    runtime_eligible: true
-    promotion_eligible: true
-    primary_anchor_eligible: true
     deconflict_priority: 0
     notes: Canonical realized-volatility expansion onset.
     maturity: ''
@@ -6318,6 +6496,11 @@ events:
     operational_role: trigger
     deployment_disposition: primary_trigger_candidate
     runtime_category: active_runtime_event
+    detector_band: ''
+    planning_eligible: false
+    runtime_eligible: false
+    promotion_eligible: false
+    primary_anchor_eligible: false
     enabled: true
     detector_name: VolSpikeDetector
     runtime_tags:
@@ -6383,11 +6566,6 @@ events:
     research_only: false
     strategy_only: false
     default_executable: true
-    detector_band: composite_or_fragile
-    planning_eligible: false
-    runtime_eligible: false
-    promotion_eligible: false
-    primary_anchor_eligible: false
     deconflict_priority: 0
     notes: 'Hybrid liquidity-stress recovery evidence: wick and reclaim structure
       confirmed by realized-volume expansion.'
@@ -6396,6 +6574,11 @@ events:
     operational_role: trigger
     deployment_disposition: secondary_or_confirm
     runtime_category: active_runtime_event
+    detector_band: ''
+    planning_eligible: false
+    runtime_eligible: false
+    promotion_eligible: false
+    primary_anchor_eligible: false
     enabled: true
     detector_name: WickReversalProxyDetector
     runtime_tags: []
@@ -6459,11 +6642,6 @@ events:
     research_only: false
     strategy_only: false
     default_executable: true
-    detector_band: research_trigger
-    planning_eligible: true
-    runtime_eligible: false
-    promotion_eligible: false
-    primary_anchor_eligible: false
     deconflict_priority: 0
     notes: Canonical stretch/overshoot event.
     maturity: ''
@@ -6471,6 +6649,11 @@ events:
     operational_role: trigger
     deployment_disposition: secondary_or_confirm
     runtime_category: active_runtime_event
+    detector_band: ''
+    planning_eligible: false
+    runtime_eligible: false
+    promotion_eligible: false
+    primary_anchor_eligible: false
     enabled: true
     detector_name: ZScoreStretchDetector
     runtime_tags:

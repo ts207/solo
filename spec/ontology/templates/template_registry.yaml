@@ -15,7 +15,18 @@ defaults:
   - 60m
   conditioning_cols:
   - vol_regime
+  - vol_phase
   - carry_state
+  - funding_phase
+  - oi_phase
+  - price_oi_quadrant
+  - forced_flow_phase
+  - liquidity_phase
+  - execution_friction
+  - trend_phase
+  - basis_phase
+  - temporal_phase
+  - data_quality_state
   - funding_bps
   - ms_trend_state
   - ms_spread_state
@@ -56,10 +67,10 @@ defaults:
 families:
   BASIS_FUNDING_DISLOCATION:
     allowed_templates:
-    - reversal_or_squeeze
-    - mean_reversion
-    - continuation
-    - exhaustion_reversal
+    - carry_unwind_reversal
+    - carry_continuation_confirmed
+    - basis_funding_convergence
+    - basis_convergence
     - convexity_capture
     - only_if_funding
     - only_if_oi
@@ -73,8 +84,9 @@ families:
     - tail_risk_avoid
   FORCED_FLOW_AND_EXHAUSTION:
     allowed_templates:
-    - mean_reversion
-    - exhaustion_reversal
+    - forced_flow_rebound
+    - cooldown_reversal
+    - liquidity_refill_repair
     - momentum_fade
     - range_reversion
     - only_if_trend
@@ -83,14 +95,13 @@ families:
   INFORMATION_DESYNC:
     allowed_templates:
     - desync_repair
-    - convergence
+    - basis_convergence
     - basis_repair
     - lead_lag_follow
     - divergence_continuation
   LIQUIDITY_DISLOCATION:
     allowed_templates:
-    - mean_reversion
-    - continuation
+    - liquidity_refill_repair
     - stop_run_repair
     - overshoot_repair
     - only_if_liquidity
@@ -107,10 +118,9 @@ families:
     - only_if_highvol
   POSITIONING_EXTREMES:
     allowed_templates:
-    - reversal_or_squeeze
-    - mean_reversion
-    - continuation
-    - exhaustion_reversal
+    - carry_unwind_reversal
+    - carry_continuation_confirmed
+    - squeeze_followthrough_confirmed
     - convexity_capture
     - only_if_funding
     - only_if_oi

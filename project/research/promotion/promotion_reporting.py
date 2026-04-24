@@ -15,6 +15,7 @@ from project.research.promotion.promotion_reporting_support import (
     build_promotion_capital_footprint,
     portfolio_diversification_violations,
     resolve_promotion_tier,
+    stabilize_promoted_output_schema,
 )
 from project.research.utils.decision_safety import bool_gate
 

@@ -1,0 +1,51 @@
+version: 1
+kind: template_label_contracts
+metadata:
+  status: authored
+
+label_families:
+  directional_continuation:
+    primary: signed_return_h
+  contrarian_rebound:
+    primary: contrarian_signed_return_h
+  basis_repair:
+    primary: basis_zscore_delta_h
+    secondary:
+      - hedged_basis_pnl_h
+    success_condition: basis_zscore_moves_toward_zero
+  desync_repair:
+    primary: spread_convergence_h
+  convexity_capture:
+    primary: mfe_after_cost_h
+    secondary:
+      - mfe_to_mae_ratio_h
+  tail_risk_avoid:
+    primary: adverse_excursion_h
+    secondary:
+      - tail_loss_indicator_h
+  liquidity_repair:
+    primary: liquidity_normalization_h
+    secondary:
+      - signed_return_h
+  squeeze:
+    primary: path_acceleration_h
+    secondary:
+      - mfe_h
+      - return_skew_h
+
+required_path_metrics:
+  - mean_after_cost_return
+  - median_after_cost_return
+  - hit_rate
+  - mfe
+  - mae
+  - mfe_to_mae
+  - max_adverse_path_before_profit
+  - time_to_mfe
+  - time_to_mae
+  - skew
+  - tail_loss
+  - return_concentration
+  - event_overlap_concentration
+  - monthly_stability
+  - venue_stability

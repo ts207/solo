@@ -33,3 +33,30 @@ sequences:
     events: [FUNDING_PERSISTENCE_TRIGGER, DELEVERAGING_WAVE, POST_DELEVERAGING_REBOUND]
     max_gap: [24, 12]
     mode: ordered_strict
+    allowed_templates:
+      - carry_unwind_reversal
+    invalidation:
+      - liquidity_phase: blocked
+      - trend_phase: strong_continuation_against_trade
+  - name: forced_flow_rebound_setup
+    events: [LIQUIDATION_CASCADE, OI_FLUSH, POST_DELEVERAGING_REBOUND]
+    max_gap: [24, 12]
+    mode: ordered_strict
+    states_required:
+      - DELEVERAGING_STATE
+      - DEPTH_RECOVERY_STATE
+    forbidden_states:
+      - SPREAD_BLOWOUT
+      - LIQUIDITY_ABSENCE_STATE
+    allowed_templates:
+      - forced_flow_rebound
+      - cooldown_reversal
+      - liquidity_refill_repair
+  - name: confirmed_carry_continuation
+    events: [FUNDING_PERSISTENCE_TRIGGER, OI_SPIKE_POSITIVE, TREND_ACCELERATION]
+    max_gap: [24, 12]
+    mode: ordered_strict
+    states_required:
+      - LOW_FRICTION_STATE
+    allowed_templates:
+      - carry_continuation_confirmed

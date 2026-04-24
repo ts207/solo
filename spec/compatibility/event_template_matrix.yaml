@@ -1,0 +1,75 @@
+version: 1
+kind: event_template_matrix
+metadata:
+  status: authored
+  compatibility_states: [allowed, allowed_with_required_context, research_only, forbidden]
+
+event_template_matrix:
+  FUNDING_POS_PERSISTENCE:
+    carry_continuation_confirmed:
+      status: allowed_with_required_context
+      required_contexts:
+        trend_phase: uptrend
+        oi_phase: expansion
+        liquidity_phase: [normal, recovered]
+    carry_unwind_reversal:
+      status: allowed_with_required_context
+      required_contexts:
+        funding_phase: positive_normalizing
+        oi_phase: flush
+    generic_continuation:
+      status: forbidden
+
+  FUNDING_NEG_PERSISTENCE:
+    carry_continuation_confirmed:
+      status: allowed_with_required_context
+      required_contexts:
+        trend_phase: downtrend
+        oi_phase: expansion
+        liquidity_phase: [normal, recovered]
+    carry_unwind_reversal:
+      status: allowed_with_required_context
+      required_contexts:
+        funding_phase: negative_normalizing
+        oi_phase: flush
+    generic_continuation:
+      status: forbidden
+
+  LIQUIDATION_CASCADE:
+    forced_flow_rebound:
+      status: allowed_with_required_context
+      required_contexts:
+        forced_flow_phase: [cooldown, refill, rebound_confirmed]
+        liquidity_phase: [refill, recovered]
+      forbidden_contexts:
+        execution_friction: blocked
+    cascade_continuation_until_cooldown:
+      status: research_only
+      required_contexts:
+        forced_flow_phase: cascade
+    generic_mean_reversion:
+      status: forbidden
+
+  LIQUIDATION_EXHAUSTION_REVERSAL:
+    forced_flow_rebound:
+      status: research_only
+      required_contexts:
+        forced_flow_phase: [cooldown, refill]
+    generic_continuation:
+      status: forbidden
+    generic_mean_reversion:
+      status: forbidden
+
+  BASIS_DISLOC:
+    basis_convergence:
+      status: allowed
+    basis_repair:
+      status: allowed
+    generic_continuation:
+      status: forbidden
+
+  FND_DISLOC:
+    basis_funding_convergence:
+      status: allowed
+    generic_continuation:
+      status: forbidden

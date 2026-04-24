@@ -343,6 +343,29 @@ class HypothesisSpec:
             ).hexdigest()[:20]
         )
 
+    def semantic_branch_key(self) -> Dict[str, Any]:
+        registry = get_domain_registry()
+        operator = registry.get_operator(self.template_id)
+        operator_raw = operator.raw if operator is not None and isinstance(operator.raw, dict) else {}
+        trigger_payload = self.trigger.to_dict()
+        return {
+            "trigger": trigger_payload,
+            "event_filter": self.feature_condition.to_dict()
+            if self.feature_condition is not None
+            else None,
+            "context_filter": {k: v for k, v in sorted((self.context or {}).items())},
+            "side_policy": str(operator_raw.get("side_policy", self.direction)).strip(),
+            "direction": self.direction,
+            "entry_delay": self.entry_lag,
+            "horizon": self.horizon,
+            "target_label": str(operator_raw.get("label_target", "")).strip(),
+            "cost_model": self.cost_profile,
+        }
+
+    def semantic_branch_hash(self) -> str:
+        payload = json.dumps(self.semantic_branch_key(), sort_keys=True, separators=(",", ":"))
+        return "branch_" + hashlib.sha256(payload.encode("utf-8")).hexdigest()[:20]
+
     def label(self) -> str:
         parts = [self.trigger.label(), self.direction, self.horizon, self.template_id]
         if self.context:

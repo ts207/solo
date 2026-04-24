@@ -254,6 +254,7 @@ def generate_hypotheses_with_audit(
 
     hypotheses: List[HypothesisSpec] = []
     seen_ids: set = set()
+    seen_branch_hashes: set = set()
     skipped_invalid = 0
     skipped_dup = 0
     skipped_quota = 0
@@ -327,6 +328,12 @@ def generate_hypotheses_with_audit(
             )
 
         # 4. Deduplication
+        branch_hash = spec.semantic_branch_hash()
+        if branch_hash in seen_branch_hashes:
+            skipped_dup += 1
+            _record_rejection("duplicate_semantic_branch", {"branch_hash": branch_hash})
+            return
+
         hid = spec.hypothesis_id()
         if hid in seen_ids:
             skipped_dup += 1
@@ -335,6 +342,7 @@ def generate_hypotheses_with_audit(
 
         # Success - add
         seen_ids.add(hid)
+        seen_branch_hashes.add(branch_hash)
         hypotheses.append(spec)
         feasible_rows.append(
             FeasibilityCheckedHypothesis(

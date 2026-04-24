@@ -19,9 +19,9 @@ expected_behavior:
   - 'Low liquidity regime: OI/vol signals unreliable'
 cluster_id: oi_dynamic
 identity:
-  canonical_regime: POSITIONING_EXPANSION
-  subtype: oi_spike_negative
-  phase: expansion
+  canonical_regime: POSITIONING_UNWIND_DELEVERAGING
+  subtype: oi_flush
+  phase: unwind
   evidence_mode: direct
   layer: canonical
   disposition: merge
@@ -39,6 +39,45 @@ governance:
   operational_role: trigger
   deployment_disposition: secondary_or_confirm
   runtime_category: active_runtime_event
+  detector_role: trigger
+  trade_role: secondary_confirm
+  research_eligible: true
+  promotion_eligible: false
+  runtime_trade_eligible: true
+  primary_anchor_eligible: true
+  detector_band: deployable_core
+detector_runtime:
+  can_emit_events: true
+  can_emit_states: false
+  can_emit_context_tags: false
+trade_runtime:
+  eligible: true
+  source_of_truth: docs/generated/detector_eligibility_matrix.json
+  reason: generated_governance_runtime_true
+role:
+  detector_role: trigger
+  trade_role: secondary_confirm
+  state_role: none
+  guard_role: none
+directionality:
+  direction_hint: both
+  sign_source: oi
+  sign_required: true
+  sign_field: oi_delta_sign
+timing:
+  detection_timestamp: bar_close
+  availability_lag_bars: 1
+  cooldown_bars: 12
+  max_action_delay_bars: 6
+  decay_half_life_bars: 6
+required_features:
+- timestamp
+- close
+- open_interest
+data_quality:
+  min_coverage: 0.98
+  max_stale_bars: 1
+  synthetic_allowed: false
 runtime:
   detector: OISpikeNegativeDetector
   enabled: true
@@ -54,7 +93,7 @@ runtime:
   - oi_dynamic
 semantics:
   cluster_id: oi_dynamic
-  notes: Direction stays in subtype; canonical regime is positioning expansion.
+  notes: Negative OI spike is normalized as OI contraction/unwind, not directional alpha.
   precedence_rank: 0
 interaction:
   suppresses: []

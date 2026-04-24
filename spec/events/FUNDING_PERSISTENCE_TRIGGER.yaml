@@ -68,6 +68,53 @@ governance:
   operational_role: trigger
   deployment_disposition: secondary_or_confirm
   runtime_category: active_runtime_event
+  detector_role: trigger
+  trade_role: secondary_confirm
+  research_eligible: true
+  promotion_eligible: true
+  runtime_trade_eligible: false
+  primary_anchor_eligible: true
+  detector_band: research_trigger
+detector_runtime:
+  can_emit_events: true
+  can_emit_states: false
+  can_emit_context_tags: true
+trade_runtime:
+  eligible: false
+  source_of_truth: docs/generated/detector_eligibility_matrix.json
+  reason: generated_governance_runtime_false
+role:
+  detector_role: trigger
+  trade_role: secondary_confirm
+  state_role: none
+  guard_role: none
+directionality:
+  direction_hint: both
+  sign_source: funding
+  sign_required: true
+  sign_field: funding_sign
+timing:
+  detection_timestamp: funding_interval_close
+  availability_lag_bars: 1
+  cooldown_bars: 576
+  max_action_delay_bars: 12
+  decay_half_life_bars: 24
+required_features:
+- timestamp
+- close
+- funding_rate
+- open_interest
+data_quality:
+  min_coverage: 0.98
+  max_stale_bars: 1
+  synthetic_allowed: false
+allowed_templates:
+- carry_unwind_reversal
+- squeeze_followthrough_confirmed
+- basis_funding_convergence
+forbidden_templates:
+- generic_continuation
+- unconditioned_mean_reversion
 runtime:
   detector: FundingPersistenceDetector
   enabled: true

@@ -1,13 +1,29 @@
 version: 1
 kind: state_definition
 state_id: POST_CASCADE_RECOVERY_STATE
-family: POSITIONING_EXTREMES
+family: FORCED_FLOW_AND_EXHAUSTION
 source_event_type: LIQUIDATION_EXHAUSTION_REVERSAL
 activation_rule: post cascade recovery detected
 decay_rule: recovery normalizes
+activation:
+  condition: spread_z <= p70 AND liquidation_rate <= cooldown_threshold
+  min_hold_bars: 3
+decay:
+  condition: elapsed_bars > 24 OR spread_z > p90 OR cascade_reacceleration
+  max_duration_bars: 24
+scope:
+  state_scope: symbol_venue
+  point_in_time_safe: true
+context_dimensions:
+  forced_flow_phase: refill
+  liquidity_phase: refill
 features_required:
 - liquidation_notional
 - spread_bps
+- open_interest
+- depth_recovery_ratio
 allowed_templates:
-- mean_reversion
-- continuation
+- forced_flow_rebound
+- liquidity_refill_repair
+forbidden_templates:
+- generic_continuation

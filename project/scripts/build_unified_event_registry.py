@@ -351,6 +351,9 @@ def build_unified_registry(repo_root: Path) -> Dict[str, Any]:
             _present(governance, "default_executable"),
             default=not (is_composite or is_context_tag or is_strategy_construct),
         )
+        trade_runtime = payload.get("trade_runtime", {})
+        if not isinstance(trade_runtime, dict):
+            trade_runtime = {}
 
         event_rows[event_type] = {
             "research_family": _first_text(
@@ -414,6 +417,28 @@ def build_unified_registry(repo_root: Path) -> Dict[str, Any]:
             "runtime_category": _first_text(
                 _present(governance, "runtime_category"),
                 default="active_runtime_event",
+            ),
+            "detector_band": _first_text(
+                _present(governance, "detector_band"),
+                default="",
+            ),
+            "planning_eligible": _bool_value(
+                _present(governance, "planning_eligible"),
+                _present(governance, "research_eligible"),
+                default=False,
+            ),
+            "runtime_eligible": _bool_value(
+                _present(trade_runtime, "eligible"),
+                _present(governance, "runtime_trade_eligible"),
+                default=False,
+            ),
+            "promotion_eligible": _bool_value(
+                _present(governance, "promotion_eligible"),
+                default=False,
+            ),
+            "primary_anchor_eligible": _bool_value(
+                _present(governance, "primary_anchor_eligible"),
+                default=False,
             ),
             "enabled": _bool_value(
                 _present(runtime, "enabled"),

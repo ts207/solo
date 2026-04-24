@@ -5,9 +5,24 @@ family: LIQUIDITY_DISLOCATION
 source_event_type: DEPTH_COLLAPSE
 activation_rule: depth_recovery_ratio in (recovery_min, recovery_max)
 decay_rule: exit when depth_recovery_ratio >= recovery_max OR elapsed_bars > max_horizon
+activation:
+  condition: depth_recovery_ratio >= recovery_min AND spread_zscore <= p70
+  min_hold_bars: 3
+decay:
+  condition: elapsed_bars > 24 OR spread_zscore > p90 OR depth_recovery_ratio < recovery_min
+  max_duration_bars: 24
+scope:
+  state_scope: symbol_venue
+  point_in_time_safe: true
+context_dimensions:
+  liquidity_phase: refill
+  execution_friction: normal
 features_required:
 - market_depth
+- spread_zscore
+- depth_recovery_ratio
 allowed_templates:
-- pullback_entry
-- continuation
-- mean_reversion
+- liquidity_refill_repair
+- forced_flow_rebound
+forbidden_templates:
+- generic_continuation

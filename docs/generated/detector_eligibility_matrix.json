@@ -16,30 +16,30 @@
     "event_name": "BAND_BREAK",
     "event_version": "v1",
     "maturity": "specialized",
-    "planning": true,
+    "planning": false,
     "promotion": false,
     "role": "trigger",
     "runtime": false
   },
   {
-    "anchor": true,
-    "detector_band": "deployable_core",
+    "anchor": false,
+    "detector_band": "research_trigger",
     "event_name": "BASIS_DISLOC",
     "event_version": "v2",
     "maturity": "production",
-    "planning": true,
-    "promotion": true,
+    "planning": false,
+    "promotion": false,
     "role": "trigger",
-    "runtime": true
+    "runtime": false
   },
   {
-    "anchor": true,
+    "anchor": false,
     "detector_band": "research_trigger",
     "event_name": "BETA_SPIKE_EVENT",
     "event_version": "v2",
     "maturity": "specialized",
-    "planning": true,
-    "promotion": true,
+    "planning": false,
+    "promotion": false,
     "role": "trigger",
     "runtime": false
   },
@@ -49,7 +49,7 @@
     "event_name": "BREAKOUT_TRIGGER",
     "event_version": "v2",
     "maturity": "specialized",
-    "planning": true,
+    "planning": false,
     "promotion": false,
     "role": "trigger",
     "runtime": false
@@ -60,7 +60,7 @@
     "event_name": "CHOP_TO_TREND_SHIFT",
     "event_version": "v1",
     "maturity": "specialized",
-    "planning": true,
+    "planning": false,
     "promotion": false,
     "role": "trigger",
     "runtime": false
@@ -71,7 +71,7 @@
     "event_name": "CLIMAX_VOLUME_BAR",
     "event_version": "v1",
     "maturity": "specialized",
-    "planning": true,
+    "planning": false,
     "promotion": false,
     "role": "trigger",
     "runtime": false
@@ -88,13 +88,13 @@
     "runtime": false
   },
   {
-    "anchor": true,
+    "anchor": false,
     "detector_band": "research_trigger",
     "event_name": "CORRELATION_BREAKDOWN_EVENT",
     "event_version": "v2",
     "maturity": "specialized",
-    "planning": true,
-    "promotion": true,
+    "planning": false,
+    "promotion": false,
     "role": "trigger",
     "runtime": false
   },
@@ -104,19 +104,19 @@
     "event_name": "CROSS_ASSET_DESYNC_EVENT",
     "event_version": "v2",
     "maturity": "standard",
-    "planning": true,
+    "planning": false,
     "promotion": false,
     "role": "context",
     "runtime": false
   },
   {
-    "anchor": true,
+    "anchor": false,
     "detector_band": "research_trigger",
     "event_name": "CROSS_VENUE_DESYNC",
     "event_version": "v2",
     "maturity": "standard",
-    "planning": true,
-    "promotion": true,
+    "planning": false,
+    "promotion": false,
     "role": "trigger",
     "runtime": false
   },
@@ -126,7 +126,7 @@
     "event_name": "DELEVERAGING_WAVE",
     "event_version": "v1",
     "maturity": "specialized",
-    "planning": true,
+    "planning": false,
     "promotion": false,
     "role": "trigger",
     "runtime": false
@@ -137,8 +137,8 @@
     "event_name": "DEPTH_COLLAPSE",
     "event_version": "v2",
     "maturity": "standard",
-    "planning": true,
-    "promotion": true,
+    "planning": false,
+    "promotion": false,
     "role": "trigger",
     "runtime": false
   },
@@ -159,7 +159,7 @@
     "event_name": "FAILED_CONTINUATION",
     "event_version": "v1",
     "maturity": "specialized",
-    "planning": true,
+    "planning": false,
     "promotion": false,
     "role": "trigger",
     "runtime": false
@@ -170,7 +170,7 @@
     "event_name": "FALSE_BREAKOUT",
     "event_version": "v1",
     "maturity": "specialized",
-    "planning": true,
+    "planning": false,
     "promotion": false,
     "role": "trigger",
     "runtime": false
@@ -181,7 +181,7 @@
     "event_name": "FEE_REGIME_CHANGE_EVENT",
     "event_version": "v1",
     "maturity": "specialized",
-    "planning": true,
+    "planning": false,
     "promotion": false,
     "role": "trigger",
     "runtime": false
@@ -198,15 +198,15 @@
     "runtime": false
   },
   {
-    "anchor": true,
-    "detector_band": "deployable_core",
+    "anchor": false,
+    "detector_band": "research_trigger",
     "event_name": "FND_DISLOC",
     "event_version": "v2",
     "maturity": "production",
-    "planning": true,
-    "promotion": true,
+    "planning": false,
+    "promotion": false,
     "role": "trigger",
-    "runtime": true
+    "runtime": false
   },
   {
     "anchor": false,
@@ -214,30 +214,30 @@
     "event_name": "FORCED_FLOW_EXHAUSTION",
     "event_version": "v1",
     "maturity": "standard",
-    "planning": true,
+    "planning": false,
     "promotion": false,
     "role": "trigger",
     "runtime": false
   },
   {
-    "anchor": true,
+    "anchor": false,
     "detector_band": "research_trigger",
     "event_name": "FUNDING_EXTREME_ONSET",
     "event_version": "v2",
     "maturity": "standard",
-    "planning": true,
-    "promotion": true,
+    "planning": false,
+    "promotion": false,
     "role": "trigger",
     "runtime": false
   },
   {
-    "anchor": true,
+    "anchor": false,
     "detector_band": "research_trigger",
     "event_name": "FUNDING_FLIP",
     "event_version": "v2",
     "maturity": "specialized",
-    "planning": true,
-    "promotion": true,
+    "planning": false,
+    "promotion": false,
     "role": "trigger",
     "runtime": false
   },
@@ -247,19 +247,19 @@
     "event_name": "FUNDING_NORMALIZATION_TRIGGER",
     "event_version": "v2",
     "maturity": "specialized",
-    "planning": true,
-    "promotion": true,
+    "planning": false,
+    "promotion": false,
     "role": "trigger",
     "runtime": false
   },
   {
-    "anchor": true,
+    "anchor": false,
     "detector_band": "research_trigger",
     "event_name": "FUNDING_PERSISTENCE_TRIGGER",
     "event_version": "v2",
     "maturity": "specialized",
-    "planning": true,
-    "promotion": true,
+    "planning": false,
+    "promotion": false,
     "role": "trigger",
     "runtime": false
   },
@@ -269,7 +269,7 @@
     "event_name": "FUNDING_TIMESTAMP_EVENT",
     "event_version": "v1",
     "maturity": "standard",
-    "planning": true,
+    "planning": false,
     "promotion": false,
     "role": "context",
     "runtime": false
@@ -280,52 +280,52 @@
     "event_name": "GAP_OVERSHOOT",
     "event_version": "v1",
     "maturity": "specialized",
-    "planning": true,
+    "planning": false,
     "promotion": false,
     "role": "trigger",
     "runtime": false
   },
   {
-    "anchor": true,
+    "anchor": false,
     "detector_band": "research_trigger",
     "event_name": "INDEX_COMPONENT_DIVERGENCE",
     "event_version": "v2",
     "maturity": "specialized",
-    "planning": true,
-    "promotion": true,
+    "planning": false,
+    "promotion": false,
     "role": "trigger",
     "runtime": false
   },
   {
-    "anchor": true,
+    "anchor": false,
     "detector_band": "research_trigger",
     "event_name": "LEAD_LAG_BREAK",
     "event_version": "v2",
     "maturity": "specialized",
-    "planning": true,
-    "promotion": true,
+    "planning": false,
+    "promotion": false,
     "role": "trigger",
     "runtime": false
   },
   {
-    "anchor": true,
-    "detector_band": "deployable_core",
+    "anchor": false,
+    "detector_band": "research_trigger",
     "event_name": "LIQUIDATION_CASCADE",
     "event_version": "v2",
     "maturity": "production",
-    "planning": true,
-    "promotion": true,
+    "planning": false,
+    "promotion": false,
     "role": "trigger",
-    "runtime": true
+    "runtime": false
   },
   {
-    "anchor": true,
+    "anchor": false,
     "detector_band": "composite_or_fragile",
     "event_name": "LIQUIDATION_CASCADE_PROXY",
     "event_version": "v2",
     "maturity": "experimental",
-    "planning": true,
-    "promotion": true,
+    "planning": false,
+    "promotion": false,
     "role": "trigger",
     "runtime": false
   },
@@ -335,7 +335,7 @@
     "event_name": "LIQUIDATION_EXHAUSTION_REVERSAL",
     "event_version": "v1",
     "maturity": "specialized",
-    "planning": true,
+    "planning": false,
     "promotion": false,
     "role": "trigger",
     "runtime": false
@@ -346,32 +346,32 @@
     "event_name": "LIQUIDITY_GAP_PRINT",
     "event_version": "v2",
     "maturity": "specialized",
-    "planning": true,
+    "planning": false,
     "promotion": false,
     "role": "trigger",
     "runtime": false
   },
   {
-    "anchor": true,
-    "detector_band": "deployable_core",
+    "anchor": false,
+    "detector_band": "research_trigger",
     "event_name": "LIQUIDITY_SHOCK",
     "event_version": "v2",
     "maturity": "production",
-    "planning": true,
-    "promotion": true,
+    "planning": false,
+    "promotion": false,
     "role": "trigger",
-    "runtime": true
+    "runtime": false
   },
   {
-    "anchor": true,
-    "detector_band": "deployable_core",
+    "anchor": false,
+    "detector_band": "research_trigger",
     "event_name": "LIQUIDITY_STRESS_DIRECT",
     "event_version": "v2",
     "maturity": "specialized",
-    "planning": true,
-    "promotion": true,
+    "planning": false,
+    "promotion": false,
     "role": "trigger",
-    "runtime": true
+    "runtime": false
   },
   {
     "anchor": false,
@@ -385,15 +385,15 @@
     "runtime": false
   },
   {
-    "anchor": true,
-    "detector_band": "deployable_core",
+    "anchor": false,
+    "detector_band": "research_trigger",
     "event_name": "LIQUIDITY_VACUUM",
     "event_version": "v2",
     "maturity": "production",
-    "planning": true,
-    "promotion": true,
+    "planning": false,
+    "promotion": false,
     "role": "trigger",
-    "runtime": true
+    "runtime": false
   },
   {
     "anchor": false,
@@ -401,41 +401,41 @@
     "event_name": "MOMENTUM_DIVERGENCE_TRIGGER",
     "event_version": "v1",
     "maturity": "specialized",
-    "planning": true,
+    "planning": false,
     "promotion": false,
     "role": "trigger",
     "runtime": false
   },
   {
-    "anchor": true,
+    "anchor": false,
     "detector_band": "research_trigger",
     "event_name": "OI_FLUSH",
     "event_version": "v2",
     "maturity": "specialized",
-    "planning": true,
-    "promotion": true,
+    "planning": false,
+    "promotion": false,
     "role": "trigger",
     "runtime": false
   },
   {
-    "anchor": true,
-    "detector_band": "deployable_core",
+    "anchor": false,
+    "detector_band": "research_trigger",
     "event_name": "OI_SPIKE_NEGATIVE",
     "event_version": "v2",
     "maturity": "specialized",
-    "planning": true,
-    "promotion": true,
+    "planning": false,
+    "promotion": false,
     "role": "trigger",
-    "runtime": true
+    "runtime": false
   },
   {
-    "anchor": true,
+    "anchor": false,
     "detector_band": "research_trigger",
     "event_name": "OI_SPIKE_POSITIVE",
     "event_version": "v2",
     "maturity": "specialized",
-    "planning": true,
-    "promotion": true,
+    "planning": false,
+    "promotion": false,
     "role": "trigger",
     "runtime": false
   },
@@ -445,7 +445,7 @@
     "event_name": "ORDERFLOW_IMBALANCE_SHOCK",
     "event_version": "v1",
     "maturity": "standard",
-    "planning": true,
+    "planning": false,
     "promotion": false,
     "role": "trigger",
     "runtime": false
@@ -456,7 +456,7 @@
     "event_name": "OVERSHOOT_AFTER_SHOCK",
     "event_version": "v1",
     "maturity": "specialized",
-    "planning": true,
+    "planning": false,
     "promotion": false,
     "role": "trigger",
     "runtime": false
@@ -467,7 +467,7 @@
     "event_name": "POST_DELEVERAGING_REBOUND",
     "event_version": "v1",
     "maturity": "specialized",
-    "planning": true,
+    "planning": false,
     "promotion": false,
     "role": "trigger",
     "runtime": false
@@ -489,7 +489,7 @@
     "event_name": "PULLBACK_PIVOT",
     "event_version": "v1",
     "maturity": "specialized",
-    "planning": true,
+    "planning": false,
     "promotion": false,
     "role": "trigger",
     "runtime": false
@@ -500,7 +500,7 @@
     "event_name": "RANGE_BREAKOUT",
     "event_version": "v1",
     "maturity": "specialized",
-    "planning": true,
+    "planning": false,
     "promotion": false,
     "role": "trigger",
     "runtime": false
@@ -511,7 +511,7 @@
     "event_name": "RANGE_COMPRESSION_END",
     "event_version": "v2",
     "maturity": "specialized",
-    "planning": true,
+    "planning": false,
     "promotion": false,
     "role": "trigger",
     "runtime": false
@@ -522,7 +522,7 @@
     "event_name": "SCHEDULED_NEWS_WINDOW_EVENT",
     "event_version": "v1",
     "maturity": "standard",
-    "planning": true,
+    "planning": false,
     "promotion": false,
     "role": "context",
     "runtime": false
@@ -577,7 +577,7 @@
     "event_name": "SESSION_CLOSE_EVENT",
     "event_version": "v1",
     "maturity": "standard",
-    "planning": true,
+    "planning": false,
     "promotion": false,
     "role": "context",
     "runtime": false
@@ -588,7 +588,7 @@
     "event_name": "SESSION_OPEN_EVENT",
     "event_version": "v1",
     "maturity": "standard",
-    "planning": true,
+    "planning": false,
     "promotion": false,
     "role": "context",
     "runtime": false
@@ -599,21 +599,21 @@
     "event_name": "SLIPPAGE_SPIKE_EVENT",
     "event_version": "v1",
     "maturity": "specialized",
-    "planning": true,
+    "planning": false,
     "promotion": false,
     "role": "trigger",
     "runtime": false
   },
   {
-    "anchor": true,
-    "detector_band": "deployable_core",
+    "anchor": false,
+    "detector_band": "research_trigger",
     "event_name": "SPOT_PERP_BASIS_SHOCK",
     "event_version": "v2",
     "maturity": "production",
-    "planning": true,
-    "promotion": true,
+    "planning": false,
+    "promotion": false,
     "role": "trigger",
-    "runtime": true
+    "runtime": false
   },
   {
     "anchor": false,
@@ -621,7 +621,7 @@
     "event_name": "SPREAD_BLOWOUT",
     "event_version": "v1",
     "maturity": "specialized",
-    "planning": true,
+    "planning": false,
     "promotion": false,
     "role": "trigger",
     "runtime": false
@@ -632,7 +632,7 @@
     "event_name": "SPREAD_REGIME_WIDENING_EVENT",
     "event_version": "v1",
     "maturity": "specialized",
-    "planning": true,
+    "planning": false,
     "promotion": false,
     "role": "trigger",
     "runtime": false
@@ -643,7 +643,7 @@
     "event_name": "SUPPORT_RESISTANCE_BREAK",
     "event_version": "v1",
     "maturity": "specialized",
-    "planning": true,
+    "planning": false,
     "promotion": false,
     "role": "trigger",
     "runtime": false
@@ -654,7 +654,7 @@
     "event_name": "SWEEP_STOPRUN",
     "event_version": "v1",
     "maturity": "standard",
-    "planning": true,
+    "planning": false,
     "promotion": false,
     "role": "trigger",
     "runtime": false
@@ -665,7 +665,7 @@
     "event_name": "TREND_ACCELERATION",
     "event_version": "v1",
     "maturity": "specialized",
-    "planning": true,
+    "planning": false,
     "promotion": false,
     "role": "trigger",
     "runtime": false
@@ -676,7 +676,7 @@
     "event_name": "TREND_DECELERATION",
     "event_version": "v1",
     "maturity": "specialized",
-    "planning": true,
+    "planning": false,
     "promotion": false,
     "role": "trigger",
     "runtime": false
@@ -687,7 +687,7 @@
     "event_name": "TREND_EXHAUSTION_TRIGGER",
     "event_version": "v1",
     "maturity": "specialized",
-    "planning": true,
+    "planning": false,
     "promotion": false,
     "role": "trigger",
     "runtime": false
@@ -698,7 +698,7 @@
     "event_name": "TREND_TO_CHOP_SHIFT",
     "event_version": "v1",
     "maturity": "specialized",
-    "planning": true,
+    "planning": false,
     "promotion": false,
     "role": "trigger",
     "runtime": false
@@ -709,7 +709,7 @@
     "event_name": "VOL_CLUSTER_SHIFT",
     "event_version": "v2",
     "maturity": "specialized",
-    "planning": true,
+    "planning": false,
     "promotion": false,
     "role": "trigger",
     "runtime": false
@@ -720,7 +720,7 @@
     "event_name": "VOL_REGIME_SHIFT_EVENT",
     "event_version": "v2",
     "maturity": "specialized",
-    "planning": true,
+    "planning": false,
     "promotion": false,
     "role": "trigger",
     "runtime": false
@@ -731,32 +731,32 @@
     "event_name": "VOL_RELAXATION_START",
     "event_version": "v2",
     "maturity": "specialized",
-    "planning": true,
-    "promotion": true,
+    "planning": false,
+    "promotion": false,
     "role": "trigger",
     "runtime": false
   },
   {
-    "anchor": true,
-    "detector_band": "deployable_core",
+    "anchor": false,
+    "detector_band": "research_trigger",
     "event_name": "VOL_SHOCK",
     "event_version": "v2",
     "maturity": "production",
-    "planning": true,
-    "promotion": true,
+    "planning": false,
+    "promotion": false,
     "role": "trigger",
-    "runtime": true
+    "runtime": false
   },
   {
-    "anchor": true,
-    "detector_band": "deployable_core",
+    "anchor": false,
+    "detector_band": "research_trigger",
     "event_name": "VOL_SPIKE",
     "event_version": "v2",
     "maturity": "production",
-    "planning": true,
-    "promotion": true,
+    "planning": false,
+    "promotion": false,
     "role": "trigger",
-    "runtime": true
+    "runtime": false
   },
   {
     "anchor": false,
@@ -775,7 +775,7 @@
     "event_name": "ZSCORE_STRETCH",
     "event_version": "v1",
     "maturity": "specialized",
-    "planning": true,
+    "planning": false,
     "promotion": false,
     "role": "trigger",
     "runtime": false

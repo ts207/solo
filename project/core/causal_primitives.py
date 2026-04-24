@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from typing import cast
+
 import numpy as np
 import pandas as pd
 
@@ -35,9 +37,9 @@ def trailing_quantile(
     if min_periods is None:
         min_periods = window
 
-    rolled = series.rolling(window=window, min_periods=min_periods).quantile(q)
+    rolled = cast(pd.Series, series.rolling(window=window, min_periods=min_periods).quantile(q))
     if lag > 0:
-        return rolled.shift(lag)
+        return cast(pd.Series, rolled.shift(lag))
     return rolled
 
 
@@ -50,8 +52,10 @@ def trailing_mean(
 ) -> pd.Series:
     if min_periods is None:
         min_periods = window
-    rolled = series.rolling(window=window, min_periods=min_periods).mean()
-    return rolled.shift(lag) if lag > 0 else rolled
+    rolled = cast(pd.Series, series.rolling(window=window, min_periods=min_periods).mean())
+    if lag > 0:
+        return cast(pd.Series, rolled.shift(lag))
+    return rolled
 
 
 def trailing_std(
@@ -63,8 +67,10 @@ def trailing_std(
 ) -> pd.Series:
     if min_periods is None:
         min_periods = window
-    rolled = series.rolling(window=window, min_periods=min_periods).std()
-    return rolled.shift(lag) if lag > 0 else rolled
+    rolled = cast(pd.Series, series.rolling(window=window, min_periods=min_periods).std())
+    if lag > 0:
+        return cast(pd.Series, rolled.shift(lag))
+    return rolled
 
 
 def trailing_median(
@@ -76,8 +82,10 @@ def trailing_median(
 ) -> pd.Series:
     if min_periods is None:
         min_periods = window
-    rolled = series.rolling(window=window, min_periods=min_periods).median()
-    return rolled.shift(lag) if lag > 0 else rolled
+    rolled = cast(pd.Series, series.rolling(window=window, min_periods=min_periods).median())
+    if lag > 0:
+        return cast(pd.Series, rolled.shift(lag))
+    return rolled
 
 
 def trailing_percentile_rank(
@@ -110,7 +118,8 @@ def trailing_percentile_rank(
 
     # We use window + 1 because the apply function receives the current point
     # and we want 'window' points of history.
-    rolled = series.rolling(window=window + 1, min_periods=min_periods + 1).apply(_rank, raw=True)
-    return (
-        rolled.shift(lag) if lag > 0 else rolled
-    )
+    rolled = cast(pd.Series, series.rolling(window=window + 1, min_periods=min_periods + 1).apply(_rank, raw=True))
+    if lag > 0:
+        return cast(pd.Series, rolled.shift(lag))
+    return rolled
+

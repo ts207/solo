@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, cast
 
 import pandas as pd
 
@@ -39,7 +39,7 @@ _CONTEXT_DIMENSIONS: dict[str, dict[str, str]] = {
 
 
 def _distribution_stats(series: pd.Series) -> dict[str, float | None]:
-    numeric = pd.to_numeric(series, errors="coerce").dropna().astype(float)
+    numeric = cast(pd.Series, pd.to_numeric(series, errors="coerce")).dropna().astype(float)
     if numeric.empty:
         return {
             "count": 0,
@@ -74,21 +74,21 @@ def summarize_context_quality(frame: pd.DataFrame) -> dict[str, Any]:
         conf_col = columns["confidence"]
         entropy_col = columns["entropy"]
 
-        state = pd.to_numeric(
+        state = cast(pd.Series, pd.to_numeric(
             frame.get(state_col, pd.Series(index=frame.index, dtype=float)), errors="coerce"
-        ).astype(float)
-        confidence = pd.to_numeric(
+        )).astype(float)
+        confidence = cast(pd.Series, pd.to_numeric(
             frame.get(conf_col, pd.Series(index=frame.index, dtype=float)),
             errors="coerce",
-        ).astype(float)
-        entropy = pd.to_numeric(
+        )).astype(float)
+        entropy = cast(pd.Series, pd.to_numeric(
             frame.get(entropy_col, pd.Series(index=frame.index, dtype=float)),
             errors="coerce",
-        ).astype(float)
+        )).astype(float)
 
         valid_state = state.dropna()
         occupancy = {
-            _state_key(key): float(value)
+            _state_key(cast(float, key)): float(value)
             for key, value in valid_state.value_counts(normalize=True).sort_index().items()
         }
         transitions = (

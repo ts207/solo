@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, Dict, Iterable, Tuple
+from typing import Any, Dict, Iterable, List, Tuple, cast
 
 import numpy as np
 import pandas as pd
@@ -98,19 +98,19 @@ def filter_ohlcv_geometry_violations(
     valid = pd.Series(True, index=df.index)
 
     for col in price_cols:
-        s = pd.to_numeric(df[col], errors="coerce")
-        valid &= s.isna() | (s > 0)
+        s = cast(pd.Series, pd.to_numeric(df[col], errors="coerce"))
+        valid &= cast(pd.Series, s.isna() | (s > 0))
 
     if all(c in df.columns for c in ["open", "high", "low", "close"]):
-        o = pd.to_numeric(df["open"], errors="coerce")
-        h = pd.to_numeric(df["high"], errors="coerce")
-        lv = pd.to_numeric(df["low"], errors="coerce")
-        c = pd.to_numeric(df["close"], errors="coerce")
-        valid &= h.isna() | o.isna() | (h >= o)
-        valid &= h.isna() | c.isna() | (h >= c)
-        valid &= h.isna() | lv.isna() | (h >= lv)
-        valid &= lv.isna() | o.isna() | (lv <= o)
-        valid &= lv.isna() | c.isna() | (lv <= c)
+        o = cast(pd.Series, pd.to_numeric(df["open"], errors="coerce"))
+        h = cast(pd.Series, pd.to_numeric(df["high"], errors="coerce"))
+        lv = cast(pd.Series, pd.to_numeric(df["low"], errors="coerce"))
+        c = cast(pd.Series, pd.to_numeric(df["close"], errors="coerce"))
+        valid &= cast(pd.Series, h.isna() | o.isna() | (h >= o))
+        valid &= cast(pd.Series, h.isna() | c.isna() | (h >= c))
+        valid &= cast(pd.Series, h.isna() | lv.isna() | (h >= lv))
+        valid &= cast(pd.Series, lv.isna() | o.isna() | (lv <= o))
+        valid &= cast(pd.Series, lv.isna() | c.isna() | (lv <= c))
 
     dropped = int((~valid).sum())
     return df[valid].copy(), dropped
@@ -122,10 +122,10 @@ def assert_monotonic_utc_timestamp(df: pd.DataFrame, col: str = "timestamp") -> 
     """
     validate_columns(df, [col])
     series = df[col]
-    if series.isna().any():
+    if bool(series.isna().any()):
         raise ValueError(f"{col} contains nulls")
     ensure_utc_timestamp(series, col)
-    if series.duplicated().any():
+    if bool(series.duplicated().any()):
         raise ValueError(f"{col} contains duplicate timestamps")
     if not series.is_monotonic_increasing:
         raise ValueError(f"{col} must be monotonic increasing")

@@ -10,6 +10,7 @@ from project.spec_validation.loaders import SEARCH_DIR as DEFAULT_SEARCH_DIR
 from project.spec_validation.loaders import load_search_spec
 
 SEARCH_DIR = DEFAULT_SEARCH_DIR
+from project.spec_validation.governance import validate_governance_consistency
 from project.spec_validation.ontology import validate_ontology
 
 
@@ -28,6 +29,9 @@ def run_all_validations(*, root: Path | str = ".", verbose: bool = False) -> int
 
     print("Running Grammar validation...")
     all_errors.extend(validate_grammar())
+
+    print("Running Governance validation...")
+    all_errors.extend(validate_governance_consistency())
 
     print("Running Search spec validation...")
     for p in sorted(search_dir.glob("*.yaml")):
