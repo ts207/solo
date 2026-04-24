@@ -1,15 +1,14 @@
 from __future__ import annotations
 
-import math
+from typing import Dict, List
+
 import numpy as np
 import pandas as pd
-from typing import Dict, List, Tuple, Any, Sequence
 
 from project.core.stats import (
-    newey_west_t_stat_for_mean,
     bh_adjust,
+    newey_west_t_stat_for_mean,
 )
-from project.core.coercion import safe_float, safe_int
 
 
 def distribution_stats(returns: pd.Series) -> Dict[str, float]:
@@ -183,7 +182,7 @@ def apply_robust_survivor_gates(
         & (out["event_mean"] > 0.0)
         & (out["event_t"] >= float(legacy_tstat_threshold))
     )
-    
+
     out["gate_robust_survivor"] = (
         (out["event_samples"] >= int(min_samples))
         & (out["event_mean"] > 0.0)

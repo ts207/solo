@@ -6,8 +6,6 @@ import json
 from pathlib import Path
 from typing import Any, Dict
 
-import pytest
-
 from project.core.golden_regression import (
     GoldenToleranceConfig,
     collect_core_artifact_snapshot,

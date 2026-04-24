@@ -8,10 +8,11 @@ This helps reviewers analyze representative candidates rather than 20k+ individu
 from __future__ import annotations
 
 import logging
-from typing import Any, Dict, List, Tuple
+from typing import Dict
 
 import numpy as np
 import pandas as pd
+
 from project.research.promotion.core import behavior_overlap_score, delay_profile_correlation
 
 LOGGER = logging.getLogger(__name__)

@@ -5,7 +5,7 @@ Verification tests for determinism.
 from __future__ import annotations
 
 import pandas as pd
-import pytest
+
 from project.eval.feature_verification_suite import FeatureVerificationSuite
 from project.eval.reference_values import get_synthetic_test_data
 

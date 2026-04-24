@@ -1,9 +1,9 @@
 from __future__ import annotations
 
-import logging
-import pandas as pd
 from dataclasses import dataclass, field
 from typing import List
+
+import pandas as pd
 
 from project.strategy.runtime.dsl_runtime.interpreter import DslInterpreterV1 as _InterpreterImpl
 
@@ -62,10 +62,11 @@ def generate_positions_numba(
     random_rolls=None,
 ):
     """Keyword-argument wrapper around the core numba state machine."""
+    import numpy as np
+
     from project.strategy.runtime.dsl_runtime.interpreter import (
         generate_positions_numba as _core,
     )
-    import numpy as np
 
     n = len(timestamps)
     if close is None:

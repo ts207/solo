@@ -1,10 +1,9 @@
 from __future__ import annotations
 
-from project.tests.conftest import PROJECT_ROOT
-
 from project.runtime.hashing import load_hashing_spec
 from project.runtime.normalized_event import NormalizedEvent
 from project.runtime.oms_replay import audit_oms_replay
+from project.tests.conftest import PROJECT_ROOT
 
 
 def _event(

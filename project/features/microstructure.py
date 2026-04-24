@@ -1,8 +1,8 @@
+
 import numpy as np
 import pandas as pd
-from typing import Dict, List
+
 from project.contracts.temporal_contracts import TemporalContract
-from project.core.causal_primitives import trailing_mean
 
 # --- Temporal Contract ---
 

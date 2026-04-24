@@ -17,7 +17,6 @@ from project.research.contracts.historical_trust import (
     trusted_under_current_rules,
 )
 
-
 CURRENT_ARTIFACT_FILENAMES: dict[str, set[str]] = {
     "run_manifest": {"run_manifest.json"},
     "validation_bundle": {"validation_bundle.json"},

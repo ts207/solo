@@ -6,7 +6,7 @@ Refactored to improve testability and separate concerns.
 from __future__ import annotations
 
 import logging
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict
 
 import numpy as np
 import pandas as pd
@@ -16,18 +16,10 @@ try:
 except ModuleNotFoundError:
     from project.core.stats import stats
 
-from project.core.stats import bh_adjust
 from project.core.constants import parse_horizon_bars
+from project.core.stats import bh_adjust
 from project.core.validation import ts_ns_utc
-from project.research.direction_semantics import resolve_effect_sign
 from project.research.holdout_integrity import assert_no_lookahead_join
-from project.research.helpers.shrinkage import (
-    _asymmetric_tau_days,
-    _effective_sample_size,
-    _event_direction_from_joined_row,
-    _regime_conditioned_tau_days,
-    _time_decay_weights,
-)
 
 log = logging.getLogger(__name__)
 

@@ -1,12 +1,15 @@
 from __future__ import annotations
 
 import json
-from pathlib import Path
 
 import pandas as pd
 import yaml
 
-from project.research.knowledge.memory import ensure_memory_store, read_memory_table, write_memory_table
+from project.research.knowledge.memory import (
+    ensure_memory_store,
+    read_memory_table,
+    write_memory_table,
+)
 from project.research.reports.operator_reporting import write_operator_outputs_for_run
 
 

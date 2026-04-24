@@ -5,9 +5,9 @@ from project.events.adapters.liquidity_analysis import (
     detect_liquidity_family,
 )
 from project.events.detectors.liquidity import (
+    LIQUIDITY_FAMILY_DETECTORS,
     AbsorptionDetector,
     BaseLiquidityStressDetector,
-    LIQUIDITY_FAMILY_DETECTORS,
     LiquidityStressDetector,
     OrderflowImbalanceDetector,
     SpreadBlowoutDetector,
@@ -20,7 +20,6 @@ from project.events.detectors.liquidity_base import (
     ProxyLiquidityStressDetectorV2,
 )
 from project.events.registries.liquidity import ensure_liquidity_detectors_registered
-
 
 ensure_liquidity_detectors_registered()
 

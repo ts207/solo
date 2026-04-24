@@ -1,30 +1,28 @@
-import json
 from datetime import datetime
-from pathlib import Path
 
 import pytest
 
 from project.core.exceptions import CompatibilityRequiredError
+from project.io.utils import read_parquet
 from project.research.validation.contracts import (
-    ValidationBundle,
     ValidatedCandidateRecord,
+    ValidationBundle,
     ValidationDecision,
     ValidationMetrics,
     ValidationReasonCodes,
 )
-from project.io.utils import read_parquet
 from project.research.validation.result_writer import (
-    write_validation_bundle,
+    load_validation_bundle,
     write_promotion_ready_candidates,
     write_validated_candidate_tables,
-    load_validation_bundle,
+    write_validation_bundle,
 )
 
 
 def test_validation_bundle_serialization(tmp_path):
     run_id = "test_run_123"
     created_at = datetime.now().isoformat()
-    
+
     decision = ValidationDecision(
         status="validated",
         candidate_id="cand_1",
@@ -32,13 +30,13 @@ def test_validation_bundle_serialization(tmp_path):
         reason_codes=[],
         summary="Looks good"
     )
-    
+
     metrics = ValidationMetrics(
         sample_count=100,
         expectancy=0.05,
         p_value=0.01
     )
-    
+
     candidate = ValidatedCandidateRecord(
         candidate_id="cand_1",
         decision=decision,
@@ -48,18 +46,18 @@ def test_validation_bundle_serialization(tmp_path):
         direction="long",
         horizon_bars=12
     )
-    
+
     bundle = ValidationBundle(
         run_id=run_id,
         created_at=created_at,
         validated_candidates=[candidate],
         summary_stats={"total": 1}
     )
-    
+
     # Write to tmp_path
     bundle_path = write_validation_bundle(bundle, base_dir=tmp_path)
     assert bundle_path.exists()
-    
+
     # Load back
     loaded = load_validation_bundle(run_id, base_dir=tmp_path)
     assert loaded is not None
@@ -73,14 +71,14 @@ def test_validation_bundle_serialization(tmp_path):
 def test_validation_reason_codes():
     assert ValidationReasonCodes.FAILED_OOS_VALIDATION == "failed_oos_validation"
     assert ValidationReasonCodes.FAILED_STABILITY == "failed_stability"
-    
+
     decision = ValidationDecision(
         status="rejected",
         candidate_id="cand_2",
         run_id="run_2",
         reason_codes=[ValidationReasonCodes.FAILED_STABILITY]
     )
-    
+
     assert ValidationReasonCodes.FAILED_STABILITY in decision.reason_codes
 
 

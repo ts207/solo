@@ -9,7 +9,7 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
-from project import PROJECT_ROOT
+from project import PROJECT_ROOT  # noqa: E402
 
 REPO_ROOT = PROJECT_ROOT.parent
 
@@ -18,6 +18,7 @@ SCRIPTS = [
     'project/scripts/build_system_map.py',
     'project/scripts/build_contract_strictness_inventory.py',
     'project/scripts/build_detector_governance_artifacts.py',
+    'project/scripts/build_legacy_surface_inventory.py',
 ]
 
 
@@ -29,8 +30,14 @@ def _run(script: str, *, check: bool) -> int:
 
 
 def main(argv: list[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(description='Refresh generated docs and governance inventories.')
-    parser.add_argument('--check', action='store_true', help='Fail if generated outputs drift from disk.')
+    parser = argparse.ArgumentParser(
+        description='Refresh generated docs and governance inventories.'
+    )
+    parser.add_argument(
+        '--check',
+        action='store_true',
+        help='Fail if generated outputs drift from disk.',
+    )
     args = parser.parse_args(argv)
 
     failures: list[str] = []

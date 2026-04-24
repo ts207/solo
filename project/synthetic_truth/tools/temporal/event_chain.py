@@ -2,9 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Optional, Sequence
-
-import pandas as pd
+from typing import Optional
 
 
 class ChainState(Enum):
@@ -76,21 +74,21 @@ class EventChainEngine:
         chain_ids: Optional[list[str]] = None,
     ) -> list[ChainProgress]:
         updates = []
-        
+
         if chain_ids is None:
             chain_ids = list(self.chains.keys())
-        
+
         for chain_id in chain_ids:
             if chain_id not in self.chains:
                 continue
-                
+
             chain = self.chains[chain_id]
             progress_list = self._progress.setdefault(chain_id, [])
-            
+
             progress = self._process_chain(chain, progress_list, event_type, bar_index)
             if progress:
                 updates.append(progress)
-        
+
         return updates
 
     def _process_chain(
@@ -112,13 +110,13 @@ class EventChainEngine:
                 return None
 
         expected_step = chain.steps[progress.current_step]
-        
+
         if event_type != expected_step.event_type:
             return None
-        
+
         if expected_step.min_bar is not None and bar_index < expected_step.min_bar:
             return None
-        
+
         if expected_step.max_bar is not None and bar_index > expected_step.max_bar:
             progress.state = ChainState.TIMEOUT
             progress.failure_reason = f"Step {progress.current_step} exceeded max_bar"

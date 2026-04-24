@@ -2,9 +2,10 @@ from __future__ import annotations
 
 from pathlib import Path
 from typing import Any, Dict
-from project import PROJECT_ROOT
 
 import yaml
+
+from project import PROJECT_ROOT
 from project.events.canonical_registry_sidecars import (
     ALLOWED_DISPOSITION_VALUES,
     ALLOWED_EVIDENCE_MODE_VALUES,

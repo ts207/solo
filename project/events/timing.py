@@ -1,8 +1,9 @@
 from __future__ import annotations
 
-import pandas as pd
 from dataclasses import dataclass
-from typing import Dict, Any
+from typing import Any, Dict
+
+import pandas as pd
 
 
 @dataclass(frozen=True)

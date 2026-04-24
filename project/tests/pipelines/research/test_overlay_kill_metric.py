@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-import pytest
-
 import pandas as pd
 
 import project.research.summarize_discovery_quality as summarize_discovery_quality

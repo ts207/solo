@@ -1,9 +1,4 @@
 from __future__ import annotations
-from project.core.config import get_data_root
-
-from project.core.coercion import safe_float, safe_int, as_bool
-from project.research.utils.decision_safety import finite_ge, fail_closed_bool
-
 
 import argparse
 import json
@@ -14,11 +9,13 @@ from typing import Any, Dict, List
 
 import numpy as np
 import pandas as pd
-from project import PROJECT_ROOT
 
+from project import PROJECT_ROOT
+from project.core.config import get_data_root
 from project.io.utils import ensure_dir, write_parquet
-from project.specs.objective import resolve_objective_profile_contract
+from project.research.utils.decision_safety import fail_closed_bool, finite_ge
 from project.specs.manifest import finalize_manifest, start_manifest
+from project.specs.objective import resolve_objective_profile_contract
 
 
 def _read_candidate_table(path: Path) -> pd.DataFrame:

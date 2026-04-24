@@ -100,7 +100,7 @@ def _load_promoted_candidate_metrics(
     base = data_root / "reports" / "promotions" / run_id
     df = pd.DataFrame()
     for path in (
-        base / "promoted_candidates.parquet", 
+        base / "promoted_candidates.parquet",
         base / "promoted_candidates.csv",
         base / "promotion_audit.parquet",
     ):

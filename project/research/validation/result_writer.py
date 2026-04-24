@@ -2,10 +2,16 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, Optional
 
 import pandas as pd
 
+from project.contracts.schemas import (
+    normalize_dataframe_for_schema,
+    validate_dataframe_for_schema,
+    validate_payload_for_schema,
+    validate_schema_at_producer,
+)
 from project.core.config import get_data_root
 from project.core.exceptions import (
     CompatibilityRequiredError,
@@ -14,12 +20,6 @@ from project.core.exceptions import (
     MissingArtifactError,
     SchemaMismatchError,
 )
-from project.contracts.schemas import (
-    normalize_dataframe_for_schema,
-    validate_dataframe_for_schema,
-    validate_payload_for_schema,
-    validate_schema_at_producer,
-)
 from project.io.utils import atomic_write_json, write_parquet
 from project.research.contracts.historical_trust import (
     HISTORICAL_TRUST_LEGACY,
@@ -27,13 +27,12 @@ from project.research.contracts.historical_trust import (
 )
 from project.research.historical_trust import inspect_artifact_trust
 from project.research.validation.contracts import (
-    ValidationBundle,
     ValidatedCandidateRecord,
+    ValidationArtifactRef,
+    ValidationBundle,
     ValidationDecision,
     ValidationMetrics,
-    ValidationArtifactRef,
 )
-
 
 PROMOTION_READY_COLUMNS = (
     "candidate_id",
@@ -104,16 +103,16 @@ def _validate_validation_bundle_payload(payload: Any) -> None:
 def write_validation_bundle(bundle: ValidationBundle, base_dir: Optional[Path] = None) -> Path:
     if base_dir is None:
         base_dir = get_data_root() / "reports" / "validation" / bundle.run_id
-    
+
     base_dir.mkdir(parents=True, exist_ok=True)
-    
+
     bundle_path = base_dir / "validation_bundle.json"
     atomic_write_json(
         bundle_path,
         bundle.to_dict(),
         validator=_validate_validation_bundle_payload,
     )
-    
+
     # Canonical: validation_report.json
     summary_path = base_dir / "validation_report.json"
     atomic_write_json(
@@ -123,7 +122,7 @@ def write_validation_bundle(bundle: ValidationBundle, base_dir: Optional[Path] =
             payload, artifact_name="validation_report.json"
         ),
     )
-        
+
     # Canonical: effect_stability_report.json
     stability_path = base_dir / "effect_stability_report.json"
     atomic_write_json(
@@ -140,20 +139,20 @@ def write_validation_bundle(bundle: ValidationBundle, base_dir: Optional[Path] =
 def write_validated_candidate_tables(bundle: ValidationBundle, base_dir: Optional[Path] = None) -> Dict[str, Path]:
     if base_dir is None:
         base_dir = get_data_root() / "reports" / "validation" / bundle.run_id
-    
+
     base_dir.mkdir(parents=True, exist_ok=True)
-    
+
     paths = {}
-    
+
     # Canonical Groups
     # 1. validated_candidates.parquet
     # 2. rejection_reasons.parquet (rejected + inconclusive)
-    
+
     groups = {
         "validated_candidates": bundle.validated_candidates,
         "rejection_reasons": bundle.rejected_candidates + bundle.inconclusive_candidates,
     }
-    
+
     for name, candidates in groups.items():
         if not candidates:
             # Still write an empty file if it's the canonical name?
@@ -199,9 +198,9 @@ def write_validated_candidate_tables(bundle: ValidationBundle, base_dir: Optiona
 def write_promotion_ready_candidates(bundle: ValidationBundle, base_dir: Optional[Path] = None) -> Optional[Path]:
     if base_dir is None:
         base_dir = get_data_root() / "reports" / "validation" / bundle.run_id
-    
+
     base_dir.mkdir(parents=True, exist_ok=True)
-    
+
     flat_data = []
     for c in bundle.validated_candidates:
         row = {
@@ -222,7 +221,7 @@ def write_promotion_ready_candidates(bundle: ValidationBundle, base_dir: Optiona
         for k, v in c.detector_lineage.items():
             row[k] = v
         flat_data.append(row)
-    
+
     flat_df = pd.DataFrame(flat_data, columns=PROMOTION_READY_COLUMNS)
     flat_df = normalize_dataframe_for_schema(flat_df, "promotion_ready_candidates")
     if not flat_df.empty:
@@ -311,12 +310,12 @@ def load_validation_bundle(
             raise DataIntegrityError(
                 f"Validation artifact {bundle_path} requires revalidation before reuse on the canonical path"
             )
-        
+
     def _parse_candidate(c_data: Dict[str, Any]) -> ValidatedCandidateRecord:
         decision = ValidationDecision(**c_data["decision"])
         metrics = ValidationMetrics(**c_data["metrics"])
         artifacts = [ValidationArtifactRef(**a) for a in c_data.get("artifact_refs", [])]
-        
+
         return ValidatedCandidateRecord(
             candidate_id=c_data["candidate_id"],
             decision=decision,

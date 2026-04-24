@@ -1,5 +1,4 @@
 from __future__ import annotations
-from project.core.config import get_data_root
 
 import argparse
 import json
@@ -14,35 +13,34 @@ from typing import Optional, Sequence
 import numpy as np
 import pandas as pd
 
-from project.core.logging_utils import build_stage_log_handlers
-from project.core.validation import ts_ns_utc
-from project.core.feature_registry import ensure_core_feature_definitions_registered
+from project.core.config import get_data_root
 from project.core.feature_quality import summarize_feature_quality
+from project.core.feature_registry import ensure_core_feature_definitions_registered
 from project.core.feature_schema import feature_dataset_dir_name, normalize_feature_schema_version
+from project.core.logging_utils import build_stage_log_handlers
 from project.core.timeframes import (
     bars_dataset_name,
     funding_dataset_name,
     normalize_timeframe,
     timeframe_to_minutes,
 )
+from project.core.validation import ts_ns_utc
+from project.features.context_states import (
+    calculate_ms_oi_probabilities,
+)
 from project.features.microstructure import (
     calculate_imbalance,
 )
-from project.features.context_states import (
-    calculate_ms_oi_probabilities,
-    calculate_ms_oi_state,
-)
 from project.io.utils import (
+    choose_partition_dir,
     ensure_dir,
     lake_cache_key,
     list_parquet_files,
     raw_dataset_dir_candidates,
-    read_cache_key,
     read_parquet,
     run_scoped_lake_path,
     write_cache_key,
     write_parquet,
-    choose_partition_dir,
 )
 from project.specs.manifest import finalize_manifest, start_manifest
 
@@ -216,7 +214,7 @@ def _load_spot_close_reference(
                     return df[["timestamp", "close"]].rename(columns={"close": "spot_close"})
         except Exception:
             pass
-    
+
     # Fallback: try loading from raw spot OHLCV data
     raw_candidates = [
         data_root / "lake" / "runs" / run_id / "raw" / "binance" / "spot" / symbol / ("ohlcv_" + timeframe),
@@ -232,7 +230,7 @@ def _load_spot_close_reference(
                     return df[["timestamp", "close"]].rename(columns={"close": "spot_close"})
         except Exception:
             pass
-    
+
     return pd.DataFrame(columns=["timestamp", "spot_close"])
 
 
@@ -927,7 +925,6 @@ def main() -> int:
         else ""
     )
 
-    from project.core.config import get_data_root
 
     data_root = get_data_root()
 

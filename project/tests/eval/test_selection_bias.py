@@ -1,6 +1,7 @@
 import numpy as np
 import pandas as pd
-from project.eval.selection_bias import probabilistic_sharpe_ratio, deflated_sharpe_ratio
+
+from project.eval.selection_bias import deflated_sharpe_ratio, probabilistic_sharpe_ratio
 
 
 def test_psr_high_for_strong_strategy():

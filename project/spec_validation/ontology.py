@@ -1,7 +1,11 @@
 from typing import List, Optional, Tuple
 
 from project.domain.compiled_registry import get_domain_registry
-from project.spec_validation.loaders import load_family_registry, load_ontology_events, load_ontology_states
+from project.spec_validation.loaders import (
+    load_family_registry,
+    load_ontology_events,
+    load_ontology_states,
+)
 
 
 def validate_ontology() -> List[Tuple[str, str]]:

@@ -16,12 +16,10 @@ from __future__ import annotations
 
 from pathlib import Path
 
-import numpy as np
 import pandas as pd
-import pytest
 
 from project.events import registry
-from project.events.registry import _signal_ts_column, _active_signal_column
+from project.events.registry import _active_signal_column, _signal_ts_column
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -316,7 +314,7 @@ class TestConfirmationLagFamily:
         normalize_phase1_events() must forward detected_ts from analyzer CSV
         rather than defaulting to enter_ts when the column is present.
         """
-        from project.events.registry import normalize_phase1_events, EventRegistrySpec
+        from project.events.registry import EventRegistrySpec, normalize_phase1_events
 
         spec = EventRegistrySpec(
             event_type="VOL_SHOCK",
@@ -354,7 +352,7 @@ class TestConfirmationLagFamily:
         - enter_ts / signal_ts at bar k+1 (first tradable bar)
         normalize_phase1_events() must preserve anchor as phenom_enter_ts.
         """
-        from project.events.registry import normalize_phase1_events, EventRegistrySpec
+        from project.events.registry import EventRegistrySpec, normalize_phase1_events
 
         spec = EventRegistrySpec(
             event_type="VOL_SHOCK",

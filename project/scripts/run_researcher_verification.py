@@ -9,10 +9,9 @@ from typing import Sequence
 
 import pandas as pd
 
-from project.core.config import get_data_root
 from project.contracts.schemas import validate_dataframe_for_schema
+from project.core.config import get_data_root
 from project.reliability.contracts import validate_promotion_artifacts
-
 
 CONTRACT_TESTS: tuple[str, ...] = (
     "project/tests/research/agent_io/test_proposal_schema.py",

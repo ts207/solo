@@ -1,5 +1,5 @@
 import pandas as pd
-import pytest
+
 from project.research.discovery import (
     _synthesize_registry_candidates,
     infer_event_direction_sign,

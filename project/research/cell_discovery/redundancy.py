@@ -6,11 +6,11 @@ from typing import Any
 import pandas as pd
 
 from project.io.utils import read_parquet, write_parquet
+from project.research.cell_discovery.paths import paths_for_run
 from project.research.clustering.pnl_similarity import (
     calculate_similarity_matrix,
     calculate_trigger_overlap,
 )
-from project.research.cell_discovery.paths import paths_for_run
 from project.research.services.candidate_diversification import (
     annotate_candidates_with_diversification,
 )

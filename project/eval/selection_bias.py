@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import numpy as np
 import pandas as pd
+
 from project.core.constants import BARS_PER_YEAR_BY_TIMEFRAME
 
 try:
@@ -59,7 +60,7 @@ def deflated_sharpe_ratio(
     n = len(pnl_arr)
     if n < 10 or n_trials < 1:
         return 0.0
-    
+
     # Expected maximum of n_trials standard normal draws
     if n_trials == 1:
         expected_max = 0.0
@@ -80,7 +81,7 @@ def deflated_sharpe_ratio(
             (1.0 - euler_mascheroni) * stats.norm.ppf(1.0 - 1.0 / n_trials)
             + euler_mascheroni * stats.norm.ppf(1.0 - 1.0 / (n_trials * np.e))
         )
-    
+
     # Std of the raw SR estimator across trials: 1/sqrt(n)
     sr_std = 1.0 / np.sqrt(n)
     # Deflated benchmark SR in raw units

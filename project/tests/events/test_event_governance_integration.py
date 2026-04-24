@@ -21,10 +21,9 @@ from project.research.experiment_engine import (
     TriggerSpace,
 )
 from project.research.experiment_engine_validators import _resolve_requested_event_ids
+from project.research.promotion.promotion_thresholds import _build_bundle_policy
 from project.research.validation.evidence_bundle import evaluate_promotion_bundle
 from project.research.validation.schemas import PromotionDecision
-from project.research.promotion.promotion_thresholds import _build_bundle_policy
-
 
 REGISTRY_ROOT = Path("project/configs/registries")
 

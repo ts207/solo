@@ -29,7 +29,6 @@ from project.research.services.run_comparison_service import (
     research_diagnostics_paths,
 )
 
-
 REQUIRED_MATRIX_KEYS = ("matrix_id", "symbols", "windows", "regimes")
 REQUIRED_WINDOW_KEYS = ("label", "start", "end")
 NEW_REGIME_FIELDS = (

@@ -1,11 +1,13 @@
 from __future__ import annotations
 
+from typing import Any, Mapping
+
 import numpy as np
 import pandas as pd
-from typing import Any, Mapping
-from project.features.rolling_thresholds import lagged_rolling_quantile
+
 from project.events.thresholding import rolling_mean_std_zscore
 from project.features.context_guards import optional_state
+from project.features.rolling_thresholds import lagged_rolling_quantile
 
 
 def onset_mask(mask: pd.Series) -> pd.Series:

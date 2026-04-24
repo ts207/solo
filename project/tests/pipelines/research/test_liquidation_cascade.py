@@ -1,6 +1,6 @@
-import numpy as np
 import pandas as pd
 import pytest
+
 from project.events.families.liquidation import detect_liquidation_family as detect_cascades
 
 

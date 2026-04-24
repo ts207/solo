@@ -1,12 +1,12 @@
 from __future__ import annotations
 
+import hashlib
 import json
 import os
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple, Callable
-import hashlib
+from typing import Any, Callable, Dict, List, Optional
 
 from project.pipelines.pipeline_defaults import DATA_ROOT, PROJECT_ROOT
 

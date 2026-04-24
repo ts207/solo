@@ -1,6 +1,6 @@
-import pandas as pd
 import numpy as np
-import pytest
+import pandas as pd
+
 from project.core.stats import bh_adjust as _bh_adjust
 
 

@@ -1,6 +1,5 @@
 """Tests for detector_audit_module shared measurement logic."""
 
-import math
 import pandas as pd
 import pytest
 
@@ -37,7 +36,7 @@ def _make_df(n: int = 5000) -> pd.DataFrame:
 
 
 def test_measure_detector_returns_metrics_dict():
-    from project.events.detectors.registry import load_all_detectors, get_detector
+    from project.events.detectors.registry import get_detector, load_all_detectors
     from project.scripts.detector_audit_module import measure_detector
 
     load_all_detectors()
@@ -58,7 +57,7 @@ def test_measure_detector_returns_metrics_dict():
 
 
 def test_measure_detector_handles_missing_required_column():
-    from project.events.detectors.registry import load_all_detectors, get_detector
+    from project.events.detectors.registry import get_detector, load_all_detectors
     from project.scripts.detector_audit_module import measure_detector
 
     load_all_detectors()
@@ -159,8 +158,9 @@ def test_build_truth_windows_filters():
 
 
 def test_enrich_df_computes_range_columns():
-    from project.scripts.detector_audit_module import _enrich_df
     import numpy as np
+
+    from project.scripts.detector_audit_module import _enrich_df
 
     n = 200
     ts = pd.date_range("2023-01-01", periods=n, freq="5min", tz="UTC")
@@ -184,8 +184,9 @@ def test_enrich_df_computes_range_columns():
 
 
 def test_enrich_df_computes_spread_zscore_and_imbalance_when_available():
-    from project.scripts.detector_audit_module import _enrich_df
     import numpy as np
+
+    from project.scripts.detector_audit_module import _enrich_df
 
     n = 300
     ts = pd.date_range("2023-01-01", periods=n, freq="5min", tz="UTC")
@@ -210,8 +211,9 @@ def test_enrich_df_computes_spread_zscore_and_imbalance_when_available():
 
 
 def test_enrich_df_does_not_overwrite_existing():
-    from project.scripts.detector_audit_module import _enrich_df
     import numpy as np
+
+    from project.scripts.detector_audit_module import _enrich_df
 
     n = 200
     ts = pd.date_range("2023-01-01", periods=n, freq="5min", tz="UTC")
@@ -240,7 +242,7 @@ def test_audit_script_is_importable():
 
 @pytest.mark.parametrize("event_type", ["ABSORPTION_PROXY", "DEPTH_STRESS_PROXY"])
 def test_measure_detector_proxy_runs_on_spread_bps_only(event_type: str):
-    from project.events.detectors.registry import load_all_detectors, get_detector
+    from project.events.detectors.registry import get_detector, load_all_detectors
     from project.scripts.detector_audit_module import measure_detector
 
     load_all_detectors()

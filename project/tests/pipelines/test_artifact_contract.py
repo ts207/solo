@@ -1,18 +1,16 @@
-from project.core.config import get_data_root
 import os
 import subprocess
 import sys
-import json
 import textwrap
 from pathlib import Path
 
-import pandas as pd
 import numpy as np
+import pandas as pd
 import pytest
-from project.core.feature_schema import feature_dataset_dir_name
-from project.tests.conftest import PROJECT_ROOT
 
+from project.core.feature_schema import feature_dataset_dir_name
 from project.io.utils import HAS_PYARROW, write_parquet
+from project.tests.conftest import PROJECT_ROOT
 
 
 def _read_table(path: Path) -> pd.DataFrame:

@@ -1,22 +1,22 @@
 {
-  "docs_markdown_files": 13,
-  "project_python_files": 1605,
+  "docs_markdown_files": 18,
+  "project_python_files": 1634,
   "schema_version": "repo_metrics_v1",
-  "spec_yaml_files": 421,
-  "test_files": 643,
-  "test_python_files": 721,
+  "spec_yaml_files": 559,
+  "test_files": 649,
+  "test_python_files": 727,
   "top_packages": [
     {
       "package": "tests",
-      "python_files": 721
+      "python_files": 727
     },
     {
       "package": "research",
-      "python_files": 269
+      "python_files": 288
     },
     {
       "package": "scripts",
-      "python_files": 111
+      "python_files": 112
     },
     {
       "package": "events",
@@ -48,7 +48,7 @@
     },
     {
       "package": "features",
-      "python_files": 16
+      "python_files": 17
     },
     {
       "package": "portfolio",

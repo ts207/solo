@@ -1,5 +1,5 @@
 import os
-import pytest
+
 from project.io.utils import _strict_run_scoped_reads_enabled
 
 

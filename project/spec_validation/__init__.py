@@ -16,9 +16,9 @@ from project.spec_validation.ontology import (
 from project.spec_validation.search import (
     expand_triggers,
     resolve_entry_lags,
+    resolve_execution_template_names,
     resolve_execution_templates,
     resolve_filter_template_names,
-    resolve_execution_template_names,
     resolve_filter_templates,
     resolve_templates,
     validate_search_spec_doc,

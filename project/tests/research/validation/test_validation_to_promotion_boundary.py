@@ -1,17 +1,17 @@
-import pandas as pd
-import pytest
-from pathlib import Path
 from unittest.mock import MagicMock, patch
 
+import pandas as pd
+import pytest
+
+from project.research.services.evaluation_service import ValidationService
+from project.research.services.promotion_service import PromotionConfig, execute_promotion
 from project.research.validation.contracts import (
-    ValidationBundle,
     ValidatedCandidateRecord,
+    ValidationBundle,
     ValidationDecision,
     ValidationMetrics,
     ValidationReasonCodes,
 )
-from project.research.services.evaluation_service import ValidationService
-from project.research.services.promotion_service import execute_promotion, PromotionConfig
 
 
 @pytest.fixture
@@ -26,8 +26,8 @@ def mock_data_root(tmp_path):
 
 
 def _create_mock_candidates_table(mock_data_root, run_id, candidate_ids):
-    from project.specs.ontology import ontology_spec_hash
     from project import PROJECT_ROOT
+    from project.specs.ontology import ontology_spec_hash
     curr_hash = ontology_spec_hash(PROJECT_ROOT.parent)
 
     (mock_data_root / "reports" / "edge_candidates" / run_id).mkdir(parents=True, exist_ok=True)
@@ -87,7 +87,7 @@ def test_validation_maps_oos_gate_failure_to_explicit_reason(mock_data_root):
 def test_promotion_fails_without_bundle_by_default(mock_data_root):
     run_id = "test_run"
     _create_mock_candidates_table(mock_data_root, run_id, ["cand_1"])
-    
+
     config = PromotionConfig(
         run_id=run_id, symbols="BTC", out_dir=None, max_q_value=0.05, min_events=20,
         min_stability_score=0.5, min_sign_consistency=0.5, min_cost_survival_ratio=0.5,
@@ -98,7 +98,7 @@ def test_promotion_fails_without_bundle_by_default(mock_data_root):
         program_id="test_program", retail_profile="default", objective_name="default",
         objective_spec=None, retail_profiles_spec=None,
     )
-    
+
     with patch("project.research.services.promotion_service.get_data_root", return_value=mock_data_root):
         with patch("project.research.validation.result_writer.get_data_root", return_value=mock_data_root):
                 with patch("project.research.services.promotion_service.load_run_manifest", return_value={"run_mode": "confirmatory"}):
@@ -110,7 +110,7 @@ def test_promotion_fails_without_bundle_by_default(mock_data_root):
 def test_promotion_rejects_legacy_candidate_tables_without_canonical_validation(mock_data_root):
     run_id = "test_run"
     _create_mock_candidates_table(mock_data_root, run_id, ["cand_1"])
-    
+
     config = PromotionConfig(
         run_id=run_id, symbols="BTC", out_dir=None, max_q_value=0.05, min_events=20,
         min_stability_score=0.5, min_sign_consistency=0.5, min_cost_survival_ratio=0.5,
@@ -121,7 +121,7 @@ def test_promotion_rejects_legacy_candidate_tables_without_canonical_validation(
         program_id="test_program", retail_profile="default", objective_name="default",
         objective_spec=None, retail_profiles_spec=None,
     )
-    
+
     with patch("project.research.services.promotion_service.get_data_root", return_value=mock_data_root):
         with patch("project.research.validation.result_writer.get_data_root", return_value=mock_data_root):
             with patch("project.research.services.promotion_service.load_run_manifest", return_value={"run_mode": "confirmatory"}):
@@ -133,25 +133,28 @@ def test_promotion_rejects_legacy_candidate_tables_without_canonical_validation(
 def test_promotion_uses_canonical_validated_candidates(mock_data_root):
     run_id = "test_run"
     _create_mock_candidates_table(mock_data_root, run_id, ["cand_1", "cand_2"])
-    
+
     # Bundle only validates cand_1
     decision1 = ValidationDecision(status="validated", candidate_id="cand_1", run_id=run_id)
     candidate1 = ValidatedCandidateRecord(candidate_id="cand_1", decision=decision1, metrics=ValidationMetrics(sample_count=100))
-    
+
     decision2 = ValidationDecision(status="rejected", candidate_id="cand_2", run_id=run_id, reason_codes=["failed_stability"])
     candidate2 = ValidatedCandidateRecord(candidate_id="cand_2", decision=decision2, metrics=ValidationMetrics(sample_count=100))
-    
+
     bundle = ValidationBundle(
-        run_id=run_id, created_at="2026-01-01", 
-        validated_candidates=[candidate1], 
+        run_id=run_id, created_at="2026-01-01",
+        validated_candidates=[candidate1],
         rejected_candidates=[candidate2]
     )
-    
-    from project.research.validation.result_writer import write_validation_bundle, write_validated_candidate_tables
+
+    from project.research.validation.result_writer import (
+        write_validated_candidate_tables,
+        write_validation_bundle,
+    )
     write_validation_bundle(bundle, base_dir=mock_data_root / "reports" / "validation" / run_id)
     paths = write_validated_candidate_tables(bundle, base_dir=mock_data_root / "reports" / "validation" / run_id)
     assert paths["promotion_ready_candidates"].name == "promotion_ready_candidates.parquet"
-    
+
     config = PromotionConfig(
         run_id=run_id, symbols="BTC", out_dir=None, max_q_value=0.05, min_events=20,
         min_stability_score=0.5, min_sign_consistency=0.5, min_cost_survival_ratio=0.5,
@@ -162,7 +165,7 @@ def test_promotion_uses_canonical_validated_candidates(mock_data_root):
         program_id="test_program", retail_profile="default", objective_name="default",
         objective_spec=None, retail_profiles_spec=None
     )
-    
+
     with patch("project.research.services.promotion_service.get_data_root", return_value=mock_data_root):
         with patch("project.research.validation.result_writer.get_data_root", return_value=mock_data_root):
             with patch("project.research.services.promotion_service.load_run_manifest", return_value={"run_mode": "confirmatory"}):
@@ -172,7 +175,7 @@ def test_promotion_uses_canonical_validated_candidates(mock_data_root):
                     with patch("project.research.services.promotion_service.promote_candidates") as mock_promote:
                         mock_promote.return_value = (pd.DataFrame([{"candidate_id": "cand_1"}]), pd.DataFrame([{"candidate_id": "cand_1"}]), {})
                         execute_promotion(config)
-                        
+
                         # Verify candidates_df passed to promote_candidates only has cand_1
                         args, kwargs = mock_promote.call_args
                         passed_df = kwargs['candidates_df']
@@ -193,7 +196,10 @@ def test_promotion_ignores_promotion_audit_as_source_candidate_table(mock_data_r
         ],
     )
 
-    from project.research.validation.result_writer import write_validation_bundle, write_validated_candidate_tables
+    from project.research.validation.result_writer import (
+        write_validated_candidate_tables,
+        write_validation_bundle,
+    )
 
     write_validation_bundle(bundle, base_dir=mock_data_root / "reports" / "validation" / run_id)
     write_validated_candidate_tables(
@@ -243,16 +249,19 @@ def test_promoted_result_contains_maturity_fields(mock_data_root):
     # This tests the output of _assemble_promotion_result via execute_promotion
     run_id = "test_run"
     _create_mock_candidates_table(mock_data_root, run_id, ["cand_1"])
-    
+
     decision = ValidationDecision(status="validated", candidate_id="cand_1", run_id=run_id)
     candidate = ValidatedCandidateRecord(candidate_id="cand_1", decision=decision, metrics=ValidationMetrics(sample_count=100))
     bundle = ValidationBundle(run_id=run_id, created_at="2026-01-01", validated_candidates=[candidate])
-    
-    from project.research.validation.result_writer import write_validation_bundle, write_validated_candidate_tables
+
+    from project.research.validation.result_writer import (
+        write_validated_candidate_tables,
+        write_validation_bundle,
+    )
     write_validation_bundle(bundle, base_dir=mock_data_root / "reports" / "validation" / run_id)
     paths = write_validated_candidate_tables(bundle, base_dir=mock_data_root / "reports" / "validation" / run_id)
     assert paths["promotion_ready_candidates"].name == "promotion_ready_candidates.parquet"
-    
+
     config = PromotionConfig(
         run_id=run_id, symbols="BTC", out_dir=None, max_q_value=0.05, min_events=20,
         min_stability_score=0.5, min_sign_consistency=0.5, min_cost_survival_ratio=0.5,
@@ -263,7 +272,7 @@ def test_promoted_result_contains_maturity_fields(mock_data_root):
         program_id="test_program", retail_profile="default", objective_name="default",
         objective_spec=None, retail_profiles_spec=None
     )
-    
+
     with patch("project.research.services.promotion_service.get_data_root", return_value=mock_data_root):
         with patch("project.research.validation.result_writer.get_data_root", return_value=mock_data_root):
             with patch("project.research.services.promotion_service.load_run_manifest", return_value={"run_mode": "confirmatory"}):

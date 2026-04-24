@@ -1,8 +1,8 @@
-import json
-import os
 from pathlib import Path
-from project.scripts.run_benchmark_matrix import load_yaml
+
 from project.research.benchmarks.benchmark_utils import evaluate_thresholds
+from project.scripts.run_benchmark_matrix import load_yaml
+
 
 def test_benchmark_preset_loading():
     preset_path = Path("project/configs/benchmarks/discovery/core_v1.yaml")
@@ -74,6 +74,7 @@ def test_threshold_evaluation():
 
 def test_history_append(tmp_path):
     import pandas as pd
+
     from project.scripts.run_benchmark_matrix import pd as run_pd
     if run_pd is not None:
         df = pd.DataFrame([{"benchmark_run_id": "test_1"}])

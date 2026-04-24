@@ -1,5 +1,6 @@
-import pandas as pd
 import numpy as np
+import pandas as pd
+
 
 def create_liquidity_shock_fixture():
     ts = pd.date_range("2024-01-01", periods=100, freq="5min", tz="UTC")

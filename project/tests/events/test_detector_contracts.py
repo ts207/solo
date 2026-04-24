@@ -1,13 +1,12 @@
-import pytest
+from project.events.detector_contract import DetectorContract
 from project.events.registry import (
-    load_milestone_event_registry,
     get_detector_contract,
-    list_trigger_detectors,
     list_context_detectors,
     list_runtime_eligible_detectors,
-    list_promotion_eligible_detectors,
+    list_trigger_detectors,
+    load_milestone_event_registry,
 )
-from project.events.detector_contract import DetectorContract, DetectorContractError
+
 
 def test_all_registered_detectors_load_under_new_contract():
     registry = load_milestone_event_registry()

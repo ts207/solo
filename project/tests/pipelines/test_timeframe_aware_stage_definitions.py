@@ -1,17 +1,11 @@
 """Tests for timeframe-aware stage definitions and artifact contracts."""
 
-import pytest
 
 from project.pipelines.stage_definitions import (
-    STAGE_ARTIFACT_REGISTRY,
-    STAGE_FAMILY_REGISTRY,
     parse_timeframes,
-    build_timeframe_artifact_contracts,
-    resolve_stage_artifacts,
 )
 from project.pipelines.stage_dependencies import (
     resolve_stage_artifact_contract,
-    _matching_artifact_contracts,
 )
 
 

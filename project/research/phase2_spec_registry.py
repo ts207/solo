@@ -5,8 +5,11 @@ from typing import Any, Dict
 
 from project.specs.gates import (
     load_all_families_spec as _shared_load_all_families_spec,
-    load_family_spec as _shared_load_family_spec,
+)
+from project.specs.gates import (
     load_gates_spec as _shared_load_gates_spec,
+)
+from project.specs.gates import (
     select_phase2_gate_spec as _shared_select_phase2_gate_spec,
 )
 

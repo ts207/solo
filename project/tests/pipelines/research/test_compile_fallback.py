@@ -1,9 +1,10 @@
-import pytest
 import pandas as pd
+import pytest
+
 from project.research.compile_strategy_blueprints import (
+    _choose_event_rows,
     _passes_fallback_gate,
     _passes_quality_floor,
-    _choose_event_rows,
     _validate_promoted_candidates_frame,
 )
 

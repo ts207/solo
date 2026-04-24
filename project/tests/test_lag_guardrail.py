@@ -1,7 +1,7 @@
 """Lag guardrail tests - prevents PIT leaks by ensuring execution_lag defaults to 1."""
 
-import pytest
 import pandas as pd
+
 from project.core.feature_schema import feature_dataset_dir_name
 
 
@@ -37,12 +37,12 @@ def test_lag_guardrail_dsl_engine_integration(tmp_path):
     from project.engine.runner import run_engine
     from project.strategy.dsl.schema import (
         Blueprint,
-        SymbolScopeSpec,
         EntrySpec,
-        ExitSpec,
-        SizingSpec,
-        LineageSpec,
         EvaluationSpec,
+        ExitSpec,
+        LineageSpec,
+        SizingSpec,
+        SymbolScopeSpec,
     )
 
     lake = tmp_path / "lake"
@@ -176,12 +176,12 @@ def test_lag_guardrail_default_applies_to_all_strategies(tmp_path):
     from project.engine.runner import run_engine
     from project.strategy.dsl.schema import (
         Blueprint,
-        SymbolScopeSpec,
         EntrySpec,
-        ExitSpec,
-        SizingSpec,
-        LineageSpec,
         EvaluationSpec,
+        ExitSpec,
+        LineageSpec,
+        SizingSpec,
+        SymbolScopeSpec,
     )
 
     lake = tmp_path / "lake"

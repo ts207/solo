@@ -5,18 +5,17 @@ import logging
 from pathlib import Path
 from typing import Callable, Optional
 
-import yaml
-
 import numpy as np
 import pandas as pd
+import yaml
 
 from project.domain.compiled_registry import get_domain_registry
 from project.research import discovery
 from project.research.gating import (
+    bh_adjust,
     build_event_return_frame,
 )
-from project.research.validation.falsification import generate_placebo_events
-from project.research.validation.regime_tests import evaluate_by_regime
+from project.research.multiplicity import simes_p_value
 from project.research.validation import (
     apply_multiple_testing,
     assign_split_labels,
@@ -24,9 +23,9 @@ from project.research.validation import (
     estimate_effect_from_frame,
     resolve_split_scheme,
 )
+from project.research.validation.falsification import generate_placebo_events
 from project.research.validation.purging import compute_event_windows
-from project.research.multiplicity import simes_p_value
-from project.research.gating import bh_adjust
+from project.research.validation.regime_tests import evaluate_by_regime
 
 
 def _canonical_grouping_for_event(event_type: object) -> str:

@@ -1,20 +1,25 @@
 from __future__ import annotations
 
 import logging
-from typing import Any, Dict
 
-from project.strategy.dsl.schema import Blueprint as DSLBlueprint
+from project import PROJECT_ROOT
+from project.core.config import load_configs
 from project.schemas.strategy_spec import (
-    StrategySpec,
     DataRequirements,
-    EntrySpec as CanonicalEntrySpec,
     EntryCondition,
-    ExitSpec as CanonicalExitSpec,
     RiskSpec,
+    StrategySpec,
+)
+from project.schemas.strategy_spec import (
+    EntrySpec as CanonicalEntrySpec,
+)
+from project.schemas.strategy_spec import (
     ExecutionSpec as CanonicalExecutionSpec,
 )
-from project.core.config import load_configs
-from project import PROJECT_ROOT
+from project.schemas.strategy_spec import (
+    ExitSpec as CanonicalExitSpec,
+)
+from project.strategy.dsl.schema import Blueprint as DSLBlueprint
 
 _LOG = logging.getLogger(__name__)
 

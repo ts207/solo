@@ -1,7 +1,9 @@
 import hashlib
 import json
 from typing import Any, Dict
+
 from project.strategy.dsl.schema import Blueprint
+
 
 def compute_ontology_invariant_hash(blueprint: Blueprint) -> str:
     """Computes a sha256 hash of a blueprint that is invariant to run_id, timestamps, and IDs.
@@ -29,10 +31,10 @@ def compute_ontology_invariant_hash(blueprint: Blueprint) -> str:
             "fill_profile": blueprint.execution.fill_profile
         }
     }
-    
+
     # 2. Serialize to a stable JSON string (sorted keys)
     stable_json = json.dumps(core_data, sort_keys=True, separators=(",", ":"))
-    
+
     # 3. Hash the string
     return f"sha256:{hashlib.sha256(stable_json.encode('utf-8')).hexdigest()}"
 

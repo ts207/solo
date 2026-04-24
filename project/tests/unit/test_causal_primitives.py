@@ -1,7 +1,6 @@
-import numpy as np
 import pandas as pd
-import pytest
-from project.core.causal_primitives import trailing_quantile, trailing_percentile_rank
+
+from project.core.causal_primitives import trailing_percentile_rank, trailing_quantile
 
 
 def test_trailing_quantile_pit():
@@ -36,7 +35,7 @@ def test_trailing_percentile_rank_pit():
     # With lag=1, this 0.5 value appears at t=3.
     # At t=3 in unshifted rolling: x=[10, 2, 11], rank of 11 in [10, 2] is 1.0.
     # With lag=1, this 1.0 value appears at t=4.
-    
+
     res = trailing_percentile_rank(series, window=2, lag=1)
 
     assert pd.isna(res[0])

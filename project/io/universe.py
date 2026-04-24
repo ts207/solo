@@ -1,5 +1,4 @@
 from __future__ import annotations
-from project.core.config import get_data_root
 
 from datetime import timedelta
 from pathlib import Path
@@ -7,6 +6,7 @@ from typing import Dict, Iterable, List, Sequence, Set
 
 import pandas as pd
 
+from project.core.config import get_data_root
 from project.core.timeframes import bars_dataset_name, normalize_timeframe
 from project.io.utils import (
     choose_partition_dir,
@@ -14,6 +14,7 @@ from project.io.utils import (
     read_parquet,
     run_scoped_lake_path,
 )
+
 
 def get_io_data_root() -> Path:
     return get_data_root()

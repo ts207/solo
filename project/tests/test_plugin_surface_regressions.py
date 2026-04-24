@@ -1,5 +1,6 @@
-import pytest
 from pathlib import Path
+
+import pytest
 
 
 def _repo_root() -> Path:
@@ -81,7 +82,7 @@ def test_edge_agents_mechanism_hypothesis_skill_references_current_files() -> No
 
     skill_path = root / "skills" / "edge-mechanism-hypothesis" / "SKILL.md"
     agent_path = root / "agents" / "mechanism-hypothesis.md"
-    
+
     if not skill_path.exists() or not agent_path.exists():
         pytest.skip("skill or agent files not present")
 

@@ -2,10 +2,7 @@
 
 from __future__ import annotations
 
-import sys
-from pathlib import Path
 import pandas as pd
-import pytest
 
 from project.research.analyze_events import _load_detector_input
 
@@ -16,9 +13,10 @@ class TestAnalyzeEventsMain:
     def test_main_exits_nonzero_when_no_detector(self, tmp_path, monkeypatch, capsys):
         """main() must exit non-zero and log ERROR when detector is not registered."""
         import types
-        from project.research.analyze_events import main
+
         import project.events.detectors.registry as reg
         import project.research.analyze_events as ae_mod
+        from project.research.analyze_events import main
 
         # Patch get_detector to return None for any event type
         monkeypatch.setattr(reg, "get_detector", lambda etype: None)
@@ -55,6 +53,7 @@ class TestAnalyzeEventsMain:
     def test_main_accepts_standard_args(self, tmp_path):
         """main() must accept --event_type, --run_id, --symbols, --data_root args."""
         import inspect
+
         from project.research import analyze_events
 
         # The script must have a main() accepting argv

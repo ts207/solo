@@ -2,7 +2,6 @@
 
 import numpy as np
 import pandas as pd
-import pytest
 
 from project.research.helpers.shrinkage import _apply_hierarchical_shrinkage
 

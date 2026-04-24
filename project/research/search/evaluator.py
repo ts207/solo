@@ -11,29 +11,46 @@ feature_predicate triggers all resolve to a boolean mask over the feature table.
 
 from __future__ import annotations
 
-import math
 import logging
+import math
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional
 
 import numpy as np
 import pandas as pd
 
-from project.core.timeframes import bars_per_year, normalize_timeframe, timeframe_spec
-from project.domain.hypotheses import HypothesisSpec, TriggerType
-from project.research.helpers.shrinkage import _time_decay_weights, _effective_sample_size
-from project.core.column_registry import ColumnRegistry
+from project.core.timeframes import bars_per_year
+from project.domain.hypotheses import HypothesisSpec
+from project.research.helpers.shrinkage import _effective_sample_size, _time_decay_weights
+from project.research.robustness.kill_switch import detect_kill_switches
 
 # Robustness framework imports
 from project.research.robustness.regime_evaluator import evaluate_by_regime
+from project.research.robustness.regime_labeler import label_regimes
 from project.research.robustness.robustness_scorer import compute_robustness_score
 from project.research.robustness.stress_test import (
-    evaluate_stress_scenarios,
     STRESS_SCENARIOS,
     _apply_stress_mask,
+    evaluate_stress_scenarios,
 )
-from project.research.robustness.kill_switch import detect_kill_switches
-from project.research.robustness.regime_labeler import label_regimes
+from project.research.search.evaluator_utils import (
+    context_mask as _context_mask,
+)
+from project.research.search.evaluator_utils import (
+    excursion_stats as _excursion_stats,
+)
+from project.research.search.evaluator_utils import (
+    forward_log_returns as _forward_log_returns,
+)
+from project.research.search.evaluator_utils import (
+    horizon_bars as _horizon_bars_func,
+)
+from project.research.search.evaluator_utils import (
+    signed_returns_for_spec as _signed_returns_for_spec,
+)
+from project.research.search.evaluator_utils import (
+    trigger_mask as _trigger_mask,
+)
 
 # Shared utilities
 from project.research.search.feasibility import FeasibilityResult, check_hypothesis_feasibility
@@ -41,15 +58,6 @@ from project.research.search.stage_models import (
     CandidateHypothesis,
     EvaluatedHypothesis,
     FeasibilityCheckedHypothesis,
-)
-from project.research.search.evaluator_utils import (
-    horizon_bars as _horizon_bars_func,
-    forward_log_returns as _forward_log_returns,
-    excursion_stats as _excursion_stats,
-    trigger_mask as _trigger_mask,
-    context_mask as _context_mask,
-    trigger_key as _trigger_key,
-    signed_returns_for_spec as _signed_returns_for_spec,
 )
 
 log = logging.getLogger(__name__)
@@ -417,7 +425,6 @@ def evaluate_hypothesis_batch(
         # Infer timeframe from features index frequency if possible
         # Default to 5m if unknown
         try:
-            from project.core.timeframes import normalize_timeframe
 
             # Assuming the index has freq or we can infer it
             pandas_freq = features.index.inferred_freq
@@ -673,9 +680,9 @@ def evaluate_hypothesis_batch(
                 "capacity_proxy": capacity,
             },
         )
-        
+
         row = evaluated.to_record()
-        
+
         try:
             from project.research.validation.discovery_prechecks import compute_discovery_prechecks
             prechecks = compute_discovery_prechecks(
@@ -698,7 +705,7 @@ def evaluate_hypothesis_batch(
             for k in METRICS_COLUMNS:
                 if k not in row:
                     row[k] = np.nan
-        
+
         if folds:
             # Fold windows are defined in timestamp space. In this pipeline the
             # returns series is typically indexed by feature-row id, not epoch-ms,
@@ -722,7 +729,7 @@ def evaluate_hypothesis_batch(
             )
             for k, v in fold_aggs.items():
                 row[k] = v
-            
+
             # Store detail rows independently to write them in phase2 engine
             if fold_details:
                 h_id = row.get("hypothesis_id", "")
@@ -759,7 +766,7 @@ def evaluate_hypothesis_batch(
                     )
             except Exception:
                 pass
-        
+
         rows.append({column: row.get(column, np.nan) for column in METRICS_COLUMNS if column in row})
         for c in METRICS_COLUMNS:
             if c not in rows[-1]:
@@ -788,13 +795,13 @@ def evaluate_hypothesis_batch(
                     })
 
     df = pd.DataFrame(rows, columns=METRICS_COLUMNS)
-    
+
     # Incorporate fold agg columns that we dynamically added to `rows` output above
     if folds and rows:
         fold_keys = [
-            "fold_count", "fold_valid_count", "fold_sign_consistency", 
-            "fold_median_oos_expectancy", "fold_worst_oos_expectancy", 
-            "fold_median_after_cost_expectancy", "fold_median_t_stat", 
+            "fold_count", "fold_valid_count", "fold_sign_consistency",
+            "fold_median_oos_expectancy", "fold_worst_oos_expectancy",
+            "fold_median_after_cost_expectancy", "fold_median_t_stat",
             "fold_fail_ratio"
         ]
         for c in fold_keys:
@@ -810,7 +817,7 @@ def evaluate_hypothesis_batch(
                      "horizon", "regime", "n", "mean_return_bps", "t_stat", "hit_rate"]
         )
     )
-    
+
     # Attach per-fold breakdown rows as metadata attribute similarly over candidates.
     df.attrs["fold_breakdown"] = (
         pd.DataFrame(fold_detail_rows) if fold_detail_rows else pd.DataFrame()
@@ -878,7 +885,7 @@ def evaluate_candidate_across_folds(
                 t_start = test_start
                 t_end = test_end
             mask = (signed_returns.index >= t_start) & (signed_returns.index <= t_end)
-        
+
         fold_n = mask.sum()
         if fold_n < 3:
             fold_metrics.append({
@@ -887,16 +894,16 @@ def evaluate_candidate_across_folds(
                 "n": int(fold_n)
             })
             continue
-            
+
         fold_signed = signed_returns[mask]
         fold_w = event_weights[mask]
         w_sum = fold_w.sum()
         if w_sum <= 0:
             fold_metrics.append({"fold_id": fold.fold_id, "valid": False, "n": int(fold_n)})
             continue
-            
+
         w_mean = float((fold_signed * fold_w).sum() / w_sum)
-        
+
         # Simple weighted std for t-stat proxy
         v1 = w_sum
         v2 = (fold_w**2).sum()
@@ -908,7 +915,7 @@ def evaluate_candidate_across_folds(
             t_stat = w_mean / (w_std / np.sqrt(max(1.0, n_eff))) if w_std > 1e-10 else 0.0
         else:
             t_stat = 0.0
-            
+
         fold_metrics.append({
             "fold_id": fold.fold_id,
             "valid": True,
@@ -918,11 +925,11 @@ def evaluate_candidate_across_folds(
             "t_stat": t_stat,
             "sign": 1 if w_mean > 0 else (-1 if w_mean < 0 else 0)
         })
-        
+
     valid_folds = [m for m in fold_metrics if m.get("valid", False)]
     fold_count = len(folds)
     valid_count = len(valid_folds)
-    
+
     if valid_count == 0:
         return fold_metrics, {
             "fold_count": fold_count,
@@ -934,17 +941,17 @@ def evaluate_candidate_across_folds(
             "fold_median_t_stat": 0.0,
             "fold_fail_ratio": 1.0,
         }
-        
+
     oos_list = [m["oos_expectancy_bps"] for m in valid_folds]
     after_cost_list = [m["after_cost_expectancy_bps"] for m in valid_folds]
     t_stat_list = [m["t_stat"] for m in valid_folds]
-    
+
     pos_count = sum(1 for m in valid_folds if m["sign"] > 0)
     neg_count = sum(1 for m in valid_folds if m["sign"] < 0)
     dom_sign_count = max(pos_count, neg_count)
-    
+
     fail_count = sum(1 for m in valid_folds if m["oos_expectancy_bps"] <= 0) if pos_count >= neg_count else sum(1 for m in valid_folds if m["oos_expectancy_bps"] >= 0)
-    
+
     agg = {
         "fold_count": fold_count,
         "fold_valid_count": valid_count,
@@ -955,5 +962,5 @@ def evaluate_candidate_across_folds(
         "fold_median_t_stat": float(np.median(t_stat_list)),
         "fold_fail_ratio": float(fail_count / valid_count),
     }
-    
+
     return fold_metrics, agg

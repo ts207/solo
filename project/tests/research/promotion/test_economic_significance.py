@@ -7,8 +7,8 @@ should be flagged or filtered during promotion.
 
 from __future__ import annotations
 
-import pandas as pd
 import pytest
+
 from project.research.promotion.core import evaluate_row
 
 

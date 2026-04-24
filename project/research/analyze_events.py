@@ -1,30 +1,26 @@
 from __future__ import annotations
-from project.core.config import get_data_root
 
 import argparse
 import json
 import logging
 import os
-import sys
 from pathlib import Path
 from typing import Any, Dict, List
 
 import pandas as pd
-import numpy as np
 
+from project.core.config import get_data_root
 from project.events.config import compose_event_config
-from project.events.detectors.sequence import EventSequenceDetector
 from project.events.detectors.registry import get_detector, load_all_detectors
-from project.events.event_repository import load_registry_events
+from project.io.utils import write_parquet
 from project.research._family_event_utils import (
     load_features,
     merge_event_csv,
     safe_severity_quantiles,
 )
+from project.research.analyzers import run_analyzer_suite
 from project.research.analyzers.base import AnalyzerResult
 from project.specs.manifest import finalize_manifest, start_manifest
-from project.research.analyzers import run_analyzer_suite
-from project.io.utils import write_parquet
 
 _LOG = logging.getLogger(__name__)
 
@@ -130,7 +126,7 @@ def _load_basis_features(run_id: str, symbol: str, timeframe: str, data_root: Pa
     perp = load_features(run_id, symbol, timeframe=timeframe, market="perp", data_root=data_root)
     if perp.empty:
         return pd.DataFrame()
-    
+
     # Use spot_close from perp features if available, otherwise fall back to spot features
     if "spot_close" in perp.columns and perp["spot_close"].notna().any():
         # Rename columns for detector compatibility
@@ -138,12 +134,12 @@ def _load_basis_features(run_id: str, symbol: str, timeframe: str, data_root: Pa
         result["close_perp"] = result["close"]
         result["close_spot"] = result["spot_close"]
         return result
-    
+
     # Fallback: try loading spot features
     spot = load_features(run_id, symbol, timeframe=timeframe, market="spot", data_root=data_root)
     if spot.empty:
         return pd.DataFrame()
-    
+
     # Merge for basis detection
     merged = pd.merge(
         perp[["timestamp", "close"]].rename(columns={"close": "close_perp"}),
@@ -167,11 +163,11 @@ def _load_detector_input(
     data_root: Path | None = None,
 ) -> pd.DataFrame:
     data_root = data_root or get_data_root()
-    
+
     # Check if detector needs basis features (perp + spot)
     needs_basis = False
     basis_cols = {"close_perp", "close_spot", "basis_bps"}
-    
+
     if event_type in (
         "BASIS_DISLOC",
         "BASIS_SNAPBACK",
@@ -186,7 +182,7 @@ def _load_detector_input(
         req = getattr(detector, "required_columns", ())
         if any(col in basis_cols for col in req):
             needs_basis = True
-        
+
         # Check if it's a sequence/composite detector that might need basis features
         if not needs_basis and hasattr(detector, "_ensure_detectors"):
             try:
@@ -247,7 +243,7 @@ def main(argv: List[str] | None = None) -> int:
     if not detector:
         _LOG.error("No detector found for event_type: %s", event_type)
         return 1
-    
+
     # Ensure detector instance knows its own event type (important for polymorphic detectors)
     detector.event_type = event_type
 

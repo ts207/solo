@@ -1,10 +1,8 @@
-import json
+
 import numpy as np
 import pandas as pd
-import tempfile
-import os
 
-from project.eval.drift_detection import detect_parameter_drift, detect_feature_drift
+from project.eval.drift_detection import detect_feature_drift, detect_parameter_drift
 
 
 def test_detect_parameter_drift():

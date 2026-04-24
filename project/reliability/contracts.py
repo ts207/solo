@@ -2,23 +2,22 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-from typing import Any, Dict, Iterable, Sequence
+from typing import Any, Dict, Sequence
 
 import pandas as pd
 
 from project.io.utils import read_parquet
 from project.reliability.manifest_checks import (
     validate_manifest_artifacts_exist,
-    validate_manifest_core,
 )
 from project.reliability.schemas import (
-    ArtifactSchemaSpec,
     CANDIDATE_TABLE_SCHEMA,
     EVIDENCE_BUNDLE_SUMMARY_SCHEMA,
     PORTFOLIO_LEDGER_SCHEMA,
     PROMOTION_AUDIT_SCHEMA,
     PROMOTION_DECISION_SCHEMA,
     STRATEGY_TRACE_SCHEMA,
+    ArtifactSchemaSpec,
 )
 
 

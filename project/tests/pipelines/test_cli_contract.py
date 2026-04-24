@@ -10,8 +10,8 @@ import yaml
 
 import project.discover as discover_module
 import project.promote as promote_module
-from project.scripts.run_live_engine import load_live_engine_config
 from project.research.cell_discovery import cells_cli as cells_cli_module
+from project.scripts.run_live_engine import load_live_engine_config
 from project.tests.conftest import PROJECT_ROOT
 
 CLI_PATH = PROJECT_ROOT / "cli.py"
@@ -150,6 +150,60 @@ def test_cli_discover_cells_plan_delegates_to_cell_lane(monkeypatch, tmp_path: P
     assert captured["args"].run_id == "unit_cells"
     assert captured["args"].symbols == "BTCUSDT,ETHUSDT"
     assert captured["args"].data_root == str(tmp_path)
+
+
+def test_cli_discover_cells_coverage_audit_delegates(monkeypatch):
+    cli = _load_cli_module()
+    captured = {}
+
+    def _fake_run_from_namespace(args):
+        captured["args"] = args
+        return {"exit_code": 0, "status": "ok"}
+
+    monkeypatch.setattr(cells_cli_module, "run_from_namespace", _fake_run_from_namespace)
+    monkeypatch.setattr(
+        sys,
+        "argv",
+        [
+            "backtest",
+            "discover",
+            "cells",
+            "coverage-audit",
+            "--spec_root",
+            "spec/discovery",
+        ],
+    )
+
+    assert cli.main() == 0
+    assert captured["args"].cells_action == "coverage-audit"
+    assert captured["args"].spec_root == "spec/discovery"
+
+
+def test_cli_discover_cells_spec_audit_delegates(monkeypatch):
+    cli = _load_cli_module()
+    captured = {}
+
+    def _fake_run_from_namespace(args):
+        captured["args"] = args
+        return {"exit_code": 0, "status": "ok"}
+
+    monkeypatch.setattr(cells_cli_module, "run_from_namespace", _fake_run_from_namespace)
+    monkeypatch.setattr(
+        sys,
+        "argv",
+        [
+            "backtest",
+            "discover",
+            "cells",
+            "spec-audit",
+            "--spec_dir",
+            "spec/discovery/tier2_trend_failure_runtime_v1",
+        ],
+    )
+
+    assert cli.main() == 0
+    assert captured["args"].cells_action == "spec-audit"
+    assert captured["args"].spec_dir == "spec/discovery/tier2_trend_failure_runtime_v1"
 
 
 def test_cli_discover_cells_rejects_compat_discovery_flag(monkeypatch, capsys):

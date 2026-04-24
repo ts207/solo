@@ -1,9 +1,9 @@
 from __future__ import annotations
 
-import numpy as np
-import pandas as pd
 import logging
 from typing import Any, Optional
+
+import numpy as np
 
 # Create module-level logger.  When type coercion fails this logger
 # will emit warnings including contextual information passed by the caller.

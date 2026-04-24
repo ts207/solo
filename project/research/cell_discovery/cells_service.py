@@ -6,11 +6,13 @@ from typing import Any
 
 from project.core.config import get_data_root
 from project.research.cell_discovery.compiler import compile_cells
+from project.research.cell_discovery.coverage import build_cell_coverage_audit
 from project.research.cell_discovery.data_feasibility import verify_data_contract
 from project.research.cell_discovery.paths import paths_for_run
 from project.research.cell_discovery.redundancy import build_redundancy_clusters
 from project.research.cell_discovery.registry import load_registry
 from project.research.cell_discovery.scoreboard import build_scoreboard
+from project.research.cell_discovery.spec_audit import build_spec_audit
 from project.research.cell_discovery.thesis_assembly import assemble_theses
 
 
@@ -62,6 +64,32 @@ def _skipped_cell_summary(paths) -> dict[str, Any]:
         "skipped_by_context_cell": dict(sorted(by_context_cell.items())),
         "skipped_cells": skipped_cells,
     }
+
+
+def coverage_audit(
+    *,
+    spec_root: str | Path = "spec/discovery",
+    search_spec: str | Path = "spec/search_space.yaml",
+    event_registry: str | Path = "spec/events/event_registry_unified.yaml",
+) -> dict[str, Any]:
+    return build_cell_coverage_audit(
+        spec_root=spec_root,
+        search_spec=search_spec,
+        event_registry=event_registry,
+    )
+
+
+def spec_audit(
+    *,
+    spec_dir: str | Path,
+    template_registry: str | Path = "spec/templates/event_template_registry.yaml",
+    verify_report: str | Path | None = None,
+) -> dict[str, Any]:
+    return build_spec_audit(
+        spec_dir=spec_dir,
+        template_registry=template_registry,
+        verify_report=verify_report,
+    )
 
 
 def verify_data(

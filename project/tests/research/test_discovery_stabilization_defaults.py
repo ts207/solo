@@ -1,9 +1,10 @@
-import pytest
-import pandas as pd
 from pathlib import Path
+
+import pandas as pd
+
+from project.io.utils import read_table_auto
 from project.research import phase2_search_engine
 from project.research.services.candidate_discovery_scoring import build_discovery_quality_score
-from project.io.utils import read_table_auto
 
 
 def test_v2_scoring_defaults():
@@ -64,6 +65,7 @@ def test_search_engine_v2_default(monkeypatch):
 
 def test_search_space_defaults_are_stable():
     import yaml
+
     from project import PROJECT_ROOT
 
     spec_path = PROJECT_ROOT.parent / "spec/search_space.yaml"
@@ -78,6 +80,7 @@ def test_search_space_defaults_are_stable():
 
 def test_ledger_default_is_disabled():
     import yaml
+
     from project import PROJECT_ROOT
 
     config_path = PROJECT_ROOT.parent / "project/configs/discovery_ledger.yaml"

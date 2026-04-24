@@ -1,52 +1,64 @@
 from __future__ import annotations
 
+import hashlib
 import os
 import sys
 import time
-import hashlib
-from fnmatch import fnmatch
-from typing import Dict, List, Tuple, Optional, Any
+from typing import Any, Dict, List, Tuple
 
 from project import PROJECT_ROOT
+from project.events.event_specs import EVENT_REGISTRY_SPECS
+from project.events.phase2 import PHASE2_EVENT_CHAIN
+from project.pipelines.pipeline_audit import (
+    apply_run_terminal_audit,
+    apply_runtime_postflight_to_manifest,
+    emit_failure_messages,
+    enforce_runtime_postflight,
+    load_checklist_decision,
+    record_non_production_overrides,
+    run_runtime_postflight_audit,
+)
 from project.pipelines.pipeline_defaults import (
     DATA_ROOT,
-    utc_now_iso,
     run_id_default,
-    build_timing_map,
     script_supports_flag,
-)
-from project.pipelines.pipeline_provenance import (
-    data_fingerprint,
-    feature_schema_metadata,
-    git_commit,
-    write_run_manifest,
-    read_run_manifest,
-    maybe_emit_run_hash,
-    refresh_runtime_lineage_fields,
-    claim_map_hash,
-    config_digest,
-    build_initial_run_manifest,
-    resolve_existing_manifest_state,
-    write_execution_reports,
-)
-from project.pipelines.pipeline_planning import (
-    build_parser,
-    resolve_experiment_context,
-    prepare_run_preflight,
-    compute_stage_instance_ids,
-    build_contract_backed_execution_plan,
-)
-from project.pipelines.run_all_bootstrap import build_run_bootstrap_state
-from project.pipelines.effective_config import (
-    build_effective_config_payload,
-    write_effective_config,
 )
 from project.pipelines.pipeline_execution import (
     ExecutionRunner,
-    execute_pipeline_stages,
-    seed_run_manifest,
     finalize_run_manifest,
+    seed_run_manifest,
+)
+from project.pipelines.pipeline_execution import (
     run_stage as _run_stage,
+)
+from project.pipelines.pipeline_planning import (
+    build_contract_backed_execution_plan,
+    build_parser,
+    compute_stage_instance_ids,
+    prepare_run_preflight,
+    resolve_experiment_context,
+)
+from project.pipelines.pipeline_provenance import (
+    data_fingerprint,
+    git_commit,
+    maybe_emit_run_hash,
+    read_run_manifest,
+    refresh_runtime_lineage_fields,
+    write_execution_reports,
+    write_run_manifest,
+)
+from project.pipelines.pipeline_summary import (
+    print_artifact_summary,
+    write_run_kpi_scorecard,
+)
+from project.pipelines.run_all_bootstrap import build_run_bootstrap_state
+from project.pipelines.run_all_finalize import (
+    finalize_successful_run,
+    handle_runtime_postflight,
+)
+from project.pipelines.run_all_provenance import (
+    compute_data_fingerprint,
+    validate_phase2_event_chain,
 )
 from project.pipelines.run_all_support import (
     argv_flag_present,
@@ -54,34 +66,7 @@ from project.pipelines.run_all_support import (
     evaluate_startup_guards,
     fail_run,
 )
-from project.pipelines.run_all_finalize import (
-    finalize_successful_run,
-    handle_runtime_postflight,
-)
 from project.research.services.run_comparison_service import write_run_comparison_report
-from project.events.phase2 import PHASE2_EVENT_CHAIN
-from project.events.event_specs import EVENT_REGISTRY_SPECS
-from project.pipelines.run_all_provenance import (
-    validate_phase2_event_chain,
-    compute_data_fingerprint,
-)
-
-from project.pipelines.pipeline_audit import (
-    apply_run_terminal_audit,
-    load_checklist_decision,
-    run_runtime_postflight_audit,
-    apply_runtime_postflight_to_manifest,
-    enforce_runtime_postflight,
-    emit_failure_messages,
-    record_non_production_overrides,
-)
-from project.pipelines.pipeline_summary import (
-    write_run_kpi_scorecard,
-    print_artifact_summary,
-)
-
-from project.specs.utils import get_spec_hashes
-from project.specs.ontology import ontology_spec_hash
 from project.specs.invariants import validate_runtime_invariants_specs
 
 
@@ -95,7 +80,6 @@ def _validate_phase2_event_chain():
 
 def _data_fingerprint(symbols, run_id, **kwargs):
     """Wrapper that reads DATA_ROOT at call time so tests can monkeypatch run_all.DATA_ROOT."""
-    from project.pipelines.pipeline_provenance import data_fingerprint
     digest, lineage = data_fingerprint(
         symbols,
         run_id,

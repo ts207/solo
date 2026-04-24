@@ -10,8 +10,8 @@ from __future__ import annotations
 import pytest
 
 from project.pipelines.ingest.ingest_binance_um_liquidation_snapshot import (
-    CM_SYMBOL_MAP,
     _KNOWN_CM_CONTRACTS,
+    CM_SYMBOL_MAP,
     _assert_cm_mapping_complete,
     _assert_events_per_symbol,
     _to_cm_contract,

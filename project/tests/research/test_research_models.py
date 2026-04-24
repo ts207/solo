@@ -1,12 +1,13 @@
 from __future__ import annotations
 
 import pytest
+
 from project.research.models import (
-    HypothesisRecord,
     CandidateRecord,
-    ValidationRecord,
+    HypothesisRecord,
     PromotionRecord,
     ResearchDecisionTrace,
+    ValidationRecord,
 )
 
 

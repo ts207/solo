@@ -6,7 +6,6 @@ from typing import Any
 
 import pandas as pd
 
-
 _VALID_QUALITY_FLAGS = {"ok", "degraded", "invalid"}
 
 REQUIRED_EVENT_OUTPUT_COLUMNS: tuple[str, ...] = (

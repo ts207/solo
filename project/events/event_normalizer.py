@@ -2,17 +2,18 @@ from __future__ import annotations
 
 import json
 import logging
+from typing import Sequence
+
 import numpy as np
 import pandas as pd
-from typing import Sequence
 
 from project.core.validation import ts_ns_utc
 from project.events.event_specs import (
+    _DIRECTION_DEFAULT,
     REGISTRY_EVENT_COLUMNS,
     VALID_DIRECTIONS,
-    _DIRECTION_DEFAULT,
-    expected_event_types_for_spec,
     EventRegistrySpec,
+    expected_event_types_for_spec,
 )
 
 
@@ -147,7 +148,7 @@ def normalize_phase1_events(
 
     if "direction" in out.columns:
         out["direction"] = out["direction"].fillna(_DIRECTION_DEFAULT).astype(str).str.lower().str.strip()
-    
+
     if "evt_signal_intensity" not in out.columns and "event_score" in out.columns:
         out["evt_signal_intensity"] = out["event_score"]
     elif "evt_signal_intensity" not in out.columns:

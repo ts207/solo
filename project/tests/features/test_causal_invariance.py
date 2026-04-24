@@ -1,10 +1,10 @@
 from __future__ import annotations
 
-import pytest
-import pandas as pd
-import numpy as np
-from pathlib import Path
 import importlib
+
+import numpy as np
+import pandas as pd
+import pytest
 
 # Feature builders to test
 # Format: (module_path, function_name, mock_input_generator)
@@ -126,8 +126,8 @@ def test_feature_prefix_invariance(module_path, func_name, gen_name):
 def test_vol_shock_relaxation_causality():
     """VSR has a different signature (detect_vol_shock_relaxation_events)."""
     from project.features.vol_shock_relaxation import (
-        detect_vol_shock_relaxation_events,
         VolShockRelaxationConfig,
+        detect_vol_shock_relaxation_events,
     )
 
     n = 1000
@@ -180,9 +180,9 @@ def test_liquidity_vacuum_causality():
     full and truncated runs.
     """
     from project.features.liquidity_vacuum import (
-        detect_liquidity_vacuum_events,
         LiquidityVacuumConfig,
         _compute_core_series,
+        detect_liquidity_vacuum_events,
     )
 
     rng = np.random.default_rng(42)
@@ -242,7 +242,6 @@ def test_funding_persistence_causality():
     """
     from project.features.funding_persistence import (
         build_funding_persistence_state,
-        FundingPersistenceConfig,
     )
 
     rng = np.random.default_rng(seed=99)
@@ -285,6 +284,7 @@ def test_rolling_center_not_used_in_feature_modules():
     none use rolling(center=True).
     """
     import re
+
     from project.tests.conftest import PROJECT_ROOT
 
     features_dir = PROJECT_ROOT / "features"

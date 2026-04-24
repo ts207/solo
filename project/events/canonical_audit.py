@@ -9,7 +9,6 @@ from project.events.event_aliases import resolve_event_alias
 from project.events.registry import get_event_definition
 from project.research.analyzers.overlap import OverlapAnalyzer
 
-
 AUDITED_PROXY_EVENTS = {}
 
 

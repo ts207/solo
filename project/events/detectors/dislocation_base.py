@@ -6,7 +6,11 @@ import numpy as np
 import pandas as pd
 
 from project.events.detectors.base_v2 import BaseDetectorV2
-from project.events.thresholding import dynamic_quantile_floor, rolling_robust_zscore, rolling_vol_regime_factor
+from project.events.thresholding import (
+    dynamic_quantile_floor,
+    rolling_robust_zscore,
+    rolling_vol_regime_factor,
+)
 from project.features.context_guards import state_at_least
 
 

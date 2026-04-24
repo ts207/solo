@@ -18,13 +18,12 @@ import logging
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Sequence
+from typing import Any, Dict, List, Sequence
 
 import numpy as np
 import pandas as pd
 
 from project.core.config import get_data_root
-from project.research.agent_io.campaign_planner import CampaignPlanner, CampaignPlannerConfig
 from project.research.agent_io.generated_proposal_policy import (
     resolve_generated_proposal_controls,
     summarize_viability_for_event,
@@ -34,7 +33,6 @@ from project.research.feature_surface_viability import analyze_feature_surface_v
 from project.research.knowledge.memory import (
     ensure_memory_store,
     read_memory_table,
-    write_memory_table,
 )
 from project.research.semantic_registry_views import build_canonical_semantic_registry_views
 

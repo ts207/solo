@@ -1,15 +1,16 @@
 from __future__ import annotations
+
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Callable, List, Tuple, Dict, Mapping
+from typing import Callable, Dict, List, Tuple
 
+from project.pipelines.stage_registry import assert_stage_registry_contract
 from project.pipelines.stages import (
     build_core_stages,
     build_evaluation_stages,
     build_ingest_stages,
     build_research_stages,
 )
-from project.pipelines.stage_registry import assert_stage_registry_contract
 
 
 @dataclass

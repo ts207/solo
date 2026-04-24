@@ -4,8 +4,9 @@ Tests for reference values.
 
 from __future__ import annotations
 
-import pandas as pd
 import numpy as np
+import pandas as pd
+
 from project.eval.reference_values import (
     get_reference_sma,
     get_reference_volatility,

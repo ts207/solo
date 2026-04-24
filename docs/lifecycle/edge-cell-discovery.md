@@ -74,12 +74,23 @@ It does not route through `project.research.candidate_discovery` or
 ## Commands
 
 ```bash
+edge discover cells coverage-audit
+edge discover cells spec-audit --spec_dir spec/discovery/<surface>
 edge discover cells verify-data --run_id <run_id> --symbols BTCUSDT --start 2024-01-01 --end 2025-12-31
 edge discover cells plan --run_id <run_id> --symbols BTCUSDT --start 2024-01-01 --end 2025-12-31
 edge discover cells run --run_id <run_id> --symbols BTCUSDT --start 2024-01-01 --end 2025-12-31
 edge discover cells summarize --run_id <run_id>
 edge discover cells assemble-theses --run_id <run_id>
 ```
+
+`coverage-audit` is read-only. It compares the unified event registry, the
+default normal-discovery search surface, and every authored cell spec under
+`spec/discovery/`. Use it before assuming an event is available in cell testing.
+
+`spec-audit` is read-only. It compares one authored cell surface against the
+event-template registry and reports unsupported templates, intentionally omitted
+allowed templates, and runtime versus supportive-only context counts. Pass
+`--verify_report <path>` to include data-contract status by event and context.
 
 `run` fails before phase-2 execution when the data contract leaves no feasible
 cell surface.
@@ -95,6 +106,32 @@ The authored search surface lives under `spec/discovery/`:
 - `horizons.yaml`
 - `contrast_rules.yaml`
 - `ranking_policy.yaml`
+
+Authored surface directories include:
+
+- `spec/discovery/`: default narrow cell surface.
+- `spec/discovery/expanded_v2/`: core volatility, liquidity-vacuum, and funding expansion.
+- `spec/discovery/multiyear_v1/`: multiyear variant of the core expansion.
+- `spec/discovery/tier2_basis_funding_runtime_v1/`: basis/funding dislocation surface.
+- `spec/discovery/tier2_desync_runtime_v1/`: focused cross-venue, spot/perp, and lead-lag desynchronization surface.
+- `spec/discovery/tier2_guard_filter_v1/`: spread, slippage, session, and funding-timestamp guard/filter surface.
+- `spec/discovery/tier2_liquidation_exhaustion_focused_v1/`: focused liquidation/trend exhaustion and rebound surface.
+- `spec/discovery/tier2_liquidation_positioning_runtime_v1/`: liquidation, OI, and deleveraging surface.
+- `spec/discovery/tier2_liquidity_proxy_repair_v1/`: additional liquidity proxy/direct repair surface.
+- `spec/discovery/tier2_liquidity_repair_v1/`: runnable liquidity repair surface with runtime contexts only; excludes `LIQUIDITY_SHOCK` until its zero-support issue is understood.
+- `spec/discovery/tier2_liquidity_stress_v1/`: liquidity-stress expansion for events such as `SWEEP_STOPRUN`, `DEPTH_COLLAPSE`, `SPREAD_BLOWOUT`, `LIQUIDITY_SHOCK`, `LIQUIDITY_GAP_PRINT`, and `ORDERFLOW_IMBALANCE_SHOCK`.
+- `spec/discovery/tier2_regime_transition_runtime_v1/`: regime-transition event surface.
+- `spec/discovery/tier2_statistical_stretch_repair_v1/`: statistical stretch and overshoot repair surface.
+- `spec/discovery/tier2_temporal_execution_guard_v1/`: temporal, lead-lag, and execution-friction guard surface.
+- `spec/discovery/tier2_trend_continuation_runtime_v1/`: trend continuation surface.
+- `spec/discovery/tier2_trend_failure_residual_runtime_v1/`: residual trend-failure events outside the first runtime trend-failure pass.
+- `spec/discovery/tier2_trend_failure_runtime_v1/`: promotion-friendlier trend-failure surface with runtime contexts only.
+- `spec/discovery/tier2_trend_failure_v1/`: trend-failure and exhaustion expansion for events such as `LIQUIDATION_EXHAUSTION_REVERSAL`, `TREND_EXHAUSTION_TRIGGER`, `FALSE_BREAKOUT`, `FAILED_CONTINUATION`, `MOMENTUM_DIVERGENCE_TRIGGER`, and `CLIMAX_VOLUME_BAR`.
+- `spec/discovery/tier2_volatility_transition_runtime_v1/`: volatility expansion and compression-release surface.
+
+Cell discovery is still intentionally curated. It does not automatically test all
+events in `spec/events/event_registry_unified.yaml`; new event families should be
+added as reviewed authored surfaces, then checked with `coverage-audit`.
 
 The compiler writes generated artifacts under:
 

@@ -8,8 +8,9 @@ AccountState/PositionState.
 from __future__ import annotations
 
 import pytest
+
 from project.core.exceptions import DataIntegrityError
-from project.live.state import LiveStateStore, PositionState
+from project.live.state import LiveStateStore
 
 
 def test_initial_state_empty():

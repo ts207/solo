@@ -48,7 +48,7 @@ def build_ingest_stages(
                     ],
                 )
             )
-            
+
         if int(args.run_ingest_open_interest_hist):
             stages.append(
                 (

@@ -1,15 +1,15 @@
-import pandas as pd
 import numpy as np
+import pandas as pd
 import pytest
 
-from project.research.walkforward import (
-    generate_walkforward_windows,
-    evaluate_walkforward_stability,
-    WindowResult,
-)
-from project.research.stability import evaluate_regime_stability
 from project.live.drift import calculate_feature_drift, monitor_execution_drift
 from project.live.health_checks import check_kill_switch_triggers
+from project.research.stability import evaluate_regime_stability
+from project.research.walkforward import (
+    WindowResult,
+    evaluate_walkforward_stability,
+    generate_walkforward_windows,
+)
 
 
 def test_walkforward_windows():

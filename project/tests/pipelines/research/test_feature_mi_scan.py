@@ -13,7 +13,6 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-from typing import Any, Dict
 from unittest.mock import MagicMock, patch
 
 import numpy as np
@@ -21,20 +20,17 @@ import pandas as pd
 import pytest
 
 from project.core.exceptions import DataIntegrityError
-from project.research.feature_mi_scan import (
-    run_feature_mi_scan,
-    _select_feature_columns,
-    _forward_log_returns,
-    _derive_predicates,
-    DEFAULT_MI_THRESHOLD,
-    DEFAULT_HORIZONS,
-    _MI_TABLE_COLUMNS,
-)
 from project.research.campaign_controller import (
     CampaignConfig,
     CampaignController,
 )
-
+from project.research.feature_mi_scan import (
+    _MI_TABLE_COLUMNS,
+    _derive_predicates,
+    _forward_log_returns,
+    _select_feature_columns,
+    run_feature_mi_scan,
+)
 
 # ---------------------------------------------------------------------------
 # Shared fixture helpers
@@ -417,7 +413,7 @@ class TestControllerMiPredicates:
 
     def test_picks_most_recent_scan(self, tmp_path):
         """When multiple scans exist, the most recently modified is used."""
-        import time, os
+        import os
         ctrl = _make_ctrl(tmp_path)
         for idx, (run_id, mi_score) in enumerate([("run_1", 0.01), ("run_2", 0.99)]):
             mi_dir = tmp_path / "reports" / "feature_mi" / run_id
@@ -531,7 +527,7 @@ class TestControllerMiIntegration:
 
     def test_no_mi_file_falls_back_to_static(self, tmp_path):
         ctrl = _make_ctrl(tmp_path)
-        
+
         # Mock search space with static predicates
         search_space_path = tmp_path / "search_space.yaml"
         search_space_path.write_text("""

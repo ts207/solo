@@ -1,5 +1,4 @@
 from __future__ import annotations
-from project.core.config import get_data_root
 
 import argparse
 import json
@@ -11,6 +10,7 @@ from typing import Dict, List
 
 import pandas as pd
 
+from project.core.config import get_data_root
 from project.io.utils import read_parquet
 from project.specs.manifest import finalize_manifest, start_manifest
 

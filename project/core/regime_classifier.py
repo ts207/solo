@@ -3,9 +3,7 @@ from __future__ import annotations
 import logging
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, Dict, List, Optional
-
-import numpy as np
+from typing import Any, Dict, Optional
 
 logger = logging.getLogger(__name__)
 
@@ -42,7 +40,7 @@ def classify_regime(
     Unified API for regime classification.
     Prioritizes exact research semantics if available, falls back to runtime approximations.
     """
-    
+
     # 1. Try Research Exact Path
     if rv_pct is not None and ms_trend_state is not None:
         regime = RegimeName.UNKNOWN
@@ -56,7 +54,7 @@ def classify_regime(
             regime = RegimeName.BEAR_TREND
         elif ms_trend_state == 0.0:
             regime = RegimeName.CHOP
-            
+
         if regime != RegimeName.UNKNOWN:
             return RegimeClassification(
                 regime=regime,
@@ -79,11 +77,11 @@ def classify_regime(
             regime = RegimeName.LOW_VOL
         else:
             regime = RegimeName.BULL_TREND if move_bps >= 0.0 else RegimeName.BEAR_TREND
-            
+
         missing_inputs = []
         if rv_pct is None: missing_inputs.append("rv_pct")
         if ms_trend_state is None: missing_inputs.append("ms_trend_state")
-        
+
         return RegimeClassification(
             regime=regime,
             mode=ClassificationMode.RUNTIME_APPROX,

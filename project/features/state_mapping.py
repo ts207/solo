@@ -1,5 +1,4 @@
 import pandas as pd
-import numpy as np
 
 
 def map_vol_regime(rv_pct: pd.Series) -> pd.Series:

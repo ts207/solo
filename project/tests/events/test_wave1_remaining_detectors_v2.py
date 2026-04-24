@@ -3,13 +3,16 @@ from __future__ import annotations
 import numpy as np
 import pandas as pd
 
+from project.events.detectors.liquidation_base import LiquidationCascadeProxyDetectorV2
 from project.events.detectors.liquidity_base import (
     DepthCollapseDetectorV2,
     LiquidityGapDetectorV2,
     LiquidityVacuumDetectorV2,
 )
-from project.events.detectors.liquidation_base import LiquidationCascadeProxyDetectorV2
-from project.events.detectors.volatility_base import VolRelaxationStartDetectorV2, VolShockDetectorV2
+from project.events.detectors.volatility_base import (
+    VolRelaxationStartDetectorV2,
+    VolShockDetectorV2,
+)
 
 
 def _base_df(n: int = 800) -> pd.DataFrame:

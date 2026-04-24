@@ -20,38 +20,9 @@ FUNDING_CONVENTION = "longs_pay_positive"
 def compute_returns(close: pd.Series) -> pd.Series:
     """
     Compute simple close-to-close returns.
-    Uses manual division to ensure gaps resulting in NaN returns are propagated and not smoothed,
-    avoiding deprecated pandas fill_method warnings.
+    Uses manual division so gaps resulting in NaN returns propagate instead of being smoothed.
     """
     return (close / close.shift(1)) - 1.0
-
-
-def compute_returns_next_open(
-    close: pd.Series,
-    open_: pd.Series,
-    positions: pd.Series,
-) -> pd.Series:
-    """
-    Legacy blended-return helper for next-open execution mode.
-
-    This helper is kept for compatibility with older tests and callers. New
-    engine accounting should prefer :func:`build_execution_state` and
-    :func:`compute_pnl_ledger`, which model fills and holding periods
-    explicitly rather than by substituting a synthetic return series.
-    """
-    aligned_pos = positions.reindex(close.index).fillna(0).astype(int)
-    prior_pos = aligned_pos.shift(1).fillna(0).astype(int)
-    is_entry = (prior_pos == 0) & (aligned_pos != 0)
-
-    cc_ret = (close / close.shift(1)) - 1.0
-
-    next_open = open_.shift(-1)
-    safe_close = close.replace(0.0, np.nan)
-    entry_ret = (next_open / safe_close - 1.0).replace([np.inf, -np.inf], np.nan)
-
-    blended = cc_ret.copy()
-    blended[is_entry] = entry_ret[is_entry]
-    return blended
 
 
 # Venue-specific funding schedules (UTC hours).
@@ -341,118 +312,6 @@ def compute_pnl_ledger(
     return ledger
 
 
-def compute_pnl_components(
-    pos: pd.Series,
-    ret: pd.Series,
-    cost_bps: float | pd.Series,
-    funding_rate: pd.Series | None = None,
-    borrow_rate: pd.Series | None = None,
-    use_event_aligned_funding: bool = True,
-    execution_mode: str = "close",
-    funding_hours: tuple[int, ...] = FUNDING_HOURS_BINANCE,
-) -> pd.DataFrame:
-    """
-    Legacy per-bar PnL component calculation.
-
-    .. deprecated::
-        Use :func:`compute_pnl_ledger` instead.  This function operates on a
-        pre-computed return stream and cannot correctly decompose flip trades
-        (long→short in a single bar) when ``execution_mode="next_open"``
-        because it lacks per-bar open prices.  ``compute_pnl_ledger`` models
-        fills and holding periods explicitly.
-    """
-    # Guard against funding overcount on sub-hourly frequencies
-    if not use_event_aligned_funding and funding_rate is not None:
-        idx = pos.index
-        if len(idx) > 1:
-            delta = idx[1] - idx[0]
-            if delta < pd.Timedelta(hours=1):
-                raise ValueError(
-                    f"Sub-hourly bars ({delta}) require use_event_aligned_funding=True "
-                    "to prevent funding overcount."
-                )
-
-    import warnings
-
-    warnings.warn(
-        "compute_pnl_components is deprecated and will be removed in a future release. "
-        "Use compute_pnl_ledger() which correctly handles flip trades and next-open fills.",
-        DeprecationWarning,
-        stacklevel=2,
-    )
-
-    aligned_pos = pos.reindex(ret.index).fillna(0.0).astype(float)
-    prior_pos = aligned_pos.shift(1).fillna(0.0)
-
-    exec_mode = str(execution_mode).strip().lower()
-    if exec_mode == "next_open":
-        # A flip (long -> short or vice versa) means both prior_pos and aligned_pos are non-zero
-        # but have different signs or magnitudes.
-        # is_entry should detect any change from zero to non-zero.
-        # But for a flip, we need to handle the intrabar leg carefully.
-
-        # In next_open mode:
-        # gap_ret = open[t]/close[t-1] - 1 (accrued to prior_pos)
-        # intrabar_ret = close[t]/open[t] - 1 (accrued to aligned_pos)
-
-        # The legacy 'position_for_pnl' approach is too simplistic for flips.
-        # Let's adjust it to match build_execution_state semantics where possible
-        # for a single 'ret' series (which is cc_ret).
-
-        is_entry = (prior_pos == 0) & (aligned_pos != 0)
-        is_flip = (prior_pos != 0) & (aligned_pos != 0) & (prior_pos != aligned_pos)
-
-        # If it's a flip, the best we can do with a single CC return is a weighted average
-        # or choosing one. build_execution_state decomposes the bar.
-        # For this legacy helper, we'll use the new position if it's an entry or flip.
-        position_for_pnl = aligned_pos.where(is_entry | is_flip, prior_pos)
-    else:
-        position_for_pnl = prior_pos
-
-    gross_pnl = position_for_pnl * ret
-    cost_bps_aligned = _as_series(cost_bps, ret.index)
-    trading_cost = (aligned_pos - prior_pos).abs() * (cost_bps_aligned / 10000.0)
-
-    funding_rate_aligned = _as_series(funding_rate, ret.index)
-    borrow_rate_aligned = _as_series(borrow_rate, ret.index)
-
-    if use_event_aligned_funding and funding_rate is not None:
-        funding_pnl = compute_funding_pnl_event_aligned(
-            pos=pos.reindex(ret.index).fillna(0.0).astype(float),
-            funding_rate=funding_rate_aligned,
-            funding_hours=funding_hours,
-        )
-    else:
-        funding_pnl = -prior_pos * funding_rate_aligned
-    borrow_cost = prior_pos.clip(upper=0.0).abs() * borrow_rate_aligned
-
-    pnl = gross_pnl - trading_cost + funding_pnl - borrow_cost
-
-    nan_ret = ret.isna()
-    if nan_ret.any():
-        gross_pnl = gross_pnl.copy()
-        trading_cost = trading_cost.copy()
-        funding_pnl = funding_pnl.copy()
-        borrow_cost = borrow_cost.copy()
-        pnl = pnl.copy()
-        gross_pnl[nan_ret] = 0.0
-        trading_cost[nan_ret] = 0.0
-        funding_pnl[nan_ret] = 0.0
-        borrow_cost[nan_ret] = 0.0
-        pnl[nan_ret] = 0.0
-
-    return pd.DataFrame(
-        {
-            "gross_pnl": gross_pnl,
-            "trading_cost": trading_cost,
-            "funding_pnl": funding_pnl,
-            "borrow_cost": borrow_cost,
-            "pnl": pnl,
-        },
-        index=ret.index,
-    )
-
-
 def compute_pnl(
     target_position: pd.Series,
     close: pd.Series,
@@ -501,35 +360,3 @@ def compute_pnl(
         capital_base=capital_base,
     )
     return ledger["net_pnl"]
-
-
-def compute_pnl_legacy(
-    pos: pd.Series,
-    ret: pd.Series,
-    cost_bps: float | pd.Series,
-    funding_rate: pd.Series | None = None,
-    borrow_rate: pd.Series | None = None,
-) -> pd.Series:
-    """Backward-compatible wrapper around :func:`compute_pnl_components`.
-
-    .. deprecated::
-        Use :func:`compute_pnl` (with ``target_position`` and ``close``) or
-        :func:`compute_pnl_ledger` directly.  This function cannot correctly
-        account for flip trades in ``next_open`` mode.
-    """
-    import warnings
-
-    warnings.warn(
-        "compute_pnl_legacy() is deprecated.  Use compute_pnl(target_position, close, cost_bps) "
-        "or compute_pnl_ledger() which correctly handles flip trades and next-open fills.",
-        DeprecationWarning,
-        stacklevel=2,
-    )
-    components = compute_pnl_components(
-        pos=pos,
-        ret=ret,
-        cost_bps=cost_bps,
-        funding_rate=funding_rate,
-        borrow_rate=borrow_rate,
-    )
-    return components["pnl"]

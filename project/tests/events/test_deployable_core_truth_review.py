@@ -3,7 +3,9 @@ from __future__ import annotations
 import pandas as pd
 
 from project.events.policy import DEPLOYABLE_CORE_EVENT_TYPES
-from project.tests.events.fixtures.deployable_core_known_episode_replay import known_episode_fixtures
+from project.tests.events.fixtures.deployable_core_known_episode_replay import (
+    known_episode_fixtures,
+)
 from project.tests.events.fixtures.deployable_core_truth_review import (
     EventTruthWindow,
     review_deployable_core_episode_truth,

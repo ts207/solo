@@ -9,17 +9,11 @@ Covers:
 
 from __future__ import annotations
 
-import numpy as np
 import pandas as pd
-import pytest
 
-from project.engine.pnl import (
-    compute_pnl_ledger,
-    compute_returns_next_open,
-    compute_returns,
-)
-from project.engine.risk_allocator import RiskLimits, allocate_position_scales
+from project.engine.pnl import compute_pnl_ledger
 from project.engine.reporting_summarizer import entry_count
+from project.engine.risk_allocator import RiskLimits, allocate_position_scales
 
 
 def _ts(n: int) -> pd.DatetimeIndex:
@@ -81,7 +75,9 @@ class TestPnlExecutionTiming:
         open_ = pd.Series([100.5, 101.5, 102.5, 103.5], index=idx)
 
         target_pos = pd.Series([0.0, 1.0, 1.0, 0.0], index=idx)
-        result = compute_pnl_ledger(target_pos, close, open_=open_, execution_mode="next_open", cost_bps=0.0)
+        result = compute_pnl_ledger(
+            target_pos, close, open_=open_, execution_mode="next_open", cost_bps=0.0
+        )
 
         # target[1]=1.0 -> executed[2]=1.0.
         # gross_pnl[2] should be non-zero (uses intrabar_ret).
@@ -94,7 +90,9 @@ class TestPnlExecutionTiming:
         open_ = pd.Series([100.5, 101.5, 102.5, 103.5], index=idx)
 
         target_pos = pd.Series([1.0, 1.0, 1.0, 1.0], index=idx)
-        result = compute_pnl_ledger(target_pos, close, open_=open_, execution_mode="next_open", cost_bps=0.0)
+        result = compute_pnl_ledger(
+            target_pos, close, open_=open_, execution_mode="next_open", cost_bps=0.0
+        )
 
         # executed[1]=1.0, ret[1]=CC
         assert result["gross_pnl"].iloc[1] != 0.0
@@ -106,7 +104,9 @@ class TestPnlExecutionTiming:
         open_ = pd.Series([100.5, 101.5, 102.5, 103.5], index=idx)
 
         target_pos = pd.Series([1.0, 0.0, 0.0, 0.0], index=idx)
-        result = compute_pnl_ledger(target_pos, close, open_=open_, execution_mode="next_open", cost_bps=0.0)
+        result = compute_pnl_ledger(
+            target_pos, close, open_=open_, execution_mode="next_open", cost_bps=0.0
+        )
 
         # target[0]=1.0, target[1]=0.0 -> executed[1]=1.0, executed[2]=0.0.
         # Bar 1 is holding (relative to executed).

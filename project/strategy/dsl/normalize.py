@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from typing import Dict, List
+
 from project.strategy.dsl.contract_v1 import validate_feature_references
 from project.strategy.dsl.schema import (
     Blueprint,

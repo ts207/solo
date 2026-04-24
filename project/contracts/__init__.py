@@ -1,9 +1,3 @@
-from project.contracts.stage_dag import (
-    StageSpecContract,
-    build_stage_specs,
-    validate_stage_registry_definitions,
-    validate_stage_plan_contract,
-)
 from project.contracts.artifacts import (
     ArtifactContract,
     ArtifactSpecContract,
@@ -11,8 +5,14 @@ from project.contracts.artifacts import (
     get_artifact_contract,
     list_artifact_contracts,
     resolve_artifact_contract_for_path,
-    validate_artifact_registry_definitions,
     resolve_artifact_specs_for_stage,
+    validate_artifact_registry_definitions,
+)
+from project.contracts.pipeline_registry import (
+    ArtifactStageFamilyContract,
+    ResolvedStageArtifactContract,
+    StageArtifactContract,
+    StageFamilyContract,
 )
 from project.contracts.schemas import (
     DataFrameSchemaContract,
@@ -26,11 +26,11 @@ from project.contracts.schemas import (
     validate_payload_for_schema,
     validate_schema_at_producer,
 )
-from project.contracts.pipeline_registry import (
-    ArtifactStageFamilyContract,
-    StageFamilyContract,
-    StageArtifactContract,
-    ResolvedStageArtifactContract,
+from project.contracts.stage_dag import (
+    StageSpecContract,
+    build_stage_specs,
+    validate_stage_plan_contract,
+    validate_stage_registry_definitions,
 )
 from project.contracts.temporal_contracts import TemporalContract
 

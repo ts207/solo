@@ -1,8 +1,8 @@
 import subprocess
-import sys
 from pathlib import Path
+
 from project.research.campaign_controller import CampaignConfig, CampaignController
-from project.core.config import get_data_root
+
 
 def test_scan_trigger_types_default_includes_all():
     config = CampaignConfig(program_id="test")
@@ -27,7 +27,6 @@ def test_max_runs_adequate_default():
 
 def test_execute_pipeline_includes_memory_update(monkeypatch):
     """_execute_pipeline cmd must include --run_campaign_memory_update 1"""
-    import subprocess
     calls = []
     monkeypatch.setattr(subprocess, "run", lambda cmd, **kw: calls.append(cmd))
     config = CampaignConfig(program_id="test")

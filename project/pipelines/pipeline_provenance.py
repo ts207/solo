@@ -7,15 +7,15 @@ import subprocess
 from dataclasses import asdict
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Dict, Iterable, List, Optional, Tuple
+from typing import Any, Dict, Iterable, List, Tuple
 
 from project import PROJECT_ROOT
 from project.contracts.schemas import validate_payload_for_schema
 from project.core.exceptions import DataIntegrityError
 from project.io.utils import atomic_write_json, atomic_write_text
-from project.pipelines.execution_plan import ExecutionPlan, ExecutionVerificationReport
-from project.pipelines.pipeline_defaults import DATA_ROOT, utc_now_iso
 from project.pipelines.execution_engine_support import _manifest_declared_outputs_exist
+from project.pipelines.execution_plan import ExecutionPlan, ExecutionVerificationReport
+from project.pipelines.pipeline_defaults import utc_now_iso
 
 
 def _sha256_bytes(payload: bytes) -> str:

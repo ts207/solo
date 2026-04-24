@@ -16,7 +16,6 @@ from project.tests.events.fixtures.deployable_core_known_episode_replay import (
     known_episode_fixtures,
 )
 
-
 REVIEW_SCHEMA_VERSION = 1
 
 

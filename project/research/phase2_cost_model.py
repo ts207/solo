@@ -4,8 +4,6 @@ import argparse
 from pathlib import Path
 from typing import Dict, Tuple
 
-import pandas as pd
-
 from project.core.execution_costs import resolve_execution_costs
 from project.research.cost_calibration import ToBRegimeCostCalibrator
 

@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import pytest
 from project.research.services.benchmark_governance_service import certify_benchmark_review
 
 

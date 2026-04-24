@@ -1,9 +1,12 @@
 """Regression: ScheduledNewsDetector must apply spec windows even when news columns exist."""
 
 from __future__ import annotations
-import pandas as pd
-import numpy as np
+
 from unittest.mock import patch
+
+import numpy as np
+import pandas as pd
+
 from project.events.families.temporal import ScheduledNewsDetector
 
 

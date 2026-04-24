@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import math
+
 import numpy as np
 import pandas as pd
 
@@ -53,9 +54,9 @@ def fit_t_copula(u1: np.ndarray, u2: np.ndarray) -> tuple[float, float]:
     except (ImportError, AttributeError):
         # Fallback to simple correlation if kendalltau fails
         tau = np.corrcoef(u1, u2)[0, 1] * 0.6 # rough proxy
-        
+
     rho = float(np.sin(np.pi / 2 * tau))
-    
+
     # Estimate degrees of freedom (df) via MLE
     df = _estimate_t_df_mle(u1, u2, rho)
     return rho, df
@@ -71,16 +72,16 @@ def calculate_t_conditional_prob(u1: float, u2: float, rho: float, df: float = 4
         # t-distribution inverse CDF
         x1 = scipy_stats.t.ppf(np.clip(u1, 1e-6, 1 - 1e-6), df=df)
         x2 = scipy_stats.t.ppf(np.clip(u2, 1e-6, 1 - 1e-6), df=df)
-        
+
         # Conditional distribution of Student-t is also Student-t
         # with adjusted parameters:
         # mu_cond = rho * x2
         # scale_cond = sqrt((df + x2^2) / (df + 1) * (1 - rho^2))
         # df_cond = df + 1
-        
+
         mu_cond = rho * x2
         scale_cond = np.sqrt(max(1e-9, (df + x2**2) / (df + 1.0) * (1.0 - rho**2)))
-        
+
         # P(X1 <= x1 | X2 = x2) = F_t_df+1((x1 - mu_cond) / scale_cond)
         prob = scipy_stats.t.cdf((x1 - mu_cond) / scale_cond, df=df + 1.0)
         return float(prob)
@@ -165,9 +166,9 @@ def _t_copula_log_likelihood(
 
 
 def _estimate_t_df_mle(
-    u1: np.ndarray, 
-    u2: np.ndarray, 
-    rho: float, 
+    u1: np.ndarray,
+    u2: np.ndarray,
+    rho: float,
     df_candidates: tuple = (2.5, 3, 3.5, 4, 4.5, 5, 6, 7, 8, 10, 12, 15, 20, 30, 50)
 ) -> float:
     """
@@ -177,7 +178,7 @@ def _estimate_t_df_mle(
     if len(u1) < 50:
         import logging
         logging.getLogger(__name__).warning(
-            "Sample size N=%d is small for t-copula MLE; df estimate may be unstable. Defaulting to df=4.0 if likelihood is flat.", 
+            "Sample size N=%d is small for t-copula MLE; df estimate may be unstable. Defaulting to df=4.0 if likelihood is flat.",
             len(u1)
         )
 

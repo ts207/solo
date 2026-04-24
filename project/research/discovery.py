@@ -67,12 +67,12 @@ def _infer_bar_duration_ns(ts_series: pd.Series) -> int:
     if len(ts_series) < 2:
         # Default to 5 minutes in nanoseconds
         return int(pd.Timedelta(minutes=5).asm8.view(np.int64))
-    
+
     # Use median difference to be robust against gaps
     diffs = ts_series.sort_values().diff().dropna()
     if diffs.empty:
         return int(pd.Timedelta(minutes=5).asm8.view(np.int64))
-        
+
     median_diff = diffs.median()
     return int(median_diff.asm8.view(np.int64))
 
@@ -281,8 +281,8 @@ def _synthesize_concept_candidates(
     concept_file: str,
 ) -> pd.DataFrame:
     """Synthesize candidates from a ControlSpec (concept) file."""
-    from project.spec_registry import load_yaml_path
     from project.schemas.control_spec import ControlSpec
+    from project.spec_registry import load_yaml_path
     from project.strategy.templates.generator import generate_from_concept
 
     spec_dict = load_yaml_path(concept_file)
@@ -483,7 +483,7 @@ def _synthesize_experiment_hypotheses(
                     for i in range(len(t.events) - 2, -1, -1):
                         prev_e = t.events[i]
                         gap = t.max_gap[i] if (hasattr(t, "max_gap") and t.max_gap and len(t.max_gap) > i) else 1
-                        
+
                         # gap == 0 implies unlimited lookback (or use a large default)
                         if gap <= 0:
                             gap_ns = int(1e18) # ~31 years
@@ -499,10 +499,10 @@ def _synthesize_experiment_hypotheses(
                         # Find latest prev_e timestamp <= current target timestamp
                         idx = np.searchsorted(prev_ts_vals, target_ts_vals, side="left") - 1
 
-                        # Proper sequence requires E[i] to happen STRICTLY BEFORE E[i+1]? 
+                        # Proper sequence requires E[i] to happen STRICTLY BEFORE E[i+1]?
                         # Usually researchers mean 'happened before or at same bar' in discovery.
                         # We use searchsorted with side='left' - 1 which finds latest timestamp < target_ts.
-                        # If we want <= target_ts, side='right' - 1. 
+                        # If we want <= target_ts, side='right' - 1.
                         # Canonical discovery uses < (strictly before) into the same event.
                         has_prev = (idx >= 0) & ((target_ts_vals - prev_ts_vals[np.maximum(idx, 0)]) <= gap_ns)
                         is_active &= has_prev
@@ -541,7 +541,7 @@ def _synthesize_experiment_hypotheses(
                     left_ts_vals = left_times.values.astype(np.int64)
                     bar_ts_vals = working["enter_ts"].values.astype(np.int64)
                     bar_duration_ns = _infer_bar_duration_ns(working["enter_ts"])
-                    
+
                     lag_bars = t.lag if hasattr(t, "lag") and t.lag is not None else 1
                     if lag_bars <= 0:
                         lag_ns = int(1e18) # Unlimited

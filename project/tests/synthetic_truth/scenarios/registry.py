@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Optional
 
-from .factory import ScenarioFactory, ScenarioSpec
+from .factory import ScenarioSpec
 
 try:
     from . import definitions  # noqa: F401

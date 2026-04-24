@@ -13,7 +13,6 @@ from project.research.artifact_hygiene import (
     metadata_markdown_lines,
 )
 
-
 THESIS_OVERLAP_SCHEMA_VERSION = "thesis_overlap_graph_v1"
 
 

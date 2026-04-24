@@ -5,7 +5,6 @@ from typing import Any, Dict, List
 
 import pandas as pd
 
-
 PROMOTION_AUDIT_SCHEMA_VERSION = "v1"
 PROMOTION_SUMMARY_COLUMNS = [
     "candidate_id",

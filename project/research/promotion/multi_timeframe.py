@@ -1,11 +1,10 @@
 from __future__ import annotations
 
 import logging
-from typing import Dict, Any, List
-
-import pandas as pd
+from typing import Any, Dict, List
 
 import numpy as np
+
 from project.core.coercion import safe_float
 
 _LOG = logging.getLogger(__name__)

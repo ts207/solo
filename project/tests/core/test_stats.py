@@ -5,7 +5,6 @@ import types
 
 import numpy as np
 import pandas as pd
-import pytest
 
 import project.core.stats as core_stats
 

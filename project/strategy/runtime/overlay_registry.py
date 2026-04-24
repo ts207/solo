@@ -4,6 +4,7 @@ import json
 from copy import deepcopy
 from pathlib import Path
 from typing import Any, Dict
+
 from project import PROJECT_ROOT
 
 EDGES_DIR = PROJECT_ROOT / "edges"

@@ -23,17 +23,16 @@ import json
 import logging
 import sys
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any, Dict
 
 import pandas as pd
 
-from project.research.event_quality.firing_rate import compute_firing_rates
 from project.research.event_quality.cooccurrence import compute_cooccurrence
-
+from project.research.event_quality.firing_rate import compute_firing_rates
 from project.research.event_quality.information_gain import compute_information_gain
 from project.research.event_quality.lead_lag import (
-    compute_event_return_lead_lag,
     compute_event_event_lead_lag,
+    compute_event_return_lead_lag,
 )
 
 log = logging.getLogger(__name__)

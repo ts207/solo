@@ -5,8 +5,8 @@ Tests for hypothesis clustering.
 from __future__ import annotations
 
 import pandas as pd
-import pytest
-from project.research.promotion.clustering import cluster_hypotheses, build_cluster_summary
+
+from project.research.promotion.clustering import build_cluster_summary, cluster_hypotheses
 
 
 def test_cluster_identical_behavior():

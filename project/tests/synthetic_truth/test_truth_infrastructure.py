@@ -1,25 +1,30 @@
 from __future__ import annotations
 
-import pytest
 import pandas as pd
-import numpy as np
+import pytest
 
-from project.tests.synthetic_truth.generators import (
-    GeneratorConfig,
-    OrderbookGenerator,
-    TradeFlowGenerator,
-    PriceSeriesGenerator,
-    ContextGenerator,
-)
-from project.tests.synthetic_truth.scenarios.factory import ScenarioFactory, ScenarioSpec, GENERATOR_MAP
-from project.tests.synthetic_truth.scenarios.registry import SCENARIO_REGISTRY, list_scenarios, get_scenario
 from project.tests.synthetic_truth.assertions import (
     EventTruthValidator,
-    ValidationResult,
-    TriggerMatcher,
     NoTriggerMatcher,
+    TriggerMatcher,
+    ValidationResult,
 )
-from project.tests.synthetic_truth.assertions.matchers import MatchResult
+from project.tests.synthetic_truth.generators import (
+    ContextGenerator,
+    GeneratorConfig,
+    OrderbookGenerator,
+    PriceSeriesGenerator,
+    TradeFlowGenerator,
+)
+from project.tests.synthetic_truth.scenarios.factory import (
+    GENERATOR_MAP,
+    ScenarioFactory,
+    ScenarioSpec,
+)
+from project.tests.synthetic_truth.scenarios.registry import (
+    get_scenario,
+    list_scenarios,
+)
 
 
 class TestGeneratorConfig:

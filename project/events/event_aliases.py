@@ -6,7 +6,6 @@ from typing import Any
 
 import yaml
 
-
 REPO_ROOT = Path(__file__).resolve().parents[2]
 ALIAS_POLICY_PATH = REPO_ROOT / "spec" / "events" / "event_alias_policy.yaml"
 

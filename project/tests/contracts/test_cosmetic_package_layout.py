@@ -1,7 +1,7 @@
 import project.artifacts as artifacts
 import project.compilers as compilers
-import project.experiments as experiments
 import project.eval as eval_pkg
+import project.experiments as experiments
 import project.live as live
 import project.pipelines.clean as pipelines_clean
 import project.pipelines.features as pipelines_features
@@ -12,17 +12,17 @@ import project.research.clustering as research_clustering
 import project.research.reports as research_reports
 import project.research.utils as research_utils
 import project.spec_validation as spec_validation
+import project.strategy.dsl as strategy_dsl
+import project.strategy.runtime as strategy_runtime
+import project.strategy.templates as strategy_templates
 from project.engine.runner import run_engine
 from project.io.utils import ensure_dir, read_parquet, write_parquet
 from project.pipelines.run_all import main as run_all_main
 from project.research.compile_strategy_blueprints import main as compile_strategy_blueprints_main
 from project.specs.manifest import finalize_manifest, load_run_manifest, start_manifest
-from project.strategy.runtime import DslInterpreterV1
-import project.strategy.dsl as strategy_dsl
-import project.strategy.runtime as strategy_runtime
-import project.strategy.templates as strategy_templates
 from project.strategy.models.blueprint import Blueprint
 from project.strategy.models.executable_strategy_spec import ExecutableStrategySpec
+from project.strategy.runtime import DslInterpreterV1
 
 
 def test_cosmetic_strategy_namespace_is_importable():

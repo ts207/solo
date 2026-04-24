@@ -12,8 +12,8 @@ import pandas as pd
 import pytest
 
 from project.events.interaction_analyzer import (
-    detect_interactions,
     InteractionOp,
+    detect_interactions,
 )
 
 

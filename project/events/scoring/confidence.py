@@ -30,7 +30,12 @@ def _load_sklearn_objects() -> dict[str, Any]:
         from sklearn.compose import ColumnTransformer
         from sklearn.ensemble import HistGradientBoostingClassifier
         from sklearn.impute import SimpleImputer
-        from sklearn.metrics import average_precision_score, brier_score_loss, log_loss, roc_auc_score
+        from sklearn.metrics import (
+            average_precision_score,
+            brier_score_loss,
+            log_loss,
+            roc_auc_score,
+        )
         from sklearn.pipeline import Pipeline
         from sklearn.preprocessing import OneHotEncoder
     except ModuleNotFoundError as exc:  # pragma: no cover - environment-specific

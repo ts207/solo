@@ -1,12 +1,12 @@
+from typing import Dict, List
+
 import pandas as pd
-import numpy as np
 from sklearn.cluster import DBSCAN
-from typing import Dict, List, Tuple
 
 
 def cluster_hypotheses(
-    pnl_df: pd.DataFrame, 
-    eps: float = 0.3, 
+    pnl_df: pd.DataFrame,
+    eps: float = 0.3,
     min_samples: int = 1,
     metric: str = "correlation",
     trigger_df: pd.DataFrame | None = None,
@@ -39,7 +39,7 @@ def cluster_hypotheses(
         sim = calculate_trigger_overlap(trigger_df)
     else:
         sim = calculate_similarity_matrix(pnl_df)
-        
+
     dist = compute_distance_matrix(sim)
 
     clustering = DBSCAN(eps=eps, min_samples=min_samples, metric="precomputed")

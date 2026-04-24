@@ -38,9 +38,8 @@ Notes
 
 from __future__ import annotations
 
-from project.core.config import get_data_root
-
 import argparse
+import asyncio
 import logging
 import sys
 from datetime import datetime, timedelta, timezone
@@ -48,15 +47,14 @@ from pathlib import Path
 from typing import Dict, List, Optional
 from zipfile import ZipFile
 
-import pandas as pd
 import aiohttp
-import asyncio
-import io
-from project.io.http_utils import download_with_retries  # retained for backward compatibility
+import pandas as pd
+
+from project.core.config import get_data_root
+from project.core.validation import ensure_utc_timestamp, filter_ohlcv_geometry_violations
+from project.io.url_utils import join_url
 from project.io.utils import ensure_dir, read_parquet, write_parquet
 from project.specs.manifest import finalize_manifest, start_manifest
-from project.io.url_utils import join_url
-from project.core.validation import ensure_utc_timestamp, filter_ohlcv_geometry_violations
 
 ARCHIVE_BASE = "https://data.binance.vision/data/futures/um"
 EARLIEST_UM_FUTURES = datetime(2019, 9, 1, tzinfo=timezone.utc)

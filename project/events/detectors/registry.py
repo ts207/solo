@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import logging
 from typing import Any, Dict, Iterable, List, Optional
 
 from project.events.detector_contract import (

@@ -1,10 +1,10 @@
-import pytest
 import pandas as pd
+import pytest
+
 from project.eval.splits import (
+    _normalize_ts,
     build_time_splits,
     build_time_splits_with_purge,
-    SplitWindow,
-    _normalize_ts,
 )
 
 
@@ -154,6 +154,7 @@ def test_default_embargo_is_nonzero():
     If this test fails, zero-embargo was re-introduced as the default.
     """
     import inspect
+
     from project.eval.splits import build_time_splits
 
     sig = inspect.signature(build_time_splits)

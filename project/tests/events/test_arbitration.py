@@ -1,8 +1,8 @@
 import pandas as pd
-import pytest
+
 from project.events.arbitration import (
-    arbitrate_events,
     ArbitrationResult,
+    arbitrate_events,
     load_compatibility_spec,
     load_precedence_spec,
 )

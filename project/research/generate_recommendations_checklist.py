@@ -1,9 +1,12 @@
 from __future__ import annotations
-from project.core.config import get_data_root
 
 import argparse
 import json
 from pathlib import Path
+from typing import Any, Dict
+
+import numpy as np
+import pandas as pd
 
 from project.artifacts import (
     checklist_path,
@@ -12,16 +15,11 @@ from project.artifacts import (
     release_signoff_path,
     run_manifest_path,
 )
-from typing import Any, Dict, List
-
-import numpy as np
-import pandas as pd
-
 from project.core.coercion import as_bool, safe_float
+from project.core.config import get_data_root
 from project.io.utils import read_table_auto
 from project.research.recommendations.checklist import build_checklist_payload
 from project.specs.manifest import finalize_manifest, start_manifest
-
 
 CHECKLIST_GATE_PROFILES: Dict[str, Dict[str, int]] = {
     "discovery": {

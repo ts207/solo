@@ -1,6 +1,8 @@
 from __future__ import annotations
+
 import argparse
-from typing import Any, Dict, TypeVar, Type
+from typing import Type, TypeVar
+
 from project.events.config import compose_event_config
 
 T = TypeVar("T")

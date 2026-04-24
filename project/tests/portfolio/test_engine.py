@@ -1,9 +1,6 @@
 from __future__ import annotations
 
-import pytest
-
 from project.portfolio.engine import (
-    PortfolioCapitalDecision,
     PortfolioDecisionEngine,
     ThesisIntent,
 )

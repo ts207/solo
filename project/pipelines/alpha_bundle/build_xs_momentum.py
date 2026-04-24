@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 from project.core.config import get_data_root
 
 """Build cross-sectional momentum signal.
@@ -18,13 +19,14 @@ Notes:
 import argparse
 import sys
 from pathlib import Path
-from typing import Dict, List
+from typing import List
 
 import numpy as np
 import pandas as pd
+
+from project.core.validation import ensure_utc_timestamp
 from project.io.utils import ensure_dir, read_parquet, write_parquet
 from project.specs.manifest import finalize_manifest, start_manifest
-from project.core.validation import ensure_utc_timestamp
 
 
 def _safe_log_ratio(a: pd.Series, b: pd.Series, eps: float = 1e-12) -> pd.Series:

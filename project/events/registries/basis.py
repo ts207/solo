@@ -8,7 +8,6 @@ from project.events.detectors.dislocation_base import (
 )
 from project.events.detectors.registry import register_detector
 
-
 BASIS_DETECTORS = {
     "BASIS_DISLOC": BasisDislocationDetectorV2,
     "CROSS_VENUE_DESYNC": CrossVenueDesyncDetectorV2,

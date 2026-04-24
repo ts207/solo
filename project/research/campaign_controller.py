@@ -7,8 +7,8 @@ import logging
 import re
 import subprocess
 import sys
-from datetime import datetime, timezone
 from dataclasses import dataclass, field
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Literal, Optional, Set
 
@@ -16,20 +16,21 @@ import pandas as pd
 import yaml
 
 from project.core.config import get_data_root
-from project.io.utils import read_parquet
 from project.domain.compiled_registry import get_domain_registry
+from project.io.utils import read_parquet
 from project.research import campaign_controller_scan_support as _scan_support
-from project.research.experiment_engine import build_experiment_plan, RegistryBundle
 from project.research.campaign_contract import controller_contract_view
-from project.research.knowledge.schemas import canonical_json
-from project.research.update_campaign_memory import _scope_already_tested
-from project.research.search_intelligence import update_search_intelligence
+from project.research.experiment_engine import RegistryBundle, build_experiment_plan
 from project.research.knowledge.memory import memory_paths, read_memory_table, write_memory_table
+from project.research.knowledge.schemas import canonical_json
 from project.research.reports.operator_reporting import write_operator_outputs_for_run
+from project.research.search_intelligence import update_search_intelligence
+from project.research.update_campaign_memory import _scope_already_tested
+from project.spec_registry.search_space import (
+    QUALITY_SCORES as _QUALITY_SCORES_MAP,
+)
 from project.spec_registry.search_space import (
     load_event_priority_weights,
-    QUALITY_SCORES as _QUALITY_SCORES_MAP,
-    DEFAULT_EVENT_PRIORITY_WEIGHT as _DEFAULT_QUALITY,
 )
 
 _LOG = logging.getLogger(__name__)

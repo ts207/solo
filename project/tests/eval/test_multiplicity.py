@@ -1,9 +1,10 @@
-import pytest
-import pandas as pd
 import numpy as np
+import pandas as pd
+import pytest
+
 from project.eval.multiplicity import (
-    benjamini_hochberg,
     apply_multiplicity_control,
+    benjamini_hochberg,
     report_discoveries,
 )
 

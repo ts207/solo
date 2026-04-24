@@ -3,11 +3,11 @@ import pandas as pd
 
 from project.contracts.temporal_contracts import TemporalContract
 from project.core.causal_primitives import (
-    trailing_quantile,
     trailing_mean,
-    trailing_std,
     trailing_median,
     trailing_percentile_rank,
+    trailing_quantile,
+    trailing_std,
 )
 
 # --- Temporal Contract ---

@@ -5,12 +5,11 @@ import json
 import sys
 from pathlib import Path
 
-from project.tests.conftest import PROJECT_ROOT
-
 from project.research.services.run_comparison_service import (
     compare_run_ids,
     research_diagnostics_paths,
 )
+from project.tests.conftest import PROJECT_ROOT
 
 
 def _write_json(path: Path, payload: dict) -> None:

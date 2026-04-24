@@ -1,8 +1,9 @@
-from project.research.search.generator import generate_hypotheses_with_audit
-from project.domain.hypotheses import HypothesisSpec
-from project.research.search.validation import validate_hypothesis_spec
 import logging
 import sys
+
+from project.domain.hypotheses import HypothesisSpec
+from project.research.search.generator import generate_hypotheses_with_audit
+from project.research.search.validation import validate_hypothesis_spec
 
 # Configure logging to see rejections
 logging.basicConfig(level=logging.DEBUG, stream=sys.stdout)
@@ -23,10 +24,11 @@ def debug_rejections():
         pass
 
     # Alternative: just iterate through events and templates and validate
+    from itertools import product
+
+    from project.domain.hypotheses import TriggerSpec
     from project.spec_validation.loaders import load_search_spec
     from project.spec_validation.search import expand_triggers
-    from project.domain.hypotheses import TriggerSpec, TriggerType
-    from itertools import product
 
     doc = load_search_spec("synthetic_truth")
     expanded = expand_triggers(doc)

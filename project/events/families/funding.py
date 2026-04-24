@@ -19,7 +19,6 @@ from project.events.registries.funding import (
     ensure_funding_detectors_registered,
 )
 
-
 ensure_funding_detectors_registered()
 
 _DETECTORS = FUNDING_DETECTORS

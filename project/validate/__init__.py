@@ -1,13 +1,14 @@
 from __future__ import annotations
+
 from pathlib import Path
+
+from project.operator.stability import write_negative_result_diagnostics as diagnose
+from project.operator.stability import write_regime_split_report as report
 from project.research.services.evaluation_service import (
     ValidationService,
     select_stage_candidate_table,
 )
-from project.operator.stability import (
-    write_regime_split_report as report,
-    write_negative_result_diagnostics as diagnose
-)
+
 
 def run(run_id: str, data_root: Path | None = None):
     val_svc = ValidationService(data_root=data_root)

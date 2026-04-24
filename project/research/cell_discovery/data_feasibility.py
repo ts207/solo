@@ -20,13 +20,13 @@ from project.research.cell_discovery.data_contract import (
     required_condition_keys,
     required_event_types,
 )
-from project.research.context_labels import expand_dimension_values
 from project.research.cell_discovery.models import DataFeasibilityResult, DiscoveryRegistry
 from project.research.cell_discovery.paths import paths_for_run
 from project.research.condition_key_contract import (
     load_symbol_joined_condition_contract,
     missing_condition_keys,
 )
+from project.research.context_labels import expand_dimension_values
 from project.research.feature_surface_viability import (
     _load_bars_for_viability,
     analyze_feature_surface_viability,

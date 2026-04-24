@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 from project.core.config import get_data_root
 
 """Build on-chain exchange netflow signal standardized by market cap.
@@ -23,15 +24,15 @@ Notes:
 
 import argparse
 import json
-import sys
 from pathlib import Path
 from typing import Dict
 
 import numpy as np
 import pandas as pd
+
+from project.core.validation import ensure_utc_timestamp
 from project.io.utils import ensure_dir, read_parquet, write_parquet
 from project.specs.manifest import finalize_manifest, start_manifest
-from project.core.validation import ensure_utc_timestamp
 
 
 def robust_z(series: pd.Series, window: int, eps: float = 1e-12) -> pd.Series:

@@ -9,8 +9,6 @@ from __future__ import annotations
 
 from pathlib import Path
 
-import pytest
-
 from project.pipelines.execution_engine import compute_stage_input_hash
 
 

@@ -6,9 +6,10 @@ from typing import List
 
 import numpy as np
 import pandas as pd
-from project.core.feature_schema import feature_dataset_dir_name
+
 from project.contracts.temporal_contracts import TemporalContract
 from project.core.causal_primitives import trailing_percentile_rank
+from project.core.feature_schema import feature_dataset_dir_name
 
 # --- Temporal Contract ---
 
@@ -155,10 +156,10 @@ def build_funding_persistence_state(
 
 def load_funding_features(data_root: Path, run_id: str, symbol: str) -> pd.DataFrame:
     from project.io.utils import (
-        read_parquet,
-        run_scoped_lake_path,
         choose_partition_dir,
         list_parquet_files,
+        read_parquet,
+        run_scoped_lake_path,
     )
 
     feature_dataset = feature_dataset_dir_name()

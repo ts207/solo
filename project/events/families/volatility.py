@@ -7,9 +7,9 @@ from project.events.adapters.volatility_analysis import (
 from project.events.detectors.volatility import (
     BreakoutTriggerDetector,
     RangeCompressionDetector,
+    VolatilityBase,
     VolClusterShiftDetector,
     VolSpikeDetector,
-    VolatilityBase,
 )
 from project.events.detectors.volatility_base import (
     VolRelaxationStartDetectorV2,
@@ -20,7 +20,6 @@ from project.events.registries.volatility import (
     VOLATILITY_DETECTORS,
     ensure_volatility_detectors_registered,
 )
-
 
 ensure_volatility_detectors_registered()
 

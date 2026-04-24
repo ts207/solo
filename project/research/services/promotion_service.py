@@ -4,7 +4,7 @@ import json
 import logging
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Dict, List, Mapping, Optional
+from typing import Any, Dict, Optional
 
 import pandas as pd
 
@@ -19,34 +19,37 @@ from project.core.exceptions import (
     MissingArtifactError,
     SchemaMismatchError,
 )
+from project.events.registry import get_detector_contract
 from project.io.utils import (
     atomic_write_json,
     ensure_dir,
 )
 from project.research.audit_historical_artifacts import build_run_historical_trust_summary
+from project.research.CANONICAL_PIPELINE import persist_canonical_pipeline_artifact
+from project.research.decision_trace_artifacts import (
+    write_merged_research_trace,
+    write_promotion_trace,
+)
 from project.research.promotion import (
     build_promotion_statistical_audit,
     promote_candidates,
     stabilize_promoted_output_schema,
 )
-from project.research.services.reporting_service import write_promotion_reports
 from project.research.regime_routing import annotate_regime_metadata
+from project.research.services import promotion_artifacts as _promotion_artifacts
+from project.research.services import promotion_diagnostics as _promotion_diagnostics
+from project.research.services import promotion_inputs as _promotion_inputs
+from project.research.services import promotion_policy as _promotion_policy
+from project.research.services.reporting_service import write_promotion_reports
 from project.research.validation.evidence_bundle import (
     bundle_to_flat_record,
     serialize_evidence_bundles,
     validate_evidence_bundle,
 )
-from project.research.services import promotion_artifacts as _promotion_artifacts
-from project.research.services import promotion_diagnostics as _promotion_diagnostics
-from project.research.services import promotion_inputs as _promotion_inputs
-from project.research.services import promotion_policy as _promotion_policy
 from project.specs.gates import load_gates_spec as _load_gates_spec
 from project.specs.manifest import finalize_manifest, load_run_manifest, start_manifest
-from project.research.CANONICAL_PIPELINE import persist_canonical_pipeline_artifact
-from project.research.decision_trace_artifacts import write_promotion_trace, write_merged_research_trace
 from project.specs.objective import resolve_objective_profile_contract
 from project.specs.ontology import ontology_spec_hash
-from project.events.registry import get_detector_contract
 
 
 @dataclass(frozen=True)
@@ -407,12 +410,12 @@ def execute_promotion(config: PromotionConfig) -> PromotionServiceResult:
 
     try:
         # Require canonical validation before promotion.
-        from project.research.validation.result_writer import load_validation_bundle
         from project.research.services.evaluation_service import (
             ValidationService,
             select_stage_candidate_table,
         )
         from project.research.validation.contracts import PromotionReasonCodes
+        from project.research.validation.result_writer import load_validation_bundle
 
         diagnostics["compat_mode_used"] = False
         diagnostics["compat_reason"] = ""
@@ -950,8 +953,9 @@ def execute_promotion(config: PromotionConfig) -> PromotionServiceResult:
 
         # Sprint 7: Artifact manifest
         try:
-            from project.research.validation.manifest import RunArtifactManifest
             from datetime import datetime, timezone
+
+            from project.research.validation.manifest import RunArtifactManifest
 
             artifact_manifest = RunArtifactManifest(
                 run_id=config.run_id,

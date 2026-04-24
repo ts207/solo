@@ -1,22 +1,22 @@
 from __future__ import annotations
-from project.core.config import get_data_root
 
 import argparse
+import itertools
+import json
 import logging
 import sys
-import json
-import itertools
 from typing import Any, Dict, List, Tuple
-import networkx as nx
 
-import numpy as np
+import networkx as nx
 import pandas as pd
+
+from project.core.config import get_data_root
 from project.io.utils import (
     choose_partition_dir,
+    ensure_dir,
     list_parquet_files,
     read_parquet,
     run_scoped_lake_path,
-    ensure_dir,
 )
 from project.specs.manifest import finalize_manifest, start_manifest
 from project.specs.ontology import MATERIALIZED_STATE_COLUMNS_BY_ID

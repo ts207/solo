@@ -27,7 +27,6 @@ from project.live.context_builder import build_live_trade_context
 from project.live.contracts.trade_intent import TradeIntent
 from project.live.decay import DecayMonitor, DecayRule
 from project.live.decay import default_decay_rules as _default_decay_rules
-from project.live.signal_monitor import SignalMonitor
 from project.live.decision import (
     DecisionOutcome,
     build_candidate_trade_outcomes,
@@ -59,6 +58,7 @@ from project.live.oms import (
 from project.live.order_planner import build_order_plan
 from project.live.policy import build_live_decision_trace
 from project.live.risk import RiskEnforcer, RuntimeRiskCaps
+from project.live.signal_monitor import SignalMonitor
 from project.live.state import LiveStateStore
 from project.live.thesis_disable_policy import (
     apply_thesis_disable_decision,
@@ -255,7 +255,8 @@ class LiveEngineRunner:
         self._family_budgets = dict(family_budgets)
 
         # Phase 5: Portfolio decision engine (overlap/family/cluster/correlation gating)
-        from project.portfolio.engine import PortfolioDecisionEngine, ThesisIntent as PortfolioThesisIntent
+        from project.portfolio.engine import PortfolioDecisionEngine
+        from project.portfolio.engine import ThesisIntent as PortfolioThesisIntent
 
         self._portfolio_engine = PortfolioDecisionEngine(
             family_budgets=dict(family_budgets) or None,

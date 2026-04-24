@@ -1,6 +1,6 @@
-import numpy as np
 import pandas as pd
 import pytest
+
 from project.events.families.funding import detect_funding_family as detect_funding_dislocations
 
 

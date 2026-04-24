@@ -62,7 +62,7 @@ def block_bootstrap_pnl(
                 first_part = pnl[start:]
                 second_part = pnl[:block_size_bars - len(first_part)]
                 blocks.append(np.concatenate([first_part, second_part]))
-                
+
         bootstrapped_pnl = np.concatenate(blocks)[:n]
         mean_ret = np.mean(bootstrapped_pnl)
         ann_ret = mean_ret * periods_per_year
@@ -106,20 +106,20 @@ def simulate_parameter_perturbation(
 
     rng = np.random.default_rng(random_seed)
     annualized_returns = []
-    
+
     # Improved perturbation:
     # 1. Measurement noise (white noise)
     # 2. Parameter sensitivity proxy (trend/vol drift)
     # We simulate "what if" the realized pnl had slightly worse fill or slightly different regime.
-    
+
     for _ in range(n_iterations):
         # White noise component (execution noise)
         noise = rng.normal(0, base_std * noise_std_dev, size=len(pnl))
-        
+
         # Drift component (regime shift / parameter decay)
         # Random walk drift scaled to be subtle
         drift = np.cumsum(rng.normal(0, base_std * noise_std_dev * 0.1, size=len(pnl)))
-        
+
         perturbed_pnl = pnl + noise + drift
         mean_ret = np.mean(perturbed_pnl)
         annualized_returns.append(mean_ret * periods_per_year)

@@ -3,27 +3,28 @@ from __future__ import annotations
 import numpy as np
 import pandas as pd
 import pytest
-from project.events.families.oi import DeleveragingWaveDetector
-from project.events.families.basis import FndDislocDetector
-from project.events.families.canonical_proxy import (
-    AbsorptionProxyDetector,
-    DepthStressProxyDetector,
-)
-from project.events.families.canonical_proxy import PriceVolImbalanceProxyDetector
+
+from project.events.detectors.exhaustion import MomentumDivergenceDetector, TrendExhaustionDetector
 from project.events.detectors.funding import (
     FundingFlipDetector,
     FundingNormalizationDetector,
     FundingPersistenceDetector,
 )
-from project.events.detectors.exhaustion import TrendExhaustionDetector, MomentumDivergenceDetector
-from project.events.detectors.liquidity import DirectLiquidityStressDetector, DepthCollapseDetector
+from project.events.detectors.liquidity import DepthCollapseDetector, DirectLiquidityStressDetector
+from project.events.detectors.trend import SREventDetector, TrendAccelerationDetector
 from project.events.detectors.volatility import (
     BreakoutTriggerDetector,
-    VolSpikeDetector,
     VolRelaxationDetector,
+    VolSpikeDetector,
 )
+from project.events.families.basis import FndDislocDetector
+from project.events.families.canonical_proxy import (
+    AbsorptionProxyDetector,
+    DepthStressProxyDetector,
+    PriceVolImbalanceProxyDetector,
+)
+from project.events.families.oi import DeleveragingWaveDetector
 from project.events.families.temporal import SpreadRegimeWideningDetector
-from project.events.detectors.trend import SREventDetector, TrendAccelerationDetector
 from project.events.policy import (
     LIVE_SAFE_EVENT_TYPES,
     RETROSPECTIVE_EVENT_TYPES,

@@ -5,8 +5,6 @@ This test ensures the bug fix for two-sided p-values does not regress.
 Negative t-statistics should produce p_value -> 1.0, not p_value -> 0.0.
 """
 
-import numpy as np
-import pandas as pd
 import pytest
 from scipy import stats as scipy_stats
 

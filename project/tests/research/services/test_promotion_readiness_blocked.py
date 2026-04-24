@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-import json
-from pathlib import Path
 from project.research.services.promotion_readiness_service import build_promotion_readiness_report
 
 

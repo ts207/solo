@@ -12,8 +12,8 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any, Dict, List
 
-import pandas as pd
 import aiohttp
+import pandas as pd
 
 from project.core.config import get_data_root
 from project.core.validation import ensure_utc_timestamp
@@ -144,7 +144,7 @@ async def _ingest_oi_month(
         df["open_interest"] = pd.to_numeric(df["openInterest"], errors="coerce")
         df["symbol"] = symbol.upper()
         df["source"] = "bybit_v5"
-        
+
         df = df[["timestamp", "open_interest", "symbol", "source"]].sort_values("timestamp").drop_duplicates("timestamp")
         df = df[(df["timestamp"] >= actual_start) & (df["timestamp"] < actual_end)]
 
@@ -154,7 +154,7 @@ async def _ingest_oi_month(
         ensure_utc_timestamp(df["timestamp"], "timestamp")
         ensure_dir(out_dir)
         write_parquet(df, out_path)
-        
+
         return {"status": "written", "partition": str(out_path), "count": len(df)}
 
 
@@ -163,11 +163,11 @@ async def async_main(args: argparse.Namespace) -> Dict[str, Any]:
     start_dt = _parse_date(args.start)
     end_dt = _parse_date(args.end)
     out_root = Path(args.out_root)
-    
+
     semaphore = asyncio.Semaphore(args.concurrency)
     stats: Dict[str, Any] = {"symbols": {}}
     outputs = []
-    
+
     async with aiohttp.ClientSession() as session:
         for symbol in symbols:
             tasks = [
@@ -179,7 +179,7 @@ async def async_main(args: argparse.Namespace) -> Dict[str, Any]:
                 for m in _iter_months(start_dt, end_dt)
             ]
             results = await asyncio.gather(*tasks)
-            
+
             count_total = 0
             written = []
             for res in results:
@@ -187,9 +187,9 @@ async def async_main(args: argparse.Namespace) -> Dict[str, Any]:
                     count_total += res["count"]
                     written.append(res["partition"])
                     outputs.append({"path": res["partition"], "rows": res["count"], "storage": "parquet"})
-            
+
             stats["symbols"][symbol] = {"oi_records_total": count_total, "partitions_written": written}
-            
+
     return {"stats": stats, "outputs": outputs}
 
 
@@ -208,12 +208,12 @@ def main() -> int:
     parser.add_argument("--max_retries", type=int, default=5)
     parser.add_argument("--retry_backoff_sec", type=float, default=2.0)
     parser.add_argument("--force", type=int, default=0)
-    
+
     args = parser.parse_args()
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
-    
+
     manifest = start_manifest("ingest_bybit_derivatives_oi", args.run_id, vars(args), [], [])
-    
+
     try:
         result = asyncio.run(async_main(args))
         manifest["outputs"] = result["outputs"]

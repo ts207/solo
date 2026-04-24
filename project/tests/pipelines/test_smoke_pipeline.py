@@ -1,9 +1,9 @@
-import pytest
+
 import pandas as pd
-import dataclasses
-from project.core.feature_schema import feature_dataset_dir_name
+import pytest
 
 from project.compilers.executable_strategy_spec import ExecutableStrategySpec
+from project.core.feature_schema import feature_dataset_dir_name
 from project.engine.runner import run_engine
 from project.portfolio.allocation_spec import AllocationSpec
 
@@ -57,12 +57,12 @@ def mock_data_root(tmp_path):
 def test_engine_smoke_test(mock_data_root):
     from project.strategy.dsl.schema import (
         Blueprint,
-        SymbolScopeSpec,
         EntrySpec,
-        ExitSpec,
-        SizingSpec,
-        LineageSpec,
         EvaluationSpec,
+        ExitSpec,
+        LineageSpec,
+        SizingSpec,
+        SymbolScopeSpec,
     )
 
     bp = Blueprint(

@@ -1,20 +1,18 @@
 from __future__ import annotations
 
-import json
 import logging
-from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 from project.core.config import get_data_root
-from project.research.validation.manifest import load_manifest, RunArtifactManifest
+from project.research.validation.manifest import load_manifest
 
 _LOG = logging.getLogger(__name__)
 
 def list_runs(stage: Optional[str] = None, data_root: Optional[Path] = None) -> List[Dict[str, Any]]:
     root = data_root or get_data_root()
     runs = []
-    
+
     # Stages are stored in different places, but we can look for artifact_manifest.json
     # reports/phase2, reports/validation, reports/promotions
     search_paths = [
@@ -22,7 +20,7 @@ def list_runs(stage: Optional[str] = None, data_root: Optional[Path] = None) -> 
         root / "reports" / "validation",
         root / "reports" / "promotions"
     ]
-    
+
     for base in search_paths:
         if not base.exists():
             continue
@@ -59,16 +57,16 @@ def compare_manifests(run_id_a: str, run_id_b: str, stage: str, data_root: Optio
     stage_dir = path_map.get(stage)
     if not stage_dir:
         raise ValueError(f"Unsupported stage for comparison: {stage}")
-        
+
     path_a = root / "reports" / stage_dir / run_id_a / "artifact_manifest.json"
     path_b = root / "reports" / stage_dir / run_id_b / "artifact_manifest.json"
-    
+
     if not path_a.exists() or not path_b.exists():
         raise FileNotFoundError("One or both run manifests missing")
-        
+
     ma = load_manifest(path_a)
     mb = load_manifest(path_b)
-    
+
     return {
         "run_id_a": run_id_a,
         "run_id_b": run_id_b,

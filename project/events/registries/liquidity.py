@@ -16,7 +16,6 @@ from project.events.detectors.liquidity_base import (
 )
 from project.events.detectors.registry import register_detector
 
-
 LIQUIDITY_REGISTERED_DETECTORS = {
     "LIQUIDITY_SHOCK": LiquidityShockDetectorV2,
     "LIQUIDITY_STRESS_DIRECT": DirectLiquidityStressDetectorV2,

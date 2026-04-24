@@ -1,7 +1,8 @@
 import pandas as pd
 import pytest
-from project.events.detectors.sequence import EventSequenceDetector
+
 from project.events.detectors.base import BaseEventDetector
+from project.events.detectors.sequence import EventSequenceDetector
 
 
 class _DummyDetector(BaseEventDetector):

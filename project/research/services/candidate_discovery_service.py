@@ -14,16 +14,24 @@ from typing import Any, Dict, List, Optional
 import pandas as pd
 
 from project import PROJECT_ROOT
-from project.core.config import get_data_root  # noqa: F401 - retained for test/plugin monkeypatch compatibility
+from project.core.config import (
+    get_data_root,  # noqa: F401 - retained for test/plugin monkeypatch compatibility
+)
 from project.core.execution_costs import resolve_execution_costs
 from project.domain.compiled_registry import get_domain_registry
 from project.events.event_specs import EVENT_REGISTRY_SPECS
 from project.io.utils import ensure_dir
-from project.research.cost_calibration import CandidateCostEstimate, ToBRegimeCostCalibrator
 from project.research import discovery
+from project.research.CANONICAL_PIPELINE import persist_canonical_pipeline_artifact
+from project.research.cost_calibration import CandidateCostEstimate, ToBRegimeCostCalibrator
+from project.research.decision_trace_artifacts import (
+    write_discovery_trace,
+    write_merged_research_trace,
+)
 from project.research.gating import build_event_return_frame
 from project.research.hypothesis_registry import Hypothesis, HypothesisRegistry
 from project.research.phase2 import load_features, prepare_events_dataframe
+from project.research.regime_routing import annotate_regime_metadata
 from project.research.services import candidate_discovery_scoring as candidate_scoring
 from project.research.services.candidate_discovery_diagnostics import (
     apply_sample_quality_gates,
@@ -36,16 +44,15 @@ from project.research.services.pathing import phase2_event_out_dir
 from project.research.services.phase2_diagnostics import (
     build_prepare_events_diagnostics,
     get_prepare_events_diagnostics,
+)
+from project.research.services.phase2_diagnostics import (
     split_counts as phase2_split_counts,
 )
 from project.research.services.phase2_support import bar_duration_minutes_from_timeframe
-from project.research.services.reporting_service import write_candidate_reports
-from project.research.CANONICAL_PIPELINE import persist_canonical_pipeline_artifact
-from project.research.decision_trace_artifacts import write_discovery_trace, write_merged_research_trace
 from project.research.services.regime_effectiveness_service import (
     write_regime_effectiveness_reports,
 )
-from project.research.regime_routing import annotate_regime_metadata
+from project.research.services.reporting_service import write_candidate_reports
 from project.research.validation import estimate_effect_from_frame
 from project.specs.manifest import finalize_manifest, start_manifest
 
@@ -668,9 +675,10 @@ def execute_candidate_discovery(config: CandidateDiscoveryConfig) -> CandidateDi
 
         # Sprint 7: Artifact manifest
         try:
-            from project.research.validation.manifest import RunArtifactManifest
             from datetime import datetime, timezone
-            
+
+            from project.research.validation.manifest import RunArtifactManifest
+
             artifact_manifest = RunArtifactManifest(
                 run_id=config.run_id,
                 stage="discover",

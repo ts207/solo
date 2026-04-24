@@ -2,9 +2,7 @@ from __future__ import annotations
 
 import json
 import logging
-from typing import Dict, Any, List
-
-import pandas as pd
+from typing import Any, Dict
 
 _LOG = logging.getLogger(__name__)
 

@@ -4,8 +4,8 @@ import sys
 import types
 from pathlib import Path
 
-import yaml
 import pandas as pd
+import yaml
 
 from project.io.utils import write_parquet
 

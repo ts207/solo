@@ -10,8 +10,8 @@ import pytest
 import project.research.services.promotion_service as svc
 import project.research.validation.result_writer as validation_writer
 from project.research.validation.contracts import (
-    ValidationBundle,
     ValidatedCandidateRecord,
+    ValidationBundle,
     ValidationDecision,
     ValidationMetrics,
 )

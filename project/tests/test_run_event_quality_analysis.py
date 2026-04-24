@@ -1,9 +1,9 @@
 # project/tests/test_run_event_quality_analysis.py
-import pandas as pd
-import numpy as np
 import json
-import pytest
-from pathlib import Path
+
+import numpy as np
+import pandas as pd
+
 from project.research.run_event_quality_analysis import run_event_quality_analysis
 
 

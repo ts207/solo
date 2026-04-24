@@ -74,6 +74,7 @@ def test_validate_synthetic_detector_truth_scores_expected_windows(tmp_path):
 def test_tolerance_minutes_accepts_dict():
     """validate_detector_truth must accept tolerance_minutes as a dict."""
     import inspect
+
     from project.scripts.validate_synthetic_detector_truth import validate_detector_truth
 
     sig = inspect.signature(validate_detector_truth)
@@ -395,7 +396,6 @@ def _write_vol_shock_events(data_root, run_id, rows):
 
 def test_rejects_high_off_regime_rate(tmp_path):
     """TICKET-015: default max_off_regime_rate should reject 75% off-regime firing."""
-    import pandas as pd
     from project.scripts.validate_synthetic_detector_truth import validate_detector_truth
 
     truth_map = {
@@ -435,7 +435,6 @@ def test_rejects_high_off_regime_rate(tmp_path):
 
 def test_rejects_low_precision(tmp_path):
     """TICKET-015: default precision gate rejects detectors with low precision."""
-    import pandas as pd
     from project.scripts.validate_synthetic_detector_truth import validate_detector_truth
 
     truth_map = {
@@ -587,7 +586,6 @@ def test_calibrated_events_keep_generic_precision_and_off_regime_gates(monkeypat
 
 def test_accepts_clean_detector(tmp_path):
     """TICKET-015: a clean detector with low off-regime rate passes new defaults."""
-    import pandas as pd
     from project.scripts.validate_synthetic_detector_truth import validate_detector_truth
 
     truth_map = {

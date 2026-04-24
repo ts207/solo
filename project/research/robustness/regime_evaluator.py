@@ -16,12 +16,12 @@ import numpy as np
 import pandas as pd
 
 from project.domain.hypotheses import HypothesisSpec
+from project.research.robustness.regime_labeler import label_regimes
 from project.research.search.evaluator_utils import (
-    trigger_mask,
     forward_log_returns,
     signed_returns_for_spec,
+    trigger_mask,
 )
-from project.research.robustness.regime_labeler import label_regimes
 
 log = logging.getLogger(__name__)
 

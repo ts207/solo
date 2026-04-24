@@ -1,6 +1,5 @@
 """Tests for _validate_phase2_event_chain detector coverage check."""
 
-import pytest
 
 
 class TestValidatePhase2EventChainDetectorCoverage:
@@ -11,7 +10,7 @@ class TestValidatePhase2EventChainDetectorCoverage:
         issues = _validate_phase2_event_chain()
         # Filter to only detector-related issues
         detector_issues = [i for i in issues if "No registered detector" in i]
-        assert detector_issues == [], f"These event types lack registered detectors:\n" + "\n".join(
+        assert detector_issues == [], "These event types lack registered detectors:\n" + "\n".join(
             detector_issues
         )
 
@@ -24,8 +23,8 @@ class TestValidatePhase2EventChainDetectorCoverage:
 
     def test_get_detector_none_reported(self, monkeypatch):
         """A missing detector must produce a 'No registered detector' issue."""
-        from project.pipelines import run_all
         from project.events.phase2 import PHASE2_EVENT_CHAIN
+        from project.pipelines import run_all
 
         # Get first event type from the chain
         first_entry = PHASE2_EVENT_CHAIN[0]

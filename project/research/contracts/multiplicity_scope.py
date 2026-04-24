@@ -11,8 +11,7 @@ Phase 1 invariant:
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Any, Dict, Optional
-
+from typing import Any, Dict
 
 SCOPE_VERSION_PHASE1_V1 = "phase1_v1"
 
@@ -43,7 +42,7 @@ def resolve_campaign_scope_key(row: Dict[str, Any]) -> str:
     campaign_id = str(row.get("campaign_id", "") or "").strip()
     program_id = str(row.get("program_id", "") or "").strip()
     run_id = str(row.get("run_id", "") or "").strip()
-    
+
     if campaign_id:
         return f"campaign::{campaign_id}"
     if program_id:
@@ -56,7 +55,7 @@ def resolve_lineage_scope_key(row: Dict[str, Any]) -> str:
     program_id = str(row.get("program_id", "") or "").strip()
     lineage_key = str(row.get("concept_lineage_key", "") or row.get("hypothesis_id", "") or "").strip()
     run_id = str(row.get("run_id", "") or "").strip()
-    
+
     parts = []
     if campaign_id:
         parts.append(f"campaign::{campaign_id}")
@@ -64,10 +63,10 @@ def resolve_lineage_scope_key(row: Dict[str, Any]) -> str:
         parts.append(f"program::{program_id}")
     else:
         parts.append(f"run::{run_id}")
-    
+
     if lineage_key:
         parts.append(f"lineage::{lineage_key}")
-    
+
     return "/".join(parts) if parts else "unknown_scope"
 
 
@@ -76,13 +75,13 @@ def resolve_effective_scope_key(
     mode: str = "campaign_lineage",
 ) -> str:
     mode = str(mode or "campaign_lineage").strip().lower()
-    
+
     if mode == "run":
         return f"run::{row.get('run_id', 'unknown')}"
-    
+
     if mode == "campaign":
         return resolve_campaign_scope_key(row)
-    
+
     if mode == "program":
         program_id = str(row.get("program_id", "") or "").strip()
         if program_id:
@@ -91,10 +90,10 @@ def resolve_effective_scope_key(
         if campaign_id:
             return f"campaign::{campaign_id}"
         return f"run::{row.get('run_id', 'unknown')}"
-    
+
     if mode in ("campaign_lineage", "lineage"):
         return resolve_lineage_scope_key(row)
-    
+
     return resolve_campaign_scope_key(row)
 
 

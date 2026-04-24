@@ -19,8 +19,8 @@ def run_generic_detector_task(
     out_dir: Optional[Path] = None,
 ) -> int:
     """Thin argument adapter around the canonical analyze_events entrypoint."""
-    from project.research.analyze_events import main as analyze_events_main
     from project.core.config import get_data_root
+    from project.research.analyze_events import main as analyze_events_main
 
     data_root = get_data_root()
     if out_dir is None:

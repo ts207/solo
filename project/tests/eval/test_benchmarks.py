@@ -1,8 +1,9 @@
 import numpy as np
 import pandas as pd
+
 from project.eval.benchmarks import (
-    compute_buy_hold_sharpe,
     compute_btc_beta,
+    compute_buy_hold_sharpe,
     compute_exposure_summary,
 )
 

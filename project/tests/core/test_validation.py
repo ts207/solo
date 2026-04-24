@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-import pandas as pd
 import numpy as np
+import pandas as pd
 import pytest
 
 from project.core.validation import assert_ohlcv_geometry, filter_ohlcv_geometry_violations

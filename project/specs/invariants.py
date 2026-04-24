@@ -8,6 +8,8 @@ from typing import Any, Dict, List, Mapping, Optional
 from project.spec_registry import (
     RUNTIME_SPEC_RELATIVE_PATHS,
     load_runtime_spec,
+)
+from project.spec_registry import (
     runtime_spec_paths as _registry_runtime_spec_paths,
 )
 

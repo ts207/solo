@@ -1,33 +1,32 @@
 from __future__ import annotations
+
 from project.core.config import get_data_root
+
 
 def get_research_data_root() -> Path:
     return get_data_root()
 
 import argparse
-import json
 import logging
 import re
 import sys
-from functools import lru_cache
 from pathlib import Path
-from typing import Dict, List, Any
+from typing import Any, List
 
 import numpy as np
 import pandas as pd
-import yaml
 
-from project import PROJECT_ROOT
-from project.io.utils import ensure_dir, read_parquet, write_parquet
-from project.specs.manifest import finalize_manifest, start_manifest
-from project.research.gating import horizon_to_bars
+from project.events.event_normalizer import filter_phase1_rows_for_event_type
 from project.events.registry import (
     EVENT_REGISTRY_SPECS,
-    load_registry_events,
 )
-from project.events.event_normalizer import filter_phase1_rows_for_event_type
+from project.io.utils import ensure_dir, read_parquet, write_parquet
 from project.research._family_event_utils import load_features
-from project.research.search.search_feature_utils import normalize_search_feature_columns as _normalize_search_feature_columns
+from project.research.gating import horizon_to_bars
+from project.research.search.search_feature_utils import (
+    normalize_search_feature_columns as _normalize_search_feature_columns,
+)
+from project.specs.manifest import finalize_manifest, start_manifest
 
 NUMERIC_CONDITION_PATTERN = re.compile(r"^([a-zA-Z0-9_]+)\s*([><!=]=?)\s*([0-9.-]+)$")
 

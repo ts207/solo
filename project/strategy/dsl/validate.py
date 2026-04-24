@@ -1,9 +1,11 @@
 from __future__ import annotations
 
-import pandas as pd
 from typing import Dict, List
-from project.strategy.dsl.schema import OverlaySpec, Blueprint
+
+import pandas as pd
+
 from project.strategy.dsl.references import REGISTRY_SIGNAL_COLUMNS
+from project.strategy.dsl.schema import OverlaySpec
 
 
 def validate_signal_columns(merged: pd.DataFrame, signals: List[str], blueprint_id: str) -> None:

@@ -1,5 +1,4 @@
-import pytest
-from project.live.risk import RiskEnforcer, RuntimeRiskCaps, PerThesisCap
+from project.live.risk import RiskEnforcer, RuntimeRiskCaps
 
 
 class TestRiskOverlapExclusivity:

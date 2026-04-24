@@ -2,24 +2,20 @@ from __future__ import annotations
 
 import json
 import logging
-from pathlib import Path
-from typing import Dict, List, Optional, Tuple, Any
+from typing import Any, Dict, List, Tuple
 
 import numpy as np
-import pandas as pd
 
-from project.core.coercion import safe_float, safe_int, as_bool
-from project.io.utils import list_parquet_files, read_parquet
-from project.strategy.dsl import is_executable_action, is_executable_condition
-
+from project.core.coercion import as_bool, safe_float, safe_int
 from project.research.candidates.shaping import (
-    route_event_family,
-    risk_controls_from_action,
-    infer_condition_from_blueprint,
     infer_action_from_blueprint,
-    symbol_scope_from_row,
+    infer_condition_from_blueprint,
+    risk_controls_from_action,
+    route_event_family,
     sanitize_id,
+    symbol_scope_from_row,
 )
+from project.strategy.dsl import is_executable_action, is_executable_condition
 
 _LOG = logging.getLogger(__name__)
 

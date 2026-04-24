@@ -1,7 +1,3 @@
-import pandas as pd
-import numpy as np
-import pytest
-from typing import Any, Dict
 
 from project.research.promotion.core import evaluate_row
 

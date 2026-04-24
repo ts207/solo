@@ -4,14 +4,13 @@ import os
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Tuple
 
 from project import PROJECT_ROOT
 from project.io.utils import read_table_auto as read_table_auto_compat
 
 
 def get_data_root() -> Path:
-    from project import PROJECT_ROOT
 
     return Path(os.getenv("BACKTEST_DATA_ROOT", PROJECT_ROOT.parent / "data"))
 

@@ -4,6 +4,8 @@ from __future__ import annotations
 import argparse
 import inspect
 import json
+import re
+import sys
 from pathlib import Path
 from typing import Any, Dict, List
 
@@ -15,10 +17,6 @@ from project.events.detectors.registry import (
 )
 from project.events.event_aliases import resolve_event_alias
 from project.events.event_specs import EVENT_REGISTRY_SPECS
-
-
-import re
-import sys
 
 DETECTOR_AUDIT_SCHEMA_VERSION = "detector_coverage_audit_v2"
 

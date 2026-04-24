@@ -1,5 +1,4 @@
 import pandas as pd
-import numpy as np
 import pytest
 
 from project.engine.execution_model import get_comprehensive_execution_estimate

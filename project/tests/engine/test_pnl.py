@@ -3,8 +3,6 @@ Unit tests for engine/pnl.py
 
 Covers:
 - compute_returns: basic, gap NaN propagation
-- compute_returns_next_open: entry vs hold bar split
-- compute_pnl_components: gross, cost, funding, borrow, NaN zeroing
 - compute_pnl: delegation smoke
 """
 
@@ -18,9 +16,7 @@ from project.engine.pnl import (
     compute_funding_pnl_event_aligned,
     compute_pnl,
     compute_pnl_ledger,
-    compute_pnl_legacy,
     compute_returns,
-    compute_returns_next_open,
 )
 
 
@@ -55,55 +51,6 @@ class TestComputeReturns:
         ret = compute_returns(close)
         assert pytest.approx(ret.iloc[1]) == 0.0
         assert pytest.approx(ret.iloc[2]) == 0.0
-
-
-# ---------------------------------------------------------------------------
-# compute_returns_next_open
-# ---------------------------------------------------------------------------
-
-
-class TestComputeReturnsNextOpen:
-    def test_entry_bar_uses_next_open(self):
-        """At an entry bar (prior=0, current≠0), return = open[t+1]/close[t] - 1."""
-        idx = _ts(4)
-        close = pd.Series([100.0, 101.0, 102.0, 103.0], index=idx)
-        open_ = pd.Series([99.5, 100.5, 101.5, 102.5], index=idx)
-        # Position goes long at bar 1
-        positions = pd.Series([0, 1, 1, 0], index=idx)
-        ret = compute_returns_next_open(close, open_, positions)
-        # Bar 1 is entry: return = open[2]/close[1] - 1 = 101.5/101 - 1
-        assert pytest.approx(ret.iloc[1]) == 101.5 / 101.0 - 1.0
-
-    def test_hold_bar_uses_close_to_close(self):
-        """Holding bar (both prior and current non-zero) uses standard close-to-close."""
-        idx = _ts(4)
-        close = pd.Series([100.0, 101.0, 102.0, 103.0], index=idx)
-        open_ = pd.Series([99.5, 100.5, 101.5, 102.5], index=idx)
-        positions = pd.Series([0, 1, 1, 0], index=idx)
-        ret = compute_returns_next_open(close, open_, positions)
-        # Bar 2 is a hold bar: close-to-close = 102/101 - 1
-        assert pytest.approx(ret.iloc[2]) == 102.0 / 101.0 - 1.0
-
-        # At idx 0, close=0.0. The next open is open_[1] = 100.5.
-        # So return at idx 0 is open_[1]/close[0] - 1 -> 100.5 / 0.0 - 1 -> inf -> NaN.
-        # But this is assigned to `entry_ret` based on when the ENTRY happens.
-        # The entry (pos 0 -> 1) is at idx=1.
-        # At idx=1, close[1] is 101.0, next_open[2] = 101.5. Return is 101.5/101 - 1.
-        # Wait, the entry is at index 1.
-        # `is_entry` is True at index 1.
-        # `entry_ret` at index 1 uses `next_open[1] / safe_close[1] - 1`.
-        # Wait, `entry_ret = next_open / safe_close - 1` with `next_open = open_.shift(-1)`.
-        # So at index 1: `next_open[1]` is `open_[2]` (101.5).
-        # `safe_close[1]` is `close[1]` (101.0).
-        # The entry return at index 1 is 101.5/101.0 - 1 = 0.00495.
-        # The test intended to test zero close causing NaN, but put the zero at idx 0 instead of idx 1.
-        idx = _ts(3)
-        close = pd.Series([100.0, 0.0, 102.0], index=idx)
-        open_ = pd.Series([99.5, 100.5, 101.5], index=idx)
-        positions = pd.Series([0, 1, 0], index=idx)
-        ret = compute_returns_next_open(close, open_, positions)
-        # Entry at idx 1. close[1] = 0.0, open[2] = 101.5. open[2]/close[1] - 1 -> inf -> NaN.
-        assert np.isnan(ret.iloc[1]) or not np.isfinite(ret.iloc[1])
 
 
 # ---------------------------------------------------------------------------
@@ -237,7 +184,7 @@ def test_no_funding_when_position_flat_at_event():
 
 
 def test_compute_pnl_ledger_event_aligned_funding():
-    """Integration: compute_pnl_ledger with use_event_aligned_funding=True fires only at event bars."""
+    """Event-aligned funding fires only at event bars."""
     idx = pd.date_range("2023-01-01 07:00", periods=24, freq="1h", tz="UTC")
     close = pd.Series(100.0, index=idx)
     target_pos = pd.Series(1.0, index=idx)
@@ -289,19 +236,6 @@ class TestComputePnl:
         ledger = compute_pnl_ledger(target_pos, close, cost_bps=5.0)
         pd.testing.assert_series_equal(pnl, ledger["net_pnl"])
 
-    def test_legacy_matches_ledger_net_pnl(self):
-        """compute_pnl_legacy() output should equal compute_pnl_ledger net_pnl when holding (no flip)."""
-        idx = _ts(4)
-        pos = pd.Series([0.0, 1.0, 1.0, 0.0], index=idx)
-        ret = pd.Series([0.0, 0.01, 0.02, -0.01], index=idx)
-        import warnings
-        with warnings.catch_warnings():
-            warnings.simplefilter("ignore", DeprecationWarning)
-            pnl_legacy = compute_pnl_legacy(pos, ret, cost_bps=5.0)
-        # Legacy result should be a Series
-        assert isinstance(pnl_legacy, pd.Series)
-
-
 class TestNextOpenExecutionMode:
     def test_next_open_entry_bar_pnl_not_zero(self):
         """Entry bars with next_open mode should have non-zero gross_pnl.
@@ -323,7 +257,7 @@ class TestNextOpenExecutionMode:
         )
 
     def test_close_mode_entry_bar_pnl_is_zero(self):
-        """Entry bars with close mode should have zero gross_pnl (executed position is 0 on entry bar)."""
+        """Close-mode entry bars have zero PnL before the position is executed."""
         idx = pd.date_range("2024-01-01", periods=4, freq="5min", tz="UTC")
         close = pd.Series([100.0, 101.0, 102.0, 103.0], index=idx)
         target_pos = pd.Series([0.0, 1.0, 1.0, 0.0], index=idx)
@@ -337,13 +271,14 @@ class TestNextOpenExecutionMode:
         # So gross_pnl[t] = executed[t] * bar_ret_cc[t].
         # At iloc[2], executed=1.0, ret[2] = 102/101 - 1 != 0.
         # So gross_pnl[2] is NOT zero even in close mode.
-        # The test "close mode entry bar pnl is zero" was likely based on the old pos[t]*ret[t+1] logic
+        # The test "close mode entry bar pnl is zero" was likely based on the
+        # old pos[t]*ret[t+1] logic
         # where pos was shifted.
         # Let's adjust the test to check iloc[1] which should be 0 because executed[1]=0.
         assert result["gross_pnl"].iloc[1] == 0.0
 
     def test_next_open_vs_close_execution_mode_difference(self):
-        """Same positions should produce different PnL between close and next_open modes at entry."""
+        """Close and next-open execution produce different entry-bar PnL."""
         idx = pd.date_range("2024-01-01", periods=4, freq="5min", tz="UTC")
         close = pd.Series([100.0, 101.0, 102.0, 103.0], index=idx)
         open_ = pd.Series([100.5, 101.5, 102.5, 103.5], index=idx)

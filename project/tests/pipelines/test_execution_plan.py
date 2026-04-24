@@ -2,13 +2,10 @@ from __future__ import annotations
 
 from pathlib import Path
 
-import pytest
 from project.pipelines.execution_plan import (
-    PlannedStage,
     ExecutionPlan,
-    ExecutionVerificationReport,
     PlannedArtifactObligation,
-    StageVerificationResult,
+    PlannedStage,
     build_execution_plan,
     verify_execution,
 )

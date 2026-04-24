@@ -1,5 +1,7 @@
-import yaml
 from pathlib import Path
+
+import yaml
+
 from project.events.detectors.registry import list_registered_event_types
 
 registry_path = Path("project/configs/registries/detectors.yaml")

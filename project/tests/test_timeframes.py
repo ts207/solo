@@ -1,6 +1,7 @@
 import pytest
-from project.core.exceptions import ContractViolationError
+
 from project.core import timeframes
+from project.core.exceptions import ContractViolationError
 
 
 class TestNormalizeTimeframe:

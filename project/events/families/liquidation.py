@@ -359,7 +359,7 @@ class LiquidationCascadeProxyDetector(EpisodeDetector):
         return pd.DataFrame(rows) if rows else pd.DataFrame(columns=EVENT_COLUMNS)
 
 
-from project.events.detectors.liquidation_base import LiquidationCascadeDetectorV2, LiquidationCascadeProxyDetectorV2
+from project.events.detectors.liquidation_base import LiquidationCascadeDetectorV2
 
 ensure_liquidation_detectors_registered()
 

@@ -2,10 +2,10 @@ from __future__ import annotations
 
 import json
 import logging
-import pandas as pd
-import numpy as np
 from pathlib import Path
-from typing import Dict, List, Any, Optional
+from typing import Any, Dict, List, Optional
+
+import pandas as pd
 
 from project.io.utils import write_parquet
 

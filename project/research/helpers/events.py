@@ -1,14 +1,15 @@
 from __future__ import annotations
 
+from pathlib import Path
+from typing import Dict, List
+
 import numpy as np
 import pandas as pd
-from pathlib import Path
-from typing import List, Dict, Any
 
-from project.io.utils import ensure_dir, read_parquet, write_parquet
 from project.events.shared import EVENT_COLUMNS, emit_event, format_event_id
 from project.events.sparsify import sparsify_mask
 from project.events.thresholding import rolling_mean_std_zscore, rolling_quantile_threshold
+from project.io.utils import ensure_dir, read_parquet, write_parquet
 
 
 def sparsify_event_mask(mask: pd.Series, min_spacing: int) -> List[int]:

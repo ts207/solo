@@ -1,22 +1,21 @@
 from __future__ import annotations
-from project.core.config import get_data_root
 
 import argparse
-import json
 import logging
 import sys
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
 
 import numpy as np
 import pandas as pd
+
+from project.core.config import get_data_root
 
 try:
     from scipy import stats
 except ModuleNotFoundError:  # pragma: no cover - environment-specific fallback
     from project.core.stats import stats
 
-from project.io.utils import ensure_dir, list_parquet_files, read_parquet, write_parquet
+from project.io.utils import ensure_dir, write_parquet
 from project.specs.manifest import finalize_manifest, start_manifest
 
 AGGREGATED_HYPOTHESIS_ID = "AGGREGATED"

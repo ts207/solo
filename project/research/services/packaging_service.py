@@ -1,6 +1,7 @@
 from __future__ import annotations
-from dataclasses import dataclass, field
-from typing import Optional, Dict
+
+from dataclasses import dataclass
+from typing import Optional
 
 
 @dataclass

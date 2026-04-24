@@ -8,8 +8,8 @@ from typing import Any, Dict, List, Mapping
 import numpy as np
 import pandas as pd
 
-from project.core.coercion import safe_float, safe_int
-from project.research.utils.decision_safety import bool_gate, coerce_numeric_nan
+from project.core.coercion import safe_float
+from project.research.utils.decision_safety import coerce_numeric_nan
 
 _OVERLAP_TOKEN_SPLIT_RE = re.compile(r"[^a-z0-9]+")
 _DEPLOY_RUN_MODES = {"production", "certification", "promotion", "deploy"}

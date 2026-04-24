@@ -70,8 +70,8 @@ class TestConditionNodeProduction:
         receives 'all' and produces 0 nodes.  The research label is preserved
         in the *conditioning* column.
         """
-        from project.strategy.dsl.contract_v1 import normalize_entry_condition
         from project.research.condition_routing import condition_routing
+        from project.strategy.dsl.contract_v1 import normalize_entry_condition
 
         # _condition_routing correctly routes severity_bucket → "all"
         condition_str, source = condition_routing("severity_bucket_extreme_5pct")
@@ -104,8 +104,8 @@ class TestConditionStringInvariants:
         The legacy format was previously mapped to 'all' but is now strictly rejected.
         """
         from project.strategy.dsl.contract_v1 import (
-            normalize_entry_condition,
             NonExecutableConditionError,
+            normalize_entry_condition,
         )
 
         bad = [

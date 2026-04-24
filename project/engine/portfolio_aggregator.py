@@ -5,7 +5,6 @@ from typing import Dict, Iterable
 import numpy as np
 import pandas as pd
 
-
 _CANONICAL_SUM_COLUMNS: tuple[str, ...] = (
     "gross_pnl",
     "net_pnl",

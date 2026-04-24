@@ -7,8 +7,8 @@ import pandas as pd
 
 from project.core.column_registry import ColumnRegistry
 from project.domain.compiled_registry import get_domain_registry
-from project.domain.models import DomainRegistry
 from project.domain.hypotheses import HypothesisSpec, TriggerType
+from project.domain.models import DomainRegistry
 from project.research.context_labels import canonicalize_context_label
 from project.research.search.evaluator_utils import load_context_state_map
 

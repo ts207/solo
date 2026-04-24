@@ -3,13 +3,12 @@ from __future__ import annotations
 import hashlib
 import json
 from pathlib import Path
-from typing import Any, Dict, Iterable, Optional
+from typing import Any, Dict, Optional
 
 import pandas as pd
 
 from project.io.utils import ensure_dir, write_parquet
 from project.research.validation.contracts import ValidationBundle
-
 
 _TRACE_FILENAMES = {
     "discover": "discovery_decision_trace.parquet",

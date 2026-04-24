@@ -12,19 +12,17 @@ from itertools import product
 from pathlib import Path
 from typing import Any, Dict, Iterable, List, Optional, Tuple
 
-import yaml
-
 from project.domain.compiled_registry import get_domain_registry
-from project.research.search.feasibility import FeasibilityResult, check_hypothesis_feasibility
 from project.domain.hypotheses import HypothesisSpec, TriggerSpec, TriggerType
+from project.research.search.feasibility import FeasibilityResult, check_hypothesis_feasibility
 from project.research.search.stage_models import CandidateHypothesis, FeasibilityCheckedHypothesis
 from project.research.search.validation import validate_hypothesis_spec
 from project.spec_validation import (
     expand_triggers,
     loaders,
     resolve_entry_lags,
-    resolve_filter_templates,
     resolve_filter_template_names,
+    resolve_filter_templates,
     resolve_templates,
     validate_search_spec_doc,
 )

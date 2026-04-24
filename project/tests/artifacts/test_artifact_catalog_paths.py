@@ -69,7 +69,10 @@ def test_canonical_phase2_paths_ignore_legacy_nested_layouts(tmp_path: Path) -> 
     legacy_dir.mkdir(parents=True, exist_ok=True)
     (legacy_dir / "phase2_diagnostics.json").write_text("{}", encoding="utf-8")
 
-    assert phase2_diagnostics_path("r3", root) == root / "reports" / "phase2" / "r3" / "phase2_diagnostics.json"
+    assert (
+        phase2_diagnostics_path("r3", root)
+        == root / "reports" / "phase2" / "r3" / "phase2_diagnostics.json"
+    )
 
 
 def test_compat_phase2_helpers_resolve_legacy_paths_explicitly(tmp_path: Path) -> None:
@@ -84,5 +87,18 @@ def test_compat_phase2_helpers_resolve_legacy_paths_explicitly(tmp_path: Path) -
     diagnostics_path = diagnostics_dir / "phase2_diagnostics.json"
     diagnostics_path.write_text("{}", encoding="utf-8")
 
-    assert phase2_candidates_compat_path("r4", event_type="VOL", root=root) == candidate_path
-    assert phase2_diagnostics_compat_path("r4", root=root) == diagnostics_path
+    assert (
+        phase2_candidates_compat_path("r4", event_type="VOL", root=root)
+        == root / "reports" / "phase2" / "r4" / "phase2_candidates.parquet"
+    )
+    assert (
+        phase2_diagnostics_compat_path("r4", root=root)
+        == root / "reports" / "phase2" / "r4" / "phase2_diagnostics.json"
+    )
+    assert (
+        phase2_candidates_compat_path(
+            "r4", event_type="VOL", root=root, allow_legacy=True
+        )
+        == candidate_path
+    )
+    assert phase2_diagnostics_compat_path("r4", root=root, allow_legacy=True) == diagnostics_path

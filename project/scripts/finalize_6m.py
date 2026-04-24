@@ -1,9 +1,13 @@
 import json
 from pathlib import Path
-from project.research.services.pathing import resolve_phase2_candidates_path, resolve_phase2_diagnostics_path
+
+from project.research.services.pathing import (
+    resolve_phase2_candidates_path,
+    resolve_phase2_diagnostics_path,
+)
+from project.scripts.run_golden_synthetic_discovery import _candidate_summary
 from project.scripts.run_golden_workflow import load_workflow_config
 from project.scripts.validate_synthetic_detector_truth import validate_detector_truth
-from project.scripts.run_golden_synthetic_discovery import _candidate_summary
 
 config_path = Path("project/configs/golden_synthetic_discovery_6m.yaml")
 root = Path("artifacts/golden_synthetic_discovery_6m_v3")

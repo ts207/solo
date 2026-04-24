@@ -1,11 +1,16 @@
 import numpy as np
 import pandas as pd
 import pytest
+
+from project.features.microstructure import (
+    calculate_amihud_illiquidity as calculate_amihud,
+)
+from project.features.microstructure import (
+    calculate_kyle_lambda,
+    calculate_roll,
+)
 from project.features.microstructure import (
     calculate_vpin_score as calculate_vpin,
-    calculate_roll,
-    calculate_amihud_illiquidity as calculate_amihud,
-    calculate_kyle_lambda,
 )
 
 

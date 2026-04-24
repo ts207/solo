@@ -1,4 +1,5 @@
 import pytest
+
 from project.specs.manifest import validate_feature_schema_columns
 
 

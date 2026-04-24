@@ -1,8 +1,9 @@
-import pytest
-from pathlib import Path
 from types import SimpleNamespace
-import yaml
+
 import pandas as pd
+import pytest
+import yaml
+
 from project.research.experiment_engine import build_experiment_plan
 from project.research.experiment_engine_schema import (
     AgentExperimentRequest,
@@ -15,7 +16,10 @@ from project.research.experiment_engine_schema import (
     TemplateSelection,
     TriggerSpace,
 )
-from project.research.experiment_engine_validators import _ordered_run_ids, _resolve_requested_event_ids
+from project.research.experiment_engine_validators import (
+    _ordered_run_ids,
+    _resolve_requested_event_ids,
+)
 
 
 @pytest.fixture

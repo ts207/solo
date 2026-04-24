@@ -3,7 +3,6 @@ from __future__ import annotations
 import importlib
 from typing import Iterable, Tuple
 
-
 DETECTOR_FAMILY_MODULES: Tuple[str, ...] = (
     "project.events.families.basis",
     "project.events.families.funding",

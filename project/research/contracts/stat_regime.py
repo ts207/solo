@@ -20,7 +20,6 @@ from dataclasses import dataclass
 from datetime import datetime, timezone
 from typing import Any, Dict, Optional
 
-
 STAT_REGIME_PRE_AUDIT = "pre_audit_stat_regime"
 STAT_REGIME_POST_AUDIT = "post_audit_stat_regime"
 STAT_REGIME_UNKNOWN = "unknown_stat_regime"

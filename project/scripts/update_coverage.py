@@ -1,6 +1,6 @@
-import os
 import glob
-from pathlib import Path
+import os
+
 import yaml
 
 covered_events = {

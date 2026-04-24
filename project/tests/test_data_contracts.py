@@ -6,6 +6,7 @@ pytest.importorskip("pandera")
 
 import pandas as pd
 from pandera.errors import SchemaError
+
 from project.schemas.data_contracts import Cleaned5mBarsSchema, EventRegistrySchema
 
 

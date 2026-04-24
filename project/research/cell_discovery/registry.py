@@ -6,15 +6,15 @@ from typing import Any
 import yaml
 
 from project.domain.compiled_registry import get_domain_registry
-from project.research.context_labels import canonicalize_context_label
 from project.research.cell_discovery.models import (
-    ContrastRule,
     ContextCell,
+    ContrastRule,
     DiscoveryRegistry,
     EventAtom,
     HorizonSet,
     RankingPolicy,
 )
+from project.research.context_labels import canonicalize_context_label
 from project.spec_registry.loaders import load_yaml_relative
 
 REQUIRED_SPEC_FILES = (

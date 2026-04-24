@@ -9,9 +9,8 @@ import pandas as pd
 
 from project.core.config import get_data_root
 from project.io.utils import read_parquet
-from project.specs.manifest import load_run_manifest
-
 from project.research.knowledge.schemas import REFLECTION_COLUMNS, canonical_json
+from project.specs.manifest import load_run_manifest
 
 REFLECTION_VERSION = "v2"
 

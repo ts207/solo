@@ -6,15 +6,12 @@ Extracted from phase2_candidate_discovery.py — pure functions.
 
 from __future__ import annotations
 
-from project.core.coercion import safe_float, safe_int, as_bool
-
 import json
 import logging
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
-import numpy as np
 import pandas as pd
 
 log = logging.getLogger(__name__)

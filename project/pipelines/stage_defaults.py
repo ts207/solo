@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Dict, Any
+from typing import Any, Dict
 
 STAGE_DEFAULT_PARAMS: Dict[str, Dict[str, Any]] = {
     "ingest_binance_um_ohlcv_5m": {"period": "5m"},

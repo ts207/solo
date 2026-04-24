@@ -1,8 +1,9 @@
 import random
-from typing import List, Dict, Any, Optional
-from project.strategy.templates.spec import StrategySpec
-from project.schemas.control_spec import ControlSpec
 from itertools import product
+from typing import Any, Dict, List
+
+from project.schemas.control_spec import ControlSpec
+from project.strategy.templates.spec import StrategySpec
 
 
 def generate_from_concept(concept: ControlSpec) -> List[StrategySpec]:

@@ -61,8 +61,9 @@ def test_check_closed_left_rolling_empty_passes():
 def test_compiler_blocks_on_non_monotone_entry_signal(monkeypatch):
     """compile_positions must raise if the entry signal index is not monotone."""
     import pandas as pd
-    from project.strategy.templates.spec import StrategySpec
+
     from project.strategy.templates import compiler
+    from project.strategy.templates.spec import StrategySpec
 
     idx_bad = pd.to_datetime(["2024-01-01 00:05", "2024-01-01 00:00", "2024-01-01 00:10"], utc=True)
 

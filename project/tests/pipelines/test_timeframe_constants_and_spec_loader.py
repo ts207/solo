@@ -2,20 +2,20 @@ from __future__ import annotations
 
 import pytest
 
-from project.engine import runner
-from project.specs.loader import (
-    load_global_defaults,
-    load_objective_spec,
-    load_retail_profile,
-)
 from project.core.constants import (
     BARS_PER_YEAR_BY_TIMEFRAME,
     DEFAULT_EVENT_HORIZON_BARS,
     HORIZON_BARS_BY_TIMEFRAME,
     parse_horizon_bars,
 )
-from project.research.services.phase2_support import horizon_to_bars
+from project.engine import runner
 from project.research import validate_event_quality
+from project.research.services.phase2_support import horizon_to_bars
+from project.specs.loader import (
+    load_global_defaults,
+    load_objective_spec,
+    load_retail_profile,
+)
 
 
 def test_runner_uses_canonical_bars_per_year_map():

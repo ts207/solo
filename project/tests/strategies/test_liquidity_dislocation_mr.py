@@ -1,5 +1,4 @@
-import pytest
-from project.strategy.dsl.contract_v1 import normalize_entry_condition, is_executable_condition
+from project.strategy.dsl.contract_v1 import is_executable_condition, normalize_entry_condition
 
 
 def test_liquidity_dislocation_mr_filters():

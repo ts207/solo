@@ -1,18 +1,14 @@
-from project.core.config import get_data_root
-
 import argparse
+import dataclasses
 import hashlib
 import json
 import logging
 import sys
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Sequence, Tuple
-from unittest.mock import MagicMock
+from typing import Any, Dict, List, Optional, Tuple
 
 import numpy as np
 import pandas as pd
-import yaml
-import dataclasses
 
 from project import PROJECT_ROOT
 from project.artifacts import (
@@ -22,54 +18,52 @@ from project.artifacts import (
     run_manifest_path,
 )
 from project.compilers import ExecutableStrategySpec
-from project.domain.compiled_registry import get_domain_registry
-
-from project.core.coercion import safe_float, safe_int, as_bool
-from project.research.utils.decision_safety import (
-    finite_ge,
-    finite_le,
-    bool_gate,
-    coerce_numeric_nan,
-    nanmedian_or_nan,
-    nanmax_or_nan,
-)
-
+from project.core.coercion import as_bool, safe_float
+from project.core.config import get_data_root
 from project.core.execution_costs import resolve_execution_costs
+from project.domain.compiled_registry import get_domain_registry
 from project.io.parquet_compat import read_parquet_compat
-from project.io.utils import ensure_dir, write_parquet
+from project.io.utils import ensure_dir
+from project.portfolio import AllocationSpec
+from project.research.blueprint_compilation import compile_blueprint
+from project.research.candidate_schema import ensure_candidate_schema
+from project.research.clustering.alpha_clustering import (
+    select_cluster_representatives,
+)
 from project.research.compile_strategy_blueprints_artifacts import (
     write_strategy_contract_artifacts as _write_strategy_contract_artifacts_impl,
 )
 from project.research.compile_strategy_blueprints_selection_support import (
     candidate_id as _candidate_id,
+)
+from project.research.compile_strategy_blueprints_selection_support import (
     load_gates_spec as _load_gates_spec,
+)
+from project.research.compile_strategy_blueprints_selection_support import (
     passes_fallback_gate as _passes_fallback_gate,
+)
+from project.research.compile_strategy_blueprints_selection_support import (
     passes_quality_floor as _passes_quality_floor,
+)
+from project.research.compile_strategy_blueprints_selection_support import (
     rank_key as _rank_key,
 )
-from project.portfolio import AllocationSpec
+from project.research.helpers.selection import (
+    choose_event_rows as _selection_choose_event_rows,
+)
+from project.research.utils.blueprint_hashing import is_blueprint_burned
+from project.research.utils.decision_safety import (
+    coerce_numeric_nan,
+)
+from project.specs.manifest import finalize_manifest, start_manifest
 from project.specs.objective import (
     assert_low_capital_contract,
     resolve_objective_profile_contract,
 )
-from project.specs.manifest import finalize_manifest, start_manifest
 from project.specs.ontology import (
-    load_run_manifest_hashes,
     ontology_spec_hash,
-    ontology_spec_paths,
-)
-from project.research.candidate_schema import ensure_candidate_schema
-from project.research.blueprint_compilation import compile_blueprint
-from project.research.helpers.selection import (
-    choose_event_rows as _selection_choose_event_rows,
 )
 from project.strategy.dsl.schema import Blueprint
-from project.research.utils.blueprint_hashing import is_blueprint_burned
-from project.research.clustering.alpha_clustering import (
-    cluster_hypotheses,
-    select_cluster_representatives,
-)
-from project.research.utils.synthetic_noise import generate_negative_control
 
 
 def _copy_model(instance: Any, **updates: object) -> Any:

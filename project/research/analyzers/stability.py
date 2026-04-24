@@ -2,7 +2,6 @@ from __future__ import annotations
 
 from typing import Any
 
-import numpy as np
 import pandas as pd
 
 from project.research.analyzers.base import AnalyzerResult, BaseEventAnalyzer

@@ -4,7 +4,6 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Dict, List, Literal, Tuple
 
-
 StageReasonCode = Literal["selected", "skipped", "failed", "artifact_mismatch", "dependency_missing"]
 ArtifactVerificationStatus = Literal["conformant", "missing", "not_verified", "schema_violation"]
 

@@ -1,13 +1,13 @@
 from __future__ import annotations
-from project.core.config import get_data_root
 
 import argparse
 import json
-import sys
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict
+
 from project import PROJECT_ROOT
+from project.core.config import get_data_root
 
 REPO_ROOT = PROJECT_ROOT.parent
 

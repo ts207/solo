@@ -5,23 +5,20 @@ from typing import Any
 import numpy as np
 import pandas as pd
 
-from project.events.detectors.threshold import ThresholdDetector
 from project.events.detectors.composite import CompositeDetector
-from project.features.rolling_thresholds import lagged_rolling_quantile
-from project.events.shared import EVENT_COLUMNS, emit_event, format_event_id
-from project.events.thresholding import rolling_mean_std_zscore
-from project.research.analyzers import run_analyzer_suite
 from project.events.detectors.desync_base import (
     CrossAssetDesyncDetectorV2,
     IndexComponentDivergenceDetectorV2,
     LeadLagBreakDetectorV2,
 )
+from project.events.detectors.registry import get_detector
+from project.events.detectors.threshold import ThresholdDetector
 from project.events.registries.desync import (
-    DESYNC_DETECTORS,
     ensure_desync_detectors_registered,
     get_desync_detectors,
 )
-from project.events.detectors.registry import get_detector
+from project.features.rolling_thresholds import lagged_rolling_quantile
+from project.research.analyzers import run_analyzer_suite
 
 
 class IndexComponentDivergenceDetector(CompositeDetector):
@@ -130,7 +127,7 @@ class CrossAssetDesyncDetector(ThresholdDetector):
         ret = np.log(close / close.shift(1)).fillna(0.0)
         paired_ret = np.log(paired_close / paired_close.shift(1)).fillna(0.0)
         basis = ret - paired_ret
-        
+
         min_periods = max(lookback_window // 10, 1)
 
         basis_mean = basis.rolling(lookback_window, min_periods=min_periods).mean()

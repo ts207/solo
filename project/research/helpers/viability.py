@@ -1,11 +1,11 @@
 from __future__ import annotations
 
-from project.core.coercion import safe_float, safe_int, as_bool
-
 import json
 from typing import Any, Dict, Mapping, Optional
 
 import numpy as np
+
+from project.core.coercion import safe_float, safe_int
 
 
 def _optional_finite(value: float) -> Optional[float]:

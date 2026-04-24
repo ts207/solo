@@ -9,7 +9,6 @@ PORTFOLIO_FRAME_SCHEMA_VERSION = "portfolio_frame_v2"
 
 import pandas as pd
 
-
 STRATEGY_FRAME_REQUIRED_COLUMNS: tuple[str, ...] = (
     "timestamp",
     "symbol",

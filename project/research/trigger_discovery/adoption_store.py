@@ -2,7 +2,7 @@ import json
 import logging
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Dict, Any, List, Optional
+from typing import Any, Dict, List, Optional
 
 log = logging.getLogger(__name__)
 
@@ -28,14 +28,14 @@ def register_proposals(proposals: List[Dict[str, Any]], out_dir: Path, source_la
     """Registers newly generated proposals with 'proposed' status."""
     store_path = _get_store_path(out_dir)
     store = _load_store(store_path)
-    
+
     timestamp = datetime.now(timezone.utc).isoformat()
-    
+
     for p in proposals:
         cid = p.get("candidate_trigger_id")
         if not cid:
             continue
-            
+
         if cid not in store:
             store[cid] = {
                 "candidate_id": cid,
@@ -46,7 +46,7 @@ def register_proposals(proposals: List[Dict[str, Any]], out_dir: Path, source_la
                 "metadata": {}
             }
             log.debug(f"Registered new proposal {cid} in adoption store.")
-            
+
     _save_store(store_path, store)
 
 def get_proposal(candidate_id: str, out_dir: Path) -> Optional[Dict[str, Any]]:
@@ -60,23 +60,23 @@ def list_proposals(out_dir: Path) -> List[Dict[str, Any]]:
     return list(store.values())
 
 def transition_state(
-    candidate_id: str, 
-    new_status: str, 
-    out_dir: Path, 
+    candidate_id: str,
+    new_status: str,
+    out_dir: Path,
     reviewer: str = "system",
     reason: Optional[str] = None
 ) -> bool:
     """Transitions a proposal's status, enforcing state machine rules."""
     store_path = _get_store_path(out_dir)
     store = _load_store(store_path)
-    
+
     if candidate_id not in store:
         log.error(f"Candidate {candidate_id} not found in adoption store.")
         return False
-        
+
     current = store[candidate_id]
     old_status = current.get("status", "proposed")
-    
+
     # State machine rules
     valid_transitions = {
         "proposed": ["under_review", "rejected", "approved"],
@@ -85,13 +85,13 @@ def transition_state(
         "rejected": ["under_review", "proposed"],
         "adopted": ["approved", "rejected"]
     }
-    
+
     if new_status not in valid_transitions.get(old_status, []):
         log.error(f"Invalid transition from {old_status} to {new_status} for {candidate_id}.")
         return False
-        
+
     timestamp = datetime.now(timezone.utc).isoformat()
-    
+
     # Record history
     current.setdefault("history", []).append({
         "from": old_status,
@@ -100,13 +100,13 @@ def transition_state(
         "reviewer": reviewer,
         "reason": reason
     })
-    
+
     current["status"] = new_status
     current["updated_at"] = timestamp
-    
+
     if reason:
         current.setdefault("metadata", {})["decision_reason"] = reason
-        
+
     store[candidate_id] = current
     _save_store(store_path, store)
     log.info(f"Transitioned {candidate_id} from {old_status} to {new_status}.")

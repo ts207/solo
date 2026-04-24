@@ -12,9 +12,9 @@ import yaml
 
 from project.core.config import get_data_root
 from project.io.utils import atomic_write_text
+from project.operator.bounded import validate_bounded_proposal
 from project.research.agent_io.execute_proposal import execute_proposal
 from project.research.agent_io.proposal_schema import load_operator_proposal
-from project.operator.bounded import validate_bounded_proposal
 from project.research.knowledge.memory import (
     ensure_memory_store,
     read_memory_table,

@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-from typing import Optional
-
 from .engine import ValidationResult
 
 
@@ -45,8 +43,8 @@ class TruthReporter:
         total = len(self.results)
 
         lines = [
-            f"Truth Validation Summary",
-            f"=" * 50,
+            "Truth Validation Summary",
+            "=" * 50,
             f"Total: {total} | Passed: {passed} | Failed: {failed}",
             f"Success Rate: {100 * passed / total:.1f}%",
             "",

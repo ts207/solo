@@ -4,7 +4,8 @@ from pathlib import Path
 
 import pandas as pd
 import pytest
-from project.events.registry import build_event_flags, _active_signal_column
+
+from project.events.registry import _active_signal_column, build_event_flags
 
 
 def test_build_event_flags_correctness(tmp_path: Path):

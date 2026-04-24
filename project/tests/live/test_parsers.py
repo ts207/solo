@@ -1,8 +1,6 @@
 from __future__ import annotations
 
-import pandas as pd
-
-from project.live.ingest.parsers import parse_kline_event, parse_book_ticker_event
+from project.live.ingest.parsers import parse_book_ticker_event, parse_kline_event
 
 
 def test_parse_kline_event_valid():

@@ -1,4 +1,5 @@
 from pathlib import Path
+
 from project.scripts.ontology_consistency_audit import run_audit
 
 

@@ -17,10 +17,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-import pytest
-
 from project.pipelines.pipeline_provenance import data_fingerprint
-
 
 # ---------------------------------------------------------------------------
 # Helpers

@@ -1,6 +1,7 @@
+from typing import Any, Callable, Dict
+
 import numpy as np
 import pandas as pd
-from typing import Callable, Dict, Any, List
 
 
 def verify_pit_compliance(

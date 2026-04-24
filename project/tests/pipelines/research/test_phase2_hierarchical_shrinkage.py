@@ -2,7 +2,9 @@ from __future__ import annotations
 
 import pandas as pd
 
+import project.research.gating as gating_module
 from project.core.stats import NeweyWestMeanResult
+from project.research.gating import calculate_expectancy_stats
 from project.research.helpers.shrinkage import (
     _apply_hierarchical_shrinkage,
     _asymmetric_tau_days,
@@ -11,8 +13,6 @@ from project.research.helpers.shrinkage import (
     _regime_conditioned_tau_days,
     _time_decay_weights,
 )
-from project.research.gating import calculate_expectancy_stats
-import project.research.gating as gating_module
 
 
 def _base_rows() -> pd.DataFrame:

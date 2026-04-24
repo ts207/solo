@@ -12,7 +12,6 @@ from project.core.constants import parse_horizon_bars
 from project.core.timeframes import normalize_timeframe, timeframe_to_minutes
 from project.io.utils import ensure_dir, write_parquet
 from project.research.gating import calculate_expectancy_stats
-from project.research.multiplicity import resolve_state_context_column
 from project.research.phase2 import load_features as _load_features_impl
 
 

@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 from project.core.config import get_data_root
 
 """Merge alpha signal components into a single training/apply table.
@@ -19,15 +20,14 @@ This file exists to keep fit/apply stages simple and deterministic.
 """
 
 import argparse
-import sys
 from pathlib import Path
-from typing import List, Optional
 
 import numpy as np
 import pandas as pd
+
+from project.core.validation import ensure_utc_timestamp
 from project.io.utils import ensure_dir, read_parquet, write_parquet
 from project.specs.manifest import finalize_manifest, start_manifest
-from project.core.validation import ensure_utc_timestamp
 
 
 def _read_signals_dir(path: Path) -> pd.DataFrame:

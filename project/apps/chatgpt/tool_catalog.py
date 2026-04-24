@@ -6,8 +6,8 @@ from project.apps.chatgpt.repo_only import REPO_TOOL_CATALOG
 from project.apps.chatgpt.resources import WIDGET_URI
 from project.apps.chatgpt.schemas import (
     CatalogListRunsInput,
-    CompareRunsInput,
     CodexOperatorInvokeInput,
+    CompareRunsInput,
     DiscoverRunInput,
     ListThesesInput,
     MemorySummaryInput,

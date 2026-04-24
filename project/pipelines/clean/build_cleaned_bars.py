@@ -1,5 +1,4 @@
 from __future__ import annotations
-from project.core.config import get_data_root
 
 import argparse
 import json
@@ -12,26 +11,17 @@ from typing import Dict, List, Tuple
 
 import numpy as np
 import pandas as pd
-from project.core.config import load_configs
-from project.io.utils import (
-    choose_partition_dir,
-    ensure_dir,
-    lake_cache_key,
-    list_parquet_files,
-    raw_dataset_dir_candidates,
-    read_cache_key,
-    read_parquet,
-    run_scoped_lake_path,
-    write_cache_key,
-    write_parquet,
-)
-from project.specs.manifest import (
-    finalize_manifest,
-    schema_hash_from_columns,
-    start_manifest,
-    validate_input_provenance,
-)
+
+from project.core.config import get_data_root
+from project.core.data_quality import summarize_frame_quality
 from project.core.logging_utils import build_stage_log_handlers
+from project.core.timeframes import (
+    bars_dataset_name,
+    normalize_timeframe,
+    ohlcv_dataset_name,
+    timeframe_to_minutes,
+    timeframe_to_pandas_freq,
+)
 from project.core.validation import (
     FUNDING_SCALE_NAME_TO_MULTIPLIER,
     assert_funding_event_grid,
@@ -41,18 +31,25 @@ from project.core.validation import (
     assert_ohlcv_schema,
     coerce_timestamps_to_hour,
     infer_and_apply_funding_scale,
-    is_constant_series,
 )
-from project.core.validation import validate_columns
-from project.core.data_quality import summarize_frame_quality
-from project.core.timeframes import (
-    bars_dataset_name,
-    normalize_timeframe,
-    ohlcv_dataset_name,
-    timeframe_to_minutes,
-    timeframe_to_pandas_freq,
+from project.io.utils import (
+    choose_partition_dir,
+    ensure_dir,
+    lake_cache_key,
+    list_parquet_files,
+    raw_dataset_dir_candidates,
+    read_parquet,
+    run_scoped_lake_path,
+    write_cache_key,
+    write_parquet,
 )
 from project.schemas.data_contracts import Cleaned5mBarsSchema
+from project.specs.manifest import (
+    finalize_manifest,
+    schema_hash_from_columns,
+    start_manifest,
+    validate_input_provenance,
+)
 
 FUNDING_EVENT_HOURS = 8
 FUNDING_MAX_STALENESS = pd.Timedelta(hours=8)

@@ -1,13 +1,12 @@
 import pandas as pd
-import pytest
-import numpy as np
 
 from project.events.detectors.liquidation_base import LiquidationCascadeDetectorV2
+
 
 def test_liquidation_cascade_detector_v2_shapes():
     detector = LiquidationCascadeDetectorV2()
     assert detector.event_name == "LIQUIDATION_CASCADE"
-    
+
     ts = pd.date_range("2024-01-01", periods=1000, freq="5min", tz="UTC")
     df = pd.DataFrame({
         "timestamp": ts,
@@ -18,7 +17,7 @@ def test_liquidation_cascade_detector_v2_shapes():
         "oi_delta_1h": [0.0] * 990 + [-100, -200, -300, -400, -500, -600, -700, -800, -900, -1000],
         "oi_notional": [10000.0] * 1000,
     })
-    
+
     events = detector.detect_events(df, {"symbol": "BTCUSDT", "timeframe": "5m", "liq_median_window": 20})
     assert not events.empty
     assert "event_name" in events.columns

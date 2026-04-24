@@ -5,7 +5,6 @@ import logging
 import shutil
 import sys
 from datetime import datetime, timedelta
-from pathlib import Path
 
 from project.core.config import get_data_root
 
@@ -46,7 +45,7 @@ def main() -> int:
 
     if args.full:
         dirs_to_clean = ["runs", "reports", "events", "lake/runs"]
-        
+
         if args.include_knowledge:
             dirs_to_clean.append("knowledge")
         if args.include_research:
@@ -55,7 +54,7 @@ def main() -> int:
             dirs_to_clean.append("artifacts")
         if args.include_lake_runs:
             dirs_to_clean.append("lake/runs")
-        
+
         deleted_count = 0
         for dir_name in dirs_to_clean:
             target_dir = data_root / dir_name
@@ -66,14 +65,14 @@ def main() -> int:
                         if not args.dry_run:
                             shutil.rmtree(sub_dir, ignore_errors=True)
                         deleted_count += 1
-        
+
         synthetic_test_dir = data_root / "synthetic" / "test_run"
         if args.include_synthetic_test and synthetic_test_dir.exists():
             logging.info(f"Deleting {synthetic_test_dir}")
             if not args.dry_run:
                 shutil.rmtree(synthetic_test_dir, ignore_errors=True)
             deleted_count += 1
-        
+
         if args.include_raw:
             raw_dir = data_root / "lake" / "raw"
             if raw_dir.exists():
@@ -95,12 +94,12 @@ def main() -> int:
                             if not args.dry_run:
                                 shutil.rmtree(sub, ignore_errors=True)
                             deleted_count += 1
-        
+
         if deleted_count == 0:
             logging.info("No data artifacts found to clean.")
         else:
             logging.info(f"Full clean removed {deleted_count} directories.")
-        
+
         return 0
 
     cutoff_date = datetime.now() - timedelta(days=args.days)

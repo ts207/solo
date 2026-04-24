@@ -1,6 +1,6 @@
-from project.events.policy import DEPLOYABLE_CORE_EVENT_TYPES
 from project.events.event_aliases import EVENT_ALIASES
 from project.events.governance import default_planning_event_ids, get_event_governance_metadata
+from project.events.policy import DEPLOYABLE_CORE_EVENT_TYPES
 from project.events.registry import (
     build_detector_migration_ledger_rows,
     build_detector_version_inventory_rows,
@@ -10,7 +10,6 @@ from project.events.registry import (
     list_v2_detectors,
     load_milestone_event_registry,
 )
-
 
 VALID_DETECTOR_BANDS = {"deployable_core", "research_trigger", "context_only", "composite_or_fragile"}
 REQUIRED_SPEC_GOVERNANCE_FIELDS = {

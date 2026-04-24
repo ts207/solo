@@ -9,6 +9,9 @@ import yaml
 
 from project.domain.hypotheses import HypothesisSpec, TriggerSpec
 from project.io.utils import read_parquet, write_parquet
+from project.research.cell_discovery import cells_service
+from project.research.cell_discovery.compiler import compile_cells
+from project.research.cell_discovery.data_feasibility import verify_data_contract
 from project.research.cell_discovery.models import (
     DataFeasibilityResult,
     DiscoveryRegistry,
@@ -16,9 +19,6 @@ from project.research.cell_discovery.models import (
     HorizonSet,
     RankingPolicy,
 )
-from project.research.cell_discovery import cells_service
-from project.research.cell_discovery.compiler import compile_cells
-from project.research.cell_discovery.data_feasibility import verify_data_contract
 from project.research.cell_discovery.paths import paths_for_run
 from project.research.cell_discovery.redundancy import build_redundancy_clusters
 from project.research.cell_discovery.registry import load_registry

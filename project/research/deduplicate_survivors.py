@@ -1,20 +1,17 @@
 from __future__ import annotations
-from project.core.config import get_data_root
 
 import argparse
-import json
 import sys
-from typing import Dict, List
 
 import pandas as pd
-import numpy as np
-from project import PROJECT_ROOT
 
-from project.io.utils import ensure_dir, read_parquet, write_parquet
-from project.specs.manifest import finalize_manifest, start_manifest
-from project.specs.utils import get_spec_hashes
+from project import PROJECT_ROOT
+from project.core.config import get_data_root
+from project.io.utils import write_parquet
 from project.research.evaluate_naive_entry import _condition_mask, _load_phase1_events
 from project.research.utils.decision_safety import fail_closed_bool
+from project.specs.manifest import finalize_manifest, start_manifest
+from project.specs.utils import get_spec_hashes
 
 
 def _calculate_jaccard(set_a: set, set_b: set) -> float:

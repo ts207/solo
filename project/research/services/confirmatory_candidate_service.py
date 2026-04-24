@@ -11,7 +11,6 @@ import pandas as pd
 from project.io.utils import read_parquet
 from project.research.services.pathing import resolve_phase2_candidates_path
 
-
 BASE_STRUCTURAL_KEY_COLUMNS = ["symbol", "event_type", "direction", "rule_template", "horizon"]
 STRICT_OPTIONAL_STRUCTURAL_KEY_COLUMNS = [
     "entry_lag_bars",

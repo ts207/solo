@@ -9,7 +9,6 @@ import pandas as pd
 
 from project.core.config import get_data_root
 from project.core.exceptions import DataIntegrityError
-from project.research.knowledge.memory import read_memory_table
 from project.research.validation.regime_tests import build_stability_result_from_row
 
 

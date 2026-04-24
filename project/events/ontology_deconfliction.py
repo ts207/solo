@@ -8,7 +8,6 @@ import pandas as pd
 from project.domain.compiled_registry import get_domain_registry
 from project.events.event_aliases import resolve_event_alias
 
-
 _ONTOLOGY_COLUMNS = [
     "raw_event_type",
     "canonical_regime",

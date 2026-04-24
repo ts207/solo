@@ -1,7 +1,7 @@
 import json
+from dataclasses import asdict, dataclass, field
 from pathlib import Path
-from dataclasses import dataclass, field, asdict
-from typing import Dict, List, Any
+from typing import Dict, List
 
 
 @dataclass

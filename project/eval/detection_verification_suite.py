@@ -4,11 +4,13 @@ Event detection verification suite.
 
 from __future__ import annotations
 
-import pandas as pd
+from typing import Any, Dict, List
+
 import numpy as np
-from typing import Dict, Any, List
-from project.events.families.volatility import VolSpikeDetector
+import pandas as pd
+
 from project.events.families.liquidity import LiquidityStressDetector
+from project.events.families.volatility import VolSpikeDetector
 
 
 class DetectionVerificationSuite:

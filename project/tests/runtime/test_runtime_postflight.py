@@ -3,10 +3,11 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
+from project.pipelines.pipeline_audit import (
+    apply_runtime_postflight_to_manifest,
+    run_runtime_postflight_audit,
+)
 from project.tests.conftest import PROJECT_ROOT
-
-from project.pipelines.pipeline_audit import apply_runtime_postflight_to_manifest
-from project.pipelines.pipeline_audit import run_runtime_postflight_audit
 
 
 def _write_events_csv(path: Path, rows: list[dict[str, object]]) -> None:

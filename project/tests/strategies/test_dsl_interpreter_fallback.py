@@ -1,5 +1,3 @@
-import pytest
-import types
 from unittest.mock import patch
 
 

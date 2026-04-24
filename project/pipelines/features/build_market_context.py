@@ -6,7 +6,6 @@ import logging
 import shutil
 import sys
 from pathlib import Path
-from typing import Dict, List
 
 import numpy as np
 import pandas as pd
@@ -27,15 +26,14 @@ from project.features.context_states import (
 )
 from project.features.funding_persistence import build_funding_persistence_state
 from project.io.utils import (
+    choose_partition_dir,
     ensure_dir,
     lake_cache_key,
     list_parquet_files,
-    read_cache_key,
     read_parquet,
     run_scoped_lake_path,
     write_cache_key,
     write_parquet,
-    choose_partition_dir,
 )
 from project.specs.manifest import finalize_manifest, start_manifest
 
@@ -359,7 +357,6 @@ def main() -> int:
     tf = args.timeframe
     market = args.market
 
-    from project.core.config import get_data_root
 
     data_root = get_data_root()
 

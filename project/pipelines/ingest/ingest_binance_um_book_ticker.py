@@ -1,19 +1,20 @@
 from __future__ import annotations
-from project.core.config import get_data_root
 
 import argparse
 import logging
 import sys
 import tempfile
 import time
+from concurrent.futures import ProcessPoolExecutor, as_completed
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Dict, List, Tuple
 from zipfile import ZipFile
-from concurrent.futures import ProcessPoolExecutor, as_completed
 
 import pandas as pd
 import requests
+
+from project.core.config import get_data_root
 
 try:
     import pyarrow as pa
@@ -23,10 +24,9 @@ try:
 except ImportError:
     HAS_PYARROW = False
 from project.io.http_utils import download_with_retries
+from project.io.url_utils import join_url
 from project.io.utils import ensure_dir
 from project.specs.manifest import finalize_manifest, start_manifest
-from project.io.url_utils import join_url
-from project.core.validation import ensure_utc_timestamp
 
 ARCHIVE_BASE = "https://data.binance.vision/data/futures/um"
 EARLIEST_UM_FUTURES = datetime(2019, 9, 1, tzinfo=timezone.utc)

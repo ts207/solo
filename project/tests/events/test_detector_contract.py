@@ -1,5 +1,6 @@
 import pandas as pd
 import pytest
+
 from project.events.detector_contract import DetectorContractError, DetectorLogicContract
 
 

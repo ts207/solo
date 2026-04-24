@@ -3,12 +3,12 @@ from __future__ import annotations
 import pytest
 
 from project.synthetic_truth.tools.temporal.event_chain import (
+    PRECEDENCE_CHAINS,
+    ChainProgress,
     ChainState,
     ChainStep,
-    ChainProgress,
     EventChain,
     EventChainEngine,
-    PRECEDENCE_CHAINS,
 )
 
 
@@ -83,12 +83,12 @@ class TestEventChainEngine:
                 ChainStep(event_type="EVENT_B"),
             ],
         )
-        
+
         engine = EventChainEngine([chain])
-        
+
         engine.process_event("EVENT_A", bar_index=10)
         progress = engine.get_chain_progress("ab")
-        
+
         assert len(progress) == 1
         assert progress[0].current_step == 1
         assert progress[0].state == ChainState.IN_PROGRESS
@@ -103,12 +103,12 @@ class TestEventChainEngine:
             ],
             min_chain_duration_bars=5,
         )
-        
+
         engine = EventChainEngine([chain])
-        
+
         engine.process_event("EVENT_A", bar_index=10)
         engine.process_event("EVENT_B", bar_index=20)
-        
+
         completed = engine.get_completed_chains()
         assert len(completed) == 1
         assert completed[0].state == ChainState.COMPLETED
@@ -122,11 +122,11 @@ class TestEventChainEngine:
                 ChainStep(event_type="EVENT_B"),
             ],
         )
-        
+
         engine = EventChainEngine([chain])
-        
+
         result = engine.process_event("EVENT_C", bar_index=10)
-        
+
         assert len(result) == 0
 
     def test_timeout_on_max_bar(self):
@@ -138,17 +138,17 @@ class TestEventChainEngine:
                 ChainStep(event_type="EVENT_B"),
             ],
         )
-        
+
         engine = EventChainEngine([chain])
-        
+
         engine.process_event("EVENT_A", bar_index=25)
-        
+
         progress = engine.get_chain_progress("ab")
         assert progress[0].state == ChainState.TIMEOUT
 
     def test_precedence_chains(self):
         engine = EventChainEngine(PRECEDENCE_CHAINS)
-        
+
         assert len(engine.chains) == 2
         assert "seq_liq_vacuum_then_depth_recovery" in engine.chains
         assert "seq_fnd_extreme_then_breakout" in engine.chains
@@ -166,13 +166,13 @@ class TestSequentialSyntheticEvents:
             ],
             min_chain_duration_bars=5,
         )
-        
+
         engine = EventChainEngine([chain])
-        
+
         engine.process_event("A", bar_index=10)
         engine.process_event("B", bar_index=20)
         engine.process_event("C", bar_index=30)
-        
+
         completed = engine.get_completed_chains()
         assert len(completed) == 1
         assert len(completed[0].triggered_events) == 3
@@ -186,11 +186,11 @@ class TestSequentialSyntheticEvents:
                 ChainStep(event_type="B"),
             ],
         )
-        
+
         engine = EventChainEngine([chain])
-        
+
         engine.process_event("B", bar_index=10)
-        
+
         progress = engine.get_chain_progress("ab")
         assert progress[0].current_step == 0
 

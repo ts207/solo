@@ -36,10 +36,10 @@ def _adjust(p_values: Iterable[float], method: str) -> np.ndarray:
     if n == 0:
         return arr
     arr = np.where(np.isfinite(arr), np.clip(arr, 0.0, 1.0), 1.0)
-    
+
     if method == "bh":
         return _canonical_bh_adjust(arr)
-    
+
     if method == "by":
         # Benjamini-Yekutieli (BY) adjustment
         # q = p * (m/i) * sum(1/j for j in 1..m)
@@ -53,7 +53,7 @@ def _adjust(p_values: Iterable[float], method: str) -> np.ndarray:
             min_p = min(min_p, q)
             adj[idx[i]] = min_p
         return np.clip(adj, 0.0, 1.0)
-    
+
     if method == "holm":
         # Holm-Bonferroni adjustment
         # q = p * (m - i + 1)
@@ -66,7 +66,7 @@ def _adjust(p_values: Iterable[float], method: str) -> np.ndarray:
             max_p = max(max_p, q)
             adj[idx[i]] = max_p
         return np.clip(adj, 0.0, 1.0)
-        
+
     raise ValueError(f"Unsupported correction method: {method}")
 
 

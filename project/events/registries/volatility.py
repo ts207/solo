@@ -12,7 +12,6 @@ from project.events.detectors.volatility_base import (
     VolSpikeDetectorV2,
 )
 
-
 VOLATILITY_DETECTORS = {
     "VOL_SPIKE": VolSpikeDetectorV2,
     "VOL_RELAXATION_START": VolRelaxationStartDetectorV2,

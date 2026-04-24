@@ -1,6 +1,6 @@
+from typing import Dict, List
+
 import pandas as pd
-import numpy as np
-from typing import List, Dict, Optional, Tuple
 
 
 def _normalize_gap_value(gap, sample_diff):

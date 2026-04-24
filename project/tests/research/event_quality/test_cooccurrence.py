@@ -1,7 +1,7 @@
 # tests/research/event_quality/test_cooccurrence.py
 import pandas as pd
-import numpy as np
 import pytest
+
 from project.research.event_quality.cooccurrence import compute_cooccurrence
 
 

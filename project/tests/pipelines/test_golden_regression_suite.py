@@ -5,13 +5,12 @@ import json
 import sys
 from pathlib import Path
 
-from project.tests.conftest import PROJECT_ROOT
-
 from project.core.golden_regression import (
     GoldenToleranceConfig,
     collect_core_artifact_snapshot,
     compare_golden_snapshots,
 )
+from project.tests.conftest import PROJECT_ROOT
 
 
 def _write_json(path: Path, payload: dict) -> None:

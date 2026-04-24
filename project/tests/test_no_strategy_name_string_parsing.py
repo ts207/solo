@@ -8,8 +8,8 @@ parsing should go through the centralized registry functions:
 - is_dsl_strategy()
 """
 
-from pathlib import Path
 import re
+from pathlib import Path
 
 # Forbidden patterns - these indicate string-based strategy name parsing
 FORBIDDEN = [

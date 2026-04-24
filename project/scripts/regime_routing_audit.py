@@ -4,7 +4,6 @@ import argparse
 import json
 from pathlib import Path
 
-from project import PROJECT_ROOT
 from project.research.regime_routing import validate_regime_routing_spec
 
 

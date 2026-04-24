@@ -5,8 +5,8 @@ from typing import Any, Dict, List, Optional
 
 from pydantic import BaseModel, Field
 
-from project.domain.compiled_registry import get_domain_registry
 from project.core.exceptions import ConfigurationError
+from project.domain.compiled_registry import get_domain_registry
 
 
 class TemplateParameter(BaseModel):

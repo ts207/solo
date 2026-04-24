@@ -21,47 +21,46 @@ from __future__ import annotations
 
 import json
 import math
-from pathlib import Path
 from typing import Any, Dict
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
 
 import numpy as np
 import pandas as pd
 import pytest
+
 from project.core.exceptions import DataIntegrityError
+from project.portfolio.allocation_spec import AllocationSpec, SizingPolicySpec
+
+# ---------------------------------------------------------------------------
+# Phase 4.4 imports
+# ---------------------------------------------------------------------------
+from project.research.compile_strategy_blueprints import (
+    _build_allocation_spec,
+    _check_marginal_contribution,
+    _resolve_sizing_inputs,
+)
 
 # ---------------------------------------------------------------------------
 # Phase 4.2 imports
 # ---------------------------------------------------------------------------
 from project.research.phase2_search_engine import (
-    _write_regime_conditional_candidates,
     _REGIME_CANDIDATE_COLUMNS,
-)
-from project.research.update_campaign_memory import (
-    _build_belief_state,
-    _build_next_actions,
-    _load_regime_conditional_candidates,
+    _write_regime_conditional_candidates,
 )
 
 # ---------------------------------------------------------------------------
 # Phase 4.3 imports
 # ---------------------------------------------------------------------------
 from project.research.promotion.promotion_scoring import (
-    _count_context_dimensions,
     _context_complexity_penalty,
+    _count_context_dimensions,
     stability_score,
 )
-
-# ---------------------------------------------------------------------------
-# Phase 4.4 imports
-# ---------------------------------------------------------------------------
-from project.research.compile_strategy_blueprints import (
-    _resolve_sizing_inputs,
-    _check_marginal_contribution,
-    _build_allocation_spec,
+from project.research.update_campaign_memory import (
+    _build_belief_state,
+    _build_next_actions,
+    _load_regime_conditional_candidates,
 )
-from project.portfolio.allocation_spec import SizingPolicySpec, AllocationSpec
-
 
 # ===========================================================================
 # Phase 4.2 — _write_regime_conditional_candidates

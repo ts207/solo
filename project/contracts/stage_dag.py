@@ -7,6 +7,8 @@ from typing import List, Sequence
 from project.contracts.pipeline_registry import (
     STAGE_FAMILY_REGISTRY,
     StageSpec,
+)
+from project.contracts.pipeline_registry import (
     validate_stage_plan_contract as _validate_stage_plan_contract,
 )
 

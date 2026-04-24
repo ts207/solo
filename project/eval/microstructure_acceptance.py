@@ -1,9 +1,10 @@
-from project.core.config import get_data_root
 import sys
+from typing import Any, Dict
+
 import pandas as pd
-import numpy as np
-from typing import Dict, Any
+
 from project.spec_registry import load_concept_spec
+
 
 def __getattr__(name):
     if name == "DATA_ROOT":
@@ -12,8 +13,8 @@ def __getattr__(name):
     raise AttributeError(f"module {__name__} has no attribute {name}")
 
 from project.features.microstructure import (
-    calculate_roll_spread,
     calculate_amihud_illiquidity,
+    calculate_roll_spread,
     calculate_vpin,
 )
 from project.io.utils import list_parquet_files, read_parquet

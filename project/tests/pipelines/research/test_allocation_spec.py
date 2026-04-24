@@ -2,8 +2,8 @@ from __future__ import annotations
 
 import json
 
-from project.research import compile_strategy_blueprints as compiler
 from project.portfolio.allocation_spec import AllocationSpec
+from project.research import compile_strategy_blueprints as compiler
 from project.strategy.dsl.schema import (
     Blueprint,
     EntrySpec,

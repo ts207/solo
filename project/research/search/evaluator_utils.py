@@ -7,18 +7,18 @@ Broken out from evaluator.py to avoid circular imports.
 from __future__ import annotations
 
 import logging
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, Optional, Tuple
 
 import numpy as np
 import pandas as pd
 
+from project.core.column_registry import ColumnRegistry
 from project.core.constants import parse_horizon_bars
-from project.research.direction_semantics import normalize_side_policy, resolve_effect_sign
 from project.domain.compiled_registry import get_domain_registry
 from project.domain.hypotheses import HypothesisSpec, TriggerType
-from project.core.column_registry import ColumnRegistry
 from project.events.event_specs import EVENT_REGISTRY_SPECS
 from project.research.context_labels import canonicalize_context_label, expand_dimension_values
+from project.research.direction_semantics import normalize_side_policy, resolve_effect_sign
 
 log = logging.getLogger(__name__)
 
@@ -147,25 +147,25 @@ def trigger_mask(spec: HypothesisSpec, features: pd.DataFrame) -> pd.Series:
         if from_col and to_col:
             was_from_vals = pd.to_numeric(features[from_col], errors="coerce")
             is_to_vals = pd.to_numeric(features[to_col], errors="coerce")
-            
+
             # Sprint 2: Strict transition semantics.
             # Require both previous and current state data to exist (no implicit fallback).
-            # was_from.shift(1) will have NaN at index 0. 
+            # was_from.shift(1) will have NaN at index 0.
             # We must ensure we don't treat NaN as "not from_state" or anything else.
-            
+
             was_from_raw = (was_from_vals == 1)
             is_to_raw = (is_to_vals == 1)
-            
-            # shift(1) makes the first element NaN. 
+
+            # shift(1) makes the first element NaN.
             # In Sprint 2, we must NOT fire at index 0 because history is missing.
-            # .fillna(False) on the result of & with shifted values is okay IF 
+            # .fillna(False) on the result of & with shifted values is okay IF
             # we are sure shift(1) correctly represents the lack of history.
-            
+
             was_from_shifted = was_from_raw.shift(1)
-            
+
             # Explicitly require history: first bar can never be a transition onset.
             return (was_from_shifted == True) & (is_to_raw == True)
-        
+
         log.debug(
             "Transition columns for %r→%r not found in features",
             t.from_state,

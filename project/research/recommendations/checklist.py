@@ -1,8 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, Dict, List, Optional
-from pathlib import Path
-import pandas as pd
+from typing import Any, Dict, List
 
 
 def gate_result(

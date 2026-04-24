@@ -11,8 +11,8 @@ from typing import Any
 import anyio
 import pandas as pd
 
-from project.artifacts import run_manifest_path
 from project.apps.chatgpt import handler_utils as _handler_utils
+from project.artifacts import run_manifest_path
 from project.operator.preflight import run_preflight
 from project.operator.proposal_tools import explain_proposal, lint_proposal
 from project.operator.stability import (

@@ -1,8 +1,11 @@
 from __future__ import annotations
+
+from typing import Dict
+
 import numpy as np
 import pandas as pd
+
 from project.core.constants import BARS_PER_YEAR_BY_TIMEFRAME
-from typing import Dict
 
 BARS_PER_YEAR = BARS_PER_YEAR_BY_TIMEFRAME["5m"]  # 5m bars
 

@@ -1,9 +1,8 @@
 from __future__ import annotations
 
 import logging
-from typing import Dict, List, Any
+from typing import Any, Dict, List
 
-import numpy as np
 import pandas as pd
 
 log = logging.getLogger(__name__)
@@ -22,21 +21,21 @@ def extract_excursions(
     """
     if features.empty or not target_columns:
         return pd.DataFrame()
-        
+
     excursion_masks = {}
-    
+
     for col in target_columns:
         if col not in features.columns:
             continue
-            
+
         series = pd.to_numeric(features[col], errors="coerce").fillna(0.0)
         # Assuming these are pre-normalized, but compute a rolling/expanding Z just in case
         roll_mean = series.rolling(288, min_periods=20).mean()
         roll_std = series.rolling(288, min_periods=20).std().replace(0, 1e-9)
         z_scores = (series - roll_mean) / roll_std
-        
+
         mask = (z_scores >= threshold_z).fillna(False)
-        
+
         if min_persistence > 1:
             # Shift windows forward to check consecutive bars
             persisted = mask.copy()
@@ -83,7 +82,7 @@ def cluster_excursions(
     for sig_idx, (sig_tuple, count) in enumerate(valid_clusters.items(), start=1):
         if not sig_tuple:
             continue
-        
+
         cluster_id = f"CLUSTER_{sig_idx:03d}_{'_'.join([f.split('_')[0] for f in sig_tuple])}"
         clusters.append({
             "candidate_cluster_id": cluster_id,

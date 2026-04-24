@@ -7,9 +7,8 @@ import numpy as np
 import pandas as pd
 
 from project.contracts.temporal_contracts import TemporalContract
-from project.core.causal_primitives import trailing_quantile, trailing_median
+from project.core.causal_primitives import trailing_median, trailing_quantile
 from project.events.shared import (
-    EVENT_COLUMNS,
     emit_event,
     format_event_id,
 )

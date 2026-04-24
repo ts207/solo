@@ -3,14 +3,10 @@ from __future__ import annotations
 import json
 import logging
 from pathlib import Path
-from typing import Dict, Any, Optional
+from typing import Any, Dict
 
-import numpy as np
-import pandas as pd
-
-from project.core.execution_costs import estimate_transaction_cost_bps
-from project.engine.fills import OrderUrgency, ExecutionProfile, calculate_fill_probability
-from project.engine.slippage import calculate_slippage_bps, calculate_fill_price
+from project.engine.fills import ExecutionProfile, OrderUrgency, calculate_fill_probability
+from project.engine.slippage import calculate_fill_price, calculate_slippage_bps
 
 _LOG = logging.getLogger(__name__)
 

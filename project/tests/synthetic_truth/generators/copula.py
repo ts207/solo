@@ -1,8 +1,8 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
-from typing import Literal, Optional
 import math
+from dataclasses import dataclass
+from typing import Literal
 
 import numpy as np
 import pandas as pd
@@ -39,35 +39,35 @@ class GaussianCopulaGenerator(BaseGenerator):
 
     def _generate_correlated_pair(self, config: CopulaConfig) -> pd.DataFrame:
         rng = np.random.default_rng(config.seed)
-        
+
         mean = [0, 0]
         cov = [[1, config.rho], [config.rho, 1]]
         samples = rng.multivariate_normal(mean, cov, size=config.n_samples)
-        
+
         x = samples[:, 0]
         y = samples[:, 1]
-        
+
         u = pd.Series(self._norm_cdf(x))
         v = pd.Series(self._norm_cdf(y))
-        
+
         price_a = 100 * np.exp(np.cumsum(x * 0.01))
         price_b = 100 * np.exp(np.cumsum(y * 0.01))
-        
+
         spread = (price_b / price_a) - 1.0
-        
+
         spread_mean = spread.mean()
         spread_std = spread.std()
         spread_zscore = (spread - spread_mean) / (spread_std if spread_std > 0 else 1)
-        
+
         df = pd.DataFrame({
             "close_a": price_a,
             "close_b": price_b,
             "spread": spread,
             "spread_zscore": spread_zscore,
         })
-        
+
         df = self._ensure_timestamp(df, GeneratorConfig(n_bars=len(df)))
-        
+
         return df
 
     def _norm_cdf(self, x: np.ndarray) -> np.ndarray:
@@ -78,46 +78,46 @@ class GaussianCopulaGenerator(BaseGenerator):
 
     def inject_decoupled_regime(self, df: pd.DataFrame, config: CopulaConfig) -> pd.DataFrame:
         df = df.copy()
-        
+
         rng = np.random.default_rng(config.seed + 100)
         noise = rng.normal(0, 0.02, len(df))
-        
+
         df["close_b"] = df["close_b"] * (1 + noise)
-        
+
         spread = (df["close_b"] / df["close_a"]) - 1.0
         df["spread"] = spread
         df["spread_zscore"] = (spread - spread.mean()) / (spread.std() if spread.std() > 0 else 1)
-        
+
         return df
 
     def inject_lagged_reaction(self, df: pd.DataFrame, config: CopulaConfig) -> pd.DataFrame:
         df = df.copy()
-        
+
         lag = 5
         df["close_b"] = df["close_b"].shift(lag).fillna(df["close_b"].iloc[0])
-        
+
         spread = (df["close_b"] / df["close_a"]) - 1.0
         df["spread"] = spread
         df["spread_zscore"] = (spread - spread.mean()) / (spread.std() if spread.std() > 0 else 1)
-        
+
         return df
 
     def inject_correlation_breakdown(self, df: pd.DataFrame, config: CopulaConfig) -> pd.DataFrame:
         df = df.copy()
-        
+
         break_point = config.correlation_break_point
-        
+
         rng = np.random.default_rng(config.seed + 200)
         post_break_noise = rng.normal(0, 0.05, len(df) - break_point)
-        
+
         df.loc[break_point:, "close_b"] = (
             df["close_b"].iloc[break_point:].values * (1 + post_break_noise)
         )
-        
+
         spread = (df["close_b"] / df["close_a"]) - 1.0
         df["spread"] = spread
         df["spread_zscore"] = (spread - spread.mean()) / (spread.std() if spread.std() > 0 else 1)
-        
+
         return df
 
 
@@ -140,16 +140,16 @@ class CopulaScenarioSpec:
             regime=self.regime,
             correlation_break_point=self.injection_point,
         )
-        
+
         df = gen._generate_correlated_pair(copula_config)
-        
+
         if self.regime == "decoupled":
             df = gen.inject_decoupled_regime(df, copula_config)
         elif self.regime == "lagged":
             df = gen.inject_lagged_reaction(df, copula_config)
         elif self.regime == "breakdown":
             df = gen.inject_correlation_breakdown(df, copula_config)
-        
+
         return df
 
 

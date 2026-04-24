@@ -13,6 +13,7 @@ Low IG (near 0) indicates the event fires independently of future returns.
 from __future__ import annotations
 
 import re
+
 import numpy as np
 import pandas as pd
 from scipy.stats import entropy as scipy_entropy

@@ -17,9 +17,6 @@ from project.research.agent_io.hypothesis_contract import (
     TemplateSpec,
     normalize_structured_proposal,
     validate_structured_hypothesis_for_execution,
-    UNSUPPORTED_STATE_ANCHOR_EXECUTION,
-    UNSUPPORTED_SAMPLING_POLICY_EXECUTION,
-    STATE_ANCHOR_LEGACY_EXECUTION_ONLY,
 )
 from project.research.context_labels import canonicalize_contexts
 from project.research.knowledge.knobs import build_agent_knob_rows

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+
 class TestPolicyDomainParity:
     def test_deployable_core_policy_matches_compiled_domain(self):
         from project.events.policy import assert_policy_domain_parity

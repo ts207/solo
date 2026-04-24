@@ -3,8 +3,8 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Dict
 
-from project.events.event_specs import EVENT_REGISTRY_SPECS
 from project.core.feature_capabilities import has_feature_family, resolve_feature_loader
+from project.events.event_specs import EVENT_REGISTRY_SPECS
 
 
 def check_event_prerequisites(

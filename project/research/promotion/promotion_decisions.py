@@ -6,8 +6,8 @@ from typing import Any, Dict
 import numpy as np
 
 from project.core.coercion import as_bool
-from project.events.governance import promotion_event_metadata
 from project.core.exceptions import PromotionDecisionError
+from project.events.governance import promotion_event_metadata
 from project.research.promotion.promotion_decision_support import (
     _apply_bundle_policy_result,
     _evaluate_continuation_quality,
@@ -28,7 +28,6 @@ from project.research.validation.evidence_bundle import (
     evaluate_promotion_bundle,
     validate_evidence_bundle,
 )
-
 
 _CELL_ORIGIN_MODE = "edge_cells"
 _CELL_ORIGIN_MAX_COMPLEXITY_PENALTY = 0.20

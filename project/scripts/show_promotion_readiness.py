@@ -3,14 +3,14 @@ from __future__ import annotations
 import argparse
 import json
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict
 
 from project.core.config import get_data_root
 from project.core.exceptions import DataIntegrityError
 from project.research.services.promotion_readiness_service import (
     build_promotion_readiness_report,
-    render_promotion_readiness_terminal,
     render_promotion_readiness_markdown,
+    render_promotion_readiness_terminal,
 )
 
 

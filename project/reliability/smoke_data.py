@@ -3,36 +3,30 @@ from __future__ import annotations
 import hashlib
 import json
 import os
-import platform
 import sys
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Dict, Iterable, List
-
+from typing import Any, Dict, List
 
 import numpy as np
 import pandas as pd
 
-from project.core.config import get_data_root
 from project.core.feature_schema import feature_dataset_dir_name
 from project.engine.runner import run_engine
 from project.io.utils import ensure_dir, write_parquet
-from project.research.cli.promotion_cli import run_promotion_cli
+from project.reliability.manifest_checks import summarize_manifest_environment
+from project.reliability.schemas import SMOKE_DATASET_VERSION
 from project.research.candidate_schema import ensure_candidate_schema
+from project.research.cli.promotion_cli import run_promotion_cli
 from project.research.discovery import _synthesize_registry_candidates
+from project.research.regime_routing import annotate_regime_metadata
 from project.research.services.candidate_discovery_service import (
     _apply_validation_multiple_testing,
     _split_and_score_candidates,
 )
-from project.research.regime_routing import annotate_regime_metadata
 from project.research.services.reporting_service import write_candidate_reports
-from project.research.validation import assign_test_families, apply_multiple_testing
-from project.research.validation.evidence_bundle import bundle_to_flat_record
 from project.specs.ontology import ontology_spec_hash
-from project.reliability.manifest_checks import summarize_manifest_environment
-from project.reliability.schemas import SMOKE_DATASET_VERSION
-
 
 SMOKE_RUN_ID = "smoke_run"
 SMOKE_SYMBOLS = ("BTCUSDT", "ETHUSDT")
@@ -191,12 +185,12 @@ def build_smoke_dataset(
 def run_engine_smoke(dataset: SmokeDatasetInfo) -> Dict[str, Any]:
     from project.strategy.dsl.schema import (
         Blueprint,
-        SymbolScopeSpec,
         EntrySpec,
-        ExitSpec,
-        SizingSpec,
-        LineageSpec,
         EvaluationSpec,
+        ExitSpec,
+        LineageSpec,
+        SizingSpec,
+        SymbolScopeSpec,
     )
 
     bp = Blueprint(

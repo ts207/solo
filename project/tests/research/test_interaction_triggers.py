@@ -1,6 +1,6 @@
 import pandas as pd
-import pytest
-from project.events.interaction_analyzer import detect_interactions, InteractionOp
+
+from project.events.interaction_analyzer import InteractionOp, detect_interactions
 
 
 def test_detect_interactions_confirm():

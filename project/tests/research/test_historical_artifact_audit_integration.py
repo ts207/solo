@@ -3,20 +3,18 @@ from __future__ import annotations
 
 import json
 import tempfile
-from datetime import datetime, timezone
 from pathlib import Path
 
 import pandas as pd
 import pytest
 
 from project.research.audit_historical_artifacts import (
-    ArtifactInventoryRow,
     AuditInventoryResult,
     build_run_historical_trust_summary,
+    rewrite_audit_stamp_sidecars,
     scan_historical_artifacts,
     write_artifact_audit_stamp_sidecar,
     write_audit_inventory,
-    rewrite_audit_stamp_sidecars,
 )
 from project.research.contracts.historical_trust import (
     HISTORICAL_TRUST_LEGACY,
@@ -26,11 +24,9 @@ from project.research.contracts.historical_trust import (
 )
 from project.research.contracts.stat_regime import (
     AUDIT_STATUS_CURRENT,
-    AUDIT_STATUS_LEGACY,
     AUDIT_STATUS_MANUAL_REVIEW_REQUIRED,
     AUDIT_STATUS_UNKNOWN,
     STAT_REGIME_POST_AUDIT,
-    STAT_REGIME_PRE_AUDIT,
     STAT_REGIME_UNKNOWN,
 )
 
@@ -211,7 +207,10 @@ class TestWriteAuditInventory:
 
 class TestWriteArtifactAuditStampSidecar:
     def test_write_sidecar(self, temp_data_root):
-        from project.research.contracts.stat_regime import ArtifactAuditStamp, ARTIFACT_AUDIT_VERSION_PHASE1_V1
+        from project.research.contracts.stat_regime import (
+            ARTIFACT_AUDIT_VERSION_PHASE1_V1,
+            ArtifactAuditStamp,
+        )
         artifact_path = temp_data_root / "test_artifact.parquet"
         artifact_path.write_bytes(b"")
         stamp = ArtifactAuditStamp(

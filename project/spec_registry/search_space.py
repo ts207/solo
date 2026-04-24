@@ -113,26 +113,26 @@ def _parse_annotation_line(line: str) -> Optional[Tuple[str, float]]:
 
     # Strip "- "
     content = stripped[2:].strip()
-    
+
     # Split comment
     if "#" in content:
         code_part, comment_part = content.split("#", 1)
     else:
         # Valid event but no comment -> no annotation.
-        # We might want to warn if we expect ALL events to be annotated, 
+        # We might want to warn if we expect ALL events to be annotated,
         # but for now, we just skip it (default weight applies).
         return None
-        
+
     code_part = code_part.strip()
     comment_part = comment_part.strip()
-    
+
     # Extract ID: take the first token, strip trailing colon
     tokens = code_part.split()
     if not tokens:
         return None
-        
+
     event_id = tokens[0].rstrip(":")
-    
+
     # Verify ID format (alphanumeric + underscore) to avoid garbage
     if not re.match(r"^[A-Z0-9_]+$", event_id):
         # Could be a complex structure or invalid ID

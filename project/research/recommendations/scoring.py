@@ -1,9 +1,10 @@
 from __future__ import annotations
 
+from typing import Any, Dict
+
 import pandas as pd
-import numpy as np
-from typing import Dict, Any, List, Optional
-from project.core.coercion import safe_float, as_bool
+
+from project.core.coercion import safe_float
 from project.research.recommendations.checklist import gate_result
 
 

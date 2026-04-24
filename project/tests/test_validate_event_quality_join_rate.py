@@ -18,7 +18,6 @@ import pandas as pd
 import pytest
 
 # Allow importing from project/ without installing the package.
-
 from project.research.validate_event_quality import _compute_join_rate
 
 # ---------------------------------------------------------------------------

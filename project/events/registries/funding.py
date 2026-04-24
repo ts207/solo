@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from project.events.detectors.funding import FundingDetector
 from project.events.detectors.positioning_base import (
     FundingExtremeOnsetDetectorV2,
     FundingFlipDetectorV2,
@@ -8,7 +7,6 @@ from project.events.detectors.positioning_base import (
     FundingPersistenceDetectorV2,
 )
 from project.events.detectors.registry import register_detector
-
 
 FUNDING_DETECTORS = {
     "FUNDING_EXTREME_ONSET": FundingExtremeOnsetDetectorV2,

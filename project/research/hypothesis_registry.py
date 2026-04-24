@@ -1,16 +1,16 @@
 from __future__ import annotations
 
 import hashlib
-import json
-from dataclasses import dataclass, asdict
+from dataclasses import asdict, dataclass
 from functools import lru_cache
 from pathlib import Path
-from typing import Dict, List, Any, Optional
+from typing import Any, Dict, List
 
 import pandas as pd
+
+from project.domain.hypotheses import HypothesisSpec, TriggerSpec
 from project.io.utils import write_parquet
 from project.spec_registry import load_unified_event_registry
-from project.domain.hypotheses import HypothesisSpec, TriggerSpec
 
 
 @dataclass(frozen=True)

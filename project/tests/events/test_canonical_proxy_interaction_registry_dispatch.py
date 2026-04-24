@@ -1,16 +1,6 @@
 from __future__ import annotations
 
-import pytest
-
 from project.events.detectors.registry import get_detector_class
-from project.events.registries.canonical_proxy import (
-    CANONICAL_PROXY_EVENT_TYPES,
-    get_canonical_proxy_detectors,
-)
-from project.events.registries.interaction import (
-    STATIC_INTERACTION_EVENT_TYPES,
-    get_static_interaction_detectors,
-)
 from project.events.families.canonical_proxy import (
     AbsorptionProxyDetector,
     DepthCollapseDetector,
@@ -19,6 +9,14 @@ from project.events.families.canonical_proxy import (
     PriceVolImbalanceProxyDetector,
     SweepStopRunDetector,
     WickReversalProxyDetector,
+)
+from project.events.registries.canonical_proxy import (
+    CANONICAL_PROXY_EVENT_TYPES,
+    get_canonical_proxy_detectors,
+)
+from project.events.registries.interaction import (
+    STATIC_INTERACTION_EVENT_TYPES,
+    get_static_interaction_detectors,
 )
 
 
@@ -72,6 +70,7 @@ def test_interaction_family_no_register_detector_drift() -> None:
 
 def test_canonical_proxy_no_inline_register_detector_call() -> None:
     import inspect
+
     from project.events.families import canonical_proxy
     source = inspect.getsource(canonical_proxy)
     assert "register_detector(et, cls)" not in source
@@ -80,6 +79,7 @@ def test_canonical_proxy_no_inline_register_detector_call() -> None:
 
 def test_interaction_no_inline_register_detector_call() -> None:
     import inspect
+
     from project.events.families import interaction
     source = inspect.getsource(interaction)
     assert "register_detector(et, cls)" not in source
@@ -88,6 +88,7 @@ def test_interaction_no_inline_register_detector_call() -> None:
 
 def test_regime_no_inline_register_detector_call() -> None:
     import inspect
+
     from project.events.families import regime
     source = inspect.getsource(regime)
     assert "register_detector(et, cls)" not in source
@@ -96,8 +97,9 @@ def test_regime_no_inline_register_detector_call() -> None:
 
 def test_all_families_have_no_inline_register_detector() -> None:
     import inspect
-    import project.events.families as fam_pkg
     import pkgutil
+
+    import project.events.families as fam_pkg
     family_modules = [
         name
         for _, name, _ in pkgutil.iter_modules(fam_pkg.__path__)

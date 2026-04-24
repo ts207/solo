@@ -6,8 +6,6 @@ import sys
 from pathlib import Path
 from typing import Any
 
-import pandas as pd
-
 from project.operator.run_semantics import classify_terminal_status
 from project.research.reports import write_operator_outputs_for_run
 
@@ -267,7 +265,7 @@ def finalize_successful_run(
     semantics = classify_terminal_status(run_id=run_id, manifest=run_manifest, data_root=data_root)
     run_manifest.update({k: v for k, v in semantics.items() if k != "reflection"})
     maybe_emit_run_hash(run_manifest)
-    
+
     # Run Validation Stage
     if data_root is not None:
         try:
@@ -275,17 +273,17 @@ def finalize_successful_run(
                 ValidationService,
                 select_stage_candidate_table,
             )
-            
+
             val_svc = ValidationService(data_root=data_root)
             tables = val_svc.load_candidate_tables(run_id)
-            
+
             # Validation should consume upstream stage candidates, not promotion artifacts.
             candidates_df = select_stage_candidate_table(tables)
-            
+
             if not candidates_df.empty:
                 bundle = val_svc.run_validation_stage(
-                    run_id=run_id, 
-                    candidates_df=candidates_df, 
+                    run_id=run_id,
+                    candidates_df=candidates_df,
                     program_id=str(run_manifest.get("program_id", "")) or None
                 )
                 run_manifest["validation_status"] = "completed"

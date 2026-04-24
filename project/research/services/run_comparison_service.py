@@ -11,7 +11,6 @@ from project.artifacts import phase2_diagnostics_path
 from project.core.exceptions import DataIntegrityError
 from project.io.utils import read_parquet as read_logical_parquet
 
-
 DEFAULT_DRIFT_THRESHOLDS: Dict[str, float] = {
     "max_phase2_candidate_count_delta_abs": 10.0,
     "max_phase2_survivor_count_delta_abs": 2.0,

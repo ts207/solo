@@ -22,20 +22,19 @@ from project.events.thresholding import (
     rolling_robust_zscore,
     rolling_vol_regime_factor,
 )
-from project.features.rolling_thresholds import lagged_rolling_quantile
 from project.features import context_states as cs
 from project.features import funding_persistence as fp
 from project.features import liquidity_vacuum as lv
 from project.features import microstructure as ms
 from project.features import vol_regime as vr
 from project.features import vol_shock_relaxation as vsr
+from project.features.rolling_thresholds import lagged_rolling_quantile
 from project.reliability.temporal_invariance import (
+    STANDARD_PERTURBATIONS,
     InvarianceCheckSpec,
     PerturbationSpec,
-    STANDARD_PERTURBATIONS,
     assert_future_invariance,
 )
-
 
 RNG = np.random.default_rng(7)
 

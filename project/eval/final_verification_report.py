@@ -6,8 +6,9 @@ Combines feature and detection verification results.
 from __future__ import annotations
 
 import pandas as pd
-from project.eval.feature_verification_suite import run_feature_verification
+
 from project.eval.detection_verification_suite import run_detection_verification
+from project.eval.feature_verification_suite import run_feature_verification
 
 
 def generate_final_verification_report() -> pd.DataFrame:

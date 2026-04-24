@@ -5,8 +5,10 @@ from typing import Any
 
 from project.research.cell_discovery.cells_service import (
     assemble_cell_theses,
+    coverage_audit,
     plan_cells,
     run_cells,
+    spec_audit,
     summarize_cells,
     verify_data,
 )
@@ -14,6 +16,18 @@ from project.research.cell_discovery.cells_service import (
 
 def run_from_namespace(args: argparse.Namespace) -> dict[str, Any]:
     action = str(getattr(args, "cells_action", "")).strip()
+    if action == "coverage-audit":
+        return coverage_audit(
+            spec_root=args.spec_root,
+            search_spec=args.search_spec,
+            event_registry=args.event_registry,
+        )
+    if action == "spec-audit":
+        return spec_audit(
+            spec_dir=args.spec_dir,
+            template_registry=args.template_registry,
+            verify_report=args.verify_report,
+        )
     if action == "verify-data":
         return verify_data(
             run_id=args.run_id,

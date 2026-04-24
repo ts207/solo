@@ -6,7 +6,6 @@ from pydantic import BaseModel, ConfigDict, Field
 
 from project.strategy.dsl.schema import Blueprint
 
-
 EXECUTABLE_STRATEGY_SPEC_VERSION = "executable_strategy_spec_v1"
 
 

@@ -29,7 +29,6 @@ from project.research.knowledge.concept_ledger import (
     summarize_lineage_history,
 )
 
-
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
@@ -416,14 +415,14 @@ class TestLedgerScoring:
         assert (result["ledger_multiplicity_penalty"] == 0.0).all()
 
     def test_high_history_positive_penalty(self, tmp_path):
+        from project.research.knowledge.concept_ledger import build_concept_lineage_key
         from project.research.services.candidate_discovery_scoring import (
             apply_ledger_multiplicity_correction,
         )
-        from project.research.knowledge.concept_ledger import build_concept_lineage_key
         # Pre-populate ledger with many failures - use the key that build_concept_lineage_key produces
         ledger_path = default_ledger_path(tmp_path)
         ledger_path.parent.mkdir(parents=True, exist_ok=True)
-        
+
         # Build the key the same way the correction function will
         candidate_row = {
             'event_type': 'VOL_SHOCK',
@@ -435,7 +434,7 @@ class TestLedgerScoring:
             'symbol': 'BTCUSDT',
         }
         key = build_concept_lineage_key(candidate_row)
-        
+
         rows = [_make_ledger_row(key, run_id=f"hist_{i}", is_discovery=False) for i in range(25)]
         pd.DataFrame(rows).reindex(columns=CONCEPT_LEDGER_COLUMNS).to_parquet(ledger_path, index=False)
 
@@ -450,14 +449,14 @@ class TestLedgerScoring:
         assert (result["ledger_multiplicity_penalty"] > 0).all()
 
     def test_current_run_excluded_from_ledger(self, tmp_path):
+        from project.research.knowledge.concept_ledger import build_concept_lineage_key
         from project.research.services.candidate_discovery_scoring import (
             apply_ledger_multiplicity_correction,
         )
-        from project.research.knowledge.concept_ledger import build_concept_lineage_key
         # Populate ledger with records from the CURRENT run only
         ledger_path = default_ledger_path(tmp_path)
         ledger_path.parent.mkdir(parents=True, exist_ok=True)
-        
+
         candidate_row = {
             'event_type': 'VOL_SHOCK',
             'event_family': 'VOL_SHOCK',
@@ -468,7 +467,7 @@ class TestLedgerScoring:
             'symbol': 'BTCUSDT',
         }
         key = build_concept_lineage_key(candidate_row)
-        
+
         rows = [_make_ledger_row(key, run_id="current_run", is_discovery=False) for i in range(30)]
         pd.DataFrame(rows).reindex(columns=CONCEPT_LEDGER_COLUMNS).to_parquet(ledger_path, index=False)
 
@@ -483,13 +482,13 @@ class TestLedgerScoring:
         assert (result["ledger_multiplicity_penalty"] == 0.0).all()
 
     def test_crowded_lineage_reason_code(self, tmp_path):
+        from project.research.knowledge.concept_ledger import build_concept_lineage_key
         from project.research.services.candidate_discovery_scoring import (
             apply_ledger_multiplicity_correction,
         )
-        from project.research.knowledge.concept_ledger import build_concept_lineage_key
         ledger_path = default_ledger_path(tmp_path)
         ledger_path.parent.mkdir(parents=True, exist_ok=True)
-        
+
         candidate_row = {
             'event_type': 'VOL_SHOCK',
             'event_family': 'VOL_SHOCK',
@@ -500,7 +499,7 @@ class TestLedgerScoring:
             'symbol': 'BTCUSDT',
         }
         key = build_concept_lineage_key(candidate_row)
-        
+
         rows = [_make_ledger_row(key, run_id=f"r{i}", is_discovery=False) for i in range(25)]
         pd.DataFrame(rows).reindex(columns=CONCEPT_LEDGER_COLUMNS).to_parquet(ledger_path, index=False)
 
@@ -636,10 +635,10 @@ class TestLedgerDiagnostics:
 
 class TestIntegrationLedgerAccumulation:
     def test_second_run_sees_prior_burden(self, tmp_path):
+        from project.research.knowledge.concept_ledger import build_concept_lineage_key
         from project.research.services.candidate_discovery_scoring import (
             apply_ledger_multiplicity_correction,
         )
-        from project.research.knowledge.concept_ledger import build_concept_lineage_key
 
         ledger_path = default_ledger_path(tmp_path)
         ledger_path.parent.mkdir(parents=True, exist_ok=True)
@@ -654,7 +653,7 @@ class TestIntegrationLedgerAccumulation:
             'symbol': 'BTCUSDT',
         }
         key = build_concept_lineage_key(candidate_row)
-        
+
         rows_run1 = [_make_ledger_row(key, run_id="run_001", is_discovery=False) for _ in range(5)]
         pd.DataFrame(rows_run1).reindex(columns=CONCEPT_LEDGER_COLUMNS).to_parquet(
             ledger_path, index=False
@@ -670,10 +669,10 @@ class TestIntegrationLedgerAccumulation:
         assert result.iloc[0]["ledger_prior_test_count"] == 5
 
     def test_unrelated_lineage_not_penalized(self, tmp_path):
+        from project.research.knowledge.concept_ledger import build_concept_lineage_key
         from project.research.services.candidate_discovery_scoring import (
             apply_ledger_multiplicity_correction,
         )
-        from project.research.knowledge.concept_ledger import build_concept_lineage_key
 
         ledger_path = default_ledger_path(tmp_path)
         ledger_path.parent.mkdir(parents=True, exist_ok=True)
@@ -688,7 +687,7 @@ class TestIntegrationLedgerAccumulation:
             'symbol': 'BTCUSDT',
         }
         key = build_concept_lineage_key(candidate_row)
-        
+
         rows = [_make_ledger_row(key, run_id=f"r{i}", is_discovery=False) for i in range(20)]
         pd.DataFrame(rows).reindex(columns=CONCEPT_LEDGER_COLUMNS).to_parquet(ledger_path, index=False)
 

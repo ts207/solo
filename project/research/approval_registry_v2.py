@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from dataclasses import asdict
 import json
+from dataclasses import asdict
 from pathlib import Path
 from typing import Any, Mapping
 
@@ -10,7 +10,6 @@ import yaml
 from project import PROJECT_ROOT
 from project.events.registry import load_milestone_event_registry
 from project.research.approval_workflow_v2 import ApprovalDecision
-
 
 DEFAULT_REGISTRY_PATH = PROJECT_ROOT.parent / "spec" / "events" / "registry.yaml"
 

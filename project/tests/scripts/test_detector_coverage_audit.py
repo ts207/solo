@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-import json
 import inspect
+import json
 
 from project.events.detectors.exhaustion import (
     FlowExhaustionDetector,

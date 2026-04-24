@@ -5,7 +5,7 @@ Tests for final verification report.
 from __future__ import annotations
 
 import pandas as pd
-import pytest
+
 from project.eval.final_verification_report import generate_final_verification_report
 
 

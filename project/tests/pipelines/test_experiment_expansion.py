@@ -1,6 +1,7 @@
+
 import pytest
-from pathlib import Path
 import yaml
+
 from project.research.experiment_engine import build_experiment_plan
 
 
@@ -119,7 +120,7 @@ def _make_config(tmp_path, **overrides):
     return p
 
 
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
 
 
 @pytest.fixture(autouse=True)

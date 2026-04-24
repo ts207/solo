@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import json
-
 from types import SimpleNamespace
 
 import pandas as pd
@@ -10,19 +9,22 @@ import pytest
 from project.research.promotion import evaluate_row as _evaluate_row_impl
 from project.research.promotion.promotion_reporting import (
     apply_portfolio_overlap_gate as _apply_portfolio_overlap_gate,
+)
+from project.research.promotion.promotion_reporting import (
     assign_and_validate_promotion_tiers as _assign_and_validate_promotion_tiers,
-    build_promotion_capital_footprint as _build_promotion_capital_footprint,
+)
+from project.research.promotion.promotion_reporting import (
     build_negative_control_diagnostics as _build_negative_control_diagnostics,
+)
+from project.research.promotion.promotion_reporting import (
+    build_promotion_capital_footprint as _build_promotion_capital_footprint,
+)
+from project.research.promotion.promotion_reporting import (
     build_promotion_statistical_audit as _build_promotion_statistical_audit,
+)
+from project.research.promotion.promotion_reporting import (
     portfolio_diversification_violations as _portfolio_diversification_violations,
-    stabilize_promoted_output_schema as _stabilize_promoted_output_schema,
 )
-from project.research.services.promotion_service import (
-    _load_bridge_metrics,
-    _load_dynamic_min_events_by_event,
-    _merge_bridge_metrics,
-)
-
 
 _LEGACY_PASS_FAIL_GATES = {
     "gate_promo_dsr",

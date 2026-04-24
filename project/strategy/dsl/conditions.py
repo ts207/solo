@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import re
 from abc import ABC, abstractmethod
-from typing import Dict, List, Optional, Type
+from typing import List, Optional
 
 from project.strategy.dsl.schema import ConditionNodeSpec
 

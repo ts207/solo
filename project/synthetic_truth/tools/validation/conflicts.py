@@ -1,10 +1,9 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Optional, FrozenSet
+from typing import FrozenSet
 
 import pandas as pd
-
 
 DEFAULT_MUTUALLY_EXCLUSIVE_PAIRS: set[FrozenSet[str]] = {
     frozenset({"TREND_ACCELERATION", "TREND_DECELERATION"}),
@@ -50,29 +49,29 @@ class ConflictAnalysis:
 
     def _analyze(self) -> None:
         self._conflict_reports = []
-        
+
         for pair in MUTUALLY_EXCLUSIVE_PAIRS:
             events_list = list(pair)
             if len(events_list) != 2:
                 continue
-            
+
             event_a, event_b = events_list[0], events_list[1]
-            
+
             subset_a = self.events[self.events["event_type"] == event_a]
             subset_b = self.events[self.events["event_type"] == event_b]
-            
+
             if subset_a.empty or subset_b.empty:
                 continue
-            
+
             timestamps_a = set(subset_a["eval_bar_ts"].dropna())
             timestamps_b = set(subset_b["eval_bar_ts"].dropna())
-            
+
             conflicts = len(timestamps_a & timestamps_b)
-            
+
             if conflicts > 0:
                 conflict_rate = conflicts / min(len(subset_a), len(subset_b))
                 severity = self._rate_severity(conflict_rate)
-                
+
                 self._conflict_reports.append(ConflictReport(
                     event_type_a=event_a,
                     event_type_b=event_b,

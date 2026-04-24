@@ -4,7 +4,6 @@ import json
 
 from project.scripts import build_event_deep_analysis_suite as suite
 
-
 EXPECTED_TASK_IDS = [
     "01_event_universe",
     "02_event_contracts",

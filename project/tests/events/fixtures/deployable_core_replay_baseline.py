@@ -11,7 +11,6 @@ import pandas as pd
 from project.events.event_output_schema import validate_event_output_frame
 from project.tests.events.test_detector_output_schema import DEPLOYABLE_CORE_CASES
 
-
 BASELINE_PATH = Path(__file__).with_name("deployable_core_replay_baseline.json")
 
 SIGNATURE_COLUMNS = (

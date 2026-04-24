@@ -1,5 +1,6 @@
-from pathlib import Path
 import subprocess
+from pathlib import Path
+
 
 def test_makefile_exports_canonical_targets():
     """Verify Makefile provides the current operator-facing lifecycle targets."""
@@ -7,7 +8,7 @@ def test_makefile_exports_canonical_targets():
     makefile_path = repo_root / "Makefile"
     assert makefile_path.exists(), "Makefile not found"
     content = makefile_path.read_text()
-    
+
     assert "discover:" in content
     assert "validate:" in content
     assert "promote:" in content

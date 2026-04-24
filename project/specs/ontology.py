@@ -11,6 +11,8 @@ import pandas as pd
 
 from project.spec_registry import (
     ONTOLOGY_SPEC_RELATIVE_PATHS,
+)
+from project.spec_registry import (
     ontology_spec_paths as _registry_ontology_spec_paths,
 )
 

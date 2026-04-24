@@ -4,9 +4,8 @@ from dataclasses import fields
 from numbers import Number
 from typing import Any, Iterable, Mapping, Sequence
 
-from project.events.schemas import EventRecord
 from project.events.registry import get_event_definition
-
+from project.events.schemas import EventRecord
 
 REQUIRED_EVENT_FIELDS = tuple(field.name for field in fields(EventRecord))
 REQUIRED_TIMESTAMP_FIELDS = ("eval_bar_ts", "detected_ts", "signal_ts")

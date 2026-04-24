@@ -65,7 +65,11 @@ def main(argv: list[str] | None = None) -> int:
         return 0
 
     if args.command == "status":
-        from project.apps.chatgpt.handlers import _resolve_data_root, _project_program_ids, _recent_run_summaries
+        from project.apps.chatgpt.handlers import (
+            _project_program_ids,
+            _recent_run_summaries,
+            _resolve_data_root,
+        )
         data_root = _resolve_data_root(None)
         recent_runs = _recent_run_summaries(data_root, limit=100)
         program_ids = _project_program_ids(data_root, recent_runs)

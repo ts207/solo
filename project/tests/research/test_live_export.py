@@ -6,16 +6,14 @@ from pathlib import Path
 import pandas as pd
 import pytest
 
-from project.core.exceptions import DataIntegrityError
-from project.core.exceptions import IncompleteLineageError
-from project.core.exceptions import SchemaMismatchError
+from project.core.exceptions import DataIntegrityError, IncompleteLineageError, SchemaMismatchError
 from project.live.deployment import check_thesis
 from project.live.thesis_store import ThesisStore
 from project.research.live_export import export_promoted_theses_for_run
 from project.research.validation.contracts import (
+    ValidatedCandidateRecord,
     ValidationArtifactRef,
     ValidationBundle,
-    ValidatedCandidateRecord,
     ValidationDecision,
     ValidationMetrics,
 )

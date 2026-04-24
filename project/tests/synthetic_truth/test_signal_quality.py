@@ -1,12 +1,11 @@
 from __future__ import annotations
 
-import pytest
 import pandas as pd
-import numpy as np
+import pytest
 
 from project.synthetic_truth.tools.metrics.signal_quality import (
-    SignalQualityMetrics,
     SignalQualityAnalyzer,
+    SignalQualityMetrics,
 )
 
 

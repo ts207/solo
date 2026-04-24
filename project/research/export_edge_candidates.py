@@ -1,7 +1,4 @@
 from __future__ import annotations
-from project.core.config import get_data_root
-
-from project.core.coercion import safe_float, safe_int, as_bool
 
 import argparse
 import json
@@ -11,17 +8,19 @@ import sys
 from pathlib import Path
 from typing import Dict, List, Sequence
 
-import pandas as pd
 import numpy as np
-from project import PROJECT_ROOT
+import pandas as pd
 
+from project import PROJECT_ROOT
+from project.core.coercion import as_bool, safe_float, safe_int
+from project.core.config import get_data_root
 from project.core.logging_utils import build_stage_log_handlers
 from project.core.timeframes import normalize_timeframe
+from project.events.phase2 import PHASE2_EVENT_CHAIN as _CANONICAL_PHASE2_EVENT_CHAIN
 from project.io.utils import ensure_dir, write_parquet
 from project.research.services.pathing import bridge_event_out_dir
-from project.specs.ontology import ontology_spec_hash
 from project.specs.manifest import finalize_manifest, start_manifest
-from project.events.phase2 import PHASE2_EVENT_CHAIN as _CANONICAL_PHASE2_EVENT_CHAIN
+from project.specs.ontology import ontology_spec_hash
 
 PHASE2_EVENT_CHAIN = list(_CANONICAL_PHASE2_EVENT_CHAIN)
 

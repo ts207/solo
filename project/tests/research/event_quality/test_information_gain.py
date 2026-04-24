@@ -1,7 +1,7 @@
 # tests/research/event_quality/test_information_gain.py
-import pandas as pd
 import numpy as np
-import pytest
+import pandas as pd
+
 from project.research.event_quality.information_gain import compute_information_gain
 
 

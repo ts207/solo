@@ -47,10 +47,10 @@ class SignalNormalizer:
     def learn_bounds(self, events: pd.DataFrame) -> None:
         if events.empty:
             return
-        
+
         for event_type in events["event_type"].unique():
             subset = events[events["event_type"] == event_type]
-            
+
             if "event_score" in subset.columns:
                 self.bounds[str(event_type)] = NormalizationBounds(
                     min_value=subset["event_score"].min(),
@@ -60,12 +60,12 @@ class SignalNormalizer:
 
     def normalize_strength(self, value: float, event_type: str) -> float:
         bounds = self.bounds.get(event_type, self._default_bounds)
-        
+
         if not bounds.is_valid():
             return 0.5
-        
+
         normalized = (value - bounds.min_value) / bounds.range
-        
+
         return float(np.clip(normalized, 0.0, 1.0))
 
     def normalize_confidence(self, value: float) -> float:
@@ -80,7 +80,7 @@ class SignalNormalizer:
     ) -> NormalizedSignal:
         normalized_strength = self.normalize_strength(strength, event_type)
         normalized_confidence = self.normalize_confidence(confidence)
-        
+
         return NormalizedSignal(
             event_type=event_type,
             trigger=trigger,
@@ -93,9 +93,9 @@ class SignalNormalizer:
     def normalize_batch(self, events: pd.DataFrame) -> list[NormalizedSignal]:
         if events.empty:
             return []
-        
+
         self.learn_bounds(events)
-        
+
         signals = []
         for _, row in events.iterrows():
             signal = self.normalize_signal(
@@ -105,9 +105,9 @@ class SignalNormalizer:
                 confidence=float(row.get("evt_signal_intensity", 0.5)),
             )
             signals.append(signal)
-        
+
         signals.sort(key=lambda s: s.normalized_strength, reverse=True)
         for i, signal in enumerate(signals, 1):
             signal.rank = i
-        
+
         return signals

@@ -95,8 +95,8 @@ def _evaluate_hypotheses(
         return pd.DataFrame()
 
     try:
-        from project.research.search.distributed_runner import run_distributed_search
         from project.research.search.bridge_adapter import hypotheses_to_bridge_candidates
+        from project.research.search.distributed_runner import run_distributed_search
 
         metrics = run_distributed_search(
             hypotheses,
@@ -148,6 +148,7 @@ def _apply_v2_scoring(
         return candidates
     try:
         import yaml
+
         from project import PROJECT_ROOT
         from project.research.services.candidate_discovery_scoring import (
             annotate_discovery_v2_scores,

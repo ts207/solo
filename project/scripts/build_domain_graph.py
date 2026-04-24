@@ -1,11 +1,8 @@
 #!/usr/bin/env python3
 from __future__ import annotations
 
-from pathlib import Path
-
 import yaml
 
-from project import PROJECT_ROOT
 from project.domain.registry_loader import build_domain_graph_payload, domain_graph_path
 
 

@@ -5,9 +5,7 @@ from typing import Any, Mapping
 import numpy as np
 import pandas as pd
 
-from project.events.detectors.composite import CompositeDetector
 from project.events.detectors.threshold import ThresholdDetector
-from project.events.sparsify import sparsify_mask
 from project.features.context_guards import optional_state
 
 

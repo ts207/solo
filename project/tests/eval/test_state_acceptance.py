@@ -1,5 +1,5 @@
-import pytest
 import pandas as pd
+
 from project.eval.state_acceptance import run_state_acceptance
 
 

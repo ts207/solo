@@ -89,23 +89,23 @@ def normalize_search_burden_frame(df: pd.DataFrame) -> pd.DataFrame:
                 elif col == "search_burden_estimated":
                     out[col] = False
         return out
-    
+
     out = df.copy()
-    
+
     for col in SEARCH_BURDEN_NUMERIC_FIELDS:
         if col not in out.columns:
             out[col] = 0
         else:
             out[col] = pd.to_numeric(out[col], errors="coerce").fillna(0).astype(int)
-    
+
     if "search_scope_version" not in out.columns:
         out["search_scope_version"] = DEFAULT_SEARCH_BURDEN_VERSION
-    
+
     if "search_burden_estimated" not in out.columns:
         out["search_burden_estimated"] = False
     else:
         out["search_burden_estimated"] = out["search_burden_estimated"].fillna(False).astype(bool)
-    
+
     return out
 
 
@@ -123,16 +123,16 @@ def merge_search_burden_columns(
     """
     if defaults is None:
         defaults = default_search_burden_dict()
-    
+
     if df.empty:
         out = df.copy()
         for col, val in defaults.items():
             if col not in out.columns:
                 out[col] = val
         return out
-    
+
     out = df.copy()
-    
+
     for col, val in defaults.items():
         if col not in out.columns:
             out[col] = val
@@ -140,7 +140,7 @@ def merge_search_burden_columns(
             out[col] = pd.to_numeric(out[col], errors="coerce").fillna(0).astype(int)
         elif col == "search_burden_estimated":
             out[col] = out[col].fillna(False).astype(bool)
-    
+
     return out
 
 
@@ -202,14 +202,14 @@ def build_search_burden_summary(
         "search_scope_version": scope_version,
         "search_burden_estimated": estimated,
     }
-    
+
     if crowded_families is not None:
         summary["crowded_families"] = crowded_families
     if crowded_lineages is not None:
         summary["crowded_lineages"] = crowded_lineages
     if repeated_failure_lineages is not None:
         summary["repeated_failure_lineages"] = repeated_failure_lineages
-    
+
     return summary
 
 
@@ -229,18 +229,18 @@ def write_search_burden_summary(
     """
     import json
     from pathlib import Path
-    
+
     out_path = Path(out_dir)
     out_path.mkdir(parents=True, exist_ok=True)
-    
+
     json_path = out_path / "search_burden_summary.json"
     md_path = out_path / "search_burden_summary.md"
-    
+
     json_path.write_text(
         json.dumps(summary, indent=2, sort_keys=True) + "\n",
         encoding="utf-8",
     )
-    
+
     md_lines = [
         "# Search Burden Summary",
         "",
@@ -261,28 +261,28 @@ def write_search_burden_summary(
         f"- search_scope_version: `{summary.get('search_scope_version', 'unknown')}`",
         f"- search_burden_estimated: `{summary.get('search_burden_estimated', False)}`",
     ]
-    
+
     crowded_families = summary.get("crowded_families")
     if crowded_families:
         md_lines.extend(["", "## Crowded Families"])
         for fam in crowded_families:
             md_lines.append(f"- `{fam}`")
-    
+
     crowded_lineages = summary.get("crowded_lineages")
     if crowded_lineages:
         md_lines.extend(["", "## Crowded Lineages"])
         for lin in crowded_lineages:
             md_lines.append(f"- `{lin}`")
-    
+
     repeated_failures = summary.get("repeated_failure_lineages")
     if repeated_failures:
         md_lines.extend(["", "## Repeated-Failure Lineages"])
         for lin in repeated_failures:
             md_lines.append(f"- `{lin}`")
-    
+
     md_lines.append("")
     md_path.write_text("\n".join(md_lines) + "\n", encoding="utf-8")
-    
+
     return {
         "json_path": str(json_path),
         "md_path": str(md_path),
@@ -297,13 +297,13 @@ def load_search_burden_summary(out_dir) -> Optional[Dict[str, Any]]:
     """
     import json
     from pathlib import Path
-    
+
     out_path = Path(out_dir)
     json_path = out_path / "search_burden_summary.json"
-    
+
     if not json_path.exists():
         return None
-    
+
     try:
         return json.loads(json_path.read_text(encoding="utf-8"))
     except Exception:

@@ -5,11 +5,9 @@ produces a consistent representation of the lambda state.
 """
 
 import json
-
 from pathlib import Path
 
 import pandas as pd
-import pytest
 
 from project.research.phase2_lambda_persistence import (
     _build_lambda_snapshot,

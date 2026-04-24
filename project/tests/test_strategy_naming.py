@@ -1,11 +1,12 @@
 """Tests for strategy naming conventions and registry resolution."""
 
 import pytest
+
 from project.strategy.runtime.registry import (
-    parse_strategy_name,
     get_strategy,
-    resolve_strategy,
     is_dsl_strategy,
+    parse_strategy_name,
+    resolve_strategy,
 )
 
 

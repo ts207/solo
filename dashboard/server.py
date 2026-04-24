@@ -7,15 +7,15 @@ Default: port=7477 host=127.0.0.1
 
 from __future__ import annotations
 
+import datetime
 import json
 import pathlib
-import sys
 import subprocess
+import sys
 import threading
 import uuid
-import datetime
-from http.server import HTTPServer, BaseHTTPRequestHandler
-from urllib.parse import urlparse, parse_qs
+from http.server import BaseHTTPRequestHandler, HTTPServer
+from urllib.parse import parse_qs, urlparse
 
 try:
     import yaml

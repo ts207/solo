@@ -19,7 +19,7 @@ def test_build_live_event_detection_adapter_selects_governed_runtime_core() -> N
     assert isinstance(adapter, GovernedRuntimeCoreEventDetectionAdapter)
 
 
-def test_detect_live_event_compatibility_surface_remains_heuristic() -> None:
+def test_detect_live_event_no_longer_defaults_to_heuristic() -> None:
     detected = detect_live_event(
         symbol="BTCUSDT",
         timeframe="5m",
@@ -29,6 +29,41 @@ def test_detect_live_event_compatibility_surface_remains_heuristic() -> None:
         market_features={"spread_bps": 2.0, "depth_usd": 100_000.0},
         supported_event_ids=["VOL_SPIKE"],
         detector_config={"threshold_version": "2.1.0"},
+    )
+
+    assert detected is None
+
+
+def test_detect_live_event_heuristic_requires_explicit_legacy_config() -> None:
+    try:
+        detect_live_event(
+            symbol="BTCUSDT",
+            timeframe="5m",
+            current_close=101.0,
+            previous_close=100.0,
+            volume=120_000.0,
+            market_features={"spread_bps": 2.0, "depth_usd": 100_000.0},
+            supported_event_ids=["VOL_SPIKE"],
+            detector_config={"adapter": "heuristic"},
+        )
+    except ValueError as exc:
+        assert "legacy_heuristic_enabled=true" in str(exc)
+    else:
+        raise AssertionError("expected ValueError")
+
+    detected = detect_live_event(
+        symbol="BTCUSDT",
+        timeframe="5m",
+        current_close=101.0,
+        previous_close=100.0,
+        volume=120_000.0,
+        market_features={"spread_bps": 2.0, "depth_usd": 100_000.0},
+        supported_event_ids=["VOL_SPIKE"],
+        detector_config={
+            "adapter": "heuristic",
+            "legacy_heuristic_enabled": True,
+            "threshold_version": "2.1.0",
+        },
     )
 
     assert detected is not None

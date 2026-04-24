@@ -11,7 +11,8 @@ minimal, they can be extended over time as new spec fields are added.
 
 from __future__ import annotations
 
-from typing import Dict, Any, Optional
+from typing import Any, Dict, Optional
+
 from pydantic import BaseModel, ConfigDict, Field, ValidationError
 
 __all__ = ["ObjectiveSpec", "validate_spec"]

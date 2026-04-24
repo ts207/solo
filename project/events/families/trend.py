@@ -15,7 +15,6 @@ from project.events.detectors.trend import (
 )
 from project.events.registries.trend import TREND_DETECTORS, ensure_trend_detectors_registered
 
-
 ensure_trend_detectors_registered()
 
 _DETECTORS = TREND_DETECTORS

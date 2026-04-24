@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import asyncio
 from datetime import datetime, timezone
-from pathlib import Path
 
 from project import PROJECT_ROOT
 from project.pipelines.ingest import ingest_binance_um_ohlcv as ohlcv

@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import logging
-import os
 import warnings
 from pathlib import Path
 from typing import Dict, Iterable, List, Sequence
@@ -10,20 +9,20 @@ _LOG = logging.getLogger(__name__)
 
 import pandas as pd
 
-from project.io.utils import (
-    ensure_dir,
-    read_parquet,
-    write_parquet,
+from project.events.event_normalizer import (
+    _empty_registry_events,
+    normalize_phase1_events,
+    normalize_registry_events_frame,
 )
 from project.events.event_specs import (
     EVENT_REGISTRY_SPECS,
     REGISTRY_EVENT_COLUMNS,
     EventRegistrySpec,
 )
-from project.events.event_normalizer import (
-    normalize_phase1_events,
-    normalize_registry_events_frame,
-    _empty_registry_events,
+from project.io.utils import (
+    ensure_dir,
+    read_parquet,
+    write_parquet,
 )
 
 

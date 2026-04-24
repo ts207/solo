@@ -1,11 +1,15 @@
 from __future__ import annotations
-import argparse, json, sqlite3, sys
+
+import argparse
+import json
+import sqlite3
+import sys
 from pathlib import Path
 
 # Support both `python -m scripts.query_runs` (package import) and direct invocation.
 _SCRIPTS_DIR = Path(__file__).resolve().parent
 
-from project.scripts.build_run_registry import query_top_promoted, DATA_ROOT
+from project.scripts.build_run_registry import DATA_ROOT, query_top_promoted
 
 
 def main() -> int:

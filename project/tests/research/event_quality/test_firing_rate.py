@@ -1,7 +1,7 @@
 # tests/research/event_quality/test_firing_rate.py
-import pandas as pd
 import numpy as np
-import pytest
+import pandas as pd
+
 from project.research.event_quality.firing_rate import compute_firing_rates
 
 

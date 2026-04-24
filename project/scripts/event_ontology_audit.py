@@ -5,7 +5,7 @@ import argparse
 import json
 import sys
 from pathlib import Path
-from typing import Any, Dict, Iterable, Mapping
+from typing import Any, Dict, Mapping
 
 from project.domain.compiled_registry import get_domain_registry
 from project.events.ontology_mapping import (

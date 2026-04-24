@@ -8,8 +8,8 @@ import pandas as pd
 from project.scripts.generate_synthetic_crypto_regimes import (
     PROFILE_SETTINGS,
     build_regime_schedule,
-    generate_synthetic_dataset_suite,
     generate_symbol_frames,
+    generate_synthetic_dataset_suite,
 )
 
 

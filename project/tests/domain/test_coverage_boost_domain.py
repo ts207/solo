@@ -3,13 +3,18 @@ from __future__ import annotations
 import hashlib
 import json
 from dataclasses import dataclass
-from pathlib import Path
 
 import pytest
 
 from project.domain.compiled_registry import get_domain_registry, refresh_domain_registry
 from project.domain.hypotheses import HypothesisSpec, TriggerSpec, TriggerType
-from project.domain.models import DomainRegistry, EventDefinition, RegimeDefinition, StateDefinition, TemplateOperatorDefinition
+from project.domain.models import (
+    DomainRegistry,
+    EventDefinition,
+    RegimeDefinition,
+    StateDefinition,
+    TemplateOperatorDefinition,
+)
 from project.events.event_aliases import EVENT_ALIASES, resolve_event_alias
 from project.spec_registry.loaders import clear_caches
 
@@ -33,7 +38,6 @@ def test_event_alias_resolution_handles_known_and_unknown_values():
 def test_trigger_spec_validation_label_and_dict_roundtrip(monkeypatch):
     fake = FakeRegistry(event_ids=("E1", "E2"), state_ids=("S1", "S2"), valid_state_ids=("S1", "S2"))
 
-    from project import __dict__ as project_ns  # only to keep lint quiet in some environments
     monkeypatch.setattr("project.domain.hypotheses.get_domain_registry", lambda: fake)
 
     ev = TriggerSpec.event("e1")

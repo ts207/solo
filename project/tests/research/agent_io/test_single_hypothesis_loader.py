@@ -11,7 +11,7 @@ from project.research.agent_io.proposal_schema import (
     load_operator_proposal,
 )
 from project.research.agent_io.proposal_to_experiment import translate_and_validate_proposal
-from project.tests.research.agent_io.test_issue_proposal import _write_proposal, _write_registry
+from project.tests.research.agent_io.test_issue_proposal import _write_registry
 
 
 def _single_hypothesis_payload() -> dict:

@@ -5,15 +5,14 @@ from typing import Any
 import numpy as np
 import pandas as pd
 
+from project.events.detectors.funding_support import (
+    prepare_funding_normalization_features,
+    prepare_funding_persistence_features,
+    run_length,
+)
 from project.events.detectors.threshold import ThresholdDetector
 from project.events.sparsify import sparsify_mask
 from project.events.thresholding import percentile_rank_historical
-from project.events.detectors.funding_support import (
-    run_length,
-    prepare_funding_persistence_features,
-    prepare_funding_normalization_features,
-)
-
 
 FUNDING_EVENT_TYPES = (
     "FUNDING_EXTREME_ONSET",

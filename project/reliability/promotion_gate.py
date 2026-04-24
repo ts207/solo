@@ -1,7 +1,8 @@
 from __future__ import annotations
+
 import logging
 from typing import Any
-import pandas as pd
+
 from project.contracts.temporal_contracts import TemporalContract
 
 LOGGER = logging.getLogger(__name__)

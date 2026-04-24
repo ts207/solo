@@ -8,7 +8,6 @@ import sys
 from pathlib import Path
 from typing import Any, Mapping, Sequence
 
-
 VERSION_FIELDS = ("event_version", "threshold_version")
 VERSIONED_CALIBRATION_FIELDS = (
     "calibration_mode",

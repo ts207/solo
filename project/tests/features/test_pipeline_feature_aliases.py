@@ -3,11 +3,11 @@ from __future__ import annotations
 from project.features.liquidity_vacuum import (
     detect_liquidity_vacuum_events as canonical_liquidity_vacuum,
 )
-from project.features.vol_shock_relaxation import (
-    detect_vol_shock_relaxation_events as canonical_vol_shock,
-)
 from project.features.liquidity_vacuum import (
     detect_liquidity_vacuum_events as pipeline_liquidity_vacuum,
+)
+from project.features.vol_shock_relaxation import (
+    detect_vol_shock_relaxation_events as canonical_vol_shock,
 )
 from project.features.vol_shock_relaxation import (
     detect_vol_shock_relaxation_events as pipeline_vol_shock,

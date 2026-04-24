@@ -63,6 +63,8 @@ PYTHONPATH=. ./.venv/bin/python project/scripts/build_domain_graph.py
 ```bash
 edge discover plan --proposal spec/proposals/canonical_event_hypothesis.yaml
 edge discover run --proposal spec/proposals/canonical_event_hypothesis.yaml
+edge discover cells coverage-audit
+edge discover cells spec-audit --spec_dir spec/discovery/<surface>
 edge validate run --run_id <run_id>
 edge promote run --run_id <run_id> --symbols BTCUSDT
 edge promote export --run_id <run_id>
@@ -79,7 +81,10 @@ The current CLI deploy subcommands are `export`, `bind-config`, `inspect`, `pape
 
 The supported operating mode is offline/local-data research through canonical discovery, validation, promotion, export, governed runtime-core detection, portfolio decisioning, and docs/governance refresh/check.
 
-Compatibility surfaces are legacy artifact readers, explicit heuristic detector mode, and historical phase-2 adapters. Trigger mining is experimental. Removed aliases, implicit latest thesis selection, and downstream schema repair are deprecated.
+Compatibility surfaces are legacy artifact readers behind explicit switches,
+explicit heuristic detector mode, and historical phase-2 adapters. Trigger
+mining is experimental. Removed aliases, implicit latest thesis selection, and
+downstream schema repair are deprecated.
 
 Run the current-path stabilization suite without baseline comparison:
 

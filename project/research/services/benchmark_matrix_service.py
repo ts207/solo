@@ -7,7 +7,6 @@ from typing import Any, Dict, List
 
 import yaml
 
-
 REQUIRED_RUN_KEYS = ("run_id", "symbols", "start", "end")
 OPTIONAL_METADATA_KEYS = (
     "benchmark_id",

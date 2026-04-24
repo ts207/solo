@@ -1,20 +1,19 @@
 from __future__ import annotations
-from project.core.config import get_data_root
 
 import argparse
 import json
 import logging
 import sys
-
 from pathlib import Path
-from typing import Dict, List, Any, Optional, Sequence
+from typing import Any, Dict, List, Optional, Sequence
 
 import numpy as np
 import pandas as pd
-from project.core.feature_schema import feature_dataset_dir_name
-from project import PROJECT_ROOT
 
+from project import PROJECT_ROOT
+from project.core.config import get_data_root
 from project.core.constants import DEFAULT_EVENT_HORIZON_BARS
+from project.core.feature_schema import feature_dataset_dir_name
 from project.specs.gates import load_gates_spec as _shared_load_gates_spec
 
 
@@ -23,11 +22,10 @@ def _load_gates_spec() -> Dict[str, Any]:
 
 
 from project.io.utils import (
-    ensure_dir,
-    read_parquet,
-    list_parquet_files,
-    run_scoped_lake_path,
     choose_partition_dir,
+    list_parquet_files,
+    read_parquet,
+    run_scoped_lake_path,
 )
 
 
@@ -476,9 +474,10 @@ def _compute_rerun_sensitivity(
     timeframe: str = "5m",
 ) -> Dict[str, Any]:
     """Best-effort true rerun of the mapped detector and comparison to the base event set."""
-    from project.research.export_edge_candidates import PHASE2_EVENT_CHAIN
     import subprocess
     import tempfile
+
+    from project.research.export_edge_candidates import PHASE2_EVENT_CHAIN
 
     detector_script = None
     detector_args: List[str] = []

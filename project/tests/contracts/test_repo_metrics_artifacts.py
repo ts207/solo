@@ -32,6 +32,29 @@ def test_root_readme_metrics_can_be_refreshed_from_code_truth() -> None:
     readme = (REPO_ROOT / "README.md").read_text(encoding="utf-8")
     refreshed = update_root_readme_metrics(readme, metrics)
     assert refreshed == readme
-    assert re.search(rf"- {metrics['project_python_files']} Python modules under `project/`", refreshed)
-    assert re.search(rf"- {metrics['test_python_files']} test files under `project/tests/`", refreshed)
+
+
+def test_root_readme_metrics_updates_marked_generated_block() -> None:
+    metrics = collect_repo_metrics(REPO_ROOT)
+    readme = "\n".join(
+        [
+            "# Example",
+            "",
+            "<!-- repo-metrics:start -->",
+            "- 1 Python modules under `project/`",
+            "- 1 test files under `project/tests/`",
+            "- 1 YAML spec files under `spec/`",
+            "<!-- repo-metrics:end -->",
+            "",
+        ]
+    )
+    refreshed = update_root_readme_metrics(readme, metrics)
+    assert re.search(
+        rf"- {metrics['project_python_files']} Python modules under `project/`",
+        refreshed,
+    )
+    assert re.search(
+        rf"- {metrics['test_python_files']} test files under `project/tests/`",
+        refreshed,
+    )
     assert re.search(rf"- {metrics['spec_yaml_files']} YAML spec files under `spec/`", refreshed)

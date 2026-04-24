@@ -1,5 +1,4 @@
 from __future__ import annotations
-from project.core.config import get_data_root
 
 import argparse
 import json
@@ -11,23 +10,24 @@ from typing import Dict, List
 
 import pandas as pd
 
+from project.core.config import get_data_root
 from project.core.logging_utils import build_stage_log_handlers
+from project.events.arbitration import arbitrate_events
 from project.events.registry import (
     EVENT_REGISTRY_SPECS,
     assert_event_specs_available,
     build_event_flags,
     collect_registry_events,
-    load_registry_flags,
     load_registry_events,
+    load_registry_flags,
     merge_event_flags_for_selected_event_types,
     merge_registry_events,
-    write_event_registry_artifacts,
     registry_contract_check,
+    write_event_registry_artifacts,
 )
 from project.events.scoring import score_event_frame
-from project.events.arbitration import arbitrate_events
-from project.specs.manifest import finalize_manifest, start_manifest
 from project.schemas.data_contracts import EventRegistrySchema
+from project.specs.manifest import finalize_manifest, start_manifest
 
 
 def _parse_symbols(symbols_csv: str) -> List[str]:

@@ -44,8 +44,8 @@ import pandas as pd
 from sklearn.feature_selection import mutual_info_regression
 
 from project.core.config import get_data_root
-from project.research.phase2 import load_features
 from project.io.utils import write_parquet
+from project.research.phase2 import load_features
 
 LOG = logging.getLogger(__name__)
 

@@ -35,10 +35,10 @@ class TestResearchYield:
             plan_only=False,
             dry_run=False,
         )
-        
+
         run_id = discover_result.get("run_id")
         assert run_id is not None, "Discovery failed to produce a run_id."
-        
+
         diagnostics = discover_result.get("execution", {}).get("phase2_diagnostics", {})
         if not diagnostics:
             # We can also load from disk if the orchestrator result structure shifts.
@@ -58,17 +58,17 @@ class TestResearchYield:
         assert validate_result.summary_stats.get("validated", 0) > 0, (
             f"Validation stage produced no validated candidates for {run_id}"
         )
-        
+
         val_bundle_path = Path(f"data/reports/validation/{run_id}/validation_bundle.json")
         assert val_bundle_path.exists(), "Validation bundle missing."
         bundle = json.loads(val_bundle_path.read_text())
-        
+
         # Verify that we actually validated at least one candidate
         stats = bundle.get("summary_stats", {})
         assert stats.get("validated", 0) > 0, (
             "Regression: no canonical path candidates survived OOS and validation checks."
         )
-        
+
         # Stage 3: Promote
         # Formats the validated candidate and confirms final statistics prior to export.
         promote_result = promote.run(
@@ -77,7 +77,7 @@ class TestResearchYield:
             retail_profile="capital_constrained",
         )
         assert promote_result.exit_code == 0, "Promotion evaluation failed."
-        
+
         # Stage 4: Export (Packaging)
         # Packages into production-bound theses.
         export_result = promote.export(

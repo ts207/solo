@@ -1,14 +1,13 @@
-import pandas as pd
-from pathlib import Path
 from project.core.config import get_data_root
 from project.research.knowledge.memory import (
     build_tested_regions_snapshot,
-    write_memory_table,
-    compute_region_statistics,
-    compute_event_statistics,
-    compute_template_statistics,
     compute_context_statistics,
+    compute_event_statistics,
+    compute_region_statistics,
+    compute_template_statistics,
+    write_memory_table,
 )
+
 
 def main():
     run_id = "synthetic_2025_full_year"

@@ -17,7 +17,6 @@ import yaml
 
 from project import PROJECT_ROOT
 
-
 # ─────────────────────────────────────────────────────────────────────────────
 # E1: Concept ledger symbol isolation
 # ─────────────────────────────────────────────────────────────────────────────
@@ -140,7 +139,7 @@ class TestDiversifiedShortlistDeterminism:
 
 class TestStagePolicytNormRecalibration:
     def _score(self, t: float) -> float:
-        from project.research.search.stage_policy import _clamp, _T_MIN_GATE
+        from project.research.search.stage_policy import _T_MIN_GATE, _clamp
         return _clamp((abs(t) - _T_MIN_GATE) / (3.0 - _T_MIN_GATE), 0.0, 1.0)
 
     def test_t_norm_at_minimum_gate_is_zero(self):
@@ -376,8 +375,9 @@ class TestTriggerFeatureColumnsContract:
         assert list(result.columns) == list(features.columns)
 
     def test_column_names_method(self):
-        from project.research.trigger_discovery.candidate_generation import TriggerFeatureColumns
         import pandas as pd
+
+        from project.research.trigger_discovery.candidate_generation import TriggerFeatureColumns
 
         s = pd.Series([True, False, True])
         tfc = TriggerFeatureColumns(columns={"COL_A": s, "COL_B": s})

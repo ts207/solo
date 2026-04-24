@@ -6,7 +6,6 @@ from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from project.strategy.dsl.schema import Blueprint
 
-
 ALLOCATION_SPEC_VERSION = "allocation_spec_v1"
 
 
@@ -88,7 +87,7 @@ class AllocationSpec(BaseModel):
         thesis_evidence_multipliers = dict(constraints.get("thesis_evidence_multipliers", {}))
         overlap_mode = str(constraints.get("overlap_mode", "budgeted")).strip().lower()
         thesis_ranking_data = dict(constraints.get("thesis_ranking_data", {}))
-        
+
         return {
             "allocator_mode": str(constraints.get("allocator_mode", "heuristic")).strip().lower(),
             "allocator_deterministic": bool(constraints.get("allocator_deterministic", True)),

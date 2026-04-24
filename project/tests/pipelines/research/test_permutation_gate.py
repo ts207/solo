@@ -1,7 +1,6 @@
 """Tests for the permutation test gate."""
 
 import numpy as np
-import pytest
 
 from project.research.permutation_gate import permutation_test_expectancy
 

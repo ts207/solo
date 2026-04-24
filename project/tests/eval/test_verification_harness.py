@@ -5,7 +5,7 @@ Tests for the verification harness.
 from __future__ import annotations
 
 import pandas as pd
-import pytest
+
 from project.eval.verification import VerificationHarness
 
 

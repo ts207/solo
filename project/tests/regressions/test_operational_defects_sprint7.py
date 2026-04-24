@@ -1,9 +1,6 @@
 """Regression tests for operational defect fixes in Sprint 7."""
 import json
-import os
 from pathlib import Path
-from typing import Any, Dict
-from unittest.mock import MagicMock, patch
 
 import pandas as pd
 import pytest
@@ -17,17 +14,15 @@ from project.live.contracts.promoted_thesis import (
     ThesisRequirements,
     ThesisSource,
 )
-from project.live.deployment import check_thesis
-from project.research.live_export import (
-    build_promoted_theses,
-    DataIntegrityError,
-    export_promoted_theses_for_run,
-)
-from project.specs.manifest import validate_stage_manifest_contract
 from project.pipelines.execution_engine_support import (
     _allow_synthesized_manifest,
-    _stage_allows_zero_outputs,
     _manifest_declared_outputs_exist,
+    _stage_allows_zero_outputs,
+)
+from project.research.live_export import (
+    DataIntegrityError,
+    build_promoted_theses,
+    export_promoted_theses_for_run,
 )
 from project.research.validation.result_writer import (
     write_promotion_ready_candidates,
@@ -36,9 +31,8 @@ from project.research.validation.result_writer import (
 from project.research.validation.schemas import (
     EvidenceBundle,
     PromotionDecision,
-    StabilityResult,
-    FalsificationResult,
 )
+from project.specs.manifest import validate_stage_manifest_contract
 
 
 class TestDeploymentStateValidation:
@@ -172,12 +166,12 @@ class TestLiveExportFailClosed:
         run_id = "test_empty_promoted"
         data_root = tmp_path / "data"
         data_root.mkdir(parents=True)
-        
+
         promotion_dir = data_root / "reports" / "promotions" / run_id
         promotion_dir.mkdir(parents=True)
-        
+
         (promotion_dir / "evidence_bundles.jsonl").write_text("[]")
-        
+
         with pytest.raises(DataIntegrityError, match="Promoted candidates DataFrame is empty"):
             export_promoted_theses_for_run(
                 run_id,
@@ -190,12 +184,12 @@ class TestLiveExportFailClosed:
         run_id = "test_empty_promoted_allowed"
         data_root = tmp_path / "data"
         data_root.mkdir(parents=True)
-        
+
         promotion_dir = data_root / "reports" / "promotions" / run_id
         promotion_dir.mkdir(parents=True)
-        
+
         (promotion_dir / "evidence_bundles.jsonl").write_text("[]")
-        
+
         result = export_promoted_theses_for_run(
             run_id,
             data_root=data_root,
@@ -211,8 +205,8 @@ class TestLiveExportFailClosed:
         data_root.mkdir(parents=True)
 
         from project.research.validation.contracts import (
-            ValidationBundle,
             ValidatedCandidateRecord,
+            ValidationBundle,
             ValidationDecision,
             ValidationMetrics,
         )
@@ -286,10 +280,10 @@ class TestManifestSuccessCriteria:
     def test_allow_synthesized_manifest_respects_env(self, monkeypatch):
         monkeypatch.setenv("BACKTEST_ALLOW_SYNTHESIZED_STAGE_MANIFEST", "1")
         assert _allow_synthesized_manifest() is True
-        
+
         monkeypatch.setenv("BACKTEST_ALLOW_SYNTHESIZED_STAGE_MANIFEST", "0")
         assert _allow_synthesized_manifest() is False
-        
+
         monkeypatch.delenv("BACKTEST_ALLOW_SYNTHESIZED_STAGE_MANIFEST", raising=False)
         assert _allow_synthesized_manifest() is False
 
@@ -314,7 +308,7 @@ class TestManifestSuccessCriteria:
             "spec_hashes": {},
             "ontology_spec_hash": "abc123",
         }))
-        
+
         payload = json.loads(manifest_path.read_text())
         result = _manifest_declared_outputs_exist(manifest_path, payload)
         assert result is False
@@ -333,7 +327,7 @@ class TestManifestSuccessCriteria:
             "spec_hashes": {},
             "ontology_spec_hash": "abc123",
         }))
-        
+
         payload = json.loads(manifest_path.read_text())
         result = _manifest_declared_outputs_exist(manifest_path, payload)
         assert result is True
@@ -399,10 +393,10 @@ class TestDeployCLIPaperTradingRemoved:
     def test_cli_py_has_no_paper_trading_in_deploy(self):
         cli_path = Path(__file__).parent.parent.parent / "cli.py"
         content = cli_path.read_text()
-        
+
         assert 'runtime_mode="paper_trading"' not in content, \
             "paper_trading runtime_mode should not be used in cli.py"
-        
+
         lines = content.split('\n')
         for i, line in enumerate(lines):
             if 'deploy' in line.lower() and 'paper_trading' in line:
@@ -415,7 +409,7 @@ class TestSynthesizedManifestCacheRejection:
     def test_synthesized_manifest_in_stats_rejected_from_cache(self, tmp_path, monkeypatch):
         manifest_path = tmp_path / "runs" / "test_run" / "test_stage.json"
         manifest_path.parent.mkdir(parents=True)
-        
+
         manifest_content = {
             "run_id": "test_run",
             "stage": "test_stage",
@@ -431,13 +425,13 @@ class TestSynthesizedManifestCacheRejection:
             "input_hash": "test_hash_123",
             "stats": {"synthesized_manifest": True},
         }
-        
+
         manifest_path.write_text(json.dumps(manifest_content))
-        
+
         payload = json.loads(manifest_path.read_text())
         stats = payload.get("stats", {})
         is_synthesized = bool(stats.get("synthesized_manifest", False))
-        
+
         assert is_synthesized is True, "Manifest should be marked as synthesized"
 
 
@@ -461,7 +455,7 @@ class TestLiveExportAggregateFailures:
                 "cost_robustness": {},
             },
         ]
-        
+
         with pytest.raises(DataIntegrityError, match="Failed to build .* promoted theses"):
             build_promoted_theses(
                 run_id="test_run",
@@ -478,7 +472,7 @@ class TestLiveExportAggregateFailures:
             "event_family": "",
             "cost_robustness": {},
         }
-        
+
         with pytest.raises(DataIntegrityError, match="missing required fields"):
             build_promoted_theses(
                 run_id="test_run",
@@ -493,17 +487,17 @@ class TestValidationMetadataPreload:
 
     def test_validation_metadata_attached_on_successful_preload(self, tmp_path):
         from project.research.validation.contracts import (
-            ValidationBundle,
             ValidatedCandidateRecord,
+            ValidationBundle,
             ValidationDecision,
             ValidationMetrics,
         )
-        
+
         run_id = "test_validation_preload"
         data_root = tmp_path / "data"
         validation_dir = data_root / "reports" / "validation" / run_id
         validation_dir.mkdir(parents=True)
-        
+
         bundle = ValidationBundle(
             run_id=run_id,
             created_at="2024-01-01T00:00:00Z",
@@ -534,7 +528,7 @@ class TestValidationMetadataPreload:
             summary_stats={"total": 1, "validated": 1},
             effect_stability_report={},
         )
-        
+
         import json
         (validation_dir / "validation_bundle.json").write_text(json.dumps(bundle.to_dict()))
         pd.DataFrame(
@@ -551,10 +545,10 @@ class TestValidationMetadataPreload:
                 }
             ]
         ).to_parquet(validation_dir / "promotion_ready_candidates.parquet", index=False)
-        
+
         promotion_dir = data_root / "reports" / "promotions" / run_id
         promotion_dir.mkdir(parents=True)
-        
+
         evidence_bundle = {
             "candidate_id": "cand_1",
             "sample_definition": {"symbol": "BTCUSDT", "n_events": 100},
@@ -565,16 +559,16 @@ class TestValidationMetadataPreload:
             "metadata": {"hypothesis_id": "hyp_1"},
         }
         (promotion_dir / "evidence_bundles.jsonl").write_text(json.dumps(evidence_bundle))
-        
+
         promoted_df = pd.DataFrame([{"candidate_id": "cand_1", "status": "PROMOTED"}])
-        
+
         result = export_promoted_theses_for_run(
             run_id,
             data_root=data_root,
             bundles=[evidence_bundle],
             promoted_df=promoted_df,
         )
-        
+
         assert result.thesis_count == 1
 
 
@@ -582,17 +576,18 @@ class TestCanonicalPromotionArtifactConsumption:
     """Tests that promotion service consumes canonical promotion_ready_candidates.parquet."""
 
     def test_promotion_consumes_canonical_artifact(self, tmp_path, monkeypatch):
-        from project.research.validation.contracts import (
-            ValidationBundle,
-            ValidatedCandidateRecord,
-            ValidationDecision,
-            ValidationMetrics,
-        )
+        import json
+
         from project.research.services.promotion_service import (
             PromotionConfig,
             execute_promotion,
         )
-        import json
+        from project.research.validation.contracts import (
+            ValidatedCandidateRecord,
+            ValidationBundle,
+            ValidationDecision,
+            ValidationMetrics,
+        )
 
         run_id = "test_canonical_consumption"
         data_root = tmp_path / "data"
@@ -714,11 +709,12 @@ class TestCanonicalPromotionArtifactConsumption:
             execute_promotion(config)
 
     def test_promotion_fails_without_canonical_artifact(self, tmp_path, monkeypatch):
+        import json
+
         from project.research.services.promotion_service import (
             PromotionConfig,
             execute_promotion,
         )
-        import json
 
         run_id = "test_no_canonical_artifact"
         data_root = tmp_path / "data"
@@ -789,15 +785,15 @@ class TestCanonicalPromotionArtifact:
 
     def test_write_promotion_ready_candidates_produces_parquet(self, tmp_path):
         from project.research.validation.contracts import (
-            ValidationBundle,
             ValidatedCandidateRecord,
+            ValidationBundle,
             ValidationDecision,
             ValidationMetrics,
         )
-        
+
         run_id = "test_promotion_artifact"
         base_dir = tmp_path / "validation" / run_id
-        
+
         bundle = ValidationBundle(
             run_id=run_id,
             created_at="2024-01-01T00:00:00Z",
@@ -829,13 +825,13 @@ class TestCanonicalPromotionArtifact:
             summary_stats={"total": 1, "validated": 1},
             effect_stability_report={},
         )
-        
+
         path = write_promotion_ready_candidates(bundle, base_dir=base_dir)
-        
+
         assert path is not None
         assert path.exists()
         assert path.name == "promotion_ready_candidates.parquet"
-        
+
         df = pd.read_parquet(path)
         assert len(df) == 1
         assert df.iloc[0]["candidate_id"] == "cand_1"
@@ -844,10 +840,10 @@ class TestCanonicalPromotionArtifact:
 
     def test_empty_validated_candidates_still_write_canonical_artifact(self, tmp_path):
         from project.research.validation.contracts import ValidationBundle
-        
+
         run_id = "test_empty_artifact"
         base_dir = tmp_path / "validation" / run_id
-        
+
         bundle = ValidationBundle(
             run_id=run_id,
             created_at="2024-01-01T00:00:00Z",
@@ -857,9 +853,9 @@ class TestCanonicalPromotionArtifact:
             summary_stats={},
             effect_stability_report={},
         )
-        
+
         path = write_promotion_ready_candidates(bundle, base_dir=base_dir)
-        
+
         assert path is not None
         assert path.exists()
 

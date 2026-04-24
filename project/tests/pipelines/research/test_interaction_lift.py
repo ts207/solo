@@ -1,6 +1,6 @@
-import numpy as np
 import pandas as pd
 import pytest
+
 from project.research.analyze_interaction_lift import calculate_lift
 
 

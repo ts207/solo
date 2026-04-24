@@ -4,8 +4,8 @@ Ground truth reference values for basic features.
 
 from __future__ import annotations
 
-import pandas as pd
 import numpy as np
+import pandas as pd
 
 
 def get_reference_sma(data: pd.Series, window: int) -> pd.Series:

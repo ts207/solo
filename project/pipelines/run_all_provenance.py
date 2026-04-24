@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from typing import Dict, List, Tuple
+
 from project import PROJECT_ROOT
 from project.pipelines.pipeline_defaults import DATA_ROOT
 from project.pipelines.pipeline_provenance import data_fingerprint

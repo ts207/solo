@@ -1,5 +1,6 @@
-import pytest
 import pandas as pd
+import pytest
+
 from project.research.services.candidate_discovery_diagnostics import (
     build_false_discovery_diagnostics,
 )
@@ -61,8 +62,9 @@ def test_benchmark_output_contract(tmp_path):
 
 
 def test_decomposition_artifact_contract(tmp_path):
-    from project.research.benchmarks import discovery_benchmark
     import pandas as pd
+
+    from project.research.benchmarks import discovery_benchmark
 
     # Mock data with minimal required columns for Patch 2
     merged = pd.DataFrame(
@@ -132,8 +134,9 @@ def test_decomposition_artifact_contract(tmp_path):
 
 def test_hierarchical_search_contract():
     # Verify signature alignment
-    from project.research.search import hierarchical_search
     import inspect
+
+    from project.research.search import hierarchical_search
 
     sig = inspect.signature(hierarchical_search._apply_v2_scoring)
     assert "data_root" in sig.parameters
@@ -162,8 +165,7 @@ def test_hierarchical_scoring_failure_raises_when_context_is_required(monkeypatc
 
 
 def test_hierarchical_evaluation_failure_raises(monkeypatch):
-    from project.research.search import hierarchical_search
-    from project.research.search import distributed_runner
+    from project.research.search import distributed_runner, hierarchical_search
 
     def _boom(*_args, **_kwargs):
         raise RuntimeError("evaluation unavailable")

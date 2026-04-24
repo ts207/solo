@@ -5,7 +5,11 @@ from pathlib import Path
 import yaml
 
 from project.domain.registry_loader import build_domain_graph_payload
-from project.spec_registry import load_state_family_registry, load_state_registry, resolve_relative_spec_path
+from project.spec_registry import (
+    load_state_family_registry,
+    load_state_registry,
+    resolve_relative_spec_path,
+)
 from project.spec_validation import loaders as spec_validation_loaders
 
 

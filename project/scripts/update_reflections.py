@@ -13,10 +13,7 @@ Detects:
 """
 import glob
 import json
-import os
-import re
 import warnings
-from collections import defaultdict
 from datetime import datetime, timezone
 from pathlib import Path
 

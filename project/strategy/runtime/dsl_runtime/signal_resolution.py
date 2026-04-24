@@ -1,11 +1,12 @@
 from __future__ import annotations
 
-import pandas as pd
-import numpy as np
 from typing import Dict, List
-from project.strategy.dsl.schema import Blueprint
-from project.strategy.dsl.references import REGISTRY_SIGNAL_COLUMNS
+
+import pandas as pd
+
 from project.strategy.dsl.contract_v1 import resolve_trigger_column
+from project.strategy.dsl.references import REGISTRY_SIGNAL_COLUMNS
+from project.strategy.dsl.schema import Blueprint
 
 
 def first_overlay_param(blueprint: Blueprint, overlay_name: str, key: str, default: float) -> float:

@@ -2,8 +2,8 @@ event_type: LIQUIDITY_SHOCK
 synthetic_coverage: covered
 active: true
 status: implemented
-description: Polymorphic liquidity shock detector (legacy). Dispatches to Direct or
-  Proxy based on column availability.
+description: Polymorphic liquidity shock detector. Dispatches to direct or proxy
+  liquidity stress detection based on column availability.
 reports_dir: liquidity_shock
 events_file: liquidity_shock_events.parquet
 signal_column: liquidity_shock_event
@@ -63,8 +63,8 @@ runtime:
   - liquidity_stress
   - high_urgency
 semantics:
-  summary: Polymorphic liquidity shock detector (legacy). Dispatches to Direct or
-    Proxy based on column availability.
+  summary: Polymorphic liquidity shock detector. Dispatches to direct or proxy liquidity
+    stress detection based on column availability.
   cluster_id: liquidity_stress
   notes: High-level liquidity stress onset.
   precedence_rank: 0

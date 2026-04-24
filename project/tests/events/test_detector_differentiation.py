@@ -4,6 +4,8 @@ import numpy as np
 import pandas as pd
 
 from project.core.copula_pairs import copula_pair_universe, load_copula_pairs
+from project.events.detectors.exhaustion import FlowExhaustionDetector
+from project.events.detectors.liquidity import ProxyLiquidityStressDetector
 from project.events.families.canonical_proxy import (
     AbsorptionProxyDetector,
     DepthCollapseDetector,
@@ -14,8 +16,6 @@ from project.events.families.canonical_proxy import (
     WickReversalProxyDetector,
 )
 from project.events.families.temporal import CopulaPairsTradingDetector
-from project.events.detectors.exhaustion import FlowExhaustionDetector
-from project.events.detectors.liquidity import ProxyLiquidityStressDetector
 from project.tests.synthetic_truth.scenarios.factory import ScenarioFactory
 
 

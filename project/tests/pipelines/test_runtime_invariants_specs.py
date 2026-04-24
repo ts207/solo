@@ -1,10 +1,7 @@
 from __future__ import annotations
 
-from pathlib import Path
-
-from project.tests.conftest import PROJECT_ROOT
-
 from project.specs import invariants as runtime_invariants
+from project.tests.conftest import PROJECT_ROOT
 
 
 def test_runtime_invariants_specs_validate_for_repo_contract():

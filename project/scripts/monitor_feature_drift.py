@@ -14,15 +14,15 @@ Usage:
 """
 
 from __future__ import annotations
-from project.core.config import get_data_root
 
 import argparse
 import sys
-from typing import List
 
 import numpy as np
 import pandas as pd
+
 from project.core.feature_schema import feature_dataset_dir_name
+
 
 def __getattr__(name):
     if name == "DATA_ROOT":

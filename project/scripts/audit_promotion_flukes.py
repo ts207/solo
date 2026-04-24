@@ -1,7 +1,7 @@
-import pandas as pd
 import numpy as np
-from project.eval.audit_stats import permutation_test, detect_selection_bias
-from project.eval.selection_bias import probabilistic_sharpe_ratio
+import pandas as pd
+
+from project.eval.audit_stats import detect_selection_bias, permutation_test
 
 
 def run_fluke_audit():

@@ -2,9 +2,10 @@ from __future__ import annotations
 
 import json
 import logging
-import pandas as pd
+from typing import Any, Dict, List, Tuple
+
 import numpy as np
-from typing import Dict, Any, List, Tuple, Optional
+import pandas as pd
 
 from project.core.coercion import safe_float, safe_int
 from project.research.helpers.viability import (

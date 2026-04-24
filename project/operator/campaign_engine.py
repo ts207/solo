@@ -11,8 +11,8 @@ from project.core.config import get_data_root
 from project.core.exceptions import DataIntegrityError
 from project.operator.decision_engine import decide_next_action
 from project.operator.mutation_engine import generate_next_proposal, write_mutated_proposal
-from project.research.campaign_contract import CampaignContract, load_campaign_contract
 from project.research.agent_io.issue_proposal import issue_proposal
+from project.research.campaign_contract import CampaignContract, load_campaign_contract
 from project.research.knowledge.memory import read_memory_table, write_memory_table
 from project.research.reports.operator_reporting import write_operator_outputs_for_run
 

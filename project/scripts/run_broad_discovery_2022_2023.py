@@ -6,7 +6,6 @@ from pathlib import Path
 from project.core.config import get_data_root
 from project.research.campaign_controller import CampaignConfig, CampaignController
 
-
 DEFAULT_PROGRAM_ID = "btc_broad_discovery_2022_2023"
 DEFAULT_REGISTRY_ROOT = "project/configs/registries"
 DEFAULT_START = "2022-01-01"

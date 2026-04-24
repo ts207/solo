@@ -6,7 +6,7 @@ from typing import Optional
 import numpy as np
 import pandas as pd
 
-from project.synthetic_truth.tools.scoring.normalize import SignalNormalizer, NormalizedSignal
+from project.synthetic_truth.tools.scoring.normalize import NormalizedSignal, SignalNormalizer
 
 
 @dataclass
@@ -75,20 +75,20 @@ class SignalAggregator:
 
         for signal in signals:
             weight = self.get_weight(signal.event_type)
-            
+
             if signal.normalized_confidence < 0.1:
                 continue
-            
+
             weighted_strength = signal.normalized_strength * weight
             total_score += weighted_strength
             total_weight += weight
-            
+
             event_counts[signal.event_type] = event_counts.get(signal.event_type, 0) + 1
 
         aggregate_score = total_score / total_weight if total_weight > 0 else 0.0
-        
+
         dominant_event = max(event_counts, key=event_counts.get) if event_counts else None
-        
+
         return AggregatedSignal(
             timestamp=None,
             aggregate_score=float(aggregate_score),
@@ -100,9 +100,9 @@ class SignalAggregator:
     def _max_signal(self, signals: list[NormalizedSignal]) -> AggregatedSignal:
         if not signals:
             return AggregatedSignal(timestamp=None, aggregate_score=0.0)
-        
+
         best = max(signals, key=lambda s: s.normalized_strength)
-        
+
         return AggregatedSignal(
             timestamp=None,
             aggregate_score=best.normalized_strength,
@@ -113,9 +113,9 @@ class SignalAggregator:
     def _mean_signal(self, signals: list[NormalizedSignal]) -> AggregatedSignal:
         if not signals:
             return AggregatedSignal(timestamp=None, aggregate_score=0.0)
-        
+
         mean_score = np.mean([s.normalized_strength for s in signals])
-        
+
         return AggregatedSignal(
             timestamp=None,
             aggregate_score=float(mean_score),
@@ -129,7 +129,7 @@ class SignalAggregator:
     ) -> list[AggregatedSignal]:
         if events.empty:
             return []
-        
+
         signals = self.normalizer.normalize_batch(events)
         return [self.aggregate_signals(signals, method=method)]
 
@@ -137,12 +137,12 @@ class SignalAggregator:
 def rank_events(events: pd.DataFrame) -> pd.DataFrame:
     if events.empty:
         return events
-    
+
     normalizer = SignalNormalizer()
     signals = normalizer.normalize_batch(events)
-    
+
     result = events.copy()
     result["rank"] = [s.rank for s in signals]
     result["normalized_strength"] = [s.normalized_strength for s in signals]
-    
+
     return result.sort_values("rank")

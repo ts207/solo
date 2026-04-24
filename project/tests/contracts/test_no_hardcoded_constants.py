@@ -7,7 +7,6 @@ from typing import List, Optional
 
 import pytest
 
-
 ALLOWED_FILES = {
     "project/tests/",
     "examples/",
@@ -76,7 +75,7 @@ class ScanResult:
     def summary(self) -> str:
         if self.passed:
             return f"PASS: Scanned {self.scanned_files} files, {self.total_lines} lines"
-        
+
         lines = [
             f"INFO: Found {len(self.violations)} hardcoded thresholds in {self.scanned_files} files:",
         ]
@@ -98,12 +97,12 @@ def is_in_protected_context(line: str) -> bool:
 
 def check_line_for_hardcoded(line: str, file_path: str, line_number: int) -> List[Violation]:
     violations: List[Violation] = []
-    
+
     if is_in_protected_context(line):
         return violations
-    
+
     line_stripped = line.rstrip()
-    
+
     matches = THRESHOLD_VALUE_PATTERN.findall(line_stripped)
     for match in matches:
         try:
@@ -119,27 +118,27 @@ def check_line_for_hardcoded(line: str, file_path: str, line_number: int) -> Lis
                 break
         except ValueError:
             pass
-    
+
     return violations
 
 
 def scan_file(file_path: Path) -> List[Violation]:
     violations: List[Violation] = []
-    
+
     if file_path.suffix not in (".py",):
         return violations
-    
+
     if "test_" in file_path.name or "_test.py" in file_path.name:
         return violations
-    
+
     try:
         content = file_path.read_text(encoding="utf-8")
     except (UnicodeDecodeError, OSError):
         return violations
-    
+
     lines = content.splitlines()
     in_defaults_dict = False
-    
+
     for i, line in enumerate(lines, 1):
         if re.search(r'defaults\s*=\s*\{', line):
             in_defaults_dict = True
@@ -147,9 +146,9 @@ def scan_file(file_path: Path) -> List[Violation]:
             in_defaults_dict = False
         elif in_defaults_dict:
             continue
-        
+
         violations.extend(check_line_for_hardcoded(line, str(file_path), i))
-    
+
     return violations
 
 
@@ -157,25 +156,25 @@ def scan_directory(directory: Path, recursive: bool = True) -> ScanResult:
     violations: List[Violation] = []
     scanned_files = 0
     total_lines = 0
-    
+
     pattern = "**/*.py" if recursive else "*.py"
-    
+
     for file_path in directory.glob(pattern):
         if file_path.is_dir():
             continue
-        
+
         if any(file_path.match(p) for p in ALLOWED_FILES):
             continue
-            
+
         file_violations = scan_file(file_path)
         violations.extend(file_violations)
         scanned_files += 1
-        
+
         try:
             total_lines += len(file_path.read_text(encoding="utf-8").splitlines())
         except (UnicodeDecodeError, OSError):
             pass
-    
+
     return ScanResult(
         passed=len(violations) == 0,
         violations=violations,
@@ -187,25 +186,25 @@ def scan_directory(directory: Path, recursive: bool = True) -> ScanResult:
 class TestHardcodedConstants:
     def test_detector_files_scan(self):
         detectors_dir = Path("project/events/detectors")
-        
+
         if not detectors_dir.exists():
             pytest.skip("Detectors directory not found")
-        
+
         result = scan_directory(detectors_dir)
         print(f"\n{result.summary()}")
-        
+
         assert isinstance(result.violations, list)
         assert result.scanned_files > 0
 
     def test_family_files_scan(self):
         families_dir = Path("project/events/families")
-        
+
         if not families_dir.exists():
             pytest.skip("Families directory not found")
-        
+
         result = scan_directory(families_dir)
         print(f"\n{result.summary()}")
-        
+
         assert isinstance(result.violations, list)
         assert result.scanned_files > 0
 

@@ -1,12 +1,12 @@
 from __future__ import annotations
 
+import os
 from pathlib import Path
 from typing import Any, Dict, Iterable
 
-import os
 import yaml
-from project import PROJECT_ROOT
 
+from project import PROJECT_ROOT
 from project.core.exceptions import ConfigurationError
 
 

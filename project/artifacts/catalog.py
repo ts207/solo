@@ -6,8 +6,12 @@ from typing import Any, Dict
 
 from project.core.config import get_data_root
 from project.core.exceptions import DataIntegrityError
-from project.research.services.pathing import phase2_candidates_path as canonical_phase2_candidates_path
-from project.research.services.pathing import phase2_diagnostics_path as canonical_phase2_diagnostics_path
+from project.research.services.pathing import (
+    phase2_candidates_path as canonical_phase2_candidates_path,
+)
+from project.research.services.pathing import (
+    phase2_diagnostics_path as canonical_phase2_diagnostics_path,
+)
 
 
 def data_root(root: Path | None = None) -> Path:

@@ -1,8 +1,14 @@
 from __future__ import annotations
-from project.core.config import get_data_root
-import argparse, json, logging, os, sqlite3, sys
+
+import argparse
+import json
+import logging
+import sqlite3
+import sys
 from pathlib import Path
 from typing import Dict, List
+
+from project.core.config import get_data_root
 
 
 def __getattr__(name: str):

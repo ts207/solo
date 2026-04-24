@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import numpy as np
 import pandas as pd
-from typing import Tuple
 
 
 def safe_divide(numerator: pd.Series, denominator: pd.Series) -> pd.Series:

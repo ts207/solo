@@ -4,7 +4,6 @@ from typing import Any
 
 import pandas as pd
 
-from project.events.detectors.volatility import VolSpikeDetector
 from project.events.registries.volatility import (
     VOLATILITY_DETECTORS,
     ensure_volatility_detectors_registered,

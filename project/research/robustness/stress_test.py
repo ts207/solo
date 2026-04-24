@@ -18,14 +18,14 @@ from typing import Any
 import numpy as np
 import pandas as pd
 
+from project.core.column_registry import ColumnRegistry
 from project.domain.compiled_registry import get_domain_registry
-from project.domain.hypotheses import HypothesisSpec, TriggerSpec
+from project.domain.hypotheses import HypothesisSpec
 from project.research.search.evaluator_utils import (
-    trigger_mask,
     forward_log_returns,
     signed_returns_for_spec,
+    trigger_mask,
 )
-from project.core.column_registry import ColumnRegistry
 
 log = logging.getLogger(__name__)
 _BPS = 10_000.0

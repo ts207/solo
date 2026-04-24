@@ -8,9 +8,10 @@ from typing import Any, Dict, List, Optional, Set
 
 import pandas as pd
 import yaml
+
 from project.core.exceptions import DataIntegrityError
-from project.research.search.bridge_adapter import canonical_bridge_event_type
 from project.research.context_labels import canonicalize_context_label
+from project.research.search.bridge_adapter import canonical_bridge_event_type
 from project.spec_registry.search_space import DEFAULT_EVENT_PRIORITY_WEIGHT as _DEFAULT_QUALITY
 
 _LOG = logging.getLogger(__name__)

@@ -1,6 +1,7 @@
 """Guard: unused microstructure features must not be computed in build_features."""
 
 from __future__ import annotations
+
 import ast
 from pathlib import Path
 

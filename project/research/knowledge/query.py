@@ -9,8 +9,7 @@ import pandas as pd
 
 from project.core.config import get_data_root
 from project.io.utils import read_parquet
-
-from project.research.knowledge.memory import ensure_memory_store, memory_paths, read_memory_table
+from project.research.knowledge.memory import ensure_memory_store, read_memory_table
 
 
 def _read_optional_parquet(path: Path) -> pd.DataFrame:

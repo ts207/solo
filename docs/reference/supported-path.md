@@ -34,7 +34,8 @@ PYTHONPATH=. ./.venv/bin/python project/scripts/refresh_docs_governance.py --che
 
 ## Compatibility
 
-- Legacy artifact readers in `project.artifacts.compat`.
+- Legacy artifact readers in `project.artifacts.compat`, only when callers pass
+  an explicit compatibility switch such as `allow_legacy=True`.
 - Explicit heuristic live detector mode. It requires `legacy_heuristic_enabled=true`; it is not a default.
 - Historical phase-2 adapter surfaces retained for old artifacts and narrow smoke coverage.
 

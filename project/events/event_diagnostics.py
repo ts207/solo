@@ -1,10 +1,11 @@
 from __future__ import annotations
 
 import json
-import numpy as np
-import pandas as pd
 from pathlib import Path
 from typing import Dict, List
+
+import numpy as np
+import pandas as pd
 
 from project.events.event_specs import (
     EVENT_REGISTRY_SPECS,

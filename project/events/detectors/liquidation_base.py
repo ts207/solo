@@ -6,8 +6,11 @@ import numpy as np
 import pandas as pd
 
 from project.events.detectors.base_v2 import BaseDetectorV2
-from project.events.event_output_schema import empty_event_output_frame, normalize_event_output_frame
 from project.events.episodes import build_episodes
+from project.events.event_output_schema import (
+    empty_event_output_frame,
+    normalize_event_output_frame,
+)
 
 
 class EpisodeBaseDetectorV2(BaseDetectorV2):

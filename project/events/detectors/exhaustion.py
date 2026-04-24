@@ -6,10 +6,6 @@ import numpy as np
 import pandas as pd
 
 from project.events.detectors.composite import CompositeDetector
-from project.events.detectors.threshold import ThresholdDetector
-from project.events.thresholding import rolling_mean_std_zscore
-from project.features.context_guards import optional_state
-from project.features.rolling_thresholds import lagged_rolling_quantile
 from project.events.detectors.exhaustion_support import (
     compute_post_deleveraging_mask,
     compute_trend_exhaustion_mask,
@@ -18,6 +14,9 @@ from project.events.detectors.exhaustion_support import (
     prepare_post_deleveraging_features,
     prepare_trend_exhaustion_features,
 )
+from project.events.detectors.threshold import ThresholdDetector
+from project.features.context_guards import optional_state
+from project.features.rolling_thresholds import lagged_rolling_quantile
 
 
 class FlowExhaustionDetector(CompositeDetector):

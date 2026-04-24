@@ -1,9 +1,10 @@
 import json
+
 import pandas as pd
-import numpy as np
-from pathlib import Path
-from project.engine.runner import run_engine
+
 from project.core.config import get_data_root
+from project.engine.runner import run_engine
+
 
 def main():
     data_root = get_data_root()

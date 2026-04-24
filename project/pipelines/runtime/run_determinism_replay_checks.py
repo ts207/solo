@@ -1,5 +1,4 @@
 from __future__ import annotations
-from project.core.config import get_data_root
 
 import argparse
 import json
@@ -7,10 +6,11 @@ import sys
 from typing import Dict, List
 
 from project import PROJECT_ROOT
+from project.core.config import get_data_root
 from project.io.utils import read_parquet
-from project.specs.manifest import finalize_manifest, start_manifest
-from project.specs.invariants import load_runtime_invariants_specs
 from project.runtime.replay import determinism_replay_check
+from project.specs.invariants import load_runtime_invariants_specs
+from project.specs.manifest import finalize_manifest, start_manifest
 
 
 def main() -> int:

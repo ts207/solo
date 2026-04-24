@@ -31,20 +31,17 @@ from project.io.utils import atomic_write_json, atomic_write_text
 from project.research.agent_io.campaign_planner import (
     CampaignPlanner,
     CampaignPlannerConfig,
-    CampaignPlanResult,
 )
 from project.research.agent_io.issue_proposal import generate_run_id, issue_proposal
-from project.research.agent_io.proposal_schema import load_operator_proposal
 from project.research.knowledge.memory import (
-    MemoryPaths,
+    build_tested_regions_snapshot,
+    compute_context_statistics,
+    compute_event_statistics,
+    compute_region_statistics,
+    compute_template_statistics,
     ensure_memory_store,
     read_memory_table,
     write_memory_table,
-    build_tested_regions_snapshot,
-    compute_region_statistics,
-    compute_event_statistics,
-    compute_template_statistics,
-    compute_context_statistics,
 )
 from project.research.knowledge.reflection import build_run_reflection
 from project.research.update_campaign_memory import _build_next_actions

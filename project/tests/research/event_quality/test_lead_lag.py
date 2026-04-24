@@ -1,10 +1,11 @@
 # tests/research/event_quality/test_lead_lag.py
-import pandas as pd
 import numpy as np
+import pandas as pd
 import pytest
+
 from project.research.event_quality.lead_lag import (
-    compute_event_return_lead_lag,
     compute_event_event_lead_lag,
+    compute_event_return_lead_lag,
 )
 
 

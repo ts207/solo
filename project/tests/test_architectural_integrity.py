@@ -1,10 +1,12 @@
 from __future__ import annotations
 
 import ast
-import re
 import os
+import re
 from pathlib import Path
+
 import pytest
+
 from project import PROJECT_ROOT
 
 # --- Dependency Matrix Definition ---

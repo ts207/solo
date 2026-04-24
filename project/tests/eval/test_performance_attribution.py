@@ -1,5 +1,4 @@
 import pandas as pd
-import numpy as np
 import pytest
 
 from project.eval.performance_attribution import calculate_regime_metrics

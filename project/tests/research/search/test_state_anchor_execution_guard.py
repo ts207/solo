@@ -1,10 +1,11 @@
 from __future__ import annotations
 
 import pytest
+
 from project.research.agent_io.hypothesis_contract import (
-    normalize_structured_proposal,
     DEPRECATED_STATE_ANCHOR,
     UNSUPPORTED_STATE_ANCHOR_EXECUTION,
+    normalize_structured_proposal,
 )
 from project.research.agent_io.proposal_schema import compile_structured_proposal_to_agent_proposal
 
@@ -45,6 +46,6 @@ def test_state_anchor_normalization_emits_warning() -> None:
 def test_state_anchor_execution_rejected() -> None:
     payload = _state_anchor_payload()
     proposal, _ = normalize_structured_proposal(payload)
-    
+
     with pytest.raises(ValueError, match=UNSUPPORTED_STATE_ANCHOR_EXECUTION):
         compile_structured_proposal_to_agent_proposal(proposal)

@@ -4,15 +4,14 @@ Verification tests for technical features.
 
 from __future__ import annotations
 
-import pandas as pd
 import numpy as np
-import pytest
-from project.eval.verification import VerificationHarness
-from project.eval.reference_values import get_reference_volatility, get_synthetic_test_data
+import pandas as pd
+
 from project.eval.feature_verification_suite import (
-    FeatureVerificationSuite,
     run_feature_verification,
 )
+from project.eval.reference_values import get_reference_volatility, get_synthetic_test_data
+from project.eval.verification import VerificationHarness
 from project.pipelines.features.build_features import _safe_logret_1
 
 

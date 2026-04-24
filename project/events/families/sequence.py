@@ -10,7 +10,6 @@ from project.events.registries.sequence import (
     ensure_sequence_detectors_registered,
     get_sequence_detectors,
 )
-from project.events.shared import EVENT_COLUMNS
 from project.research.analyzers import run_analyzer_suite
 
 

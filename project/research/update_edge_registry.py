@@ -1,33 +1,29 @@
 from __future__ import annotations
-from project.core.config import get_data_root
-
-from project.core.coercion import safe_float, safe_int, as_bool
-from project.research.utils.decision_safety import (
-    finite_ge,
-    bool_gate,
-    coerce_numeric_nan,
-    nanmedian_or_nan,
-    nanmax_or_nan,
-)
-
 
 import argparse
 import json
 import logging
 import sys
-
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, Iterable, List, Tuple
 
 import numpy as np
 import pandas as pd
-from project import PROJECT_ROOT
 
+from project import PROJECT_ROOT
+from project.core.coercion import safe_float
+from project.core.config import get_data_root
 from project.io.utils import ensure_dir, write_parquet
-from project.specs.ontology import load_run_manifest_hashes
-from project.specs.manifest import finalize_manifest, start_manifest
 from project.research.edge_identity import edge_id_from_row, structural_edge_components
+from project.research.utils.decision_safety import (
+    bool_gate,
+    coerce_numeric_nan,
+    nanmax_or_nan,
+    nanmedian_or_nan,
+)
+from project.specs.manifest import finalize_manifest, start_manifest
+from project.specs.ontology import load_run_manifest_hashes
 
 
 def _normalize_event_type(row: Dict[str, Any]) -> str:

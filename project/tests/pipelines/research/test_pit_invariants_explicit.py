@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import pandas as pd
-import pytest
 
 
 def test_explicit_pit_invariant_no_lookahead_merge_asof():

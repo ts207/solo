@@ -1,16 +1,22 @@
 import json
-import pandas as pd
-import pytest
-from pathlib import Path
 from unittest.mock import MagicMock, patch
 
-from project.research.validation.contracts import (
-    ValidationBundle, ValidatedCandidateRecord, ValidationDecision, ValidationMetrics
-)
-from project.research.validation.result_writer import write_validation_bundle, write_validated_candidate_tables
-from project.research.services.promotion_service import execute_promotion, PromotionConfig
+import pandas as pd
+import pytest
+
 from project.live.runner import LiveEngineRunner
-from project.live.contracts import PromotedThesis
+from project.research.services.promotion_service import PromotionConfig, execute_promotion
+from project.research.validation.contracts import (
+    ValidatedCandidateRecord,
+    ValidationBundle,
+    ValidationDecision,
+    ValidationMetrics,
+)
+from project.research.validation.result_writer import (
+    write_validated_candidate_tables,
+    write_validation_bundle,
+)
+
 
 @pytest.fixture
 def mock_pipeline_data(tmp_path):
@@ -27,15 +33,15 @@ def mock_pipeline_data(tmp_path):
 def test_golden_pipeline_end_to_end(mock_pipeline_data):
     run_id = "golden_run"
     persist_dir = mock_pipeline_data / "live" / "persist"
-    
+
     # 1. DISCOVER (Mocked)
     candidates_path = mock_pipeline_data / "reports" / "edge_candidates" / run_id / "edge_candidates_normalized.parquet"
     candidates_path.parent.mkdir(parents=True)
-    
-    from project.specs.ontology import ontology_spec_hash
+
     from project import PROJECT_ROOT
+    from project.specs.ontology import ontology_spec_hash
     curr_hash = ontology_spec_hash(PROJECT_ROOT.parent)
-    
+
     df = pd.DataFrame([{
         "candidate_id": "cand_golden",
         "event_type": "VOL_SHOCK",
@@ -58,22 +64,22 @@ def test_golden_pipeline_end_to_end(mock_pipeline_data):
         "frozen_spec_hash": curr_hash,
     }])
     df.to_parquet(candidates_path)
-    
+
     # 2. VALIDATE
     decision = ValidationDecision(status="validated", candidate_id="cand_golden", run_id=run_id)
     candidate = ValidatedCandidateRecord(
-        candidate_id="cand_golden", 
-        decision=decision, 
+        candidate_id="cand_golden",
+        decision=decision,
         metrics=ValidationMetrics(sample_count=100, expectancy=0.1, net_expectancy=0.05),
         template_id="tpl1",
         direction="long",
         horizon_bars=12
     )
     bundle = ValidationBundle(run_id=run_id, created_at="2026-01-01", validated_candidates=[candidate])
-    
+
     write_validation_bundle(bundle, base_dir=mock_pipeline_data / "reports" / "validation" / run_id)
     write_validated_candidate_tables(bundle, base_dir=mock_pipeline_data / "reports" / "validation" / run_id)
-    
+
     # 3. PROMOTE
     config = PromotionConfig(
         run_id=run_id, symbols="BTC", out_dir=mock_pipeline_data / "reports" / "promotions" / run_id,
@@ -85,7 +91,7 @@ def test_golden_pipeline_end_to_end(mock_pipeline_data):
         program_id="golden_program", retail_profile="default", objective_name="default",
         objective_spec=None, retail_profiles_spec=None
     )
-    
+
     # Mock audit_df with evidence_bundle_json
     mock_bundle = {
         "candidate_id": "cand_golden",
@@ -105,7 +111,7 @@ def test_golden_pipeline_end_to_end(mock_pipeline_data):
         "lineage": {"run_id": run_id, "candidate_id": "cand_golden"},
         "promotion_decision": {"promotion_status": "promoted"}
     }
-    
+
     mock_audit = pd.DataFrame([{
         "candidate_id": "cand_golden",
         "event_type": "VOL_SHOCK",
@@ -115,7 +121,7 @@ def test_golden_pipeline_end_to_end(mock_pipeline_data):
         "promotion_metrics_trace": "{}",
         "status": "promoted"
     }])
-    
+
     with patch("project.research.services.promotion_service.get_data_root", return_value=mock_pipeline_data):
         with patch("project.research.validation.result_writer.get_data_root", return_value=mock_pipeline_data):
             with patch("project.research.services.promotion_service.load_run_manifest", return_value={"run_mode": "confirmatory"}):
@@ -126,11 +132,11 @@ def test_golden_pipeline_end_to_end(mock_pipeline_data):
                         with patch("project.research.live_export.get_data_root", return_value=mock_pipeline_data):
                             result = execute_promotion(config)
                             assert result.exit_code == 0
-                            
+
                             from project.research.live_export import export_promoted_theses_for_run
                             export_res = export_promoted_theses_for_run(run_id, data_root=mock_pipeline_data)
                             assert export_res.thesis_count > 0
-    
+
     # 4. DEPLOY (Admission Control check)
     with patch("project.artifacts.catalog.get_data_root", return_value=mock_pipeline_data):
         runner = LiveEngineRunner(
@@ -143,7 +149,7 @@ def test_golden_pipeline_end_to_end(mock_pipeline_data):
                 "persist_dir": str(persist_dir),
             }
         )
-        
+
         assert runner._thesis_store is not None
         assert len(runner._thesis_store.all()) == 1
         assert runner.thesis_manager.get_state("thesis::golden_run::cand_golden") is not None
@@ -153,7 +159,7 @@ def test_deploy_rejects_unvalidated(mock_pipeline_data):
     # Try to load a run that exists but has no promoted theses
     run_id = "raw_run"
     (mock_pipeline_data / "reports" / "phase2" / run_id).mkdir(parents=True)
-    
+
     with patch("project.artifacts.catalog.get_data_root", return_value=mock_pipeline_data):
         with pytest.raises(RuntimeError, match="Configured thesis store is unavailable"):
             LiveEngineRunner(

@@ -13,11 +13,11 @@ Usage:
 """
 
 from __future__ import annotations
-from project.core.config import get_data_root
 
 import argparse
 import json
 import sys
+
 
 def __getattr__(name):
     if name == "DATA_ROOT":

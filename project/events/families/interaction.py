@@ -2,15 +2,9 @@ from __future__ import annotations
 
 from typing import Any
 
-import numpy as np
 import pandas as pd
 
-from project.events.detectors.threshold import ThresholdDetector
 from project.events.detectors.composite import CompositeDetector
-from project.events.shared import EVENT_COLUMNS, emit_event, format_event_id
-from project.research.analyzers import run_analyzer_suite
-from project.events.detectors.registry import get_detector
-from project.events.detectors.interaction import EventInteractionDetector
 
 
 class CrossAssetInteractionDetector(CompositeDetector):

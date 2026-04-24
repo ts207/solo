@@ -1,6 +1,7 @@
-import yaml
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict
+
+import yaml
 
 from project.spec_registry import load_state_registry
 from project.specs.ontology import normalize_state_registry_records

@@ -1,20 +1,18 @@
 from __future__ import annotations
 
-import os
 from pathlib import Path
 from typing import List, Tuple
 
 import pandas as pd
 
 from project.core.feature_schema import feature_dataset_dir_name
+from project.core.validation import ensure_utc_timestamp
 from project.io.utils import (
     choose_partition_dir,
     list_parquet_files,
     read_parquet,
     run_scoped_lake_path,
 )
-from project.core.validation import ensure_utc_timestamp
-from project import PROJECT_ROOT
 
 _DEFAULT_TIMEFRAME = "5m"
 

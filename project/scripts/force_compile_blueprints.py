@@ -1,11 +1,12 @@
-import pandas as pd
 import json
-from pathlib import Path
-from project.research.blueprint_compilation import compile_blueprint
-from project.research.candidate_schema import ensure_candidate_schema
-from project.specs.ontology import ontology_spec_hash
-from project.core.config import get_data_root
+
+import pandas as pd
+
 from project import PROJECT_ROOT
+from project.core.config import get_data_root
+from project.research.blueprint_compilation import compile_blueprint
+from project.specs.ontology import ontology_spec_hash
+
 
 def main():
     data_root = get_data_root()

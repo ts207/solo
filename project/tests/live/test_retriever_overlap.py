@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import pytest
 from project.live.contracts import (
     PromotedThesis,
     ThesisEvidence,
@@ -52,7 +51,7 @@ def _thesis_with_overlap(thesis_id: str, group_id: str, sample_size: int, rank_s
 def test_retriever_overlap_suppression_picks_one_winner() -> None:
     winner = _thesis_with_overlap("thesis::winner", "grp_overlap", 100, 3.0)
     loser = _thesis_with_overlap("thesis::loser", "grp_overlap", 50, 1.0)
-    
+
     store = ThesisStore([loser, winner])
     context = LiveTradeContext(
         timestamp="2026-04-02T00:00:00Z",
@@ -83,7 +82,7 @@ def test_retriever_overlap_suppression_picks_one_winner() -> None:
 def test_retriever_overlap_suppression_honors_active_groups() -> None:
     # If the group is already active in context, ALL new candidates from that group should be suppressed
     candidate = _thesis_with_overlap("thesis::candidate", "grp_active", 100, 3.0)
-    
+
     store = ThesisStore([candidate])
     context = LiveTradeContext(
         timestamp="2026-04-02T00:00:00Z",

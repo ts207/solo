@@ -6,7 +6,6 @@ from project.events.detectors.liquidation_base import (
 )
 from project.events.detectors.registry import register_detector
 
-
 LIQUIDATION_DETECTORS = {
     "LIQUIDATION_CASCADE": LiquidationCascadeDetectorV2,
     "LIQUIDATION_CASCADE_PROXY": LiquidationCascadeProxyDetectorV2,

@@ -3,8 +3,8 @@ from __future__ import annotations
 import pandas as pd
 
 from project.reliability.contracts import (
-    validate_promotion_audit,
     validate_evidence_bundle_summary,
+    validate_promotion_audit,
     validate_promotion_decisions,
 )
 

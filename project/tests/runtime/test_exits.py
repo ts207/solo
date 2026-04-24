@@ -1,7 +1,6 @@
 """Direct-call test for exits.py. Guards against NameError from missing imports."""
 
 import pandas as pd
-import pytest
 
 
 def _make_bar(close: float = 100.0) -> pd.Series:

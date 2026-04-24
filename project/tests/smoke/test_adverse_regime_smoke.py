@@ -6,13 +6,13 @@ from unittest.mock import patch
 import numpy as np
 import pandas as pd
 
+from project.reliability.contracts import validate_candidate_table
 from project.reliability.smoke_data import (
-    build_smoke_dataset,
-    run_research_smoke,
     SMOKE_EVENT_TYPE,
     SMOKE_HORIZON_BARS,
+    build_smoke_dataset,
+    run_research_smoke,
 )
-from project.reliability.contracts import validate_candidate_table
 
 
 def _make_crash_dense_events(symbol: str, seed: int) -> pd.DataFrame:

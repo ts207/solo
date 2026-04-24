@@ -5,8 +5,8 @@ from project.events.adapters.exhaustion_analysis import (
     detect_exhaustion_family,
 )
 from project.events.detectors.exhaustion import (
-    ClimaxVolumeDetector,
     EXHAUSTION_DETECTORS,
+    ClimaxVolumeDetector,
     FailedContinuationDetector,
     FlowExhaustionDetector,
     MomentumDivergenceDetector,
@@ -14,7 +14,6 @@ from project.events.detectors.exhaustion import (
     TrendExhaustionDetector,
 )
 from project.events.registries.exhaustion import ensure_exhaustion_detectors_registered
-
 
 ensure_exhaustion_detectors_registered()
 

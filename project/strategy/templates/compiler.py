@@ -1,8 +1,8 @@
-import pandas as pd
-from project.strategy.templates.spec import StrategySpec
-from project.strategy.templates.data_bundle import DataBundle
-
 import numpy as np
+import pandas as pd
+
+from project.strategy.templates.data_bundle import DataBundle
+from project.strategy.templates.spec import StrategySpec
 
 try:
     from numba import njit  # type: ignore

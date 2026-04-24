@@ -8,7 +8,12 @@ import pandas as pd
 import pytest
 
 from project.core.coercion import as_bool, safe_float, safe_int
-from project.runtime.firewall import AccessRequest, audit_access_requests, evaluate_access, _str_list
+from project.runtime.firewall import (
+    AccessRequest,
+    _str_list,
+    audit_access_requests,
+    evaluate_access,
+)
 from project.runtime.hashing import (
     _canonical_json_bytes,
     _hash_bytes,
@@ -18,14 +23,33 @@ from project.runtime.hashing import (
     hash_file_sha256,
     hash_record,
     hash_records,
-    load_hashing_spec,
 )
-from project.runtime.invariants import _first_timestamp_us, _now_iso, _to_us, run_runtime_postflight_audit, run_watermark_audit
-from project.runtime.normalized_event import NormalizedEvent, event_to_record, events_to_records, normalize_event_rows, to_us
-from project.runtime.oms_replay import _action_from_event_type, _is_execution_related, audit_oms_replay
+from project.runtime.invariants import (
+    _first_timestamp_us,
+    _to_us,
+    run_runtime_postflight_audit,
+    run_watermark_audit,
+)
+from project.runtime.normalized_event import (
+    NormalizedEvent,
+    event_to_record,
+    events_to_records,
+    normalize_event_rows,
+    to_us,
+)
+from project.runtime.oms_replay import (
+    _action_from_event_type,
+    _is_execution_related,
+    audit_oms_replay,
+)
 from project.runtime.replay import determinism_replay_check
-from project.runtime.timebase import DEFAULT_LANE_ID, NEG_INF_US, WatermarkCfg, WatermarkTracker, lane_cfg_map
-from project.tests.conftest import PROJECT_ROOT
+from project.runtime.timebase import (
+    DEFAULT_LANE_ID,
+    NEG_INF_US,
+    WatermarkCfg,
+    WatermarkTracker,
+    lane_cfg_map,
+)
 
 
 def test_coercion_helpers_handle_good_bad_and_missing_values():

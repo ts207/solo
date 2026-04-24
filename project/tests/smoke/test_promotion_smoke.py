@@ -3,9 +3,7 @@ from __future__ import annotations
 from pathlib import Path
 
 import pandas as pd
-import pytest
 
-from project.reliability.cli_smoke import run_smoke_cli
 from project.reliability.smoke_data import (
     build_smoke_dataset,
     materialize_smoke_promotion_inputs,

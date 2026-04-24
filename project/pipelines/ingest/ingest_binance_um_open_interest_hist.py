@@ -1,5 +1,4 @@
 from __future__ import annotations
-from project.core.config import get_data_root
 
 import argparse
 import logging
@@ -10,16 +9,18 @@ import time
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Dict, Iterable, List, Tuple
-from zipfile import ZipFile
 from xml.etree import ElementTree as ET
+from zipfile import ZipFile
 
 import pandas as pd
 import requests
+
+from project.core.config import get_data_root
+from project.core.validation import ensure_utc_timestamp
 from project.io.http_utils import download_with_retries
+from project.io.url_utils import join_url
 from project.io.utils import ensure_dir, read_parquet, write_parquet
 from project.specs.manifest import finalize_manifest, start_manifest
-from project.io.url_utils import join_url
-from project.core.validation import ensure_utc_timestamp
 
 DEFAULT_API_BASE = "https://fapi.binance.com"
 DEFAULT_ARCHIVE_BASE = "https://data.binance.vision/data/futures/um"

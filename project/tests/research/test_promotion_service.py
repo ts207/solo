@@ -6,8 +6,8 @@ from types import SimpleNamespace
 
 import pandas as pd
 
-from project.research.services import promotion_service as svc
 from project.research.services import evaluation_service
+from project.research.services import promotion_service as svc
 from project.research.validation import result_writer
 
 PromotionConfig = svc.PromotionConfig

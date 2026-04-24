@@ -1,24 +1,26 @@
 from __future__ import annotations
 
 import os
-import sys
 import time
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple, Callable, Mapping
-
-from project.pipelines.pipeline_defaults import (
-    DATA_ROOT,
-    utc_now_iso,
-    build_timing_map,
-)
-from project.pipelines.pipeline_provenance import read_run_manifest
+from typing import Any, Callable, Dict, List, Mapping, Optional, Tuple
 
 from project.pipelines.execution_engine import (
-    run_stage as _engine_run_stage,
     run_dag,
-    StageTiming,
 )
-from project.pipelines.execution_plan import ExecutionPlan, ExecutionVerificationReport, verify_execution
+from project.pipelines.execution_engine import (
+    run_stage as _engine_run_stage,
+)
+from project.pipelines.execution_plan import (
+    ExecutionPlan,
+    ExecutionVerificationReport,
+    verify_execution,
+)
+from project.pipelines.pipeline_defaults import (
+    DATA_ROOT,
+    build_timing_map,
+    utc_now_iso,
+)
 
 
 def run_stage(stage: str, script: Path, base_args: List[str], run_id: str, **kwargs) -> bool:

@@ -3,7 +3,6 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Any, Dict
 
-
 RELIABILITY_SCHEMA_VERSION = "phase6_reliability_v1"
 SMOKE_DATASET_VERSION = "smoke_dataset_v1"
 

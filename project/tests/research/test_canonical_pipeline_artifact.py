@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from pathlib import Path
 import json
+from pathlib import Path
 
 from project.research.CANONICAL_PIPELINE import persist_canonical_pipeline_artifact
 

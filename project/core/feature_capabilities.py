@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import logging
 from pathlib import Path
-from typing import Dict, Any, Callable
+from typing import Any, Callable, Dict
 
 LOGGER = logging.getLogger(__name__)
 

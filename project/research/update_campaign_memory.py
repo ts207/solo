@@ -7,13 +7,13 @@ import sys
 from pathlib import Path
 from typing import Any, Dict
 
-import pandas as pd
 import numpy as np
+import pandas as pd
 
 from project.core.config import get_data_root
 from project.core.exceptions import DataIntegrityError
 from project.io.utils import atomic_write_json
-from project.research.search_intelligence import update_search_intelligence
+from project.research.action_policy import build_action_policy_queues
 from project.research.knowledge.memory import (
     build_failures_snapshot,
     build_tested_regions_snapshot,
@@ -27,7 +27,7 @@ from project.research.knowledge.memory import (
 )
 from project.research.knowledge.reflection import build_run_reflection
 from project.research.knowledge.schemas import canonical_json
-from project.research.action_policy import build_action_policy_queues
+from project.research.search_intelligence import update_search_intelligence
 from project.research.services.campaign_memory_rollup_service import write_campaign_memory_rollup
 from project.specs.manifest import finalize_manifest, load_run_manifest, start_manifest
 

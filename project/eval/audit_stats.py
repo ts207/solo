@@ -1,6 +1,7 @@
+from typing import Any, Dict, List
+
 import numpy as np
 import pandas as pd
-from typing import List, Dict, Any
 
 
 def permutation_test(

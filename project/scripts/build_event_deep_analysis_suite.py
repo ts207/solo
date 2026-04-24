@@ -15,12 +15,14 @@ from project.events.contract_registry import (
 )
 from project.events.detectors.registry import (
     get_detector,
-    list_registered_event_types,
     load_all_detectors,
 )
 from project.events.event_aliases import EVENT_ALIASES, EXECUTABLE_EVENT_ALIASES
 from project.events.event_specs import EVENT_REGISTRY_SPECS
-from project.events.governance import governed_default_planning_event_ids, get_event_governance_metadata
+from project.events.governance import (
+    get_event_governance_metadata,
+    governed_default_planning_event_ids,
+)
 from project.events.ontology_mapping import ontology_rows_by_event
 from project.scripts.detector_coverage_audit import run_audit as run_detector_audit
 from project.scripts.event_ontology_audit import run_audit as run_ontology_audit

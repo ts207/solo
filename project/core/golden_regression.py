@@ -1,10 +1,8 @@
 from __future__ import annotations
 
-from project.core.coercion import safe_float, safe_int, as_bool
-
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Dict, List, Tuple
+from typing import Any, Dict, List
 
 import yaml
 
@@ -17,6 +15,7 @@ from project.artifacts import (
     release_signoff_path,
     run_manifest_path,
 )
+from project.core.coercion import safe_float, safe_int
 
 
 def collect_core_artifact_snapshot(*, data_root: Path, run_id: str) -> Dict[str, Any]:

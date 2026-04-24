@@ -1,7 +1,9 @@
-from pydantic import BaseModel, Field
 from typing import Dict, List
 
-from project.portfolio.engine import PortfolioDecisionEngine, ThesisIntent as EngineThesisIntent
+from pydantic import BaseModel, Field
+
+from project.portfolio.engine import PortfolioDecisionEngine
+from project.portfolio.engine import ThesisIntent as EngineThesisIntent
 
 
 class ThesisIntent(BaseModel):

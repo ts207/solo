@@ -5,15 +5,14 @@ from pathlib import Path
 import pandas as pd
 
 from project import PROJECT_ROOT
-from project.research.search.evaluator import evaluate_hypothesis_batch
+from project.research.search.search_feature_utils import prepare_search_features_for_symbol
 from project.research.trigger_discovery.candidate_generation import (
-    generate_parameter_sweep,
-    generate_feature_clusters,
     TriggerFeatureColumns,
+    generate_feature_clusters,
+    generate_parameter_sweep,
 )
 from project.research.trigger_discovery.candidate_scoring import score_trigger_candidates
 from project.research.trigger_discovery.proposal_emission import emit_proposals
-from project.research.search.search_feature_utils import prepare_search_features_for_symbol
 
 log = logging.getLogger(__name__)
 

@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
-import sys
-import json
 import ast
+import json
 import re
-from pathlib import Path
+import sys
 from collections import defaultdict
+from pathlib import Path
 
 
 def _files_importing(root: Path, module_pattern: str) -> list[str]:
@@ -22,7 +22,7 @@ def _files_importing(root: Path, module_pattern: str) -> list[str]:
 def main():
     root = Path(__file__).resolve().parent.parent.parent
     project_dir = root / "project"
-    
+
     if not project_dir.exists():
         print("project/ not found")
         sys.exit(1)
@@ -33,7 +33,7 @@ def main():
 
     # Build dependency graph
     edges = []
-    
+
     for py_file in project_dir.rglob("*.py"):
         rel_path = py_file.relative_to(root)
         module_name = str(rel_path.with_suffix("")).replace("/", ".")
@@ -41,10 +41,10 @@ def main():
             tree = ast.parse(py_file.read_text(encoding="utf-8"))
         except SyntaxError:
             continue
-            
+
         imports = []
         is_test = "tests" in py_file.parts
-        
+
         for node in ast.walk(tree):
             if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
                 if is_test and node.name.startswith("test_"):
@@ -64,7 +64,7 @@ def main():
             edges.append((module_name, imp))
 
     coupling_count = len(edges)
-    
+
     cross_boundary_imports = 0
     for src, dst in edges:
         src_parts = src.split(".")
@@ -120,7 +120,7 @@ def main():
 
     out_file = root / "docs" / "generated" / "architecture_metrics.json"
     out_file.parent.mkdir(parents=True, exist_ok=True)
-    
+
     # Check baseline to avoid coupling increase
     if out_file.exists():
         try:

@@ -8,7 +8,6 @@ Three test classes:
 """
 from __future__ import annotations
 
-import json
 from pathlib import Path
 from typing import Any, Dict
 from unittest.mock import MagicMock, patch
@@ -17,13 +16,11 @@ import pandas as pd
 import pytest
 
 from project.spec_registry.search_space import (
-    load_event_priority_weights,
-    QUALITY_SCORES,
-    DEFAULT_EVENT_PRIORITY_WEIGHT,
     IG_SCALE_FACTOR,
+    QUALITY_SCORES,
     _parse_annotation_line,
+    load_event_priority_weights,
 )
-
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -325,8 +322,8 @@ class TestControllerUsesRegistry:
 
     def test_frontier_ordering_in_update_search_intelligence(self, tmp_path):
         """End-to-end: update_search_intelligence writes quality-ordered frontier."""
-        from project.research.search_intelligence import update_search_intelligence
         from project.research.experiment_engine import RegistryBundle
+        from project.research.search_intelligence import update_search_intelligence
 
         # Write a minimal search_space.yaml with 2 annotated events
         ss_path = tmp_path / "spec" / "search_space.yaml"

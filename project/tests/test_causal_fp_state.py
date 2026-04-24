@@ -1,9 +1,9 @@
-import pytest
-import pandas as pd
 import numpy as np
+import pandas as pd
+
 from project.features.funding_persistence import (
-    build_funding_persistence_state,
     FundingPersistenceConfig,
+    build_funding_persistence_state,
 )
 
 

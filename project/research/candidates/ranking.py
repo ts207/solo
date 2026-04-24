@@ -1,9 +1,11 @@
 from __future__ import annotations
 
 import json
-from typing import Dict, List, Tuple, Any
+from typing import Dict, List, Tuple
+
 import numpy as np
 import pandas as pd
+
 from project.core.coercion import safe_float
 from project.events.governance import get_event_governance_metadata
 

@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Optional
 
 import pandas as pd
 
@@ -48,7 +47,7 @@ class SignalQualityAnalyzer:
 
     def compute_metrics(self, event_type: str, window_bars: int = 640) -> SignalQualityMetrics:
         target_events = self.events[self.events["event_type"] == event_type]
-        
+
         metrics = SignalQualityMetrics(
             event_type=event_type,
             total_bars=window_bars,
@@ -61,33 +60,33 @@ class SignalQualityAnalyzer:
 
         all_types = set(self.events["event_type"].unique())
         all_types.discard(event_type)
-        
+
         for other_type in all_types:
             other_events = self.events[self.events["event_type"] == other_type]
             if len(other_events) == 0:
                 continue
-            
+
             co_triggers = self._count_co_triggers(target_events, other_events)
             if co_triggers > 0:
                 metrics.co_trigger_count[other_type] = co_triggers
 
         metrics.inactivity_rate = self._compute_inactivity_rate(target_events, window_bars)
-        
+
         return metrics
 
     def _count_co_triggers(self, events_a: pd.DataFrame, events_b: pd.DataFrame) -> int:
         if events_a.empty or events_b.empty:
             return 0
-        
+
         timestamps_a = set(events_a["eval_bar_ts"].dropna())
         timestamps_b = set(events_b["eval_bar_ts"].dropna())
-        
+
         return len(timestamps_a & timestamps_b)
 
     def _compute_inactivity_rate(self, events: pd.DataFrame, window_bars: int) -> float:
         if events.empty or window_bars == 0:
             return 1.0
-        
+
         return 1.0 - (len(events) / window_bars)
 
     def compute_all_metrics(self, window_bars: int = 640) -> dict[str, SignalQualityMetrics]:

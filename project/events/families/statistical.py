@@ -4,20 +4,17 @@ from typing import Any
 
 import numpy as np
 import pandas as pd
-from project.domain.compiled_registry import get_domain_registry
-from project.spec_registry import load_event_spec
 
+from project.domain.compiled_registry import get_domain_registry
 from project.events.detectors.registry import get_detector
 from project.events.detectors.threshold import ThresholdDetector
-from project.events.detectors.composite import CompositeDetector
 from project.events.registries.statistical import (
     ensure_statistical_detectors_registered,
     get_statistical_detectors,
 )
-from project.events.shared import EVENT_COLUMNS, emit_event, format_event_id
-from project.events.sparsify import sparsify_mask
 from project.events.thresholding import rolling_mean_std_zscore
 from project.research.analyzers import run_analyzer_suite
+from project.spec_registry import load_event_spec
 
 
 def _band_params() -> tuple[int, int, float]:

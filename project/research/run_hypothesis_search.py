@@ -19,21 +19,19 @@ import logging
 from pathlib import Path
 from typing import List
 
-import numpy as np
 import pandas as pd
 
 from project.core.config import get_data_root
-from project.specs.gates import load_gates_spec, select_phase2_gate_spec
-from project.research.search.generator import generate_hypotheses_with_audit
-from project.research.search.distributed_runner import run_distributed_search
+from project.io.utils import write_parquet
+from project.research.phase2 import load_features
 from project.research.search.bridge_adapter import (
     hypotheses_to_bridge_candidates,
     split_bridge_candidates,
 )
+from project.research.search.distributed_runner import run_distributed_search
 from project.research.search.evaluator import evaluated_records_from_metrics
-from project.research.phase2 import load_features
-from project.io.utils import write_parquet
-
+from project.research.search.generator import generate_hypotheses_with_audit
+from project.specs.gates import load_gates_spec, select_phase2_gate_spec
 
 LOG = logging.getLogger(__name__)
 

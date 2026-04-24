@@ -10,8 +10,8 @@ from project.domain.models import (
     EventDefinition,
     RegimeDefinition,
     StateDefinition,
-    ThesisDefinition,
     TemplateOperatorDefinition,
+    ThesisDefinition,
 )
 from project.spec_registry import (
     load_regime_registry,
@@ -19,11 +19,10 @@ from project.spec_registry import (
     load_template_registry,
     load_thesis_registry,
     load_unified_event_registry,
-    load_yaml_relative,
     load_yaml_path,
+    load_yaml_relative,
     resolve_relative_spec_path,
 )
-
 
 _SPECIAL_EVENT_SPEC_KINDS = {
     "canonical_event_registry",
@@ -122,7 +121,7 @@ def _merge_event_rows(unified: Dict[str, Any]) -> Dict[str, EventDefinition]:
             and isinstance(families.get(research_family), dict)
         ):
             row.update(families[research_family])
-        
+
         if isinstance(unified_row, dict):
             row.update(unified_row)
         parameters = {}
@@ -134,7 +133,7 @@ def _merge_event_rows(unified: Dict[str, Any]) -> Dict[str, EventDefinition]:
             and isinstance(families.get(research_family), dict)
         ):
             family_params = families[research_family].get("parameters", {})
-            
+
         if isinstance(default_params, dict):
             parameters.update(default_params)
         if isinstance(family_params, dict):
@@ -144,7 +143,7 @@ def _merge_event_rows(unified: Dict[str, Any]) -> Dict[str, EventDefinition]:
 
         row["parameters"] = parameters
         spec_path = _graph_spec_path(f"spec/events/{event_type}.yaml")
-        
+
         out[event_type] = EventDefinition(
             event_type=event_type,
             research_family=research_family or str(row.get("canonical_family", "")).strip().upper(),
@@ -1334,6 +1333,7 @@ def spec_sources_digest() -> str:
     whether the graph needs a rebuild after spec edits.
     """
     import hashlib
+
     from project.spec_registry import iter_spec_yaml_files
     h = hashlib.sha256()
     for path in sorted(iter_spec_yaml_files()):

@@ -5,8 +5,8 @@ import pandas as pd
 
 from project.research.live_export import export_promoted_theses_for_run
 from project.research.validation.contracts import (
-    ValidationBundle,
     ValidatedCandidateRecord,
+    ValidationBundle,
     ValidationDecision,
     ValidationMetrics,
 )

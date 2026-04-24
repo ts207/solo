@@ -1,7 +1,8 @@
 # tests/specs/test_detector_spec_schema.py
+from pathlib import Path
+
 import pytest
 import yaml
-from pathlib import Path
 
 from project.events.detector_contract import DetectorContract
 

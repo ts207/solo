@@ -1,9 +1,10 @@
 from __future__ import annotations
 
 import pytest
+
 from project.research.agent_io.hypothesis_contract import (
-    normalize_structured_proposal,
     DEPRECATED_STATE_ANCHOR,
+    normalize_structured_proposal,
 )
 
 

@@ -1,8 +1,10 @@
 from __future__ import annotations
+
 from pathlib import Path
-from project.core.config import get_data_root
 
 import pandas as pd
+
+from project.core.config import get_data_root
 from project.core.feature_schema import feature_dataset_dir_name
 from project.io.utils import (
     choose_partition_dir,
@@ -10,6 +12,7 @@ from project.io.utils import (
     read_parquet,
     run_scoped_lake_path,
 )
+
 
 def get_research_data_root() -> Path:
     return get_data_root()

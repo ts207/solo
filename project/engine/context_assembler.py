@@ -1,19 +1,20 @@
 from __future__ import annotations
 
+from pathlib import Path
+from typing import Dict
+
 import numpy as np
 import pandas as pd
-from pathlib import Path
-from typing import Dict, Tuple, Mapping
 
+from project.core.validation import ensure_utc_timestamp
+from project.engine.data_loader import dedupe_timestamp_rows
+from project.features.funding_persistence import FP_DEF_VERSION
 from project.io.utils import (
     choose_partition_dir,
     list_parquet_files,
     read_parquet,
     run_scoped_lake_path,
 )
-from project.core.validation import ensure_utc_timestamp
-from project.features.funding_persistence import FP_DEF_VERSION
-from project.engine.data_loader import dedupe_timestamp_rows
 
 _CONTEXT_COLUMNS = [
     "fp_def_version",

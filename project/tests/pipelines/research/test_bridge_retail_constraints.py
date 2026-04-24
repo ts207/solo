@@ -6,10 +6,10 @@ import pandas as pd
 
 from project.engine.execution_model import load_calibration_config
 from project.research.bridge_evaluate_phase2 import (
-    _resolve_bridge_policy,
     _build_bridge_symbol_calibrations,
     _evaluate_bridge_row,
     _load_symbol_calibrated_cost_bps,
+    _resolve_bridge_policy,
     _write_bridge_symbol_calibrations,
 )
 from project.research.bridge_evaluation import evaluate_bridge_performance

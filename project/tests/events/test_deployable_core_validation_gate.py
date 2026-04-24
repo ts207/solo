@@ -12,7 +12,6 @@ from project.events.event_output_schema import validate_event_output_frame
 from project.events.policy import DEPLOYABLE_CORE_EVENT_TYPES
 from project.tests.events.test_detector_output_schema import DEPLOYABLE_CORE_CASES
 
-
 SIGNATURE_COLUMNS = (
     "event_name",
     "event_version",

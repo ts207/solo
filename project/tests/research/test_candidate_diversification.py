@@ -88,7 +88,9 @@ def _diverse_pair() -> pd.DataFrame:
 
 class TestOverlapSignatures:
     def test_signature_deterministic(self):
-        from project.research.services.candidate_diversification import build_candidate_overlap_signatures
+        from project.research.services.candidate_diversification import (
+            build_candidate_overlap_signatures,
+        )
         df = _clone_trio()
         s1 = build_candidate_overlap_signatures(df)
         s2 = build_candidate_overlap_signatures(df)
@@ -96,7 +98,9 @@ class TestOverlapSignatures:
         assert list(s1["template_family"]) == list(s2["template_family"])
 
     def test_signature_fields_present(self):
-        from project.research.services.candidate_diversification import build_candidate_overlap_signatures
+        from project.research.services.candidate_diversification import (
+            build_candidate_overlap_signatures,
+        )
         required = [
             "candidate_id", "primary_event_id", "event_family", "template_family",
             "direction", "horizon_bucket", "symbol_scope_type", "context_dim_count",
@@ -107,17 +111,23 @@ class TestOverlapSignatures:
             assert field in sigs.columns, f"Missing field: {field}"
 
     def test_similar_candidates_share_event_family(self):
-        from project.research.services.candidate_diversification import build_candidate_overlap_signatures
+        from project.research.services.candidate_diversification import (
+            build_candidate_overlap_signatures,
+        )
         sigs = build_candidate_overlap_signatures(_clone_trio())
         assert sigs["event_family"].nunique() == 1  # All VOL_SHOCK
 
     def test_empty_df_returns_empty(self):
-        from project.research.services.candidate_diversification import build_candidate_overlap_signatures
+        from project.research.services.candidate_diversification import (
+            build_candidate_overlap_signatures,
+        )
         result = build_candidate_overlap_signatures(pd.DataFrame())
         assert result.empty
 
     def test_horizon_bucket_parsing(self):
-        from project.research.services.candidate_diversification import build_candidate_overlap_signatures
+        from project.research.services.candidate_diversification import (
+            build_candidate_overlap_signatures,
+        )
         df = _make_df(
             _make_candidate("h24", horizon="24b"),
             _make_candidate("h48", horizon="48b"),
@@ -130,7 +140,9 @@ class TestOverlapSignatures:
         assert buckets[2] == "long"
 
     def test_direction_normalisation(self):
-        from project.research.services.candidate_diversification import build_candidate_overlap_signatures
+        from project.research.services.candidate_diversification import (
+            build_candidate_overlap_signatures,
+        )
         df = _make_df(
             _make_candidate("a", direction="long"),
             _make_candidate("b", direction="1"),
@@ -175,9 +187,8 @@ class TestPairwiseSimilarity:
     def test_pairwise_symmetric(self):
         """Similarity of (A, B) should equal similarity of (B, A)."""
         from project.research.services.candidate_diversification import (
-            build_candidate_overlap_signatures,
-            compute_pairwise_similarity,
             _pairwise_score,
+            build_candidate_overlap_signatures,
         )
         df = _diverse_pair()
         sigs = build_candidate_overlap_signatures(df).reset_index().to_dict(orient="records")
@@ -235,8 +246,8 @@ class TestClusteringByOverlap:
     def test_high_similarity_creates_cluster(self):
         from project.research.services.candidate_diversification import (
             build_candidate_overlap_signatures,
-            compute_pairwise_similarity,
             cluster_candidates_by_overlap,
+            compute_pairwise_similarity,
         )
         df = _clone_trio()
         sigs = build_candidate_overlap_signatures(df)
@@ -250,8 +261,8 @@ class TestClusteringByOverlap:
     def test_unrelated_candidates_separate_clusters(self):
         from project.research.services.candidate_diversification import (
             build_candidate_overlap_signatures,
-            compute_pairwise_similarity,
             cluster_candidates_by_overlap,
+            compute_pairwise_similarity,
         )
         df = _diverse_pair()
         sigs = build_candidate_overlap_signatures(df)
@@ -263,8 +274,8 @@ class TestClusteringByOverlap:
     def test_cluster_ids_stable(self):
         from project.research.services.candidate_diversification import (
             build_candidate_overlap_signatures,
-            compute_pairwise_similarity,
             cluster_candidates_by_overlap,
+            compute_pairwise_similarity,
         )
         df = _clone_trio()
         sigs = build_candidate_overlap_signatures(df)
@@ -276,8 +287,8 @@ class TestClusteringByOverlap:
     def test_cluster_size_correct(self):
         from project.research.services.candidate_diversification import (
             build_candidate_overlap_signatures,
-            compute_pairwise_similarity,
             cluster_candidates_by_overlap,
+            compute_pairwise_similarity,
         )
         df = _clone_trio()
         sigs = build_candidate_overlap_signatures(df)
@@ -287,14 +298,18 @@ class TestClusteringByOverlap:
         assert clustered["cluster_size"].max() == 3
 
     def test_required_columns_present(self):
-        from project.research.services.candidate_diversification import cluster_candidates_by_overlap
+        from project.research.services.candidate_diversification import (
+            cluster_candidates_by_overlap,
+        )
         df = _clone_trio()
         clustered = cluster_candidates_by_overlap(df, pd.DataFrame())
         for col in ["overlap_cluster_id", "cluster_size", "cluster_density", "is_duplicate_like"]:
             assert col in clustered.columns
 
     def test_empty_df_no_error(self):
-        from project.research.services.candidate_diversification import cluster_candidates_by_overlap
+        from project.research.services.candidate_diversification import (
+            cluster_candidates_by_overlap,
+        )
         result = cluster_candidates_by_overlap(pd.DataFrame(), pd.DataFrame())
         assert result.empty or "overlap_cluster_id" in result.columns
 
@@ -307,9 +322,9 @@ class TestNoveltyCrowding:
     def test_singleton_high_novelty(self):
         from project.research.services.candidate_diversification import (
             build_candidate_overlap_signatures,
-            compute_pairwise_similarity,
             cluster_candidates_by_overlap,
             compute_novelty_crowding,
+            compute_pairwise_similarity,
         )
         # Only one candidate → no edges → isolated
         df = _make_df(_make_candidate("solo"))
@@ -322,9 +337,9 @@ class TestNoveltyCrowding:
     def test_crowded_cluster_lower_novelty(self):
         from project.research.services.candidate_diversification import (
             build_candidate_overlap_signatures,
-            compute_pairwise_similarity,
             cluster_candidates_by_overlap,
             compute_novelty_crowding,
+            compute_pairwise_similarity,
         )
         df = _clone_trio()
         sigs = build_candidate_overlap_signatures(df)
@@ -339,9 +354,9 @@ class TestNoveltyCrowding:
         """A larger cluster → higher mean crowding penalty than a smaller cluster."""
         from project.research.services.candidate_diversification import (
             build_candidate_overlap_signatures,
-            compute_pairwise_similarity,
             cluster_candidates_by_overlap,
             compute_novelty_crowding,
+            compute_pairwise_similarity,
         )
         df_large = _make_df(
             *[_make_candidate(f"g{i}", event_family="VOL_SHOCK", direction="long") for i in range(5)]
@@ -365,9 +380,9 @@ class TestNoveltyCrowding:
     def test_scores_bounded_zero_one(self):
         from project.research.services.candidate_diversification import (
             build_candidate_overlap_signatures,
-            compute_pairwise_similarity,
             cluster_candidates_by_overlap,
             compute_novelty_crowding,
+            compute_pairwise_similarity,
         )
         df = _clone_trio()
         sigs = build_candidate_overlap_signatures(df)
@@ -380,9 +395,9 @@ class TestNoveltyCrowding:
     def test_cluster_rank_assigned(self):
         from project.research.services.candidate_diversification import (
             build_candidate_overlap_signatures,
-            compute_pairwise_similarity,
             cluster_candidates_by_overlap,
             compute_novelty_crowding,
+            compute_pairwise_similarity,
         )
         df = _clone_trio()
         sigs = build_candidate_overlap_signatures(df)
@@ -429,9 +444,9 @@ class TestDiversifiedShortlist:
     def test_max_per_cluster_cap(self):
         from project.research.services.candidate_diversification import (
             build_candidate_overlap_signatures,
-            compute_pairwise_similarity,
             cluster_candidates_by_overlap,
             compute_novelty_crowding,
+            compute_pairwise_similarity,
             select_diversified_shortlist,
         )
         df = _make_df(*[
@@ -508,7 +523,6 @@ class TestDiversifiedShortlist:
 
     def test_required_shortlist_columns_present(self):
         from project.research.services.candidate_diversification import (
-            SHORTLIST_REQUIRED_COLUMNS,
             select_diversified_shortlist,
         )
         df = _make_df(*[_make_candidate(f"q{i}") for i in range(3)])
@@ -545,7 +559,9 @@ class TestAnnotateCandidates:
             assert col in annotated.columns, f"Missing column: {col}"
 
     def test_preserves_existing_columns(self):
-        from project.research.services.candidate_diversification import annotate_candidates_with_diversification
+        from project.research.services.candidate_diversification import (
+            annotate_candidates_with_diversification,
+        )
         df = _clone_trio()
         original_cols = set(df.columns)
         annotated, _ = annotate_candidates_with_diversification(df, self._config())
@@ -553,41 +569,53 @@ class TestAnnotateCandidates:
             assert col in annotated.columns, f"Existing column lost: {col}"
 
     def test_row_count_unchanged(self):
-        from project.research.services.candidate_diversification import annotate_candidates_with_diversification
+        from project.research.services.candidate_diversification import (
+            annotate_candidates_with_diversification,
+        )
         df = _clone_trio()
         annotated, _ = annotate_candidates_with_diversification(df, self._config())
         assert len(annotated) == len(df)
 
     def test_promotion_compatible_columns_preserved(self):
         """candidate_id, t_stat, and direction must survive annotation."""
-        from project.research.services.candidate_diversification import annotate_candidates_with_diversification
+        from project.research.services.candidate_diversification import (
+            annotate_candidates_with_diversification,
+        )
         df = _clone_trio()
         annotated, _ = annotate_candidates_with_diversification(df, self._config())
         for col in ["candidate_id", "t_stat", "direction"]:
             assert col in annotated.columns
 
     def test_shortlist_disabled_returns_empty(self):
-        from project.research.services.candidate_diversification import annotate_candidates_with_diversification
+        from project.research.services.candidate_diversification import (
+            annotate_candidates_with_diversification,
+        )
         df = _clone_trio()
         _, shortlist = annotate_candidates_with_diversification(df, self._config(shortlist_enabled=False))
         assert shortlist.empty
 
     def test_shortlist_enabled_returns_rows(self):
-        from project.research.services.candidate_diversification import annotate_candidates_with_diversification
+        from project.research.services.candidate_diversification import (
+            annotate_candidates_with_diversification,
+        )
         df = _clone_trio()
         _, shortlist = annotate_candidates_with_diversification(df, self._config(shortlist_enabled=True))
         assert not shortlist.empty
         assert len(shortlist) <= 5
 
     def test_mode_off_returns_full_candidates_unchanged(self):
-        from project.research.services.candidate_diversification import annotate_candidates_with_diversification
+        from project.research.services.candidate_diversification import (
+            annotate_candidates_with_diversification,
+        )
         df = _clone_trio()
         annotated, shortlist = annotate_candidates_with_diversification(df, {"mode": "off"})
         assert list(annotated.columns) == list(df.columns)
         assert shortlist.empty
 
     def test_empty_input(self):
-        from project.research.services.candidate_diversification import annotate_candidates_with_diversification
+        from project.research.services.candidate_diversification import (
+            annotate_candidates_with_diversification,
+        )
         annotated, shortlist = annotate_candidates_with_diversification(pd.DataFrame(), {})
         assert annotated.empty
         assert shortlist.empty
@@ -600,7 +628,9 @@ class TestAnnotateCandidates:
 class TestIntegration:
     def test_shortlist_more_diverse_than_top_n(self):
         """Shortlist should span more clusters than raw top-N when there are clones."""
-        from project.research.services.candidate_diversification import annotate_candidates_with_diversification
+        from project.research.services.candidate_diversification import (
+            annotate_candidates_with_diversification,
+        )
 
         # 6 candidates: two clusters of 3
         cluster_a = [
@@ -610,7 +640,7 @@ class TestIntegration:
         ]
         cluster_b = [
             _make_candidate(f"b{i}", event_family="LIQUIDATION_CASCADE", direction="short",
-                            lineage_key=f"EVENT:LIQUIDATION_CASCADE|TMPL:mean|DIR:short|TF:5m|H:medium|SYM:single|CTX:0",
+                            lineage_key="EVENT:LIQUIDATION_CASCADE|TMPL:mean|DIR:short|TF:5m|H:medium|SYM:single|CTX:0",
                             discovery_quality_score_v3=float(3 - i))
             for i in range(3)
         ]
@@ -634,7 +664,9 @@ class TestIntegration:
 
     def test_strong_duplicates_pruned(self):
         """Clone trio with hard cap=1 → only one should be in shortlist."""
-        from project.research.services.candidate_diversification import annotate_candidates_with_diversification
+        from project.research.services.candidate_diversification import (
+            annotate_candidates_with_diversification,
+        )
         df = _clone_trio()
         config = {
             "mode": "greedy",
@@ -654,13 +686,17 @@ class TestIntegration:
 
 class TestDiversificationDiagnostics:
     def test_empty_candidates_returns_minimal_schema(self):
-        from project.research.services.candidate_discovery_diagnostics import build_diversification_diagnostics
+        from project.research.services.candidate_discovery_diagnostics import (
+            build_diversification_diagnostics,
+        )
         result = build_diversification_diagnostics(pd.DataFrame())
         assert "total_candidates" in result
         assert result["total_candidates"] == 0
 
     def test_schema_keys_present(self):
-        from project.research.services.candidate_discovery_diagnostics import build_diversification_diagnostics
+        from project.research.services.candidate_discovery_diagnostics import (
+            build_diversification_diagnostics,
+        )
         required_keys = [
             "diversification_mode", "shortlist_enabled", "shortlist_size",
             "shortlist_actual_size", "total_candidates", "overlap_cluster_count",
@@ -668,7 +704,9 @@ class TestDiversificationDiagnostics:
             "lineage_concentration", "top_crowded_clusters", "strongest_excluded",
             "shortlist_vs_raw_top_n",
         ]
-        from project.research.services.candidate_diversification import annotate_candidates_with_diversification
+        from project.research.services.candidate_diversification import (
+            annotate_candidates_with_diversification,
+        )
         df = _clone_trio()
         annotated, _ = annotate_candidates_with_diversification(df, {"mode": "greedy"})
         result = build_diversification_diagnostics(annotated, diversification_config={"mode": "greedy"})
@@ -676,7 +714,9 @@ class TestDiversificationDiagnostics:
             assert key in result, f"Missing diagnostic key: {key}"
 
     def test_trigger_family_concentration_populated(self):
-        from project.research.services.candidate_discovery_diagnostics import build_diversification_diagnostics
+        from project.research.services.candidate_discovery_diagnostics import (
+            build_diversification_diagnostics,
+        )
         df = _clone_trio()
         result = build_diversification_diagnostics(df, diversification_config={})
         assert "VOL_SHOCK" in {k.upper() for k in result["trigger_family_concentration"].keys()}
@@ -717,7 +757,10 @@ class TestRegression:
         assert "EVENT:VOL_SHOCK" in key
 
     def test_phase4_hierarchical_stage_policy_unchanged(self):
-        from project.research.search.stage_policy import rank_stage_candidates, STAGE_TRIGGER_VIABILITY
+        from project.research.search.stage_policy import (
+            STAGE_TRIGGER_VIABILITY,
+            rank_stage_candidates,
+        )
         df = pd.DataFrame([
             {"root_trigger_id": "X", "t_stat": 3.0, "robustness_score": 0.9, "n": 80, "fold_stability_score": 0.9},
         ])
@@ -726,6 +769,7 @@ class TestRegression:
 
     def test_spec_yaml_parses_with_diversification_block(self):
         import yaml
+
         from project import PROJECT_ROOT
         spec_path = PROJECT_ROOT.parent / "spec" / "search_space.yaml"
         if spec_path.exists():
@@ -745,7 +789,9 @@ class TestRegression:
 
     def test_overlap_columns_do_not_overwrite_existing_quality_score(self):
         """Annotation must not overwrite discovery_quality_score_v3."""
-        from project.research.services.candidate_diversification import annotate_candidates_with_diversification
+        from project.research.services.candidate_diversification import (
+            annotate_candidates_with_diversification,
+        )
         df = _clone_trio().copy()
         orig_scores = df["discovery_quality_score_v3"].tolist()
         annotated, _ = annotate_candidates_with_diversification(df, {"mode": "greedy"})

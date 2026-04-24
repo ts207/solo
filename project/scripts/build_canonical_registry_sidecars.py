@@ -13,7 +13,6 @@ from project.events.canonical_registry_sidecars import (
     event_ontology_mapping_payload,
 )
 
-
 REPO_ROOT = PROJECT_ROOT.parent
 
 

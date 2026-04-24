@@ -169,6 +169,7 @@ def test_stage_artifact_contract_default_strictness_is_strict() -> None:
 
 def test_stage_artifact_contract_rejects_invalid_strictness() -> None:
     import pytest
+
     from project.contracts.pipeline_registry import StageArtifactContract
     with pytest.raises(ValueError, match="strictness"):
         StageArtifactContract(stage_patterns=("s",), strictness="unknown")
@@ -183,7 +184,12 @@ def test_dataframe_schema_contract_default_strictness_is_strict() -> None:
 def test_validate_schema_at_producer_strict_raises() -> None:
     import pandas as pd
     import pytest
-    from project.contracts.schemas import validate_schema_at_producer, DataFrameSchemaContract, _SCHEMA_REGISTRY
+
+    from project.contracts.schemas import (
+        _SCHEMA_REGISTRY,
+        DataFrameSchemaContract,
+        validate_schema_at_producer,
+    )
     _SCHEMA_REGISTRY["_test_strict"] = DataFrameSchemaContract(
         name="_test_strict", required_columns=("req_col",), strictness="strict"
     )
@@ -196,7 +202,12 @@ def test_validate_schema_at_producer_strict_raises() -> None:
 
 def test_validate_schema_at_producer_advisory_does_not_raise() -> None:
     import pandas as pd
-    from project.contracts.schemas import validate_schema_at_producer, DataFrameSchemaContract, _SCHEMA_REGISTRY
+
+    from project.contracts.schemas import (
+        _SCHEMA_REGISTRY,
+        DataFrameSchemaContract,
+        validate_schema_at_producer,
+    )
     _SCHEMA_REGISTRY["_test_advisory"] = DataFrameSchemaContract(
         name="_test_advisory", required_columns=("req_col",), strictness="advisory"
     )
@@ -217,8 +228,8 @@ def test_contracts_init_exposes_validate_schema_at_producer() -> None:
 # --- Phase 3: registry delegation to compiled domain ---
 
 def test_get_event_definition_delegates_to_compiled_domain() -> None:
-    from project.events.registry import get_event_definition
     from project.domain.compiled_registry import get_domain_registry
+    from project.events.registry import get_event_definition
     row = get_event_definition("VOL_SPIKE")
     assert row is not None
     assert row["signal_column"] == get_domain_registry().get_event("VOL_SPIKE").signal_column

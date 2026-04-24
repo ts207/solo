@@ -10,9 +10,13 @@ def phase2_candidates_compat_path(
     run_id: str,
     event_type: str | None = None,
     root: Path | None = None,
+    *,
+    allow_legacy: bool = False,
 ) -> Path:
     canonical = phase2_candidates_path(run_id, root)
     if canonical.exists():
+        return canonical
+    if not allow_legacy:
         return canonical
 
     resolved_root = data_root(root)
@@ -40,9 +44,13 @@ def phase2_candidates_compat_path(
 def phase2_diagnostics_compat_path(
     run_id: str,
     root: Path | None = None,
+    *,
+    allow_legacy: bool = False,
 ) -> Path:
     canonical = phase2_diagnostics_path(run_id, root)
     if canonical.exists():
+        return canonical
+    if not allow_legacy:
         return canonical
 
     resolved_root = data_root(root)

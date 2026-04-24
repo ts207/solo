@@ -1,5 +1,4 @@
 from __future__ import annotations
-from project.core.config import get_data_root
 
 import argparse
 import json
@@ -10,17 +9,19 @@ from typing import Dict, List
 
 import numpy as np
 import pandas as pd
+
+from project.core.config import get_data_root
 from project.core.feature_quality import summarize_feature_quality
 from project.core.feature_schema import feature_dataset_dir_name
+from project.eval.drift_detection import detect_feature_drift
 from project.io.utils import (
     choose_partition_dir,
-    resolve_raw_dataset_dir,
     list_parquet_files,
     read_parquet,
+    resolve_raw_dataset_dir,
     run_scoped_lake_path,
 )
 from project.specs.manifest import finalize_manifest, start_manifest
-from project.eval.drift_detection import detect_feature_drift
 
 LOGGER = logging.getLogger(__name__)
 

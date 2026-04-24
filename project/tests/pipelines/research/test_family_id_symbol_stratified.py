@@ -3,8 +3,6 @@ F-3: family_id must include symbol so BH-FDR is applied per-symbol, not pooled.
 """
 
 from __future__ import annotations
-import pandas as pd
-import pytest
 
 SAMPLE_ROWS = [
     {

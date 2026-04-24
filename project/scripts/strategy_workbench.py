@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 import argparse
 import sys
-import yaml
 from pathlib import Path
+
+import yaml
 
 # Static maps for ease of use (from project.strategy.dsl.contract_v1)
 REGIME_CHOICES = [
@@ -65,13 +66,13 @@ def main():
     with open(temp_path, "w") as f:
         yaml.dump(concept, f)
 
-    print(f"\n--- Strategy Workbench ---")
+    print("\n--- Strategy Workbench ---")
     print(f"Targeting Event: {args.event}")
     print(f"Market Regime:   {args.regime or 'UNCONDITIONAL'}")
     print(f"Rule Template:   {args.template}")
     print(f"Symbol:          {args.symbol}")
     print(f"\nSaved concept to {temp_path}")
-    print(f"\nProceeding to run discovery...")
+    print("\nProceeding to run discovery...")
 
     # Run the pipeline
     import subprocess

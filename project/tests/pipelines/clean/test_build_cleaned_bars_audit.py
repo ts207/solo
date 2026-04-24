@@ -1,13 +1,13 @@
 from datetime import timezone
 
-import pandas as pd
 import numpy as np
+import pandas as pd
 import pytest
 
 from project.pipelines.clean.build_cleaned_bars import (
+    FUNDING_MAX_STALENESS,
     _align_funding,
     _gap_lengths,
-    FUNDING_MAX_STALENESS,
 )
 
 

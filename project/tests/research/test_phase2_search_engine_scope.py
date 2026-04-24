@@ -16,9 +16,9 @@ from project.research.knowledge.schemas import canonical_json, region_key, stabl
 from project.research.phase2_search_engine import (
     _attach_candidate_run_lineage,
     _build_gate_funnel,
-    _expected_event_ids_from_search_spec_doc,
     _classify_metrics_counts,
     _expected_event_ids_from_hypotheses,
+    _expected_event_ids_from_search_spec_doc,
     _filter_previously_tested_hypotheses,
     _latest_hierarchical_stage_frame,
     _materialize_interaction_trigger_columns,

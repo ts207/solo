@@ -1,13 +1,14 @@
 from __future__ import annotations
 
-import json
 import logging
 import re
-from typing import Dict, Any, List, Tuple, Sequence, Optional
+from typing import Any, Dict, List, Tuple
 
 import numpy as np
-import pandas as pd
 
+from project.core.coercion import as_bool, safe_float, safe_int
+from project.research.blueprint_policy import load_blueprint_policy
+from project.spec_registry import resolve_relative_spec_path
 from project.strategy.dsl import (
     Blueprint,
     EntrySpec,
@@ -19,15 +20,11 @@ from project.strategy.dsl import (
     SizingSpec,
     SymbolScopeSpec,
     action_to_overlays,
-    derive_action_delay,
     event_policy,
     normalize_entry_condition,
     overlay_defaults,
     validate_feature_references,
 )
-from project.core.coercion import safe_float, safe_int, as_bool
-from project.research.blueprint_policy import load_blueprint_policy
-from project.spec_registry import resolve_relative_spec_path
 
 LOGGER = logging.getLogger(__name__)
 

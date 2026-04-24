@@ -4,7 +4,7 @@ from typing import Any
 
 import pandas as pd
 
-from project.events.pit import validate_event_frame_pit, PITValidationError
+from project.events.pit import PITValidationError, validate_event_frame_pit
 from project.events.validate import validate_event_frame_columns
 from project.research.promotion_gates_v2 import (
     PromotionDecision,

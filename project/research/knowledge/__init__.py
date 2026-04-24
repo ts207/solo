@@ -15,14 +15,14 @@ if TYPE_CHECKING:
         compute_template_statistics,
         ensure_memory_store,
         memory_paths,
-        read_reflections,
         read_memory_table,
-        write_reflection,
+        read_reflections,
         write_memory_table,
+        write_reflection,
     )
     from project.research.knowledge.query import (
-        query_agent_knobs,
         query_adjacent_regions,
+        query_agent_knobs,
         query_memory_rows,
         query_static_rows,
     )

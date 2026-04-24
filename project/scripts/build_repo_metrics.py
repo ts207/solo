@@ -10,7 +10,7 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
-from project import PROJECT_ROOT
+from project import PROJECT_ROOT  # noqa: E402
 
 
 def _repo_root() -> Path:
@@ -28,15 +28,19 @@ def collect_repo_metrics(root: Path | None = None) -> dict[str, object]:
     test_py = sum(1 for _ in tests_root.rglob("*.py")) if tests_root.exists() else 0
     test_files = sum(1 for _ in tests_root.rglob("test_*.py")) if tests_root.exists() else 0
     spec_yaml = sum(1 for _ in spec_root.rglob("*.yaml")) if spec_root.exists() else 0
-    docs_md = (
-        sum(1 for path in docs_root.rglob("*.md") if "generated" not in path.relative_to(docs_root).parts)
-        if docs_root.exists()
-        else 0
-    )
+    docs_md = 0
+    if docs_root.exists():
+        docs_md = sum(
+            1
+            for path in docs_root.rglob("*.md")
+            if "generated" not in path.relative_to(docs_root).parts
+        )
 
     package_counts: list[dict[str, object]] = []
     if project_root.exists():
-        for child in sorted(p for p in project_root.iterdir() if p.is_dir() and p.name != '__pycache__'):
+        for child in sorted(
+            p for p in project_root.iterdir() if p.is_dir() and p.name != "__pycache__"
+        ):
             py_count = sum(1 for _ in child.rglob('*.py'))
             if py_count == 0:
                 continue
@@ -49,7 +53,10 @@ def collect_repo_metrics(root: Path | None = None) -> dict[str, object]:
         'test_files': test_files,
         'spec_yaml_files': spec_yaml,
         'docs_markdown_files': docs_md,
-        'top_packages': sorted(package_counts, key=lambda row: (-int(row['python_files']), str(row['package'])))[:12],
+        'top_packages': sorted(
+            package_counts,
+            key=lambda row: (-int(row['python_files']), str(row['package'])),
+        )[:12],
     }
 
 
@@ -79,16 +86,39 @@ def render_repo_metrics_json(metrics: dict[str, object]) -> str:
 
 
 def update_root_readme_metrics(readme_text: str, metrics: dict[str, object]) -> str:
+    generated_block = (
+        "<!-- repo-metrics:start -->\n"
+        f"- {metrics['project_python_files']} Python modules under `project/`\n"
+        f"- {metrics['test_python_files']} test files under `project/tests/`\n"
+        f"- {metrics['spec_yaml_files']} YAML spec files under `spec/`\n"
+        "<!-- repo-metrics:end -->"
+    )
+    block_pattern = r"<!-- repo-metrics:start -->.*?<!-- repo-metrics:end -->"
+    updated, count = re.subn(block_pattern, generated_block, readme_text, count=1, flags=re.DOTALL)
+    if count == 1:
+        return updated
+
     replacements = {
-        r'- \d+ Python modules under `project/`': f"- {metrics['project_python_files']} Python modules under `project/`",
-        r'- \d+ test files under `project/tests/`': f"- {metrics['test_python_files']} test files under `project/tests/`",
-        r'- \d+ YAML spec files under `spec/`': f"- {metrics['spec_yaml_files']} YAML spec files under `spec/`",
+        r'- \d+ Python modules under `project/`': (
+            f"- {metrics['project_python_files']} Python modules under `project/`"
+        ),
+        r'- \d+ test files under `project/tests/`': (
+            f"- {metrics['test_python_files']} test files under `project/tests/`"
+        ),
+        r'- \d+ YAML spec files under `spec/`': (
+            f"- {metrics['spec_yaml_files']} YAML spec files under `spec/`"
+        ),
     }
     updated = readme_text
+    replacement_count = 0
     for pattern, replacement in replacements.items():
         updated, count = re.subn(pattern, replacement, updated, count=1)
-        if count != 1:
-            raise ValueError(f'could not update README metrics using pattern: {pattern}')
+        replacement_count += count
+    if replacement_count not in {0, len(replacements)}:
+        raise ValueError(
+            "README metrics block is partially present; "
+            "add repo-metrics markers or remove the stale block"
+        )
     return updated
 
 
@@ -98,8 +128,14 @@ def _target_paths(root: Path) -> tuple[Path, Path, Path]:
 
 
 def main(argv: list[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(description='Generate repository metrics artifacts and refresh README counts.')
-    parser.add_argument('--check', action='store_true', help='Fail if generated/readme outputs drift from disk.')
+    parser = argparse.ArgumentParser(
+        description='Generate repository metrics artifacts and refresh README counts.'
+    )
+    parser.add_argument(
+        '--check',
+        action='store_true',
+        help='Fail if generated/readme outputs drift from disk.',
+    )
     args = parser.parse_args(argv)
 
     repo_root = _repo_root()

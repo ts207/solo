@@ -1,8 +1,6 @@
 """Tests for stat regime audit contract and inference helpers."""
 from __future__ import annotations
 
-import pytest
-
 from project.research.contracts.stat_regime import (
     ARTIFACT_AUDIT_VERSION_PHASE1_V1,
     AUDIT_STATUS_CURRENT,

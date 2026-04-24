@@ -6,17 +6,18 @@ Tests the contract that:
 - Verify column presence, types, and content integrity
 """
 
+import shutil
+import tempfile
+from datetime import datetime
+from pathlib import Path
+
 import pandas as pd
 import pytest
-import tempfile
-import shutil
-from pathlib import Path
-from datetime import datetime
 
 from project.research.knowledge.memory import (
-    write_reflection,
-    read_reflections,
     MemoryPaths,
+    read_reflections,
+    write_reflection,
 )
 
 

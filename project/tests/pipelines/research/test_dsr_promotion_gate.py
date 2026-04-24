@@ -1,8 +1,6 @@
 """Tests for DSR promotion gate wired into _evaluate_row."""
 
 import numpy as np
-import pandas as pd
-import pytest
 
 from project.research.promotion import evaluate_row
 

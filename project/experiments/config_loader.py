@@ -2,8 +2,9 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
+from typing import Any, Dict, List
+
 from project.spec_registry import load_yaml_path
-from typing import Any, Dict, List, Optional, Union
 
 
 def _deep_merge(base: Dict[str, Any], incoming: Dict[str, Any]) -> Dict[str, Any]:

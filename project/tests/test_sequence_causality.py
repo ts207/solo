@@ -1,5 +1,5 @@
 import pandas as pd
-import pytest
+
 from project.events.sequence_analyzer import detect_sequences
 
 

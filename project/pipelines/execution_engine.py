@@ -11,10 +11,8 @@ import time
 from json import JSONDecodeError
 from pathlib import Path
 from typing import Callable, Dict, List, Mapping, Optional, Sequence, Tuple, Union
-from project.pipelines.planner import StageDefinition
 
 from project import PROJECT_ROOT
-from project.pipelines.pipeline_defaults import DATA_ROOT
 from project.pipelines.execution_engine_support import (
     _allow_synthesized_manifest,
     _filter_unsupported_flags,
@@ -27,6 +25,8 @@ from project.pipelines.execution_engine_support import (
     is_phase2_stage,
     stage_instance_base,
 )
+from project.pipelines.pipeline_defaults import DATA_ROOT
+from project.pipelines.planner import StageDefinition
 
 StageLaunch = Tuple[str, str, Path, List[str]]
 WorkerArgs = Tuple[str, str, Path, List[str], str]

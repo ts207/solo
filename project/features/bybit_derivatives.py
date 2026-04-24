@@ -1,8 +1,9 @@
 from __future__ import annotations
 
+from typing import Optional
+
 import numpy as np
 import pandas as pd
-from typing import Dict, List, Optional
 
 
 def derive_realized_volatility(
@@ -52,19 +53,19 @@ def derive_oi_features(oi_df: pd.DataFrame, window: int = 12) -> pd.DataFrame:
     """
     df = oi_df.sort_values("timestamp").copy()
     df = df.set_index("timestamp")
-    
+
     # Delta (1-period change at 5m)
     df["oi_delta"] = df["open_interest"].diff()
     df["oi_delta_pct"] = df["open_interest"].pct_change()
-    
+
     # Acceleration (Change in delta)
     df["oi_acceleration"] = df["oi_delta"].diff()
-    
+
     # Rolling level relative to window (Z-score)
     df["oi_relative_level"] = (
         df["open_interest"] - df["open_interest"].rolling(window).mean()
     ) / (df["open_interest"].rolling(window).std() + 1e-9)
-    
+
     return df[["oi_delta", "oi_delta_pct", "oi_acceleration", "oi_relative_level"]]
 
 
@@ -74,17 +75,17 @@ def derive_trend_regime(ohlcv_df: pd.DataFrame, fast_period: int = 20, slow_peri
     """
     df = ohlcv_df.sort_values("timestamp").copy()
     df = df.set_index("timestamp")
-    
+
     ema_fast = df["close"].ewm(span=fast_period).mean()
     ema_slow = df["close"].ewm(span=slow_period).mean()
-    
+
     # Trend strength in bps
     diff = (ema_fast - ema_slow) / ema_slow * 10000
-    
+
     regime = pd.Series("CHOP", index=df.index)
     regime[diff > 10] = "BULL_TREND"
     regime[diff < -10] = "BEAR_TREND"
-    
+
     return regime.rename("trend_regime")
 
 
@@ -97,13 +98,13 @@ def derive_liquidity_stress_proxy(
     df = ticker_df.sort_values("timestamp").copy()
     df["spread_bps"] = (df["best_ask_price"] / df["best_bid_price"] - 1) * 10000
     df["avg_top_size"] = (df["best_bid_qty"] + df["best_ask_qty"]) / 2
-    
+
     # Raw stress = Spread / Size
     raw_stress = df["spread_bps"] / (df["avg_top_size"] + 1e-9)
-    
+
     # Rolling Z-score
     stress_proxy = (raw_stress - raw_stress.rolling(window).mean()) / (raw_stress.rolling(window).std() + 1e-9)
-    
+
     return pd.Series(stress_proxy.values, index=df["timestamp"], name="liquidity_stress_proxy")
 
 
@@ -149,7 +150,7 @@ def build_bybit_derivatives_feature_set(
     oi_val = oi_df.sort_values("timestamp").set_index("timestamp")["open_interest"]
     base = pd.merge_asof(base, oi_val.to_frame(), left_index=True, right_index=True)
     base = pd.merge_asof(base, oi_feats, left_index=True, right_index=True)
-    
+
     # 7. Liquidity Stress (if available)
     if ticker_df is not None:
         stress = derive_liquidity_stress_proxy(ticker_df)
@@ -159,5 +160,5 @@ def build_bybit_derivatives_feature_set(
 
     # Fill small gaps in broadcasted funding/OI if necessary
     base = base.ffill().dropna(subset=["close"])
-    
+
     return base.reset_index()

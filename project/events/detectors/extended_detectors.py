@@ -1,18 +1,10 @@
 from __future__ import annotations
 
-from typing import Any
-
-import numpy as np
 import pandas as pd
 
 from project.events.detectors.exhaustion import PostDeleveragingReboundDetector
-from project.events.detectors.funding import BaseFundingDetector
-from project.events.detectors.liquidity import DirectLiquidityStressDetector
 from project.events.detectors.registry import register_detector
 from project.events.detectors.sequence import EventSequenceDetector
-from project.events.detectors.volatility import BreakoutTriggerDetector
-from project.events.families.basis import BasisDislocationDetector, CrossVenueDesyncDetector
-from project.events.families.oi import BaseOIShockDetector
 
 
 def _recent_true(mask: pd.Series, window: int) -> pd.Series:

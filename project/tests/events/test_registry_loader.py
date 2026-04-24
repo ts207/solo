@@ -1,5 +1,5 @@
 from project.events.config import compose_event_config
-from project.events.registry import _load_event_specs, EVENT_REGISTRY_SPECS
+from project.events.registry import _load_event_specs
 
 
 def test_dynamic_loading():

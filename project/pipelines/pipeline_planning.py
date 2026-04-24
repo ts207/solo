@@ -20,7 +20,6 @@ from project.io.utils import (
     unreadable_parquet_samples,
 )
 from project.pipelines.effective_config import resolve_effective_args
-from project.research.feature_surface_viability import analyze_feature_surface_viability
 from project.pipelines.execution_plan import (
     ExecutionPlan,
     PlannedArtifactObligation,
@@ -36,6 +35,7 @@ from project.pipelines.pipeline_provenance import (
 from project.pipelines.planner import build_pipeline_plan
 from project.pipelines.stage_definitions import ResolvedStageArtifactContract
 from project.pipelines.stage_dependencies import resolve_stage_artifact_contract
+from project.research.feature_surface_viability import analyze_feature_surface_viability
 from project.specs.ontology import ontology_spec_hash
 
 _SPOT_PIPELINE_EVENT_HINTS = {

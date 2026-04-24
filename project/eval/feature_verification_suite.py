@@ -5,17 +5,18 @@ Generates reports on the correctness of computed features.
 
 from __future__ import annotations
 
-import pandas as pd
+from typing import Any, Dict, List
+
 import numpy as np
-from typing import Dict, Any, List
-from project.eval.verification import VerificationHarness
+import pandas as pd
+
+from project.core.stats import _kurtosis, _skew
 from project.eval.reference_values import (
-    get_reference_sma,
     get_reference_volatility,
     get_synthetic_test_data,
 )
+from project.eval.verification import VerificationHarness
 from project.pipelines.features.build_features import _safe_logret_1
-from project.core.stats import _skew, _kurtosis
 
 
 class FeatureVerificationSuite:

@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from project.scripts.show_benchmark_review import find_latest_review, find_historical_reviews
+from project.scripts.show_benchmark_review import find_historical_reviews, find_latest_review
 
 
 def _write_review(root: Path, root_name: str, *, matrix_id: str, run_name: str) -> Path:

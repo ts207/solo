@@ -1,8 +1,10 @@
 """Regression test: FeeRegimeChangeDetector must not use future data."""
 
 from __future__ import annotations
-import pandas as pd
+
 import numpy as np
+import pandas as pd
+
 from project.events.families.temporal import FeeRegimeChangeDetector
 
 

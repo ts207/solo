@@ -6,9 +6,8 @@ from typing import Any, Dict, List, Optional
 
 import yaml
 
-from project.core.config import get_data_root
 from project import PROJECT_ROOT
-
+from project.core.config import get_data_root
 
 THRESHOLDS_PATH = PROJECT_ROOT / "configs" / "benchmarks" / "discovery" / "thresholds_v1.yaml"
 

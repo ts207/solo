@@ -22,13 +22,10 @@ Prints a table of the audit rows and returns exit code 0 if all assertions pass.
 from __future__ import annotations
 
 import argparse
-import hashlib
-import json
 import sys
-from pathlib import Path
 
 from project.research.condition_routing import condition_routing
-from project.strategy.dsl.contract_v1 import normalize_entry_condition, is_executable_condition
+from project.strategy.dsl.contract_v1 import is_executable_condition, normalize_entry_condition
 
 # ── Synthetic candidates ────────────────────────────────────────────────────
 
@@ -114,7 +111,7 @@ def run_certification() -> int:
 
         # Candidates blocked here don't reach compile
         if not compile_eligible:
-            print(f"   → BLOCKED (not compiled, as expected)")
+            print("   → BLOCKED (not compiled, as expected)")
             audit_rows.append(
                 {
                     "candidate_id": cid,

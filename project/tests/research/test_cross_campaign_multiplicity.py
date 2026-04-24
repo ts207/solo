@@ -14,17 +14,16 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from project.research.multiplicity import (
-    apply_canonical_cross_campaign_multiplicity,
-    apply_multiplicity_controls,
-    merge_historical_candidates,
-)
 from project.research.contracts.multiplicity_scope import (
-    MultiplicityScope,
     infer_multiplicity_scope,
     resolve_campaign_scope_key,
     resolve_effective_scope_key,
     resolve_lineage_scope_key,
+)
+from project.research.multiplicity import (
+    apply_canonical_cross_campaign_multiplicity,
+    apply_multiplicity_controls,
+    merge_historical_candidates,
 )
 
 
@@ -210,7 +209,7 @@ class TestCrossCampaignMultiplicity:
         result_run = apply_canonical_cross_campaign_multiplicity(df, max_q=0.05, scope_mode="run")
         result_campaign = apply_canonical_cross_campaign_multiplicity(df, max_q=0.05, scope_mode="campaign")
         result_program = apply_canonical_cross_campaign_multiplicity(df, max_q=0.05, scope_mode="program")
-        
+
         assert result_run.loc[0, "multiplicity_scope_key"].startswith("run::")
         assert result_campaign.loc[0, "multiplicity_scope_key"].startswith("campaign::")
         assert result_program.loc[0, "multiplicity_scope_key"].startswith("program::")
@@ -300,7 +299,7 @@ class TestHistoricalUniverseMerge:
         })
         merged = merge_historical_candidates(current, historical, scope_mode="campaign")
         scored = apply_canonical_cross_campaign_multiplicity(merged, max_q=0.05)
-        
+
         # Current rows should see scope count of 5 (2 current + 3 historical)
         current_scored = scored[scored["multiplicity_context"] == "current"]
         for idx in current_scored.index:
@@ -327,17 +326,17 @@ class TestHistoricalUniverseMerge:
             "side_policy": ["directional"] * 4,
             "multiplicity_pool_eligible": [True] * 4,
         })
-        
+
         # With history
         merged = merge_historical_candidates(current, historical, scope_mode="campaign")
         scored_with = apply_canonical_cross_campaign_multiplicity(merged, max_q=0.05)
         q_with = scored_with[scored_with["multiplicity_context"] == "current"].iloc[0]["q_value_scope"]
-        
+
         # Without history
         merged_no = merge_historical_candidates(current, None, scope_mode="campaign")
         scored_no = apply_canonical_cross_campaign_multiplicity(merged_no, max_q=0.05)
         q_no = scored_no[scored_no["multiplicity_context"] == "current"].iloc[0]["q_value_scope"]
-        
+
         # With more tests, q_value_scope should be more conservative (higher)
         assert q_with >= q_no
 
@@ -360,7 +359,7 @@ class TestHistoricalUniverseMerge:
             "multiplicity_pool_eligible": [True],
         })
         merged = merge_historical_candidates(current, historical, scope_mode="campaign")
-        
+
         assert merged[merged["candidate_id"] == "curr_1"].iloc[0]["multiplicity_context"] == "current"
         assert merged[merged["candidate_id"] == "hist_1"].iloc[0]["multiplicity_context"] == "historical"
 
@@ -375,7 +374,7 @@ class TestHistoricalUniverseMerge:
             "multiplicity_pool_eligible": [True],
         })
         merged = merge_historical_candidates(current, historical=None, scope_mode="campaign")
-        
+
         assert merged.iloc[0]["multiplicity_scope_degraded"] is True
         assert merged.iloc[0]["multiplicity_scope_reason"] == "missing_history"
 
@@ -403,7 +402,7 @@ class TestHistoricalUniverseMerge:
         })
         merged = merge_historical_candidates(current, historical, scope_mode="campaign_lineage")
         scored = apply_canonical_cross_campaign_multiplicity(merged, max_q=0.05, scope_mode="campaign_lineage")
-        
+
         # Current row should only see scope count of 2 (1 current + 1 matching lineage historical)
         current_scored = scored[scored["multiplicity_context"] == "current"]
         # Lineage_B historical should be in different scope key
@@ -413,15 +412,17 @@ class TestHistoricalUniverseMerge:
 
     def test_deduplication_by_candidate_id(self):
         """Duplicate historical candidates should be deduplicated."""
-        from project.research.promotion.multiplicity_history import _deduplicate_historical_candidates
-        
+        from project.research.promotion.multiplicity_history import (
+            _deduplicate_historical_candidates,
+        )
+
         df = pd.DataFrame({
             "candidate_id": ["dup_1", "dup_1", "uniq_1"],
             "p_value_for_fdr": [0.01, 0.02, 0.03],
             "run_id": ["run_001", "run_001", "run_002"],
         })
         deduped = _deduplicate_historical_candidates(df)
-        
+
         assert len(deduped) == 2
         assert "dup_1" in deduped["candidate_id"].values
         assert "uniq_1" in deduped["candidate_id"].values
@@ -446,10 +447,10 @@ class TestHistoricalUniverseMerge:
         })
         merged = merge_historical_candidates(current, historical, scope_mode="campaign")
         scored = apply_canonical_cross_campaign_multiplicity(merged, max_q=0.05)
-        
+
         # Filter to current only (this is what promotion/core.py does)
         df = scored[scored["multiplicity_context"] == "current"].copy()
-        
+
         assert len(df) == 2
         assert set(df["candidate_id"]) == {"curr_1", "curr_2"}
         assert "hist_1" not in df["candidate_id"].values

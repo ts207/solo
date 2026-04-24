@@ -1,13 +1,12 @@
 from __future__ import annotations
 
-from project.core.coercion import safe_float, safe_int, as_bool
-
+import math
+from collections import defaultdict
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
-import math
-from typing import Any, Dict, Iterable, List, Mapping, Optional, Sequence, Tuple, Union
-from collections import defaultdict
+from typing import Any, Dict, Iterable, List, Mapping, Optional
+
 import pandas as pd
 
 

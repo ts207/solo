@@ -9,23 +9,17 @@ import json
 import logging
 import os
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Tuple
 
 import pandas as pd
 
-from project.core.coercion import safe_float, safe_int, as_bool
-from project.core.feature_schema import feature_dataset_dir_name
+from project.core.coercion import safe_int
 from project.core.constants import parse_horizon_bars
+from project.core.feature_schema import feature_dataset_dir_name
 from project.core.timeframes import normalize_timeframe, timeframe_to_minutes
 from project.domain.compiled_registry import get_domain_registry
 from project.events.registry import load_registry_episode_anchors
 from project.features.assembly import filter_time_window, prune_partition_files_by_window
-from project.research.validation import assign_split_labels as _validation_assign_split_labels
-from project.research.services.phase2_diagnostics import (
-    attach_prepare_events_diagnostics,
-    build_prepare_events_diagnostics,
-    split_counts as phase2_split_counts,
-)
 from project.io.utils import (
     HAS_PYARROW,
     choose_partition_dir,
@@ -33,8 +27,15 @@ from project.io.utils import (
     read_parquet,
     run_scoped_lake_path,
 )
-from project.specs.ontology import ontology_spec_paths
 from project.research.holdout_integrity import assert_holdout_split_integrity
+from project.research.services.phase2_diagnostics import (
+    attach_prepare_events_diagnostics,
+    build_prepare_events_diagnostics,
+)
+from project.research.services.phase2_diagnostics import (
+    split_counts as phase2_split_counts,
+)
+from project.research.validation import assign_split_labels as _validation_assign_split_labels
 
 log = logging.getLogger(__name__)
 

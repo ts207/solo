@@ -1,9 +1,10 @@
 from __future__ import annotations
 
 import json
-import pandas as pd
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple, Any
+from typing import Dict, List, Tuple
+
+import pandas as pd
 
 from project.artifacts import (
     checklist_path,

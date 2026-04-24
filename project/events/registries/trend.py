@@ -10,7 +10,6 @@ from project.events.detectors.trend import (
     TrendDecelerationDetector,
 )
 
-
 TREND_DETECTORS = {
     "RANGE_BREAKOUT": RangeBreakoutDetector,
     "FALSE_BREAKOUT": FalseBreakoutDetector,

@@ -1,12 +1,13 @@
 #!/usr/bin/env python3
 from __future__ import annotations
-from project.core.config import get_data_root
 
 import argparse
 import json
-import sys
 from pathlib import Path
+
 from project import PROJECT_ROOT
+from project.core.config import get_data_root
+
 
 def _repo_root() -> Path:
     return PROJECT_ROOT.parent

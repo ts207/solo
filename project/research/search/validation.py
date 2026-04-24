@@ -7,9 +7,9 @@ from __future__ import annotations
 from typing import List
 
 from project.core.constants import parse_horizon_bars
-from project.research.search.feasibility import check_hypothesis_feasibility
 from project.domain.hypotheses import HypothesisSpec, TriggerType
 from project.research.context_labels import canonicalize_context_label
+from project.research.search.feasibility import check_hypothesis_feasibility
 from project.spec_registry.loaders import load_yaml_relative
 from project.strategy.templates.validation import validate_template_stack
 

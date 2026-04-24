@@ -13,8 +13,8 @@ from project.research.services.regime_shakeout_service import (
     load_regime_shakeout_matrix,
     materialize_regime_shakeout_slices,
     run_regime_shakeout_matrix,
-    summarize_shakeout_run_group,
     summarize_shakeout_run,
+    summarize_shakeout_run_group,
 )
 from project.research.services.run_comparison_service import research_diagnostics_paths
 

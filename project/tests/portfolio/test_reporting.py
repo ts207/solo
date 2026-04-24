@@ -2,8 +2,8 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from project.portfolio.engine import PortfolioCapitalDecision
 from project.portfolio.admission_policy import AdmissionResult
+from project.portfolio.engine import PortfolioCapitalDecision
 from project.portfolio.reporting import write_portfolio_decision_trace
 
 

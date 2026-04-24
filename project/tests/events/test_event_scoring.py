@@ -1,6 +1,7 @@
-import pandas as pd
 import numpy as np
-from project.events.scoring import score_event_frame, EventScoreColumns
+import pandas as pd
+
+from project.events.scoring import EventScoreColumns, score_event_frame
 
 
 def _make_event_frame(n: int = 20) -> pd.DataFrame:

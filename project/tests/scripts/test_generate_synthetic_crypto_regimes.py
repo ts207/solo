@@ -13,9 +13,8 @@ from project.events.families.canonical_proxy import (
 from project.io.utils import read_parquet
 from project.scripts.detector_audit_module import _enrich_df
 from project.scripts.generate_synthetic_crypto_regimes import (
-    build_regime_schedule,
-    generate_synthetic_crypto_run,
     generate_symbol_frames,
+    generate_synthetic_crypto_run,
 )
 
 

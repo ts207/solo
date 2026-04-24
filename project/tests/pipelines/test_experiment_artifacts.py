@@ -1,12 +1,11 @@
-import pytest
-import pandas as pd
-from pathlib import Path
-import yaml
 import json
-import hashlib
+
+import pandas as pd
+import pytest
+import yaml
+
 from project.research.experiment_engine import (
     build_experiment_plan,
-    export_experiment_artifacts,
 )
 
 
@@ -147,7 +146,7 @@ def test_determinism(test_env):
     assert id1 == id2
 
 
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
 
 
 @pytest.fixture(autouse=True)

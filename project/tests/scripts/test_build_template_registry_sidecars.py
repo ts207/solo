@@ -1,11 +1,11 @@
 from __future__ import annotations
 
-from project.spec_registry import load_template_registry
 from project.scripts.build_template_registry_sidecars import (
-    build_template_registry_compat_payload,
     build_ontology_template_registry_payload,
     build_runtime_template_registry_payload,
+    build_template_registry_compat_payload,
 )
+from project.spec_registry import load_template_registry
 
 
 def test_template_registry_compat_payload_is_generated_from_canonical_source() -> None:

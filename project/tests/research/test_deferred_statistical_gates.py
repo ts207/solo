@@ -6,10 +6,9 @@
 from __future__ import annotations
 
 import logging
+
 import numpy as np
 import pandas as pd
-import pytest
-
 
 # ─────────────────────────────────────────────────────────────────────────────
 # S2 — Split-label test isolation in calculate_expectancy_stats
@@ -90,7 +89,7 @@ class TestSplitLabelTestIsolation:
 
     def test_t_stat_matches_empty_expectancy_stats_keys(self):
         """Keys in the live return dict must be a superset of empty_expectancy_stats keys."""
-        from project.research.gating import empty_expectancy_stats, calculate_expectancy_stats
+        from project.research.gating import calculate_expectancy_stats, empty_expectancy_stats
 
         empty = empty_expectancy_stats()
         events = _make_labeled_events(n_train=40, n_val=20, n_test=10)

@@ -4,16 +4,15 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from project.events.families.volatility import detect_volatility_family, analyze_volatility_family
-from project.events.families.trend import detect_trend_family, analyze_trend_family
+from project.events.families.desync import detect_desync_family
+from project.events.families.liquidity import detect_liquidity_family
+from project.events.families.regime import detect_regime_family
 from project.events.families.statistical import (
     detect_statistical_family,
-    analyze_statistical_family,
 )
-from project.events.families.liquidity import detect_liquidity_family, analyze_liquidity_family
-from project.events.families.regime import detect_regime_family, analyze_regime_family
-from project.events.families.temporal import detect_temporal_family, analyze_temporal_family
-from project.events.families.desync import detect_desync_family, analyze_desync_family
+from project.events.families.temporal import detect_temporal_family
+from project.events.families.trend import detect_trend_family
+from project.events.families.volatility import detect_volatility_family
 
 
 def create_mock_df(periods: int = 3500) -> pd.DataFrame:

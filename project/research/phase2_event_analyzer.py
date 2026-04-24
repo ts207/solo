@@ -1,5 +1,4 @@
 from __future__ import annotations
-from project.core.config import get_data_root
 
 import logging
 from dataclasses import dataclass
@@ -8,6 +7,7 @@ from typing import Callable, Dict, List, Tuple
 import numpy as np
 import pandas as pd
 
+from project.core.config import get_data_root
 from project.core.feature_schema import feature_dataset_dir_name
 from project.io.utils import (
     choose_partition_dir,

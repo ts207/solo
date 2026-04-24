@@ -1,10 +1,13 @@
 import numpy as np
 import pandas as pd
 import pytest
+
 from project.events.families.basis import (
     CrossVenueDesyncDetector,
     FndDislocDetector,
     SpotPerpBasisShockDetector,
+)
+from project.events.families.basis import (
     detect_basis_family as detect_basis_dislocations,
 )
 

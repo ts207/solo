@@ -4,8 +4,8 @@ import pandas as pd
 
 from project.research.knowledge.memory import ensure_memory_store, write_memory_table
 from project.research.knowledge.query import (
-    query_agent_knobs,
     query_adjacent_regions,
+    query_agent_knobs,
     query_memory_rows,
     query_static_rows,
 )

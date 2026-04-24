@@ -11,11 +11,6 @@ Covers:
 """
 from __future__ import annotations
 
-import types
-from pathlib import Path
-from typing import Any
-from unittest.mock import MagicMock, patch
-
 import pandas as pd
 import pytest
 
@@ -264,8 +259,8 @@ class TestStageDGenerator:
     def test_baseline_always_included(self):
         """Each surviving spec must produce a baseline (no-context) spec."""
         from project.research.search.generator import (
-            generate_trigger_probe_candidates,
             generate_context_refinement_candidates,
+            generate_trigger_probe_candidates,
         )
 
         parent_specs = generate_trigger_probe_candidates(
@@ -285,8 +280,8 @@ class TestStageDGenerator:
     def test_context_dim_cap_enforced(self):
         """max_context_dims=1 must prevent multi-dimensional context combinations."""
         from project.research.search.generator import (
-            generate_trigger_probe_candidates,
             generate_context_refinement_candidates,
+            generate_trigger_probe_candidates,
         )
 
         parent_specs = generate_trigger_probe_candidates(
@@ -305,8 +300,8 @@ class TestStageDGenerator:
     def test_no_context_expansion_when_spec_has_no_contexts(self):
         """If spec has no contexts, Stage D should return baselines only."""
         from project.research.search.generator import (
-            generate_trigger_probe_candidates,
             generate_context_refinement_candidates,
+            generate_trigger_probe_candidates,
         )
 
         spec_doc = {**_MINIMAL_SEARCH_SPEC, "contexts": {}}
@@ -324,7 +319,7 @@ class TestStageDGenerator:
 
 class TestStagePolicyScoring:
     def test_stage_score_range(self):
-        from project.research.search.stage_policy import _compute_stage_score, ALL_STAGES
+        from project.research.search.stage_policy import ALL_STAGES, _compute_stage_score
 
         row = {
             "t_stat": 2.5,
@@ -338,7 +333,10 @@ class TestStagePolicyScoring:
             assert -1.0 <= score <= 2.0, f"Stage {stage}: score {score} out of range"
 
     def test_zero_evidence_gives_middle_score(self):
-        from project.research.search.stage_policy import _compute_stage_score, STAGE_TRIGGER_VIABILITY
+        from project.research.search.stage_policy import (
+            STAGE_TRIGGER_VIABILITY,
+            _compute_stage_score,
+        )
 
         # All inputs resolve to zero/defaults:
         #   t_norm=0, rob=0, fold_stab=0 (passed explicitly), ledger_pen=0
@@ -351,7 +349,10 @@ class TestStagePolicyScoring:
         assert score == pytest.approx(0.0, abs=0.01)
 
     def test_high_penalty_lowers_score(self):
-        from project.research.search.stage_policy import _compute_stage_score, STAGE_TRIGGER_VIABILITY
+        from project.research.search.stage_policy import (
+            STAGE_TRIGGER_VIABILITY,
+            _compute_stage_score,
+        )
 
         base = {"t_stat": 2.5, "robustness_score": 0.75, "fold_stability_score": 0.8}
         score_low_pen = _compute_stage_score({**base, "ledger_multiplicity_penalty": 0.0}, stage=STAGE_TRIGGER_VIABILITY)
@@ -361,7 +362,10 @@ class TestStagePolicyScoring:
 
 class TestRankStageCandidates:
     def test_rank_within_parent(self):
-        from project.research.search.stage_policy import rank_stage_candidates, STAGE_TRIGGER_VIABILITY
+        from project.research.search.stage_policy import (
+            STAGE_TRIGGER_VIABILITY,
+            rank_stage_candidates,
+        )
 
         df = pd.DataFrame([
             {"root_trigger_id": "VOL_SHOCK", "t_stat": 3.0, "robustness_score": 0.9, "n": 50, "fold_stability_score": 0.8},
@@ -376,7 +380,10 @@ class TestRankStageCandidates:
         assert shock_rows.iloc[0]["stage_score"] >= shock_rows.iloc[1]["stage_score"]
 
     def test_rank_within_parent_resets_per_group(self):
-        from project.research.search.stage_policy import rank_stage_candidates, STAGE_TRIGGER_VIABILITY
+        from project.research.search.stage_policy import (
+            STAGE_TRIGGER_VIABILITY,
+            rank_stage_candidates,
+        )
 
         df = pd.DataFrame([
             {"root_trigger_id": "A", "t_stat": 3.0, "robustness_score": 0.9, "n": 50},
@@ -387,7 +394,10 @@ class TestRankStageCandidates:
         assert set(ranked["stage_rank_within_parent"].tolist()) == {1}
 
     def test_empty_df_returns_empty(self):
-        from project.research.search.stage_policy import rank_stage_candidates, STAGE_TRIGGER_VIABILITY
+        from project.research.search.stage_policy import (
+            STAGE_TRIGGER_VIABILITY,
+            rank_stage_candidates,
+        )
 
         result = rank_stage_candidates(pd.DataFrame(), parent_group_col="root_trigger_id", stage=STAGE_TRIGGER_VIABILITY)
         assert result.empty or len(result) == 0
@@ -395,7 +405,11 @@ class TestRankStageCandidates:
 
 class TestAdvanceStageSurvivors:
     def test_top_k_selection(self):
-        from project.research.search.stage_policy import rank_stage_candidates, advance_stage_survivors, STAGE_TRIGGER_VIABILITY
+        from project.research.search.stage_policy import (
+            STAGE_TRIGGER_VIABILITY,
+            advance_stage_survivors,
+            rank_stage_candidates,
+        )
 
         df = pd.DataFrame([
             {"root_trigger_id": "X", "t_stat": 3.0, "robustness_score": 0.9, "n": 80, "fold_stability_score": 0.9},
@@ -414,7 +428,11 @@ class TestAdvanceStageSurvivors:
         assert int(advanced["stage_pass"].sum()) == 2
 
     def test_threshold_gate(self):
-        from project.research.search.stage_policy import rank_stage_candidates, advance_stage_survivors, STAGE_TRIGGER_VIABILITY
+        from project.research.search.stage_policy import (
+            STAGE_TRIGGER_VIABILITY,
+            advance_stage_survivors,
+            rank_stage_candidates,
+        )
 
         df = pd.DataFrame([
             {"root_trigger_id": "X", "t_stat": 0.1, "robustness_score": 0.0, "n": 50, "fold_stability_score": 0.0},
@@ -430,7 +448,10 @@ class TestAdvanceStageSurvivors:
         assert int(advanced["stage_pass"].sum()) == 0
 
     def test_empty_survivors_no_error(self):
-        from project.research.search.stage_policy import advance_stage_survivors, STAGE_TRIGGER_VIABILITY
+        from project.research.search.stage_policy import (
+            STAGE_TRIGGER_VIABILITY,
+            advance_stage_survivors,
+        )
 
         result = advance_stage_survivors(
             pd.DataFrame(),
@@ -442,7 +463,11 @@ class TestAdvanceStageSurvivors:
         assert result.empty or "stage_pass" in result.columns
 
     def test_reason_codes_populated(self):
-        from project.research.search.stage_policy import rank_stage_candidates, advance_stage_survivors, STAGE_TRIGGER_VIABILITY
+        from project.research.search.stage_policy import (
+            STAGE_TRIGGER_VIABILITY,
+            advance_stage_survivors,
+            rank_stage_candidates,
+        )
 
         df = pd.DataFrame([
             {"root_trigger_id": "X", "t_stat": 3.0, "robustness_score": 0.9, "n": 80, "fold_stability_score": 0.9},
@@ -463,7 +488,9 @@ class TestAdvanceStageSurvivors:
 
 class TestContextGain:
     def test_positive_gain_for_better_context(self):
-        from project.research.search.stage_policy import compute_context_gain, STAGE_CONTEXT_REFINEMENT
+        from project.research.search.stage_policy import (
+            compute_context_gain,
+        )
 
         baseline = {"t_stat": 2.0, "robustness_score": 0.6, "fold_stability_score": 0.6, "n": 50}
         context = {"t_stat": 3.0, "robustness_score": 0.8, "fold_stability_score": 0.85, "n": 50}
@@ -485,7 +512,10 @@ class TestContextGain:
 
 class TestArtifactLineageFields:
     def test_stage_a_has_search_stage(self):
-        from project.research.search.stage_policy import rank_stage_candidates, STAGE_TRIGGER_VIABILITY
+        from project.research.search.stage_policy import (
+            STAGE_TRIGGER_VIABILITY,
+            rank_stage_candidates,
+        )
 
         df = _make_candidate_df(3)
         ranked = rank_stage_candidates(df, parent_group_col="root_trigger_id", stage=STAGE_TRIGGER_VIABILITY)
@@ -499,7 +529,6 @@ class TestArtifactLineageFields:
 
     def test_final_candidates_promotion_compatible(self):
         """Final candidates must have all columns required for downstream promotion."""
-        from project.research.search.bridge_adapter import hypotheses_to_bridge_candidates
 
         # The bridge outputs these promotion-critical columns
         required = {
@@ -640,7 +669,10 @@ class TestLoadHierarchicalConfig:
 
 class TestDeterministicRanking:
     def test_ranking_is_deterministic(self):
-        from project.research.search.stage_policy import rank_stage_candidates, STAGE_TRIGGER_VIABILITY
+        from project.research.search.stage_policy import (
+            STAGE_TRIGGER_VIABILITY,
+            rank_stage_candidates,
+        )
 
         df = pd.DataFrame([
             {"root_trigger_id": "X", "t_stat": 3.0, "robustness_score": 0.9, "n": 80, "fold_stability_score": 0.9},
@@ -658,10 +690,10 @@ class TestDeterministicRanking:
 class TestCanonicalModeDRegression:
     def test_search_space_uses_hierarchical_default(self):
         """Canonical spec/search_space.yaml uses benchmark mode D topology."""
-        from project.research.phase2_search_engine import _load_hierarchical_config
-
         import yaml
+
         from project import PROJECT_ROOT
+        from project.research.phase2_search_engine import _load_hierarchical_config
 
         spec_path = PROJECT_ROOT.parent / "spec" / "search_space.yaml"
         if spec_path.exists():
@@ -672,6 +704,7 @@ class TestCanonicalModeDRegression:
 
     def test_search_space_yaml_parses(self):
         import yaml
+
         from project import PROJECT_ROOT
 
         spec_path = PROJECT_ROOT.parent / "spec" / "search_space.yaml"

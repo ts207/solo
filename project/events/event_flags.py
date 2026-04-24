@@ -1,22 +1,23 @@
 from __future__ import annotations
 
-import numpy as np
-import pandas as pd
 from pathlib import Path
 from typing import List, Sequence
 
+import numpy as np
+import pandas as pd
+
 from project.core.column_registry import ColumnRegistry
-from project.io.utils import (
-    choose_partition_dir,
-    list_parquet_files,
-    read_parquet,
-    run_scoped_lake_path,
-)
 from project.core.feature_schema import feature_dataset_dir_name
 from project.core.validation import ts_ns_utc
 from project.events.event_specs import (
     EVENT_REGISTRY_SPECS,
     REGISTRY_BACKED_SIGNALS,
+)
+from project.io.utils import (
+    choose_partition_dir,
+    list_parquet_files,
+    read_parquet,
+    run_scoped_lake_path,
 )
 
 

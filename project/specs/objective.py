@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-from project.core.coercion import safe_float, safe_int, as_bool
-
 import hashlib
 import json
 import os
@@ -9,13 +7,14 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Dict, Optional
 
+from project.core.coercion import safe_float
+from project.spec_registry import load_objective_spec, load_retail_profile
 from project.specs.loader import (
     DEFAULT_OBJECTIVE_NAME_ENV_VAR,
     DEFAULT_OBJECTIVE_SPEC_ENV_VAR,
     DEFAULT_RETAIL_PROFILE_NAME_ENV_VAR,
     DEFAULT_RETAIL_PROFILES_SPEC_ENV_VAR,
 )
-from project.spec_registry import load_objective_spec, load_retail_profile
 
 LOW_CAPITAL_REQUIRED_FIELDS = (
     "account_equity_usd",

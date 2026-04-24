@@ -4,9 +4,10 @@ Base verification harness for feature and detection logic.
 
 from __future__ import annotations
 
-import pandas as pd
-import numpy as np
 from typing import Any, Dict
+
+import numpy as np
+import pandas as pd
 
 
 class VerificationHarness:

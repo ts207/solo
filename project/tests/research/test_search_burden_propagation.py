@@ -11,24 +11,21 @@ Tests cover:
 """
 from __future__ import annotations
 
-import json
 import tempfile
 from pathlib import Path
 
-import numpy as np
 import pandas as pd
-import pytest
 
 from project.research.contracts.search_burden import (
+    DEFAULT_SEARCH_BURDEN_VERSION,
     SEARCH_BURDEN_FIELDS,
     SEARCH_BURDEN_NUMERIC_FIELDS,
-    DEFAULT_SEARCH_BURDEN_VERSION,
-    default_search_burden_dict,
-    normalize_search_burden_frame,
-    merge_search_burden_columns,
     build_search_burden_summary,
-    write_search_burden_summary,
+    default_search_burden_dict,
     load_search_burden_summary,
+    merge_search_burden_columns,
+    normalize_search_burden_frame,
+    write_search_burden_summary,
 )
 
 
@@ -185,10 +182,10 @@ class TestWriteAndLoadSearchBurdenSummary:
                 lineage_count=15,
             )
             paths = write_search_burden_summary(summary, tmpdir)
-            
+
             assert Path(paths["json_path"]).exists()
             assert Path(paths["md_path"]).exists()
-            
+
             loaded = load_search_burden_summary(tmpdir)
             assert loaded is not None
             assert loaded["search_proposals_attempted"] == 100
@@ -211,7 +208,7 @@ class TestWriteAndLoadSearchBurdenSummary:
             )
             paths = write_search_burden_summary(summary, tmpdir)
             md_content = Path(paths["md_path"]).read_text(encoding="utf-8")
-            
+
             assert "## Totals" in md_content
             assert "## Scope" in md_content
             assert "## Crowded Families" in md_content
@@ -225,7 +222,7 @@ class TestEvidenceBundleSearchBurden:
 
     def test_bundle_to_flat_record_includes_search_burden(self):
         from project.research.validation.evidence_bundle import bundle_to_flat_record
-        
+
         bundle = {
             "candidate_id": "test_1",
             "event_type": "EVENT_1",
@@ -252,9 +249,9 @@ class TestEvidenceBundleSearchBurden:
                 "search_scope_version": "phase1_v1",
             },
         }
-        
+
         record = bundle_to_flat_record(bundle)
-        
+
         assert record["search_proposals_attempted"] == 100
         assert record["search_candidates_generated"] == 50
         assert record["search_candidates_eligible"] == 20
@@ -266,7 +263,7 @@ class TestEvidenceBundleSearchBurden:
 
     def test_bundle_to_flat_record_defaults_missing_fields(self):
         from project.research.validation.evidence_bundle import bundle_to_flat_record
-        
+
         bundle = {
             "candidate_id": "test_1",
             "event_type": "EVENT_1",
@@ -283,9 +280,9 @@ class TestEvidenceBundleSearchBurden:
             "policy_version": "test_v1",
             "bundle_version": "test_v1",
         }
-        
+
         record = bundle_to_flat_record(bundle)
-        
+
         assert record["search_proposals_attempted"] == 0
         assert record["search_candidates_generated"] == 0
         assert record["search_burden_estimated"] is False
@@ -297,21 +294,21 @@ class TestSchemaPropagation:
 
     def test_promotion_audit_schema_has_search_burden(self):
         from project.contracts.schemas import get_schema_contract
-        
+
         schema = get_schema_contract("promotion_audit")
         for field in SEARCH_BURDEN_FIELDS:
             assert field in schema.optional_columns, f"Missing {field} in promotion_audit schema"
 
     def test_promoted_candidates_schema_has_search_burden(self):
         from project.contracts.schemas import get_schema_contract
-        
+
         schema = get_schema_contract("promoted_candidates")
         for field in SEARCH_BURDEN_FIELDS:
             assert field in schema.optional_columns, f"Missing {field} in promoted_candidates schema"
 
     def test_evidence_bundle_summary_schema_has_search_burden(self):
         from project.contracts.schemas import get_schema_contract
-        
+
         schema = get_schema_contract("evidence_bundle_summary")
         for field in SEARCH_BURDEN_FIELDS:
             assert field in schema.optional_columns, f"Missing {field} in evidence_bundle_summary schema"
@@ -322,7 +319,7 @@ class TestLegacyArtifactCompatibility:
 
     def test_normalize_dataframe_adds_missing_search_burden(self):
         from project.contracts.schemas import normalize_dataframe_for_schema
-        
+
         df = pd.DataFrame({
             "candidate_id": ["a"],
             "event_type": ["EVENT_1"],
@@ -330,7 +327,7 @@ class TestLegacyArtifactCompatibility:
             "promotion_track": ["standard"],
         })
         result = normalize_dataframe_for_schema(df, "promotion_audit")
-        
+
         for field in SEARCH_BURDEN_FIELDS:
             assert field in result.columns
 

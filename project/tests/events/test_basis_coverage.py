@@ -4,7 +4,6 @@ import numpy as np
 import pandas as pd
 
 from project.events.families.basis import (
-    BasisDislocationDetector,
     CrossVenueDesyncDetector,
     FndDislocDetector,
     SpotPerpBasisShockDetector,

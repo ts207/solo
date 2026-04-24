@@ -5,8 +5,8 @@ from pathlib import Path
 from typing import Any, Dict, List
 
 import pandas as pd
-from project.io.utils import read_parquet
 
+from project.io.utils import read_parquet
 
 GROUP_KEY = ["symbol", "event_type", "direction", "horizon"]
 

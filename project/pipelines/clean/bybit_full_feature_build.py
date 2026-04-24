@@ -12,8 +12,8 @@ from pathlib import Path
 import pandas as pd
 
 from project.core.config import get_data_root
-from project.io.utils import ensure_dir, list_parquet_files, read_parquet, write_parquet
 from project.features.bybit_derivatives import build_bybit_derivatives_feature_set
+from project.io.utils import ensure_dir, list_parquet_files, read_parquet, write_parquet
 from project.specs.manifest import finalize_manifest, start_manifest
 
 _LOG = logging.getLogger(__name__)

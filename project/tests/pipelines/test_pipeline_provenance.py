@@ -6,6 +6,7 @@ from pathlib import Path
 import pytest
 
 from project.core.exceptions import DataIntegrityError
+from project.pipelines import pipeline_provenance as prov
 from project.pipelines.execution_plan import (
     ArtifactVerificationResult,
     ExecutionPlan,
@@ -13,7 +14,6 @@ from project.pipelines.execution_plan import (
     PlannedArtifactObligation,
     PlannedStage,
 )
-from project.pipelines import pipeline_provenance as prov
 
 
 def test_config_digest_is_order_independent(tmp_path: Path) -> None:

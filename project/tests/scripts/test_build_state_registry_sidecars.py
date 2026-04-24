@@ -1,14 +1,14 @@
 from __future__ import annotations
 
-from project.spec_registry import (
-    load_state_family_registry,
-    load_state_registry,
-    load_yaml_relative,
-)
 from project.scripts.build_state_registry_sidecars import (
     build_runtime_state_registry_payload,
     build_state_grammar_payload,
     build_state_ontology_specs,
+)
+from project.spec_registry import (
+    load_state_family_registry,
+    load_state_registry,
+    load_yaml_relative,
 )
 
 

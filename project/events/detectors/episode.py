@@ -1,13 +1,13 @@
 from __future__ import annotations
 
-from typing import Any, Mapping
+from typing import Any
 
 import numpy as np
 import pandas as pd
 
 from project.events.detectors.threshold import ThresholdDetector
 from project.events.episodes import build_episodes
-from project.events.shared import emit_event, format_event_id, EVENT_COLUMNS
+from project.events.shared import EVENT_COLUMNS, emit_event, format_event_id
 
 
 class EpisodeDetector(ThresholdDetector):

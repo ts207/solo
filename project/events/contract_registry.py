@@ -1,8 +1,7 @@
 from __future__ import annotations
 
 from functools import lru_cache
-from pathlib import Path
-from typing import Any, Dict, Iterable, Mapping
+from typing import Any, Iterable, Mapping
 
 from project import PROJECT_ROOT
 from project.domain.compiled_registry import get_domain_registry

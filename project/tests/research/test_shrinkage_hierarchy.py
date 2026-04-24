@@ -7,9 +7,9 @@ Tests that:
 - rare_event_flag is set appropriately
 """
 
-import numpy as np
 import pandas as pd
 import pytest
+
 from project.research.helpers.estimation_kernels import _apply_hierarchical_shrinkage
 
 

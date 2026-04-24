@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import pytest
+
 from project.research.agent_io.proposal_schema import (
     detect_operator_proposal_format,
     load_normalized_operator_proposal,

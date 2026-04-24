@@ -53,8 +53,8 @@ class TestConditionSemantics:
         'all__vol_regime_high' is now strictly rejected by normalize_entry_condition.
         """
         from project.strategy.dsl.contract_v1 import (
-            normalize_entry_condition,
             NonExecutableConditionError,
+            normalize_entry_condition,
         )
 
         with pytest.raises(NonExecutableConditionError):

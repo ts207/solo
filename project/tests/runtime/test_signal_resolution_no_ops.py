@@ -4,9 +4,10 @@ and that the legacy name raises an error so production blueprints cannot
 silently rely on a phantom safety surface.
 """
 
+from unittest.mock import MagicMock
+
 import pandas as pd
 import pytest
-from unittest.mock import MagicMock
 
 
 def _make_frame(n: int = 5) -> pd.DataFrame:

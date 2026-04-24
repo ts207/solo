@@ -1,14 +1,13 @@
 from __future__ import annotations
 
-from project.core.coercion import safe_float, safe_int, as_bool
-
+import math
 from dataclasses import asdict, dataclass
 from datetime import datetime, timezone
-import math
-from pathlib import Path
 from typing import Any, Dict, Iterable, List, Mapping, Optional, Tuple
 
 import pandas as pd
+
+from project.core.coercion import safe_int
 
 _DEFAULT_LANE_ID = "alpha_5s"
 _DEFAULT_VENUE_ID = "bybit"

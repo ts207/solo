@@ -2,15 +2,15 @@ from __future__ import annotations
 
 import time
 from pathlib import Path
+
 import numpy as np
 import pandas as pd
-import sys
-import os
+
 from project import PROJECT_ROOT
 
 WORKSPACE_ROOT = PROJECT_ROOT.parent
 
-from project.events.registry import build_event_flags, REGISTRY_BACKED_SIGNALS
+from project.events.registry import REGISTRY_BACKED_SIGNALS, build_event_flags
 
 
 def bench():

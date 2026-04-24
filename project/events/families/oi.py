@@ -5,21 +5,15 @@ from typing import Any
 import numpy as np
 import pandas as pd
 
+from project.events.detectors.base import MarketEventDetector
 from project.events.detectors.threshold import ThresholdDetector
-from project.events.shared import EVENT_COLUMNS, emit_event, format_event_id
-from project.events.sparsify import sparsify_mask
+from project.events.registries.oi import (
+    ensure_oi_detectors_registered,
+    get_oi_detectors,
+)
 from project.features.context_guards import state_at_least, state_at_most
 from project.features.rolling_thresholds import lagged_rolling_quantile
 from project.research.analyzers import run_analyzer_suite
-
-
-from project.events.detectors.base import MarketEventDetector
-from project.events.detectors.positioning_base import (
-    OIFlushDetectorV2,
-    OISpikeNegativeDetectorV2,
-    OISpikePositiveDetectorV2,
-)
-from project.events.registries.oi import OI_DETECTORS, ensure_oi_detectors_registered, get_oi_detectors
 
 
 class BaseOIShockDetector(ThresholdDetector, MarketEventDetector):

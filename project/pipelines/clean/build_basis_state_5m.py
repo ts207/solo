@@ -1,14 +1,14 @@
 from __future__ import annotations
-from project.core.config import get_data_root
 
 import argparse
 import logging
 import sys
-from datetime import datetime, timedelta, timezone
 from pathlib import Path
-from typing import Dict, List, Tuple
+from typing import Dict, List
 
 import pandas as pd
+
+from project.core.config import get_data_root
 from project.io.utils import (
     choose_partition_dir,
     ensure_dir,
@@ -51,7 +51,7 @@ def main() -> int:
             run_perp_dir = run_scoped_lake_path(data_root, args.run_id, "cleaned", "perp", symbol, "bars_5m")
             shared_perp_dir = data_root / "lake" / "cleaned" / "perp" / symbol / "bars_5m"
             perp_dir = choose_partition_dir([run_perp_dir, shared_perp_dir])
-            
+
             run_spot_dir = run_scoped_lake_path(data_root, args.run_id, "cleaned", "spot", symbol, "bars_5m")
             shared_spot_dir = data_root / "lake" / "cleaned" / "spot" / symbol / "bars_5m"
             spot_dir = choose_partition_dir([run_spot_dir, shared_spot_dir])

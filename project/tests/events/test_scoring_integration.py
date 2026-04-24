@@ -1,4 +1,4 @@
-from project.events import score_event_frame, EventScoreColumns
+from project.events import EventScoreColumns, score_event_frame
 from project.events.arbitration import arbitrate_events
 
 

@@ -12,20 +12,19 @@ import pandas as pd
 from project.core.config import get_data_root
 from project.core.exceptions import DataIntegrityError
 from project.io.utils import ensure_dir, read_parquet, write_parquet
-from project.specs.manifest import load_run_manifest
-
 from project.research.knowledge.schemas import (
+    EVIDENCE_LEDGER_COLUMNS,
     FAILURE_COLUMNS,
     PROPOSAL_AUDIT_COLUMNS,
     REFLECTION_COLUMNS,
     TESTED_REGION_COLUMNS,
-    EVIDENCE_LEDGER_COLUMNS,
     canonical_json,
     region_key,
     stable_hash,
 )
 from project.research.search.bridge_adapter import canonical_bridge_event_type
 from project.research.services.pathing import resolve_phase2_candidates_path
+from project.specs.manifest import load_run_manifest
 
 # Phase 1.3 — gate names that indicate each failure cause class.
 # Used by classify_failure_cause() to populate failure_cause_class on tested regions.

@@ -3,7 +3,6 @@ from __future__ import annotations
 from copy import deepcopy
 from typing import Any, Dict
 
-
 DEFAULT_SEARCH_SPEC = "spec/search_space.yaml"
 DEFAULT_SEARCH_MIN_N = 30
 DEFAULT_MIN_T_STAT = 1.5

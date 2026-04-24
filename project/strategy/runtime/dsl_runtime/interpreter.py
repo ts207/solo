@@ -1,8 +1,7 @@
 from __future__ import annotations
 
-import logging
 from dataclasses import dataclass, field
-from typing import Dict, List, Tuple
+from typing import List
 
 import numpy as np
 import pandas as pd
@@ -19,13 +18,12 @@ except ImportError:
         return lambda f: f
 
 
-from project.strategy.dsl.schema import Blueprint
-from project.strategy.dsl.references import event_direction_bias
 from project.strategy.dsl.normalize import build_blueprint
+from project.strategy.dsl.references import event_direction_bias
 from project.strategy.dsl.validate import validate_overlay_columns
+from project.strategy.runtime.dsl_runtime.evaluator import entry_eligibility_mask
 from project.strategy.runtime.dsl_runtime.execution_context import build_signal_frame
 from project.strategy.runtime.dsl_runtime.signal_resolution import compute_trigger_coverage
-from project.strategy.runtime.dsl_runtime.evaluator import entry_eligibility_mask
 
 
 @njit

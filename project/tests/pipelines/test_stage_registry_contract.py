@@ -1,8 +1,5 @@
 from __future__ import annotations
 
-from pathlib import Path
-
-import pytest
 from project import PROJECT_ROOT
 from project.pipelines import stage_registry
 

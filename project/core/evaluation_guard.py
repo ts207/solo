@@ -29,17 +29,16 @@ Usage (in eval/ablation.py, before writing lift_claim_report.parquet):
 
 from __future__ import annotations
 
-from project import PROJECT_ROOT
-from project.spec_registry import load_hypothesis_spec, load_yaml_path
-
 import json
 import re
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import List, Optional, Sequence
+from typing import Optional, Sequence
 
 import pandas as pd
+
+from project.spec_registry import load_hypothesis_spec, load_yaml_path
 
 # ---------------------------------------------------------------------------
 # Public exception

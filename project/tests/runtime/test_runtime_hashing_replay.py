@@ -1,9 +1,8 @@
 from __future__ import annotations
 
-from project.tests.conftest import PROJECT_ROOT
-
 from project.runtime.hashing import compute_run_hash, load_hashing_spec
 from project.runtime.replay import determinism_replay_check
+from project.tests.conftest import PROJECT_ROOT
 
 
 def test_compute_run_hash_stable_for_artifact_key_order():

@@ -1,14 +1,14 @@
 from __future__ import annotations
 
-import pytest
 import pandas as pd
+import pytest
 
 from project.synthetic_truth.tools.validation.conflicts import (
+    MUTUALLY_EXCLUSIVE_PAIRS,
     ConflictAnalysis,
     ConflictReport,
     register_mutually_exclusive,
     unregister_mutually_exclusive,
-    MUTUALLY_EXCLUSIVE_PAIRS,
 )
 
 
@@ -43,7 +43,7 @@ class TestConflictAnalysis:
         })
 
         analysis = ConflictAnalysis(events)
-        
+
         assert analysis.has_conflicts()
 
     def test_no_conflict_when_no_overlap(self):
@@ -55,14 +55,14 @@ class TestConflictAnalysis:
         })
 
         analysis = ConflictAnalysis(events)
-        
+
         assert not analysis.has_conflicts()
 
     def test_register_mutually_exclusive(self):
         initial_count = len(MUTUALLY_EXCLUSIVE_PAIRS)
         register_mutually_exclusive("NEW_EVENT_A", "NEW_EVENT_B")
         assert len(MUTUALLY_EXCLUSIVE_PAIRS) == initial_count + 1
-        
+
         unregister_mutually_exclusive("NEW_EVENT_A", "NEW_EVENT_B")
         assert len(MUTUALLY_EXCLUSIVE_PAIRS) == initial_count
 
@@ -75,7 +75,7 @@ class TestConflictAnalysis:
 
         analysis = ConflictAnalysis(events)
         conflicts = analysis.conflicts
-        
+
         assert len(conflicts) > 0
         for conflict in conflicts:
             assert conflict.severity in ("low", "medium", "high", "critical")

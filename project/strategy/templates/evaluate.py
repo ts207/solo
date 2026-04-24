@@ -1,9 +1,10 @@
-import logging
+from typing import Any, Dict, List
+
 import pandas as pd
-from typing import List, Dict, Any
-from project.strategy.templates.spec import StrategySpec
+
 from project.strategy.templates.compiler import compile_positions
 from project.strategy.templates.data_bundle import DataBundle
+from project.strategy.templates.spec import StrategySpec
 
 try:
     from project.engine.pnl import compute_pnl_ledger, compute_returns

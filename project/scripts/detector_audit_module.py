@@ -21,7 +21,6 @@ import pandas as pd
 
 from project.events.detectors.base import BaseEventDetector
 
-
 # ---------------------------------------------------------------------------
 # Classification constants
 # ---------------------------------------------------------------------------

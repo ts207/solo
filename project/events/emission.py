@@ -7,7 +7,6 @@ from project.events.registry import get_event_definition
 from project.events.schemas import EventRecord
 from project.events.timestamps import compute_canonical_timestamps
 
-
 SEVERITY_TO_INT = {
     "minor": 1,
     "low": 1,

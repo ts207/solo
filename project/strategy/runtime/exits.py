@@ -1,9 +1,8 @@
 from __future__ import annotations
 
 import logging
-from typing import Dict, Any, Optional, Tuple
+from typing import Any, Dict, Optional, Tuple
 
-import numpy as np
 import pandas as pd
 
 _LOG = logging.getLogger(__name__)

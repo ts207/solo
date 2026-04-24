@@ -1,5 +1,4 @@
 from __future__ import annotations
-from project.core.config import get_data_root
 
 import argparse
 import logging
@@ -7,16 +6,18 @@ import sys
 import tempfile
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
-from typing import Dict, List, Tuple
+from typing import Dict, List
 from zipfile import ZipFile
 
 import pandas as pd
 import requests
-from project.io.http_utils import download_with_retries
-from project.io.utils import ensure_dir, read_parquet, write_parquet
-from project.specs.manifest import finalize_manifest, start_manifest
-from project.io.url_utils import join_url
+
+from project.core.config import get_data_root
 from project.core.validation import ensure_utc_timestamp
+from project.io.http_utils import download_with_retries
+from project.io.url_utils import join_url
+from project.io.utils import ensure_dir, write_parquet
+from project.specs.manifest import finalize_manifest, start_manifest
 
 ARCHIVE_BASE = "https://data.binance.vision/data/futures/um"
 EARLIEST_UM_FUTURES = datetime(2019, 9, 1, tzinfo=timezone.utc)
@@ -82,12 +83,12 @@ def _normalize_metrics(df: pd.DataFrame, symbol: str, source: str) -> pd.DataFra
 
     rename_map = {k: v for k, v in mapping.items() if k in df.columns}
     out = df[list(rename_map.keys())].rename(columns=rename_map).copy()
-    
+
     out["timestamp"] = pd.to_datetime(out["timestamp"], utc=True, errors="coerce")
     for col in out.columns:
         if col not in ("timestamp", "symbol", "source"):
             out[col] = pd.to_numeric(out[col], errors="coerce")
-            
+
     out["symbol"] = symbol
     out["source"] = source
     out = out.dropna(subset=["timestamp"]).sort_values("timestamp").drop_duplicates(subset=["timestamp"])

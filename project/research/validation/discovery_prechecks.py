@@ -1,10 +1,10 @@
 import logging
+from typing import Any, Dict
+
 import numpy as np
 import pandas as pd
-from typing import Dict, Any
 
 from project.domain.compiled_registry import get_domain_registry
-from project.research.helpers.shrinkage import _effective_sample_size
 
 log = logging.getLogger(__name__)
 
@@ -43,57 +43,57 @@ def compute_discovery_prechecks(
         "context_signature": "UNKNOWN",
         "symbol_timeframe_key": "UNKNOWN",
     }
-    
+
     try:
         if features.empty or len(mask) == 0:
             return out
-        
+
         direction_sign = 1.0 if str(spec.direction).lower() == "long" else -1.0
-        
+
         # Falsification
         # 1. Placebo shift: shift mask forward 1 bar (entry lag + 1 conceptually)
         shifted_mask = mask.shift(1, fill_value=False)
         shifted_returns = fwd[shifted_mask].dropna()
         if not shifted_returns.empty:
             out["placebo_shift_effect"] = float(shifted_returns.mean() * direction_sign * 1e4)
-            
+
         # 2. Placebo random: sample n random bars
         if n > 0 and len(fwd) > n:
             random_returns = fwd.sample(n=n, random_state=42).dropna()
             if not random_returns.empty:
                 out["placebo_random_entry_effect"] = float(random_returns.mean() * direction_sign * 1e4)
-                
+
         # 3. Direction reversal (assuming symmetrical pricing)
         out["direction_reversal_effect"] = -float(mean_bps) if not np.isnan(mean_bps) else np.nan
-        
+
         # 4. Null strength ratio (compare absolute mean diff vs its standard error proxy)
         if not np.isnan(out["placebo_shift_effect"]) and abs(out["placebo_shift_effect"]) > 1e-8:
             out["null_strength_ratio"] = float(abs(mean_bps) / abs(out["placebo_shift_effect"]))
-            
+
         # 5. Regime support
         if not regime_evals.empty and "t_stat" in regime_evals.columns:
             valid_regimes = regime_evals[regime_evals["valid"] == True]
             if not valid_regimes.empty:
                 supported = (valid_regimes["t_stat"] > 0).sum() if t_stat >= 0 else (valid_regimes["t_stat"] < 0).sum()
                 out["regime_support_ratio"] = float(supported / len(valid_regimes))
-                
+
         # Tradability
         out["after_cost_expectancy_bps"] = mean_bps - cost_bps
         out["cost_survival_ratio"] = mean_bps / max(abs(cost_bps), 1e-4) if not np.isnan(mean_bps) else np.nan
-        
+
         total_bars = len(features)
         out["coverage_ratio"] = float(n / total_bars) if total_bars > 0 else 0.0
-        
+
         # Turnover proxy: sum of active mask fraction over time
         out["turnover_proxy"] = float(n / total_bars) if total_bars > 0 else 0.0
-        
+
         # Microstructure stress proxy: difference between VWAP/open (if available) and close
         out["microstructure_stress_proxy"] = float(abs(mean_bps * 0.1)) # Cheap proxy offset for phase 1
 
         # Overlap / Novelty hints
         trigger = getattr(spec, "trigger", None)
         trigger_type = str(getattr(trigger, "trigger_type", "")).lower()
-        
+
         event_id = "UNKNOWN"
         if trigger_type == "event":
             event_id = str(getattr(trigger, "event_id", "UNKNOWN")).upper()
@@ -103,7 +103,7 @@ def compute_discovery_prechecks(
             event_id = f"TRANS:{str(getattr(trigger, 'from_state', ''))}_{str(getattr(trigger, 'to_state', ''))}".upper()
         elif trigger_type in {"sequence", "interaction"}:
             event_id = str(getattr(trigger, "label", lambda: trigger_type)()).upper()
-            
+
         # Resolve canonical family if possible
         canonical_family = event_id
         registry = get_domain_registry()
@@ -118,7 +118,7 @@ def compute_discovery_prechecks(
                 )
         except Exception:
             pass
-            
+
         out["event_family_key"] = canonical_family
         out["template_family_key"] = str(getattr(spec, "template_id", "UNKNOWN")).upper()
         out["direction_key"] = str(getattr(spec, "direction", "UNKNOWN")).upper()
@@ -128,5 +128,5 @@ def compute_discovery_prechecks(
 
     except Exception as e:
         log.warning(f"Error computing discovery prechecks: {e}")
-        
+
     return out

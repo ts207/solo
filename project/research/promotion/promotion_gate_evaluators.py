@@ -13,9 +13,9 @@ from project.eval.selection_bias import deflated_sharpe_ratio as _deflated_sharp
 from project.research.helpers.viability import evaluate_retail_constraints
 from project.research.promotion.multi_timeframe import evaluate_timeframe_consensus
 from project.research.promotion.promotion_eligibility import (
-    _ReasonRecorder,
     _has_explicit_oos_samples,
     _is_deploy_mode,
+    _ReasonRecorder,
     control_rate_details_for_event,
     cost_survival_ratio,
     sign_consistency,
@@ -27,7 +27,6 @@ from project.research.utils.decision_safety import (
     finite_ge,
 )
 from project.research.utils.returns_oos import normalize_returns_oos_combined
-
 
 log = logging.getLogger(__name__)
 

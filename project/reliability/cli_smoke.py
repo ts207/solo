@@ -6,6 +6,7 @@ from typing import Any, Dict
 
 from project.core.config import get_data_root
 from project.io.utils import read_parquet
+from project.pipelines import stage_registry
 from project.reliability.contracts import (
     reconcile_portfolio_to_traces,
     validate_candidate_table,
@@ -18,7 +19,6 @@ from project.reliability.regression_checks import (
     assert_bundle_policy_consistency,
     assert_storage_fallback_respected,
 )
-from project.pipelines import stage_registry
 from project.reliability.smoke_data import (
     build_smoke_dataset,
     build_smoke_summary,
@@ -180,7 +180,6 @@ def main(argv: list[str] | None = None) -> int:
         str(args.mode),
         root=root,
     )
-    import sys
     print(json.dumps(summary, indent=2, sort_keys=True))
     return 0
 

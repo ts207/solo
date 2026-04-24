@@ -1,12 +1,11 @@
 #!/usr/bin/env python3
 from __future__ import annotations
 
-from project.core.config import get_data_root
-
 import argparse
 import json
 from pathlib import Path
 
+from project.core.config import get_data_root
 from project.research.services.run_comparison_service import (
     DEFAULT_DRIFT_THRESHOLDS,
     write_run_comparison_report,

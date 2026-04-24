@@ -11,14 +11,13 @@ from pydantic import BaseModel
 from project.core.coercion import as_bool, safe_float, safe_int
 from project.domain.compiled_registry import get_domain_registry
 from project.domain.promotion.promotion_policy import PromotionPolicy
+from project.research.contracts.search_burden import (
+    default_search_burden_dict,
+)
 from project.research.utils.returns_oos import normalize_returns_oos_combined
 from project.research.validation.falsification import evaluate_negative_controls
 from project.research.validation.regime_tests import build_stability_result_from_row
 from project.research.validation.schemas import EvidenceBundle, PromotionDecision, SearchBurden
-from project.research.contracts.search_burden import (
-    SEARCH_BURDEN_FIELDS,
-    default_search_burden_dict,
-)
 
 
 def _json_safe(value: Any) -> Any:

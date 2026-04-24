@@ -1,4 +1,5 @@
 import pandas as pd
+
 from project.engine.exchange_constraints import SymbolConstraints, apply_constraints
 
 

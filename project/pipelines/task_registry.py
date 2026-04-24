@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, Callable, Dict, List
+from typing import Callable, Dict, List
 
 # Registry of importable Tasks.
 # A Task is a function with signature: def run_task(run_id: str, args: List[str]) -> int

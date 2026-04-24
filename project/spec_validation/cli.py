@@ -6,7 +6,8 @@ from pathlib import Path
 from typing import List, Tuple
 
 from project.spec_validation.grammar import validate_grammar
-from project.spec_validation.loaders import SEARCH_DIR as DEFAULT_SEARCH_DIR, load_search_spec
+from project.spec_validation.loaders import SEARCH_DIR as DEFAULT_SEARCH_DIR
+from project.spec_validation.loaders import load_search_spec
 
 SEARCH_DIR = DEFAULT_SEARCH_DIR
 from project.spec_validation.ontology import validate_ontology

@@ -4,7 +4,6 @@ from typing import Any, Dict, Mapping
 
 import pandas as pd
 
-
 PREPARE_EVENTS_ATTR = "phase2_prepare_diagnostics"
 
 

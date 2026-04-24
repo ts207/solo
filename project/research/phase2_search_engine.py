@@ -21,41 +21,40 @@ import pandas as pd
 import yaml
 
 from project import PROJECT_ROOT
+from project.contracts.schemas import normalize_dataframe_for_schema, validate_schema_at_producer
 from project.core.column_registry import ColumnRegistry
 from project.core.logging_utils import build_stage_log_handlers
 from project.domain.compiled_registry import get_domain_registry
 from project.domain.hypotheses import TriggerType
-from project.spec_registry import load_yaml_path
-from project.specs.manifest import finalize_manifest, start_manifest
-from project.specs.gates import load_gates_spec, select_bridge_gate_spec, select_phase2_gate_spec
-from project.research.search.profile import resolve_search_profile
-from project.research.search.generator import generate_hypotheses_with_audit
-from project.research.search.evaluator import evaluated_records_from_metrics
+from project.io.utils import ensure_dir, read_parquet, write_parquet
+from project.research._family_event_utils import load_features as load_features
+from project.research.knowledge.schemas import canonical_json, region_key, stable_hash
+from project.research.regime_routing import annotate_regime_metadata
 from project.research.search.bridge_adapter import (
     canonical_bridge_event_type,
     hypotheses_to_bridge_candidates,
     split_bridge_candidates,
 )
-from project.contracts.schemas import normalize_dataframe_for_schema, validate_schema_at_producer
-from project.io.utils import ensure_dir, read_parquet, write_parquet
 from project.research.search.distributed_runner import run_distributed_search
-from project.research._family_event_utils import load_features as load_features
+from project.research.search.evaluator import evaluated_records_from_metrics
+from project.research.search.generator import generate_hypotheses_with_audit
+from project.research.search.profile import resolve_search_profile
 from project.research.search.search_feature_utils import (
     ensure_expected_event_columns,
-    normalize_search_feature_columns,
     prepare_search_features_for_symbol,
 )
-from project.research.services.phase2_diagnostics import build_search_engine_diagnostics
-from project.research.services.reporting_service import write_json_report
 from project.research.services.pathing import (
     phase2_candidates_path,
     phase2_diagnostics_path,
     phase2_hypotheses_dir,
     phase2_run_dir,
 )
-from project.research.regime_routing import annotate_regime_metadata
-from project.research.knowledge.schemas import canonical_json, region_key, stable_hash
+from project.research.services.phase2_diagnostics import build_search_engine_diagnostics
+from project.research.services.reporting_service import write_json_report
+from project.spec_registry import load_yaml_path
 from project.spec_validation import validate_search_spec_doc
+from project.specs.gates import load_gates_spec, select_bridge_gate_spec, select_phase2_gate_spec
+from project.specs.manifest import finalize_manifest, start_manifest
 
 log = logging.getLogger(__name__)
 

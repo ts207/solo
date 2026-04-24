@@ -12,8 +12,7 @@ import pandas as pd
 from project.core.config import get_data_root
 from project.domain.registry_loader import compile_domain_registry_from_sources
 from project.io.utils import write_parquet
-from project.spec_registry import load_yaml_path
-
+from project.research.knowledge.knobs import build_agent_knob_rows
 from project.research.knowledge.schemas import (
     KNOB_COLUMNS,
     STATIC_DOCUMENT_COLUMNS,
@@ -23,8 +22,8 @@ from project.research.knowledge.schemas import (
     entity_id,
     relation_id,
 )
-from project.research.knowledge.knobs import build_agent_knob_rows
 from project.research.semantic_registry_views import build_canonical_semantic_registry_views
+from project.spec_registry import load_yaml_path
 
 
 def _registry_path(registry_root: Path, name: str) -> Path:

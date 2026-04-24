@@ -6,11 +6,6 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from project.events.detectors.dislocation_base import (
-    BasisDislocationDetectorV2,
-    FndDislocDetectorV2,
-    SpotPerpBasisShockDetectorV2,
-)
 from project.events.detectors.desync_base import (
     BetaSpikeDetectorV2,
     CorrelationBreakdownDetectorV2,
@@ -18,6 +13,11 @@ from project.events.detectors.desync_base import (
     CrossVenueDesyncDetectorV2,
     IndexComponentDivergenceDetectorV2,
     LeadLagBreakDetectorV2,
+)
+from project.events.detectors.dislocation_base import (
+    BasisDislocationDetectorV2,
+    FndDislocDetectorV2,
+    SpotPerpBasisShockDetectorV2,
 )
 from project.events.detectors.liquidation_base import (
     LiquidationCascadeDetectorV2,
@@ -28,8 +28,8 @@ from project.events.detectors.liquidity_base import (
     DirectLiquidityStressDetectorV2,
     LiquidityGapDetectorV2,
     LiquidityShockDetectorV2,
-    ProxyLiquidityStressDetectorV2,
     LiquidityVacuumDetectorV2,
+    ProxyLiquidityStressDetectorV2,
 )
 from project.events.detectors.positioning_base import (
     FundingExtremeOnsetDetectorV2,

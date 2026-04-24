@@ -1,10 +1,9 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Any, Dict, Iterable, List
+from typing import Any, Dict
 
 import pandas as pd
-
 
 _VALID_STRICTNESS = frozenset({"strict", "transitional", "legacy_compatible", "advisory"})
 
@@ -430,6 +429,7 @@ def validate_schema_at_producer(
     Returns a (possibly empty) list of issue strings.
     """
     import logging
+
     from project.core.exceptions import ContractViolationError
 
     schema = get_schema_contract(schema_name)

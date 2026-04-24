@@ -3,17 +3,14 @@
 # Do not add new callers — use the phase2_search_engine pipeline stage instead.
 from __future__ import annotations
 
-import pandas as pd
+from typing import Any, Dict
+
 import numpy as np
-from typing import Dict, List, Any, Tuple
+import pandas as pd
 
 from project.research.research_core import (
     normalize_research_dataframe,
-    load_research_features,
     sparsify_event_mask,
-    rolling_z_score,
-    safe_float,
-    safe_int,
 )
 
 

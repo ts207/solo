@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-from typing import Any, Dict, Iterable
+from typing import Any, Dict
 
 from project.reliability.schemas import (
     ENGINE_MANIFEST_SCHEMA,

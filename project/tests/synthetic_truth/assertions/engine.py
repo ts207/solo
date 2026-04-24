@@ -7,14 +7,10 @@ from typing import Any, Optional
 import pandas as pd
 
 from project.events.detectors.registry import get_detector
-from project.tests.synthetic_truth.scenarios.factory import ScenarioFactory, ScenarioSpec
 from project.tests.synthetic_truth.assertions.matchers import (
     Matcher,
-    MatchResult,
-    TriggerMatcher,
-    NoTriggerMatcher,
-    TimingMatcher,
 )
+from project.tests.synthetic_truth.scenarios.factory import ScenarioFactory, ScenarioSpec
 
 
 @dataclass

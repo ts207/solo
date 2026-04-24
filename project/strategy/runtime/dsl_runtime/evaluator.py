@@ -6,8 +6,8 @@ from typing import List
 import numpy as np
 import pandas as pd
 
-from project.strategy.runtime.dsl_runtime.signal_resolution import signal_list_mask
 from project.strategy.dsl.schema import Blueprint, ConditionNodeSpec, EntrySpec
+from project.strategy.runtime.dsl_runtime.signal_resolution import signal_list_mask
 
 LOGGER = logging.getLogger(__name__)
 

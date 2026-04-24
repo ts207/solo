@@ -1,8 +1,8 @@
-import pytest
-import yaml
+import os
 from pathlib import Path
 
-import os
+import pytest
+import yaml
 
 # Add project to path
 # This test file is in backtest/tests/specs/test_event_specs_contract.py

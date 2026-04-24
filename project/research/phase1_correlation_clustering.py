@@ -7,7 +7,6 @@ identifies the centroid event per cluster to preserve FDR power in Phase 2.
 """
 
 from __future__ import annotations
-from project.core.config import get_data_root
 
 import argparse
 import json
@@ -17,9 +16,10 @@ import numpy as np
 import pandas as pd
 from sklearn.cluster import AgglomerativeClustering
 
-from project.specs.manifest import start_manifest, finalize_manifest
+from project.core.config import get_data_root
 from project.events.registry import collect_registry_events
 from project.io.utils import ensure_dir
+from project.specs.manifest import finalize_manifest, start_manifest
 
 
 def main() -> int:

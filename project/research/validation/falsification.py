@@ -5,7 +5,7 @@ from typing import Any, Dict, Iterable, Optional
 import numpy as np
 import pandas as pd
 
-from project.core.coercion import as_bool, safe_float
+from project.core.coercion import as_bool
 from project.research.validation.schemas import FalsificationResult
 
 

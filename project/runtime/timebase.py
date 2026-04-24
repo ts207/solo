@@ -1,9 +1,9 @@
 from __future__ import annotations
 
-from project.core.coercion import safe_float, safe_int, as_bool
-
 from dataclasses import dataclass
 from typing import Dict, Iterable, Mapping
+
+from project.core.coercion import safe_int
 
 NEG_INF_US = -(2**62)
 DEFAULT_LANE_ID = "alpha_5s"

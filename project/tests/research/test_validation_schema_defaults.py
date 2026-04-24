@@ -4,7 +4,6 @@ These tests verify that creating multiple model instances does not result in
 shared mutable state due to improper default value handling.
 """
 
-import pytest
 
 from project.research.validation.schemas import (
     EvidenceBundle,
@@ -120,8 +119,6 @@ class TestMutableDefaultsIsolation:
             EffectEstimates,
             EvidenceMetadata,
             MultiplicityAdjustment,
-            SampleDefinition,
-            SearchBurden,
             SplitDefinition,
             UncertaintyEstimates,
         )
@@ -206,7 +203,6 @@ class TestMutableDefaultsIsolation:
             EffectEstimates,
             EvidenceMetadata,
             MultiplicityAdjustment,
-            SampleDefinition,
             SplitDefinition,
             UncertaintyEstimates,
         )
@@ -290,7 +286,6 @@ class TestMutableDefaultsIsolation:
             EffectEstimates,
             EvidenceMetadata,
             MultiplicityAdjustment,
-            SampleDefinition,
             SplitDefinition,
             UncertaintyEstimates,
         )

@@ -10,7 +10,13 @@ from project.core.timeframes import bars_dataset_name, funding_dataset_name, nor
 from project.events.detectors.registry import get_detector_class
 from project.features import build_features
 from project.features.assembly import filter_time_window, prune_partition_files_by_window
-from project.io.utils import choose_partition_dir, list_parquet_files, raw_dataset_dir_candidates, read_parquet, run_scoped_lake_path
+from project.io.utils import (
+    choose_partition_dir,
+    list_parquet_files,
+    raw_dataset_dir_candidates,
+    read_parquet,
+    run_scoped_lake_path,
+)
 
 _BLOCKING_COLUMN_STATUSES = {"missing", "no_coverage", "constant"}
 _WARN_COLUMN_STATUSES = {"low_coverage", "warmup_limited"}

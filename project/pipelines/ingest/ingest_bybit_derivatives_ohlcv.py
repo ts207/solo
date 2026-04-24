@@ -13,10 +13,10 @@ import logging
 import sys
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 
-import pandas as pd
 import aiohttp
+import pandas as pd
 
 from project.core.config import get_data_root
 from project.core.validation import ensure_utc_timestamp, filter_ohlcv_geometry_violations
@@ -81,7 +81,7 @@ async def _fetch_klines(
         "end": end_ms,
         "limit": limit,
     }
-    
+
     if interval.endswith("m"):
         params["interval"] = interval[:-1]
     elif interval == "1h":
@@ -97,7 +97,7 @@ async def _fetch_klines(
             resp.raise_for_status()
         data = await resp.json()
         if data.get("retCode") != 0:
-            # If no data for this range, Bybit might return 0 or error. 
+            # If no data for this range, Bybit might return 0 or error.
             # We treat certain retCodes as 'no data'
             if data.get("retCode") in [10001, 10002]: # Example codes
                  return []
@@ -206,10 +206,10 @@ async def _ingest_symbol_month(
 
         df["timestamp"] = pd.to_datetime(df["timestamp"].astype(int), unit="ms", utc=True)
         df = df.sort_values("timestamp").drop_duplicates("timestamp")
-        
+
         # Filter to requested range
         df = df[(df["timestamp"] >= actual_start) & (df["timestamp"] < actual_end)]
-        
+
         if df.empty:
             return {"status": "empty", "bars": 0}
 
@@ -217,7 +217,7 @@ async def _ingest_symbol_month(
         df["source"] = "bybit_v5"
         for col in ["open", "high", "low", "close", "volume", "turnover"]:
             df[col] = pd.to_numeric(df[col], errors="coerce")
-        
+
         if data_type == "ohlcv":
             df = df.rename(columns={"turnover": "quote_volume"})
             df["taker_base_volume"] = 0.0
@@ -233,11 +233,11 @@ async def _ingest_symbol_month(
         elif data_type == "index_price":
             df = df.rename(columns={"close": "index_price"})
             df = df[["timestamp", "index_price", "symbol", "source"]]
-        
+
         ensure_utc_timestamp(df["timestamp"], "timestamp")
         ensure_dir(out_dir)
         write_parquet(df, out_path)
-        
+
         return {"status": "written", "partition": str(out_path), "bars": len(df)}
 
 
@@ -246,18 +246,18 @@ async def async_main(args: argparse.Namespace) -> Dict[str, Any]:
     start_dt = _parse_date(args.start)
     end_dt = _parse_date(args.end)
     out_root = Path(args.out_root)
-    
+
     endpoint_map = {
         "ohlcv": "/v5/market/kline",
         "mark_price": "/v5/market/mark-price-kline",
         "index_price": "/v5/market/index-price-kline",
     }
     endpoint = endpoint_map.get(args.data_type, "/v5/market/kline")
-    
+
     semaphore = asyncio.Semaphore(args.concurrency)
     stats: Dict[str, Any] = {"symbols": {}}
     outputs = []
-    
+
     async with aiohttp.ClientSession() as session:
         for symbol in symbols:
             tasks = []
@@ -279,9 +279,9 @@ async def async_main(args: argparse.Namespace) -> Dict[str, Any]:
                         retry_backoff_sec=args.retry_backoff_sec,
                     )
                 )
-            
+
             results = await asyncio.gather(*tasks)
-            
+
             bars_total = 0
             written = []
             for res in results:
@@ -289,12 +289,12 @@ async def async_main(args: argparse.Namespace) -> Dict[str, Any]:
                     bars_total += res["bars"]
                     written.append(res["partition"])
                     outputs.append({"path": res["partition"], "rows": res["bars"], "storage": "parquet"})
-            
+
             stats["symbols"][symbol] = {
                 "bars_written_total": bars_total,
                 "partitions_written": written,
             }
-            
+
     return {"stats": stats, "outputs": outputs}
 
 
@@ -315,19 +315,19 @@ def main() -> int:
     parser.add_argument("--max_retries", type=int, default=5)
     parser.add_argument("--retry_backoff_sec", type=float, default=2.0)
     parser.add_argument("--force", type=int, default=0)
-    
+
     args = parser.parse_args()
-    
+
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
-    
+
     manifest = start_manifest(
-        f"ingest_bybit_derivatives_{args.data_type}_{args.timeframe}", 
-        args.run_id, 
-        vars(args), 
-        [], 
+        f"ingest_bybit_derivatives_{args.data_type}_{args.timeframe}",
+        args.run_id,
+        vars(args),
+        [],
         []
     )
-    
+
     try:
         result = asyncio.run(async_main(args))
         manifest["outputs"] = result["outputs"]

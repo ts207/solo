@@ -1,5 +1,4 @@
 from __future__ import annotations
-from project.core.config import get_data_root
 
 import argparse
 import json
@@ -8,27 +7,25 @@ import os
 import re
 import sys
 from pathlib import Path
-from typing import Dict, List, Tuple, Any, Mapping
+from typing import Any, Dict, List, Mapping, Tuple
 
 import numpy as np
 import pandas as pd
 
-
-from project.core.coercion import safe_float, safe_int, as_bool
+from project.core.coercion import safe_float, safe_int
+from project.core.config import get_data_root
 from project.core.timeframes import normalize_timeframe
 from project.io.utils import ensure_dir, write_parquet
-from project.specs.manifest import finalize_manifest, start_manifest
-from project.specs.objective import resolve_objective_profile_contract
 from project.research.bridge_evaluation import (
-    bridge_metrics_for_row,
     evaluate_bridge_performance,
-    evaluate_microstructure_gate,
 )
 from project.research.helpers.viability import (
     evaluate_low_capital_viability,
     evaluate_retail_constraints,
 )
 from project.research.services.pathing import bridge_event_out_dir, phase2_event_out_dir
+from project.specs.manifest import finalize_manifest, start_manifest
+from project.specs.objective import resolve_objective_profile_contract
 
 
 def _filter_candidates_for_symbol(candidates: pd.DataFrame, symbol: str) -> pd.DataFrame:

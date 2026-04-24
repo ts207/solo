@@ -6,14 +6,14 @@ import pandas as pd
 
 from project.research.services.evaluation_service import EvaluationSummaryService
 from project.research.validation.contracts import (
-    ValidationBundle,
     ValidatedCandidateRecord,
+    ValidationBundle,
     ValidationDecision,
     ValidationMetrics,
 )
 from project.research.validation.result_writer import (
-    write_validation_bundle,
     write_validated_candidate_tables,
+    write_validation_bundle,
 )
 
 

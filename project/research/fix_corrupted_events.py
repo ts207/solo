@@ -1,14 +1,15 @@
-from project.core.config import get_data_root
-import pandas as pd
-from pathlib import Path
 import argparse
-import sys
+from pathlib import Path
+
+import pandas as pd
+
+from project.core.config import get_data_root
 
 # Add project root to path
 # Now we can import the project's own write_parquet if we want,
 # or just use pandas since we know we have pyarrow in the venv for this run.
 # To be safe and consistent with the project's IO, we'll use the lib's write_parquet.
-from project.io.utils import write_parquet, read_parquet
+from project.io.utils import write_parquet
 
 
 def fix_file(path: Path):

@@ -1,9 +1,8 @@
-import pandas as pd
 import numpy as np
-import pytest
+import pandas as pd
 
-from project.research.baselines import basic_zscore_reversion, basic_breakout_rule
 from project.events.event_specs import EventRegistrySpec
+from project.research.baselines import basic_breakout_rule, basic_zscore_reversion
 
 
 def test_baselines():

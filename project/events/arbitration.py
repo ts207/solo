@@ -17,6 +17,7 @@ from pathlib import Path
 from typing import Any, Dict, List
 
 import pandas as pd
+
 from project.domain.compiled_registry import get_domain_registry
 from project.events.shared import format_event_id
 from project.spec_registry import load_yaml_relative
@@ -277,25 +278,25 @@ def arbitrate_events(
         name = comp["name"]
         required = comp["required"]
         window = comp.get("co_occur_window_bars", 24)
-        
+
         for sym in symbols:
             sym_df = out[out["symbol"] == sym].copy()
             if sym_df.empty:
                 continue
-                
+
             # Find occurrences where all required events are within window
             # Simplified approach: for each event of first type, look for others
             first_type = required[0]
             others = required[1:]
-            
+
             first_events = sym_df[sym_df["event_type"] == first_type]
             for _, f_evt in first_events.iterrows():
                 f_ts = f_evt["timestamp"]
-                
+
                 match = True
                 matched_evts = [f_evt]
                 for other_type in others:
-                    # Look for other_type within [f_ts - window*5m, f_ts + window*5m] 
+                    # Look for other_type within [f_ts - window*5m, f_ts + window*5m]
                     # (assuming 5m timeframe, but we can use indices if available or just timestamp diff)
                     # For simplicity, we'll use timestamp diff in minutes assuming 5m bars
                     other_matches = sym_df[
@@ -309,14 +310,14 @@ def arbitrate_events(
                         match = False
                         break
                     matched_evts.append(other_matches.iloc[0])
-                
+
                 if match:
                     # Emit composite event at the latest timestamp of the matched group
                     latest_ts = max(e["timestamp"] for e in matched_evts)
                     # Use integer epoch seconds for ID and count occurrences
                     ts_idx = int(pd.to_datetime(latest_ts, utc=True).timestamp())
                     sub_idx = len([r for r in composite_rows if r["timestamp"] == latest_ts and r["symbol"] == sym])
-                    
+
                     composite_rows.append({
                         "event_type": name,
                         "event_id": format_event_id(name, sym, ts_idx, sub_idx),

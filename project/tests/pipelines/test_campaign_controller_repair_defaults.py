@@ -1,6 +1,6 @@
 import yaml
 
-from project.research.campaign_controller import CampaignController, CampaignConfig
+from project.research.campaign_controller import CampaignConfig, CampaignController
 
 
 def _make_controller(tmp_path):

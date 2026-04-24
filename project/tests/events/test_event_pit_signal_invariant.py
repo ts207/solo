@@ -15,10 +15,9 @@ from __future__ import annotations
 from pathlib import Path
 
 import pandas as pd
-import pytest
 
 from project.events import registry
-from project.events.registry import _signal_ts_column, _active_signal_column
+from project.events.registry import _signal_ts_column
 
 
 def _symbol_grid() -> pd.Series:

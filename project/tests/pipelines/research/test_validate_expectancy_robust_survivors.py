@@ -1,10 +1,11 @@
 from __future__ import annotations
 
 import json
+from types import SimpleNamespace
+
 import numpy as np
 import pandas as pd
 import pytest
-from types import SimpleNamespace
 
 import project.research.validate_expectancy_traps as traps
 

@@ -3,7 +3,12 @@ from __future__ import annotations
 import pandas as pd
 import pytest
 
-from project.engine.risk_allocator import AllocationContract, AllocationPolicy, RiskLimits, allocate_position_details
+from project.engine.risk_allocator import (
+    AllocationContract,
+    AllocationPolicy,
+    RiskLimits,
+    allocate_position_details,
+)
 
 
 def _ts(n: int) -> pd.DatetimeIndex:

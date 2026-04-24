@@ -1,19 +1,20 @@
 import numpy as np
 import pandas as pd
 import pytest
+
 from project.features.context_states import (
     calculate_ms_funding_probabilities,
-    calculate_ms_vol_state,
-    calculate_ms_vol_probabilities,
-    calculate_ms_liq_state,
-    calculate_ms_liq_probabilities,
-    calculate_ms_oi_state,
-    calculate_ms_oi_probabilities,
     calculate_ms_funding_state,
-    calculate_ms_trend_state,
-    calculate_ms_trend_probabilities,
-    calculate_ms_spread_state,
+    calculate_ms_liq_probabilities,
+    calculate_ms_liq_state,
+    calculate_ms_oi_probabilities,
+    calculate_ms_oi_state,
     calculate_ms_spread_probabilities,
+    calculate_ms_spread_state,
+    calculate_ms_trend_probabilities,
+    calculate_ms_trend_state,
+    calculate_ms_vol_probabilities,
+    calculate_ms_vol_state,
     encode_context_state_code,
 )
 

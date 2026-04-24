@@ -1,6 +1,8 @@
-import pandas as pd
-import numpy as np
 import logging
+
+import numpy as np
+import pandas as pd
+
 from project.features.liquidity_vacuum import detect_liquidity_vacuum_events
 
 

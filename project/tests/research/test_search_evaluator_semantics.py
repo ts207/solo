@@ -1,9 +1,10 @@
 from __future__ import annotations
 
 import logging
+from pathlib import Path
+
 import numpy as np
 import pandas as pd
-from pathlib import Path
 
 from project.core.column_registry import ColumnRegistry
 from project.domain.hypotheses import HypothesisSpec, TriggerSpec

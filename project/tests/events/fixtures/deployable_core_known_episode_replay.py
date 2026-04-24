@@ -16,7 +16,6 @@ from project.tests.events.fixtures.deployable_core_replay_baseline import (
     summarize_detector_events,
 )
 
-
 BASELINE_PATH = Path(__file__).with_name("deployable_core_known_episode_baseline.json")
 GENERATOR_VERSION = "known_episode_replay_v1"
 

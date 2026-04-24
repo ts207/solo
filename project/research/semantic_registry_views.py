@@ -7,7 +7,6 @@ from project import PROJECT_ROOT
 from project.domain.registry_loader import compile_domain_registry_from_sources
 from project.spec_registry import load_template_registry, resolve_relative_spec_path
 
-
 REPO_ROOT = PROJECT_ROOT.parent
 _STATE_GENERATED_FILENAMES = {"state_registry.yaml", "state_families.yaml"}
 

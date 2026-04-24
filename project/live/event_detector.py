@@ -426,8 +426,8 @@ class GovernedRuntimeCoreEventDetectionAdapter(LiveEventDetectionAdapter):
             detector_cls = get_detector_metadata_adapter_class(contract.event_name)
             if detector_cls is None:
                 continue
-            event_status = (
-                input_surface.detector_input_status.get("per_event", {}).get(contract.event_name, {})
+            event_status = input_surface.detector_input_status.get("per_event", {}).get(
+                contract.event_name, {}
             )
             missing = list(event_status.get("missing_inputs", []))
             if missing:
@@ -475,7 +475,9 @@ class GovernedRuntimeCoreEventDetectionAdapter(LiveEventDetectionAdapter):
     ) -> list[DetectorContract]:
         selected: list[DetectorContract] = []
         eligible = _governed_runtime_core_event_ids()
-        for event_id in _normalize_supported_event_ids(supported_event_ids, supported_event_families):
+        for event_id in _normalize_supported_event_ids(
+            supported_event_ids, supported_event_families
+        ):
             canonical = str(event_id).strip().upper()
             if canonical not in eligible:
                 continue
@@ -616,22 +618,7 @@ def detect_live_event(
     supported_event_families: List[str] | None = None,
     detector_config: Mapping[str, Any] | None = None,
 ) -> DetectedEvent | None:
-    # Compatibility surface for legacy unit coverage and call sites that still expect
-    # the pre-adapter heuristic behavior from a single-event helper.
     compat_config = dict(detector_config or {})
-    if not compat_config:
-        compat_config = {
-            "adapter": "heuristic",
-            "legacy_heuristic_enabled": True,
-        }
-    elif not any(
-        key in compat_config for key in ("adapter", "mode", "detector_adapter")
-    ):
-        compat_config = {
-            **compat_config,
-            "adapter": "heuristic",
-            "legacy_heuristic_enabled": True,
-        }
     events = detect_live_events(
         symbol=symbol,
         timeframe=timeframe,

@@ -2,10 +2,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-import pandas as pd
-
 from project.events.detectors.registry import (
-    get_detector,
     list_registered_event_types,
     load_all_detectors,
 )

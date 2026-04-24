@@ -1,12 +1,11 @@
-from project.io.utils import write_parquet, read_parquet
+from pathlib import Path
+from typing import Any, Dict, List, Tuple
+
 import numpy as np
 import pandas as pd
-import hashlib
-import json
-from pathlib import Path
-from typing import List, Dict, Any, Tuple, Optional
 
 from project.core.stats import bh_adjust
+from project.io.utils import read_parquet, write_parquet
 from project.research.validation.multiple_testing import (
     adjust_pvalues_by,
 )
@@ -154,8 +153,9 @@ def _load_mechanism_group_map() -> Dict[str, str]:
     so callers degrade gracefully rather than raising.
     """
     try:
-        import yaml as _yaml
         from pathlib import Path as _Path
+
+        import yaml as _yaml
 
         candidates = [
             _Path(__file__).resolve().parents[2] / "project" / "configs" / "registries" / "events.yaml",

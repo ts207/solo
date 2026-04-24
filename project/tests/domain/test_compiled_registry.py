@@ -3,12 +3,12 @@ from __future__ import annotations
 import pytest
 
 from project.domain.compiled_registry import get_domain_registry, refresh_domain_registry
+from project.domain.hypotheses import HypothesisSpec, TriggerSpec
 from project.domain.registry_loader import (
     compile_domain_registry,
     domain_graph_path,
     load_domain_registry_from_graph,
 )
-from project.domain.hypotheses import HypothesisSpec, TriggerSpec
 from project.research.search.feasibility import check_hypothesis_feasibility
 
 
@@ -266,6 +266,7 @@ def test_spec_sources_digest_returns_stable_hex_string():
 
 def test_domain_graph_records_current_spec_sources_digest():
     import yaml
+
     from project.domain.registry_loader import domain_graph_path, spec_sources_digest
 
     payload = yaml.safe_load(domain_graph_path().read_text(encoding="utf-8"))
@@ -283,8 +284,12 @@ def test_domain_init_exposes_compiled_registry_api():
 
 
 def test_events_contracts_delegates_to_compiled_domain():
-    from project.events.contracts import get_event_spec, get_event_type_from_signal, is_registry_backed_signal
     from project.domain.models import EventDefinition
+    from project.events.contracts import (
+        get_event_spec,
+        get_event_type_from_signal,
+        is_registry_backed_signal,
+    )
 
     spec = get_event_spec("VOL_SPIKE")
     assert spec is not None

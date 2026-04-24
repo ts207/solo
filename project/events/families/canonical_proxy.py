@@ -6,10 +6,8 @@ import numpy as np
 import pandas as pd
 
 from project.events.detectors.threshold import ThresholdDetector
-from project.events.shared import EVENT_COLUMNS, emit_event, format_event_id
-from project.events.sparsify import sparsify_mask
-from project.events.thresholding import rolling_quantile_threshold, rolling_mean_std_zscore
 from project.events.event_aliases import resolve_event_alias
+from project.events.thresholding import rolling_mean_std_zscore, rolling_quantile_threshold
 from project.research.analyzers import run_analyzer_suite
 from project.spec_registry import load_event_spec
 

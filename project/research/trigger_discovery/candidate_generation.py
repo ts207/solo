@@ -1,15 +1,16 @@
 from __future__ import annotations
 
 import logging
-import itertools
 from dataclasses import dataclass, field
-from typing import Dict, List, Any, Tuple
+from typing import Any, Dict, List, Tuple
 
 import pandas as pd
-import numpy as np
 
 from project.domain.hypotheses import HypothesisSpec, TriggerSpec
-from project.research.trigger_discovery.candidate_clustering import extract_excursions, cluster_excursions
+from project.research.trigger_discovery.candidate_clustering import (
+    cluster_excursions,
+    extract_excursions,
+)
 
 log = logging.getLogger(__name__)
 

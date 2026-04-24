@@ -5,7 +5,6 @@ import sys
 from pathlib import Path
 
 import pandas as pd
-import yaml
 
 import project.events.event_flags as _event_flags_mod
 from project import PROJECT_ROOT

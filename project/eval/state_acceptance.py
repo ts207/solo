@@ -1,6 +1,6 @@
+from typing import Any, Dict
+
 import pandas as pd
-import json
-from typing import Dict, Any
 
 _CANONICAL_ORDERS = {
     "vol_regime": ["LOW", "MID", "HIGH", "SHOCK"],

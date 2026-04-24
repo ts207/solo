@@ -1,15 +1,15 @@
 from __future__ import annotations
 
 import json
-from types import SimpleNamespace
 from pathlib import Path
+from types import SimpleNamespace
 
 import numpy as np
 import pandas as pd
 import pytest
 
-import project.research.services.candidate_discovery_service as svc
 import project.research.experiment_engine as experiment_engine
+import project.research.services.candidate_discovery_service as svc
 
 
 class _HypothesisRegistry:

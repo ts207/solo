@@ -48,6 +48,15 @@ cell discovery -> generated proposal YAML -> normal discover -> validate -> prom
 Cell discovery does not promote or trade by itself. It is a scouting lane for
 finding event/context pockets worth re-entering through the canonical lifecycle.
 
+Cell discovery is curated by authored spec directories under `spec/discovery/`;
+it does not automatically include every event in the unified event registry. Run
+this before assuming an event is available in cell testing:
+
+```bash
+edge discover cells coverage-audit
+edge discover cells spec-audit --spec_dir spec/discovery/<surface>
+```
+
 ## Command Surface
 
 Plan:

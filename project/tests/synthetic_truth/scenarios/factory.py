@@ -6,11 +6,11 @@ from typing import Any, Literal, Optional
 import pandas as pd
 
 from project.tests.synthetic_truth.generators import (
+    ContextGenerator,
     GeneratorConfig,
     OrderbookGenerator,
-    TradeFlowGenerator,
     PriceSeriesGenerator,
-    ContextGenerator,
+    TradeFlowGenerator,
 )
 
 

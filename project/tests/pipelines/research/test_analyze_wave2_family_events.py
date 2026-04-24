@@ -1,14 +1,13 @@
 from __future__ import annotations
 
-import sys
 from types import SimpleNamespace
 
 import numpy as np
 import pandas as pd
 import pytest
 
-from project.research import analyze_events
 from project.events.detectors.registry import get_detector, load_all_detectors
+from project.research import analyze_events
 
 
 def _sample_features(n: int = 640) -> pd.DataFrame:
@@ -122,7 +121,6 @@ def test_family_wave2_main_writes_target_event(
     monkeypatch, tmp_path, event_type: str, reports_dir: str, events_file: str
 ):
     # Mock compose_event_config to return our expected paths
-    from project.events import config
 
     mock_cfg = SimpleNamespace(
         reports_dir=reports_dir,

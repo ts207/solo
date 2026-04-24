@@ -9,6 +9,7 @@ fire counts and rates, and flags events below a minimum n threshold.
 from __future__ import annotations
 
 import re
+
 import pandas as pd
 
 _EVENT_COL_RE = re.compile(r"^event_(.+)$")

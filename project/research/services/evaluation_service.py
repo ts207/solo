@@ -12,21 +12,22 @@ from project.core.config import get_data_root
 from project.core.exceptions import MissingArtifactError
 from project.io.utils import read_table_auto
 from project.research.CANONICAL_PIPELINE import persist_canonical_pipeline_artifact
-from project.research.decision_trace_artifacts import write_validation_trace, write_merged_research_trace
+from project.research.decision_trace_artifacts import (
+    write_merged_research_trace,
+    write_validation_trace,
+)
 from project.research.validation.contracts import (
-    ValidationBundle,
     ValidatedCandidateRecord,
+    ValidationBundle,
     ValidationDecision,
     ValidationMetrics,
     ValidationReasonCodes,
 )
 from project.research.validation.result_writer import (
     load_validation_bundle,
-    write_validation_bundle,
     write_validated_candidate_tables,
+    write_validation_bundle,
 )
-
-
 
 _DETECTOR_LINEAGE_COLUMNS = {
     "source_event_name",
@@ -296,15 +297,15 @@ class ValidationService:
         return read_table_auto(path)
 
     def create_validation_bundle(
-        self, 
-        run_id: str, 
-        candidates_df: pd.DataFrame, 
+        self,
+        run_id: str,
+        candidates_df: pd.DataFrame,
         program_id: Optional[str] = None
     ) -> ValidationBundle:
         validated = []
         rejected = []
         inconclusive = []
-        
+
         for _, row in candidates_df.iterrows():
             record = self._map_row_to_validated_record(row, run_id, program_id)
             if record.decision.status == "validated":
@@ -313,7 +314,7 @@ class ValidationService:
                 rejected.append(record)
             else:
                 inconclusive.append(record)
-        
+
         # Sprint 4: Add effect stability report
         try:
             from project.operator.stability import build_regime_split_report
@@ -343,17 +344,17 @@ class ValidationService:
         return bundle
 
     def _map_row_to_validated_record(
-        self, 
-        row: pd.Series | Dict[str, Any], 
-        run_id: str, 
+        self,
+        row: pd.Series | Dict[str, Any],
+        run_id: str,
         program_id: Optional[str] = None
     ) -> ValidatedCandidateRecord:
         candidate_id = str(row.get("candidate_id", ""))
-        
+
         # Determine status and reasons based on common columns
         # This is a basic mapping, can be expanded
         reasons = []
-        
+
         # Check for common failure gates. OOS failure is a definite validation
         # failure, not an inconclusive state; reserve inconclusive for missing data.
         gates_to_check = (
@@ -363,20 +364,20 @@ class ValidationService:
             ("gate_c_regime_stable", ValidationReasonCodes.FAILED_REGIME_SUPPORT),
             ("gate_multiplicity", ValidationReasonCodes.FAILED_MULTIPLICITY_THRESHOLD),
         )
-        
+
         for gate, code in gates_to_check:
             val = row.get(gate)
             if val is not None:
                 if not bool(val):
                     reasons.append(code)
-        
+
         # Special check for n_events
         n_events = row.get("n_events", row.get("n_obs", 0))
         if n_events < 20: # Example threshold
             reasons.append(ValidationReasonCodes.INSUFFICIENT_SAMPLE_SUPPORT)
 
         status = "validated" if not reasons else "rejected"
-        
+
         # If it's missing critical data, it might be inconclusive
         if pd.isna(row.get("p_value")) and pd.isna(row.get("expectancy")):
              status = "inconclusive"
@@ -390,7 +391,7 @@ class ValidationService:
             reason_codes=list(dict.fromkeys(reasons)),
             summary=""
         )
-        
+
         metrics = ValidationMetrics(
             sample_count=int(n_events) if not pd.isna(n_events) else None,
             expectancy=float(row.get("expectancy")) if not pd.isna(row.get("expectancy")) else None,
@@ -399,7 +400,7 @@ class ValidationService:
             q_value=float(row.get("q_value")) if not pd.isna(row.get("q_value")) else None,
             stability_score=float(row.get("stability_score")) if not pd.isna(row.get("stability_score")) else None,
         )
-        
+
         return ValidatedCandidateRecord(
             candidate_id=candidate_id,
             decision=decision,
@@ -413,17 +414,13 @@ class ValidationService:
         )
 
     def run_validation_stage(
-        self, 
-        run_id: str, 
-        candidates_df: pd.DataFrame, 
+        self,
+        run_id: str,
+        candidates_df: pd.DataFrame,
         program_id: Optional[str] = None
     ) -> ValidationBundle:
         bundle = self.create_validation_bundle(run_id, candidates_df, program_id)
         # Sprint 4: Use canonical names via result_writer
-        from project.research.validation.result_writer import (
-            write_validation_bundle,
-            write_validated_candidate_tables,
-        )
         base_dir = self.data_root / "reports" / "validation" / run_id
         bundle_path = write_validation_bundle(bundle, base_dir=base_dir)
         table_paths = write_validated_candidate_tables(bundle, base_dir=base_dir)
@@ -441,11 +438,12 @@ class ValidationService:
                 "validation stage failed to materialize canonical outputs: "
                 + ", ".join(sorted(missing_outputs))
             )
-        
+
         # Sprint 7: Artifact manifest
-        from project.research.validation.manifest import RunArtifactManifest
         from datetime import datetime, timezone
-        
+
+        from project.research.validation.manifest import RunArtifactManifest
+
         canonical_path_path = persist_canonical_pipeline_artifact(
             base_dir,
             run_id=run_id,
@@ -479,5 +477,5 @@ class ValidationService:
             }
         )
         manifest.persist(base_dir)
-        
+
         return bundle

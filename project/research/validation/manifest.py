@@ -2,9 +2,9 @@ from __future__ import annotations
 
 import json
 from dataclasses import asdict, dataclass, field
-from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Optional
+
 
 @dataclass
 class RunArtifactManifest:
@@ -16,10 +16,10 @@ class RunArtifactManifest:
     artifacts: Dict[str, str] = field(default_factory=dict) # name -> path
     config_hash: Optional[str] = None
     git_sha: Optional[str] = None
-    
+
     def to_dict(self) -> Dict[str, Any]:
         return asdict(self)
-    
+
     def persist(self, base_dir: Path):
         base_dir.mkdir(parents=True, exist_ok=True)
         path = base_dir / "artifact_manifest.json"

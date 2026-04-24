@@ -2,25 +2,20 @@ from __future__ import annotations
 
 from typing import Any
 
-import numpy as np
 import pandas as pd
 
-from project.events.detectors.threshold import ThresholdDetector
-from project.events.detectors.transition import TransitionDetector
 from project.events.detectors.composite import CompositeDetector
-from project.features.rolling_thresholds import lagged_rolling_quantile
-from project.events.shared import EVENT_COLUMNS, emit_event, format_event_id
-from project.events.thresholding import rolling_mean_std_zscore
-from project.research.analyzers import run_analyzer_suite
 from project.events.detectors.desync_base import (
     BetaSpikeDetectorV2,
     CorrelationBreakdownDetectorV2,
 )
+from project.events.detectors.transition import TransitionDetector
 from project.events.registries.regime import (
-    REGIME_DETECTORS,
     ensure_regime_detectors_registered,
     get_regime_detectors,
 )
+from project.features.rolling_thresholds import lagged_rolling_quantile
+from project.research.analyzers import run_analyzer_suite
 
 
 class VolRegimeShiftDetector(TransitionDetector):

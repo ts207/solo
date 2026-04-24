@@ -5,12 +5,11 @@ from typing import Any
 import numpy as np
 import pandas as pd
 
+from project.core.copula_pairs import copula_pair_universe, copula_partners, load_copula_pairs
 from project.events.detectors.threshold import ThresholdDetector
 from project.features.context_guards import state_at_least
 from project.features.rolling_thresholds import lagged_rolling_quantile
-from project.events.shared import EVENT_COLUMNS, emit_event, format_event_id
 from project.research.analyzers import run_analyzer_suite
-from project.core.copula_pairs import copula_pair_universe, copula_partners, load_copula_pairs
 from project.spec_registry import load_event_spec
 
 

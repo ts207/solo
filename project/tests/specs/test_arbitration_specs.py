@@ -1,4 +1,3 @@
-import pytest
 import yaml
 
 from project.spec_registry import SPEC_ROOT

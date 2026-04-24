@@ -19,13 +19,12 @@ from project.domain.hypotheses import HypothesisSpec
 from project.events.event_specs import EVENT_REGISTRY_SPECS
 from project.research.robustness.regime_labeler import REGIME_DIMENSIONS
 from project.research.robustness.stress_test import STRESS_SCENARIOS
+from project.research.search.evaluator import METRICS_COLUMNS, evaluate_hypothesis_batch
 from project.research.search.evaluator_utils import (
     _CONTEXT_CONFIDENCE_COLUMN_BY_FAMILY,
     _CONTEXT_ENTROPY_COLUMN_BY_FAMILY,
     load_context_state_map,
 )
-from project.research.search.evaluator import evaluate_hypothesis_batch, METRICS_COLUMNS
-
 
 log = logging.getLogger(__name__)
 

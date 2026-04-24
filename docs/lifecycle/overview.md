@@ -62,7 +62,8 @@ Paper or live run:
 
 Supported: offline/local-data research, canonical discovery/validation/promotion/export, governed runtime-core detection, portfolio decisioning, and docs/governance refresh/check.
 
-Compatibility: legacy artifact readers, explicit heuristic detector mode, and historical phase-2 adapters.
+Compatibility: legacy artifact readers behind explicit switches, explicit
+heuristic detector mode, and historical phase-2 adapters.
 
 Experimental: trigger-mining and proposal-generation lanes.
 

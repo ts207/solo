@@ -337,7 +337,7 @@ class TestRiskAllocator:
             "s1": pd.Series([1.0], index=idx),
             "s2": pd.Series([1.0], index=idx)
         }
-        
+
         limits = RiskLimits()
         policy = AllocationPolicy(
             overlap_mode="exclusive",
@@ -349,9 +349,9 @@ class TestRiskAllocator:
             }
         )
         contract = AllocationContract(limits=limits, policy=policy)
-        
+
         scales, stats = allocate_position_scales(pos, req, limits, contract=contract)
-        
+
         # s2 has higher support score (0.6 > 0.5), so it should win
         assert scales["s1"].iloc[0] == 0.0
         assert scales["s2"].iloc[0] == pytest.approx(1.0)

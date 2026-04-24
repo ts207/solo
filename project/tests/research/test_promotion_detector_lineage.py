@@ -2,8 +2,8 @@ from __future__ import annotations
 
 import pandas as pd
 
-from project.research.services.evaluation_service import extract_detector_lineage
 from project.research.live_export import _resolve_detector_lineage
+from project.research.services.evaluation_service import extract_detector_lineage
 
 
 def test_extract_detector_lineage_from_validation_row() -> None:

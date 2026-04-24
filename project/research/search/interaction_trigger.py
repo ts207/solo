@@ -1,8 +1,9 @@
 import logging
 
-from project.domain.compiled_registry import get_domain_registry
-from project.events.interaction_analyzer import detect_interactions, InteractionOp
 import pandas as pd
+
+from project.domain.compiled_registry import get_domain_registry
+from project.events.interaction_analyzer import detect_interactions
 
 log = logging.getLogger(__name__)
 

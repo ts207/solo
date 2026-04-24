@@ -1,6 +1,10 @@
 from __future__ import annotations
 
-from project.episodes import build_episode_artifacts, infer_live_episode_matches, load_episode_registry
+from project.episodes import (
+    build_episode_artifacts,
+    infer_live_episode_matches,
+    load_episode_registry,
+)
 
 
 def test_episode_registry_loads_expected_contracts() -> None:

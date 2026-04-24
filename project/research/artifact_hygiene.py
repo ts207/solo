@@ -7,7 +7,6 @@ from typing import Any, Mapping
 
 from project.spec_registry.loaders import repo_root
 
-
 ARTIFACT_METADATA_SCHEMA_VERSION = "artifact_metadata_v1"
 
 

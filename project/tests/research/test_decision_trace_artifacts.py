@@ -12,10 +12,10 @@ from project.research.decision_trace_artifacts import (
     write_merged_research_trace,
 )
 from project.research.validation.contracts import (
+    ValidatedCandidateRecord,
     ValidationBundle,
     ValidationDecision,
     ValidationMetrics,
-    ValidatedCandidateRecord,
 )
 
 

@@ -1,8 +1,6 @@
-import numpy as np
-import pandas as pd
-from project.research.validation.evidence_bundle import evaluate_promotion_bundle
-from project.research.promotion.promotion_decisions import evaluate_row
 from project.domain.promotion.promotion_policy import PromotionPolicy
+from project.research.promotion.promotion_decisions import evaluate_row
+from project.research.validation.evidence_bundle import evaluate_promotion_bundle
 
 
 def test_evidence_bundle_3_state_logic():
@@ -92,7 +90,6 @@ def test_promotion_decisions_handles_string_gates():
         pass
 
     # The actual integration is tested by ensure we don't crash and we get the requested strings out.
-    from project.research.promotion.promotion_decisions import evaluate_row
 
     hypothesis_index = {"plan_x": {"statuses": ["executed"]}}
     result = evaluate_row(

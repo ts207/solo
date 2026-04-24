@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import logging
-
 from types import SimpleNamespace
 
 import pandas as pd

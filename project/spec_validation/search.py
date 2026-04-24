@@ -1,13 +1,13 @@
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 
 from project.domain.compiled_registry import get_domain_registry
 from project.spec_validation.ontology import (
+    get_event_family,
     get_event_ids_for_family,
     get_event_ids_for_regime,
-    get_state_ids_for_family,
     get_searchable_event_families,
     get_searchable_state_families,
-    get_event_family,
+    get_state_ids_for_family,
 )
 
 _SUPPORTED_COST_PROFILES = frozenset({"standard"})
@@ -125,7 +125,7 @@ def resolve_templates(search_cfg: Dict[str, Any]) -> List[str]:
 def resolve_filter_template_names(search_cfg: Dict[str, Any]) -> List[str]:
     registry = get_domain_registry()
     templates = search_cfg.get("filter_templates", [])
-    if templates in (None, "", [], ()): 
+    if templates in (None, "", [], ()):
         return []
     if templates == "*":
         return ["*"]
@@ -154,7 +154,7 @@ def resolve_filter_template_names(search_cfg: Dict[str, Any]) -> List[str]:
 def resolve_execution_template_names(search_cfg: Dict[str, Any]) -> List[str]:
     registry = get_domain_registry()
     templates = search_cfg.get("execution_templates", [])
-    if templates in (None, "", [], ()): 
+    if templates in (None, "", [], ()):
         return []
     if templates == "*":
         return ["*"]

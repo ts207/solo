@@ -1,25 +1,16 @@
 from __future__ import annotations
-from project.core.config import get_data_root
 
 import hashlib
 import json
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Dict, List, Mapping, Sequence, Tuple
+from typing import Any, Dict, Mapping
 
 import numpy as np
 import pandas as pd
 
-from project.io.utils import (
-    choose_partition_dir,
-    list_parquet_files,
-    read_parquet,
-    run_scoped_lake_path,
-)
-from project.events.shared import EVENT_COLUMNS, emit_event, format_event_id
-from project.core.coercion import safe_float, safe_int, as_bool
-from project.research.helpers.loading import load_research_features, normalize_research_dataframe
-from project.research.helpers.events import sparsify_event_mask, rolling_z_score
+from project.core.config import get_data_root
+
 
 def get_research_data_root() -> Path:
     return get_data_root()

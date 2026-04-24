@@ -34,8 +34,6 @@ from typing import Any, Dict, List
 
 import pandas as pd
 
-from project import PROJECT_ROOT
-
 logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
 logger = logging.getLogger(__name__)
 
@@ -54,7 +52,7 @@ def audit_parquet_artifact(path: Path) -> List[Dict[str, Any]]:
 
     findings = []
     cols = set(df.columns)
-    
+
     # Check for missing multiplicity fields
     missing_mult = REQUIRED_MULTIPLICITY_COLS - cols
     if missing_mult:
@@ -109,7 +107,7 @@ def main():
                         idx = parts.index("reports")
                         if idx + 1 < len(parts):
                             run_id = parts[idx + 1]
-                    
+
                     for f in findings:
                         f["run_id"] = run_id
                         all_findings.append(f)

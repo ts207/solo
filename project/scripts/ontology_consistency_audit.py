@@ -5,16 +5,17 @@ import json
 import re
 import sys
 from pathlib import Path
-from typing import Any, Dict, Iterable, List
+from typing import Any, Dict, List
 
 import yaml
+
 from project import PROJECT_ROOT
 from project.spec_registry import load_unified_event_registry
 
 REPO_ROOT = PROJECT_ROOT.parent
 
-from project.events.registry import EVENT_REGISTRY_SPECS
 from project.events.phase2 import PHASE2_EVENT_CHAIN
+from project.events.registry import EVENT_REGISTRY_SPECS
 from project.specs.ontology import (
     materialized_state_ids,
     normalize_state_registry_records,

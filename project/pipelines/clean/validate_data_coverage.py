@@ -1,5 +1,4 @@
 from __future__ import annotations
-from project.core.config import get_data_root
 
 import argparse
 import json
@@ -7,7 +6,7 @@ import logging
 import sys
 from pathlib import Path
 
-import pandas as pd
+from project.core.config import get_data_root
 from project.core.data_quality import summarize_frame_quality
 from project.io.utils import (
     choose_partition_dir,

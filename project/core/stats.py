@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import math
 from dataclasses import dataclass
-from typing import Iterable, List, Optional, Sequence, Tuple
+from typing import Iterable, Optional, Tuple
 
 import numpy as np
 import pandas as pd
@@ -17,6 +17,7 @@ except ModuleNotFoundError:  # pragma: no cover - environment-specific fallback
 stats = scipy_stats
 
 import logging
+
 _LOG = logging.getLogger(__name__)
 
 
@@ -234,7 +235,7 @@ def _student_t_cdf_scalar(x: float, df: float) -> float:
         return float(_norm_cdf(x))
     if x == 0.0:
         return 0.5
-        
+
     # Optimization: Use regularized incomplete beta function if available
     try:
         from scipy.special import betainc
@@ -243,7 +244,7 @@ def _student_t_cdf_scalar(x: float, df: float) -> float:
         # Symmetry: F(-x) = 1 - F(x)
         # Using the x > 0 formula:
         # F(x) = 1 - 0.5 * betainc(df/2, 0.5, df / (df + x**2))
-        
+
         x_sq = x * x
         z = df / (df + x_sq)
         val = 0.5 * betainc(df / 2.0, 0.5, z)
@@ -331,7 +332,7 @@ def _kendalltau(x: object, y: object) -> Tuple[float, float]:
     n = xa.size
     if n < 2:
         return 0.0, 1.0
-    
+
     # Scalability guard: pure-Python implementation is O(n^2)
     if n > 1000:
         raise ImportError(

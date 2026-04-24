@@ -4,7 +4,6 @@ from pathlib import Path
 
 from project.tests.conftest import REPO_ROOT
 
-
 ALLOWED = {
     Path("project/io/utils.py"),
     Path("project/scripts/generate_synthetic_milestone_data.py"),

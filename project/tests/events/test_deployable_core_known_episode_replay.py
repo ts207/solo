@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import pytest
+
 from project.events.policy import DEPLOYABLE_CORE_EVENT_TYPES
 from project.tests.events.fixtures.deployable_core_known_episode_replay import (
     BASELINE_PATH,

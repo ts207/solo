@@ -7,7 +7,11 @@ from typing import Any
 from mcp.types import DEFAULT_NEGOTIATED_VERSION
 
 from project.apps.chatgpt.server import build_asgi_app, build_mcp_server, build_server_blueprint
-from project.apps.chatgpt.tool_catalog import get_profile_metadata, get_tool_catalog, get_tool_definition
+from project.apps.chatgpt.tool_catalog import (
+    get_profile_metadata,
+    get_tool_catalog,
+    get_tool_definition,
+)
 
 
 async def start_lifespan(app: Any) -> asyncio.Task[Any]:

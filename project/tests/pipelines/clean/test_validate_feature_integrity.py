@@ -4,8 +4,8 @@ import sys
 from pathlib import Path
 
 import pandas as pd
-from project.core.feature_schema import feature_dataset_dir_name
 
+from project.core.feature_schema import feature_dataset_dir_name
 from project.pipelines.clean import validate_feature_integrity as integrity
 
 

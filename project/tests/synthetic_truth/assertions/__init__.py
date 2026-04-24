@@ -1,12 +1,12 @@
-from .engine import EventTruthValidator, ValidationResult, ValidationError
+from .engine import EventTruthValidator, ValidationError, ValidationResult
 from .matchers import (
+    DirectionMatcher,
     Matcher,
     MatchResult,
-    TriggerMatcher,
     NoTriggerMatcher,
-    TimingMatcher,
     SeverityMatcher,
-    DirectionMatcher,
+    TimingMatcher,
+    TriggerMatcher,
 )
 from .reporters import TruthReporter, format_validation_result
 

@@ -10,17 +10,17 @@ import pandas as pd
 
 from project.core.config import get_data_root
 from project.core.exceptions import DataIntegrityError
-from project.io.utils import read_parquet
 from project.domain.compiled_registry import get_domain_registry
-from project.events.governance import governed_default_planning_event_ids, event_matches_filters
+from project.events.governance import event_matches_filters, governed_default_planning_event_ids
+from project.io.utils import read_parquet
 from project.research.experiment_engine import RegistryBundle
 from project.research.knowledge.memory import (
     ensure_memory_store,
     read_memory_table,
 )
 from project.spec_registry.search_space import (
-    load_event_priority_weights,
     DEFAULT_EVENT_PRIORITY_WEIGHT,
+    load_event_priority_weights,
 )
 
 _LOG = logging.getLogger(__name__)

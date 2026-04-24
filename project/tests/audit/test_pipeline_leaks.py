@@ -1,7 +1,8 @@
 import numpy as np
 import pandas as pd
 import pytest
-from project.features.liquidity_vacuum import detect_liquidity_vacuum_events, LiquidityVacuumConfig
+
+from project.features.liquidity_vacuum import LiquidityVacuumConfig, detect_liquidity_vacuum_events
 
 
 @pytest.mark.audit

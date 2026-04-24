@@ -1,12 +1,12 @@
 from __future__ import annotations
+
 import logging
 from typing import Literal
+
 import pandas as pd
-import numpy as np
 
 from project.contracts.temporal_contracts import TemporalContract
-from project.core.validation import ts_ns_utc
-from project.core.validation import assert_monotonic_utc_timestamp
+from project.core.validation import assert_monotonic_utc_timestamp, ts_ns_utc
 
 LOGGER = logging.getLogger(__name__)
 
@@ -79,7 +79,7 @@ def align_funding_to_bars(
 
 
 def assert_complete_funding_series(
-    df: pd.DataFrame, 
+    df: pd.DataFrame,
     symbol: str = "unknown",
     on_missing: Literal["raise", "warn"] = "raise",
     fill_value: float = 0.0
@@ -108,5 +108,5 @@ def assert_complete_funding_series(
         elif on_missing == "warn":
             LOGGER.warning(f"{msg} - filling with {fill_value}")
             series = series.fillna(fill_value)
-    
+
     return series

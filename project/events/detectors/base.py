@@ -7,7 +7,7 @@ import numpy as np
 import pandas as pd
 
 from project.events.detector_contract import detector_metadata_from_class
-from project.events.shared import emit_event, format_event_id, EVENT_COLUMNS
+from project.events.shared import EVENT_COLUMNS, emit_event, format_event_id
 
 
 class BaseEventDetector(ABC):

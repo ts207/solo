@@ -1,4 +1,3 @@
-from pathlib import Path
 
 from project.research.campaign_contract import load_campaign_contract
 

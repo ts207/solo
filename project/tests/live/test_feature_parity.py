@@ -1,8 +1,5 @@
-import pandas as pd
-import numpy as np
-import pytest
+from project.core.regime_classifier import ClassificationMode, RegimeName, classify_regime
 from project.live.runner import _classify_canonical_regime
-from project.core.regime_classifier import RegimeName, ClassificationMode, classify_regime
 
 
 def test_regime_classifier_runtime_approximation():
@@ -17,11 +14,11 @@ def test_regime_classifier_runtime_approximation():
     assert res["canonical_regime"] == RegimeName.HIGH_VOL.value
     assert res["regime_mode"] == ClassificationMode.RUNTIME_APPROX.value
     assert res["regime_metadata"]["move_bps"] == 85.0
-    
+
     # 2. Low Vol (< 20 bps move)
     res = _classify_canonical_regime(move_bps=10.0)
     assert res["canonical_regime"] == RegimeName.LOW_VOL.value
-    
+
     # 3. Bull Trend (moderate positive)
     res = _classify_canonical_regime(move_bps=30.0)
     assert res["canonical_regime"] == RegimeName.BULL_TREND.value
@@ -42,11 +39,11 @@ def test_regime_classifier_research_exact():
     res = _classify_canonical_regime(move_bps=0.0, rv_pct=85.0, ms_trend_state=1.0)
     assert res["canonical_regime"] == RegimeName.HIGH_VOL.value
     assert res["regime_mode"] == ClassificationMode.RESEARCH_EXACT.value
-    
+
     # Bull Trend (rv_pct normal, ms_trend_state=1)
     res = _classify_canonical_regime(move_bps=0.0, rv_pct=50.0, ms_trend_state=1.0)
     assert res["canonical_regime"] == RegimeName.BULL_TREND.value
-    
+
     # Chop (rv_pct normal, ms_trend_state=0)
     res = _classify_canonical_regime(move_bps=0.0, rv_pct=50.0, ms_trend_state=0.0)
     assert res["canonical_regime"] == RegimeName.CHOP.value
@@ -58,26 +55,26 @@ def test_regime_classifier_output_contract():
     This is a contract test for the helper, not a parity test.
     """
     expected_fields = {
-        "canonical_regime", "regime_mode", 
+        "canonical_regime", "regime_mode",
         "regime_confidence", "regime_metadata"
     }
-    
+
     # Test 1: Runtime approximation when research features unavailable
     result = _classify_canonical_regime(move_bps=30.0)
     assert set(result.keys()) >= expected_fields
     assert result["canonical_regime"] == RegimeName.BULL_TREND.value
     assert result["regime_mode"] == ClassificationMode.RUNTIME_APPROX.value
     assert 0.0 < result["regime_confidence"] <= 1.0
-    
+
     # Test 2: Research exact when all features available
     result = _classify_canonical_regime(
-        move_bps=0.0, 
-        rv_pct=50.0, 
+        move_bps=0.0,
+        rv_pct=50.0,
         ms_trend_state=0.0
     )
     assert result["canonical_regime"] == RegimeName.CHOP.value
     assert result["regime_mode"] == ClassificationMode.RESEARCH_EXACT.value
-    
+
     # Test 3: CHOP is a valid canonical regime
     result = _classify_canonical_regime(move_bps=0.0, rv_pct=50.0, ms_trend_state=0.0)
     assert result["canonical_regime"] in [r.value for r in RegimeName]
@@ -103,12 +100,12 @@ class TestRegimeResearchLiveParity:
             move_bps=85.0,
             fallback_regime=RegimeName.LOW_VOL
         )
-        
+
         assert research_result.regime == RegimeName.HIGH_VOL
         assert research_result.mode == ClassificationMode.RESEARCH_EXACT
         assert live_result.regime == RegimeName.HIGH_VOL
         assert live_result.mode == ClassificationMode.RUNTIME_APPROX
-        
+
     def test_low_vol_parity(self):
         """Research and live should both classify LOW_VOL correctly."""
         # Research: rv_pct < 20
@@ -122,10 +119,10 @@ class TestRegimeResearchLiveParity:
             move_bps=10.0,
             fallback_regime=RegimeName.LOW_VOL
         )
-        
+
         assert research_result.regime == RegimeName.LOW_VOL
         assert live_result.regime == RegimeName.LOW_VOL
-        
+
     def test_bull_trend_parity(self):
         """Research and live should both classify BULL_TREND correctly."""
         # Research: rv_pct in [20, 80), ms_trend_state=1
@@ -139,7 +136,7 @@ class TestRegimeResearchLiveParity:
             move_bps=30.0,
             fallback_regime=RegimeName.LOW_VOL
         )
-        
+
         assert research_result.regime == RegimeName.BULL_TREND
         assert live_result.regime == RegimeName.BULL_TREND
 
@@ -156,7 +153,7 @@ class TestRegimeResearchLiveParity:
             move_bps=-30.0,
             fallback_regime=RegimeName.LOW_VOL
         )
-        
+
         assert research_result.regime == RegimeName.BEAR_TREND
         assert live_result.regime == RegimeName.BEAR_TREND
 
@@ -173,7 +170,7 @@ class TestRegimeResearchLiveParity:
             move_bps=25.0,
             fallback_regime=RegimeName.LOW_VOL
         )
-        
+
         assert research_result.regime == RegimeName.CHOP
         assert research_result.mode == ClassificationMode.RESEARCH_EXACT
         # Live approximation cannot detect CHOP; falls back to trend classification
@@ -181,11 +178,11 @@ class TestRegimeResearchLiveParity:
         assert live_result.regime == RegimeName.BULL_TREND
         assert live_result.mode == ClassificationMode.RUNTIME_APPROX
         assert "missing_inputs" in live_result.metadata
-        
+
     def test_approximation_mode_has_metadata(self):
         """When live uses approximation, it must document what's missing."""
         result = classify_regime(move_bps=30.0)
-        
+
         assert result.mode == ClassificationMode.RUNTIME_APPROX
         assert "missing_inputs" in result.metadata
         assert "rv_pct" in result.metadata["missing_inputs"]
@@ -199,10 +196,10 @@ class TestRegimeResearchLiveParity:
             ms_trend_state=1.0,
             move_bps=30.0
         )
-        
+
         assert result.mode == ClassificationMode.RESEARCH_EXACT
         assert result.confidence == 1.0
-        
+
     def test_batch_fixture_parity(self):
         """
         Compare research and live classifications across a batch of fixtures.
@@ -216,14 +213,14 @@ class TestRegimeResearchLiveParity:
             {"rv": 50.0, "ms": 2.0, "move": -30.0, "expected_research": RegimeName.BEAR_TREND, "expected_live": RegimeName.BEAR_TREND},
             {"rv": 50.0, "ms": 0.0, "move": 25.0, "expected_research": RegimeName.CHOP, "expected_live": RegimeName.BULL_TREND},  # Divergence expected
         ]
-        
+
         for i, fx in enumerate(fixtures):
             research = classify_regime(rv_pct=fx["rv"], ms_trend_state=fx["ms"], move_bps=fx["move"])
             live = classify_regime(move_bps=fx["move"])
-            
+
             assert research.regime == fx["expected_research"], f"Fixture {i}: research mismatch"
             assert live.regime == fx["expected_live"], f"Fixture {i}: live mismatch"
-            
+
             if fx["expected_research"] == fx["expected_live"]:
                 # Agreement case: both should classify the same
                 assert research.regime == live.regime, f"Fixture {i}: research/live parity violation"

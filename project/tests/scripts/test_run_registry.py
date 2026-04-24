@@ -3,9 +3,8 @@ from __future__ import annotations
 import json
 import sqlite3
 import sys
-import tempfile
 
-from project.scripts.build_run_registry import upsert_run, create_schema, query_top_promoted
+from project.scripts.build_run_registry import create_schema, query_top_promoted, upsert_run
 
 
 def test_upsert_and_query(tmp_path):

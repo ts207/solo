@@ -8,6 +8,8 @@ from project.events.canonical_registry_sidecars import (
     ALLOWED_EVIDENCE_MODE_VALUES,
     ALLOWED_LAYER_VALUES,
     event_ontology_mapping_payload,
+)
+from project.events.canonical_registry_sidecars import (
     ontology_rows_by_event as _ontology_rows_by_event,
 )
 

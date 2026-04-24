@@ -8,42 +8,34 @@ import pandas as pd
 
 _LOG = logging.getLogger(__name__)
 
-from project.research.promotion.promotion_eligibility import (
-    _ReasonRecorder,
-    _is_deploy_mode,
-    _has_explicit_oos_samples,
-    _normalized_run_mode,
-    sign_consistency,
-    cost_survival_ratio,
-    control_rate_details_for_event,
-)
-from project.research.promotion.promotion_scoring import (
-    stability_score,
-)
-from project.research.promotion.promotion_thresholds import (
-    _build_bundle_policy,
-)
-from project.research.promotion.promotion_gate_evaluators import (
-    _confirmatory_shadow_gates,
-    _confirmatory_deployable_gates,
-    _evaluate_market_execution_and_stability,
-    _evaluate_control_audit_and_dsr,
-    _evaluate_deploy_oos_and_low_capital,
-)
+from project.core.config import get_data_root
 from project.research.promotion.promotion_decision_support import (
     _apply_bundle_policy_result,
 )
-from project.research.promotion.promotion_result_support import (
-    _assemble_promotion_result,
-)
 from project.research.promotion.promotion_decisions import evaluate_row
+from project.research.promotion.promotion_eligibility import (
+    _has_explicit_oos_samples,
+    _is_deploy_mode,
+    _normalized_run_mode,
+    _ReasonRecorder,
+    control_rate_details_for_event,
+    cost_survival_ratio,
+    sign_consistency,
+)
+from project.research.promotion.promotion_gate_evaluators import (
+    _confirmatory_deployable_gates,
+    _confirmatory_shadow_gates,
+    _evaluate_control_audit_and_dsr,
+    _evaluate_deploy_oos_and_low_capital,
+    _evaluate_market_execution_and_stability,
+)
 from project.research.promotion.promotion_reporting import (
     apply_portfolio_overlap_gate,
     assign_and_validate_promotion_tiers,
-    portfolio_diversification_violations,
-    build_promotion_capital_footprint,
     build_negative_control_diagnostics,
+    build_promotion_capital_footprint,
     build_promotion_statistical_audit,
+    portfolio_diversification_violations,
 )
 from project.research.promotion.promotion_reporting_support import (
     behavior_key,
@@ -54,12 +46,18 @@ from project.research.promotion.promotion_reporting_support import (
     resolve_promotion_tier,
     stabilize_promoted_output_schema,
 )
+from project.research.promotion.promotion_result_support import (
+    _assemble_promotion_result,
+)
+from project.research.promotion.promotion_scoring import (
+    stability_score,
+)
+from project.research.promotion.promotion_thresholds import (
+    _build_bundle_policy,
+)
 from project.research.services.benchmark_governance_service import (
     get_benchmark_certification_for_family,
 )
-
-from project.core.config import get_data_root
-from project.research.utils.decision_safety import coerce_numeric_nan
 
 
 def _current_data_root():
@@ -115,16 +113,16 @@ def promote_candidates(
     # Step 1: Formalize current candidates
     current_df = formalize_ids(candidates_df)
     current_count = len(current_df)
-    
+
     program_id = str(promotion_spec.get("program_id", "default_program")).strip()
     campaign_id = str(promotion_spec.get("campaign_id", "")).strip() or None
     data_root = _current_data_root()
     update_program_hypothesis_log(program_id, data_root, current_df)
-    
+
     # Step 2: Load historical scope candidates
     scope_version = promotion_spec.get("artifact_audit_version", "phase1_v1")
     current_run_id = str(promotion_spec.get("run_id", "")).strip()
-    
+
     historical_df = load_historical_scope_candidates(
         data_root=data_root,
         program_id=program_id,
@@ -133,14 +131,14 @@ def promote_candidates(
         current_run_id=current_run_id,
     )
     historical_count = len(historical_df)
-    
+
     # Step 3: Merge current + historical for scope multiplicity accounting
     scope_df = merge_historical_candidates(
         current=current_df,
         historical=historical_df,
         scope_mode=multiplicity_scope_mode,
     )
-    
+
     # Step 4: Apply canonical scope multiplicity on combined pool
     scored_scope_df = apply_canonical_cross_campaign_multiplicity(
         scope_df,
@@ -148,14 +146,14 @@ def promote_candidates(
         scope_mode=multiplicity_scope_mode,
         scope_version=scope_version,
     )
-    
+
     # Step 5: Filter back to current rows only for downstream promotion
     df = scored_scope_df[scored_scope_df["multiplicity_context"] == "current"].copy()
-    
+
     # Step 6: Record expanded scope diagnostics
     scope_degraded_count = int(scored_scope_df.get("multiplicity_scope_degraded", pd.Series([False])).sum())
     scope_context_counts = scored_scope_df["multiplicity_context"].value_counts().to_dict() if "multiplicity_context" in scored_scope_df.columns else {}
-    
+
     multiplicity_scope_diagnostics = {
         "scope_mode": multiplicity_scope_mode,
         "scope_version": scope_version,
@@ -171,12 +169,12 @@ def promote_candidates(
         "scope_degraded_reason_counts": scored_scope_df[scored_scope_df.get("multiplicity_scope_degraded", False)].get("multiplicity_scope_reason", pd.Series(["unknown"])).value_counts().to_dict() if scope_degraded_count > 0 else {},
         "scope_context_counts": scope_context_counts,
     }
-    
+
     _LOG.info(
         "Scope multiplicity: current=%d historical=%d combined=%d degraded=%d",
         current_count, historical_count, len(scored_scope_df), scope_degraded_count
     )
-    
+
     df = apply_program_multiplicity_control(df, program_id, data_root, alpha=max_q_value)
 
     audit_rows, promoted_rows = [], []

@@ -1,6 +1,5 @@
-import pandas as pd
-import numpy as np
 import pytest
+
 from project.research.promotion import evaluate_row
 
 

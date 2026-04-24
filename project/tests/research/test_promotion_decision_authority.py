@@ -16,7 +16,6 @@ from project.research.promotion.promotion_decisions import (
     evaluate_row,
 )
 
-
 # Minimal valid row for testing
 MINIMAL_VALID_ROW: Dict[str, Any] = {
     "candidate_id": "test_cand_001",

@@ -1,5 +1,4 @@
 from __future__ import annotations
-from project.core.config import get_data_root
 
 import argparse
 import json
@@ -10,14 +9,15 @@ from typing import Dict, List
 
 import pandas as pd
 
+from project.core.config import get_data_root
 from project.core.timeframes import bars_dataset_name, normalize_timeframe
 from project.io.utils import (
     choose_partition_dir,
     ensure_dir,
     list_parquet_files,
     read_parquet,
-    write_parquet,
     run_scoped_lake_path,
+    write_parquet,
 )
 from project.specs.manifest import finalize_manifest, start_manifest
 

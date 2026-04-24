@@ -1,9 +1,9 @@
 from __future__ import annotations
 
 from project.spec_registry import (
+    feature_schema_registry_path,
     ontology_spec_paths,
     runtime_spec_paths,
-    feature_schema_registry_path,
 )
 
 

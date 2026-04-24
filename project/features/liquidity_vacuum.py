@@ -41,14 +41,14 @@ module and adjust thresholds or logic accordingly.
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Dict, List, Literal, Optional, Sequence, Tuple
 
 import numpy as np
 import pandas as pd
 
 from project.contracts.temporal_contracts import TemporalContract
-from project.core.causal_primitives import trailing_quantile, trailing_median
+from project.core.causal_primitives import trailing_median, trailing_quantile
 from project.events.shared import emit_event, format_event_id
 
 # --- Temporal Contract ---
@@ -474,7 +474,6 @@ def detect_liquidity_vacuum_events(
     pd.DataFrame
         Detected events with metrics.  Empty DataFrame if no events.
     """
-    from project.events.shared import EVENT_COLUMNS
 
     core = _compute_core_series(df, cfg)
     # If t_shock is provided, it overrides dynamic threshold

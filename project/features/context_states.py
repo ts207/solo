@@ -437,7 +437,7 @@ def calculate_ms_cross_asset_probabilities(
         },
         scale=0.2,
     )
-    
+
     # Relative Vol probabilities (percentile rank 0-100)
     rel_vol_probs = _proximity_softmax(
         relative_vol_pct,
@@ -448,22 +448,22 @@ def calculate_ms_cross_asset_probabilities(
         },
         scale=20.0,
     )
-    
+
     out = pd.concat([corr_probs, rel_vol_probs], axis=1)
-    
+
     out["ms_corr_state"] = _state_from_probabilities(
         out,
         order=["prob_corr_low", "prob_corr_mid", "prob_corr_high"],
         labels={"prob_corr_low": 0.0, "prob_corr_mid": 1.0, "prob_corr_high": 2.0}
     )
-    
+
     out["ms_rel_vol_state"] = _state_from_probabilities(
         out,
         order=["prob_rel_vol_low", "prob_rel_vol_normal", "prob_rel_vol_high"],
         labels={"prob_rel_vol_low": 0.0, "prob_rel_vol_normal": 1.0, "prob_rel_vol_high": 2.0}
     )
-    
+
     out = pd.concat([out, _confidence_and_entropy(corr_probs, "ms_corr")], axis=1)
     out = pd.concat([out, _confidence_and_entropy(rel_vol_probs, "ms_rel_vol")], axis=1)
-    
+
     return out

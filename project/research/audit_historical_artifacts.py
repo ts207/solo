@@ -11,7 +11,7 @@ import logging
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Dict, Iterable, List, Optional
+from typing import Any, Dict, List, Optional
 
 import pandas as pd
 
@@ -26,19 +26,22 @@ from project.research.contracts.historical_trust import (
     requires_revalidation,
 )
 from project.research.contracts.stat_regime import (
+    ARTIFACT_AUDIT_VERSION_PHASE1_V1,
     AUDIT_STATUS_CURRENT,
     AUDIT_STATUS_DEGRADED,
     AUDIT_STATUS_LEGACY,
     AUDIT_STATUS_MANUAL_REVIEW_REQUIRED,
-    ARTIFACT_AUDIT_VERSION_PHASE1_V1,
-    ArtifactAuditStamp,
     STAT_REGIME_POST_AUDIT,
     STAT_REGIME_PRE_AUDIT,
     STAT_REGIME_UNKNOWN,
+    ArtifactAuditStamp,
     infer_stat_regime_from_artifact_metadata,
 )
-from project.research.historical_trust import CURRENT_ARTIFACT_FILENAMES, LEGACY_ARTIFACT_FILENAMES, inspect_artifact_trust
-
+from project.research.historical_trust import (
+    CURRENT_ARTIFACT_FILENAMES,
+    LEGACY_ARTIFACT_FILENAMES,
+    inspect_artifact_trust,
+)
 
 log = logging.getLogger(__name__)
 

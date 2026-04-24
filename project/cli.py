@@ -402,6 +402,22 @@ def build_parser() -> argparse.ArgumentParser:
 
     cells = discover_sub.add_parser("cells", help="cell-first discovery lane")
     cells_sub = cells.add_subparsers(dest="cells_action")
+    coverage_audit = cells_sub.add_parser("coverage-audit")
+    coverage_audit.add_argument("--spec_root", default="spec/discovery")
+    coverage_audit.add_argument("--search_spec", default="spec/search_space.yaml")
+    coverage_audit.add_argument(
+        "--event_registry",
+        default="spec/events/event_registry_unified.yaml",
+    )
+    coverage_audit.set_defaults(func=_run_discover_cells, cells_action="coverage-audit")
+    spec_audit = cells_sub.add_parser("spec-audit")
+    spec_audit.add_argument("--spec_dir", required=True)
+    spec_audit.add_argument(
+        "--template_registry",
+        default="spec/templates/event_template_registry.yaml",
+    )
+    spec_audit.add_argument("--verify_report")
+    spec_audit.set_defaults(func=_run_discover_cells, cells_action="spec-audit")
     for action in ("verify-data", "plan", "run"):
         cell_parser = cells_sub.add_parser(action)
         _add_cell_common_args(cell_parser)

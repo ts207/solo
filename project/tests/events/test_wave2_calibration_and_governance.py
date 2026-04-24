@@ -1,6 +1,9 @@
 from __future__ import annotations
 
-from project.events.calibration.registry import build_calibration_matrix_rows, latest_calibration_artifact
+from project.events.calibration.registry import (
+    build_calibration_matrix_rows,
+    latest_calibration_artifact,
+)
 from project.events.registry import get_detector_contract
 
 

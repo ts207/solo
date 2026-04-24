@@ -6,15 +6,12 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Dict, Iterable, List
 
-import yaml
-
 import numpy as np
 import pandas as pd
+import yaml
 
 from project.core.config import get_data_root
 from project.io.utils import ensure_dir, run_scoped_lake_path, write_parquet
-
-
 from project.scripts.synthetic_regime_specs import (
     PROFILE_SETTINGS,
     REGIME_EXPECTATIONS,

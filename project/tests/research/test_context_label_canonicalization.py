@@ -4,8 +4,8 @@ import pandas as pd
 
 from project.domain.hypotheses import HypothesisSpec, TriggerSpec
 from project.research.context_labels import expand_dimension_values
-from project.research.search.feasibility import check_hypothesis_feasibility
 from project.research.search.evaluator_utils import context_mask
+from project.research.search.feasibility import check_hypothesis_feasibility
 from project.research.search.validation import validate_hypothesis_spec
 
 

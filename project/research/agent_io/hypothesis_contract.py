@@ -318,7 +318,7 @@ def validate_structured_hypothesis_for_execution(
         # State anchor is demoted to legacy-only or refused.
         # In Sprint 2, we only allow it if explicitly requested and reduced to legacy mask,
         # but here we follow the rule: if mode is not episodic (which we already checked), fail.
-        # But wait, the rule says: "if sampling_policy.mode is anything other than the exact 
+        # But wait, the rule says: "if sampling_policy.mode is anything other than the exact
         # legacy-compatible persistent mask behavior then execution translation must fail."
         # Current engine's state-trigger is essentially "active now".
         # If the user asks for 'episodic' with 'state', they might mean 'onset'.

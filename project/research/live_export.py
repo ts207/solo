@@ -1,11 +1,10 @@
 from __future__ import annotations
 
 import json
-import logging
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Dict, Iterable, List, Mapping, Sequence
+from typing import Any, Mapping, Sequence
 
 import numpy as np
 import pandas as pd
@@ -17,12 +16,12 @@ from project.core.config import get_data_root
 from project.core.exceptions import (
     DataIntegrityError,
     IncompleteLineageError,
-    MalformedArtifactError,
     MissingArtifactError,
     SchemaMismatchError,
 )
-from project.io.utils import atomic_write_json, atomic_write_text, ensure_dir, read_parquet
+from project.episodes import load_episode_registry
 from project.events.governance import get_event_governance_metadata
+from project.io.utils import atomic_write_json, atomic_write_text, ensure_dir, read_parquet
 from project.live.contracts import (
     ALL_DEPLOYMENT_STATES,
     PromotedThesis,
@@ -33,13 +32,11 @@ from project.live.contracts import (
     ThesisSource,
 )
 from project.live.thesis_specs import resolve_thesis_definition_ids
-from project.episodes import load_episode_registry
 from project.portfolio.thesis_overlap import overlap_group_id_for_thesis
 from project.research.contracts.stat_regime import (
-    STAT_REGIME_POST_AUDIT,
-    AUDIT_STATUS_CURRENT,
     ARTIFACT_AUDIT_VERSION_PHASE1_V1,
-    default_audit_stamp,
+    AUDIT_STATUS_CURRENT,
+    STAT_REGIME_POST_AUDIT,
 )
 
 

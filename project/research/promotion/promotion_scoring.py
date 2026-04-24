@@ -5,6 +5,7 @@ import math
 from typing import Any, Dict
 
 import numpy as np
+
 from project.research.utils.decision_safety import coerce_numeric_nan
 
 
