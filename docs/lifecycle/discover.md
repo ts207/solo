@@ -2,6 +2,52 @@
 
 Discover translates one structured proposal into an experiment plan, executes the research DAG when requested, and writes evidence artifacts. Discovery output is not production readiness.
 
+## Normal Discovery vs Cell Discovery
+
+Both normal discovery and cell discovery test events. They differ in the question
+they ask and in the artifact they hand to the next stage.
+
+Normal discovery tests one bounded event hypothesis:
+
+```text
+event + template + direction + horizon
+```
+
+Example:
+
+```text
+FUNDING_EXTREME_ONSET + continuation + long + 24 bars
+```
+
+Use normal discovery when the research question is already specific: "after this
+event, does this trade shape have edge?"
+
+Cell discovery tests the same kind of event hypothesis inside market-state
+buckets:
+
+```text
+event + context cell + template + direction + horizon
+```
+
+Example:
+
+```text
+FUNDING_EXTREME_ONSET + bullish_trend + continuation + long + 24 bars
+```
+
+Use cell discovery when the research question is: "where does this event's edge
+concentrate?" Cell discovery also tests the unconditional event as a baseline and
+requires the context cell to beat that baseline before it can rank.
+
+The handoff is:
+
+```text
+cell discovery -> generated proposal YAML -> normal discover -> validate -> promote
+```
+
+Cell discovery does not promote or trade by itself. It is a scouting lane for
+finding event/context pockets worth re-entering through the canonical lifecycle.
+
 ## Command Surface
 
 Plan:

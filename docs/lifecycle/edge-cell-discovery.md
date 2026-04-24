@@ -3,6 +3,64 @@
 Edge cell discovery is a research-first lane for ranking payoff concentrations before
 generating canonical proposals.
 
+## What Is a Cell?
+
+A cell is one event tested inside one market-state bucket:
+
+```text
+event atom + context cell + template + direction + horizon
+```
+
+Example:
+
+```text
+FUNDING_EXTREME_ONSET + bullish_trend + continuation + long + 24 bars
+```
+
+The event atom is the trigger, such as `VOL_SHOCK`,
+`FUNDING_EXTREME_ONSET`, or `LIQUIDITY_VACUUM`. The context cell is the
+state bucket around that trigger, such as `high_vol`, `low_vol`,
+`bullish_trend`, `positive_funding`, or `wide_spread`.
+
+The unconditional version of the same event/template/direction/horizon is also
+tested. Context cells are ranked only when they beat that unconditional baseline.
+That comparison is the contrast check.
+
+## How This Differs From Normal Discovery
+
+Normal discovery asks whether a bounded event hypothesis has edge:
+
+```text
+event + template + direction + horizon
+```
+
+Cell discovery asks where that event hypothesis has edge:
+
+```text
+event + context cell + template + direction + horizon
+```
+
+So normal discovery answers:
+
+```text
+Does FUNDING_EXTREME_ONSET continuation long 24b work?
+```
+
+Cell discovery answers:
+
+```text
+Does FUNDING_EXTREME_ONSET continuation long 24b work better in bullish trend,
+high volatility, low volatility, positive funding, or another state bucket?
+```
+
+Cell discovery is not a replacement for normal discovery. It generates proposal
+YAML files for the best cells, and those proposals must re-enter the canonical
+path:
+
+```text
+discover -> validate -> promote -> export -> paper/live run
+```
+
 The lane is intentionally compile-to-phase2:
 
 ```text

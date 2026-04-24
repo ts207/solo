@@ -12,13 +12,14 @@ Generated inventories under `docs/generated/` are not part of this replacement d
 4. [Promote](lifecycle/promote.md)
 5. [Deploy](lifecycle/deploy.md)
 6. [Operator Quickstart](operator/quickstart.md)
-7. [Liquidation Exhaustion Matrix](lifecycle/liquidation-exhaustion-matrix.md)
-8. [Operator Runbook](operator/runbook.md)
-9. [Supported Path](reference/supported-path.md)
-10. [Architecture Reference](reference/architecture.md)
-11. [Command Reference](reference/commands.md)
-12. [Specs and Domain Reference](reference/specs-and-domain.md)
-13. [Data and Artifacts Reference](reference/data-and-artifacts.md)
+7. [Edge Cell Discovery](lifecycle/edge-cell-discovery.md)
+8. [Liquidation Exhaustion Matrix](lifecycle/liquidation-exhaustion-matrix.md)
+9. [Operator Runbook](operator/runbook.md)
+10. [Supported Path](reference/supported-path.md)
+11. [Architecture Reference](reference/architecture.md)
+12. [Command Reference](reference/commands.md)
+13. [Specs and Domain Reference](reference/specs-and-domain.md)
+14. [Data and Artifacts Reference](reference/data-and-artifacts.md)
 
 ## Project Model
 

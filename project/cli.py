@@ -367,7 +367,7 @@ def _add_cell_common_args(parser: argparse.ArgumentParser) -> None:
 
 
 def build_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(prog="backtest")
+    parser = argparse.ArgumentParser(prog="edge")
     sub = parser.add_subparsers(dest="command")
 
     discover = sub.add_parser("discover", help="canonical discovery stage")

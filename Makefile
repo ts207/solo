@@ -24,7 +24,8 @@ RUNTIME_MAX_ROWS ?= 500
 	validate promote export bind-config paper-run live-run deploy-status list-theses \
 	deploy-paper check-domain-graph domain-graph benchmark-supported-path \
 	discover-cells-verify discover-cells-plan discover-cells-run \
-	check-hygiene governance minimum-green-gate
+	check-hygiene clean clean-runtime clean-run-data clean-all-data clean-hygiene \
+	governance minimum-green-gate
 
 help:
 	@printf '%s\n' \
@@ -46,6 +47,7 @@ help:
 	  '' \
 	  'Auxiliary targets:' \
 	  '  make check-hygiene' \
+	  '  make clean-runtime|clean-run-data|clean-all-data|clean-hygiene' \
 	  '  make check-domain-graph' \
 	  '  make domain-graph' \
 	  '  make governance' \
@@ -56,7 +58,22 @@ help:
 	  '  make discover-cells-run    RUN_ID=<run_id> START=<start> END=<end> [SPEC_DIR=spec/discovery/expanded_v2]'
 
 check-hygiene:
-	@./project/scripts/check_repo_hygiene.sh
+	@bash ./project/scripts/check_repo_hygiene.sh
+
+clean:
+	@bash ./project/scripts/clean_data.sh repo
+
+clean-runtime:
+	@bash ./project/scripts/clean_data.sh runtime
+
+clean-run-data:
+	@bash ./project/scripts/clean_data.sh data
+
+clean-all-data:
+	@bash ./project/scripts/clean_data.sh all
+
+clean-hygiene:
+	@bash ./project/scripts/clean_data.sh hygiene
 
 check-domain-graph:
 	@$(CLI) validate specs --root . >/dev/null
@@ -138,10 +155,10 @@ governance:
 minimum-green-gate:
 	@PYTHONPATH=$(PYTHONPATH) $(PYTHON) project/scripts/spec_qa_linter.py
 	@PYTHONPATH=$(PYTHONPATH) $(PYTHON) project/scripts/check_domain_graph_freshness.py
-	@PYTHONPATH=$(PYTHONPATH) $(PYTHON) -m pytest -q project/tests/architecture
-	@PYTHONPATH=$(PYTHONPATH) $(PYTHON) -m pytest -q project/tests/contracts/test_live_environment_config_contract.py
-	@PYTHONPATH=$(PYTHONPATH) $(PYTHON) -m pytest -q project/tests/live/test_cli_deploy_run.py
-	@PYTHONPATH=$(PYTHONPATH) $(PYTHON) -m pytest -q project/tests/pipelines/test_cli_contract.py
+	@PYTHONPATH=$(PYTHONPATH) $(PYTHON) -m pytest -q -s project/tests/architecture
+	@PYTHONPATH=$(PYTHONPATH) $(PYTHON) -m pytest -q -s project/tests/contracts/test_live_environment_config_contract.py
+	@PYTHONPATH=$(PYTHONPATH) $(PYTHON) -m pytest -q -s project/tests/live/test_cli_deploy_run.py
+	@PYTHONPATH=$(PYTHONPATH) $(PYTHON) -m pytest -q -s project/tests/pipelines/test_cli_contract.py
 
 discover-cells-verify:
 	@test -n "$(RUN_ID)" || (echo 'RUN_ID is required' >&2; exit 2)
