@@ -1,7 +1,7 @@
 import pytest
 import yaml
 
-from project.tests.conftest import SPEC_ROOT
+from project.spec_registry import SPEC_ROOT
 
 SPEC_DIR = SPEC_ROOT / "events"
 COMPAT_FILE = SPEC_DIR / "compatibility.yaml"
