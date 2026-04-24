@@ -8,6 +8,7 @@ from pathlib import Path
 from typing import Any, Dict, List
 
 import pandas as pd
+import yaml
 
 from project.core.config import get_data_root
 from project.io.utils import atomic_write_text
@@ -47,6 +48,17 @@ def _write_proposal_copy(destination: Path, source_path: str | Path) -> None:
     atomic_write_text(destination, text)
 
 
+def _write_proposal_payload(destination: Path, payload: Dict[str, Any]) -> None:
+    atomic_write_text(destination, yaml.safe_dump(payload, sort_keys=False))
+
+
+def _load_raw_proposal_payload(path: str | Path) -> Dict[str, Any]:
+    raw = yaml.safe_load(Path(path).read_text(encoding="utf-8"))
+    if not isinstance(raw, dict):
+        raise ValueError(f"Proposal must be a YAML mapping: {path}")
+    return dict(raw)
+
+
 def _merge_proposal_rows(existing: pd.DataFrame, incoming: pd.DataFrame) -> pd.DataFrame:
     if existing.empty:
         return incoming.copy()
@@ -65,9 +77,17 @@ def issue_proposal(
     plan_only: bool = True,
     dry_run: bool = False,
     check: bool = False,
+    promotion_profile: str | None = None,
 ) -> Dict[str, Any]:
     resolved_data_root = Path(data_root) if data_root is not None else get_data_root()
-    proposal = load_operator_proposal(proposal_path)
+    promotion_override = str(promotion_profile or "").strip().lower()
+    if promotion_override:
+        raw_payload = _load_raw_proposal_payload(proposal_path)
+        raw_payload["promotion_profile"] = promotion_override
+        proposal = load_operator_proposal(raw_payload)
+    else:
+        raw_payload = None
+        proposal = load_operator_proposal(proposal_path)
     bounded_validation = validate_bounded_proposal(proposal, data_root=resolved_data_root)
     proposal_payload = proposal.to_dict()
     resolved_run_id = (
@@ -78,7 +98,10 @@ def issue_proposal(
     proposal_copy_path = _proposal_artifact_path(
         paths, resolved_run_id, Path(proposal_path).name or "proposal.yaml"
     )
-    _write_proposal_copy(proposal_copy_path, proposal_path)
+    if raw_payload is not None:
+        _write_proposal_payload(proposal_copy_path, raw_payload)
+    else:
+        _write_proposal_copy(proposal_copy_path, proposal_path)
 
     execution = execute_proposal(
         proposal_copy_path,
@@ -141,6 +164,7 @@ def issue_proposal(
         "proposal_record_path": str(paths.proposals),
         "execution": execution,
         "bounded_validation": bounded_validation.to_dict() if bounded_validation is not None else None,
+        "promotion_profile_override": promotion_override or None,
     }
 
 

@@ -244,9 +244,12 @@ def run_distributed_search(
 
     normalized_parts = []
     combined_folds = []
+    combined_event_timestamps = []
     for p in non_empty_parts:
         if "fold_breakdown" in p.attrs:
             combined_folds.append(p.attrs["fold_breakdown"])
+        if "candidate_event_timestamps" in p.attrs:
+            combined_event_timestamps.append(p.attrs["candidate_event_timestamps"])
         expected_cols = set(METRICS_COLUMNS)
         if p.columns.tolist() != list(METRICS_COLUMNS):
             for col in expected_cols - set(p.columns):
@@ -259,6 +262,10 @@ def run_distributed_search(
     combined = pd.concat(normalized_parts, ignore_index=True)
     if combined_folds:
         combined.attrs["fold_breakdown"] = pd.concat(combined_folds, ignore_index=True)
+    if combined_event_timestamps:
+        combined.attrs["candidate_event_timestamps"] = pd.concat(
+            combined_event_timestamps, ignore_index=True
+        ).drop_duplicates(subset=["hypothesis_id", "event_timestamp", "split_label"])
 
     if "hypothesis_id" in combined.columns:
         combined = combined.drop_duplicates(subset=["hypothesis_id"]).reset_index(drop=True)

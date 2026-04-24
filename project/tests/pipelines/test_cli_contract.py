@@ -10,6 +10,7 @@ import yaml
 
 import project.discover as discover_module
 import project.promote as promote_module
+from project.scripts.run_live_engine import load_live_engine_config
 from project.research.cell_discovery import cells_cli as cells_cli_module
 from project.tests.conftest import PROJECT_ROOT
 
@@ -262,6 +263,68 @@ def test_cli_promote_run_rejects_compatibility_bridge_flag(monkeypatch, capsys):
     assert int(exc.value.code) == 2
     err = capsys.readouterr().err
     assert "unrecognized arguments: --use_compatibility_bridge 1" in err
+
+
+def test_cli_deploy_bind_config_defaults_to_project_configs_and_emits_single_thesis_source(
+    monkeypatch, tmp_path: Path
+):
+    cli = _load_cli_module()
+    run_id = "bind_contract_run"
+    data_root = tmp_path / "data"
+    thesis_dir = data_root / "live" / "theses" / run_id
+    thesis_dir.mkdir(parents=True)
+    (thesis_dir / "promoted_theses.json").write_text(
+        json.dumps(
+            {
+                "theses": [
+                    {
+                        "primary_event_id": "VOL_SHOCK",
+                        "thesis_id": f"thesis::{run_id}::BTCUSDT",
+                    }
+                ]
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    default_config_dir = PROJECT_ROOT / "configs"
+    config_path = default_config_dir / f"live_paper_{run_id}.yaml"
+    try:
+        if config_path.exists():
+            config_path.unlink()
+        monkeypatch.setattr(
+            sys,
+            "argv",
+            [
+                "backtest",
+                "deploy",
+                "bind-config",
+                "--run_id",
+                run_id,
+                "--data_root",
+                str(data_root),
+            ],
+        )
+
+        assert cli.main() == 0
+        assert config_path.exists()
+
+        payload = yaml.safe_load(config_path.read_text(encoding="utf-8"))
+        strategy_runtime = payload["strategy_runtime"]
+        assert strategy_runtime["thesis_run_id"] == run_id
+        assert "thesis_path" not in strategy_runtime
+        assert payload["freshness_streams"] == [
+            {"symbol": "btcusdt", "stream": "kline_5m"},
+            {"symbol": "ethusdt", "stream": "kline_5m"},
+        ]
+
+        loaded = load_live_engine_config(config_path)
+        loaded_runtime = loaded["strategy_runtime"]
+        assert loaded_runtime["thesis_run_id"] == run_id
+        assert "thesis_path" not in loaded_runtime
+    finally:
+        if config_path.exists():
+            config_path.unlink()
 
 
 def test_cli_promote_export_delegates_to_current_export_api(monkeypatch):

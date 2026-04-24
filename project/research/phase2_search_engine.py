@@ -84,6 +84,71 @@ def _normalize_phase2_candidate_artifact(df: pd.DataFrame) -> pd.DataFrame:
     return normalize_dataframe_for_schema(df, "phase2_candidates")
 
 
+def _normalize_candidate_event_timestamp_artifact(
+    event_timestamps: pd.DataFrame,
+    *,
+    candidates: pd.DataFrame,
+) -> pd.DataFrame:
+    columns = [
+        "candidate_id",
+        "hypothesis_id",
+        "trigger_key",
+        "symbol",
+        "event_type",
+        "context_cell",
+        "event_atom",
+        "template",
+        "direction",
+        "horizon",
+        "event_timestamp",
+        "split_label",
+    ]
+    if event_timestamps is None or event_timestamps.empty:
+        return pd.DataFrame(columns=columns)
+
+    out = event_timestamps.copy()
+    out["event_timestamp"] = pd.to_datetime(out.get("event_timestamp"), utc=True, errors="coerce")
+    out = out.dropna(subset=["event_timestamp"])
+    if out.empty:
+        return pd.DataFrame(columns=columns)
+
+    merge_columns = [
+        col
+        for col in (
+            "candidate_id",
+            "hypothesis_id",
+            "symbol",
+            "event_type",
+            "context_cell",
+            "event_atom",
+            "template",
+            "direction",
+            "horizon",
+        )
+        if col in candidates.columns
+    ]
+    if "hypothesis_id" in out.columns and "hypothesis_id" in candidates.columns:
+        metadata = candidates[merge_columns].drop_duplicates(subset=["hypothesis_id"], keep="first")
+        out = out.merge(metadata, on="hypothesis_id", how="inner")
+
+    if "split_label" not in out.columns:
+        out["split_label"] = ""
+    if "candidate_id" not in out.columns:
+        out["candidate_id"] = ""
+    if "trigger_key" not in out.columns:
+        out["trigger_key"] = ""
+
+    for column in columns:
+        if column not in out.columns:
+            out[column] = ""
+    out = out[columns].drop_duplicates(
+        subset=["candidate_id", "hypothesis_id", "event_timestamp", "split_label"]
+    )
+    return out.sort_values(["candidate_id", "event_timestamp", "split_label"], kind="stable").reset_index(
+        drop=True
+    )
+
+
 def _is_default_broad_search_spec(search_spec: str) -> bool:
     return str(search_spec or "").strip() in _DEFAULT_BROAD_SEARCH_SPECS
 
@@ -1132,6 +1197,8 @@ def run(
     out_dir: Path,
     *,
     timeframe: str = "5m",
+    start: str | None = None,
+    end: str | None = None,
     discovery_profile: str = "standard",
     gate_profile: str = "auto",
     search_spec: str = "full",
@@ -1205,6 +1272,7 @@ def run(
     # 1. Load data and evaluate symbols
     all_candidates = []
     all_fold_breakdowns = []
+    all_candidate_event_timestamps = []
     regime_conditional_inputs = []
     symbol_diagnostics = []
     metrics_frames = []
@@ -1269,6 +1337,8 @@ def run(
             symbol=symbol,
             timeframe=timeframe,
             data_root=data_root,
+            start=start,
+            end=end,
             expected_event_ids=preloaded_expected_event_ids,
             load_features_fn=load_features,
             event_registry_override=event_registry_override,
@@ -1475,6 +1545,14 @@ def run(
             )
 
             candidates = h_result.final_candidates
+            if (
+                hasattr(candidates, "attrs")
+                and "candidate_event_timestamps" in candidates.attrs
+                and not candidates.attrs["candidate_event_timestamps"].empty
+            ):
+                all_candidate_event_timestamps.append(
+                    candidates.attrs["candidate_event_timestamps"].copy()
+                )
             h_candidate_universe = _latest_hierarchical_stage_frame(h_result.stage_artifacts)
             h_candidate_universe = _merge_edge_cell_lineage(
                 h_candidate_universe,
@@ -1590,6 +1668,11 @@ def run(
 
         if "fold_breakdown" in metrics.attrs and not metrics.attrs["fold_breakdown"].empty:
             all_fold_breakdowns.append(metrics.attrs["fold_breakdown"].copy())
+        if (
+            "candidate_event_timestamps" in metrics.attrs
+            and not metrics.attrs["candidate_event_timestamps"].empty
+        ):
+            all_candidate_event_timestamps.append(metrics.attrs["candidate_event_timestamps"].copy())
 
         if metrics.empty:
             log.warning("No metrics returned for %s", symbol)
@@ -1937,6 +2020,13 @@ def run(
     if all_fold_breakdowns:
         fold_df = _safe_concat(all_fold_breakdowns, ignore_index=True)
         write_parquet(fold_df, out_dir / "phase2_candidate_fold_metrics.parquet")
+    if all_candidate_event_timestamps:
+        event_ts_df = _normalize_candidate_event_timestamp_artifact(
+            _safe_concat(all_candidate_event_timestamps, ignore_index=True),
+            candidates=final_df,
+        )
+        if not event_ts_df.empty:
+            write_parquet(event_ts_df, out_dir / "phase2_candidate_event_timestamps.parquet")
 
     # Phase 4 — Write merged hierarchical stage artifacts (if any)
     _combined_stage_artifacts = getattr(run, "_h_stage_artifacts", {})
@@ -2134,6 +2224,8 @@ def main(argv=None) -> int:
     parser.add_argument("--symbols", required=True)
     parser.add_argument("--data_root", default=None)
     parser.add_argument("--timeframe", default="5m")
+    parser.add_argument("--start", default=None)
+    parser.add_argument("--end", default=None)
     parser.add_argument("--discovery_profile", choices=["standard", "exploratory", "synthetic"], default="standard")
     parser.add_argument("--gate_profile", default="auto")
     parser.add_argument("--search_spec", default="spec/search_space.yaml")
@@ -2188,6 +2280,8 @@ def main(argv=None) -> int:
             data_root=data_root,
             out_dir=out_dir,
             timeframe=args.timeframe,
+            start=args.start,
+            end=args.end,
             discovery_profile=args.discovery_profile,
             gate_profile=args.gate_profile,
             search_spec=args.search_spec,

@@ -200,6 +200,8 @@ def run_cells(
         data_root=resolved_root,
         out_dir=paths.run_dir,
         timeframe=timeframe,
+        start=start,
+        end=end,
         discovery_profile="standard",
         gate_profile="auto",
         search_spec=str(compiled.search_spec_path),

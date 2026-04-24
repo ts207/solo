@@ -104,6 +104,13 @@ METRICS_COLUMNS = [
     "invalid_reason",
 ]
 
+EVENT_TIMESTAMP_COLUMNS = [
+    "hypothesis_id",
+    "trigger_key",
+    "event_timestamp",
+    "split_label",
+]
+
 _EVALUATION_SPLIT_LABELS = {"train", "validation", "test"}
 _SPLIT_LABEL_CODES = {"train": 1, "validation": 2, "test": 3}
 _SPLIT_CODE_LABELS = {value: key for key, value in _SPLIT_LABEL_CODES.items()}
@@ -439,6 +446,7 @@ def evaluate_hypothesis_batch(
     rows: List[Dict[str, Any]] = []
     regime_rows: List[Dict[str, Any]] = []  # Phase 4.2 — per-hypothesis regime breakdown
     fold_detail_rows: List[Dict[str, Any]] = []
+    event_timestamp_rows: List[Dict[str, Any]] = []
 
     for spec in hypotheses:
         profiles_supported, profile_reason = _is_supported_profile(spec)
@@ -723,6 +731,34 @@ def evaluate_hypothesis_batch(
                     fd["hypothesis_id"] = h_id
                     fd["trigger_key"] = trigger
                     fold_detail_rows.append(fd)
+
+        if "timestamp" in features.columns and not event_returns.empty:
+            try:
+                timestamp_frame = pd.DataFrame(
+                    {
+                        "hypothesis_id": row.get("hypothesis_id", ""),
+                        "trigger_key": row.get("trigger_key", ""),
+                        "event_timestamp": pd.to_datetime(
+                            features.loc[event_returns.index, "timestamp"],
+                            utc=True,
+                            errors="coerce",
+                        ),
+                    },
+                    index=event_returns.index,
+                )
+                if not split_labels.empty:
+                    timestamp_frame["split_label"] = split_labels.reindex(event_returns.index).astype(str)
+                else:
+                    timestamp_frame["split_label"] = ""
+                timestamp_frame = timestamp_frame.dropna(subset=["event_timestamp"])
+                if not timestamp_frame.empty:
+                    event_timestamp_rows.extend(
+                        timestamp_frame.drop_duplicates(
+                            subset=["hypothesis_id", "event_timestamp", "split_label"]
+                        )[EVENT_TIMESTAMP_COLUMNS].to_dict("records")
+                    )
+            except Exception:
+                pass
         
         rows.append({column: row.get(column, np.nan) for column in METRICS_COLUMNS if column in row})
         for c in METRICS_COLUMNS:
@@ -778,6 +814,13 @@ def evaluate_hypothesis_batch(
     # Attach per-fold breakdown rows as metadata attribute similarly over candidates.
     df.attrs["fold_breakdown"] = (
         pd.DataFrame(fold_detail_rows) if fold_detail_rows else pd.DataFrame()
+    )
+    df.attrs["candidate_event_timestamps"] = (
+        pd.DataFrame(event_timestamp_rows, columns=EVENT_TIMESTAMP_COLUMNS).drop_duplicates(
+            subset=["hypothesis_id", "event_timestamp", "split_label"]
+        )
+        if event_timestamp_rows
+        else pd.DataFrame(columns=EVENT_TIMESTAMP_COLUMNS)
     )
 
     invalid_reason_counts = (

@@ -44,6 +44,7 @@ RAW_COLUMNS = [
     "fold_sign_vector",
     "fold_valid_count",
     "fold_fail_ratio",
+    "forward_n",
     "forward_net_mean_bps",
     "forward_t_stat",
     "forward_pass",
@@ -100,6 +101,7 @@ def _fold_forward_metrics(folds: pd.DataFrame) -> pd.DataFrame:
                 "fold_sign_vector",
                 "fold_valid_count_detail",
                 "fold_fail_ratio_detail",
+                "forward_n_detail",
                 "fold_median_after_cost_expectancy_detail",
                 "fold_median_oos_expectancy_detail",
                 "fold_median_t_stat_detail",
@@ -121,6 +123,11 @@ def _fold_forward_metrics(folds: pd.DataFrame) -> pd.DataFrame:
     for hypothesis_id, group in folds.groupby("hypothesis_id"):
         valid_group = group[valid.loc[group.index]].copy()
         values = pd.to_numeric(valid_group[value_col], errors="coerce").dropna()
+        forward_n = (
+            pd.to_numeric(valid_group["n"], errors="coerce").fillna(0).sum()
+            if "n" in valid_group.columns
+            else len(values)
+        )
         t_values = (
             pd.to_numeric(valid_group["t_stat"], errors="coerce").dropna()
             if "t_stat" in valid_group.columns
@@ -137,6 +144,7 @@ def _fold_forward_metrics(folds: pd.DataFrame) -> pd.DataFrame:
                 "fold_sign_vector": "".join(signs),
                 "fold_valid_count_detail": valid_count,
                 "fold_fail_ratio_detail": float(fail_count / valid_count) if valid_count else 1.0,
+                "forward_n_detail": float(forward_n) if valid_count else 0.0,
                 "fold_median_after_cost_expectancy_detail": float(values.median())
                 if valid_count
                 else pd.NA,
@@ -283,6 +291,17 @@ def build_scoreboard(
             ("fold_fail_ratio", "fold_fail_ratio_detail"),
             1.0,
         )
+        raw["forward_n"] = _numeric_series(
+            raw,
+            (
+                "forward_n",
+                "forward_sample_count",
+                "fold_forward_n",
+                "forward_n_detail",
+                "test_n_obs",
+            ),
+            0.0,
+        )
         forward_net = pd.to_numeric(
             _first_series(
                 raw,
@@ -301,10 +320,27 @@ def build_scoreboard(
             errors="coerce",
         )
         has_forward_evidence = forward_net.notna() & (raw["fold_valid_count"] > 0)
+        forward_support_floor = pd.concat(
+            [
+                pd.Series(
+                    float(registry.ranking_policy.min_forward_support),
+                    index=raw.index,
+                ),
+                raw["n_events"].astype(float)
+                * float(registry.ranking_policy.min_forward_support_fraction),
+            ],
+            axis=1,
+        ).max(axis=1)
+        has_enough_forward_folds = (
+            raw["fold_valid_count"] >= registry.ranking_policy.min_forward_valid_folds
+        )
+        has_enough_forward_support = raw["forward_n"] >= forward_support_floor
         raw["forward_net_mean_bps"] = forward_net.fillna(0.0)
         raw["forward_t_stat"] = forward_t.fillna(0.0)
         raw["forward_pass"] = (
             has_forward_evidence
+            & has_enough_forward_folds
+            & has_enough_forward_support
             & (raw["forward_net_mean_bps"] > registry.ranking_policy.min_forward_net_mean_bps)
             & (raw["fold_fail_ratio"] < 1.0)
         )
@@ -323,6 +359,19 @@ def build_scoreboard(
             (~has_forward_evidence) & (raw["blocked_reason"].astype(str) == ""),
             "blocked_reason",
         ] = "blocked_missing_forward_window"
+        raw.loc[
+            has_forward_evidence
+            & (~has_enough_forward_folds)
+            & (raw["blocked_reason"].astype(str) == ""),
+            "blocked_reason",
+        ] = "rejected_insufficient_forward_folds"
+        raw.loc[
+            has_forward_evidence
+            & has_enough_forward_folds
+            & (~has_enough_forward_support)
+            & (raw["blocked_reason"].astype(str) == ""),
+            "blocked_reason",
+        ] = "rejected_insufficient_forward_support"
         raw.loc[
             has_forward_evidence
             & (~raw["forward_pass"])

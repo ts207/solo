@@ -35,6 +35,8 @@ def load_features(
     higher_timeframes: list[str] | None = None,
     market: str = "perp",
     data_root: Path | None = None,
+    start: str | None = None,
+    end: str | None = None,
 ) -> pd.DataFrame:
     from project.core.config import get_data_root
 
@@ -45,6 +47,8 @@ def load_features(
         timeframe=timeframe,
         higher_timeframes=higher_timeframes,
         market=market,
+        start=start,
+        end=end,
     )
 
 

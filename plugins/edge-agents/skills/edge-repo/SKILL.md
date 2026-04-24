@@ -11,13 +11,13 @@ Use this as the default project skill for `/home/irene/Edge`.
 
 1. `CLAUDE.md`
 2. `README.md`
-3. `CONTRIBUTING.md`
+3. `docs/README.md`
 4. `Makefile`
 
 ## Core model
 
 - Edge is a governed event-driven crypto research-to-runtime platform.
-- The canonical lifecycle is `discover -> validate -> promote -> deploy`.
+- The canonical lifecycle is `discover -> validate -> promote -> bind-config -> paper/live run`.
 - The operating unit is a bounded proposal that produces evidence; runtime consumes only exported promoted thesis packages.
 
 ## Hard guardrails
@@ -42,13 +42,18 @@ edge discover plan --proposal /abs/path/to/proposal.yaml
 edge discover run --proposal /abs/path/to/proposal.yaml
 edge validate run --run_id <run_id>
 edge promote run --run_id <run_id> --symbols BTCUSDT
-edge promote export --run_id <run_id>
+edge deploy export --run_id <run_id>
 edge deploy bind-config --run_id <run_id>
-edge deploy paper --run_id <run_id> --config project/configs/live_paper_<run_id>.yaml
-make discover PROPOSAL=/abs/path/to/proposal.yaml DISCOVER_ACTION=plan
-make discover PROPOSAL=/abs/path/to/proposal.yaml DISCOVER_ACTION=run
+edge deploy paper-run --config project/configs/live_paper_<run_id>.yaml
+edge deploy live-run --config project/configs/live_live_<run_id>.yaml
+make discover PROPOSAL=/abs/path/to/proposal.yaml RUN_ID=<run_id>
+make validate RUN_ID=<run_id>
 make promote RUN_ID=<run_id> SYMBOLS=BTCUSDT
 make export RUN_ID=<run_id>
+make bind-config RUN_ID=<run_id>
+make paper-run CONFIG=project/configs/live_paper_<run_id>.yaml
+make live-run CONFIG=project/configs/live_live_<run_id>.yaml
+make deploy-status RUN_ID=<run_id> CONFIG=project/configs/live_paper_<run_id>.yaml
 ./plugins/edge-agents/scripts/edge_preflight_proposal.sh /abs/path/to/proposal.yaml
 ./plugins/edge-agents/scripts/edge_lint_proposal.sh /abs/path/to/proposal.yaml
 ./plugins/edge-agents/scripts/edge_explain_proposal.sh /abs/path/to/proposal.yaml

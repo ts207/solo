@@ -459,3 +459,37 @@ def test_feature_condition_filters_trigger_rows_before_entry_lag(monkeypatch):
     assert bool(metrics.loc[0, "valid"]) is True
     assert int(metrics.loc[0, "n"]) == 2
     assert float(metrics.loc[0, "mean_return_bps"]) > 0.0
+
+
+def test_evaluate_hypothesis_batch_emits_candidate_event_timestamps_sidecar(monkeypatch):
+    _patch_robustness(monkeypatch)
+    features = _base_features(periods=120)
+    signal_col = EVENT_REGISTRY_SPECS["VOL_SHOCK"].signal_column
+    direction_col = ColumnRegistry.event_direction_cols("VOL_SHOCK")[0]
+    features[signal_col] = False
+    features.loc[[0, 10, 20, 30], signal_col] = True
+    features[direction_col] = np.nan
+    features.loc[[0, 10, 20, 30], direction_col] = 1.0
+
+    spec = HypothesisSpec(
+        trigger=TriggerSpec.event("VOL_SHOCK"),
+        direction="long",
+        horizon="12b",
+        template_id="continuation",
+    )
+
+    metrics = evaluate_hypothesis_batch([spec], features, min_sample_size=1)
+
+    assert "candidate_event_timestamps" in metrics.attrs
+    event_timestamps = metrics.attrs["candidate_event_timestamps"]
+    assert not event_timestamps.empty
+    assert {
+        "hypothesis_id",
+        "trigger_key",
+        "event_timestamp",
+        "split_label",
+    }.issubset(event_timestamps.columns)
+    assert event_timestamps["hypothesis_id"].nunique() == 1
+    assert event_timestamps["hypothesis_id"].iat[0] == metrics.loc[0, "hypothesis_id"]
+    assert str(event_timestamps["event_timestamp"].dtype) == "datetime64[ns, UTC]"
+    assert set(event_timestamps["split_label"]) == {"test"}

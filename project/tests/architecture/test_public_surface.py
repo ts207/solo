@@ -2,7 +2,7 @@ from pathlib import Path
 import subprocess
 
 def test_makefile_exports_canonical_targets():
-    """Verify Makefile provides the unified 4-stage interface explicitly."""
+    """Verify Makefile provides the current operator-facing lifecycle targets."""
     repo_root = Path(__file__).parent.parent.parent.parent
     makefile_path = repo_root / "Makefile"
     assert makefile_path.exists(), "Makefile not found"
@@ -11,6 +11,11 @@ def test_makefile_exports_canonical_targets():
     assert "discover:" in content
     assert "validate:" in content
     assert "promote:" in content
+    assert "export:" in content
+    assert "bind-config:" in content
+    assert "paper-run:" in content
+    assert "live-run:" in content
+    assert "deploy-status:" in content
     assert "deploy-paper:" in content
 
 import sys

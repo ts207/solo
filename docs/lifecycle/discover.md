@@ -22,11 +22,11 @@ Optional run ID reuse:
 edge discover run --proposal spec/proposals/other.yaml --run_id <existing_run_id>
 ```
 
-The Make wrapper is:
+The Make wrappers are:
 
 ```bash
-make discover PROPOSAL=spec/proposals/canonical_event_hypothesis.yaml DISCOVER_ACTION=plan
-make discover PROPOSAL=spec/proposals/canonical_event_hypothesis.yaml DISCOVER_ACTION=run
+make discover-plan PROPOSAL=spec/proposals/canonical_event_hypothesis.yaml RUN_ID=<run_id>
+make discover PROPOSAL=spec/proposals/canonical_event_hypothesis.yaml RUN_ID=<run_id>
 ```
 
 ## Important Behavior

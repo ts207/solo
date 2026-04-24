@@ -127,9 +127,11 @@ def _evaluate_hypotheses(
             prefilter_min_t_stat=False,  # Permissive for stage filtering
         )
 
-        # Attach fold breakdown if present
+        # Attach sidecar evidence if present
         if hasattr(metrics, "attrs") and "fold_breakdown" in metrics.attrs:
             candidates.attrs["fold_breakdown"] = metrics.attrs["fold_breakdown"]
+        if hasattr(metrics, "attrs") and "candidate_event_timestamps" in metrics.attrs:
+            candidates.attrs["candidate_event_timestamps"] = metrics.attrs["candidate_event_timestamps"]
 
         return candidates if candidates is not None else pd.DataFrame()
 

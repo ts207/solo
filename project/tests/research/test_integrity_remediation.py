@@ -260,6 +260,28 @@ class TestWalkForwardSplitsDiagnostics:
         assert "min_folds" in all_warnings
         assert "5" in all_warnings  # the actual min_folds value
 
+    def test_max_folds_are_spread_across_available_window(self):
+        from project.research.validation.splits import build_repeated_walkforward_splits
+
+        ts = self._timestamps(20_000)
+
+        folds = build_repeated_walkforward_splits(
+            ts,
+            train_bars=1000,
+            validation_bars=100,
+            test_bars=100,
+            step_bars=100,
+            min_folds=3,
+            max_folds=3,
+            purge_bars=0,
+            embargo_bars=0,
+        )
+
+        assert [fold.fold_id for fold in folds] == [1, 2, 3]
+        test_starts = [pd.Timestamp(fold.test_split.start) for fold in folds]
+        assert test_starts[0] < test_starts[1] < test_starts[2]
+        assert test_starts[2].tz_localize(None) > ts.iloc[-1000]
+
     def test_phase2_fold_builder_fails_closed_when_required_folds_are_empty(self, tmp_path):
         from project.research.phase2_search_engine import _build_required_walkforward_folds
 

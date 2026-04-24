@@ -71,6 +71,8 @@ def _load_features_wrapper(
     symbol: str,
     timeframe: str = "5m",
     data_root: Path | None = None,
+    start: str | None = None,
+    end: str | None = None,
 ) -> pd.DataFrame:
     from project.core.config import get_data_root
 
@@ -79,6 +81,8 @@ def _load_features_wrapper(
         run_id=run_id,
         symbol=symbol,
         timeframe=timeframe,
+        start=start,
+        end=end,
     )
 
 
@@ -196,12 +200,19 @@ def prepare_search_features_for_symbol(
     symbol: str,
     timeframe: str,
     data_root: Path,
+    start: str | None = None,
+    end: str | None = None,
     expected_event_ids: Iterable[str] | None = None,
     load_features_fn=_load_features_wrapper,
     event_registry_override: Optional[str] = None,
 ) -> pd.DataFrame:
     features = load_features_fn(
-        run_id=run_id, symbol=symbol, timeframe=timeframe, data_root=data_root
+        run_id=run_id,
+        symbol=symbol,
+        timeframe=timeframe,
+        data_root=data_root,
+        start=start,
+        end=end,
     )
     if features.empty:
         return features

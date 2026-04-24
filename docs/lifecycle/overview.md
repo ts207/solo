@@ -3,7 +3,7 @@
 Edge converts bounded research proposals into deployable thesis packages through a governed lifecycle:
 
 ```text
-discover -> validate -> promote -> export/bind-config -> deploy
+discover -> validate -> promote -> export -> bind-config -> paper/live run
 ```
 
 The lifecycle is deliberately staged. A discovery result is evidence, not production readiness. Promotion requires validation artifacts. Runtime consumes only exported promoted thesis bundles.
@@ -38,7 +38,7 @@ Export and bind config:
 - Core modules: `project.research.live_export`, `project.cli`.
 - Primary output: `data/live/theses/<run_id>/promoted_theses.json` and a runtime config YAML.
 
-Deploy:
+Paper or live run:
 
 - Input: explicit thesis bundle via `strategy_runtime.thesis_run_id` or `strategy_runtime.thesis_path`.
 - Front doors: `edge deploy paper-run --config <config>` and `edge deploy live-run --config <config>`.

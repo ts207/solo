@@ -7,12 +7,12 @@ Repo-local Codex/plugin surface for the Edge repository.
 Provide guided wrappers around the canonical bounded workflow without creating a parallel operator model.
 The plugin tracks the repo's current lifecycle front door:
 
-`discover -> validate -> promote -> export -> deploy`
+`discover -> validate -> promote -> export -> bind-config -> paper/live run`
 
 ## What is included
 
 - skills for repo orientation, maintenance, ChatGPT-app development, coordination, analysis, and proposal compilation
-- thin wrappers around the canonical `edge`, `make discover|promote|export|deploy-paper`, and focused maintenance surfaces
+- thin wrappers around the canonical `edge`, `make discover|validate|promote|export|bind-config|paper-run|live-run|deploy-status`, and focused maintenance surfaces
 - hook definitions for contract-sensitive edits and recent-run awareness
 
 ## Important scripts
@@ -41,7 +41,7 @@ The plugin tracks the repo's current lifecycle front door:
 These wrappers should remain thin around:
 
 - `edge discover|validate|promote|deploy`
-- `make discover|promote|export|deploy-paper`
+- `make discover|validate|promote|export|bind-config|paper-run|live-run|deploy-status`
 - `python -m project.operator.preflight`
 - `python -m project.operator.proposal_tools`
 - `python -m project.scripts.run_researcher_verification`
@@ -61,7 +61,7 @@ The plugin now helps route common developer change types:
 
 ## Supported command groups
 
-- `make discover|promote|export|deploy-paper`
+- `make discover|validate|promote|export|bind-config|paper-run|live-run|deploy-status`
 - `edge_validate_repo.sh contracts|minimum-green|all`
 - `edge_sync_plugin.sh targets|check|sync`
 - `edge_export_theses.sh`

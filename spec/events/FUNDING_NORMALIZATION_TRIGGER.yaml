@@ -14,6 +14,7 @@ parameters:
   normalization_lookback: 96
   min_prior_extreme_abs: 0.0004
   min_event_spacing: 96
+  cooldown_bars: 96
   event_lookahead: 96
   liquidation_abs_return: 0.03
   drawdown_abs_return: 0.03

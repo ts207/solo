@@ -17,16 +17,19 @@ edge deploy status --run_id <run_id>
 
 Use `paper-run` and `live-run` for runtime launch.
 
-## Known Makefile Drift
+## Canonical Makefile Surface
 
-The current `make deploy-paper` target expands to `edge deploy paper --run_id <run_id>`, but `paper` is not a current deploy subcommand. Prefer the CLI sequence:
+The root Makefile keeps config binding and runtime launch separate:
 
 ```bash
-edge deploy bind-config --run_id <run_id>
-edge deploy paper-run --config project/configs/live_paper_<run_id>.yaml
+make export RUN_ID=<run_id>
+make bind-config RUN_ID=<run_id>
+make paper-run CONFIG=project/configs/live_paper_<run_id>.yaml
+make live-run CONFIG=project/configs/live_live_<run_id>.yaml
+make deploy-status RUN_ID=<run_id> CONFIG=project/configs/live_paper_<run_id>.yaml
 ```
 
-Update the Make target before documenting it as canonical.
+`make deploy-paper` remains only as a compatibility alias for `make bind-config`.
 
 ## Thesis Export
 
@@ -57,17 +60,20 @@ Generate a paper config from a promoted run:
 edge deploy bind-config --run_id <run_id>
 ```
 
+Or through Make:
+
+```bash
+make bind-config RUN_ID=<run_id>
+```
+
 The generated config includes:
 
 - `runtime_mode`
 - freshness streams
-- OMS lineage
-- state snapshot path
-- runtime alert paths
 - `strategy_runtime.thesis_run_id`
 - event detector settings
-- decision policy thresholds
-- risk caps and allowed actions
+
+If `--thesis_path` is passed explicitly, bind-config writes `strategy_runtime.thesis_path` instead of `strategy_runtime.thesis_run_id`. It must never write both.
 
 If no promoted thesis bundle exists, bind-config fails and instructs you to run export first.
 
@@ -124,7 +130,7 @@ Print resolved runtime metadata:
 
 ```bash
 PYTHONPATH=. ./.venv/bin/python project/scripts/run_live_engine.py \
-  --config <config.yaml> \
+  --config project/configs/live_paper_<run_id>.yaml \
   --print_session_metadata
 ```
 

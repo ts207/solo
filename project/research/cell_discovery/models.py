@@ -47,8 +47,11 @@ class ContrastRule:
 @dataclass(frozen=True)
 class RankingPolicy:
     min_support: int = 30
+    min_forward_valid_folds: int = 3
+    min_forward_support: int = 30
+    min_forward_support_fraction: float = 0.10
     min_forward_net_mean_bps: float = 0.0
-    min_contrast_lift_bps: float = 0.0
+    min_contrast_lift_bps: float = 5.0
     max_search_hypotheses: int = 1000
     forward_weight: float = 0.40
     expectancy_weight: float = 0.25

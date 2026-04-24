@@ -11,20 +11,21 @@ Generated inventories under `docs/generated/` are not part of this replacement d
 3. [Validate](lifecycle/validate.md)
 4. [Promote](lifecycle/promote.md)
 5. [Deploy](lifecycle/deploy.md)
-6. [Liquidation Exhaustion Matrix](lifecycle/liquidation-exhaustion-matrix.md)
-7. [Operator Runbook](operator/runbook.md)
-8. [Supported Path](reference/supported-path.md)
-9. [Architecture Reference](reference/architecture.md)
-10. [Command Reference](reference/commands.md)
-11. [Specs and Domain Reference](reference/specs-and-domain.md)
-12. [Data and Artifacts Reference](reference/data-and-artifacts.md)
+6. [Operator Quickstart](operator/quickstart.md)
+7. [Liquidation Exhaustion Matrix](lifecycle/liquidation-exhaustion-matrix.md)
+8. [Operator Runbook](operator/runbook.md)
+9. [Supported Path](reference/supported-path.md)
+10. [Architecture Reference](reference/architecture.md)
+11. [Command Reference](reference/commands.md)
+12. [Specs and Domain Reference](reference/specs-and-domain.md)
+13. [Data and Artifacts Reference](reference/data-and-artifacts.md)
 
 ## Project Model
 
 Edge is a governed event-driven crypto research-to-runtime platform. The lifecycle is:
 
 ```text
-discover -> validate -> promote -> export/bind-config -> deploy
+discover -> validate -> promote -> export -> bind-config -> paper/live run
 ```
 
 The operating unit is a bounded proposal that produces evidence. Runtime consumes only exported promoted thesis packages.

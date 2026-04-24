@@ -30,9 +30,51 @@ def _forward_metrics(value: float, *, t_stat: float = 2.0) -> dict[str, float]:
     return {
         "fold_valid_count": 3.0,
         "fold_fail_ratio": 0.0,
+        "forward_n": 30.0,
         "fold_median_after_cost_expectancy": value,
         "fold_median_t_stat": t_stat,
     }
+
+
+def _matching_lineage_row(
+    lineage: pd.DataFrame,
+    context_cell: str,
+    *,
+    reference: pd.Series | None = None,
+) -> pd.Series:
+    mask = lineage["source_context_cell"].astype(str).eq(context_cell)
+    if reference is not None:
+        for column in ("source_event_atom", "direction", "horizon", "template"):
+            if column in lineage.columns and column in reference:
+                mask &= lineage[column].astype(str).eq(str(reference[column]))
+    return lineage[mask].iloc[0]
+
+
+def _write_scoreboard_inputs(rows: pd.DataFrame, paths) -> None:
+    write_parquet(rows, paths.candidate_universe_path)
+    fold_rows: list[dict[str, object]] = []
+    for _, row in rows.iterrows():
+        valid_raw = row.get("fold_valid_count", 0)
+        valid_count = 0 if pd.isna(valid_raw) else int(float(valid_raw or 0))
+        if valid_count <= 0 or pd.isna(row.get("fold_median_after_cost_expectancy", pd.NA)):
+            continue
+        forward_n = int(float(row.get("forward_n", valid_count * 10) or valid_count * 10))
+        per_fold_n = max(3, forward_n // valid_count)
+        for fold_id in range(1, valid_count + 1):
+            fold_rows.append(
+                {
+                    "fold_id": fold_id,
+                    "valid": True,
+                    "n": per_fold_n,
+                    "after_cost_expectancy_bps": float(
+                        row["fold_median_after_cost_expectancy"]
+                    ),
+                    "t_stat": float(row.get("fold_median_t_stat", 2.0) or 2.0),
+                    "hypothesis_id": row["hypothesis_id"],
+                    "trigger_key": "event:UNIT",
+                }
+            )
+    write_parquet(pd.DataFrame(fold_rows), paths.run_dir / "phase2_candidate_fold_metrics.parquet")
 
 
 def test_default_discovery_registry_loads_bounded_surface() -> None:
@@ -41,12 +83,17 @@ def test_default_discovery_registry_loads_bounded_surface() -> None:
     assert [atom.atom_id for atom in registry.event_atoms] == [
         "vol_shock_core",
         "funding_extreme_core",
+        "funding_persistence_core",
     ]
     assert {cell.executability_class for cell in registry.context_cells} == {
         "runtime",
         "supportive_only",
     }
     assert registry.ranking_policy.max_search_hypotheses == 1000
+    assert registry.ranking_policy.min_forward_valid_folds == 3
+    assert registry.ranking_policy.min_forward_support == 30
+    assert registry.ranking_policy.min_forward_support_fraction == 0.10
+    assert registry.ranking_policy.min_contrast_lift_bps == 5.0
     assert [rule.rule_type for rule in registry.contrast_rules] == [
         "in_bucket_vs_unconditional"
     ]
@@ -67,7 +114,7 @@ def test_cell_compiler_writes_search_spec_and_lineage(tmp_path: Path) -> None:
     assert compiled.search_spec_path.exists()
     assert compiled.experiment_path.exists()
     assert compiled.lineage_path.exists()
-    assert compiled.estimated_hypothesis_count == 64
+    assert compiled.estimated_hypothesis_count == 108
 
     lineage = read_parquet([compiled.lineage_path])
     assert {
@@ -202,7 +249,7 @@ def test_phase2_edge_cells_filters_authorization_by_symbol() -> None:
 
 
 def test_scoreboard_requires_forward_support_and_contrast(tmp_path: Path) -> None:
-    registry = load_registry("spec/discovery")
+    registry = load_registry("spec/discovery/expanded_v2")
     run_id = "UNIT_CELL_SCOREBOARD"
     compiled = compile_cells(
         registry=registry,
@@ -216,8 +263,8 @@ def test_scoreboard_requires_forward_support_and_contrast(tmp_path: Path) -> Non
     paths = paths_for_run(data_root=tmp_path, run_id=run_id)
     lineage = read_parquet([compiled.lineage_path])
     unconditional = lineage[lineage["source_context_cell"] == "unconditional"].iloc[0]
-    executable = lineage[lineage["source_context_cell"] == "high_vol"].iloc[0]
-    low_support = lineage[lineage["source_context_cell"] == "low_vol"].iloc[0]
+    executable = _matching_lineage_row(lineage, "high_vol", reference=unconditional)
+    low_support = _matching_lineage_row(lineage, "low_vol", reference=unconditional)
 
     rows = pd.DataFrame(
         [
@@ -265,7 +312,7 @@ def test_scoreboard_requires_forward_support_and_contrast(tmp_path: Path) -> Non
             },
         ]
     )
-    write_parquet(rows, paths.candidate_universe_path)
+    _write_scoreboard_inputs(rows, paths)
 
     summary = build_scoreboard(registry=registry, run_id=run_id, data_root=tmp_path)
 
@@ -281,7 +328,7 @@ def test_scoreboard_requires_forward_support_and_contrast(tmp_path: Path) -> Non
 
 
 def test_scoreboard_blocks_in_sample_only_rows_without_forward_evidence(tmp_path: Path) -> None:
-    registry = load_registry("spec/discovery")
+    registry = load_registry("spec/discovery/expanded_v2")
     run_id = "UNIT_CELL_SCOREBOARD_NO_FORWARD"
     compiled = compile_cells(
         registry=registry,
@@ -293,9 +340,9 @@ def test_scoreboard_blocks_in_sample_only_rows_without_forward_evidence(tmp_path
     paths = paths_for_run(data_root=tmp_path, run_id=run_id)
     lineage = read_parquet([compiled.lineage_path])
     unconditional = lineage[lineage["source_context_cell"] == "unconditional"].iloc[0]
-    executable = lineage[lineage["source_context_cell"] == "high_vol"].iloc[0]
+    executable = _matching_lineage_row(lineage, "high_vol", reference=unconditional)
 
-    write_parquet(
+    _write_scoreboard_inputs(
         pd.DataFrame(
             [
                 {
@@ -319,7 +366,7 @@ def test_scoreboard_blocks_in_sample_only_rows_without_forward_evidence(tmp_path
                 },
             ]
         ),
-        paths.candidate_universe_path,
+        paths,
     )
 
     build_scoreboard(registry=registry, run_id=run_id, data_root=tmp_path)
@@ -331,7 +378,7 @@ def test_scoreboard_blocks_in_sample_only_rows_without_forward_evidence(tmp_path
 
 
 def test_scoreboard_rejects_negative_forward_evidence_as_instability(tmp_path: Path) -> None:
-    registry = load_registry("spec/discovery")
+    registry = load_registry("spec/discovery/expanded_v2")
     run_id = "UNIT_CELL_SCOREBOARD_NEG_FORWARD"
     compiled = compile_cells(
         registry=registry,
@@ -343,9 +390,9 @@ def test_scoreboard_rejects_negative_forward_evidence_as_instability(tmp_path: P
     paths = paths_for_run(data_root=tmp_path, run_id=run_id)
     lineage = read_parquet([compiled.lineage_path])
     unconditional = lineage[lineage["source_context_cell"] == "unconditional"].iloc[0]
-    executable = lineage[lineage["source_context_cell"] == "high_vol"].iloc[0]
+    executable = _matching_lineage_row(lineage, "high_vol", reference=unconditional)
 
-    write_parquet(
+    _write_scoreboard_inputs(
         pd.DataFrame(
             [
                 {
@@ -370,7 +417,7 @@ def test_scoreboard_rejects_negative_forward_evidence_as_instability(tmp_path: P
                 },
             ]
         ),
-        paths.candidate_universe_path,
+        paths,
     )
 
     build_scoreboard(registry=registry, run_id=run_id, data_root=tmp_path)
@@ -381,8 +428,173 @@ def test_scoreboard_rejects_negative_forward_evidence_as_instability(tmp_path: P
     assert float(rejected["rank_score"]) == 0.0
 
 
+def test_scoreboard_rejects_too_few_forward_folds(tmp_path: Path) -> None:
+    registry = load_registry("spec/discovery/expanded_v2")
+    run_id = "UNIT_CELL_SCOREBOARD_FEW_FORWARD_FOLDS"
+    compiled = compile_cells(
+        registry=registry,
+        run_id=run_id,
+        data_root=tmp_path,
+        symbols=["BTCUSDT"],
+        timeframe="5m",
+    )
+    paths = paths_for_run(data_root=tmp_path, run_id=run_id)
+    lineage = read_parquet([compiled.lineage_path])
+    unconditional = lineage[lineage["source_context_cell"] == "unconditional"].iloc[0]
+    executable = lineage[
+        (lineage["source_context_cell"] == "bullish_trend")
+        & (lineage["source_event_atom"] == unconditional["source_event_atom"])
+        & (lineage["direction"] == unconditional["direction"])
+        & (lineage["horizon"] == unconditional["horizon"])
+        & (lineage["template"] == unconditional["template"])
+    ].iloc[0]
+
+    _write_scoreboard_inputs(
+        pd.DataFrame(
+            [
+                {
+                    "hypothesis_id": unconditional["hypothesis_id"],
+                    "symbol": "BTCUSDT",
+                    "n_events": 120,
+                    "mean_return_bps": 2.0,
+                    "cost_adjusted_return_bps": 2.0,
+                    "t_stat": 2.0,
+                    "robustness_score": 0.6,
+                    **_forward_metrics(2.0),
+                },
+                {
+                    "hypothesis_id": executable["hypothesis_id"],
+                    "symbol": "BTCUSDT",
+                    "n_events": 120,
+                    "mean_return_bps": 25.0,
+                    "cost_adjusted_return_bps": 25.0,
+                    "t_stat": 4.0,
+                    "robustness_score": 0.9,
+                    "fold_valid_count": 1.0,
+                    "fold_fail_ratio": 0.0,
+                    "forward_n": 80.0,
+                    "fold_median_after_cost_expectancy": 300.0,
+                    "fold_median_t_stat": 10.0,
+                },
+            ]
+        ),
+        paths,
+    )
+    write_parquet(
+        pd.DataFrame(
+            [
+                {
+                    "hypothesis_id": executable["hypothesis_id"],
+                    "valid": True,
+                    "n": 6,
+                    "after_cost_expectancy_bps": 300.0,
+                    "t_stat": 10.0,
+                }
+            ]
+        ),
+        paths.run_dir / "phase2_candidate_fold_metrics.parquet",
+    )
+
+    build_scoreboard(registry=registry, run_id=run_id, data_root=tmp_path)
+    scoreboard = read_parquet([paths.scoreboard_path])
+    rejected = scoreboard[scoreboard["context_cell"] == "bullish_trend"].iloc[0]
+
+    assert rejected["status"] == "rejected_insufficient_forward_folds"
+    assert float(rejected["rank_score"]) == 0.0
+
+
+def test_scoreboard_rejects_too_little_forward_support(tmp_path: Path) -> None:
+    registry = load_registry("spec/discovery/expanded_v2")
+    run_id = "UNIT_CELL_SCOREBOARD_LOW_FORWARD_SUPPORT"
+    compiled = compile_cells(
+        registry=registry,
+        run_id=run_id,
+        data_root=tmp_path,
+        symbols=["BTCUSDT"],
+        timeframe="5m",
+    )
+    paths = paths_for_run(data_root=tmp_path, run_id=run_id)
+    lineage = read_parquet([compiled.lineage_path])
+    unconditional = lineage[lineage["source_context_cell"] == "unconditional"].iloc[0]
+    executable = lineage[
+        (lineage["source_context_cell"] == "bullish_trend")
+        & (lineage["source_event_atom"] == unconditional["source_event_atom"])
+        & (lineage["direction"] == unconditional["direction"])
+        & (lineage["horizon"] == unconditional["horizon"])
+        & (lineage["template"] == unconditional["template"])
+    ].iloc[0]
+
+    _write_scoreboard_inputs(
+        pd.DataFrame(
+            [
+                {
+                    "hypothesis_id": unconditional["hypothesis_id"],
+                    "symbol": "BTCUSDT",
+                    "n_events": 120,
+                    "mean_return_bps": 2.0,
+                    "cost_adjusted_return_bps": 2.0,
+                    "t_stat": 2.0,
+                    "robustness_score": 0.6,
+                    **_forward_metrics(2.0),
+                },
+                {
+                    "hypothesis_id": executable["hypothesis_id"],
+                    "symbol": "BTCUSDT",
+                    "n_events": 120,
+                    "mean_return_bps": 25.0,
+                    "cost_adjusted_return_bps": 25.0,
+                    "t_stat": 4.0,
+                    "robustness_score": 0.9,
+                    "fold_valid_count": 3.0,
+                    "fold_fail_ratio": 0.0,
+                    "forward_n": 20.0,
+                    "fold_median_after_cost_expectancy": 40.0,
+                    "fold_median_t_stat": 3.0,
+                },
+            ]
+        ),
+        paths,
+    )
+    write_parquet(
+        pd.DataFrame(
+            [
+                {
+                    "hypothesis_id": executable["hypothesis_id"],
+                    "valid": True,
+                    "n": 6,
+                    "after_cost_expectancy_bps": 30.0,
+                    "t_stat": 3.0,
+                },
+                {
+                    "hypothesis_id": executable["hypothesis_id"],
+                    "valid": True,
+                    "n": 7,
+                    "after_cost_expectancy_bps": 40.0,
+                    "t_stat": 3.0,
+                },
+                {
+                    "hypothesis_id": executable["hypothesis_id"],
+                    "valid": True,
+                    "n": 7,
+                    "after_cost_expectancy_bps": 50.0,
+                    "t_stat": 3.0,
+                },
+            ]
+        ),
+        paths.run_dir / "phase2_candidate_fold_metrics.parquet",
+    )
+
+    build_scoreboard(registry=registry, run_id=run_id, data_root=tmp_path)
+    scoreboard = read_parquet([paths.scoreboard_path])
+    rejected = scoreboard[scoreboard["context_cell"] == "bullish_trend"].iloc[0]
+
+    assert rejected["status"] == "rejected_insufficient_forward_support"
+    assert float(rejected["forward_n"]) == 20.0
+    assert float(rejected["rank_score"]) == 0.0
+
+
 def test_scoreboard_rejects_missing_contrast_complement(tmp_path: Path) -> None:
-    registry = load_registry("spec/discovery")
+    registry = load_registry("spec/discovery/expanded_v2")
     run_id = "UNIT_CELL_SCOREBOARD_NO_COMPLEMENT"
     compiled = compile_cells(
         registry=registry,
@@ -395,7 +607,7 @@ def test_scoreboard_rejects_missing_contrast_complement(tmp_path: Path) -> None:
     lineage = read_parquet([compiled.lineage_path])
     executable = lineage[lineage["source_context_cell"] == "high_vol"].iloc[0]
 
-    write_parquet(
+    _write_scoreboard_inputs(
         pd.DataFrame(
             [
                 {
@@ -410,7 +622,7 @@ def test_scoreboard_rejects_missing_contrast_complement(tmp_path: Path) -> None:
                 },
             ]
         ),
-        paths.candidate_universe_path,
+        paths,
     )
 
     build_scoreboard(registry=registry, run_id=run_id, data_root=tmp_path)
@@ -425,7 +637,7 @@ def test_scoreboard_rejects_missing_contrast_complement(tmp_path: Path) -> None:
 
 
 def test_scoreboard_enforces_configured_min_contrast_lift(tmp_path: Path) -> None:
-    base_registry = load_registry("spec/discovery")
+    base_registry = load_registry("spec/discovery/expanded_v2")
     registry = replace(
         base_registry,
         ranking_policy=replace(base_registry.ranking_policy, min_contrast_lift_bps=5.0),
@@ -441,9 +653,9 @@ def test_scoreboard_enforces_configured_min_contrast_lift(tmp_path: Path) -> Non
     paths = paths_for_run(data_root=tmp_path, run_id=run_id)
     lineage = read_parquet([compiled.lineage_path])
     unconditional = lineage[lineage["source_context_cell"] == "unconditional"].iloc[0]
-    executable = lineage[lineage["source_context_cell"] == "high_vol"].iloc[0]
+    executable = _matching_lineage_row(lineage, "high_vol", reference=unconditional)
 
-    write_parquet(
+    _write_scoreboard_inputs(
         pd.DataFrame(
             [
                 {
@@ -468,7 +680,7 @@ def test_scoreboard_enforces_configured_min_contrast_lift(tmp_path: Path) -> Non
                 },
             ]
         ),
-        paths.candidate_universe_path,
+        paths,
     )
 
     build_scoreboard(registry=registry, run_id=run_id, data_root=tmp_path)
@@ -484,7 +696,7 @@ def test_scoreboard_enforces_configured_min_contrast_lift(tmp_path: Path) -> Non
 
 
 def test_scoreboard_filters_unauthorized_phase2_rows(tmp_path: Path) -> None:
-    registry = load_registry("spec/discovery")
+    registry = load_registry("spec/discovery/expanded_v2")
     run_id = "UNIT_CELL_SCOREBOARD_AUTHZ"
     compiled = compile_cells(
         registry=registry,
@@ -496,7 +708,7 @@ def test_scoreboard_filters_unauthorized_phase2_rows(tmp_path: Path) -> None:
     paths = paths_for_run(data_root=tmp_path, run_id=run_id)
     lineage = read_parquet([compiled.lineage_path])
     unconditional = lineage[lineage["source_context_cell"] == "unconditional"].iloc[0]
-    executable = lineage[lineage["source_context_cell"] == "high_vol"].iloc[0]
+    executable = _matching_lineage_row(lineage, "high_vol", reference=unconditional)
 
     rows = pd.DataFrame(
         [
@@ -532,7 +744,7 @@ def test_scoreboard_filters_unauthorized_phase2_rows(tmp_path: Path) -> None:
             },
         ]
     )
-    write_parquet(rows, paths.candidate_universe_path)
+    _write_scoreboard_inputs(rows, paths)
 
     summary = build_scoreboard(registry=registry, run_id=run_id, data_root=tmp_path)
     scoreboard = read_parquet([paths.scoreboard_path])
@@ -572,7 +784,7 @@ def test_scoreboard_filters_symbol_pruned_phase2_rows(tmp_path: Path) -> None:
     lineage = read_parquet([compiled.lineage_path])
     authorized = lineage.iloc[0]
 
-    write_parquet(
+    _write_scoreboard_inputs(
         pd.DataFrame(
             [
                 {
@@ -597,7 +809,7 @@ def test_scoreboard_filters_symbol_pruned_phase2_rows(tmp_path: Path) -> None:
                 },
             ]
         ),
-        paths.candidate_universe_path,
+        paths,
     )
 
     summary = build_scoreboard(registry=registry, run_id=run_id, data_root=tmp_path)
@@ -744,7 +956,7 @@ def test_compiler_reduces_lineage_from_partial_cell_feasibility(tmp_path: Path) 
             ),
         }
         for atom in registry.event_atoms
-        for context_cell in ("unconditional", "high_vol", "low_vol", "positive_funding")
+        for context_cell in ("unconditional", "bullish_trend", "positive_funding")
     ]
 
     compiled = compile_cells(
@@ -761,14 +973,15 @@ def test_compiler_reduces_lineage_from_partial_cell_feasibility(tmp_path: Path) 
     lineage = read_parquet([compiled.lineage_path])
     skipped = json.loads(compiled.skipped_cells_path.read_text())
 
-    assert compiled.estimated_hypothesis_count == 32
-    assert compiled.cell_count == 4
-    assert compiled.family_counts == {"volatility": 4}
-    assert compiled.skipped_cell_count == 4
+    assert compiled.estimated_hypothesis_count == 36
+    assert compiled.cell_count == 3
+    assert compiled.family_counts == {"volatility": 3}
+    assert compiled.skipped_cell_count == 6
     assert set(lineage["source_event_atom"]) == {"vol_shock_core"}
-    assert skipped["skipped_cell_count"] == 4
+    assert skipped["skipped_cell_count"] == 6
     assert {row["event_atom_id"] for row in skipped["skipped_cells"]} == {
-        "funding_extreme_core"
+        "funding_extreme_core",
+        "funding_persistence_core",
     }
 
 
@@ -805,7 +1018,7 @@ def test_compiler_prunes_cell_feasibility_by_symbol(tmp_path: Path) -> None:
     lineage = read_parquet([compiled.lineage_path])
     skipped = json.loads(compiled.skipped_cells_path.read_text())
 
-    assert compiled.estimated_hypothesis_count == 8
+    assert compiled.estimated_hypothesis_count == 12
     assert compiled.cell_count == 1
     assert compiled.skipped_cell_count == 1
     assert set(lineage["symbol"]) == {"BTCUSDT"}
@@ -829,7 +1042,7 @@ def test_plan_cells_compiles_reduced_surface_for_partial_data_block(
             ),
         }
         for atom in registry.event_atoms
-        for context_cell in ("unconditional", "high_vol", "low_vol", "positive_funding")
+        for context_cell in ("unconditional", "bullish_trend", "positive_funding")
     ]
     report_path = paths_for_run(data_root=tmp_path, run_id="UNIT_CELL_PLAN_PARTIAL").data_contract_path
 
@@ -841,7 +1054,7 @@ def test_plan_cells_compiles_reduced_surface_for_partial_data_block(
             report_path=report_path,
             payload={
                 "cell_feasibility": matrix,
-                "cell_status_counts": {"pass": 4, "warn": 0, "unknown": 0, "block": 4},
+                "cell_status_counts": {"pass": 3, "warn": 0, "unknown": 0, "block": 6},
                 "blocked_reasons": ["blocked_missing_data"],
             },
         )
@@ -862,9 +1075,9 @@ def test_plan_cells_compiles_reduced_surface_for_partial_data_block(
     assert result["exit_code"] == 0
     assert result["status"] == "planned"
     assert result["data_status"] == "warn"
-    assert result["estimated_hypothesis_count"] == 32
-    assert result["skipped_cell_count"] == 4
-    assert result["family_counts"] == {"volatility": 4}
+    assert result["estimated_hypothesis_count"] == 36
+    assert result["skipped_cell_count"] == 6
+    assert result["family_counts"] == {"volatility": 3}
     assert set(lineage["source_event_atom"]) == {"vol_shock_core"}
 
 
@@ -883,7 +1096,7 @@ def test_summarize_cells_reports_plan_only_skipped_cells(
             ),
         }
         for atom in registry.event_atoms
-        for context_cell in ("unconditional", "high_vol", "low_vol", "positive_funding")
+        for context_cell in ("unconditional", "bullish_trend", "positive_funding")
     ]
     report_path = paths_for_run(data_root=tmp_path, run_id="UNIT_CELL_SUMMARY_PLAN").data_contract_path
 
@@ -895,7 +1108,7 @@ def test_summarize_cells_reports_plan_only_skipped_cells(
             report_path=report_path,
             payload={
                 "cell_feasibility": matrix,
-                "cell_status_counts": {"pass": 4, "warn": 0, "unknown": 0, "block": 4},
+                "cell_status_counts": {"pass": 3, "warn": 0, "unknown": 0, "block": 6},
                 "blocked_reasons": ["blocked_missing_data"],
             },
         )
@@ -917,10 +1130,13 @@ def test_summarize_cells_reports_plan_only_skipped_cells(
 
     assert summary["exit_code"] == 0
     assert summary["status"] == "ok"
-    assert summary["skipped_cell_count"] == 4
-    assert summary["skipped_by_reason"] == {"blocked_missing_data": 4}
-    assert summary["skipped_by_event_atom"] == {"funding_extreme_core": 4}
-    assert len(summary["skipped_cells"]) == 4
+    assert summary["skipped_cell_count"] == 6
+    assert summary["skipped_by_reason"] == {"blocked_missing_data": 6}
+    assert summary["skipped_by_event_atom"] == {
+        "funding_extreme_core": 3,
+        "funding_persistence_core": 3,
+    }
+    assert len(summary["skipped_cells"]) == 6
 
 
 def test_run_cells_blocks_when_feasibility_prunes_entire_surface(
@@ -1057,7 +1273,7 @@ def test_summarize_cells_merges_scoreboard_and_skipped_cells(tmp_path: Path) -> 
     paths = paths_for_run(data_root=tmp_path, run_id=run_id)
     lineage = read_parquet([compiled.lineage_path])
     unconditional = lineage.iloc[0]
-    write_parquet(
+    _write_scoreboard_inputs(
         pd.DataFrame(
             [
                 {
@@ -1072,7 +1288,7 @@ def test_summarize_cells_merges_scoreboard_and_skipped_cells(tmp_path: Path) -> 
                 },
             ]
         ),
-        paths.candidate_universe_path,
+        paths,
     )
 
     build_scoreboard(registry=registry, run_id=run_id, data_root=tmp_path)
@@ -1085,7 +1301,7 @@ def test_summarize_cells_merges_scoreboard_and_skipped_cells(tmp_path: Path) -> 
 
 
 def test_redundancy_and_thesis_assembly_use_representatives_only(tmp_path: Path) -> None:
-    registry = load_registry("spec/discovery")
+    registry = load_registry("spec/discovery/expanded_v2")
     run_id = "UNIT_CELL_ASSEMBLY"
     compiled = compile_cells(
         registry=registry,
@@ -1099,9 +1315,9 @@ def test_redundancy_and_thesis_assembly_use_representatives_only(tmp_path: Path)
     paths = paths_for_run(data_root=tmp_path, run_id=run_id)
     lineage = read_parquet([compiled.lineage_path])
     unconditional = lineage[lineage["source_context_cell"] == "unconditional"].iloc[0]
-    executable = lineage[lineage["source_context_cell"] == "high_vol"].iloc[0]
+    executable = _matching_lineage_row(lineage, "high_vol", reference=unconditional)
 
-    write_parquet(
+    _write_scoreboard_inputs(
         pd.DataFrame(
             [
                 {
@@ -1126,7 +1342,7 @@ def test_redundancy_and_thesis_assembly_use_representatives_only(tmp_path: Path)
                 },
             ]
         ),
-        paths.candidate_universe_path,
+        paths,
     )
     build_scoreboard(registry=registry, run_id=run_id, data_root=tmp_path)
 
@@ -1148,7 +1364,7 @@ def test_redundancy_and_thesis_assembly_use_representatives_only(tmp_path: Path)
 
 
 def test_redundancy_merges_behaviorally_similar_pnl_traces(tmp_path: Path) -> None:
-    registry = load_registry("spec/discovery")
+    registry = load_registry("spec/discovery/expanded_v2")
     run_id = "UNIT_CELL_PNL_REDUNDANCY"
     compiled = compile_cells(
         registry=registry,
@@ -1162,10 +1378,10 @@ def test_redundancy_merges_behaviorally_similar_pnl_traces(tmp_path: Path) -> No
     paths = paths_for_run(data_root=tmp_path, run_id=run_id)
     lineage = read_parquet([compiled.lineage_path])
     unconditional = lineage[lineage["source_context_cell"] == "unconditional"].iloc[0]
-    high_vol = lineage[lineage["source_context_cell"] == "high_vol"].iloc[0]
-    low_vol = lineage[lineage["source_context_cell"] == "low_vol"].iloc[0]
+    high_vol = _matching_lineage_row(lineage, "high_vol", reference=unconditional)
+    low_vol = _matching_lineage_row(lineage, "low_vol", reference=unconditional)
 
-    write_parquet(
+    _write_scoreboard_inputs(
         pd.DataFrame(
             [
                 {
@@ -1200,7 +1416,7 @@ def test_redundancy_merges_behaviorally_similar_pnl_traces(tmp_path: Path) -> No
                 },
             ]
         ),
-        paths.candidate_universe_path,
+        paths,
     )
     build_scoreboard(registry=registry, run_id=run_id, data_root=tmp_path)
     write_parquet(
@@ -1252,7 +1468,7 @@ def test_thesis_assembly_downgrades_mapped_supportive_only_representative(
     unconditional = lineage[lineage["source_context_cell"] == "unconditional"].iloc[0]
     supportive = lineage[lineage["source_context_cell"] == "positive_funding"].iloc[0]
 
-    write_parquet(
+    _write_scoreboard_inputs(
         pd.DataFrame(
             [
                 {
@@ -1277,7 +1493,7 @@ def test_thesis_assembly_downgrades_mapped_supportive_only_representative(
                 },
             ]
         ),
-        paths.candidate_universe_path,
+        paths,
     )
     build_scoreboard(registry=registry, run_id=run_id, data_root=tmp_path)
     build_redundancy_clusters(run_id=run_id, data_root=tmp_path)
@@ -1320,7 +1536,7 @@ def test_thesis_assembly_rejects_unmapped_supportive_only_representative(
     unconditional = lineage[lineage["source_context_cell"] == "unconditional"].iloc[0]
     supportive = lineage[lineage["source_context_cell"] == "positive_funding"].iloc[0]
 
-    write_parquet(
+    _write_scoreboard_inputs(
         pd.DataFrame(
             [
                 {
@@ -1345,7 +1561,7 @@ def test_thesis_assembly_rejects_unmapped_supportive_only_representative(
                 },
             ]
         ),
-        paths.candidate_universe_path,
+        paths,
     )
     build_scoreboard(registry=registry, run_id=run_id, data_root=tmp_path)
     build_redundancy_clusters(run_id=run_id, data_root=tmp_path)
@@ -1361,7 +1577,7 @@ def test_thesis_assembly_rejects_unmapped_supportive_only_representative(
 
 
 def test_thesis_assembly_rejects_missing_source_scope(tmp_path: Path) -> None:
-    registry = load_registry("spec/discovery")
+    registry = load_registry("spec/discovery/expanded_v2")
     run_id = "UNIT_CELL_MISSING_SCOPE_REJECT"
     compiled = compile_cells(
         registry=registry,
@@ -1373,8 +1589,8 @@ def test_thesis_assembly_rejects_missing_source_scope(tmp_path: Path) -> None:
     paths = paths_for_run(data_root=tmp_path, run_id=run_id)
     lineage = read_parquet([compiled.lineage_path])
     unconditional = lineage[lineage["source_context_cell"] == "unconditional"].iloc[0]
-    executable = lineage[lineage["source_context_cell"] == "high_vol"].iloc[0]
-    write_parquet(
+    executable = _matching_lineage_row(lineage, "high_vol", reference=unconditional)
+    _write_scoreboard_inputs(
         pd.DataFrame(
             [
                 {
@@ -1399,7 +1615,7 @@ def test_thesis_assembly_rejects_missing_source_scope(tmp_path: Path) -> None:
                 },
             ]
         ),
-        paths.candidate_universe_path,
+        paths,
     )
     build_scoreboard(registry=registry, run_id=run_id, data_root=tmp_path)
     build_redundancy_clusters(run_id=run_id, data_root=tmp_path)
@@ -1415,7 +1631,7 @@ def test_thesis_assembly_rejects_runtime_context_blocked_by_condition_routing(
     monkeypatch,
     tmp_path: Path,
 ) -> None:
-    registry = load_registry("spec/discovery")
+    registry = load_registry("spec/discovery/expanded_v2")
     run_id = "UNIT_CELL_RUNTIME_ROUTING_REJECT"
     compiled = compile_cells(
         registry=registry,
@@ -1429,8 +1645,8 @@ def test_thesis_assembly_rejects_runtime_context_blocked_by_condition_routing(
     paths = paths_for_run(data_root=tmp_path, run_id=run_id)
     lineage = read_parquet([compiled.lineage_path])
     unconditional = lineage[lineage["source_context_cell"] == "unconditional"].iloc[0]
-    executable = lineage[lineage["source_context_cell"] == "high_vol"].iloc[0]
-    write_parquet(
+    executable = _matching_lineage_row(lineage, "high_vol", reference=unconditional)
+    _write_scoreboard_inputs(
         pd.DataFrame(
             [
                 {
@@ -1455,7 +1671,7 @@ def test_thesis_assembly_rejects_runtime_context_blocked_by_condition_routing(
                 },
             ]
         ),
-        paths.candidate_universe_path,
+        paths,
     )
     build_scoreboard(registry=registry, run_id=run_id, data_root=tmp_path)
     build_redundancy_clusters(run_id=run_id, data_root=tmp_path)

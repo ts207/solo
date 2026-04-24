@@ -4,8 +4,8 @@ metadata:
   status: generated
   graph_role: runtime_read_model
   schema_version: 2
-  generated_at_utc: '2026-04-23T09:20:12Z'
-  spec_sources_digest: 5e27c75e443355e6fb0483228184532bcc1f10e57c902d81e612249020902daf
+  generated_at_utc: '2026-04-24T06:50:29Z'
+  spec_sources_digest: 2a7c0e6989e07d9b215b3f0afa01236a396c505113d53041469fdd12342ff680
   notes: Compiled runtime read model. Semantic nodes are normalized for direct runtime/search
     loading.
 events:
@@ -2036,7 +2036,7 @@ events:
     maturity_scores: {}
     parameters:
       merge_gap_bars: 1
-      cooldown_bars: 0
+      cooldown_bars: 96
       anchor_rule: max_intensity
       min_occurrences: 0
       synthetic_coverage: covered
@@ -2322,7 +2322,7 @@ events:
     maturity_scores: {}
     parameters:
       merge_gap_bars: 1
-      cooldown_bars: 0
+      cooldown_bars: 96
       anchor_rule: max_intensity
       min_occurrences: 0
       synthetic_coverage: covered
@@ -2442,7 +2442,7 @@ events:
     maturity_scores: {}
     parameters:
       merge_gap_bars: 1
-      cooldown_bars: 0
+      cooldown_bars: 576
       anchor_rule: max_intensity
       min_occurrences: 0
       synthetic_coverage: covered

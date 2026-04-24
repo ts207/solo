@@ -413,9 +413,6 @@ def build_repeated_walkforward_splits(
         fold_id += 1
         start_idx += step_bars
 
-        if max_folds is not None and len(folds) >= max_folds:
-            break
-
     if len(folds) < min_folds:
         log.warning(
             "build_repeated_walkforward_splits: could not satisfy min_folds=%d. "
@@ -434,5 +431,26 @@ def build_repeated_walkforward_splits(
             step_bars,
         )
         return []
+
+    if max_folds is not None and len(folds) > int(max_folds):
+        max_fold_count = max(1, int(max_folds))
+        if max_fold_count == 1:
+            selected_indices = [len(folds) - 1]
+        else:
+            selected_indices = sorted(
+                {
+                    int(round(i * (len(folds) - 1) / (max_fold_count - 1)))
+                    for i in range(max_fold_count)
+                }
+            )
+        folds = [
+            FoldDefinition(
+                fold_id=i + 1,
+                train_split=folds[idx].train_split,
+                validation_split=folds[idx].validation_split,
+                test_split=folds[idx].test_split,
+            )
+            for i, idx in enumerate(selected_indices)
+        ]
 
     return folds

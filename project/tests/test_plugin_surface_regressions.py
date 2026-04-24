@@ -14,7 +14,7 @@ def _has_edge_agents() -> bool:
 def test_edge_agents_plugin_readme_tracks_current_plugin_surfaces() -> None:
     path = _repo_root() / "plugins" / "edge-agents" / "README.md"
     text = path.read_text(encoding="utf-8")
-    assert "make discover|promote|export|deploy-paper" in text
+    assert "make discover|validate|promote|export|bind-config|paper-run|live-run|deploy-status" in text
     assert "edge_validate_repo.sh contracts|minimum-green|all" in text
     assert "edge_sync_plugin.sh targets|check|sync" in text
     assert "edge_export_theses.sh" in text
@@ -65,6 +65,7 @@ def test_edge_agents_plugin_files_do_not_reference_removed_docs_or_commands() ->
         "docs/11_LIVE_THESIS_STORE_AND_OVERLAP.md",
         "project.scripts.generate_operator_surface_inventory",
         "DISCOVER_ACTION=preflight",
+        "make discover|promote|export|deploy-paper",
     ]
     for path in root.rglob("*"):
         if not path.is_file():

@@ -90,30 +90,24 @@ edge deploy status --run_id <run_id> --config project/configs/live_paper_<run_id
 Lifecycle:
 
 ```bash
-make discover PROPOSAL=spec/proposals/canonical_event_hypothesis.yaml DISCOVER_ACTION=plan
-make discover PROPOSAL=spec/proposals/canonical_event_hypothesis.yaml DISCOVER_ACTION=run
+make discover PROPOSAL=spec/proposals/canonical_event_hypothesis.yaml RUN_ID=<run_id>
 make validate RUN_ID=<run_id>
 make promote RUN_ID=<run_id> SYMBOLS=BTCUSDT
 make export RUN_ID=<run_id>
-make deploy-paper CONFIG=project/configs/live_paper_<run_id>.yaml
-make liquidation-exhaustion-plan-matrix
+make bind-config RUN_ID=<run_id>
+make paper-run CONFIG=project/configs/live_paper_<run_id>.yaml
+make live-run CONFIG=project/configs/live_live_<run_id>.yaml
+make deploy-status RUN_ID=<run_id> CONFIG=project/configs/live_paper_<run_id>.yaml
 make benchmark-supported-path EXECUTE=0
 make benchmark-supported-path EXECUTE=1 OFFLINE_PARQUET_EXECUTION_FIXED=1
-make benchmark-edge-cells
 ```
 
 Maintenance:
 
 ```bash
-make test
-make test-fast
-make lint
-make format-check
-make format
-make style
+make check-hygiene
 make governance
 make minimum-green-gate
-make check-hygiene
 ```
 
 ## Direct Python Entrypoints

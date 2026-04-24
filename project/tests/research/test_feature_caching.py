@@ -75,9 +75,9 @@ def test_cache_key_tuple(tmp_path):
     load_features(data_root, run_id, "BTCUSDT", "15m", market=market)
     
     assert len(_FEATURE_CACHE) == 3
-    assert ("test_run", "BTCUSDT", "5m", "perp", ()) in _FEATURE_CACHE
-    assert ("test_run", "ETHUSDT", "5m", "perp", ()) in _FEATURE_CACHE
-    assert ("test_run", "BTCUSDT", "15m", "perp", ()) in _FEATURE_CACHE
+    assert ("test_run", "BTCUSDT", "5m", "perp", "", "", ()) in _FEATURE_CACHE
+    assert ("test_run", "ETHUSDT", "5m", "perp", "", "", ()) in _FEATURE_CACHE
+    assert ("test_run", "BTCUSDT", "15m", "perp", "", "", ()) in _FEATURE_CACHE
 
 def test_cache_key_higher_timeframes(tmp_path):
     # Verify higher_timeframes affects cache key
@@ -105,25 +105,25 @@ def test_cache_key_higher_timeframes(tmp_path):
     # 1. No higher timeframes
     load_features(data_root, run_id, symbol, timeframe, market=market)
     assert len(_FEATURE_CACHE) == 1
-    assert (run_id, symbol, timeframe, market, ()) in _FEATURE_CACHE
+    assert (run_id, symbol, timeframe, market, "", "", ()) in _FEATURE_CACHE
     
     # 2. With higher timeframes
     load_features(data_root, run_id, symbol, timeframe, market=market, higher_timeframes=["15m"])
     # Note: load_features calls itself recursively for HTFs, so they also get cached.
     # Base call: (run_id, symbol, "5m", "perp", ("15m",))
     # Recursive call: (run_id, symbol, "15m", "perp", ())
-    assert (run_id, symbol, timeframe, market, ("15m",)) in _FEATURE_CACHE
-    assert (run_id, symbol, "15m", market, ()) in _FEATURE_CACHE
+    assert (run_id, symbol, timeframe, market, "", "", ("15m",)) in _FEATURE_CACHE
+    assert (run_id, symbol, "15m", market, "", "", ()) in _FEATURE_CACHE
     
     # 3. With different higher timeframes
     load_features(data_root, run_id, symbol, timeframe, market=market, higher_timeframes=["1h"])
-    assert (run_id, symbol, timeframe, market, ("1h",)) in _FEATURE_CACHE
-    assert (run_id, symbol, "1h", market, ()) in _FEATURE_CACHE
+    assert (run_id, symbol, timeframe, market, "", "", ("1h",)) in _FEATURE_CACHE
+    assert (run_id, symbol, "1h", market, "", "", ()) in _FEATURE_CACHE
     
     # Check that unsorted lists result in same cache key (tuple is sorted in implementation)
     load_features(data_root, run_id, symbol, timeframe, market=market, higher_timeframes=["1h", "15m"])
     load_features(data_root, run_id, symbol, timeframe, market=market, higher_timeframes=["15m", "1h"])
-    assert (run_id, symbol, timeframe, market, ("15m", "1h")) in _FEATURE_CACHE
+    assert (run_id, symbol, timeframe, market, "", "", ("15m", "1h")) in _FEATURE_CACHE
     # No extra entry should be created for the second call
     
 def test_cache_inactive_if_not_testing(tmp_path, monkeypatch):
@@ -210,6 +210,74 @@ def test_load_features_reads_only_new_context_columns(tmp_path, monkeypatch):
     assert observed.loc[0, "new_context"] == 3.0
     assert requested_columns[0] is None
     assert requested_columns[1] == ["timestamp", "new_context"]
+
+
+def test_load_features_filters_requested_window(tmp_path):
+    data_root = tmp_path
+    run_id = "test_run"
+    symbol = "BTCUSDT"
+    timeframe = "5m"
+    market = "perp"
+    feature_dir = (
+        data_root
+        / "lake"
+        / "features"
+        / market
+        / symbol
+        / timeframe
+        / "features_feature_schema_v2"
+        / "year=2024"
+        / "month=01"
+    )
+    context_dir = (
+        data_root
+        / "lake"
+        / "features"
+        / market
+        / symbol
+        / timeframe
+        / "market_context"
+        / "year=2024"
+        / "month=01"
+    )
+    feature_dir.mkdir(parents=True)
+    context_dir.mkdir(parents=True)
+    timestamps = pd.to_datetime(
+        [
+            "2024-01-01 00:00:00",
+            "2024-01-02 00:00:00",
+            "2024-01-03 00:00:00",
+        ],
+        utc=True,
+    )
+    pd.DataFrame(
+        {
+            "timestamp": timestamps,
+            "close": [100.0, 101.0, 102.0],
+        }
+    ).to_parquet(feature_dir / "data.parquet")
+    pd.DataFrame(
+        {
+            "timestamp": timestamps,
+            "ms_vol_state": [0.0, 1.0, 2.0],
+        }
+    ).to_parquet(context_dir / "context.parquet")
+
+    clear_feature_cache()
+
+    observed = load_features(
+        data_root,
+        run_id,
+        symbol,
+        timeframe,
+        market=market,
+        start="2024-01-02",
+        end="2024-01-02",
+    )
+
+    assert observed["timestamp"].dt.strftime("%Y-%m-%d %H:%M:%S").tolist() == ["2024-01-02 00:00:00"]
+    assert observed["close"].tolist() == [101.0]
+    assert observed["ms_vol_state"].tolist() == [1.0]
 
 
 def test_normalize_timestamp_order_sorts_only_when_needed():

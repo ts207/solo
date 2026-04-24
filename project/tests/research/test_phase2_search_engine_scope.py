@@ -23,6 +23,7 @@ from project.research.phase2_search_engine import (
     _latest_hierarchical_stage_frame,
     _materialize_interaction_trigger_columns,
     _materialize_sequence_trigger_columns,
+    _normalize_candidate_event_timestamp_artifact,
     _normalize_phase2_candidate_artifact,
     _resolve_search_min_t_stat,
     _write_event_scoped_search_spec,
@@ -76,6 +77,71 @@ def test_normalize_phase2_candidate_artifact_preserves_empty_contract_columns() 
     assert {"candidate_id", "hypothesis_id", "event_type", "symbol", "run_id"}.issubset(
         set(out.columns)
     )
+
+
+def test_normalize_candidate_event_timestamp_artifact_merges_candidate_metadata() -> None:
+    event_timestamps = pd.DataFrame(
+        [
+            {
+                "hypothesis_id": "hyp_1",
+                "trigger_key": "VOL_SHOCK|continuation",
+                "event_timestamp": "2024-01-01T00:00:00Z",
+                "split_label": "test",
+            },
+            {
+                "hypothesis_id": "hyp_1",
+                "trigger_key": "VOL_SHOCK|continuation",
+                "event_timestamp": "2024-01-01T00:00:00Z",
+                "split_label": "test",
+            },
+            {
+                "hypothesis_id": "hyp_1",
+                "trigger_key": "VOL_SHOCK|continuation",
+                "event_timestamp": "2024-01-01T00:05:00Z",
+                "split_label": "validation",
+            },
+        ]
+    )
+    candidates = pd.DataFrame(
+        [
+            {
+                "candidate_id": "BTCUSDT::cand_1",
+                "hypothesis_id": "hyp_1",
+                "symbol": "BTCUSDT",
+                "event_type": "VOL_SHOCK",
+                "context_cell": "positive_funding",
+                "event_atom": "VOL_SHOCK",
+                "template": "continuation",
+                "direction": "long",
+                "horizon": "12b",
+            }
+        ]
+    )
+
+    out = _normalize_candidate_event_timestamp_artifact(
+        event_timestamps,
+        candidates=candidates,
+    )
+
+    assert list(out.columns) == [
+        "candidate_id",
+        "hypothesis_id",
+        "trigger_key",
+        "symbol",
+        "event_type",
+        "context_cell",
+        "event_atom",
+        "template",
+        "direction",
+        "horizon",
+        "event_timestamp",
+        "split_label",
+    ]
+    assert len(out) == 2
+    assert out["candidate_id"].tolist() == ["BTCUSDT::cand_1", "BTCUSDT::cand_1"]
+    assert out["symbol"].tolist() == ["BTCUSDT", "BTCUSDT"]
+    assert str(out["event_timestamp"].dtype) == "datetime64[ns, UTC]"
+    assert out["split_label"].tolist() == ["test", "validation"]
 
 
 def test_classify_metrics_counts_separates_min_sample_rejections() -> None:
@@ -332,6 +398,58 @@ def test_flat_search_materializes_generated_event_columns_without_reloading_feat
 
     assert rc == 0
     assert load_calls["count"] == 1
+
+
+def test_edge_cells_run_propagates_window_to_feature_preparation(
+    tmp_path: Path, monkeypatch
+) -> None:
+    features = pd.DataFrame(
+        {
+            "timestamp": pd.date_range("2024-01-01", periods=40, freq="5min", tz="UTC"),
+            "symbol": ["BTCUSDT"] * 40,
+            "close": [100.0 + idx * 0.01 for idx in range(40)],
+        }
+    )
+    observed_windows: list[tuple[str | None, str | None]] = []
+
+    def _prepare_search_features_for_symbol(**kwargs):
+        observed_windows.append((kwargs.get("start"), kwargs.get("end")))
+        return features.copy()
+
+    monkeypatch.setattr(
+        search_engine,
+        "prepare_search_features_for_symbol",
+        _prepare_search_features_for_symbol,
+    )
+    monkeypatch.setattr(search_engine, "_load_edge_cell_lineage", lambda _path: pd.DataFrame())
+    monkeypatch.setattr(
+        search_engine,
+        "generate_hypotheses_with_audit",
+        lambda *args, **kwargs: (
+            [],
+            {
+                "counts": {"generated": 0, "feasible": 0, "rejected": 0},
+                "rejection_reason_counts": {},
+            },
+        ),
+    )
+    monkeypatch.setattr(search_engine, "_load_search_spec_doc", lambda _path: {"triggers": {}})
+
+    rc = search_engine.run(
+        run_id="edge_cells_window_scope",
+        symbols="BTCUSDT",
+        data_root=tmp_path,
+        out_dir=tmp_path / "out",
+        timeframe="5m",
+        start="2024-01-01",
+        end="2024-07-01",
+        search_spec=str(tmp_path / "search_spec.yaml"),
+        discovery_mode="edge_cells",
+        lineage_path=str(tmp_path / "lineage.parquet"),
+    )
+
+    assert rc == 0
+    assert observed_windows == [("2024-01-01", "2024-07-01")]
 
 
 def test_materialize_sequence_trigger_columns_builds_expected_mask() -> None:

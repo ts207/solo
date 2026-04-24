@@ -19,6 +19,7 @@ from project.core.constants import parse_horizon_bars
 from project.core.timeframes import normalize_timeframe, timeframe_to_minutes
 from project.domain.compiled_registry import get_domain_registry
 from project.events.registry import load_registry_episode_anchors
+from project.features.assembly import filter_time_window, prune_partition_files_by_window
 from project.research.validation import assign_split_labels as _validation_assign_split_labels
 from project.research.services.phase2_diagnostics import (
     attach_prepare_events_diagnostics,
@@ -38,7 +39,7 @@ from project.research.holdout_integrity import assert_holdout_split_integrity
 log = logging.getLogger(__name__)
 
 # Cache for feature DataFrames during tests to reduce disk I/O
-_FEATURE_CACHE: Dict[Tuple[str, str, str, str, Tuple[str, ...]], pd.DataFrame] = {}
+_FEATURE_CACHE: Dict[Tuple[str, str, str, str, str, str, Tuple[str, ...]], pd.DataFrame] = {}
 
 
 def _schema_columns_for_parquet_files(files: List[Path]) -> list[str] | None:
@@ -144,6 +145,8 @@ def load_features(
     timeframe: str = "5m",
     higher_timeframes: List[str] | None = None,
     market: str = "perp",
+    start: str | None = None,
+    end: str | None = None,
 ) -> pd.DataFrame:
     """Load and merge feature partitions for a symbol/run/market."""
     tf = str(timeframe or "5m").strip().lower() or "5m"
@@ -152,7 +155,7 @@ def load_features(
     # Check cache if in test environment
     is_test = os.getenv("PYTEST_CURRENT_TEST") is not None
     htf_key = tuple(sorted(higher_timeframes)) if higher_timeframes else ()
-    cache_key = (run_id, symbol, tf, mkt, htf_key)
+    cache_key = (run_id, symbol, tf, mkt, str(start or ""), str(end or ""), htf_key)
     if is_test and cache_key in _FEATURE_CACHE:
         return _FEATURE_CACHE[cache_key].copy()
 
@@ -164,14 +167,14 @@ def load_features(
     features_dir = choose_partition_dir(candidates)
     if not features_dir:
         return pd.DataFrame()
-    files = list_parquet_files(features_dir)
+    files = prune_partition_files_by_window(list_parquet_files(features_dir), start=start, end=end)
     if not files:
         return pd.DataFrame()
     df = read_parquet(files)
     if df.empty or "timestamp" not in df.columns:
         return pd.DataFrame()
 
-    out = _normalize_timestamp_order(df)
+    out = filter_time_window(_normalize_timestamp_order(df), start=start, end=end)
     if out.empty:
         return pd.DataFrame()
 
@@ -182,11 +185,11 @@ def load_features(
     ]
     ms_dir = choose_partition_dir(ms_candidates)
     if ms_dir:
-        ms_files = list_parquet_files(ms_dir)
+        ms_files = prune_partition_files_by_window(list_parquet_files(ms_dir), start=start, end=end)
         if ms_files:
             ms_df = _read_new_context_columns(ms_files, set(out.columns))
             if not ms_df.empty and "timestamp" in ms_df.columns:
-                ms_df = _normalize_timestamp_order(ms_df)
+                ms_df = filter_time_window(_normalize_timestamp_order(ms_df), start=start, end=end)
                 # Filter to only new columns
                 new_cols = [c for c in ms_df.columns if c not in out.columns or c == "timestamp"]
                 out = pd.merge_asof(
@@ -203,11 +206,19 @@ def load_features(
     ]
     micro_dir = choose_partition_dir(micro_candidates)
     if micro_dir:
-        micro_files = list_parquet_files(micro_dir)
+        micro_files = prune_partition_files_by_window(
+            list_parquet_files(micro_dir),
+            start=start,
+            end=end,
+        )
         if micro_files:
             micro_df = _read_new_context_columns(micro_files, set(out.columns))
             if not micro_df.empty and "timestamp" in micro_df.columns:
-                micro_df = _normalize_timestamp_order(micro_df)
+                micro_df = filter_time_window(
+                    _normalize_timestamp_order(micro_df),
+                    start=start,
+                    end=end,
+                )
                 # Filter to only new columns
                 new_cols = [c for c in micro_df.columns if c not in out.columns or c == "timestamp"]
                 out = pd.merge_asof(
@@ -221,7 +232,15 @@ def load_features(
         for htf in higher_timeframes:
             if htf == tf:
                 continue
-            htf_df = load_features(data_root, run_id, symbol, timeframe=htf, market=mkt)
+            htf_df = load_features(
+                data_root,
+                run_id,
+                symbol,
+                timeframe=htf,
+                market=mkt,
+                start=start,
+                end=end,
+            )
             if htf_df.empty:
                 continue
 

@@ -167,8 +167,13 @@ def load_registry(spec_dir: str | Path = "spec/discovery") -> DiscoveryRegistry:
     ranking_payload = dict(ranking_doc.get("ranking_policy", {}) or {})
     policy = RankingPolicy(
         min_support=int(ranking_payload.get("min_support", 30)),
+        min_forward_valid_folds=int(ranking_payload.get("min_forward_valid_folds", 3)),
+        min_forward_support=int(ranking_payload.get("min_forward_support", 30)),
+        min_forward_support_fraction=float(
+            ranking_payload.get("min_forward_support_fraction", 0.10)
+        ),
         min_forward_net_mean_bps=float(ranking_payload.get("min_forward_net_mean_bps", 0.0)),
-        min_contrast_lift_bps=float(ranking_payload.get("min_contrast_lift_bps", 0.0)),
+        min_contrast_lift_bps=float(ranking_payload.get("min_contrast_lift_bps", 5.0)),
         max_search_hypotheses=int(ranking_payload.get("max_search_hypotheses", 1000)),
         forward_weight=float(ranking_payload.get("forward_weight", 0.40)),
         expectancy_weight=float(ranking_payload.get("expectancy_weight", 0.25)),
@@ -178,6 +183,12 @@ def load_registry(spec_dir: str | Path = "spec/discovery") -> DiscoveryRegistry:
     )
     if policy.min_support < 1:
         raise ValueError("ranking_policy.min_support must be >= 1")
+    if policy.min_forward_valid_folds < 1:
+        raise ValueError("ranking_policy.min_forward_valid_folds must be >= 1")
+    if policy.min_forward_support < 1:
+        raise ValueError("ranking_policy.min_forward_support must be >= 1")
+    if policy.min_forward_support_fraction < 0:
+        raise ValueError("ranking_policy.min_forward_support_fraction must be >= 0")
     return DiscoveryRegistry(
         event_atoms=tuple(event_atoms),
         context_cells=tuple(context_cells),

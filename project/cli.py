@@ -12,6 +12,7 @@ import yaml
 from project import PROJECT_ROOT
 
 DEFAULT_REGISTRY_ROOT = Path("project/configs/registries")
+DEFAULT_CONFIG_OUTPUT_DIR = PROJECT_ROOT / "configs"
 
 
 def _path_or_none(value: str | None) -> Path | None:
@@ -36,15 +37,19 @@ def _emit_json(payload: Any) -> None:
 def _run_discover(args: argparse.Namespace) -> int:
     from project import discover
 
-    result = discover.run(
-        args.proposal,
-        registry_root=Path(args.registry_root),
-        data_root=_path_or_none(args.data_root),
-        run_id=args.run_id,
-        plan_only=args.discover_action == "plan",
-        dry_run=args.dry_run,
-        check=args.check,
-    )
+    kwargs: dict[str, Any] = {
+        "registry_root": Path(args.registry_root),
+        "data_root": _path_or_none(args.data_root),
+        "run_id": args.run_id,
+        "plan_only": args.discover_action == "plan",
+        "dry_run": args.dry_run,
+        "check": args.check,
+    }
+    promotion_profile = str(getattr(args, "promotion_profile", "") or "").strip().lower()
+    if promotion_profile:
+        kwargs["promotion_profile"] = promotion_profile
+
+    result = discover.run(args.proposal, **kwargs)
     if isinstance(result, dict):
         _emit_json(result)
     return _result_exit_code(result)
@@ -53,7 +58,15 @@ def _run_discover(args: argparse.Namespace) -> int:
 def _run_discover_list_artifacts(args: argparse.Namespace) -> int:
     from project.artifacts.discovery import discover_run_artifacts
 
-    _emit_json(discover_run_artifacts(run_id=args.run_id, data_root=_path_or_none(args.data_root)))
+    payload = discover_run_artifacts(run_id=args.run_id, data_root=_path_or_none(args.data_root))
+    artifact_paths = payload.get("artifact_paths", [])
+    if not isinstance(artifact_paths, list) or not artifact_paths:
+        print(f"No discovery artifacts found for run {args.run_id}")
+        return 0
+
+    print(f"Artifacts for discovery run {args.run_id}:")
+    for path in artifact_paths:
+        print(str(path))
     return 0
 
 
@@ -63,6 +76,26 @@ def _run_discover_cells(args: argparse.Namespace) -> int:
     result = run_from_namespace(args)
     _emit_json(result)
     return int(result.get("exit_code", 0))
+
+
+def _run_discover_summarize(args: argparse.Namespace) -> int:
+    from project.discover.reporting import build_discover_summary, format_discover_summary_text
+
+    payload = build_discover_summary(
+        run_id=args.run_id,
+        data_root=_path_or_none(args.data_root),
+        top_k=int(args.top_k),
+    )
+    sys.stdout.write(format_discover_summary_text(payload))
+    return 0
+
+
+def _run_discover_explain_empty(args: argparse.Namespace) -> int:
+    from project.discover.reporting import explain_empty_discovery, format_explain_empty_text
+
+    payload = explain_empty_discovery(run_id=args.run_id, data_root=_path_or_none(args.data_root))
+    sys.stdout.write(format_explain_empty_text(payload))
+    return 0
 
 
 def _run_trigger_parameter_sweep(args: argparse.Namespace) -> int:
@@ -103,6 +136,61 @@ def _run_emit_registry_payload(args: argparse.Namespace) -> int:
     }
     out_path.write_text(json.dumps(payload, indent=2, sort_keys=True), encoding="utf-8")
     _emit_json(payload)
+    return 0
+
+
+def _run_proposal_inspect(args: argparse.Namespace) -> int:
+    from project.research.agent_io.proposal_schema import load_normalized_operator_proposal
+    from project.research.knowledge.memory import memory_paths
+
+    proposal_path = Path(args.proposal)
+    payload = load_normalized_operator_proposal(proposal_path).to_dict()
+
+    program_id = str(payload.get("program_id", "") or "").strip()
+    symbols = payload.get("symbols", [])
+    timeframe = str(payload.get("timeframe", "") or "")
+    start = str(payload.get("start", "") or "")
+    end = str(payload.get("end", "") or "")
+    promotion_profile = str(payload.get("promotion_profile", "") or payload.get("promotion_mode", "") or "")
+    search_spec = payload.get("search_spec")
+    hypothesis = payload.get("hypothesis", {}) if isinstance(payload.get("hypothesis"), dict) else {}
+    anchor = hypothesis.get("anchor", {}) if isinstance(hypothesis.get("anchor"), dict) else {}
+    template = hypothesis.get("template", {}) if isinstance(hypothesis.get("template"), dict) else {}
+
+    resolved_root = _path_or_none(args.data_root) or (PROJECT_ROOT.parent / "data")
+    phase2_dir = resolved_root / "reports" / "phase2" / str(args.run_id or "<run_id>")
+    proposal_memory_dir = (
+        memory_paths(program_id, data_root=resolved_root).proposals_dir / str(args.run_id or "<run_id>")
+        if program_id
+        else None
+    )
+
+    lines: list[str] = []
+    lines.append(f"Proposal: {proposal_path}")
+    if program_id:
+        lines.append(f"program_id: {program_id}")
+    lines.append(f"symbols: {symbols}")
+    lines.append(f"timeframe: {timeframe}")
+    lines.append(f"date_range: {start} -> {end}")
+    if promotion_profile:
+        lines.append(f"promotion_profile: {promotion_profile}")
+    if isinstance(search_spec, str) and search_spec:
+        lines.append(f"search_spec: {search_spec}")
+    elif isinstance(search_spec, dict):
+        lines.append(f"search_spec: {search_spec}")
+    lines.append(f"anchor: {anchor}")
+    lines.append(f"template: {template}")
+    if "direction" in hypothesis:
+        lines.append(f"direction: {hypothesis.get('direction')}")
+    if "horizon_bars" in hypothesis:
+        lines.append(f"horizon_bars: {hypothesis.get('horizon_bars')}")
+
+    lines.append("expected_outputs:")
+    lines.append(f"  - phase2_dir: {phase2_dir}")
+    if proposal_memory_dir is not None:
+        lines.append(f"  - proposal_memory_dir: {proposal_memory_dir}")
+
+    sys.stdout.write("\n".join(lines) + "\n")
     return 0
 
 
@@ -182,32 +270,60 @@ def _run_deploy_inspect(args: argparse.Namespace) -> int:
 
 def _run_deploy_bind_config(args: argparse.Namespace) -> int:
     data_root = _path_or_none(args.data_root) or PROJECT_ROOT.parent / "data"
-    thesis_path = _path_or_none(args.thesis_path) or _thesis_path_for_run(
+    thesis_path_override = _path_or_none(args.thesis_path)
+    thesis_path = thesis_path_override or _thesis_path_for_run(
         data_root=data_root,
         run_id=args.run_id,
     )
+    if not thesis_path.exists():
+        raise FileNotFoundError(f"thesis artifact not found: {thesis_path}")
+
     out_dir = Path(args.out_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
-    out_path = out_dir / f"live_paper_{args.run_id}.yaml"
-    payload = {
-        "runtime_mode": args.runtime_mode,
-        "strategy_runtime": {
-            "implemented": True,
-            "thesis_run_id": args.run_id,
-            "thesis_path": str(thesis_path),
-            "event_detector": {
-                "adapter": "governed_runtime_core",
-                "legacy_heuristic_enabled": False,
-            },
+    runtime_mode = str(args.runtime_mode).strip().lower() or "monitor_only"
+    mode_label = str(args.profile or "").strip().lower() or (
+        "paper"
+        if runtime_mode == "simulation"
+        else "live"
+        if runtime_mode == "trading"
+        else "paper"
+    )
+    filename = (
+        f"live_{mode_label}_{args.run_id}.yaml"
+        if args.config_template == "run_id"
+        else f"live_{mode_label}.yaml"
+    )
+    out_path = out_dir / filename
+
+    strategy_runtime = {
+        "implemented": True,
+        "event_detector": {
+            "adapter": "governed_runtime_core",
+            "legacy_heuristic_enabled": False,
         },
+    }
+    if thesis_path_override is not None:
+        strategy_runtime["thesis_path"] = str(thesis_path)
+    else:
+        strategy_runtime["thesis_run_id"] = args.run_id
+
+    payload = {
+        "runtime_mode": runtime_mode,
+        "strategy_runtime": strategy_runtime,
         "freshness_streams": [
-            {"symbol": symbol.strip().lower()}
+            {"symbol": symbol.strip().lower(), "stream": "kline_5m"}
             for symbol in args.symbols.split(",")
             if symbol.strip()
         ],
     }
     out_path.write_text(yaml.safe_dump(payload, sort_keys=False), encoding="utf-8")
-    _emit_json({"config_path": str(out_path), "thesis_path": str(thesis_path)})
+    _emit_json(
+        {
+            "config_path": str(out_path),
+            "thesis_path": str(thesis_path),
+            "thesis_source": "thesis_path" if thesis_path_override is not None else "thesis_run_id",
+        }
+    )
     return 0
 
 
@@ -262,6 +378,11 @@ def build_parser() -> argparse.ArgumentParser:
         stage.add_argument("--registry_root", default=str(DEFAULT_REGISTRY_ROOT))
         stage.add_argument("--data_root")
         stage.add_argument("--run_id")
+        stage.add_argument(
+            "--promotion_profile",
+            default="",
+            help="Optional override for proposal promotion_profile (research|deploy|disabled).",
+        )
         stage.add_argument("--dry_run", action="store_true")
         stage.add_argument("--check", action="store_true")
         stage.set_defaults(func=_run_discover, discover_action=action)
@@ -269,6 +390,15 @@ def build_parser() -> argparse.ArgumentParser:
     list_artifacts.add_argument("--run_id", required=True)
     list_artifacts.add_argument("--data_root")
     list_artifacts.set_defaults(func=_run_discover_list_artifacts)
+    summarize = discover_sub.add_parser("summarize")
+    summarize.add_argument("--run_id", required=True)
+    summarize.add_argument("--data_root")
+    summarize.add_argument("--top_k", type=int, default=10)
+    summarize.set_defaults(func=_run_discover_summarize)
+    explain_empty = discover_sub.add_parser("explain-empty")
+    explain_empty.add_argument("--run_id", required=True)
+    explain_empty.add_argument("--data_root")
+    explain_empty.set_defaults(func=_run_discover_explain_empty)
 
     cells = discover_sub.add_parser("cells", help="cell-first discovery lane")
     cells_sub = cells.add_subparsers(dest="cells_action")
@@ -339,8 +469,14 @@ def build_parser() -> argparse.ArgumentParser:
     bind_config.add_argument("--run_id", required=True)
     bind_config.add_argument("--data_root")
     bind_config.add_argument("--thesis_path")
-    bind_config.add_argument("--out_dir", required=True)
+    bind_config.add_argument("--out_dir", default=str(DEFAULT_CONFIG_OUTPUT_DIR))
     bind_config.add_argument("--runtime_mode", default="monitor_only")
+    bind_config.add_argument("--profile", choices=["paper", "monitor", "production"], default=None)
+    bind_config.add_argument(
+        "--config_template",
+        choices=["run_id", "profile"],
+        default="run_id",
+    )
     bind_config.add_argument("--symbols", default="BTCUSDT,ETHUSDT")
     bind_config.set_defaults(func=_run_deploy_bind_config)
     list_theses = deploy_sub.add_parser("list-theses")
@@ -367,6 +503,14 @@ def build_parser() -> argparse.ArgumentParser:
     status.add_argument("--config")
     status.add_argument("--data_root")
     status.set_defaults(func=_run_deploy_status)
+
+    proposal = sub.add_parser("proposal", help="inspect and sanity-check a proposal before running it")
+    proposal_sub = proposal.add_subparsers(dest="proposal_action")
+    inspect = proposal_sub.add_parser("inspect")
+    inspect.add_argument("--proposal", required=True)
+    inspect.add_argument("--run_id", default="")
+    inspect.add_argument("--data_root")
+    inspect.set_defaults(func=_run_proposal_inspect)
 
     return parser
 
