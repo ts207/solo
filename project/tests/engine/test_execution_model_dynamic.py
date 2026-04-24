@@ -1,7 +1,7 @@
 import pandas as pd
 import pytest
 
-from project.engine.execution_model import estimate_transaction_cost_bps
+from project.core.execution_costs import estimate_transaction_cost_bps
 
 
 def test_dynamic_cost_model_basic():

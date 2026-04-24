@@ -10,6 +10,10 @@ from project.core.coercion import as_bool
 from project.research.promotion.promotion_reporting_support import (
     _quiet_float,
     _quiet_int,
+    apply_portfolio_overlap_gate,
+    assign_and_validate_promotion_tiers,
+    build_promotion_capital_footprint,
+    portfolio_diversification_violations,
     resolve_promotion_tier,
 )
 from project.research.utils.decision_safety import bool_gate

@@ -1,0 +1,56 @@
+version: edge_cells_v2
+event_atoms:
+  - id: sweep_stoprun_stress
+    event_family: liquidity
+    event_type: SWEEP_STOPRUN
+    directions: [long, short]
+    templates: [mean_reversion, continuation]
+    horizons: [12b, 24b, 48b]
+    required_feature_keys: [close, high, low]
+    thesis_eligible: true
+    research_only: false
+  - id: depth_collapse_stress
+    event_family: liquidity
+    event_type: DEPTH_COLLAPSE
+    directions: [long, short]
+    templates: [mean_reversion, continuation]
+    horizons: [12b, 24b, 48b]
+    required_feature_keys: [spread_zscore, rv_96]
+    thesis_eligible: true
+    research_only: false
+  - id: spread_blowout_stress
+    event_family: liquidity
+    event_type: SPREAD_BLOWOUT
+    directions: [long, short]
+    templates: [mean_reversion, continuation]
+    horizons: [12b, 24b, 48b]
+    required_feature_keys: [spread_zscore]
+    thesis_eligible: true
+    research_only: false
+  - id: liquidity_shock_stress
+    event_family: liquidity
+    event_type: LIQUIDITY_SHOCK
+    directions: [long, short]
+    templates: [mean_reversion, continuation]
+    horizons: [12b, 24b, 48b]
+    required_feature_keys: [close, high, low]
+    thesis_eligible: true
+    research_only: false
+  - id: liquidity_gap_print_stress
+    event_family: liquidity
+    event_type: LIQUIDITY_GAP_PRINT
+    directions: [long, short]
+    templates: [mean_reversion, continuation]
+    horizons: [12b, 24b, 48b]
+    required_feature_keys: [close]
+    thesis_eligible: true
+    research_only: false
+  - id: orderflow_imbalance_shock_stress
+    event_family: liquidity
+    event_type: ORDERFLOW_IMBALANCE_SHOCK
+    directions: [long, short]
+    templates: [mean_reversion, continuation]
+    horizons: [12b, 24b, 48b]
+    required_feature_keys: [close, rv_96]
+    thesis_eligible: true
+    research_only: false

@@ -1,0 +1,38 @@
+version: edge_cells_v2
+event_atoms:
+  - id: range_breakout_trend
+    event_family: trend_continuation
+    event_type: RANGE_BREAKOUT
+    directions: [long, short]
+    templates: [breakout_followthrough, trend_continuation, continuation]
+    horizons: [12b, 24b, 48b]
+    required_feature_keys: [close]
+    thesis_eligible: true
+    research_only: false
+  - id: pullback_pivot_trend
+    event_family: trend_continuation
+    event_type: PULLBACK_PIVOT
+    directions: [long, short]
+    templates: [pullback_entry, trend_continuation, continuation]
+    horizons: [12b, 24b, 48b]
+    required_feature_keys: [close]
+    thesis_eligible: true
+    research_only: false
+  - id: trend_acceleration_trend
+    event_family: trend_continuation
+    event_type: TREND_ACCELERATION
+    directions: [long, short]
+    templates: [breakout_followthrough, trend_continuation, continuation]
+    horizons: [12b, 24b, 48b]
+    required_feature_keys: [close]
+    thesis_eligible: true
+    research_only: false
+  - id: support_resistance_break_trend
+    event_family: trend_continuation
+    event_type: SUPPORT_RESISTANCE_BREAK
+    directions: [long, short]
+    templates: [breakout_followthrough, trend_continuation, continuation]
+    horizons: [12b, 24b, 48b]
+    required_feature_keys: [close]
+    thesis_eligible: true
+    research_only: false

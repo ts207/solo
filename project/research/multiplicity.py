@@ -11,8 +11,7 @@ from typing import Any, List, Optional
 import numpy as np
 import pandas as pd
 
-from project.core.stats import canonical_bh_group_key
-from project.research.gating import bh_adjust
+from project.core.stats import bh_adjust, canonical_bh_group_key
 from project.specs.ontology import state_id_to_context_column
 
 log = logging.getLogger(__name__)

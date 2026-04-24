@@ -1,0 +1,38 @@
+version: edge_cells_v2
+event_atoms:
+  - id: failed_continuation_runtime
+    event_family: trend_failure
+    event_type: FAILED_CONTINUATION
+    directions: [long, short]
+    templates: [exhaustion_reversal, momentum_fade, range_reversion]
+    horizons: [12b, 24b, 48b]
+    required_feature_keys: [close, high, low]
+    thesis_eligible: true
+    research_only: false
+  - id: false_breakout_runtime
+    event_family: trend_failure
+    event_type: FALSE_BREAKOUT
+    directions: [long, short]
+    templates: [false_breakout_reversal, trend_continuation, continuation]
+    horizons: [12b, 24b, 48b]
+    required_feature_keys: [close]
+    thesis_eligible: true
+    research_only: false
+  - id: momentum_divergence_runtime
+    event_family: trend_failure
+    event_type: MOMENTUM_DIVERGENCE_TRIGGER
+    directions: [long, short]
+    templates: [exhaustion_reversal, momentum_fade, range_reversion]
+    horizons: [12b, 24b, 48b]
+    required_feature_keys: [close]
+    thesis_eligible: true
+    research_only: false
+  - id: climax_volume_bar_runtime
+    event_family: trend_failure
+    event_type: CLIMAX_VOLUME_BAR
+    directions: [long, short]
+    templates: [exhaustion_reversal, momentum_fade, range_reversion]
+    horizons: [12b, 24b, 48b]
+    required_feature_keys: [close, high, low, volume]
+    thesis_eligible: true
+    research_only: false

@@ -1,0 +1,32 @@
+version: edge_cells_v2
+metadata:
+  surface_role: alpha_search
+  notes: Desynchronization and basis/lead-lag repair events split from broader basis and guard surfaces.
+event_atoms:
+  - id: cross_venue_desync_repair
+    event_family: desync
+    event_type: CROSS_VENUE_DESYNC
+    directions: [long, short]
+    templates: [desync_repair, convergence, lead_lag_follow, divergence_continuation]
+    horizons: [12b, 24b, 48b]
+    required_feature_keys: [close]
+    thesis_eligible: true
+    research_only: false
+  - id: spot_perp_basis_shock_desync
+    event_family: desync
+    event_type: SPOT_PERP_BASIS_SHOCK
+    directions: [long, short]
+    templates: [desync_repair, convergence, basis_repair, lead_lag_follow]
+    horizons: [12b, 24b, 48b]
+    required_feature_keys: [close]
+    thesis_eligible: true
+    research_only: false
+  - id: lead_lag_break_desync
+    event_family: desync
+    event_type: LEAD_LAG_BREAK
+    directions: [long, short]
+    templates: [desync_repair, lead_lag_follow, divergence_continuation]
+    horizons: [12b, 24b, 48b]
+    required_feature_keys: [close]
+    thesis_eligible: true
+    research_only: false

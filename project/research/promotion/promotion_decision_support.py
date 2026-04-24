@@ -6,7 +6,13 @@ from typing import Any, Dict
 import numpy as np
 
 from project.research.promotion.promotion_gate_evaluators import (
+    _evaluate_continuation_quality,
+    _evaluate_control_audit_and_dsr,
+    _evaluate_deploy_oos_and_low_capital,
+    _evaluate_market_execution_and_stability,
     _quiet_float,
+    _quiet_int,
+    evaluate_sensitivity_gate,
 )
 from project.research.utils.decision_safety import bool_gate
 

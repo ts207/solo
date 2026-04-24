@@ -21,6 +21,24 @@ def test_ms_trend_routes_to_runtime():
     assert source == "runtime"
 
 
+def test_ms_trend_label_routes_to_runtime():
+    cond, source = condition_routing("ms_trend_state_bearish")
+    assert cond == "ms_trend_state_2.0"
+    assert source == "runtime"
+
+
+def test_ms_spread_label_routes_to_runtime():
+    cond, source = condition_routing("ms_spread_state_wide")
+    assert cond == "ms_spread_state_1.0"
+    assert source == "runtime"
+
+
+def test_carry_state_label_routes_to_runtime():
+    cond, source = condition_routing("carry_state_funding_pos")
+    assert cond == "carry_pos"
+    assert source == "runtime"
+
+
 def test_severity_bucket_routes_to_all():
     cond, source = condition_routing("severity_bucket_top_20pct")
     assert cond == "all"

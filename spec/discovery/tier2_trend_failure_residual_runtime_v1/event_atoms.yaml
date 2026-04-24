@@ -1,0 +1,29 @@
+version: edge_cells_v2
+event_atoms:
+  - id: forced_flow_exhaustion_residual
+    event_family: trend_failure
+    event_type: FORCED_FLOW_EXHAUSTION
+    directions: [long, short]
+    templates: [mean_reversion, exhaustion_reversal, momentum_fade]
+    horizons: [12b, 24b, 48b]
+    required_feature_keys: [close, oi_delta_1h, liquidation_notional]
+    thesis_eligible: true
+    research_only: false
+  - id: flow_exhaustion_proxy_residual
+    event_family: trend_failure
+    event_type: FLOW_EXHAUSTION_PROXY
+    directions: [long, short]
+    templates: [mean_reversion, exhaustion_reversal, momentum_fade]
+    horizons: [12b, 24b, 48b]
+    required_feature_keys: [close, rv_96]
+    thesis_eligible: true
+    research_only: false
+  - id: trend_deceleration_residual
+    event_family: trend_failure
+    event_type: TREND_DECELERATION
+    directions: [long, short]
+    templates: [false_breakout_reversal, trend_continuation, continuation]
+    horizons: [12b, 24b, 48b]
+    required_feature_keys: [close]
+    thesis_eligible: true
+    research_only: false

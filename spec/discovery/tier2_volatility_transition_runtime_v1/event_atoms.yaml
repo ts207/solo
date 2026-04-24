@@ -1,0 +1,29 @@
+version: edge_cells_v2
+event_atoms:
+  - id: vol_cluster_shift_transition
+    event_family: volatility_transition
+    event_type: VOL_CLUSTER_SHIFT
+    directions: [long, short]
+    templates: [mean_reversion, continuation, volatility_expansion_follow]
+    horizons: [12b, 24b, 48b]
+    required_feature_keys: [rv_96]
+    thesis_eligible: true
+    research_only: false
+  - id: range_compression_end_transition
+    event_family: volatility_transition
+    event_type: RANGE_COMPRESSION_END
+    directions: [long, short]
+    templates: [continuation, trend_continuation, volatility_expansion_follow]
+    horizons: [12b, 24b, 48b]
+    required_feature_keys: [rv_96]
+    thesis_eligible: true
+    research_only: false
+  - id: breakout_trigger_transition
+    event_family: volatility_transition
+    event_type: BREAKOUT_TRIGGER
+    directions: [long, short]
+    templates: [continuation, trend_continuation, volatility_expansion_follow]
+    horizons: [12b, 24b, 48b]
+    required_feature_keys: [rv_96]
+    thesis_eligible: true
+    research_only: false

@@ -1,0 +1,47 @@
+version: edge_cells_v2
+event_atoms:
+  - id: funding_flip_basis_runtime
+    event_family: basis_funding
+    event_type: FUNDING_FLIP
+    directions: [long, short]
+    templates: [mean_reversion, reversal_or_squeeze, continuation]
+    horizons: [12b, 24b, 48b]
+    required_feature_keys: [funding_rate_bps]
+    thesis_eligible: true
+    research_only: false
+  - id: fnd_disloc_basis_runtime
+    event_family: basis_funding
+    event_type: FND_DISLOC
+    directions: [long, short]
+    templates: [mean_reversion, overshoot_repair, tail_risk_avoid]
+    horizons: [12b, 24b, 48b]
+    required_feature_keys: [funding_rate_bps]
+    thesis_eligible: true
+    research_only: false
+  - id: basis_disloc_runtime
+    event_family: basis_funding
+    event_type: BASIS_DISLOC
+    directions: [long, short]
+    templates: [mean_reversion, overshoot_repair, tail_risk_avoid]
+    horizons: [12b, 24b, 48b]
+    required_feature_keys: [close]
+    thesis_eligible: true
+    research_only: false
+  - id: spot_perp_basis_shock_runtime
+    event_family: basis_funding
+    event_type: SPOT_PERP_BASIS_SHOCK
+    directions: [long, short]
+    templates: [desync_repair, convergence, basis_repair]
+    horizons: [12b, 24b, 48b]
+    required_feature_keys: [close]
+    thesis_eligible: true
+    research_only: false
+  - id: cross_venue_desync_basis_runtime
+    event_family: basis_funding
+    event_type: CROSS_VENUE_DESYNC
+    directions: [long, short]
+    templates: [desync_repair, convergence, basis_repair]
+    horizons: [12b, 24b, 48b]
+    required_feature_keys: [close]
+    thesis_eligible: true
+    research_only: false

@@ -17,7 +17,7 @@ except ModuleNotFoundError:
     from project.core.stats import stats
 
 from project.core.constants import parse_horizon_bars
-from project.core.stats import newey_west_t_stat_for_mean
+from project.core.stats import bh_adjust, newey_west_t_stat_for_mean
 from project.core.validation import ts_ns_utc
 from project.research.direction_semantics import resolve_effect_sign
 from project.research.helpers.shrinkage import (

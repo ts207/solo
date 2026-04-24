@@ -18,6 +18,20 @@ _RULE_TEMPLATE_NAMES = (
     "exhaustion_fade",
 )
 
+_CONDITION_ALIASES = {
+    "carry_state_funding_pos": "carry_pos",
+    "carry_state_funding_neg": "carry_neg",
+    "ms_spread_state_wide": "ms_spread_state_1.0",
+    "ms_spread_state_compressed": "ms_spread_state_0.0",
+    "ms_trend_state_bullish": "ms_trend_state_1.0",
+    "ms_trend_state_bearish": "ms_trend_state_2.0",
+    "ms_trend_state_chop": "ms_trend_state_0.0",
+}
+
+
+def _runtime_alias(cond_name: str) -> str:
+    return _CONDITION_ALIASES.get(str(cond_name or "").strip().lower(), cond_name)
+
 
 def condition_for_cond_name(
     cond_name: str,
@@ -25,7 +39,7 @@ def condition_for_cond_name(
     run_symbols=None,
     strict: bool = True,
 ) -> str:
-    name = str(cond_name or "").strip()
+    name = _runtime_alias(str(cond_name or "").strip())
     if not name or name == "all":
         return "all"
 
@@ -46,7 +60,7 @@ def condition_routing(
     run_symbols=None,
     strict: bool = True,
 ) -> Tuple[str, str]:
-    name = str(cond_name or "").strip()
+    name = _runtime_alias(str(cond_name or "").strip())
     if not name or name == "all":
         return "all", "unconditional"
 
