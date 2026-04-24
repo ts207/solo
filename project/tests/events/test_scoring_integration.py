@@ -1,4 +1,5 @@
-from project.events import score_event_frame, arbitrate_events, EventScoreColumns
+from project.events import score_event_frame, EventScoreColumns
+from project.events.arbitration import arbitrate_events
 
 
 def test_score_and_arbitrate_importable():
