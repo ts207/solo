@@ -643,7 +643,11 @@ def build_event_contract(event_type: str) -> dict[str, Any]:
 @lru_cache(maxsize=1)
 def load_active_event_contracts() -> dict[str, dict[str, Any]]:
     registry = get_domain_registry()
-    return {event_type: build_event_contract(event_type) for event_type in registry.event_ids}
+    return {
+        event_type: build_event_contract(event_type)
+        for event_type in registry.event_ids
+        if (spec := registry.get_event(event_type)) is not None and spec.enabled
+    }
 
 
 def load_research_motif_specs() -> dict[str, dict[str, Any]]:

@@ -237,6 +237,15 @@ def _run_promote_export(args: argparse.Namespace) -> int:
 
 
 def _run_deploy_export(args: argparse.Namespace) -> int:
+    data_root = _path_or_none(args.data_root) or PROJECT_ROOT.parent / "data"
+    thesis_path = _thesis_path_for_run(data_root=data_root, run_id=args.run_id)
+    if not thesis_path.exists():
+        phase2_dir = data_root / "reports" / "phase2" / args.run_id
+        if phase2_dir.exists():
+            _emit_json({"status": "error", "message": "Deploy stage requires a completed 'promote' stage"})
+        else:
+            _emit_json({"status": "error", "message": f"Error: No promoted thesis found for run {args.run_id}"})
+        return 1
     return _run_promote_export(args)
 
 
@@ -434,7 +443,13 @@ def build_parser() -> argparse.ArgumentParser:
 
     triggers = discover_sub.add_parser(
         "triggers",
-        help="experimental proposal-generation lanes; adapter-only, not canonical discovery",
+        help="advanced/internal research trigger discovery lanes; adapter-only, not canonical discovery",
+        description=(
+            "Advanced/Internal trigger discovery lanes for proposal-generating research. "
+            "These subcommands operate in an internal research lane. "
+            "No runtime effect — outputs are candidate proposals only. "
+            "Manual review required before promoting any trigger discovery output."
+        ),
     )
     trigger_sub = triggers.add_subparsers(dest="trigger_action")
     parameter_sweep = trigger_sub.add_parser("parameter-sweep")

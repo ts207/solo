@@ -1,48 +1,31 @@
 kind: event_compatibility
 version: 1
 
-# suppression_rules: when when_active event/state is present in the bar window,
-# templates in block_templates are hard-blocked and suppress entries are penalized
-# or hard-blocked.
+# suppression_rules: when when_active event is present in the bar window,
+# events in suppress list are penalized (penalty_factor) or hard-blocked (block: true).
 suppression_rules:
-  - when_active: DATA_STALE_STATE
-    block_all_trade_templates: true
-    reason: no signal without point-in-time required data
-
   - when_active: SPREAD_BLOWOUT
-    block_templates:
-      - basis_convergence
-      - mean_reversion
-      - generic_continuation
+    suppress: []
+    penalty_factor: 1.0
     block: true
     reason: spread too wide for reliable entry
 
-  - when_active: LIQUIDITY_ABSENCE_STATE
-    block_templates:
-      - carry_continuation_confirmed
-      - basis_convergence
-    allow_only:
-      - tail_risk_avoid
-    reason: no executable market
-
   - when_active: LIQUIDITY_VACUUM
     suppress:
-      - generic_continuation
-      - unconditioned_mean_reversion
+      - DEPTH_COLLAPSE
     penalty_factor: 0.25
+    block: false
     reason: thin-book noise; require refill confirmation
 
-  - when_active: CASCADE_REACCELERATION_STATE
-    block_templates:
-      - forced_flow_rebound
-      - liquidity_refill_repair
+  - when_active: LIQUIDATION_CASCADE
+    suppress: []
+    penalty_factor: 1.0
     block: true
     reason: reversal setup invalidated by renewed forced flow
 
-  - when_active: PRE_NEWS_STATE
-    block_templates:
-      - statistical_mean_reversion
-      - funding_reset_reversion
+  - when_active: SCHEDULED_NEWS_WINDOW_EVENT
+    suppress: []
+    penalty_factor: 1.0
     block: true
     reason: scheduled information window invalidates mechanical fades
 
@@ -53,7 +36,7 @@ composite_events:
     required:
       - LIQUIDATION_CASCADE
       - OI_FLUSH
-      - POST_CASCADE_REBOUND_CONFIRM
+      - POST_DELEVERAGING_REBOUND
     states_required:
       - LIQUIDATION_COOLDOWN_STATE
       - LIQUIDITY_REFILL_STATE
@@ -100,7 +83,7 @@ composite_events:
   - name: LIQUIDITY_REPAIR_SETUP
     required:
       - LIQUIDITY_VACUUM
-      - DEPTH_RECOVERY_CONFIRM
+      - SEQ_LIQ_VACUUM_THEN_DEPTH_RECOVERY
     states_required:
       - liquidity_phase: refill
     forbidden_states:

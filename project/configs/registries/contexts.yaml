@@ -1,27 +1,148 @@
 version: 1
-
+kind: context_registry
+metadata:
+  status: generated
+  authored_sources:
+  - spec/states/*.yaml
+  - spec/contexts/context_dimension_registry.yaml
+  generated_notice: GENERATED FILE - DO NOT EDIT
 context_dimensions:
-  vol_regime:
-    allowed_values: [low, high]
+  basis_phase:
+    allowed_values:
+    - neutral
+    - positive_dislocation
+    - negative_dislocation
+    - widening
+    - converging
+    - normalized
   carry_state:
-    allowed_values: [funding_pos, funding_neg]
+    allowed_values:
+    - funding_neg
+    - funding_pos
+    mapping:
+      funding_neg: FUNDING_NEGATIVE
+      funding_pos: FUNDING_POSITIVE
+  data_quality_state:
+    allowed_values:
+    - ok
+    - degraded
+    - stale
+    - missing_required_feature
+    - synthetic_only
+  execution_friction:
+    allowed_values:
+    - low
+    - normal
+    - elevated
+    - severe
+    - blocked
+  forced_flow_phase:
+    allowed_values:
+    - none
+    - pre_cascade
+    - cascade
+    - cooldown
+    - refill
+    - rebound_confirmed
+    - reacceleration
+  funding_phase:
+    allowed_values:
+    - neutral
+    - positive_onset
+    - negative_onset
+    - positive_persistent
+    - negative_persistent
+    - positive_normalizing
+    - negative_normalizing
+    - flip_to_positive
+    - flip_to_negative
   funding_regime:
-    allowed_values: [crowded, normalizing]
-  funding_bps:
-    allowed_values: [extreme_positive, positive, neutral, negative, extreme_negative]
+    allowed_values:
+    - crowded
+    - normalizing
+    mapping:
+      crowded: CROWDING_STATE
+      normalizing: FUNDING_NORMALIZATION_STATE
+  liquidity_phase:
+    allowed_values:
+    - normal
+    - thin
+    - vacuum
+    - collapse
+    - refill
+    - recovered
   liquidity_regime:
-    allowed_values: [low, refill]
-  ms_trend_state:
-    allowed_values: [bullish, bearish, chop]
+    allowed_values:
+    - low
+    - refill
+    mapping:
+      low: LOW_LIQUIDITY_STATE
+      refill: REFILL_LAG_STATE
   ms_spread_state:
-    allowed_values: [compressed, normal, wide, blown_out]
-  severity_bucket:
-    allowed_values: [mild, moderate, severe, extreme]
-  session:
-    allowed_values: [open, midday, close, overnight]
-  regime:
-    allowed_values: [calm, stress, trend, chop, high_vol, low_vol]
-  instrument_class:
-    allowed_values: [crypto, equities, futures, fx, rates]
-  news_window:
-    allowed_values: [include, exclude, only]
+    allowed_values:
+    - tight
+    - wide
+    mapping:
+      tight: SPREAD_TIGHT
+      wide: SPREAD_WIDE
+  ms_trend_state:
+    allowed_values:
+    - trend
+    - chop
+    mapping:
+      trend: TREND_ACTIVE
+      chop: CHOP_ACTIVE
+  oi_phase:
+    allowed_values:
+    - neutral
+    - expansion
+    - contraction
+    - flush
+    - rebuild
+  price_oi_quadrant:
+    allowed_values:
+    - price_up_oi_up
+    - price_up_oi_down
+    - price_down_oi_up
+    - price_down_oi_down
+  temporal_phase:
+    allowed_values:
+    - normal
+    - session_open
+    - session_close
+    - pre_funding_timestamp
+    - post_funding_timestamp
+    - pre_news
+    - post_news
+  trend_phase:
+    allowed_values:
+    - uptrend
+    - downtrend
+    - chop
+    - compression
+    - breakout
+    - retest
+    - exhaustion
+    - transition
+  trend_structure:
+    allowed_values:
+    - trend
+    - chop
+    mapping:
+      trend: TRENDING_STATE
+      chop: CHOP_STATE
+  vol_phase:
+    allowed_values:
+    - compressed
+    - normal
+    - expanding
+    - shock
+    - aftershock
+    - decaying
+  vol_regime:
+    allowed_values:
+    - low
+    - high
+    mapping:
+      low: LOW_VOL_REGIME
+      high: HIGH_VOL_REGIME

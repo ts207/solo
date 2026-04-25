@@ -5,6 +5,36 @@ metadata:
   compatibility_states: [allowed, allowed_with_required_context, research_only, forbidden]
 
 event_template_matrix:
+  FUNDING_POS_EXTREME_ONSET:
+    carry_unwind_reversal:
+      status: allowed_with_required_context
+      required_contexts:
+        funding_phase: positive_normalizing
+        oi_phase: flush
+    basis_funding_convergence:
+      status: allowed_with_required_context
+      required_contexts:
+        basis_phase: [positive_dislocation, converging]
+    generic_continuation:
+      status: forbidden
+    unconditioned_mean_reversion:
+      status: forbidden
+
+  FUNDING_NEG_EXTREME_ONSET:
+    carry_unwind_reversal:
+      status: allowed_with_required_context
+      required_contexts:
+        funding_phase: negative_normalizing
+        oi_phase: flush
+    basis_funding_convergence:
+      status: allowed_with_required_context
+      required_contexts:
+        basis_phase: [negative_dislocation, converging]
+    generic_continuation:
+      status: forbidden
+    unconditioned_mean_reversion:
+      status: forbidden
+
   FUNDING_POS_PERSISTENCE:
     carry_continuation_confirmed:
       status: allowed_with_required_context
@@ -35,6 +65,156 @@ event_template_matrix:
     generic_continuation:
       status: forbidden
 
+  FUNDING_POS_NORMALIZATION:
+    carry_unwind_reversal:
+      status: allowed_with_required_context
+      required_contexts:
+        funding_phase: positive_normalizing
+        oi_phase: flush
+    basis_funding_convergence:
+      status: allowed
+    generic_continuation:
+      status: forbidden
+    unconditioned_mean_reversion:
+      status: forbidden
+
+  FUNDING_NEG_NORMALIZATION:
+    carry_unwind_reversal:
+      status: allowed_with_required_context
+      required_contexts:
+        funding_phase: negative_normalizing
+        oi_phase: flush
+    basis_funding_convergence:
+      status: allowed
+    generic_continuation:
+      status: forbidden
+    unconditioned_mean_reversion:
+      status: forbidden
+
+  FUNDING_FLIP_TO_POSITIVE:
+    carry_unwind_reversal:
+      status: allowed_with_required_context
+      required_contexts:
+        funding_phase: flip_to_positive
+        liquidity_phase: [normal, recovered]
+    basis_funding_convergence:
+      status: allowed
+    generic_continuation:
+      status: forbidden
+
+  FUNDING_FLIP_TO_NEGATIVE:
+    carry_unwind_reversal:
+      status: allowed_with_required_context
+      required_contexts:
+        funding_phase: flip_to_negative
+        liquidity_phase: [normal, recovered]
+    basis_funding_convergence:
+      status: allowed
+    generic_continuation:
+      status: forbidden
+
+  FUNDING_PERSISTENCE_TRIGGER:
+    carry_continuation_confirmed:
+      status: allowed_with_required_context
+      required_contexts:
+        oi_phase: expansion
+        liquidity_phase: [normal, recovered]
+      forbidden_contexts:
+        forced_flow_phase: [cascade, reacceleration]
+    carry_unwind_reversal:
+      status: allowed_with_required_context
+      required_contexts:
+        oi_phase: flush
+      forbidden_contexts:
+        execution_friction: [severe, blocked]
+    basis_funding_convergence:
+      status: allowed
+    generic_continuation:
+      status: forbidden
+    unconditioned_mean_reversion:
+      status: forbidden
+
+  OI_SPIKE_POSITIVE:
+    carry_continuation_confirmed:
+      status: allowed_with_required_context
+      required_contexts:
+        oi_phase: expansion
+        price_oi_quadrant: [price_up_oi_up, price_down_oi_up]
+    squeeze_followthrough_confirmed:
+      status: allowed_with_required_context
+      required_contexts:
+        oi_phase: expansion
+        liquidity_phase: [normal, recovered]
+    generic_continuation:
+      status: forbidden
+    generic_mean_reversion:
+      status: forbidden
+
+  OI_SPIKE_NEGATIVE:
+    positioning_flush_reversal:
+      status: allowed_with_required_context
+      required_contexts:
+        oi_phase: flush
+        price_oi_quadrant: [price_up_oi_down, price_down_oi_down]
+    long_flush_rebound:
+      status: allowed_with_required_context
+      required_contexts:
+        oi_phase: flush
+        price_oi_quadrant: price_down_oi_down
+    forced_flow_rebound:
+      status: allowed_with_required_context
+      required_contexts:
+        forced_flow_phase: [cooldown, refill, rebound_confirmed]
+        liquidity_phase: [refill, recovered]
+    generic_continuation:
+      status: forbidden
+    generic_mean_reversion:
+      status: forbidden
+
+  PRICE_UP_OI_UP:
+    carry_continuation_confirmed:
+      status: allowed_with_required_context
+      required_contexts:
+        price_oi_quadrant: price_up_oi_up
+        oi_phase: expansion
+    generic_continuation:
+      status: forbidden
+
+  PRICE_UP_OI_DOWN:
+    squeeze_followthrough_confirmed:
+      status: allowed_with_required_context
+      required_contexts:
+        price_oi_quadrant: price_up_oi_down
+        oi_phase: flush
+        liquidity_phase: [normal, recovered]
+    positioning_flush_reversal:
+      status: research_only
+    generic_continuation:
+      status: forbidden
+
+  PRICE_DOWN_OI_UP:
+    carry_continuation_confirmed:
+      status: allowed_with_required_context
+      required_contexts:
+        price_oi_quadrant: price_down_oi_up
+        oi_phase: expansion
+    generic_continuation:
+      status: forbidden
+
+  PRICE_DOWN_OI_DOWN:
+    positioning_flush_reversal:
+      status: allowed_with_required_context
+      required_contexts:
+        price_oi_quadrant: price_down_oi_down
+        oi_phase: flush
+    long_flush_rebound:
+      status: allowed_with_required_context
+      required_contexts:
+        price_oi_quadrant: price_down_oi_down
+        oi_phase: flush
+    generic_continuation:
+      status: forbidden
+
   LIQUIDATION_CASCADE:
     forced_flow_rebound:
       status: allowed_with_required_context
@@ -48,6 +228,22 @@ event_template_matrix:
       required_contexts:
         forced_flow_phase: cascade
     generic_mean_reversion:
+      status: forbidden
+    generic_continuation:
+      status: forbidden
+
+  LIQUIDITY_VACUUM:
+    tail_risk_avoid:
+      status: allowed
+    liquidity_refill_repair:
+      status: allowed_with_required_context
+      required_contexts:
+        liquidity_phase: [refill, recovered]
+      forbidden_contexts:
+        execution_friction: blocked
+    generic_continuation:
+      status: forbidden
+    unconditioned_mean_reversion:
       status: forbidden
 
   LIQUIDATION_EXHAUSTION_REVERSAL:

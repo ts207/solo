@@ -92,10 +92,10 @@ regimes:
   POSITIONING_EXPANSION:
     bucket: trade_generating
     eligible_templates:
-    - continuation
-    - convexity_capture
-    - reversal_or_squeeze
+    - carry_continuation_confirmed
+    - squeeze_followthrough_confirmed
     forbidden_templates:
+    - continuation
     - exhaustion_reversal
     risk_posture: moderate
     execution_style: momentum_confirmed

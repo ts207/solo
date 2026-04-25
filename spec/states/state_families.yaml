@@ -64,6 +64,107 @@ context_dimensions:
     mapping:
       low: LOW_VOL_REGIME
       high: HIGH_VOL_REGIME
+  vol_phase:
+    allowed_values:
+    - compressed
+    - normal
+    - expanding
+    - shock
+    - aftershock
+    - decaying
+    mapping: {}
+  liquidity_phase:
+    allowed_values:
+    - normal
+    - thin
+    - vacuum
+    - collapse
+    - refill
+    - recovered
+    mapping: {}
+  execution_friction:
+    allowed_values:
+    - low
+    - normal
+    - elevated
+    - severe
+    - blocked
+    mapping: {}
+  funding_phase:
+    allowed_values:
+    - neutral
+    - positive_onset
+    - negative_onset
+    - positive_persistent
+    - negative_persistent
+    - positive_normalizing
+    - negative_normalizing
+    - flip_to_positive
+    - flip_to_negative
+    mapping: {}
+  oi_phase:
+    allowed_values:
+    - neutral
+    - expansion
+    - contraction
+    - flush
+    - rebuild
+    mapping: {}
+  price_oi_quadrant:
+    allowed_values:
+    - price_up_oi_up
+    - price_up_oi_down
+    - price_down_oi_up
+    - price_down_oi_down
+    mapping: {}
+  forced_flow_phase:
+    allowed_values:
+    - none
+    - pre_cascade
+    - cascade
+    - cooldown
+    - refill
+    - rebound_confirmed
+    - reacceleration
+    mapping: {}
+  trend_phase:
+    allowed_values:
+    - uptrend
+    - downtrend
+    - chop
+    - compression
+    - breakout
+    - retest
+    - exhaustion
+    - transition
+    mapping: {}
+  basis_phase:
+    allowed_values:
+    - neutral
+    - positive_dislocation
+    - negative_dislocation
+    - widening
+    - converging
+    - normalized
+    mapping: {}
+  temporal_phase:
+    allowed_values:
+    - normal
+    - session_open
+    - session_close
+    - pre_funding_timestamp
+    - post_funding_timestamp
+    - pre_news
+    - post_news
+    mapping: {}
+  data_quality_state:
+    allowed_values:
+    - ok
+    - degraded
+    - stale
+    - missing_required_feature
+    - synthetic_only
+    mapping: {}
 state_families:
 - name: carry_state
   allowed_values:
@@ -114,3 +215,93 @@ state_families:
   - 0.66
   update_cadence: 1h
   acceptance_test_id: VOL_REG_STABILITY_V1
+- name: basis_phase
+  allowed_values:
+  - neutral
+  - positive_dislocation
+  - negative_dislocation
+  - widening
+  - converging
+  - normalized
+- name: data_quality_state
+  allowed_values:
+  - ok
+  - degraded
+  - stale
+  - missing_required_feature
+  - synthetic_only
+- name: execution_friction
+  allowed_values:
+  - low
+  - normal
+  - elevated
+  - severe
+  - blocked
+- name: forced_flow_phase
+  allowed_values:
+  - none
+  - pre_cascade
+  - cascade
+  - cooldown
+  - refill
+  - rebound_confirmed
+  - reacceleration
+- name: funding_phase
+  allowed_values:
+  - neutral
+  - positive_onset
+  - negative_onset
+  - positive_persistent
+  - negative_persistent
+  - positive_normalizing
+  - negative_normalizing
+  - flip_to_positive
+  - flip_to_negative
+- name: liquidity_phase
+  allowed_values:
+  - normal
+  - thin
+  - vacuum
+  - collapse
+  - refill
+  - recovered
+- name: oi_phase
+  allowed_values:
+  - neutral
+  - expansion
+  - contraction
+  - flush
+  - rebuild
+- name: price_oi_quadrant
+  allowed_values:
+  - price_up_oi_up
+  - price_up_oi_down
+  - price_down_oi_up
+  - price_down_oi_down
+- name: temporal_phase
+  allowed_values:
+  - normal
+  - session_open
+  - session_close
+  - pre_funding_timestamp
+  - post_funding_timestamp
+  - pre_news
+  - post_news
+- name: trend_phase
+  allowed_values:
+  - uptrend
+  - downtrend
+  - chop
+  - compression
+  - breakout
+  - retest
+  - exhaustion
+  - transition
+- name: vol_phase
+  allowed_values:
+  - compressed
+  - normal
+  - expanding
+  - shock
+  - aftershock
+  - decaying

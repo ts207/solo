@@ -9,7 +9,9 @@ from typing import List
 from project.core.constants import parse_horizon_bars
 from project.domain.hypotheses import HypothesisSpec, TriggerType
 from project.research.context_labels import canonicalize_context_label
+from project.research.search.context_gates import validate_context_overfit_gate
 from project.research.search.feasibility import check_hypothesis_feasibility
+from project.research.search.label_contracts import validate_template_label_contract
 from project.spec_registry.loaders import load_yaml_relative
 from project.strategy.templates.validation import validate_template_stack
 
@@ -49,6 +51,7 @@ def validate_hypothesis_spec(spec: HypothesisSpec) -> List[str]:
                 filter_template_id=spec.filter_template_id,
             )
         )
+        errors.extend(validate_template_label_contract(spec))
 
     if spec.entry_lag < 1:
         errors.append(f"entry_lag must be >= 1 to prevent same-bar entry leakage, got {spec.entry_lag}")
@@ -82,6 +85,7 @@ def validate_hypothesis_spec(spec: HypothesisSpec) -> List[str]:
             )
 
     if spec.context:
+        errors.extend(validate_context_overfit_gate(spec))
         try:
             allowed_contexts = (
                 load_yaml_relative("project/configs/registries/contexts.yaml").get(

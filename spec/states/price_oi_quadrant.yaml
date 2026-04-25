@@ -1,0 +1,16 @@
+version: 1
+kind: state_context_dimension
+state_name: price_oi_quadrant
+source_feature: close
+allowed_values:
+- price_up_oi_up
+- price_up_oi_down
+- price_down_oi_up
+- price_down_oi_down
+mapping: {}
+canonical_metrics:
+- close
+- oi_notional
+thresholds: []
+update_cadence: 5m
+acceptance_test_id: PRICE_OI_QUADRANT_STABILITY_V1

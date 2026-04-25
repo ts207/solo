@@ -39,7 +39,7 @@ def test_ontology_template_registry_payload_uses_canonical_family_and_filter_fie
     assert payload["metadata"]["status"] == "generated"
     families = payload["families"]
     assert "LIQUIDITY_DISLOCATION" in families
-    assert "mean_reversion" in families["LIQUIDITY_DISLOCATION"]["allowed_templates"]
+    assert "liquidity_refill_repair" in families["LIQUIDITY_DISLOCATION"]["allowed_templates"]
 
     filters = payload["filter_templates"]
     assert filters["only_if_regime"]["feature"] == "rv_pct_17280"

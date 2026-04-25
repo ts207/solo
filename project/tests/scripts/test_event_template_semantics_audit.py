@@ -8,7 +8,7 @@ from project.scripts import event_template_semantics_audit as audit
 def test_run_audit_reports_key_event_template_findings() -> None:
     report = audit.run_audit()
 
-    assert report["summary"]["active_event_count"] == 71
+    assert report["summary"]["active_event_count"] == 83
     assert report["summary"]["status"] in ("passed", "attention")
     assert report["summary"]["default_template_event_count"] == 0
     assert report["summary"]["missing_event_template_row_count"] == 0
@@ -43,5 +43,5 @@ def test_main_writes_outputs(tmp_path) -> None:
 
     assert rc == 0
     payload = json.loads(json_out.read_text(encoding="utf-8"))
-    assert payload["summary"]["active_event_count"] == 71
+    assert payload["summary"]["active_event_count"] == 83
     assert md_out.read_text(encoding="utf-8").startswith("# Event Template Semantics Audit")

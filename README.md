@@ -3,7 +3,7 @@
 Edge is a governed crypto research-to-runtime repository. The canonical lifecycle is:
 
 ```text
-discover -> validate -> promote -> bind-config -> paper/live run
+discover → validate → promote → deploy
 ```
 
 With a mounted lake available, the repo should feel optimized for:
@@ -116,6 +116,13 @@ Start here:
 - [docs/lifecycle/overview.md](docs/lifecycle/overview.md)
 - [docs/lifecycle/deploy.md](docs/lifecycle/deploy.md)
 - [docs/reference/commands.md](docs/reference/commands.md)
+
+## Concepts
+
+- **Thesis** — a promoted hypothesis bundle with validated edge evidence, ready for deployment.
+- **Anchor** — the primary trigger event that initializes a hypothesis evaluation window.
+- **Filter** — a context gate that restricts template applicability based on market state.
+- `strategy_runtime` refers to the live/paper engine configuration section.
 
 ## Notes
 

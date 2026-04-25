@@ -175,7 +175,7 @@ def load_regime_shakeout_matrix(path: Path) -> Dict[str, Any]:
 def _routing_templates_for_regime(canonical_regime: str) -> list[str]:
     entry = routing_entry_for_regime(canonical_regime)
     if entry is not None and entry.eligible_templates:
-        return list(entry.eligible_templates)
+        return list(entry.eligible_templates)[: _max_templates_per_run()]
     registry = get_domain_registry()
     event_ids = registry.get_event_ids_for_regime(canonical_regime, executable_only=True)
     families = {
@@ -193,7 +193,8 @@ def _routing_templates_for_regime(canonical_regime: str) -> list[str]:
             if template not in seen:
                 templates.append(template)
                 seen.add(template)
-    return templates or list(registry.default_hypothesis_templates() or ("mean_reversion",))
+    result = templates or list(registry.default_hypothesis_templates() or ("mean_reversion",))
+    return result[: _max_templates_per_run()]
 
 
 def _max_templates_per_run() -> int:
@@ -216,7 +217,9 @@ def _raw_control_events_for_regime(canonical_regime: str, raw: Mapping[str, Any]
         return explicit
     auto = executable_regime_event_fanout([canonical_regime]).get(canonical_regime, [])
     if auto:
-        return list(auto)
+        registry = get_domain_registry()
+        enabled = [e for e in auto if registry.has_event(e) and registry.get_event(e).enabled]
+        return enabled or list(auto)
     raise ValueError(f"No executable raw control events found for regime {canonical_regime}.")
 
 

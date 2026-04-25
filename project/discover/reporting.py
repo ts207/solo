@@ -7,8 +7,8 @@ from typing import Any, Iterable
 import numpy as np
 import pandas as pd
 
-from project.artifacts.catalog import data_root as resolve_data_root
-from project.artifacts.catalog import phase2_candidates_path, phase2_diagnostics_path
+from project.artifacts import data_root as resolve_data_root
+from project.artifacts import phase2_candidates_path, phase2_diagnostics_path
 from project.io.utils import read_table_auto
 
 

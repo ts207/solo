@@ -4,8 +4,8 @@ metadata:
   status: generated
   graph_role: runtime_read_model
   schema_version: 2
-  generated_at_utc: '2026-04-24T22:13:11Z'
-  spec_sources_digest: 607598fe044277f3fc7ddb68b39226b121c7a0f2afb65cb493437936d589ef92
+  generated_at_utc: '2026-04-25T03:26:47Z'
+  spec_sources_digest: 75fe7c3e3685f3bfa97416ee79d24a50cfad096aa9d3a0374053a75f3155e5db
   notes: Compiled runtime read model. Semantic nodes are normalized for direct runtime/search
     loading.
 events:
@@ -39,7 +39,7 @@ events:
     runtime_category: active_runtime_event
     maturity: standard
     default_executable: true
-    detector_band: ''
+    detector_band: composite_or_fragile
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -141,8 +141,8 @@ events:
     runtime_category: active_runtime_event
     maturity: ''
     default_executable: true
-    detector_band: ''
-    planning_eligible: false
+    detector_band: research_trigger
+    planning_eligible: true
     runtime_eligible: false
     promotion_eligible: false
     primary_anchor_eligible: false
@@ -239,11 +239,11 @@ events:
     runtime_category: active_runtime_event
     maturity: ''
     default_executable: true
-    detector_band: ''
-    planning_eligible: false
-    runtime_eligible: false
-    promotion_eligible: false
-    primary_anchor_eligible: false
+    detector_band: deployable_core
+    planning_eligible: true
+    runtime_eligible: true
+    promotion_eligible: true
+    primary_anchor_eligible: true
     enabled: true
     detector_name: BasisDislocationDetector
     instrument_classes:
@@ -334,11 +334,11 @@ events:
     runtime_category: active_runtime_event
     maturity: ''
     default_executable: true
-    detector_band: ''
-    planning_eligible: false
+    detector_band: research_trigger
+    planning_eligible: true
     runtime_eligible: false
-    promotion_eligible: false
-    primary_anchor_eligible: false
+    promotion_eligible: true
+    primary_anchor_eligible: true
     enabled: true
     detector_name: BetaSpikeDetector
     instrument_classes:
@@ -433,8 +433,8 @@ events:
     runtime_category: active_runtime_event
     maturity: ''
     default_executable: true
-    detector_band: ''
-    planning_eligible: false
+    detector_band: research_trigger
+    planning_eligible: true
     runtime_eligible: false
     promotion_eligible: false
     primary_anchor_eligible: false
@@ -537,8 +537,8 @@ events:
     runtime_category: active_runtime_event
     maturity: ''
     default_executable: true
-    detector_band: ''
-    planning_eligible: false
+    detector_band: research_trigger
+    planning_eligible: true
     runtime_eligible: false
     promotion_eligible: false
     primary_anchor_eligible: false
@@ -637,8 +637,8 @@ events:
     runtime_category: active_runtime_event
     maturity: ''
     default_executable: true
-    detector_band: ''
-    planning_eligible: false
+    detector_band: research_trigger
+    planning_eligible: true
     runtime_eligible: false
     promotion_eligible: false
     primary_anchor_eligible: false
@@ -743,7 +743,7 @@ events:
     runtime_category: research_only
     maturity: ''
     default_executable: false
-    detector_band: ''
+    detector_band: composite_or_fragile
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -842,11 +842,11 @@ events:
     runtime_category: active_runtime_event
     maturity: ''
     default_executable: true
-    detector_band: ''
-    planning_eligible: false
+    detector_band: research_trigger
+    planning_eligible: true
     runtime_eligible: false
-    promotion_eligible: false
-    primary_anchor_eligible: false
+    promotion_eligible: true
+    primary_anchor_eligible: true
     enabled: true
     detector_name: CorrelationBreakdownDetector
     instrument_classes:
@@ -941,8 +941,8 @@ events:
     runtime_category: active_runtime_event
     maturity: ''
     default_executable: true
-    detector_band: ''
-    planning_eligible: false
+    detector_band: context_only
+    planning_eligible: true
     runtime_eligible: false
     promotion_eligible: false
     primary_anchor_eligible: false
@@ -1094,11 +1094,11 @@ events:
     runtime_category: active_runtime_event
     maturity: standard
     default_executable: true
-    detector_band: ''
-    planning_eligible: false
+    detector_band: research_trigger
+    planning_eligible: true
     runtime_eligible: false
-    promotion_eligible: false
-    primary_anchor_eligible: false
+    promotion_eligible: true
+    primary_anchor_eligible: true
     enabled: true
     detector_name: CrossVenueDesyncDetector
     instrument_classes:
@@ -1265,8 +1265,8 @@ events:
     runtime_category: active_runtime_event
     maturity: ''
     default_executable: true
-    detector_band: ''
-    planning_eligible: false
+    detector_band: research_trigger
+    planning_eligible: true
     runtime_eligible: false
     promotion_eligible: false
     primary_anchor_eligible: false
@@ -1384,10 +1384,10 @@ events:
     runtime_category: active_runtime_event
     maturity: standard
     default_executable: true
-    detector_band: ''
-    planning_eligible: false
+    detector_band: research_trigger
+    planning_eligible: true
     runtime_eligible: false
-    promotion_eligible: false
+    promotion_eligible: true
     primary_anchor_eligible: false
     enabled: true
     detector_name: DepthCollapseDetector
@@ -1489,7 +1489,7 @@ events:
     runtime_category: active_runtime_event
     maturity: standard
     default_executable: true
-    detector_band: ''
+    detector_band: composite_or_fragile
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -1595,8 +1595,8 @@ events:
     runtime_category: active_runtime_event
     maturity: ''
     default_executable: true
-    detector_band: ''
-    planning_eligible: false
+    detector_band: research_trigger
+    planning_eligible: true
     runtime_eligible: false
     promotion_eligible: false
     primary_anchor_eligible: false
@@ -1696,8 +1696,8 @@ events:
     runtime_category: active_runtime_event
     maturity: ''
     default_executable: true
-    detector_band: ''
-    planning_eligible: false
+    detector_band: research_trigger
+    planning_eligible: true
     runtime_eligible: false
     promotion_eligible: false
     primary_anchor_eligible: false
@@ -1799,8 +1799,8 @@ events:
     runtime_category: active_runtime_event
     maturity: ''
     default_executable: true
-    detector_band: ''
-    planning_eligible: false
+    detector_band: research_trigger
+    planning_eligible: true
     runtime_eligible: false
     promotion_eligible: false
     primary_anchor_eligible: false
@@ -1897,7 +1897,7 @@ events:
     runtime_category: active_runtime_event
     maturity: standard
     default_executable: true
-    detector_band: ''
+    detector_band: composite_or_fragile
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -2012,11 +2012,11 @@ events:
     runtime_category: active_runtime_event
     maturity: ''
     default_executable: true
-    detector_band: ''
-    planning_eligible: false
-    runtime_eligible: false
-    promotion_eligible: false
-    primary_anchor_eligible: false
+    detector_band: deployable_core
+    planning_eligible: true
+    runtime_eligible: true
+    promotion_eligible: true
+    primary_anchor_eligible: true
     enabled: true
     detector_name: FndDislocDetector
     instrument_classes:
@@ -2111,8 +2111,8 @@ events:
     runtime_category: active_runtime_event
     maturity: standard
     default_executable: true
-    detector_band: ''
-    planning_eligible: false
+    detector_band: research_trigger
+    planning_eligible: true
     runtime_eligible: false
     promotion_eligible: false
     primary_anchor_eligible: false
@@ -2231,11 +2231,11 @@ events:
     runtime_category: active_runtime_event
     maturity: standard
     default_executable: true
-    detector_band: ''
-    planning_eligible: false
+    detector_band: research_trigger
+    planning_eligible: true
     runtime_eligible: false
-    promotion_eligible: false
-    primary_anchor_eligible: false
+    promotion_eligible: true
+    primary_anchor_eligible: true
     enabled: true
     detector_name: FundingExtremeOnsetDetector
     instrument_classes:
@@ -2432,11 +2432,11 @@ events:
     runtime_category: active_runtime_event
     maturity: ''
     default_executable: true
-    detector_band: ''
-    planning_eligible: false
+    detector_band: research_trigger
+    planning_eligible: true
     runtime_eligible: false
-    promotion_eligible: false
-    primary_anchor_eligible: false
+    promotion_eligible: true
+    primary_anchor_eligible: true
     enabled: true
     detector_name: FundingFlipDetector
     instrument_classes:
@@ -2510,6 +2510,495 @@ events:
       - severity_bucket
       max_candidates_per_run: 500
     spec_path: spec/events/FUNDING_FLIP.yaml
+  FUNDING_FLIP_TO_NEGATIVE:
+    event_type: FUNDING_FLIP_TO_NEGATIVE
+    research_family: POSITIONING_EXTREMES
+    canonical_family: POSITIONING_EXTREMES
+    canonical_regime: BASIS_FUNDING_DISLOCATION
+    event_kind: market_event
+    reports_dir: positioning_extremes
+    events_file: positioning_extremes_events.parquet
+    signal_column: funding_flip_event
+    subtype: funding_flip_to_negative
+    phase: flip
+    evidence_mode: direct
+    asset_scope: single_asset
+    venue_scope: cross_venue
+    is_composite: false
+    is_context_tag: false
+    is_strategy_construct: false
+    research_only: false
+    strategy_only: false
+    deconflict_priority: 0
+    disposition: rename
+    layer: research_placeholder
+    notes: Semantic split of funding flip to negative; not a standalone detector.
+    tier: ''
+    operational_role: ''
+    deployment_disposition: ''
+    runtime_category: active_runtime_event
+    maturity: ''
+    default_executable: false
+    detector_band: ''
+    planning_eligible: false
+    runtime_eligible: false
+    promotion_eligible: false
+    primary_anchor_eligible: false
+    enabled: false
+    detector_name: FundingFlipDetector
+    instrument_classes: []
+    requires_features: []
+    runtime_tags: []
+    sequence_eligible: true
+    cluster_id: funding_crowding
+    collapse_target: FUNDING_FLIP
+    overlap_group: ''
+    precedence_rank: 0
+    routing_profile_ref: ''
+    suppresses: []
+    suppressed_by: []
+    maturity_scores: {}
+    parameters:
+      merge_gap_bars: 1
+      cooldown_bars: 0
+      anchor_rule: max_intensity
+      min_occurrences: 0
+      synthetic_coverage: covered
+      source_event_type: FUNDING_FLIP
+      research_family: POSITIONING_EXTREMES
+      cluster_id: funding_crowding
+      role:
+        detector_role: trigger
+        trade_role: secondary_confirm
+        state_role: none
+        guard_role: none
+      directionality:
+        direction_hint: both
+        sign_source: funding
+        sign_required: true
+        sign_field: funding_sign
+      context_requirements:
+        funding_phase: flip_to_negative
+    runtime:
+      templates:
+      - carry_unwind_reversal
+      - basis_funding_convergence
+      - tail_risk_avoid
+      horizons:
+      - 5m
+      - 60m
+      conditioning_cols:
+      - vol_regime
+      - vol_phase
+      - carry_state
+      - funding_phase
+      - oi_phase
+      - price_oi_quadrant
+      - forced_flow_phase
+      - liquidity_phase
+      - execution_friction
+      - trend_phase
+      - basis_phase
+      - temporal_phase
+      - data_quality_state
+      - funding_bps
+      - ms_trend_state
+      - ms_spread_state
+      - severity_bucket
+      max_candidates_per_run: 250
+    spec_path: spec/events/FUNDING_FLIP_TO_NEGATIVE.yaml
+  FUNDING_FLIP_TO_POSITIVE:
+    event_type: FUNDING_FLIP_TO_POSITIVE
+    research_family: POSITIONING_EXTREMES
+    canonical_family: POSITIONING_EXTREMES
+    canonical_regime: BASIS_FUNDING_DISLOCATION
+    event_kind: market_event
+    reports_dir: positioning_extremes
+    events_file: positioning_extremes_events.parquet
+    signal_column: funding_flip_event
+    subtype: funding_flip_to_positive
+    phase: flip
+    evidence_mode: direct
+    asset_scope: single_asset
+    venue_scope: cross_venue
+    is_composite: false
+    is_context_tag: false
+    is_strategy_construct: false
+    research_only: false
+    strategy_only: false
+    deconflict_priority: 0
+    disposition: rename
+    layer: research_placeholder
+    notes: Semantic split of funding flip to positive; not a standalone detector.
+    tier: ''
+    operational_role: ''
+    deployment_disposition: ''
+    runtime_category: active_runtime_event
+    maturity: ''
+    default_executable: false
+    detector_band: ''
+    planning_eligible: false
+    runtime_eligible: false
+    promotion_eligible: false
+    primary_anchor_eligible: false
+    enabled: false
+    detector_name: FundingFlipDetector
+    instrument_classes: []
+    requires_features: []
+    runtime_tags: []
+    sequence_eligible: true
+    cluster_id: funding_crowding
+    collapse_target: FUNDING_FLIP
+    overlap_group: ''
+    precedence_rank: 0
+    routing_profile_ref: ''
+    suppresses: []
+    suppressed_by: []
+    maturity_scores: {}
+    parameters:
+      merge_gap_bars: 1
+      cooldown_bars: 0
+      anchor_rule: max_intensity
+      min_occurrences: 0
+      synthetic_coverage: covered
+      source_event_type: FUNDING_FLIP
+      research_family: POSITIONING_EXTREMES
+      cluster_id: funding_crowding
+      role:
+        detector_role: trigger
+        trade_role: secondary_confirm
+        state_role: none
+        guard_role: none
+      directionality:
+        direction_hint: both
+        sign_source: funding
+        sign_required: true
+        sign_field: funding_sign
+      context_requirements:
+        funding_phase: flip_to_positive
+    runtime:
+      templates:
+      - carry_unwind_reversal
+      - basis_funding_convergence
+      - tail_risk_avoid
+      horizons:
+      - 5m
+      - 60m
+      conditioning_cols:
+      - vol_regime
+      - vol_phase
+      - carry_state
+      - funding_phase
+      - oi_phase
+      - price_oi_quadrant
+      - forced_flow_phase
+      - liquidity_phase
+      - execution_friction
+      - trend_phase
+      - basis_phase
+      - temporal_phase
+      - data_quality_state
+      - funding_bps
+      - ms_trend_state
+      - ms_spread_state
+      - severity_bucket
+      max_candidates_per_run: 250
+    spec_path: spec/events/FUNDING_FLIP_TO_POSITIVE.yaml
+  FUNDING_NEG_EXTREME_ONSET:
+    event_type: FUNDING_NEG_EXTREME_ONSET
+    research_family: POSITIONING_EXTREMES
+    canonical_family: POSITIONING_EXTREMES
+    canonical_regime: BASIS_FUNDING_DISLOCATION
+    event_kind: market_event
+    reports_dir: funding_events
+    events_file: funding_episode_events.parquet
+    signal_column: funding_extreme_onset_event
+    subtype: funding_negative_extreme_onset
+    phase: onset
+    evidence_mode: direct
+    asset_scope: single_asset
+    venue_scope: cross_venue
+    is_composite: false
+    is_context_tag: false
+    is_strategy_construct: false
+    research_only: false
+    strategy_only: false
+    deconflict_priority: 0
+    disposition: rename
+    layer: research_placeholder
+    notes: Semantic split of negative funding extreme onset; not a standalone detector.
+    tier: ''
+    operational_role: ''
+    deployment_disposition: ''
+    runtime_category: active_runtime_event
+    maturity: ''
+    default_executable: false
+    detector_band: ''
+    planning_eligible: false
+    runtime_eligible: false
+    promotion_eligible: false
+    primary_anchor_eligible: false
+    enabled: false
+    detector_name: FundingExtremeOnsetDetector
+    instrument_classes: []
+    requires_features: []
+    runtime_tags: []
+    sequence_eligible: true
+    cluster_id: funding_crowding
+    collapse_target: FUNDING_EXTREME_ONSET
+    overlap_group: ''
+    precedence_rank: 0
+    routing_profile_ref: ''
+    suppresses: []
+    suppressed_by: []
+    maturity_scores: {}
+    parameters:
+      merge_gap_bars: 1
+      cooldown_bars: 0
+      anchor_rule: max_intensity
+      min_occurrences: 0
+      synthetic_coverage: covered
+      source_event_type: FUNDING_EXTREME_ONSET
+      research_family: POSITIONING_EXTREMES
+      cluster_id: funding_crowding
+      role:
+        detector_role: trigger
+        trade_role: secondary_confirm
+        state_role: none
+        guard_role: none
+      directionality:
+        direction_hint: both
+        sign_source: funding
+        sign_required: true
+        sign_field: funding_sign
+      context_requirements:
+        funding_phase: negative_onset
+    runtime:
+      templates:
+      - carry_unwind_reversal
+      - basis_funding_convergence
+      - only_if_funding
+      - tail_risk_avoid
+      horizons:
+      - 60m
+      conditioning_cols:
+      - vol_regime
+      - vol_phase
+      - carry_state
+      - funding_phase
+      - oi_phase
+      - price_oi_quadrant
+      - forced_flow_phase
+      - liquidity_phase
+      - execution_friction
+      - trend_phase
+      - basis_phase
+      - temporal_phase
+      - data_quality_state
+      - funding_bps
+      - ms_trend_state
+      - ms_spread_state
+      - severity_bucket
+      max_candidates_per_run: 250
+    spec_path: spec/events/FUNDING_NEG_EXTREME_ONSET.yaml
+  FUNDING_NEG_NORMALIZATION:
+    event_type: FUNDING_NEG_NORMALIZATION
+    research_family: POSITIONING_EXTREMES
+    canonical_family: POSITIONING_EXTREMES
+    canonical_regime: BASIS_FUNDING_DISLOCATION
+    event_kind: market_event
+    reports_dir: funding_events
+    events_file: funding_episode_events.parquet
+    signal_column: funding_normalization_event
+    subtype: funding_negative_normalization
+    phase: normalization
+    evidence_mode: direct
+    asset_scope: single_asset
+    venue_scope: cross_venue
+    is_composite: false
+    is_context_tag: false
+    is_strategy_construct: false
+    research_only: false
+    strategy_only: false
+    deconflict_priority: 0
+    disposition: rename
+    layer: research_placeholder
+    notes: Semantic split of negative funding normalization; not a standalone detector.
+    tier: ''
+    operational_role: ''
+    deployment_disposition: ''
+    runtime_category: active_runtime_event
+    maturity: ''
+    default_executable: false
+    detector_band: ''
+    planning_eligible: false
+    runtime_eligible: false
+    promotion_eligible: false
+    primary_anchor_eligible: false
+    enabled: false
+    detector_name: FundingNormalizationDetector
+    instrument_classes: []
+    requires_features: []
+    runtime_tags: []
+    sequence_eligible: true
+    cluster_id: funding_crowding
+    collapse_target: FUNDING_NORMALIZATION_TRIGGER
+    overlap_group: ''
+    precedence_rank: 0
+    routing_profile_ref: ''
+    suppresses: []
+    suppressed_by: []
+    maturity_scores: {}
+    parameters:
+      merge_gap_bars: 1
+      cooldown_bars: 0
+      anchor_rule: max_intensity
+      min_occurrences: 0
+      synthetic_coverage: covered
+      source_event_type: FUNDING_NORMALIZATION_TRIGGER
+      research_family: POSITIONING_EXTREMES
+      cluster_id: funding_crowding
+      role:
+        detector_role: trigger
+        trade_role: secondary_confirm
+        state_role: none
+        guard_role: none
+      directionality:
+        direction_hint: both
+        sign_source: funding
+        sign_required: true
+        sign_field: funding_sign
+      context_requirements:
+        funding_phase: negative_normalizing
+    runtime:
+      templates:
+      - carry_unwind_reversal
+      - basis_funding_convergence
+      - only_if_funding
+      - tail_risk_avoid
+      horizons:
+      - 60m
+      conditioning_cols:
+      - vol_regime
+      - vol_phase
+      - carry_state
+      - funding_phase
+      - oi_phase
+      - price_oi_quadrant
+      - forced_flow_phase
+      - liquidity_phase
+      - execution_friction
+      - trend_phase
+      - basis_phase
+      - temporal_phase
+      - data_quality_state
+      - funding_bps
+      - ms_trend_state
+      - ms_spread_state
+      - severity_bucket
+      max_candidates_per_run: 250
+    spec_path: spec/events/FUNDING_NEG_NORMALIZATION.yaml
+  FUNDING_NEG_PERSISTENCE:
+    event_type: FUNDING_NEG_PERSISTENCE
+    research_family: POSITIONING_EXTREMES
+    canonical_family: POSITIONING_EXTREMES
+    canonical_regime: BASIS_FUNDING_DISLOCATION
+    event_kind: market_event
+    reports_dir: funding_events
+    events_file: funding_episode_events.parquet
+    signal_column: funding_persistence_event
+    subtype: funding_negative_persistence
+    phase: persistence
+    evidence_mode: direct
+    asset_scope: single_asset
+    venue_scope: cross_venue
+    is_composite: false
+    is_context_tag: false
+    is_strategy_construct: false
+    research_only: false
+    strategy_only: false
+    deconflict_priority: 0
+    disposition: rename
+    layer: research_placeholder
+    notes: Semantic split of negative funding persistence; not a standalone detector.
+    tier: ''
+    operational_role: ''
+    deployment_disposition: ''
+    runtime_category: active_runtime_event
+    maturity: ''
+    default_executable: false
+    detector_band: ''
+    planning_eligible: false
+    runtime_eligible: false
+    promotion_eligible: false
+    primary_anchor_eligible: false
+    enabled: false
+    detector_name: FundingPersistenceDetector
+    instrument_classes: []
+    requires_features: []
+    runtime_tags: []
+    sequence_eligible: true
+    cluster_id: funding_crowding
+    collapse_target: FUNDING_PERSISTENCE_TRIGGER
+    overlap_group: ''
+    precedence_rank: 0
+    routing_profile_ref: ''
+    suppresses: []
+    suppressed_by: []
+    maturity_scores: {}
+    parameters:
+      merge_gap_bars: 1
+      cooldown_bars: 0
+      anchor_rule: max_intensity
+      min_occurrences: 0
+      synthetic_coverage: covered
+      source_event_type: FUNDING_PERSISTENCE_TRIGGER
+      research_family: POSITIONING_EXTREMES
+      cluster_id: funding_crowding
+      role:
+        detector_role: trigger
+        trade_role: secondary_confirm
+        state_role: none
+        guard_role: none
+      directionality:
+        direction_hint: both
+        sign_source: funding
+        sign_required: true
+        sign_field: funding_sign
+      context_requirements:
+        funding_phase: negative_persistent
+    runtime:
+      templates:
+      - carry_unwind_reversal
+      - carry_continuation_confirmed
+      - basis_funding_convergence
+      - squeeze_followthrough_confirmed
+      - only_if_funding
+      - only_if_oi
+      - tail_risk_avoid
+      horizons:
+      - 5m
+      - 60m
+      conditioning_cols:
+      - vol_regime
+      - vol_phase
+      - carry_state
+      - funding_phase
+      - oi_phase
+      - price_oi_quadrant
+      - forced_flow_phase
+      - liquidity_phase
+      - execution_friction
+      - trend_phase
+      - basis_phase
+      - temporal_phase
+      - data_quality_state
+      - funding_bps
+      - ms_trend_state
+      - ms_spread_state
+      - severity_bucket
+      max_candidates_per_run: 250
+    spec_path: spec/events/FUNDING_NEG_PERSISTENCE.yaml
   FUNDING_NORMALIZATION_TRIGGER:
     event_type: FUNDING_NORMALIZATION_TRIGGER
     research_family: POSITIONING_EXTREMES
@@ -2539,10 +3028,10 @@ events:
     runtime_category: active_runtime_event
     maturity: ''
     default_executable: true
-    detector_band: ''
-    planning_eligible: false
+    detector_band: research_trigger
+    planning_eligible: true
     runtime_eligible: false
-    promotion_eligible: false
+    promotion_eligible: true
     primary_anchor_eligible: false
     enabled: true
     detector_name: FundingNormalizationDetector
@@ -2813,6 +3302,301 @@ events:
       - severity_bucket
       max_candidates_per_run: 500
     spec_path: spec/events/FUNDING_PERSISTENCE_TRIGGER.yaml
+  FUNDING_POS_EXTREME_ONSET:
+    event_type: FUNDING_POS_EXTREME_ONSET
+    research_family: POSITIONING_EXTREMES
+    canonical_family: POSITIONING_EXTREMES
+    canonical_regime: BASIS_FUNDING_DISLOCATION
+    event_kind: market_event
+    reports_dir: funding_events
+    events_file: funding_episode_events.parquet
+    signal_column: funding_extreme_onset_event
+    subtype: funding_positive_extreme_onset
+    phase: onset
+    evidence_mode: direct
+    asset_scope: single_asset
+    venue_scope: cross_venue
+    is_composite: false
+    is_context_tag: false
+    is_strategy_construct: false
+    research_only: false
+    strategy_only: false
+    deconflict_priority: 0
+    disposition: rename
+    layer: research_placeholder
+    notes: Semantic split of positive funding extreme onset; not a standalone detector.
+    tier: ''
+    operational_role: ''
+    deployment_disposition: ''
+    runtime_category: active_runtime_event
+    maturity: ''
+    default_executable: false
+    detector_band: ''
+    planning_eligible: false
+    runtime_eligible: false
+    promotion_eligible: false
+    primary_anchor_eligible: false
+    enabled: false
+    detector_name: FundingExtremeOnsetDetector
+    instrument_classes: []
+    requires_features: []
+    runtime_tags: []
+    sequence_eligible: true
+    cluster_id: funding_crowding
+    collapse_target: FUNDING_EXTREME_ONSET
+    overlap_group: ''
+    precedence_rank: 0
+    routing_profile_ref: ''
+    suppresses: []
+    suppressed_by: []
+    maturity_scores: {}
+    parameters:
+      merge_gap_bars: 1
+      cooldown_bars: 0
+      anchor_rule: max_intensity
+      min_occurrences: 0
+      synthetic_coverage: covered
+      source_event_type: FUNDING_EXTREME_ONSET
+      research_family: POSITIONING_EXTREMES
+      cluster_id: funding_crowding
+      role:
+        detector_role: trigger
+        trade_role: secondary_confirm
+        state_role: none
+        guard_role: none
+      directionality:
+        direction_hint: both
+        sign_source: funding
+        sign_required: true
+        sign_field: funding_sign
+      context_requirements:
+        funding_phase: positive_onset
+    runtime:
+      templates:
+      - carry_unwind_reversal
+      - basis_funding_convergence
+      - only_if_funding
+      - tail_risk_avoid
+      horizons:
+      - 60m
+      conditioning_cols:
+      - vol_regime
+      - vol_phase
+      - carry_state
+      - funding_phase
+      - oi_phase
+      - price_oi_quadrant
+      - forced_flow_phase
+      - liquidity_phase
+      - execution_friction
+      - trend_phase
+      - basis_phase
+      - temporal_phase
+      - data_quality_state
+      - funding_bps
+      - ms_trend_state
+      - ms_spread_state
+      - severity_bucket
+      max_candidates_per_run: 250
+    spec_path: spec/events/FUNDING_POS_EXTREME_ONSET.yaml
+  FUNDING_POS_NORMALIZATION:
+    event_type: FUNDING_POS_NORMALIZATION
+    research_family: POSITIONING_EXTREMES
+    canonical_family: POSITIONING_EXTREMES
+    canonical_regime: BASIS_FUNDING_DISLOCATION
+    event_kind: market_event
+    reports_dir: funding_events
+    events_file: funding_episode_events.parquet
+    signal_column: funding_normalization_event
+    subtype: funding_positive_normalization
+    phase: normalization
+    evidence_mode: direct
+    asset_scope: single_asset
+    venue_scope: cross_venue
+    is_composite: false
+    is_context_tag: false
+    is_strategy_construct: false
+    research_only: false
+    strategy_only: false
+    deconflict_priority: 0
+    disposition: rename
+    layer: research_placeholder
+    notes: Semantic split of positive funding normalization; not a standalone detector.
+    tier: ''
+    operational_role: ''
+    deployment_disposition: ''
+    runtime_category: active_runtime_event
+    maturity: ''
+    default_executable: false
+    detector_band: ''
+    planning_eligible: false
+    runtime_eligible: false
+    promotion_eligible: false
+    primary_anchor_eligible: false
+    enabled: false
+    detector_name: FundingNormalizationDetector
+    instrument_classes: []
+    requires_features: []
+    runtime_tags: []
+    sequence_eligible: true
+    cluster_id: funding_crowding
+    collapse_target: FUNDING_NORMALIZATION_TRIGGER
+    overlap_group: ''
+    precedence_rank: 0
+    routing_profile_ref: ''
+    suppresses: []
+    suppressed_by: []
+    maturity_scores: {}
+    parameters:
+      merge_gap_bars: 1
+      cooldown_bars: 0
+      anchor_rule: max_intensity
+      min_occurrences: 0
+      synthetic_coverage: covered
+      source_event_type: FUNDING_NORMALIZATION_TRIGGER
+      research_family: POSITIONING_EXTREMES
+      cluster_id: funding_crowding
+      role:
+        detector_role: trigger
+        trade_role: secondary_confirm
+        state_role: none
+        guard_role: none
+      directionality:
+        direction_hint: both
+        sign_source: funding
+        sign_required: true
+        sign_field: funding_sign
+      context_requirements:
+        funding_phase: positive_normalizing
+    runtime:
+      templates:
+      - carry_unwind_reversal
+      - basis_funding_convergence
+      - only_if_funding
+      - tail_risk_avoid
+      horizons:
+      - 60m
+      conditioning_cols:
+      - vol_regime
+      - vol_phase
+      - carry_state
+      - funding_phase
+      - oi_phase
+      - price_oi_quadrant
+      - forced_flow_phase
+      - liquidity_phase
+      - execution_friction
+      - trend_phase
+      - basis_phase
+      - temporal_phase
+      - data_quality_state
+      - funding_bps
+      - ms_trend_state
+      - ms_spread_state
+      - severity_bucket
+      max_candidates_per_run: 250
+    spec_path: spec/events/FUNDING_POS_NORMALIZATION.yaml
+  FUNDING_POS_PERSISTENCE:
+    event_type: FUNDING_POS_PERSISTENCE
+    research_family: POSITIONING_EXTREMES
+    canonical_family: POSITIONING_EXTREMES
+    canonical_regime: BASIS_FUNDING_DISLOCATION
+    event_kind: market_event
+    reports_dir: funding_events
+    events_file: funding_episode_events.parquet
+    signal_column: funding_persistence_event
+    subtype: funding_positive_persistence
+    phase: persistence
+    evidence_mode: direct
+    asset_scope: single_asset
+    venue_scope: cross_venue
+    is_composite: false
+    is_context_tag: false
+    is_strategy_construct: false
+    research_only: false
+    strategy_only: false
+    deconflict_priority: 0
+    disposition: rename
+    layer: research_placeholder
+    notes: Semantic split of positive funding persistence; not a standalone detector.
+    tier: ''
+    operational_role: ''
+    deployment_disposition: ''
+    runtime_category: active_runtime_event
+    maturity: ''
+    default_executable: false
+    detector_band: ''
+    planning_eligible: false
+    runtime_eligible: false
+    promotion_eligible: false
+    primary_anchor_eligible: false
+    enabled: false
+    detector_name: FundingPersistenceDetector
+    instrument_classes: []
+    requires_features: []
+    runtime_tags: []
+    sequence_eligible: true
+    cluster_id: funding_crowding
+    collapse_target: FUNDING_PERSISTENCE_TRIGGER
+    overlap_group: ''
+    precedence_rank: 0
+    routing_profile_ref: ''
+    suppresses: []
+    suppressed_by: []
+    maturity_scores: {}
+    parameters:
+      merge_gap_bars: 1
+      cooldown_bars: 0
+      anchor_rule: max_intensity
+      min_occurrences: 0
+      synthetic_coverage: covered
+      source_event_type: FUNDING_PERSISTENCE_TRIGGER
+      research_family: POSITIONING_EXTREMES
+      cluster_id: funding_crowding
+      role:
+        detector_role: trigger
+        trade_role: secondary_confirm
+        state_role: none
+        guard_role: none
+      directionality:
+        direction_hint: both
+        sign_source: funding
+        sign_required: true
+        sign_field: funding_sign
+      context_requirements:
+        funding_phase: positive_persistent
+    runtime:
+      templates:
+      - carry_unwind_reversal
+      - carry_continuation_confirmed
+      - basis_funding_convergence
+      - squeeze_followthrough_confirmed
+      - only_if_funding
+      - only_if_oi
+      - tail_risk_avoid
+      horizons:
+      - 5m
+      - 60m
+      conditioning_cols:
+      - vol_regime
+      - vol_phase
+      - carry_state
+      - funding_phase
+      - oi_phase
+      - price_oi_quadrant
+      - forced_flow_phase
+      - liquidity_phase
+      - execution_friction
+      - trend_phase
+      - basis_phase
+      - temporal_phase
+      - data_quality_state
+      - funding_bps
+      - ms_trend_state
+      - ms_spread_state
+      - severity_bucket
+      max_candidates_per_run: 250
+    spec_path: spec/events/FUNDING_POS_PERSISTENCE.yaml
   FUNDING_TIMESTAMP_EVENT:
     event_type: FUNDING_TIMESTAMP_EVENT
     research_family: TEMPORAL_STRUCTURE
@@ -2842,8 +3626,8 @@ events:
     runtime_category: active_runtime_event
     maturity: ''
     default_executable: false
-    detector_band: ''
-    planning_eligible: false
+    detector_band: context_only
+    planning_eligible: true
     runtime_eligible: false
     promotion_eligible: false
     primary_anchor_eligible: false
@@ -2954,8 +3738,8 @@ events:
     runtime_category: active_runtime_event
     maturity: ''
     default_executable: true
-    detector_band: ''
-    planning_eligible: false
+    detector_band: research_trigger
+    planning_eligible: true
     runtime_eligible: false
     promotion_eligible: false
     primary_anchor_eligible: false
@@ -3053,11 +3837,11 @@ events:
     runtime_category: active_runtime_event
     maturity: ''
     default_executable: true
-    detector_band: ''
-    planning_eligible: false
+    detector_band: research_trigger
+    planning_eligible: true
     runtime_eligible: false
-    promotion_eligible: false
-    primary_anchor_eligible: false
+    promotion_eligible: true
+    primary_anchor_eligible: true
     enabled: true
     detector_name: IndexComponentDivergenceDetector
     instrument_classes:
@@ -3154,11 +3938,11 @@ events:
     runtime_category: active_runtime_event
     maturity: ''
     default_executable: true
-    detector_band: ''
-    planning_eligible: false
+    detector_band: research_trigger
+    planning_eligible: true
     runtime_eligible: false
-    promotion_eligible: false
-    primary_anchor_eligible: false
+    promotion_eligible: true
+    primary_anchor_eligible: true
     enabled: true
     detector_name: LeadLagBreakDetector
     instrument_classes:
@@ -3393,11 +4177,11 @@ events:
     runtime_category: active_runtime_event
     maturity: experimental
     default_executable: true
-    detector_band: ''
-    planning_eligible: false
+    detector_band: composite_or_fragile
+    planning_eligible: true
     runtime_eligible: false
-    promotion_eligible: false
-    primary_anchor_eligible: false
+    promotion_eligible: true
+    primary_anchor_eligible: true
     enabled: true
     detector_name: LiquidationCascadeProxyDetector
     instrument_classes:
@@ -3732,8 +4516,8 @@ events:
     runtime_category: active_runtime_event
     maturity: ''
     default_executable: true
-    detector_band: ''
-    planning_eligible: false
+    detector_band: research_trigger
+    planning_eligible: true
     runtime_eligible: false
     promotion_eligible: false
     primary_anchor_eligible: false
@@ -3837,11 +4621,11 @@ events:
     runtime_category: active_runtime_event
     maturity: ''
     default_executable: true
-    detector_band: ''
-    planning_eligible: false
-    runtime_eligible: false
-    promotion_eligible: false
-    primary_anchor_eligible: false
+    detector_band: deployable_core
+    planning_eligible: true
+    runtime_eligible: true
+    promotion_eligible: true
+    primary_anchor_eligible: true
     enabled: true
     detector_name: LiquidityStressDetector
     instrument_classes:
@@ -3938,11 +4722,11 @@ events:
     runtime_category: active_runtime_event
     maturity: ''
     default_executable: true
-    detector_band: ''
-    planning_eligible: false
-    runtime_eligible: false
-    promotion_eligible: false
-    primary_anchor_eligible: false
+    detector_band: deployable_core
+    planning_eligible: true
+    runtime_eligible: true
+    promotion_eligible: true
+    primary_anchor_eligible: true
     enabled: true
     detector_name: DirectLiquidityStressDetector
     instrument_classes: []
@@ -4037,7 +4821,7 @@ events:
     runtime_category: active_runtime_event
     maturity: standard
     default_executable: true
-    detector_band: ''
+    detector_band: composite_or_fragile
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -4344,8 +5128,8 @@ events:
     runtime_category: active_runtime_event
     maturity: ''
     default_executable: true
-    detector_band: ''
-    planning_eligible: false
+    detector_band: research_trigger
+    planning_eligible: true
     runtime_eligible: false
     promotion_eligible: false
     primary_anchor_eligible: false
@@ -4447,11 +5231,11 @@ events:
     runtime_category: active_runtime_event
     maturity: ''
     default_executable: true
-    detector_band: ''
-    planning_eligible: false
+    detector_band: research_trigger
+    planning_eligible: true
     runtime_eligible: false
-    promotion_eligible: false
-    primary_anchor_eligible: false
+    promotion_eligible: true
+    primary_anchor_eligible: true
     enabled: true
     detector_name: OIFlushDetector
     instrument_classes:
@@ -4558,7 +5342,7 @@ events:
     detector_band: deployable_core
     planning_eligible: true
     runtime_eligible: true
-    promotion_eligible: false
+    promotion_eligible: true
     primary_anchor_eligible: true
     enabled: true
     detector_name: OISpikeNegativeDetector
@@ -4690,11 +5474,11 @@ events:
     runtime_category: active_runtime_event
     maturity: ''
     default_executable: true
-    detector_band: ''
-    planning_eligible: false
+    detector_band: research_trigger
+    planning_eligible: true
     runtime_eligible: false
-    promotion_eligible: false
-    primary_anchor_eligible: false
+    promotion_eligible: true
+    primary_anchor_eligible: true
     enabled: true
     detector_name: OISpikePositiveDetector
     instrument_classes:
@@ -4734,11 +5518,8 @@ events:
       flush_pct_th: -0.005
     runtime:
       templates:
-      - reversal_or_squeeze
-      - mean_reversion
-      - continuation
-      - exhaustion_reversal
-      - convexity_capture
+      - carry_continuation_confirmed
+      - squeeze_followthrough_confirmed
       - only_if_funding
       - only_if_oi
       - tail_risk_avoid
@@ -4793,8 +5574,8 @@ events:
     runtime_category: active_runtime_event
     maturity: standard
     default_executable: true
-    detector_band: ''
-    planning_eligible: false
+    detector_band: research_trigger
+    planning_eligible: true
     runtime_eligible: false
     promotion_eligible: false
     primary_anchor_eligible: false
@@ -4902,8 +5683,8 @@ events:
     runtime_category: active_runtime_event
     maturity: ''
     default_executable: true
-    detector_band: ''
-    planning_eligible: false
+    detector_band: research_trigger
+    planning_eligible: true
     runtime_eligible: false
     promotion_eligible: false
     primary_anchor_eligible: false
@@ -5002,8 +5783,8 @@ events:
     runtime_category: active_runtime_event
     maturity: ''
     default_executable: true
-    detector_band: ''
-    planning_eligible: false
+    detector_band: research_trigger
+    planning_eligible: true
     runtime_eligible: false
     promotion_eligible: false
     primary_anchor_eligible: false
@@ -5090,6 +5871,393 @@ events:
       - severity_bucket
       max_candidates_per_run: 400
     spec_path: spec/events/POST_DELEVERAGING_REBOUND.yaml
+  PRICE_DOWN_OI_DOWN:
+    event_type: PRICE_DOWN_OI_DOWN
+    research_family: POSITIONING_EXTREMES
+    canonical_family: POSITIONING_EXTREMES
+    canonical_regime: POSITIONING_UNWIND_DELEVERAGING
+    event_kind: market_event
+    reports_dir: oi_shocks
+    events_file: oi_shock_events.parquet
+    signal_column: oi_spike_neg_event
+    subtype: price_down_oi_down
+    phase: unwind
+    evidence_mode: direct
+    asset_scope: single_asset
+    venue_scope: single_venue
+    is_composite: false
+    is_context_tag: false
+    is_strategy_construct: false
+    research_only: false
+    strategy_only: false
+    deconflict_priority: 0
+    disposition: rename
+    layer: research_placeholder
+    notes: Price down with OI down; long flush or deleveraging.
+    tier: ''
+    operational_role: ''
+    deployment_disposition: ''
+    runtime_category: active_runtime_event
+    maturity: ''
+    default_executable: false
+    detector_band: ''
+    planning_eligible: false
+    runtime_eligible: false
+    promotion_eligible: false
+    primary_anchor_eligible: false
+    enabled: false
+    detector_name: OISpikeNegativeDetector
+    instrument_classes: []
+    requires_features: []
+    runtime_tags: []
+    sequence_eligible: true
+    cluster_id: oi_dynamic
+    collapse_target: OI_SPIKE_NEGATIVE
+    overlap_group: ''
+    precedence_rank: 0
+    routing_profile_ref: ''
+    suppresses: []
+    suppressed_by: []
+    maturity_scores: {}
+    parameters:
+      merge_gap_bars: 1
+      cooldown_bars: 0
+      anchor_rule: max_intensity
+      min_occurrences: 0
+      synthetic_coverage: covered
+      source_event_type: OI_SPIKE_NEGATIVE
+      research_family: POSITIONING_EXTREMES
+      cluster_id: oi_dynamic
+      role:
+        detector_role: trigger
+        trade_role: secondary_confirm
+        state_role: none
+        guard_role: none
+      directionality:
+        direction_hint: short
+        sign_source: price
+        sign_required: true
+        sign_field: price_oi_quadrant
+      context_requirements:
+        price_oi_quadrant: price_down_oi_down
+    runtime:
+      templates:
+      - positioning_flush_reversal
+      - long_flush_rebound
+      - only_if_oi
+      - tail_risk_avoid
+      horizons:
+      - 60m
+      conditioning_cols:
+      - vol_regime
+      - vol_phase
+      - carry_state
+      - funding_phase
+      - oi_phase
+      - price_oi_quadrant
+      - forced_flow_phase
+      - liquidity_phase
+      - execution_friction
+      - trend_phase
+      - basis_phase
+      - temporal_phase
+      - data_quality_state
+      - funding_bps
+      - ms_trend_state
+      - ms_spread_state
+      - severity_bucket
+      max_candidates_per_run: 250
+    spec_path: spec/events/PRICE_DOWN_OI_DOWN.yaml
+  PRICE_DOWN_OI_UP:
+    event_type: PRICE_DOWN_OI_UP
+    research_family: POSITIONING_EXTREMES
+    canonical_family: POSITIONING_EXTREMES
+    canonical_regime: POSITIONING_EXPANSION
+    event_kind: market_event
+    reports_dir: oi_shocks
+    events_file: oi_shock_events.parquet
+    signal_column: oi_spike_pos_event
+    subtype: price_down_oi_up
+    phase: expansion
+    evidence_mode: direct
+    asset_scope: single_asset
+    venue_scope: single_venue
+    is_composite: false
+    is_context_tag: false
+    is_strategy_construct: false
+    research_only: false
+    strategy_only: false
+    deconflict_priority: 0
+    disposition: rename
+    layer: research_placeholder
+    notes: Price down with OI up; short build or bearish expansion.
+    tier: ''
+    operational_role: ''
+    deployment_disposition: ''
+    runtime_category: active_runtime_event
+    maturity: ''
+    default_executable: false
+    detector_band: ''
+    planning_eligible: false
+    runtime_eligible: false
+    promotion_eligible: false
+    primary_anchor_eligible: false
+    enabled: false
+    detector_name: OISpikePositiveDetector
+    instrument_classes: []
+    requires_features: []
+    runtime_tags: []
+    sequence_eligible: true
+    cluster_id: oi_dynamic
+    collapse_target: OI_SPIKE_POSITIVE
+    overlap_group: ''
+    precedence_rank: 0
+    routing_profile_ref: ''
+    suppresses: []
+    suppressed_by: []
+    maturity_scores: {}
+    parameters:
+      merge_gap_bars: 1
+      cooldown_bars: 0
+      anchor_rule: max_intensity
+      min_occurrences: 0
+      synthetic_coverage: covered
+      source_event_type: OI_SPIKE_POSITIVE
+      research_family: POSITIONING_EXTREMES
+      cluster_id: oi_dynamic
+      role:
+        detector_role: trigger
+        trade_role: secondary_confirm
+        state_role: none
+        guard_role: none
+      directionality:
+        direction_hint: short
+        sign_source: price
+        sign_required: true
+        sign_field: price_oi_quadrant
+      context_requirements:
+        price_oi_quadrant: price_down_oi_up
+    runtime:
+      templates:
+      - carry_continuation_confirmed
+      - only_if_oi
+      - tail_risk_avoid
+      horizons:
+      - 60m
+      conditioning_cols:
+      - vol_regime
+      - vol_phase
+      - carry_state
+      - funding_phase
+      - oi_phase
+      - price_oi_quadrant
+      - forced_flow_phase
+      - liquidity_phase
+      - execution_friction
+      - trend_phase
+      - basis_phase
+      - temporal_phase
+      - data_quality_state
+      - funding_bps
+      - ms_trend_state
+      - ms_spread_state
+      - severity_bucket
+      max_candidates_per_run: 250
+    spec_path: spec/events/PRICE_DOWN_OI_UP.yaml
+  PRICE_UP_OI_DOWN:
+    event_type: PRICE_UP_OI_DOWN
+    research_family: POSITIONING_EXTREMES
+    canonical_family: POSITIONING_EXTREMES
+    canonical_regime: POSITIONING_UNWIND_DELEVERAGING
+    event_kind: market_event
+    reports_dir: oi_shocks
+    events_file: oi_shock_events.parquet
+    signal_column: oi_spike_neg_event
+    subtype: price_up_oi_down
+    phase: unwind
+    evidence_mode: direct
+    asset_scope: single_asset
+    venue_scope: single_venue
+    is_composite: false
+    is_context_tag: false
+    is_strategy_construct: false
+    research_only: false
+    strategy_only: false
+    deconflict_priority: 0
+    disposition: rename
+    layer: research_placeholder
+    notes: Price up with OI down; short squeeze or covering.
+    tier: ''
+    operational_role: ''
+    deployment_disposition: ''
+    runtime_category: active_runtime_event
+    maturity: ''
+    default_executable: false
+    detector_band: ''
+    planning_eligible: false
+    runtime_eligible: false
+    promotion_eligible: false
+    primary_anchor_eligible: false
+    enabled: false
+    detector_name: OISpikeNegativeDetector
+    instrument_classes: []
+    requires_features: []
+    runtime_tags: []
+    sequence_eligible: true
+    cluster_id: oi_dynamic
+    collapse_target: OI_SPIKE_NEGATIVE
+    overlap_group: ''
+    precedence_rank: 0
+    routing_profile_ref: ''
+    suppresses: []
+    suppressed_by: []
+    maturity_scores: {}
+    parameters:
+      merge_gap_bars: 1
+      cooldown_bars: 0
+      anchor_rule: max_intensity
+      min_occurrences: 0
+      synthetic_coverage: covered
+      source_event_type: OI_SPIKE_NEGATIVE
+      research_family: POSITIONING_EXTREMES
+      cluster_id: oi_dynamic
+      role:
+        detector_role: trigger
+        trade_role: secondary_confirm
+        state_role: none
+        guard_role: none
+      directionality:
+        direction_hint: long
+        sign_source: price
+        sign_required: true
+        sign_field: price_oi_quadrant
+      context_requirements:
+        price_oi_quadrant: price_up_oi_down
+    runtime:
+      templates:
+      - squeeze_followthrough_confirmed
+      - positioning_flush_reversal
+      - only_if_oi
+      - tail_risk_avoid
+      horizons:
+      - 60m
+      conditioning_cols:
+      - vol_regime
+      - vol_phase
+      - carry_state
+      - funding_phase
+      - oi_phase
+      - price_oi_quadrant
+      - forced_flow_phase
+      - liquidity_phase
+      - execution_friction
+      - trend_phase
+      - basis_phase
+      - temporal_phase
+      - data_quality_state
+      - funding_bps
+      - ms_trend_state
+      - ms_spread_state
+      - severity_bucket
+      max_candidates_per_run: 250
+    spec_path: spec/events/PRICE_UP_OI_DOWN.yaml
+  PRICE_UP_OI_UP:
+    event_type: PRICE_UP_OI_UP
+    research_family: POSITIONING_EXTREMES
+    canonical_family: POSITIONING_EXTREMES
+    canonical_regime: POSITIONING_EXPANSION
+    event_kind: market_event
+    reports_dir: oi_shocks
+    events_file: oi_shock_events.parquet
+    signal_column: oi_spike_pos_event
+    subtype: price_up_oi_up
+    phase: expansion
+    evidence_mode: direct
+    asset_scope: single_asset
+    venue_scope: single_venue
+    is_composite: false
+    is_context_tag: false
+    is_strategy_construct: false
+    research_only: false
+    strategy_only: false
+    deconflict_priority: 0
+    disposition: rename
+    layer: research_placeholder
+    notes: Price up with OI up; long build or trend participation.
+    tier: ''
+    operational_role: ''
+    deployment_disposition: ''
+    runtime_category: active_runtime_event
+    maturity: ''
+    default_executable: false
+    detector_band: ''
+    planning_eligible: false
+    runtime_eligible: false
+    promotion_eligible: false
+    primary_anchor_eligible: false
+    enabled: false
+    detector_name: OISpikePositiveDetector
+    instrument_classes: []
+    requires_features: []
+    runtime_tags: []
+    sequence_eligible: true
+    cluster_id: oi_dynamic
+    collapse_target: OI_SPIKE_POSITIVE
+    overlap_group: ''
+    precedence_rank: 0
+    routing_profile_ref: ''
+    suppresses: []
+    suppressed_by: []
+    maturity_scores: {}
+    parameters:
+      merge_gap_bars: 1
+      cooldown_bars: 0
+      anchor_rule: max_intensity
+      min_occurrences: 0
+      synthetic_coverage: covered
+      source_event_type: OI_SPIKE_POSITIVE
+      research_family: POSITIONING_EXTREMES
+      cluster_id: oi_dynamic
+      role:
+        detector_role: trigger
+        trade_role: secondary_confirm
+        state_role: none
+        guard_role: none
+      directionality:
+        direction_hint: long
+        sign_source: price
+        sign_required: true
+        sign_field: price_oi_quadrant
+      context_requirements:
+        price_oi_quadrant: price_up_oi_up
+    runtime:
+      templates:
+      - carry_continuation_confirmed
+      - squeeze_followthrough_confirmed
+      - only_if_oi
+      - tail_risk_avoid
+      horizons:
+      - 60m
+      conditioning_cols:
+      - vol_regime
+      - vol_phase
+      - carry_state
+      - funding_phase
+      - oi_phase
+      - price_oi_quadrant
+      - forced_flow_phase
+      - liquidity_phase
+      - execution_friction
+      - trend_phase
+      - basis_phase
+      - temporal_phase
+      - data_quality_state
+      - funding_bps
+      - ms_trend_state
+      - ms_spread_state
+      - severity_bucket
+      max_candidates_per_run: 250
+    spec_path: spec/events/PRICE_UP_OI_UP.yaml
   PRICE_VOL_IMBALANCE_PROXY:
     event_type: PRICE_VOL_IMBALANCE_PROXY
     research_family: LIQUIDITY_DISLOCATION
@@ -5120,7 +6288,7 @@ events:
     runtime_category: active_runtime_event
     maturity: standard
     default_executable: true
-    detector_band: ''
+    detector_band: composite_or_fragile
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -5226,8 +6394,8 @@ events:
     runtime_category: active_runtime_event
     maturity: ''
     default_executable: true
-    detector_band: ''
-    planning_eligible: false
+    detector_band: research_trigger
+    planning_eligible: true
     runtime_eligible: false
     promotion_eligible: false
     primary_anchor_eligible: false
@@ -5327,8 +6495,8 @@ events:
     runtime_category: active_runtime_event
     maturity: ''
     default_executable: true
-    detector_band: ''
-    planning_eligible: false
+    detector_band: research_trigger
+    planning_eligible: true
     runtime_eligible: false
     promotion_eligible: false
     primary_anchor_eligible: false
@@ -5429,8 +6597,8 @@ events:
     runtime_category: active_runtime_event
     maturity: ''
     default_executable: true
-    detector_band: ''
-    planning_eligible: false
+    detector_band: research_trigger
+    planning_eligible: true
     runtime_eligible: false
     promotion_eligible: false
     primary_anchor_eligible: false
@@ -5530,8 +6698,8 @@ events:
     runtime_category: active_runtime_event
     maturity: ''
     default_executable: false
-    detector_band: ''
-    planning_eligible: false
+    detector_band: context_only
+    planning_eligible: true
     runtime_eligible: false
     promotion_eligible: false
     primary_anchor_eligible: false
@@ -5645,7 +6813,7 @@ events:
     runtime_category: research_only
     maturity: ''
     default_executable: false
-    detector_band: ''
+    detector_band: composite_or_fragile
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -5748,7 +6916,7 @@ events:
     runtime_category: research_only
     maturity: ''
     default_executable: false
-    detector_band: ''
+    detector_band: composite_or_fragile
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -5849,7 +7017,7 @@ events:
     runtime_category: research_only
     maturity: ''
     default_executable: false
-    detector_band: ''
+    detector_band: composite_or_fragile
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -5952,7 +7120,7 @@ events:
     runtime_category: research_only
     maturity: ''
     default_executable: false
-    detector_band: ''
+    detector_band: composite_or_fragile
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -6052,8 +7220,8 @@ events:
     runtime_category: active_runtime_event
     maturity: ''
     default_executable: false
-    detector_band: ''
-    planning_eligible: false
+    detector_band: context_only
+    planning_eligible: true
     runtime_eligible: false
     promotion_eligible: false
     primary_anchor_eligible: false
@@ -6155,8 +7323,8 @@ events:
     runtime_category: active_runtime_event
     maturity: ''
     default_executable: false
-    detector_band: ''
-    planning_eligible: false
+    detector_band: context_only
+    planning_eligible: true
     runtime_eligible: false
     promotion_eligible: false
     primary_anchor_eligible: false
@@ -6258,8 +7426,8 @@ events:
     runtime_category: active_runtime_event
     maturity: ''
     default_executable: true
-    detector_band: ''
-    planning_eligible: false
+    detector_band: research_trigger
+    planning_eligible: true
     runtime_eligible: false
     promotion_eligible: false
     primary_anchor_eligible: false
@@ -6356,11 +7524,11 @@ events:
     runtime_category: active_runtime_event
     maturity: ''
     default_executable: true
-    detector_band: ''
-    planning_eligible: false
-    runtime_eligible: false
-    promotion_eligible: false
-    primary_anchor_eligible: false
+    detector_band: deployable_core
+    planning_eligible: true
+    runtime_eligible: true
+    promotion_eligible: true
+    primary_anchor_eligible: true
     enabled: true
     detector_name: SpotPerpBasisShockDetector
     instrument_classes:
@@ -6461,8 +7629,8 @@ events:
     runtime_category: active_runtime_event
     maturity: ''
     default_executable: true
-    detector_band: ''
-    planning_eligible: false
+    detector_band: research_trigger
+    planning_eligible: true
     runtime_eligible: false
     promotion_eligible: false
     primary_anchor_eligible: false
@@ -6588,8 +7756,8 @@ events:
     runtime_category: active_runtime_event
     maturity: ''
     default_executable: true
-    detector_band: ''
-    planning_eligible: false
+    detector_band: research_trigger
+    planning_eligible: true
     runtime_eligible: false
     promotion_eligible: false
     primary_anchor_eligible: false
@@ -6689,8 +7857,8 @@ events:
     runtime_category: active_runtime_event
     maturity: ''
     default_executable: true
-    detector_band: ''
-    planning_eligible: false
+    detector_band: research_trigger
+    planning_eligible: true
     runtime_eligible: false
     promotion_eligible: false
     primary_anchor_eligible: false
@@ -6790,8 +7958,8 @@ events:
     runtime_category: active_runtime_event
     maturity: standard
     default_executable: true
-    detector_band: ''
-    planning_eligible: false
+    detector_band: research_trigger
+    planning_eligible: true
     runtime_eligible: false
     promotion_eligible: false
     primary_anchor_eligible: false
@@ -6894,8 +8062,8 @@ events:
     runtime_category: active_runtime_event
     maturity: ''
     default_executable: true
-    detector_band: ''
-    planning_eligible: false
+    detector_band: research_trigger
+    planning_eligible: true
     runtime_eligible: false
     promotion_eligible: false
     primary_anchor_eligible: false
@@ -6996,8 +8164,8 @@ events:
     runtime_category: active_runtime_event
     maturity: ''
     default_executable: true
-    detector_band: ''
-    planning_eligible: false
+    detector_band: research_trigger
+    planning_eligible: true
     runtime_eligible: false
     promotion_eligible: false
     primary_anchor_eligible: false
@@ -7097,8 +8265,8 @@ events:
     runtime_category: active_runtime_event
     maturity: ''
     default_executable: true
-    detector_band: ''
-    planning_eligible: false
+    detector_band: research_trigger
+    planning_eligible: true
     runtime_eligible: false
     promotion_eligible: false
     primary_anchor_eligible: false
@@ -7216,8 +8384,8 @@ events:
     runtime_category: active_runtime_event
     maturity: ''
     default_executable: true
-    detector_band: ''
-    planning_eligible: false
+    detector_band: research_trigger
+    planning_eligible: true
     runtime_eligible: false
     promotion_eligible: false
     primary_anchor_eligible: false
@@ -7316,8 +8484,8 @@ events:
     runtime_category: active_runtime_event
     maturity: ''
     default_executable: true
-    detector_band: ''
-    planning_eligible: false
+    detector_band: research_trigger
+    planning_eligible: true
     runtime_eligible: false
     promotion_eligible: false
     primary_anchor_eligible: false
@@ -7417,8 +8585,8 @@ events:
     runtime_category: active_runtime_event
     maturity: ''
     default_executable: true
-    detector_band: ''
-    planning_eligible: false
+    detector_band: research_trigger
+    planning_eligible: true
     runtime_eligible: false
     promotion_eligible: false
     primary_anchor_eligible: false
@@ -7517,10 +8685,10 @@ events:
     runtime_category: active_runtime_event
     maturity: ''
     default_executable: true
-    detector_band: ''
-    planning_eligible: false
+    detector_band: research_trigger
+    planning_eligible: true
     runtime_eligible: false
-    promotion_eligible: false
+    promotion_eligible: true
     primary_anchor_eligible: false
     enabled: true
     detector_name: VolRelaxationDetector
@@ -7619,11 +8787,11 @@ events:
     runtime_category: active_runtime_event
     maturity: ''
     default_executable: true
-    detector_band: ''
-    planning_eligible: false
-    runtime_eligible: false
-    promotion_eligible: false
-    primary_anchor_eligible: false
+    detector_band: deployable_core
+    planning_eligible: true
+    runtime_eligible: true
+    promotion_eligible: true
+    primary_anchor_eligible: true
     enabled: true
     detector_name: VolShockRelaxationDetector
     instrument_classes:
@@ -7788,11 +8956,11 @@ events:
     runtime_category: active_runtime_event
     maturity: ''
     default_executable: true
-    detector_band: ''
-    planning_eligible: false
-    runtime_eligible: false
-    promotion_eligible: false
-    primary_anchor_eligible: false
+    detector_band: deployable_core
+    planning_eligible: true
+    runtime_eligible: true
+    promotion_eligible: true
+    primary_anchor_eligible: true
     enabled: true
     detector_name: VolSpikeDetector
     instrument_classes:
@@ -7888,7 +9056,7 @@ events:
     runtime_category: active_runtime_event
     maturity: standard
     default_executable: true
-    detector_band: ''
+    detector_band: composite_or_fragile
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -7987,8 +9155,8 @@ events:
     runtime_category: active_runtime_event
     maturity: ''
     default_executable: true
-    detector_band: ''
-    planning_eligible: false
+    detector_band: research_trigger
+    planning_eligible: true
     runtime_eligible: false
     promotion_eligible: false
     primary_anchor_eligible: false
@@ -9882,7 +11050,7 @@ templates:
     - INFORMATION_DESYNC
     template_kind: expression_template
     side_policy: contrarian
-    label_target: basis_repair_h
+    label_target: basis_zscore_delta_h
     requires_direction: false
     supports_trigger_types:
     - EVENT
@@ -9963,7 +11131,7 @@ templates:
     - INFORMATION_DESYNC
     template_kind: expression_template
     side_policy: contrarian
-    label_target: basis_repair_h
+    label_target: basis_zscore_delta_h
     requires_direction: false
     supports_trigger_types:
     - EVENT
@@ -9994,7 +11162,7 @@ templates:
     - INFORMATION_DESYNC
     template_kind: expression_template
     side_policy: contrarian
-    label_target: basis_repair_h
+    label_target: spread_convergence_h
     requires_direction: false
     supports_trigger_types:
     - EVENT
@@ -10510,10 +11678,10 @@ regimes:
     canonical_regime: POSITIONING_EXPANSION
     bucket: trade_generating
     eligible_templates:
-    - continuation
-    - convexity_capture
-    - reversal_or_squeeze
+    - carry_continuation_confirmed
+    - squeeze_followthrough_confirmed
     forbidden_templates:
+    - continuation
     - exhaustion_reversal
     risk_posture: moderate
     execution_style: momentum_confirmed
@@ -11911,6 +13079,145 @@ runtime:
         - ms_spread_state
         - severity_bucket
         max_candidates_per_run: 500
+      FUNDING_FLIP_TO_NEGATIVE:
+        templates:
+        - carry_unwind_reversal
+        - basis_funding_convergence
+        - tail_risk_avoid
+        horizons:
+        - 5m
+        - 60m
+        conditioning_cols:
+        - vol_regime
+        - vol_phase
+        - carry_state
+        - funding_phase
+        - oi_phase
+        - price_oi_quadrant
+        - forced_flow_phase
+        - liquidity_phase
+        - execution_friction
+        - trend_phase
+        - basis_phase
+        - temporal_phase
+        - data_quality_state
+        - funding_bps
+        - ms_trend_state
+        - ms_spread_state
+        - severity_bucket
+        max_candidates_per_run: 250
+      FUNDING_FLIP_TO_POSITIVE:
+        templates:
+        - carry_unwind_reversal
+        - basis_funding_convergence
+        - tail_risk_avoid
+        horizons:
+        - 5m
+        - 60m
+        conditioning_cols:
+        - vol_regime
+        - vol_phase
+        - carry_state
+        - funding_phase
+        - oi_phase
+        - price_oi_quadrant
+        - forced_flow_phase
+        - liquidity_phase
+        - execution_friction
+        - trend_phase
+        - basis_phase
+        - temporal_phase
+        - data_quality_state
+        - funding_bps
+        - ms_trend_state
+        - ms_spread_state
+        - severity_bucket
+        max_candidates_per_run: 250
+      FUNDING_NEG_EXTREME_ONSET:
+        templates:
+        - carry_unwind_reversal
+        - basis_funding_convergence
+        - only_if_funding
+        - tail_risk_avoid
+        horizons:
+        - 60m
+        conditioning_cols:
+        - vol_regime
+        - vol_phase
+        - carry_state
+        - funding_phase
+        - oi_phase
+        - price_oi_quadrant
+        - forced_flow_phase
+        - liquidity_phase
+        - execution_friction
+        - trend_phase
+        - basis_phase
+        - temporal_phase
+        - data_quality_state
+        - funding_bps
+        - ms_trend_state
+        - ms_spread_state
+        - severity_bucket
+        max_candidates_per_run: 250
+      FUNDING_NEG_NORMALIZATION:
+        templates:
+        - carry_unwind_reversal
+        - basis_funding_convergence
+        - only_if_funding
+        - tail_risk_avoid
+        horizons:
+        - 60m
+        conditioning_cols:
+        - vol_regime
+        - vol_phase
+        - carry_state
+        - funding_phase
+        - oi_phase
+        - price_oi_quadrant
+        - forced_flow_phase
+        - liquidity_phase
+        - execution_friction
+        - trend_phase
+        - basis_phase
+        - temporal_phase
+        - data_quality_state
+        - funding_bps
+        - ms_trend_state
+        - ms_spread_state
+        - severity_bucket
+        max_candidates_per_run: 250
+      FUNDING_NEG_PERSISTENCE:
+        templates:
+        - carry_unwind_reversal
+        - carry_continuation_confirmed
+        - basis_funding_convergence
+        - squeeze_followthrough_confirmed
+        - only_if_funding
+        - only_if_oi
+        - tail_risk_avoid
+        horizons:
+        - 5m
+        - 60m
+        conditioning_cols:
+        - vol_regime
+        - vol_phase
+        - carry_state
+        - funding_phase
+        - oi_phase
+        - price_oi_quadrant
+        - forced_flow_phase
+        - liquidity_phase
+        - execution_friction
+        - trend_phase
+        - basis_phase
+        - temporal_phase
+        - data_quality_state
+        - funding_bps
+        - ms_trend_state
+        - ms_spread_state
+        - severity_bucket
+        max_candidates_per_run: 250
       FUNDING_NORMALIZATION_TRIGGER:
         templates:
         - reversal_or_squeeze
@@ -11974,6 +13281,91 @@ runtime:
         - ms_spread_state
         - severity_bucket
         max_candidates_per_run: 500
+      FUNDING_POS_EXTREME_ONSET:
+        templates:
+        - carry_unwind_reversal
+        - basis_funding_convergence
+        - only_if_funding
+        - tail_risk_avoid
+        horizons:
+        - 60m
+        conditioning_cols:
+        - vol_regime
+        - vol_phase
+        - carry_state
+        - funding_phase
+        - oi_phase
+        - price_oi_quadrant
+        - forced_flow_phase
+        - liquidity_phase
+        - execution_friction
+        - trend_phase
+        - basis_phase
+        - temporal_phase
+        - data_quality_state
+        - funding_bps
+        - ms_trend_state
+        - ms_spread_state
+        - severity_bucket
+        max_candidates_per_run: 250
+      FUNDING_POS_NORMALIZATION:
+        templates:
+        - carry_unwind_reversal
+        - basis_funding_convergence
+        - only_if_funding
+        - tail_risk_avoid
+        horizons:
+        - 60m
+        conditioning_cols:
+        - vol_regime
+        - vol_phase
+        - carry_state
+        - funding_phase
+        - oi_phase
+        - price_oi_quadrant
+        - forced_flow_phase
+        - liquidity_phase
+        - execution_friction
+        - trend_phase
+        - basis_phase
+        - temporal_phase
+        - data_quality_state
+        - funding_bps
+        - ms_trend_state
+        - ms_spread_state
+        - severity_bucket
+        max_candidates_per_run: 250
+      FUNDING_POS_PERSISTENCE:
+        templates:
+        - carry_unwind_reversal
+        - carry_continuation_confirmed
+        - basis_funding_convergence
+        - squeeze_followthrough_confirmed
+        - only_if_funding
+        - only_if_oi
+        - tail_risk_avoid
+        horizons:
+        - 5m
+        - 60m
+        conditioning_cols:
+        - vol_regime
+        - vol_phase
+        - carry_state
+        - funding_phase
+        - oi_phase
+        - price_oi_quadrant
+        - forced_flow_phase
+        - liquidity_phase
+        - execution_friction
+        - trend_phase
+        - basis_phase
+        - temporal_phase
+        - data_quality_state
+        - funding_bps
+        - ms_trend_state
+        - ms_spread_state
+        - severity_bucket
+        max_candidates_per_run: 250
       FUNDING_TIMESTAMP_EVENT:
         templates:
         - mean_reversion
@@ -12405,11 +13797,8 @@ runtime:
         max_candidates_per_run: 250
       OI_SPIKE_POSITIVE:
         templates:
-        - reversal_or_squeeze
-        - mean_reversion
-        - continuation
-        - exhaustion_reversal
-        - convexity_capture
+        - carry_continuation_confirmed
+        - squeeze_followthrough_confirmed
         - only_if_funding
         - only_if_oi
         - tail_risk_avoid
@@ -12519,6 +13908,113 @@ runtime:
         - ms_spread_state
         - severity_bucket
         max_candidates_per_run: 400
+      PRICE_DOWN_OI_DOWN:
+        templates:
+        - positioning_flush_reversal
+        - long_flush_rebound
+        - only_if_oi
+        - tail_risk_avoid
+        horizons:
+        - 60m
+        conditioning_cols:
+        - vol_regime
+        - vol_phase
+        - carry_state
+        - funding_phase
+        - oi_phase
+        - price_oi_quadrant
+        - forced_flow_phase
+        - liquidity_phase
+        - execution_friction
+        - trend_phase
+        - basis_phase
+        - temporal_phase
+        - data_quality_state
+        - funding_bps
+        - ms_trend_state
+        - ms_spread_state
+        - severity_bucket
+        max_candidates_per_run: 250
+      PRICE_DOWN_OI_UP:
+        templates:
+        - carry_continuation_confirmed
+        - only_if_oi
+        - tail_risk_avoid
+        horizons:
+        - 60m
+        conditioning_cols:
+        - vol_regime
+        - vol_phase
+        - carry_state
+        - funding_phase
+        - oi_phase
+        - price_oi_quadrant
+        - forced_flow_phase
+        - liquidity_phase
+        - execution_friction
+        - trend_phase
+        - basis_phase
+        - temporal_phase
+        - data_quality_state
+        - funding_bps
+        - ms_trend_state
+        - ms_spread_state
+        - severity_bucket
+        max_candidates_per_run: 250
+      PRICE_UP_OI_DOWN:
+        templates:
+        - squeeze_followthrough_confirmed
+        - positioning_flush_reversal
+        - only_if_oi
+        - tail_risk_avoid
+        horizons:
+        - 60m
+        conditioning_cols:
+        - vol_regime
+        - vol_phase
+        - carry_state
+        - funding_phase
+        - oi_phase
+        - price_oi_quadrant
+        - forced_flow_phase
+        - liquidity_phase
+        - execution_friction
+        - trend_phase
+        - basis_phase
+        - temporal_phase
+        - data_quality_state
+        - funding_bps
+        - ms_trend_state
+        - ms_spread_state
+        - severity_bucket
+        max_candidates_per_run: 250
+      PRICE_UP_OI_UP:
+        templates:
+        - carry_continuation_confirmed
+        - squeeze_followthrough_confirmed
+        - only_if_oi
+        - tail_risk_avoid
+        horizons:
+        - 60m
+        conditioning_cols:
+        - vol_regime
+        - vol_phase
+        - carry_state
+        - funding_phase
+        - oi_phase
+        - price_oi_quadrant
+        - forced_flow_phase
+        - liquidity_phase
+        - execution_friction
+        - trend_phase
+        - basis_phase
+        - temporal_phase
+        - data_quality_state
+        - funding_bps
+        - ms_trend_state
+        - ms_spread_state
+        - severity_bucket
+        max_candidates_per_run: 250
       PRICE_VOL_IMBALANCE_PROXY:
         templates:
         - mean_reversion

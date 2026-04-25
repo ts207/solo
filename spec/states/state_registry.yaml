@@ -63,6 +63,107 @@ context_dimensions:
     mapping:
       low: LOW_VOL_REGIME
       high: HIGH_VOL_REGIME
+  vol_phase:
+    allowed_values:
+    - compressed
+    - normal
+    - expanding
+    - shock
+    - aftershock
+    - decaying
+    mapping: {}
+  liquidity_phase:
+    allowed_values:
+    - normal
+    - thin
+    - vacuum
+    - collapse
+    - refill
+    - recovered
+    mapping: {}
+  execution_friction:
+    allowed_values:
+    - low
+    - normal
+    - elevated
+    - severe
+    - blocked
+    mapping: {}
+  funding_phase:
+    allowed_values:
+    - neutral
+    - positive_onset
+    - negative_onset
+    - positive_persistent
+    - negative_persistent
+    - positive_normalizing
+    - negative_normalizing
+    - flip_to_positive
+    - flip_to_negative
+    mapping: {}
+  oi_phase:
+    allowed_values:
+    - neutral
+    - expansion
+    - contraction
+    - flush
+    - rebuild
+    mapping: {}
+  price_oi_quadrant:
+    allowed_values:
+    - price_up_oi_up
+    - price_up_oi_down
+    - price_down_oi_up
+    - price_down_oi_down
+    mapping: {}
+  forced_flow_phase:
+    allowed_values:
+    - none
+    - pre_cascade
+    - cascade
+    - cooldown
+    - refill
+    - rebound_confirmed
+    - reacceleration
+    mapping: {}
+  trend_phase:
+    allowed_values:
+    - uptrend
+    - downtrend
+    - chop
+    - compression
+    - breakout
+    - retest
+    - exhaustion
+    - transition
+    mapping: {}
+  basis_phase:
+    allowed_values:
+    - neutral
+    - positive_dislocation
+    - negative_dislocation
+    - widening
+    - converging
+    - normalized
+    mapping: {}
+  temporal_phase:
+    allowed_values:
+    - normal
+    - session_open
+    - session_close
+    - pre_funding_timestamp
+    - post_funding_timestamp
+    - pre_news
+    - post_news
+    mapping: {}
+  data_quality_state:
+    allowed_values:
+    - ok
+    - degraded
+    - stale
+    - missing_required_feature
+    - synthetic_only
+    mapping: {}
 states:
 - version: 1
   kind: state_definition
@@ -318,12 +419,28 @@ states:
   source_event_type: DEPTH_COLLAPSE
   activation_rule: depth_recovery_ratio in (recovery_min, recovery_max)
   decay_rule: exit when depth_recovery_ratio >= recovery_max OR elapsed_bars > max_horizon
+  activation:
+    condition: depth_recovery_ratio >= recovery_min AND spread_zscore <= p70
+    min_hold_bars: 3
+  decay:
+    condition: elapsed_bars > 24 OR spread_zscore > p90 OR depth_recovery_ratio <
+      recovery_min
+    max_duration_bars: 24
+  scope:
+    state_scope: symbol_venue
+    point_in_time_safe: true
+  context_dimensions:
+    liquidity_phase: refill
+    execution_friction: normal
   features_required:
   - market_depth
+  - spread_zscore
+  - depth_recovery_ratio
   allowed_templates:
-  - pullback_entry
-  - continuation
-  - mean_reversion
+  - liquidity_refill_repair
+  - forced_flow_rebound
+  forbidden_templates:
+  - generic_continuation
 - version: 1
   kind: state_definition
   state_id: DESYNC_PERSISTENCE_STATE
@@ -431,18 +548,33 @@ states:
   source_event_type: FUNDING_PERSISTENCE_TRIGGER
   activation_rule: funding_abs_pct >= persistence_pct for persistence_bars
   decay_rule: exit when funding_abs_pct < normalization_pct
+  activation:
+    condition: funding_abs_pct >= persistence_pct for persistence_bars
+    min_hold_bars: 2
+  decay:
+    condition: funding_abs_pct < normalization_pct OR funding_sign_flips
+    max_duration_bars: 96
+  scope:
+    state_scope: symbol_venue
+    point_in_time_safe: true
+  context_dimensions:
+    funding_phase:
+      positive: positive_persistent
+      negative: negative_persistent
   features_required:
   - funding_rate_scaled
   - funding_abs_pct
   allowed_templates:
-  - reversal_or_squeeze
-  - mean_reversion
-  - continuation
-  - exhaustion_reversal
-  - convexity_capture
+  - carry_unwind_reversal
+  - carry_continuation_confirmed
+  - basis_funding_convergence
+  - squeeze_followthrough_confirmed
   - only_if_funding
   - only_if_oi
   - tail_risk_avoid
+  forbidden_templates:
+  - generic_continuation
+  - unconditioned_mean_reversion
 - version: 1
   kind: state_definition
   state_id: HIGH_FRICTION_STATE
@@ -675,19 +807,19 @@ states:
   source_event_type: LIQUIDITY_STRESS_DIRECT
   state_scope: source_only
   min_events: 1
-  activation_rule: bid-ask spread in elevated regime
-  decay_rule: spread normalizes to baseline
+  activation_rule: spread context is elevated or compressed
+  decay_rule: spread normalizes
   allowed_templates:
   - continuation
 - version: 1
   kind: state_definition
   state_id: MS_TREND_STATE
   family: MICROSTRUCTURE_CONTEXT
-  source_event_type: TREND_EXHAUSTION_TRIGGER
+  source_event_type: TREND_ACCELERATION
   state_scope: source_only
   min_events: 1
-  activation_rule: microstructure trend context is directional
-  decay_rule: trend context returns to neutral
+  activation_rule: trend context is active or choppy
+  decay_rule: trend context normalizes
   allowed_templates:
   - continuation
 - version: 1
@@ -838,16 +970,32 @@ states:
 - version: 1
   kind: state_definition
   state_id: POST_CASCADE_RECOVERY_STATE
-  family: POSITIONING_EXTREMES
+  family: FORCED_FLOW_AND_EXHAUSTION
   source_event_type: LIQUIDATION_EXHAUSTION_REVERSAL
   activation_rule: post cascade recovery detected
   decay_rule: recovery normalizes
+  activation:
+    condition: spread_z <= p70 AND liquidation_rate <= cooldown_threshold
+    min_hold_bars: 3
+  decay:
+    condition: elapsed_bars > 24 OR spread_z > p90 OR cascade_reacceleration
+    max_duration_bars: 24
+  scope:
+    state_scope: symbol_venue
+    point_in_time_safe: true
+  context_dimensions:
+    forced_flow_phase: refill
+    liquidity_phase: refill
   features_required:
   - liquidation_notional
   - spread_bps
+  - open_interest
+  - depth_recovery_ratio
   allowed_templates:
-  - mean_reversion
-  - continuation
+  - forced_flow_rebound
+  - liquidity_refill_repair
+  forbidden_templates:
+  - generic_continuation
 - version: 1
   kind: state_definition
   state_id: POST_CLIMAX_STATE

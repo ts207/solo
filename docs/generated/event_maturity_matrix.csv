@@ -21,8 +21,16 @@ FND_DISLOC,A,trigger,primary_trigger_candidate,active_runtime_event,5,5,5,5,4,5,
 FORCED_FLOW_EXHAUSTION,B,trigger,secondary_or_confirm,active_runtime_event,4,4,4,4,3,4,3,3
 FUNDING_EXTREME_ONSET,B,trigger,secondary_or_confirm,active_runtime_event,4,4,4,4,3,4,4,3
 FUNDING_FLIP,B,trigger,secondary_or_confirm,active_runtime_event,4,4,4,4,3,4,4,3
+FUNDING_FLIP_TO_NEGATIVE,D,trigger,review_required,active_runtime_event,2,2,2,2,1,2,2,0
+FUNDING_FLIP_TO_POSITIVE,D,trigger,review_required,active_runtime_event,2,2,2,2,1,2,2,0
+FUNDING_NEG_EXTREME_ONSET,D,trigger,review_required,active_runtime_event,2,2,2,2,1,2,2,0
+FUNDING_NEG_NORMALIZATION,D,trigger,review_required,active_runtime_event,2,2,2,2,1,2,2,0
+FUNDING_NEG_PERSISTENCE,D,trigger,review_required,active_runtime_event,2,2,2,2,1,2,2,0
 FUNDING_NORMALIZATION_TRIGGER,B,trigger,secondary_or_confirm,active_runtime_event,4,4,4,4,3,4,4,3
 FUNDING_PERSISTENCE_TRIGGER,B,trigger,secondary_or_confirm,active_runtime_event,4,4,4,4,3,4,4,3
+FUNDING_POS_EXTREME_ONSET,D,trigger,review_required,active_runtime_event,2,2,2,2,1,2,2,0
+FUNDING_POS_NORMALIZATION,D,trigger,review_required,active_runtime_event,2,2,2,2,1,2,2,0
+FUNDING_POS_PERSISTENCE,D,trigger,review_required,active_runtime_event,2,2,2,2,1,2,2,0
 FUNDING_TIMESTAMP_EVENT,C,context,context_only,active_runtime_event,3,3,3,3,2,3,2,1
 GAP_OVERSHOOT,B,trigger,secondary_or_confirm,active_runtime_event,4,4,4,4,3,4,3,3
 INDEX_COMPONENT_DIVERGENCE,B,trigger,secondary_or_confirm,active_runtime_event,4,4,4,4,3,4,3,3
@@ -42,6 +50,10 @@ OI_SPIKE_POSITIVE,B,trigger,secondary_or_confirm,active_runtime_event,4,4,4,4,3,
 ORDERFLOW_IMBALANCE_SHOCK,B,trigger,secondary_or_confirm,active_runtime_event,4,4,4,4,3,4,4,3
 OVERSHOOT_AFTER_SHOCK,B,trigger,secondary_or_confirm,active_runtime_event,4,4,4,4,3,4,3,3
 POST_DELEVERAGING_REBOUND,B,trigger,secondary_or_confirm,active_runtime_event,4,4,4,4,3,4,3,3
+PRICE_DOWN_OI_DOWN,D,trigger,review_required,active_runtime_event,2,2,2,2,1,2,2,0
+PRICE_DOWN_OI_UP,D,trigger,review_required,active_runtime_event,2,2,2,2,1,2,2,0
+PRICE_UP_OI_DOWN,D,trigger,review_required,active_runtime_event,2,2,2,2,1,2,2,0
+PRICE_UP_OI_UP,D,trigger,review_required,active_runtime_event,2,2,2,2,1,2,2,0
 PRICE_VOL_IMBALANCE_PROXY,B,trigger,secondary_or_confirm,active_runtime_event,4,4,4,4,3,4,3,3
 PULLBACK_PIVOT,B,trigger,secondary_or_confirm,active_runtime_event,4,4,4,4,3,4,3,3
 RANGE_BREAKOUT,B,trigger,secondary_or_confirm,active_runtime_event,4,4,4,4,3,4,3,3

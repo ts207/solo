@@ -11,10 +11,11 @@ source_event_type: DEPTH_COLLAPSE
 activation_rule: depth_recovery_ratio in (recovery_min, recovery_max)
 decay_rule: exit when depth_recovery_ratio >= recovery_max OR elapsed_bars > max_horizon
 allowed_templates:
-- pullback_entry
-- continuation
-- mean_reversion
+- liquidity_refill_repair
+- forced_flow_rebound
 state_scope: source_only
 min_events: 200
 features_required:
 - market_depth
+- spread_zscore
+- depth_recovery_ratio

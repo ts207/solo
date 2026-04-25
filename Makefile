@@ -180,3 +180,12 @@ discover-cells-run:
 
 benchmark-supported-path:
 	@PYTHONPATH=$(PYTHONPATH) $(PYTHON) project/scripts/run_supported_path_benchmark.py --execute $(EXECUTE) $(if $(DATA_ROOT),--data_root "$(DATA_ROOT)",) --runtime_max_rows $(RUNTIME_MAX_ROWS)
+
+# Advanced/Internal trigger discovery
+FAMILY ?=
+advanced-discover-triggers-parameter:
+	@test -n "$(FAMILY)" || (echo 'FAMILY is required' >&2; exit 2)
+	@$(CLI) discover triggers parameter-sweep --family "$(FAMILY)" --symbol "$(SYMBOLS)" $(if $(OUTPUT_DIR),--output_dir "$(OUTPUT_DIR)",)
+
+advanced-discover-triggers-cluster:
+	@$(CLI) discover triggers feature-cluster --symbol "$(SYMBOLS)" $(if $(OUTPUT_DIR),--output_dir "$(OUTPUT_DIR)",)

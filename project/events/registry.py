@@ -142,6 +142,8 @@ def load_milestone_event_registry() -> dict[str, dict]:
         event_def = registry.get_event(event_type)
         if event_def is None:
             continue
+        if not event_def.enabled:
+            continue
         row = registry.event_row(event_type)
         if not row:
             continue
@@ -494,6 +496,9 @@ def _list_detectors_by_filter(filter_fn) -> list[DetectorContract]:
     registry = get_domain_registry()
     contracts = []
     for key in registry.event_ids:
+        row = registry.event_row(key)
+        if str(row.get("layer", "")).strip() == "research_placeholder":
+            continue
         contract = get_detector_contract(key)
         if filter_fn(contract):
             contracts.append(contract)

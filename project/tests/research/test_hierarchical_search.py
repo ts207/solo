@@ -197,6 +197,25 @@ class TestStageBGenerator:
         for spec in specs:
             assert not spec.context
 
+    def test_semantic_duplicate_templates_are_collapsed(self):
+        from project.research.search.generator import generate_template_refinement_candidates
+
+        spec_doc = {
+            **_MINIMAL_SEARCH_SPEC,
+            "expression_templates": ["continuation", "trend_continuation"],
+        }
+        cfg = {
+            **_HIERARCHICAL_CONFIG,
+            "template_refinement": {
+                **_HIERARCHICAL_CONFIG["template_refinement"],
+                "top_k_templates_per_trigger": 2,
+            },
+        }
+        specs = generate_template_refinement_candidates(["VOL_SHOCK"], spec_doc, cfg)
+        branch_hashes = [spec.semantic_branch_hash() for spec in specs]
+
+        assert len(branch_hashes) == len(set(branch_hashes))
+
 
 class TestStageCGenerator:
     def test_empty_survivors_returns_empty(self):

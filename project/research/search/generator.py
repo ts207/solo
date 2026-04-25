@@ -34,6 +34,23 @@ def _candidate_row(spec: HypothesisSpec, *, search_spec_name: str) -> Dict[str, 
     return CandidateHypothesis(spec=spec, search_spec_name=search_spec_name).to_record()
 
 
+def _accept_unique_spec(
+    spec: HypothesisSpec,
+    *,
+    seen_ids: set[str],
+    seen_branch_hashes: set[str],
+) -> bool:
+    branch_hash = spec.semantic_branch_hash()
+    if branch_hash in seen_branch_hashes:
+        return False
+    hid = spec.hypothesis_id()
+    if hid in seen_ids:
+        return False
+    seen_ids.add(hid)
+    seen_branch_hashes.add(branch_hash)
+    return True
+
+
 def _context_combinations(contexts: Dict[str, Any]) -> List[Optional[Dict[str, str]]]:
     """
     Expand contexts dict into a list of conditioning dicts.
@@ -255,6 +272,7 @@ def generate_hypotheses_with_audit(
     hypotheses: List[HypothesisSpec] = []
     seen_ids: set = set()
     seen_branch_hashes: set = set()
+    seen_branch_hashes: set = set()
     skipped_invalid = 0
     skipped_dup = 0
     skipped_quota = 0
@@ -328,21 +346,21 @@ def generate_hypotheses_with_audit(
             )
 
         # 4. Deduplication
-        branch_hash = spec.semantic_branch_hash()
-        if branch_hash in seen_branch_hashes:
+        if spec.semantic_branch_hash() in seen_branch_hashes:
             skipped_dup += 1
-            _record_rejection("duplicate_semantic_branch", {"branch_hash": branch_hash})
+            _record_rejection(
+                "duplicate_semantic_branch",
+                {"branch_hash": spec.semantic_branch_hash()},
+            )
             return
 
-        hid = spec.hypothesis_id()
-        if hid in seen_ids:
+        if spec.hypothesis_id() in seen_ids:
             skipped_dup += 1
             _record_rejection("duplicate_hypothesis_id")
             return
 
         # Success - add
-        seen_ids.add(hid)
-        seen_branch_hashes.add(branch_hash)
+        _accept_unique_spec(spec, seen_ids=seen_ids, seen_branch_hashes=seen_branch_hashes)
         hypotheses.append(spec)
         feasible_rows.append(
             FeasibilityCheckedHypothesis(
@@ -587,6 +605,7 @@ def generate_trigger_probe_candidates(
     registry = get_domain_registry()
     hypotheses: List[HypothesisSpec] = []
     seen_ids: set = set()
+    seen_branch_hashes: set = set()
 
     for event_id in events:
         # One canonical template per trigger
@@ -610,10 +629,12 @@ def generate_trigger_probe_candidates(
             feasibility = check_hypothesis_feasibility(spec, features=features)
             if not feasibility.valid:
                 continue
-            hid = spec.hypothesis_id()
-            if hid in seen_ids:
+            if not _accept_unique_spec(
+                spec,
+                seen_ids=seen_ids,
+                seen_branch_hashes=seen_branch_hashes,
+            ):
                 continue
-            seen_ids.add(hid)
             hypotheses.append(spec)
 
     log.info(
@@ -657,6 +678,7 @@ def generate_template_refinement_candidates(
     registry = get_domain_registry()
     hypotheses: List[HypothesisSpec] = []
     seen_ids: set = set()
+    seen_branch_hashes: set = set()
 
     for event_id in surviving_trigger_events:
         event_templates = _canonical_templates_for_event(
@@ -680,10 +702,12 @@ def generate_template_refinement_candidates(
             feasibility = check_hypothesis_feasibility(spec, features=features)
             if not feasibility.valid:
                 continue
-            hid = spec.hypothesis_id()
-            if hid in seen_ids:
+            if not _accept_unique_spec(
+                spec,
+                seen_ids=seen_ids,
+                seen_branch_hashes=seen_branch_hashes,
+            ):
                 continue
-            seen_ids.add(hid)
             hypotheses.append(spec)
 
     log.info(
@@ -725,6 +749,7 @@ def generate_execution_refinement_candidates(
 
     hypotheses: List[HypothesisSpec] = []
     seen_ids: set = set()
+    seen_branch_hashes: set = set()
 
     for event_id, template_id in surviving_trigger_templates:
         for spec in _build_hypotheses(
@@ -742,10 +767,12 @@ def generate_execution_refinement_candidates(
             feasibility = check_hypothesis_feasibility(spec, features=features)
             if not feasibility.valid:
                 continue
-            hid = spec.hypothesis_id()
-            if hid in seen_ids:
+            if not _accept_unique_spec(
+                spec,
+                seen_ids=seen_ids,
+                seen_branch_hashes=seen_branch_hashes,
+            ):
                 continue
-            seen_ids.add(hid)
             hypotheses.append(spec)
 
     log.info(
@@ -804,6 +831,7 @@ def generate_context_refinement_candidates(
     capped_contexts = _first_n(all_1d_contexts, top_k_contexts)
 
     seen_ids: set = set()
+    seen_branch_hashes: set = set()
     baseline_specs: List[HypothesisSpec] = []
     context_specs: List[HypothesisSpec] = []
 
@@ -817,13 +845,15 @@ def generate_context_refinement_candidates(
             context=None,
             entry_lag=parent_spec.entry_lag,
         )
-        bid = baseline.hypothesis_id()
-        if bid not in seen_ids:
+        if baseline.hypothesis_id() not in seen_ids:
             errors = validate_hypothesis_spec(baseline)
             if not errors:
                 feasibility = check_hypothesis_feasibility(baseline, features=features)
-                if feasibility.valid:
-                    seen_ids.add(bid)
+                if feasibility.valid and _accept_unique_spec(
+                    baseline,
+                    seen_ids=seen_ids,
+                    seen_branch_hashes=seen_branch_hashes,
+                ):
                     baseline_specs.append(baseline)
 
         # Context variants
@@ -836,16 +866,18 @@ def generate_context_refinement_candidates(
                 context=ctx,
                 entry_lag=parent_spec.entry_lag,
             )
-            sid = spec.hypothesis_id()
-            if sid in seen_ids:
-                continue
             errors = validate_hypothesis_spec(spec)
             if errors:
                 continue
             feasibility = check_hypothesis_feasibility(spec, features=features)
             if not feasibility.valid:
                 continue
-            seen_ids.add(sid)
+            if not _accept_unique_spec(
+                spec,
+                seen_ids=seen_ids,
+                seen_branch_hashes=seen_branch_hashes,
+            ):
+                continue
             context_specs.append(spec)
 
     log.info(

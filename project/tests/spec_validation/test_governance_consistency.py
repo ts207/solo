@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from project.events.contract_registry import build_event_contract
+from project.spec_validation import governance as governance_lint
 from project.spec_validation.governance import validate_governance_consistency
 
 
@@ -22,3 +23,43 @@ def test_local_trade_runtime_lint_matches_generated_governance() -> None:
         for err in errors
         if err[0].endswith("LIQUIDATION_EXHAUSTION_REVERSAL.yaml")
     ]
+
+
+def test_local_governance_lint_detects_non_runtime_mismatch(monkeypatch) -> None:
+    monkeypatch.setattr(
+        governance_lint,
+        "build_detector_eligibility_matrix_rows",
+        lambda: [
+            {
+                "event_name": "TEST_EVENT",
+                "runtime": False,
+                "promotion": False,
+                "anchor": False,
+                "planning": False,
+                "detector_band": "research_trigger",
+            }
+        ],
+    )
+    monkeypatch.setattr(
+        governance_lint,
+        "load_active_event_contracts",
+        lambda: {
+            "TEST_EVENT": {
+                "raw": {
+                    "governance": {
+                        "promotion_eligible": True,
+                        "primary_anchor_eligible": True,
+                        "detector_band": "deployable_core",
+                    },
+                    "trade_runtime": {"eligible": False},
+                }
+            }
+        },
+    )
+
+    errors = validate_governance_consistency()
+
+    messages = [message for _, message in errors]
+    assert any("governance.promotion_eligible" in message for message in messages)
+    assert any("governance.primary_anchor_eligible" in message for message in messages)
+    assert any("governance.detector_band" in message for message in messages)

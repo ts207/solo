@@ -144,7 +144,7 @@ def test_domain_registry_derives_family_allowed_templates_from_template_registry
     registry = registry_loader.compile_domain_registry_from_sources()
 
     assert "poisoned_template" not in registry.event_family_rows()["LIQUIDITY_DISLOCATION"]["allowed_templates"]
-    assert "mean_reversion" in registry.event_family_rows()["LIQUIDITY_DISLOCATION"]["allowed_templates"]
+    assert "liquidity_refill_repair" in registry.event_family_rows()["LIQUIDITY_DISLOCATION"]["allowed_templates"]
 
 
 def test_domain_registry_exposes_context_and_searchable_family_views():

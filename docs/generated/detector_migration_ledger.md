@@ -25,22 +25,22 @@
 | FUNDING_EXTREME_ONSET | v2 | trigger | research_trigger | promotion_eligible_middle_layer | migrate_to_v2 | workstream_c | v2 research trigger retained on the governed migration path |
 | FUNDING_FLIP | v2 | trigger | research_trigger | promotion_eligible_middle_layer | migrate_to_v2 | workstream_c | v2 research trigger retained on the governed migration path |
 | FUNDING_NORMALIZATION_TRIGGER | v2 | trigger | research_trigger | promotion_eligible_middle_layer | migrate_to_v2 | workstream_c | v2 research trigger retained on the governed migration path |
-| FUNDING_PERSISTENCE_TRIGGER | v2 | trigger | research_trigger | promotion_eligible_middle_layer | migrate_to_v2 | workstream_c | v2 research trigger retained on the governed migration path |
+| FUNDING_PERSISTENCE_TRIGGER | v2 | trigger | research_trigger | promotion_eligible_middle_layer | migrate_to_v2 | workstream_c | promotion-eligible detector; keep on the governed v2 migration path |
 | FUNDING_TIMESTAMP_EVENT | v1 | context | context_only | research_perimeter | wrap_v1 | workstream_b | context marker; keep behind adapter boundaries and out of runtime/promotion |
 | GAP_OVERSHOOT | v1 | trigger | research_trigger | research_perimeter | retire | workstream_b | legacy detector outside the default planning surface; retire instead of migrating |
 | INDEX_COMPONENT_DIVERGENCE | v2 | trigger | research_trigger | promotion_eligible_middle_layer | migrate_to_v2 | workstream_c | v2 research trigger retained on the governed migration path |
 | LEAD_LAG_BREAK | v2 | trigger | research_trigger | promotion_eligible_middle_layer | migrate_to_v2 | workstream_c | v2 research trigger retained on the governed migration path |
-| LIQUIDATION_CASCADE | v2 | trigger | research_trigger | promotion_eligible_middle_layer | migrate_to_v2 | workstream_c | v2 research trigger retained on the governed migration path |
+| LIQUIDATION_CASCADE | v2 | trigger | deployable_core | runtime_core_first | migrate_to_v2 | workstream_c | deployable core runtime detector; keep fully v2 and contract-complete |
 | LIQUIDATION_CASCADE_PROXY | v2 | trigger | composite_or_fragile | research_perimeter | demote | workstream_b | fragile or proxy-heavy detector; preserve via adapters or demotion only |
-| LIQUIDATION_EXHAUSTION_REVERSAL | v1 | trigger | research_trigger | research_perimeter | retire | workstream_b | legacy detector outside the default planning surface; retire instead of migrating |
+| LIQUIDATION_EXHAUSTION_REVERSAL | v1 | trigger | research_trigger | research_perimeter | keep_v1 | workstream_b | legacy research trigger still available for planning but not promoted to v2 yet |
 | LIQUIDITY_GAP_PRINT | v2 | trigger | research_trigger | promotion_eligible_middle_layer | migrate_to_v2 | workstream_c | v2 research trigger retained on the governed migration path |
 | LIQUIDITY_SHOCK | v2 | trigger | research_trigger | promotion_eligible_middle_layer | migrate_to_v2 | workstream_c | v2 research trigger retained on the governed migration path |
 | LIQUIDITY_STRESS_DIRECT | v2 | trigger | research_trigger | promotion_eligible_middle_layer | migrate_to_v2 | workstream_c | v2 research trigger retained on the governed migration path |
 | LIQUIDITY_STRESS_PROXY | v2 | trigger | composite_or_fragile | research_perimeter | demote | workstream_b | fragile or proxy-heavy detector; preserve via adapters or demotion only |
-| LIQUIDITY_VACUUM | v2 | trigger | research_trigger | promotion_eligible_middle_layer | migrate_to_v2 | workstream_c | v2 research trigger retained on the governed migration path |
+| LIQUIDITY_VACUUM | v2 | trigger | deployable_core | runtime_core_first | migrate_to_v2 | workstream_c | deployable core runtime detector; keep fully v2 and contract-complete |
 | MOMENTUM_DIVERGENCE_TRIGGER | v1 | trigger | research_trigger | research_perimeter | retire | workstream_b | legacy detector outside the default planning surface; retire instead of migrating |
 | OI_FLUSH | v2 | trigger | research_trigger | promotion_eligible_middle_layer | migrate_to_v2 | workstream_c | v2 research trigger retained on the governed migration path |
-| OI_SPIKE_NEGATIVE | v2 | trigger | research_trigger | promotion_eligible_middle_layer | migrate_to_v2 | workstream_c | v2 research trigger retained on the governed migration path |
+| OI_SPIKE_NEGATIVE | v2 | trigger | deployable_core | runtime_core_first | migrate_to_v2 | workstream_c | deployable core runtime detector; keep fully v2 and contract-complete |
 | OI_SPIKE_POSITIVE | v2 | trigger | research_trigger | promotion_eligible_middle_layer | migrate_to_v2 | workstream_c | v2 research trigger retained on the governed migration path |
 | ORDERFLOW_IMBALANCE_SHOCK | v1 | trigger | research_trigger | research_perimeter | retire | workstream_b | legacy detector outside the default planning surface; retire instead of migrating |
 | OVERSHOOT_AFTER_SHOCK | v1 | trigger | research_trigger | research_perimeter | retire | workstream_b | legacy detector outside the default planning surface; retire instead of migrating |

@@ -118,6 +118,46 @@ def build_state_grammar_payload() -> Dict[str, Any]:
     }
 
 
+def build_context_registry_payload() -> Dict[str, Any]:
+    payload = _state_registry_payload()
+    context_dimensions = payload.get("context_dimensions", {})
+    if not isinstance(context_dimensions, dict):
+        context_dimensions = {}
+    normalized: Dict[str, Dict[str, Any]] = {}
+    for family, cfg in sorted(context_dimensions.items()):
+        if not isinstance(cfg, dict):
+            continue
+        allowed_values = [
+            str(item).strip()
+            for item in cfg.get("allowed_values", [])
+            if str(item).strip()
+        ]
+        if not allowed_values:
+            continue
+        row: Dict[str, Any] = {"allowed_values": allowed_values}
+        mapping = cfg.get("mapping", {})
+        if isinstance(mapping, dict) and mapping:
+            row["mapping"] = {
+                str(label).strip(): str(state_id).strip().upper()
+                for label, state_id in mapping.items()
+                if str(label).strip() and str(state_id).strip()
+            }
+        normalized[str(family).strip()] = row
+    return {
+        "version": 1,
+        "kind": "context_registry",
+        "metadata": {
+            "status": "generated",
+            "authored_sources": [
+                "spec/states/*.yaml",
+                "spec/contexts/context_dimension_registry.yaml",
+            ],
+            "generated_notice": "GENERATED FILE - DO NOT EDIT",
+        },
+        "context_dimensions": normalized,
+    }
+
+
 def build_state_ontology_specs() -> Dict[str, Dict[str, Any]]:
     payload = _state_registry_payload()
     defaults = payload.get("defaults", {})
@@ -189,15 +229,18 @@ def main() -> int:
     registry_path = resolve_relative_spec_path("spec/states/state_registry.yaml", repo_root=PROJECT_ROOT.parent)
     family_registry_path = resolve_relative_spec_path("spec/states/state_families.yaml", repo_root=PROJECT_ROOT.parent)
     runtime_path = PROJECT_ROOT / "configs" / "registries" / "states.yaml"
+    context_path = PROJECT_ROOT / "configs" / "registries" / "contexts.yaml"
     grammar_path = resolve_relative_spec_path("spec/grammar/state_registry.yaml", repo_root=PROJECT_ROOT.parent)
     _write_yaml(registry_path, _state_registry_payload())
     _write_yaml(family_registry_path, load_state_family_registry())
     _write_yaml(runtime_path, build_runtime_state_registry_payload())
+    _write_yaml(context_path, build_context_registry_payload())
     _write_yaml(grammar_path, build_state_grammar_payload())
     _write_ontology_specs(build_state_ontology_specs())
     print(f"Wrote {registry_path}")
     print(f"Wrote {family_registry_path}")
     print(f"Wrote {runtime_path}")
+    print(f"Wrote {context_path}")
     print(f"Wrote {grammar_path}")
     return 0
 

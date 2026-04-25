@@ -18,9 +18,8 @@ def test_regime_routing_spec_covers_all_executable_canonical_regimes():
     assert payload["eligible_templates_without_event_support"] == {}
     assert payload["events_without_supported_templates"] == {}
     assert payload["event_template_support"]["POSITIONING_EXPANSION"]["OI_SPIKE_POSITIVE"] == [
-        "continuation",
-        "convexity_capture",
-        "reversal_or_squeeze",
+        "carry_continuation_confirmed",
+        "squeeze_followthrough_confirmed",
     ]
     assert payload["event_template_support"]["REGIME_TRANSITION"]["VOL_REGIME_SHIFT_EVENT"] == [
         "continuation",

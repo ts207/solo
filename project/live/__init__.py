@@ -27,3 +27,7 @@ def __getattr__(name: str):
 
         return LiveStateStore
     raise AttributeError(f"module 'project.live' has no attribute {name!r}")
+
+
+def __dir__() -> list[str]:
+    return sorted(set(globals()) | set(__all__))

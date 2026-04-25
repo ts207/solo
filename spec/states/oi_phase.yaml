@@ -1,0 +1,16 @@
+version: 1
+kind: state_context_dimension
+state_name: oi_phase
+source_feature: oi_notional
+allowed_values:
+- neutral
+- expansion
+- contraction
+- flush
+- rebuild
+mapping: {}
+canonical_metrics:
+- oi_notional
+thresholds: []
+update_cadence: 5m
+acceptance_test_id: OI_PHASE_STABILITY_V1

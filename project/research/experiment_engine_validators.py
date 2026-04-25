@@ -599,6 +599,8 @@ def _resolve_requested_event_ids(
             spec = registry.get_event(event_id)
             if spec is None:
                 continue
+            if not spec.enabled:
+                continue
             if subtypes and str(spec.subtype).strip().lower() not in subtypes:
                 continue
             if phases and str(spec.phase).strip().lower() not in phases:

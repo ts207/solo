@@ -349,7 +349,12 @@ def build_unified_registry(repo_root: Path) -> Dict[str, Any]:
         )
         default_executable = _bool_value(
             _present(governance, "default_executable"),
-            default=not (is_composite or is_context_tag or is_strategy_construct),
+            default=not (
+                is_composite
+                or is_context_tag
+                or is_strategy_construct
+                or ontology.get("layer") == "research_placeholder"
+            ),
         )
         trade_runtime = payload.get("trade_runtime", {})
         if not isinstance(trade_runtime, dict):

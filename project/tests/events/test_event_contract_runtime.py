@@ -19,7 +19,8 @@ from project.spec_validation import load_ontology_events
 
 
 def test_active_event_set_parity_across_compiled_runtime_and_audit_loaders() -> None:
-    compiled_active_events = set(get_domain_registry().event_ids)
+    registry = get_domain_registry()
+    compiled_active_events = {eid for eid in registry.event_ids if registry.get_event(eid) and registry.get_event(eid).enabled}
     runtime_active_events = set(EVENT_REGISTRY_SPECS.keys())
     audited_active_events = set(load_ontology_events().keys())
 

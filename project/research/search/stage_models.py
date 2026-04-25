@@ -23,9 +23,15 @@ class CandidateHypothesis:
     def hypothesis_id(self) -> str:
         return self.spec.hypothesis_id()
 
+    @property
+    def branch_hash(self) -> str:
+        return self.spec.semantic_branch_hash()
+
     def to_record(self) -> Dict[str, Any]:
         return {
             "hypothesis_id": self.spec.hypothesis_id(),
+            "branch_hash": self.spec.semantic_branch_hash(),
+            "branch_key": self.spec.semantic_branch_key(),
             "trigger_type": self.spec.trigger.trigger_type,
             "trigger_key": self.spec.trigger.label(),
             "direction": self.spec.direction,

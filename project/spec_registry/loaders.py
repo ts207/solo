@@ -213,6 +213,32 @@ def _load_state_defaults() -> Dict[str, Any]:
     return normalized
 
 
+def _context_dimensions_from_registry() -> Dict[str, Dict[str, Any]]:
+    payload = load_yaml_relative("spec/contexts/context_dimension_registry.yaml")
+    raw_dimensions = payload.get("dimensions", {}) if isinstance(payload, dict) else {}
+    if not isinstance(raw_dimensions, dict):
+        return {}
+    dimensions: Dict[str, Dict[str, Any]] = {}
+    for raw_name, raw_cfg in raw_dimensions.items():
+        name = str(raw_name).strip()
+        if not name or not isinstance(raw_cfg, Mapping):
+            continue
+        raw_values = raw_cfg.get("values", {})
+        if isinstance(raw_values, Mapping):
+            allowed_values = [str(value).strip() for value in raw_values if str(value).strip()]
+        elif isinstance(raw_values, list):
+            allowed_values = [str(value).strip() for value in raw_values if str(value).strip()]
+        else:
+            allowed_values = []
+        if not allowed_values:
+            continue
+        dimensions[name] = {
+            "allowed_values": allowed_values,
+            "mapping": {},
+        }
+    return dimensions
+
+
 @functools.lru_cache(maxsize=1)
 def load_state_registry() -> Dict[str, Any]:
     defaults = _load_state_defaults()
@@ -223,6 +249,7 @@ def load_state_registry() -> Dict[str, Any]:
         }
         for _, row in _iter_context_dimension_rows()
     }
+    context_dimensions.update(_context_dimensions_from_registry())
     state_rows = [row for _, row in _iter_state_definition_rows()]
     state_rows.sort(key=lambda row: str(row.get("state_id", "")).strip().upper())
     return {
@@ -253,6 +280,7 @@ def load_state_family_registry() -> Dict[str, Any]:
         }
         for row in context_rows
     }
+    context_dimensions.update(_context_dimensions_from_registry())
     family_rows: list[Dict[str, Any]] = []
     for row in context_rows:
         family_row: Dict[str, Any] = {
@@ -270,6 +298,16 @@ def load_state_family_registry() -> Dict[str, Any]:
         if row.get("acceptance_test_id"):
             family_row["acceptance_test_id"] = row["acceptance_test_id"]
         family_rows.append(family_row)
+    existing_family_names = {str(row.get("name", "")).strip() for row in family_rows}
+    for family_name, cfg in sorted(context_dimensions.items()):
+        if family_name in existing_family_names:
+            continue
+        family_rows.append(
+            {
+                "name": family_name,
+                "allowed_values": list(cfg.get("allowed_values", [])),
+            }
+        )
     return {
         "version": 1,
         "kind": "state_family_registry",

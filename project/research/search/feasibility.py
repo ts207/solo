@@ -10,7 +10,9 @@ from project.domain.compiled_registry import get_domain_registry
 from project.domain.hypotheses import HypothesisSpec, TriggerType
 from project.domain.models import DomainRegistry
 from project.research.context_labels import canonicalize_context_label
+from project.research.search.compatibility import validate_event_template_compatibility
 from project.research.search.evaluator_utils import load_context_state_map
+from project.research.search.role_contracts import validate_standalone_event_role
 
 
 @dataclass(frozen=True)
@@ -43,7 +45,10 @@ def _event_family(spec: HypothesisSpec, registry: DomainRegistry) -> str:
 
 
 def _template_family_reason(spec: HypothesisSpec, registry: DomainRegistry) -> str | None:
-    del spec, registry
+    del registry
+    errors = validate_event_template_compatibility(spec)
+    if errors:
+        return errors[0]
     return None
 
 
@@ -163,6 +168,11 @@ def check_hypothesis_feasibility(
         details["primary_event_id"] = spec.trigger.event_id or ""
         details["compat_event_family"] = _event_family(spec, registry)
         details["family"] = details["compat_event_family"]
+
+    role_errors = validate_standalone_event_role(spec)
+    if role_errors:
+        reasons.append(role_errors[0])
+        details["primary_event_id"] = spec.trigger.event_id or ""
 
     if spec.feature_condition is not None and available_columns is not None:
         fc_column = _existing_column(

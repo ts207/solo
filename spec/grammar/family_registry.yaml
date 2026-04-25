@@ -5,8 +5,7 @@ event_families:
     description: Discrete shocks to order book depth and spread.
     searchable: true
     allowed_templates:
-    - mean_reversion
-    - continuation
+    - liquidity_refill_repair
     - stop_run_repair
     - overshoot_repair
     - only_if_liquidity
@@ -37,10 +36,9 @@ event_families:
     description: Extreme funding rates and open interest flushes.
     searchable: true
     allowed_templates:
-    - reversal_or_squeeze
-    - mean_reversion
-    - continuation
-    - exhaustion_reversal
+    - carry_unwind_reversal
+    - carry_continuation_confirmed
+    - squeeze_followthrough_confirmed
     - convexity_capture
     - only_if_funding
     - only_if_oi
@@ -62,10 +60,10 @@ event_families:
     description: Extreme basis and funding rate dislocations.
     searchable: true
     allowed_templates:
-    - reversal_or_squeeze
-    - mean_reversion
-    - continuation
-    - exhaustion_reversal
+    - carry_unwind_reversal
+    - carry_continuation_confirmed
+    - basis_funding_convergence
+    - basis_convergence
     - convexity_capture
     - only_if_funding
     - only_if_oi
@@ -77,8 +75,9 @@ event_families:
     description: Exhaustion of trend momentum and climax volume.
     searchable: true
     allowed_templates:
-    - mean_reversion
-    - exhaustion_reversal
+    - forced_flow_rebound
+    - cooldown_reversal
+    - liquidity_refill_repair
     - momentum_fade
     - range_reversion
     - only_if_trend
@@ -127,7 +126,7 @@ event_families:
     searchable: true
     allowed_templates:
     - desync_repair
-    - convergence
+    - basis_convergence
     - basis_repair
     - lead_lag_follow
     - divergence_continuation

@@ -253,13 +253,13 @@
     "runtime": false
   },
   {
-    "anchor": false,
+    "anchor": true,
     "detector_band": "research_trigger",
     "event_name": "FUNDING_PERSISTENCE_TRIGGER",
     "event_version": "v2",
     "maturity": "specialized",
-    "planning": false,
-    "promotion": false,
+    "planning": true,
+    "promotion": true,
     "role": "trigger",
     "runtime": false
   },
@@ -308,15 +308,15 @@
     "runtime": false
   },
   {
-    "anchor": false,
-    "detector_band": "research_trigger",
+    "anchor": true,
+    "detector_band": "deployable_core",
     "event_name": "LIQUIDATION_CASCADE",
     "event_version": "v2",
     "maturity": "production",
-    "planning": false,
-    "promotion": false,
+    "planning": true,
+    "promotion": true,
     "role": "trigger",
-    "runtime": false
+    "runtime": true
   },
   {
     "anchor": false,
@@ -335,7 +335,7 @@
     "event_name": "LIQUIDATION_EXHAUSTION_REVERSAL",
     "event_version": "v1",
     "maturity": "specialized",
-    "planning": false,
+    "planning": true,
     "promotion": false,
     "role": "trigger",
     "runtime": false
@@ -385,15 +385,15 @@
     "runtime": false
   },
   {
-    "anchor": false,
-    "detector_band": "research_trigger",
+    "anchor": true,
+    "detector_band": "deployable_core",
     "event_name": "LIQUIDITY_VACUUM",
     "event_version": "v2",
     "maturity": "production",
-    "planning": false,
-    "promotion": false,
+    "planning": true,
+    "promotion": true,
     "role": "trigger",
-    "runtime": false
+    "runtime": true
   },
   {
     "anchor": false,
@@ -418,15 +418,15 @@
     "runtime": false
   },
   {
-    "anchor": false,
-    "detector_band": "research_trigger",
+    "anchor": true,
+    "detector_band": "deployable_core",
     "event_name": "OI_SPIKE_NEGATIVE",
     "event_version": "v2",
     "maturity": "specialized",
-    "planning": false,
+    "planning": true,
     "promotion": false,
     "role": "trigger",
-    "runtime": false
+    "runtime": true
   },
   {
     "anchor": false,

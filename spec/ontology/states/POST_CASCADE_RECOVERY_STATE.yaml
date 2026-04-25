@@ -6,15 +6,17 @@ metadata:
   generated_notice: GENERATED FILE - DO NOT EDIT
   generated_from: spec/states/*.yaml
 state_id: POST_CASCADE_RECOVERY_STATE
-family: POSITIONING_EXTREMES
+family: FORCED_FLOW_AND_EXHAUSTION
 source_event_type: LIQUIDATION_EXHAUSTION_REVERSAL
 activation_rule: post cascade recovery detected
 decay_rule: recovery normalizes
 allowed_templates:
-- mean_reversion
-- continuation
+- forced_flow_rebound
+- liquidity_refill_repair
 state_scope: source_only
 min_events: 200
 features_required:
 - liquidation_notional
 - spread_bps
+- open_interest
+- depth_recovery_ratio

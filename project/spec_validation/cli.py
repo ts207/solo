@@ -11,7 +11,9 @@ from project.spec_validation.loaders import load_search_spec
 
 SEARCH_DIR = DEFAULT_SEARCH_DIR
 from project.spec_validation.governance import validate_governance_consistency
+from project.spec_validation.directionality import validate_event_directionality_contracts
 from project.spec_validation.ontology import validate_ontology
+from project.spec_validation.templates import validate_template_contracts
 
 
 def run_all_validations(*, root: Path | str = ".", verbose: bool = False) -> int:
@@ -32,6 +34,12 @@ def run_all_validations(*, root: Path | str = ".", verbose: bool = False) -> int
 
     print("Running Governance validation...")
     all_errors.extend(validate_governance_consistency())
+
+    print("Running Event directionality validation...")
+    all_errors.extend(validate_event_directionality_contracts())
+
+    print("Running Template contract validation...")
+    all_errors.extend(validate_template_contracts())
 
     print("Running Search spec validation...")
     for p in sorted(search_dir.glob("*.yaml")):

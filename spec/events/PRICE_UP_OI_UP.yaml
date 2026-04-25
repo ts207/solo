@@ -1,0 +1,47 @@
+event_type: PRICE_UP_OI_UP
+kind: semantic_variant
+active: true
+synthetic_coverage: covered
+reports_dir: oi_shocks
+events_file: oi_shock_events.parquet
+signal_column: oi_spike_pos_event
+source_event_type: OI_SPIKE_POSITIVE
+research_family: POSITIONING_EXTREMES
+cluster_id: oi_dynamic
+identity:
+  canonical_regime: POSITIONING_EXPANSION
+  subtype: price_up_oi_up
+  phase: expansion
+  evidence_mode: direct
+  layer: research_placeholder
+  disposition: rename
+  asset_scope: single_asset
+  venue_scope: single_venue
+role:
+  detector_role: trigger
+  trade_role: secondary_confirm
+  state_role: none
+  guard_role: none
+directionality:
+  direction_hint: long
+  sign_source: price
+  sign_required: true
+  sign_field: price_oi_quadrant
+context_requirements:
+  price_oi_quadrant: price_up_oi_up
+runtime:
+  enabled: false
+  detector: OISpikePositiveDetector
+  signal_column: oi_spike_pos_event
+  events_file: oi_shock_events.parquet
+  reports_dir: oi_shocks
+semantics:
+  cluster_id: oi_dynamic
+  collapse_target: OI_SPIKE_POSITIVE
+  notes: Price up with OI up; long build or trend participation.
+  precedence_rank: 0
+interaction:
+  suppresses: []
+  suppressed_by: []
+routing: {}
+

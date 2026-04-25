@@ -59,8 +59,8 @@ regimes:
           risk_posture: reduced_size_high_confirmation
   POSITIONING_EXPANSION:
     bucket: trade_generating
-    eligible_templates: [continuation, convexity_capture, reversal_or_squeeze]
-    forbidden_templates: [exhaustion_reversal]
+    eligible_templates: [carry_continuation_confirmed, squeeze_followthrough_confirmed]
+    forbidden_templates: [continuation, exhaustion_reversal]
     risk_posture: moderate
     execution_style: momentum_confirmed
     holding_horizon_profile: intraday

@@ -1,0 +1,17 @@
+version: 1
+kind: state_context_dimension
+state_name: vol_phase
+source_feature: rv_pct_17280
+allowed_values:
+  - compressed
+  - normal
+  - expanding
+  - shock
+  - aftershock
+  - decaying
+mapping: {}
+canonical_metrics:
+  - rv_pct_17280
+thresholds: []
+update_cadence: 5m
+acceptance_test_id: VOL_PHASE_STABILITY_V1

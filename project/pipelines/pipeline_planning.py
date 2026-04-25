@@ -1049,7 +1049,7 @@ def prepare_run_preflight(
         "detectors": {},
         "issues": [],
     }
-    if int(getattr(args, "run_phase2_conditional", 0) or 0) and viability_target_events:
+    if int(getattr(args, "run_phase2_conditional", 0) or 0) and viability_target_events and not int(getattr(args, "dry_run", 0) or 0):
         analysis_timeframe = parse_timeframes_csv(getattr(args, "timeframes", "5m"))[0]
         feature_surface_viability = analyze_feature_surface_viability(
             data_root=data_root,
