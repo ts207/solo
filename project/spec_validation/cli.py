@@ -13,7 +13,8 @@ SEARCH_DIR = DEFAULT_SEARCH_DIR
 from project.spec_validation.governance import validate_governance_consistency
 from project.spec_validation.directionality import validate_event_directionality_contracts
 from project.spec_validation.ontology import validate_ontology
-from project.spec_validation.templates import validate_template_contracts
+from project.spec_validation.templates import validate_template_contracts, validate_event_template_matrix
+from project.spec_validation.contexts import validate_context_registry
 
 
 def run_all_validations(*, root: Path | str = ".", verbose: bool = False) -> int:
@@ -40,6 +41,10 @@ def run_all_validations(*, root: Path | str = ".", verbose: bool = False) -> int
 
     print("Running Template contract validation...")
     all_errors.extend(validate_template_contracts())
+    all_errors.extend(validate_event_template_matrix())
+
+    print("Running Context validation...")
+    all_errors.extend(validate_context_registry())
 
     print("Running Search spec validation...")
     for p in sorted(search_dir.glob("*.yaml")):

@@ -45,3 +45,9 @@ interaction:
   suppressed_by: []
 routing: {}
 
+
+expected_behavior:
+  disabled_regimes:
+  - 'low_liquidity: funding/OI signals unreliable'
+  - 'stale_funding: funding timestamp unavailable or stale'
+  - 'execution_friction_blocked: spread/slippage too high'

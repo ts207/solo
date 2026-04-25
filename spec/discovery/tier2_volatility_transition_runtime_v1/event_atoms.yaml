@@ -7,7 +7,7 @@ event_atoms:
     templates: [mean_reversion, continuation, volatility_expansion_follow]
     horizons: [12b, 24b, 48b]
     required_feature_keys: [rv_96]
-    thesis_eligible: true
+    thesis_eligible: false
     research_only: false
   - id: range_compression_end_transition
     event_family: volatility_transition
@@ -16,7 +16,7 @@ event_atoms:
     templates: [continuation, trend_continuation, volatility_expansion_follow]
     horizons: [12b, 24b, 48b]
     required_feature_keys: [rv_96]
-    thesis_eligible: true
+    thesis_eligible: false
     research_only: false
   - id: breakout_trigger_transition
     event_family: volatility_transition
@@ -25,5 +25,5 @@ event_atoms:
     templates: [continuation, trend_continuation, volatility_expansion_follow]
     horizons: [12b, 24b, 48b]
     required_feature_keys: [rv_96]
-    thesis_eligible: true
+    thesis_eligible: false
     research_only: false

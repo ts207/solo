@@ -75,3 +75,38 @@ def validate_template_contracts() -> List[Tuple[str, str]]:
             )
 
     return errors
+
+
+def validate_event_template_matrix() -> List[Tuple[str, str]]:
+    errors: List[Tuple[str, str]] = []
+    
+    matrix_path = "spec/compatibility/event_template_matrix.yaml"
+    matrix_doc = load_yaml_relative(matrix_path)
+    if not isinstance(matrix_doc, dict):
+        return [(matrix_path, "Root must be a mapping")]
+        
+    matrix = matrix_doc.get("event_template_matrix", {})
+    if not isinstance(matrix, dict):
+        return [(matrix_path, "event_template_matrix must be a mapping")]
+        
+    # We enforce that all runtime_default=True events (from generated eligibility matrix)
+    # MUST be defined in the event_template_matrix.
+    import json
+    from pathlib import Path
+    eligibility_path = Path("docs/generated/detector_eligibility_matrix.json")
+    if not eligibility_path.exists():
+        return [("docs/generated/detector_eligibility_matrix.json", "Missing eligibility matrix")]
+        
+    try:
+        with open(eligibility_path, "r") as f:
+            eligibility_rows = json.load(f)
+    except Exception as e:
+        return [(str(eligibility_path), f"Failed to parse: {e}")]
+        
+    for row in eligibility_rows:
+        if row.get("runtime") is True:
+            event_name = row.get("event_name", "")
+            if event_name not in matrix:
+                errors.append((matrix_path, f"Missing matrix coverage for runtime event: {event_name}"))
+                
+    return errors

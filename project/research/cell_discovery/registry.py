@@ -88,6 +88,9 @@ def load_registry(spec_dir: str | Path = "spec/discovery") -> DiscoveryRegistry:
             ),
             thesis_eligible=bool(item.get("thesis_eligible", True)),
             research_only=bool(item.get("research_only", False)),
+            search_role=str(item.get("search_role", "")).strip(),
+            promotion_role=str(item.get("promotion_role", "")).strip(),
+            runtime_role=str(item.get("runtime_role", "")).strip(),
         )
         if not atom.atom_id:
             raise ValueError("event atom id is required")
@@ -95,6 +98,27 @@ def load_registry(spec_dir: str | Path = "spec/discovery") -> DiscoveryRegistry:
             raise ValueError(
                 f"Unknown event_type in discovery atom {atom.atom_id}: {atom.event_type}"
             )
+        
+        event_row = registry.event_row(atom.event_type) or {}
+        
+        # Validation rules:
+        if atom.thesis_eligible or atom.search_role == "primary_trigger":
+            if not event_row.get("promotion_eligible", False):
+                raise ValueError(f"Atom {atom.atom_id} is thesis_eligible but generated governance has promotion_eligible=False")
+        
+        detector_band = event_row.get("detector_band", "")
+        if detector_band == "context_only":
+            if atom.thesis_eligible or atom.search_role == "primary_trigger":
+                raise ValueError(f"Atom {atom.atom_id} has detector_band=context_only but is primary thesis trigger")
+        
+        if detector_band == "composite_or_fragile":
+            if (atom.thesis_eligible or atom.search_role == "primary_trigger") and atom.promotion_role != "requires_composite":
+                raise ValueError(f"Atom {atom.atom_id} has detector_band=composite_or_fragile but is directly thesis-eligible without promotion_role=requires_composite")
+        
+        if not event_row.get("runtime_eligible", False):
+            if atom.runtime_role == "trade_trigger":
+                raise ValueError(f"Atom {atom.atom_id} claims runtime_role=trade_trigger but generated runtime_eligible=False")
+
         event_atoms.append(atom)
     _validate_unique([item.atom_id for item in event_atoms], label="event atom")
 

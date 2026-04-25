@@ -36,7 +36,6 @@
 - `GAP_OVERSHOOT` — role `trigger`, disposition `secondary_or_confirm`
 - `INDEX_COMPONENT_DIVERGENCE` — role `trigger`, disposition `secondary_or_confirm`
 - `LEAD_LAG_BREAK` — role `trigger`, disposition `secondary_or_confirm`
-- `LIQUIDATION_EXHAUSTION_REVERSAL` — role `trigger`, disposition `secondary_or_confirm`
 - `LIQUIDITY_GAP_PRINT` — role `trigger`, disposition `secondary_or_confirm`
 - `LIQUIDITY_STRESS_DIRECT` — role `trigger`, disposition `secondary_or_confirm`
 - `LIQUIDITY_STRESS_PROXY` — role `trigger`, disposition `secondary_or_confirm`
@@ -78,18 +77,6 @@
 ## Tier D
 
 - `COPULA_PAIRS_TRADING` — role `research_only`, disposition `research_only`
-- `FUNDING_FLIP_TO_NEGATIVE` — role `trigger`, disposition `review_required`
-- `FUNDING_FLIP_TO_POSITIVE` — role `trigger`, disposition `review_required`
-- `FUNDING_NEG_EXTREME_ONSET` — role `trigger`, disposition `review_required`
-- `FUNDING_NEG_NORMALIZATION` — role `trigger`, disposition `review_required`
-- `FUNDING_NEG_PERSISTENCE` — role `trigger`, disposition `review_required`
-- `FUNDING_POS_EXTREME_ONSET` — role `trigger`, disposition `review_required`
-- `FUNDING_POS_NORMALIZATION` — role `trigger`, disposition `review_required`
-- `FUNDING_POS_PERSISTENCE` — role `trigger`, disposition `review_required`
-- `PRICE_DOWN_OI_DOWN` — role `trigger`, disposition `review_required`
-- `PRICE_DOWN_OI_UP` — role `trigger`, disposition `review_required`
-- `PRICE_UP_OI_DOWN` — role `trigger`, disposition `review_required`
-- `PRICE_UP_OI_UP` — role `trigger`, disposition `review_required`
 - `SEQ_FND_EXTREME_THEN_BREAKOUT` — role `sequence_component`, disposition `research_only`
 - `SEQ_LIQ_VACUUM_THEN_DEPTH_RECOVERY` — role `sequence_component`, disposition `research_only`
 - `SEQ_OI_SPIKEPOS_THEN_VOL_SPIKE` — role `sequence_component`, disposition `research_only`

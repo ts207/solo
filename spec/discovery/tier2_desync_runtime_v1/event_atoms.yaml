@@ -10,7 +10,7 @@ event_atoms:
     templates: [desync_repair, convergence, lead_lag_follow, divergence_continuation]
     horizons: [12b, 24b, 48b]
     required_feature_keys: [close]
-    thesis_eligible: true
+    thesis_eligible: false
     research_only: false
   - id: spot_perp_basis_shock_desync
     event_family: desync
@@ -19,7 +19,7 @@ event_atoms:
     templates: [desync_repair, convergence, basis_repair, lead_lag_follow]
     horizons: [12b, 24b, 48b]
     required_feature_keys: [close]
-    thesis_eligible: true
+    thesis_eligible: false
     research_only: false
   - id: lead_lag_break_desync
     event_family: desync
@@ -28,5 +28,5 @@ event_atoms:
     templates: [desync_repair, lead_lag_follow, divergence_continuation]
     horizons: [12b, 24b, 48b]
     required_feature_keys: [close]
-    thesis_eligible: true
+    thesis_eligible: false
     research_only: false

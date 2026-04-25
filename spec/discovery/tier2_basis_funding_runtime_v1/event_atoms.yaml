@@ -7,7 +7,7 @@ event_atoms:
     templates: [mean_reversion, reversal_or_squeeze, continuation]
     horizons: [12b, 24b, 48b]
     required_feature_keys: [funding_rate_bps]
-    thesis_eligible: true
+    thesis_eligible: false
     research_only: false
   - id: fnd_disloc_basis_runtime
     event_family: basis_funding
@@ -16,7 +16,7 @@ event_atoms:
     templates: [mean_reversion, overshoot_repair, tail_risk_avoid]
     horizons: [12b, 24b, 48b]
     required_feature_keys: [funding_rate_bps]
-    thesis_eligible: true
+    thesis_eligible: false
     research_only: false
   - id: basis_disloc_runtime
     event_family: basis_funding
@@ -25,7 +25,7 @@ event_atoms:
     templates: [mean_reversion, overshoot_repair, tail_risk_avoid]
     horizons: [12b, 24b, 48b]
     required_feature_keys: [close]
-    thesis_eligible: true
+    thesis_eligible: false
     research_only: false
   - id: spot_perp_basis_shock_runtime
     event_family: basis_funding
@@ -34,7 +34,7 @@ event_atoms:
     templates: [desync_repair, convergence, basis_repair]
     horizons: [12b, 24b, 48b]
     required_feature_keys: [close]
-    thesis_eligible: true
+    thesis_eligible: false
     research_only: false
   - id: cross_venue_desync_basis_runtime
     event_family: basis_funding
@@ -43,5 +43,5 @@ event_atoms:
     templates: [desync_repair, convergence, basis_repair]
     horizons: [12b, 24b, 48b]
     required_feature_keys: [close]
-    thesis_eligible: true
+    thesis_eligible: false
     research_only: false

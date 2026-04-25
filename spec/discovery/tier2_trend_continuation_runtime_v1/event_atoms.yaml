@@ -7,7 +7,7 @@ event_atoms:
     templates: [breakout_followthrough, trend_continuation, continuation]
     horizons: [12b, 24b, 48b]
     required_feature_keys: [close]
-    thesis_eligible: true
+    thesis_eligible: false
     research_only: false
   - id: pullback_pivot_trend
     event_family: trend_continuation
@@ -16,7 +16,7 @@ event_atoms:
     templates: [pullback_entry, trend_continuation, continuation]
     horizons: [12b, 24b, 48b]
     required_feature_keys: [close]
-    thesis_eligible: true
+    thesis_eligible: false
     research_only: false
   - id: trend_acceleration_trend
     event_family: trend_continuation
@@ -25,7 +25,7 @@ event_atoms:
     templates: [breakout_followthrough, trend_continuation, continuation]
     horizons: [12b, 24b, 48b]
     required_feature_keys: [close]
-    thesis_eligible: true
+    thesis_eligible: false
     research_only: false
   - id: support_resistance_break_trend
     event_family: trend_continuation
@@ -34,5 +34,5 @@ event_atoms:
     templates: [breakout_followthrough, trend_continuation, continuation]
     horizons: [12b, 24b, 48b]
     required_feature_keys: [close]
-    thesis_eligible: true
+    thesis_eligible: false
     research_only: false

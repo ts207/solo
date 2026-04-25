@@ -7,7 +7,7 @@ event_atoms:
     templates: [mean_reversion, continuation]
     horizons: [12b, 24b, 48b]
     required_feature_keys: [rv_96]
-    thesis_eligible: true
+    thesis_eligible: false
     research_only: false
   - id: funding_extreme_core
     event_family: funding
@@ -16,7 +16,7 @@ event_atoms:
     templates: [mean_reversion, continuation]
     horizons: [12b, 24b, 48b]
     required_feature_keys: [funding_rate_bps]
-    thesis_eligible: true
+    thesis_eligible: false
     research_only: false
   - id: funding_persistence_core
     event_family: funding
@@ -25,5 +25,5 @@ event_atoms:
     templates: [mean_reversion, continuation]
     horizons: [12b, 24b, 48b]
     required_feature_keys: [funding_rate_bps]
-    thesis_eligible: true
+    thesis_eligible: false
     research_only: false

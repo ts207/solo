@@ -7,7 +7,7 @@ event_atoms:
     templates: [mean_reversion, overshoot_repair, tail_risk_avoid]
     horizons: [12b, 24b, 48b]
     required_feature_keys: [close]
-    thesis_eligible: true
+    thesis_eligible: false
     research_only: false
   - id: band_break_repair
     event_family: statistical_stretch
@@ -16,7 +16,7 @@ event_atoms:
     templates: [mean_reversion, overshoot_repair, tail_risk_avoid]
     horizons: [12b, 24b, 48b]
     required_feature_keys: [close]
-    thesis_eligible: true
+    thesis_eligible: false
     research_only: false
   - id: overshoot_after_shock_repair
     event_family: statistical_stretch
@@ -25,7 +25,7 @@ event_atoms:
     templates: [mean_reversion, overshoot_repair, tail_risk_avoid]
     horizons: [12b, 24b, 48b]
     required_feature_keys: [close]
-    thesis_eligible: true
+    thesis_eligible: false
     research_only: false
   - id: gap_overshoot_repair
     event_family: statistical_stretch
@@ -34,5 +34,5 @@ event_atoms:
     templates: [mean_reversion, overshoot_repair, tail_risk_avoid]
     horizons: [12b, 24b, 48b]
     required_feature_keys: [close]
-    thesis_eligible: true
+    thesis_eligible: false
     research_only: false

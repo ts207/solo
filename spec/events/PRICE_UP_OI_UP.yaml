@@ -45,3 +45,9 @@ interaction:
   suppressed_by: []
 routing: {}
 
+
+expected_behavior:
+  disabled_regimes:
+  - 'stale_open_interest: OI unavailable or stale'
+  - 'low_liquidity: price/OI quadrant unreliable'
+  - 'execution_friction_blocked: spread/slippage too high'

@@ -1,46 +1,9 @@
 {
-  "missing": {
-    "FUNDING_FLIP_TO_NEGATIVE": [
-      "disabled_regimes"
-    ],
-    "FUNDING_FLIP_TO_POSITIVE": [
-      "disabled_regimes"
-    ],
-    "FUNDING_NEG_EXTREME_ONSET": [
-      "disabled_regimes"
-    ],
-    "FUNDING_NEG_NORMALIZATION": [
-      "disabled_regimes"
-    ],
-    "FUNDING_NEG_PERSISTENCE": [
-      "disabled_regimes"
-    ],
-    "FUNDING_POS_EXTREME_ONSET": [
-      "disabled_regimes"
-    ],
-    "FUNDING_POS_NORMALIZATION": [
-      "disabled_regimes"
-    ],
-    "FUNDING_POS_PERSISTENCE": [
-      "disabled_regimes"
-    ],
-    "PRICE_DOWN_OI_DOWN": [
-      "disabled_regimes"
-    ],
-    "PRICE_DOWN_OI_UP": [
-      "disabled_regimes"
-    ],
-    "PRICE_UP_OI_DOWN": [
-      "disabled_regimes"
-    ],
-    "PRICE_UP_OI_UP": [
-      "disabled_regimes"
-    ]
-  },
+  "missing": {},
   "summary": {
-    "active_event_count": 83,
-    "complete_event_count": 71,
-    "missing_event_count": 12,
+    "active_event_count": 70,
+    "complete_event_count": 70,
+    "missing_event_count": 0,
     "required_fields": [
       "description",
       "causal_mechanism",

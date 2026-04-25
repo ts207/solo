@@ -7,7 +7,7 @@ event_atoms:
     templates: [mean_reversion, exhaustion_reversal, reversal_or_squeeze]
     horizons: [12b, 24b, 48b]
     required_feature_keys: [close, liquidation_notional]
-    thesis_eligible: true
+    thesis_eligible: false
     research_only: false
   - id: liquidation_cascade_proxy_positioning
     event_family: positioning
@@ -16,7 +16,7 @@ event_atoms:
     templates: [mean_reversion, exhaustion_reversal, reversal_or_squeeze]
     horizons: [12b, 24b, 48b]
     required_feature_keys: [close, rv_96]
-    thesis_eligible: true
+    thesis_eligible: false
     research_only: false
   - id: oi_spike_negative_positioning
     event_family: positioning
@@ -25,7 +25,7 @@ event_atoms:
     templates: [mean_reversion, continuation, convexity_capture]
     horizons: [12b, 24b, 48b]
     required_feature_keys: [oi_delta_1h]
-    thesis_eligible: true
+    thesis_eligible: false
     research_only: false
   - id: oi_spike_positive_positioning
     event_family: positioning
@@ -34,7 +34,7 @@ event_atoms:
     templates: [mean_reversion, continuation, convexity_capture]
     horizons: [12b, 24b, 48b]
     required_feature_keys: [oi_delta_1h]
-    thesis_eligible: true
+    thesis_eligible: false
     research_only: false
   - id: oi_flush_positioning
     event_family: positioning
@@ -43,7 +43,7 @@ event_atoms:
     templates: [mean_reversion, exhaustion_reversal, only_if_highvol]
     horizons: [12b, 24b, 48b]
     required_feature_keys: [oi_delta_1h]
-    thesis_eligible: true
+    thesis_eligible: false
     research_only: false
   - id: deleveraging_wave_positioning
     event_family: positioning
@@ -52,7 +52,7 @@ event_atoms:
     templates: [mean_reversion, exhaustion_reversal, tail_risk_avoid]
     horizons: [12b, 24b, 48b]
     required_feature_keys: [oi_delta_1h, liquidation_notional]
-    thesis_eligible: true
+    thesis_eligible: false
     research_only: false
   - id: post_deleveraging_rebound_positioning
     event_family: positioning
@@ -61,5 +61,5 @@ event_atoms:
     templates: [mean_reversion, exhaustion_reversal, momentum_fade]
     horizons: [12b, 24b, 48b]
     required_feature_keys: [close, rv_96, oi_delta_1h, liquidation_notional]
-    thesis_eligible: true
+    thesis_eligible: false
     research_only: false

@@ -7,7 +7,7 @@ event_atoms:
     templates: [only_if_regime, continuation, mean_reversion]
     horizons: [12b, 24b, 48b]
     required_feature_keys: [close]
-    thesis_eligible: true
+    thesis_eligible: false
     research_only: false
   - id: beta_spike_regime
     event_family: regime_transition
@@ -16,7 +16,7 @@ event_atoms:
     templates: [only_if_regime, continuation, mean_reversion]
     horizons: [12b, 24b, 48b]
     required_feature_keys: [close]
-    thesis_eligible: true
+    thesis_eligible: false
     research_only: false
   - id: vol_regime_shift_regime
     event_family: regime_transition
@@ -25,7 +25,7 @@ event_atoms:
     templates: [only_if_regime, continuation, mean_reversion]
     horizons: [12b, 24b, 48b]
     required_feature_keys: [rv_96]
-    thesis_eligible: true
+    thesis_eligible: false
     research_only: false
   - id: chop_to_trend_shift_regime
     event_family: regime_transition
@@ -34,7 +34,7 @@ event_atoms:
     templates: [only_if_regime, continuation, mean_reversion]
     horizons: [12b, 24b, 48b]
     required_feature_keys: [ms_trend_state]
-    thesis_eligible: true
+    thesis_eligible: false
     research_only: false
   - id: trend_to_chop_shift_regime
     event_family: regime_transition
@@ -43,5 +43,5 @@ event_atoms:
     templates: [only_if_regime, continuation, mean_reversion]
     horizons: [12b, 24b, 48b]
     required_feature_keys: [ms_trend_state]
-    thesis_eligible: true
+    thesis_eligible: false
     research_only: false

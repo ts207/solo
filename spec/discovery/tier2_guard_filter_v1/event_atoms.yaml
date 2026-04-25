@@ -10,7 +10,7 @@ event_atoms:
     templates: [slippage_aware_filter, only_if_liquidity]
     horizons: [12b, 24b, 48b]
     required_feature_keys: [spread_zscore]
-    thesis_eligible: true
+    thesis_eligible: false
     research_only: false
   - id: spread_regime_widening_guard
     event_family: guard_filter
@@ -19,7 +19,7 @@ event_atoms:
     templates: [slippage_aware_filter, tail_risk_avoid]
     horizons: [12b, 24b, 48b]
     required_feature_keys: [spread_zscore]
-    thesis_eligible: true
+    thesis_eligible: false
     research_only: false
   - id: slippage_spike_guard
     event_family: guard_filter
@@ -28,7 +28,7 @@ event_atoms:
     templates: [slippage_aware_filter, tail_risk_avoid]
     horizons: [12b, 24b, 48b]
     required_feature_keys: [spread_zscore]
-    thesis_eligible: true
+    thesis_eligible: false
     research_only: false
   - id: session_open_guard
     event_family: guard_filter
@@ -37,7 +37,7 @@ event_atoms:
     templates: [mean_reversion, continuation]
     horizons: [12b, 24b, 48b]
     required_feature_keys: [close]
-    thesis_eligible: true
+    thesis_eligible: false
     research_only: false
   - id: funding_timestamp_guard
     event_family: guard_filter
@@ -46,5 +46,5 @@ event_atoms:
     templates: [mean_reversion, continuation]
     horizons: [12b, 24b, 48b]
     required_feature_keys: [funding_rate_bps]
-    thesis_eligible: true
+    thesis_eligible: false
     research_only: false

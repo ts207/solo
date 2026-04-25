@@ -7,9 +7,11 @@ metadata:
     event_family_defaults: spec/events/_families.yaml
     event_specs_dir: spec/events
     template_registry: spec/templates/registry.yaml
-  notes: Single event-centric schema for phase1+phase2 composition. Generated compatibility sidecars are downstream outputs
-    only. research_family is the authoritative coarse search/template grouping; canonical_family is a generated compatibility
-    alias of research_family; family-level defaults are applied directly to research_family buckets.
+  notes: Single event-centric schema for phase1+phase2 composition. Generated compatibility
+    sidecars are downstream outputs only. research_family is the authoritative coarse
+    search/template grouping; canonical_family is a generated compatibility alias
+    of research_family; family-level defaults are applied directly to research_family
+    buckets.
 defaults:
   parameters:
     merge_gap_bars: 1
@@ -406,13 +408,14 @@ events:
     strategy_only: false
     default_executable: true
     deconflict_priority: 0
-    notes: 'Hybrid liquidity-stress evidence: direct imbalance-stall confirmation combined with spread and RV stress.'
+    notes: 'Hybrid liquidity-stress evidence: direct imbalance-stall confirmation
+      combined with spread and RV stress.'
     maturity: standard
     tier: B
     operational_role: trigger
     deployment_disposition: secondary_or_confirm
     runtime_category: active_runtime_event
-    detector_band: composite_or_fragile
+    detector_band: ''
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -437,8 +440,10 @@ events:
       maturity: standard
       synthetic_coverage: covered
       research_family: LIQUIDITY_DISLOCATION
-      trigger: Detector triggers when direct imbalance stall confirms an absorption-style liquidity stress surface.
-      confirmation: Spread and realized-volatility stress persist long enough to confirm the absorption signal.
+      trigger: Detector triggers when direct imbalance stall confirms an absorption-style
+        liquidity stress surface.
+      confirmation: Spread and realized-volatility stress persist long enough to confirm
+        the absorption signal.
       expected_behavior:
         holding_horizon_bars: 1-12
         invalidation_conditions:
@@ -488,8 +493,8 @@ events:
     operational_role: trigger
     deployment_disposition: secondary_or_confirm
     runtime_category: active_runtime_event
-    detector_band: research_trigger
-    planning_eligible: true
+    detector_band: ''
+    planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
     primary_anchor_eligible: false
@@ -562,11 +567,11 @@ events:
     operational_role: trigger
     deployment_disposition: primary_trigger_candidate
     runtime_category: active_runtime_event
-    detector_band: deployable_core
-    planning_eligible: true
-    runtime_eligible: true
-    promotion_eligible: true
-    primary_anchor_eligible: true
+    detector_band: ''
+    planning_eligible: false
+    runtime_eligible: false
+    promotion_eligible: false
+    primary_anchor_eligible: false
     enabled: true
     detector_name: BasisDislocationDetector
     runtime_tags:
@@ -632,11 +637,11 @@ events:
     operational_role: trigger
     deployment_disposition: secondary_or_confirm
     runtime_category: active_runtime_event
-    detector_band: research_trigger
-    planning_eligible: true
+    detector_band: ''
+    planning_eligible: false
     runtime_eligible: false
-    promotion_eligible: true
-    primary_anchor_eligible: true
+    promotion_eligible: false
+    primary_anchor_eligible: false
     enabled: true
     detector_name: BetaSpikeDetector
     runtime_tags:
@@ -707,8 +712,8 @@ events:
     operational_role: trigger
     deployment_disposition: secondary_or_confirm
     runtime_category: active_runtime_event
-    detector_band: research_trigger
-    planning_eligible: true
+    detector_band: ''
+    planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
     primary_anchor_eligible: false
@@ -787,8 +792,8 @@ events:
     operational_role: trigger
     deployment_disposition: secondary_or_confirm
     runtime_category: active_runtime_event
-    detector_band: research_trigger
-    planning_eligible: true
+    detector_band: ''
+    planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
     primary_anchor_eligible: false
@@ -863,8 +868,8 @@ events:
     operational_role: trigger
     deployment_disposition: secondary_or_confirm
     runtime_category: active_runtime_event
-    detector_band: research_trigger
-    planning_eligible: true
+    detector_band: ''
+    planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
     primary_anchor_eligible: false
@@ -945,7 +950,7 @@ events:
     operational_role: research_only
     deployment_disposition: research_only
     runtime_category: research_only
-    detector_band: composite_or_fragile
+    detector_band: ''
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -1019,11 +1024,11 @@ events:
     operational_role: trigger
     deployment_disposition: secondary_or_confirm
     runtime_category: active_runtime_event
-    detector_band: research_trigger
-    planning_eligible: true
+    detector_band: ''
+    planning_eligible: false
     runtime_eligible: false
-    promotion_eligible: true
-    primary_anchor_eligible: true
+    promotion_eligible: false
+    primary_anchor_eligible: false
     enabled: true
     detector_name: CorrelationBreakdownDetector
     runtime_tags:
@@ -1094,8 +1099,8 @@ events:
     operational_role: filter
     deployment_disposition: repair_before_promotion
     runtime_category: active_runtime_event
-    detector_band: context_only
-    planning_eligible: true
+    detector_band: ''
+    planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
     primary_anchor_eligible: false
@@ -1122,12 +1127,13 @@ events:
       synthetic_coverage: covered
       research_family: CROSS_ASSET_DESYNCHRONIZATION
       detector_contract: true
-      causal_mechanism: When two historically linked assets stop moving together, one leg may be lagging price discovery or
-        absorbing flow asymmetrically. The contract only fires when the divergence is observed on paired data; it never degrades
-        into a single-asset anomaly label.
+      causal_mechanism: When two historically linked assets stop moving together,
+        one leg may be lagging price discovery or absorbing flow asymmetrically. The
+        contract only fires when the divergence is observed on paired data; it never
+        degrades into a single-asset anomaly label.
       detector:
-        signal_definition: Detect a paired cross-asset spread dislocation using synchronized close series for the target asset
-          and its declared paired asset.
+        signal_definition: Detect a paired cross-asset spread dislocation using synchronized
+          close series for the target asset and its declared paired asset.
         formula: 'ret_a[i] = log(close[i] / close[i-1])
 
           ret_b[i] = log(pair_close[i] / pair_close[i-1])
@@ -1144,8 +1150,8 @@ events:
         lookback_bars: 2880
         warmup_bars: 96
         bar_type: bar_close
-        timestamp_alignment: Event detected at bar close on the first paired bar that breaches the declared desynchronization
-          threshold.
+        timestamp_alignment: Event detected at bar close on the first paired bar that
+          breaches the declared desynchronization threshold.
         minimum_sample_size: 96
       calibration:
         default_threshold: 3.0
@@ -1155,27 +1161,32 @@ events:
         - 3.0
         - 3.5
         - 4.0
-        calibration_target: Select the smallest threshold that preserves pair-specific stability while maintaining acceptable
-          event counts across major pairs.
-        stability_requirement: Threshold must remain within one z-score step across calibration splits for the same pair universe.
+        calibration_target: Select the smallest threshold that preserves pair-specific
+          stability while maintaining acceptable event counts across major pairs.
+        stability_requirement: Threshold must remain within one z-score step across
+          calibration splits for the same pair universe.
         failure_modes:
         - Missing paired series: detector disabled and emits no event
-        - Pair definition drift: apparent spread may reflect a bad pair mapping rather than true desync
+        - Pair definition drift: apparent spread may reflect a bad pair mapping rather
+            than true desync
         - Stale reference feed: spread inflation is a data artifact
       expected_behavior:
         holding_horizon_bars: 1-24
         invalidation_conditions:
         - Paired spread mean-reverts below 1.0 z-score before follow-through develops
-        - Pair relationship breaks structurally because the reference asset regime changed
+        - Pair relationship breaks structurally because the reference asset regime
+          changed
         false_positive_scenarios:
         - Pair close derived from asynchronous venues
         - Single-asset shock incorrectly joined to a stale paired series
         disabled_regimes:
-        - SCHEDULED_NEWS_WINDOW_EVENT active on only one leg: flow is event-specific rather than cross-asset desync
+        - SCHEDULED_NEWS_WINDOW_EVENT active on only one leg: flow is event-specific
+            rather than cross-asset desync
         - Missing pair_close coverage: event meaning cannot be proven
         expected_overlap:
         - CROSS_VENUE_DESYNC: can co-occur when one asset also splits across venues
-        - VOL_SHOCK: moderate overlap when pair divergence emerges during volatility regime shifts
+        - VOL_SHOCK: moderate overlap when pair divergence emerges during volatility
+            regime shifts
       lookback_window: 2880
       threshold_z: 3.0
       min_pair_observations: 96
@@ -1216,11 +1227,11 @@ events:
     operational_role: trigger
     deployment_disposition: secondary_or_confirm
     runtime_category: active_runtime_event
-    detector_band: research_trigger
-    planning_eligible: true
+    detector_band: ''
+    planning_eligible: false
     runtime_eligible: false
-    promotion_eligible: true
-    primary_anchor_eligible: true
+    promotion_eligible: false
+    primary_anchor_eligible: false
     enabled: true
     detector_name: CrossVenueDesyncDetector
     runtime_tags:
@@ -1245,8 +1256,9 @@ events:
       research_family: INFORMATION_DESYNC
       detector_contract: true
       detector:
-        signal_definition: 'Detects cross-venue price desynchronization: spot-perp basis (or inter-exchange basis) exceeds
-          its extreme quantile, indicating one venue is lagging price discovery. Event exits when basis z-score reverts.
+        signal_definition: 'Detects cross-venue price desynchronization: spot-perp
+          basis (or inter-exchange basis) exceeds its extreme quantile, indicating
+          one venue is lagging price discovery. Event exits when basis z-score reverts.
 
           '
         formula: 'basis[i]       = perp_close[i] - spot_close[i]
@@ -1261,7 +1273,8 @@ events:
 
           event onset    = shock_flag transitions False to True
 
-          event exit     = first subsequent bar where revert_flag = True (capped at window_end)
+          event exit     = first subsequent bar where revert_flag = True (capped at
+          window_end)
 
           '
         required_columns:
@@ -1271,7 +1284,8 @@ events:
         lookback_bars: 96
         warmup_bars: 96
         bar_type: bar_close
-        timestamp_alignment: 'Event detected at bar close of onset bar. window_end caps maximum event duration in bars.
+        timestamp_alignment: 'Event detected at bar close of onset bar. window_end
+          caps maximum event duration in bars.
 
           '
         minimum_sample_size: 96
@@ -1283,12 +1297,13 @@ events:
         - 0.98
         - 0.99
         - 0.995
-        calibration_target: 'Maximize information ratio of mean-reversion return within window_end bars. Require at least
-          40 events per asset over calibration window.
+        calibration_target: 'Maximize information ratio of mean-reversion return within
+          window_end bars. Require at least 40 events per asset over calibration window.
 
           '
-        stability_requirement: 'anchor_quantile consistent across BTC/ETH spot-perp pairs within 0.01. Hit rate of reversion
-          within window_end > 55% on both halves.
+        stability_requirement: 'anchor_quantile consistent across BTC/ETH spot-perp
+          pairs within 0.01. Hit rate of reversion within window_end > 55% on both
+          halves.
 
           '
         failure_modes:
@@ -1357,8 +1372,8 @@ events:
     operational_role: trigger
     deployment_disposition: secondary_or_confirm
     runtime_category: active_runtime_event
-    detector_band: research_trigger
-    planning_eligible: true
+    detector_band: ''
+    planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
     primary_anchor_eligible: false
@@ -1384,18 +1399,18 @@ events:
     - event_type: TREND_ACCELERATION
       penalty_factor: 0.2
       block: false
-      reason: Deleveraging price moves are forced liquidation artifacts, not genuine trend breakouts. Penalize continuation
-        templates heavily.
+      reason: Deleveraging price moves are forced liquidation artifacts, not genuine
+        trend breakouts. Penalize continuation templates heavily.
     - event_type: BREAKOUT_TRIGGER
       penalty_factor: 0.2
       block: false
-      reason: Deleveraging price moves are forced liquidation artifacts, not genuine trend breakouts. Penalize continuation
-        templates heavily.
+      reason: Deleveraging price moves are forced liquidation artifacts, not genuine
+        trend breakouts. Penalize continuation templates heavily.
     - event_type: CHOP_TO_TREND_SHIFT
       penalty_factor: 0.2
       block: false
-      reason: Deleveraging price moves are forced liquidation artifacts, not genuine trend breakouts. Penalize continuation
-        templates heavily.
+      reason: Deleveraging price moves are forced liquidation artifacts, not genuine
+        trend breakouts. Penalize continuation templates heavily.
     suppressed_by: []
     parameters:
       synthetic_coverage: covered
@@ -1452,10 +1467,10 @@ events:
     operational_role: trigger
     deployment_disposition: secondary_or_confirm
     runtime_category: active_runtime_event
-    detector_band: research_trigger
-    planning_eligible: true
+    detector_band: ''
+    planning_eligible: false
     runtime_eligible: false
-    promotion_eligible: true
+    promotion_eligible: false
     primary_anchor_eligible: false
     enabled: true
     detector_name: DepthCollapseDetector
@@ -1526,13 +1541,14 @@ events:
     strategy_only: false
     default_executable: true
     deconflict_priority: 0
-    notes: 'Hybrid liquidity-stress evidence: direct micro-depth depletion combined with spread and RV stress.'
+    notes: 'Hybrid liquidity-stress evidence: direct micro-depth depletion combined
+      with spread and RV stress.'
     maturity: standard
     tier: B
     operational_role: trigger
     deployment_disposition: secondary_or_confirm
     runtime_category: active_runtime_event
-    detector_band: composite_or_fragile
+    detector_band: ''
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -1557,8 +1573,10 @@ events:
       maturity: standard
       synthetic_coverage: covered
       research_family: LIQUIDITY_DISLOCATION
-      trigger: Detector triggers when direct depth depletion confirms a liquidity-stress surface.
-      confirmation: Spread and realized-volatility stress remain elevated around the depth-collapse impulse.
+      trigger: Detector triggers when direct depth depletion confirms a liquidity-stress
+        surface.
+      confirmation: Spread and realized-volatility stress remain elevated around the
+        depth-collapse impulse.
       expected_behavior:
         holding_horizon_bars: 1-12
         invalidation_conditions:
@@ -1612,8 +1630,8 @@ events:
     operational_role: trigger
     deployment_disposition: secondary_or_confirm
     runtime_category: active_runtime_event
-    detector_band: research_trigger
-    planning_eligible: true
+    detector_band: ''
+    planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
     primary_anchor_eligible: false
@@ -1689,8 +1707,8 @@ events:
     operational_role: trigger
     deployment_disposition: secondary_or_confirm
     runtime_category: active_runtime_event
-    detector_band: research_trigger
-    planning_eligible: true
+    detector_band: ''
+    planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
     primary_anchor_eligible: false
@@ -1768,8 +1786,8 @@ events:
     operational_role: trigger
     deployment_disposition: secondary_or_confirm
     runtime_category: active_runtime_event
-    detector_band: research_trigger
-    planning_eligible: true
+    detector_band: ''
+    planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
     primary_anchor_eligible: false
@@ -1835,13 +1853,14 @@ events:
     strategy_only: false
     default_executable: true
     deconflict_priority: 0
-    notes: 'Hybrid exhaustion evidence: liquidation and OI unwind confirmation combined with price and volatility exhaustion.'
+    notes: 'Hybrid exhaustion evidence: liquidation and OI unwind confirmation combined
+      with price and volatility exhaustion.'
     maturity: standard
     tier: B
     operational_role: trigger
     deployment_disposition: secondary_or_confirm
     runtime_category: active_runtime_event
-    detector_band: composite_or_fragile
+    detector_band: ''
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -1866,8 +1885,10 @@ events:
       maturity: standard
       synthetic_coverage: covered
       research_family: FORCED_FLOW_AND_EXHAUSTION
-      trigger: Detector triggers when liquidation and OI unwind confirm forced-flow exhaustion.
-      confirmation: Price reversal and volatility-cooldown behavior confirm the exhaustion signal.
+      trigger: Detector triggers when liquidation and OI unwind confirm forced-flow
+        exhaustion.
+      confirmation: Price reversal and volatility-cooldown behavior confirm the exhaustion
+        signal.
       expected_behavior:
         holding_horizon_bars: 2-12
         invalidation_conditions:
@@ -1930,11 +1951,11 @@ events:
     operational_role: trigger
     deployment_disposition: primary_trigger_candidate
     runtime_category: active_runtime_event
-    detector_band: deployable_core
-    planning_eligible: true
-    runtime_eligible: true
-    promotion_eligible: true
-    primary_anchor_eligible: true
+    detector_band: ''
+    planning_eligible: false
+    runtime_eligible: false
+    promotion_eligible: false
+    primary_anchor_eligible: false
     enabled: true
     detector_name: FndDislocDetector
     runtime_tags:
@@ -1957,7 +1978,8 @@ events:
     parameters:
       synthetic_coverage: covered
       notes:
-      - '`threshold_bps` is expressed in basis points and is converted against decimal `funding_rate_scaled` values at runtime.'
+      - '`threshold_bps` is expressed in basis points and is converted against decimal
+        `funding_rate_scaled` values at runtime.'
       expected_behavior:
         holding_horizon_bars: 6-36
         invalidation_conditions:
@@ -2003,8 +2025,8 @@ events:
     operational_role: trigger
     deployment_disposition: secondary_or_confirm
     runtime_category: active_runtime_event
-    detector_band: research_trigger
-    planning_eligible: true
+    detector_band: ''
+    planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
     primary_anchor_eligible: false
@@ -2097,11 +2119,11 @@ events:
     operational_role: trigger
     deployment_disposition: secondary_or_confirm
     runtime_category: active_runtime_event
-    detector_band: research_trigger
-    planning_eligible: true
+    detector_band: ''
+    planning_eligible: false
     runtime_eligible: false
-    promotion_eligible: true
-    primary_anchor_eligible: true
+    promotion_eligible: false
+    primary_anchor_eligible: false
     enabled: true
     detector_name: FundingExtremeOnsetDetector
     runtime_tags:
@@ -2126,8 +2148,9 @@ events:
       research_family: POSITIONING_EXTREMES
       detector_contract: true
       detector:
-        signal_definition: 'Detects the onset of a funding rate extreme: funding crosses the extreme_pct percentile of its
-          rolling history AND shows acceleration (accel_pct of recent delta distribution). Requires persistence across persistence_bars
+        signal_definition: 'Detects the onset of a funding rate extreme: funding crosses
+          the extreme_pct percentile of its rolling history AND shows acceleration
+          (accel_pct of recent delta distribution). Requires persistence across persistence_bars
           intervals.
 
           '
@@ -2152,8 +2175,8 @@ events:
         lookback_bars: 2880
         warmup_bars: 2880
         bar_type: bar_close
-        timestamp_alignment: 'Event detected at bar close when all conditions first simultaneously satisfied. No intrabar
-          data used.
+        timestamp_alignment: 'Event detected at bar close when all conditions first
+          simultaneously satisfied. No intrabar data used.
 
           '
         minimum_sample_size: 100
@@ -2166,12 +2189,14 @@ events:
         - 95.0
         - 97.0
         - 99.0
-        calibration_target: 'Maximize AUC of forward return vs funding normalization probability. Require at least min_hazard_events
-          = 50 events over calibration window.
+        calibration_target: 'Maximize AUC of forward return vs funding normalization
+          probability. Require at least min_hazard_events = 50 events over calibration
+          window.
 
           '
-        stability_requirement: 'Threshold must produce >= 30 events on both first-half and second-half of in-sample period.
-          Threshold deviation across assets < 5 percentile points.
+        stability_requirement: 'Threshold must produce >= 30 events on both first-half
+          and second-half of in-sample period. Threshold deviation across assets <
+          5 percentile points.
 
           '
         failure_modes:
@@ -2181,7 +2206,8 @@ events:
       expected_behavior:
         holding_horizon_bars: 48-288
         invalidation_conditions:
-        - Funding rate drops below normalization_pct within normalization_lookback bars
+        - Funding rate drops below normalization_pct within normalization_lookback
+          bars
         - OI increases significantly (new longs entering, not an exhaustion setup)
         false_positive_scenarios:
         - Anticipated funding resets (8h schedule): onset may be mechanistic not informational
@@ -2269,11 +2295,11 @@ events:
     operational_role: trigger
     deployment_disposition: secondary_or_confirm
     runtime_category: active_runtime_event
-    detector_band: research_trigger
-    planning_eligible: true
+    detector_band: ''
+    planning_eligible: false
     runtime_eligible: false
-    promotion_eligible: true
-    primary_anchor_eligible: true
+    promotion_eligible: false
+    primary_anchor_eligible: false
     enabled: true
     detector_name: FundingFlipDetector
     runtime_tags:
@@ -2390,6 +2416,11 @@ events:
         sign_field: funding_sign
       context_requirements:
         funding_phase: flip_to_negative
+      expected_behavior:
+        disabled_regimes:
+        - 'low_liquidity: funding/OI signals unreliable'
+        - 'stale_funding: funding timestamp unavailable or stale'
+        - 'execution_friction_blocked: spread/slippage too high'
     templates:
     - carry_unwind_reversal
     - basis_funding_convergence
@@ -2461,6 +2492,11 @@ events:
         sign_field: funding_sign
       context_requirements:
         funding_phase: flip_to_positive
+      expected_behavior:
+        disabled_regimes:
+        - 'low_liquidity: funding/OI signals unreliable'
+        - 'stale_funding: funding timestamp unavailable or stale'
+        - 'execution_friction_blocked: spread/slippage too high'
     templates:
     - carry_unwind_reversal
     - basis_funding_convergence
@@ -2532,6 +2568,11 @@ events:
         sign_field: funding_sign
       context_requirements:
         funding_phase: negative_onset
+      expected_behavior:
+        disabled_regimes:
+        - 'low_liquidity: funding/OI signals unreliable'
+        - 'stale_funding: funding timestamp unavailable or stale'
+        - 'execution_friction_blocked: spread/slippage too high'
     templates:
     - carry_unwind_reversal
     - basis_funding_convergence
@@ -2603,6 +2644,11 @@ events:
         sign_field: funding_sign
       context_requirements:
         funding_phase: negative_normalizing
+      expected_behavior:
+        disabled_regimes:
+        - 'low_liquidity: funding/OI signals unreliable'
+        - 'stale_funding: funding timestamp unavailable or stale'
+        - 'execution_friction_blocked: spread/slippage too high'
     templates:
     - carry_unwind_reversal
     - basis_funding_convergence
@@ -2674,6 +2720,11 @@ events:
         sign_field: funding_sign
       context_requirements:
         funding_phase: negative_persistent
+      expected_behavior:
+        disabled_regimes:
+        - 'low_liquidity: funding/OI signals unreliable'
+        - 'stale_funding: funding timestamp unavailable or stale'
+        - 'execution_friction_blocked: spread/slippage too high'
     templates:
     - carry_unwind_reversal
     - carry_continuation_confirmed
@@ -2711,10 +2762,10 @@ events:
     operational_role: trigger
     deployment_disposition: secondary_or_confirm
     runtime_category: active_runtime_event
-    detector_band: research_trigger
-    planning_eligible: true
+    detector_band: ''
+    planning_eligible: false
     runtime_eligible: false
-    promotion_eligible: true
+    promotion_eligible: false
     primary_anchor_eligible: false
     enabled: true
     detector_name: FundingNormalizationDetector
@@ -3002,6 +3053,11 @@ events:
         sign_field: funding_sign
       context_requirements:
         funding_phase: positive_onset
+      expected_behavior:
+        disabled_regimes:
+        - 'low_liquidity: funding/OI signals unreliable'
+        - 'stale_funding: funding timestamp unavailable or stale'
+        - 'execution_friction_blocked: spread/slippage too high'
     templates:
     - carry_unwind_reversal
     - basis_funding_convergence
@@ -3073,6 +3129,11 @@ events:
         sign_field: funding_sign
       context_requirements:
         funding_phase: positive_normalizing
+      expected_behavior:
+        disabled_regimes:
+        - 'low_liquidity: funding/OI signals unreliable'
+        - 'stale_funding: funding timestamp unavailable or stale'
+        - 'execution_friction_blocked: spread/slippage too high'
     templates:
     - carry_unwind_reversal
     - basis_funding_convergence
@@ -3144,6 +3205,11 @@ events:
         sign_field: funding_sign
       context_requirements:
         funding_phase: positive_persistent
+      expected_behavior:
+        disabled_regimes:
+        - 'low_liquidity: funding/OI signals unreliable'
+        - 'stale_funding: funding timestamp unavailable or stale'
+        - 'execution_friction_blocked: spread/slippage too high'
     templates:
     - carry_unwind_reversal
     - carry_continuation_confirmed
@@ -3181,8 +3247,8 @@ events:
     operational_role: context
     deployment_disposition: context_only
     runtime_category: active_runtime_event
-    detector_band: context_only
-    planning_eligible: true
+    detector_band: ''
+    planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
     primary_anchor_eligible: false
@@ -3208,18 +3274,18 @@ events:
     - event_type: BASIS_DISLOC
       penalty_factor: 0.0
       block: true
-      reason: Funding payment creates mechanical basis jump; desync detectors fire falsely. Block for the payment bar and
-        its cooldown window.
+      reason: Funding payment creates mechanical basis jump; desync detectors fire
+        falsely. Block for the payment bar and its cooldown window.
     - event_type: SPOT_PERP_BASIS_SHOCK
       penalty_factor: 0.0
       block: true
-      reason: Funding payment creates mechanical basis jump; desync detectors fire falsely. Block for the payment bar and
-        its cooldown window.
+      reason: Funding payment creates mechanical basis jump; desync detectors fire
+        falsely. Block for the payment bar and its cooldown window.
     - event_type: CROSS_VENUE_DESYNC
       penalty_factor: 0.0
       block: true
-      reason: Funding payment creates mechanical basis jump; desync detectors fire falsely. Block for the payment bar and
-        its cooldown window.
+      reason: Funding payment creates mechanical basis jump; desync detectors fire
+        falsely. Block for the payment bar and its cooldown window.
     suppressed_by: []
     parameters:
       synthetic_coverage: covered
@@ -3269,8 +3335,8 @@ events:
     operational_role: trigger
     deployment_disposition: secondary_or_confirm
     runtime_category: active_runtime_event
-    detector_band: research_trigger
-    planning_eligible: true
+    detector_band: ''
+    planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
     primary_anchor_eligible: false
@@ -3344,11 +3410,11 @@ events:
     operational_role: trigger
     deployment_disposition: secondary_or_confirm
     runtime_category: active_runtime_event
-    detector_band: research_trigger
-    planning_eligible: true
+    detector_band: ''
+    planning_eligible: false
     runtime_eligible: false
-    promotion_eligible: true
-    primary_anchor_eligible: true
+    promotion_eligible: false
+    primary_anchor_eligible: false
     enabled: true
     detector_name: IndexComponentDivergenceDetector
     runtime_tags:
@@ -3421,11 +3487,11 @@ events:
     operational_role: trigger
     deployment_disposition: secondary_or_confirm
     runtime_category: active_runtime_event
-    detector_band: research_trigger
-    planning_eligible: true
+    detector_band: ''
+    planning_eligible: false
     runtime_eligible: false
-    promotion_eligible: true
-    primary_anchor_eligible: true
+    promotion_eligible: false
+    primary_anchor_eligible: false
     enabled: true
     detector_name: LeadLagBreakDetector
     runtime_tags:
@@ -3602,18 +3668,19 @@ events:
     strategy_only: false
     default_executable: true
     deconflict_priority: 0
-    notes: Use when liquidation_notional data is unavailable (e.g., Bybit native data without cross-exchange liquidation feed).
-      Expected to have lower precision than LIQUIDATION_CASCADE but comparable recall for large cascade events.
+    notes: Use when liquidation_notional data is unavailable (e.g., Bybit native data
+      without cross-exchange liquidation feed). Expected to have lower precision than
+      LIQUIDATION_CASCADE but comparable recall for large cascade events.
     maturity: experimental
     tier: C
     operational_role: trigger
     deployment_disposition: secondary_or_confirm
     runtime_category: active_runtime_event
-    detector_band: composite_or_fragile
-    planning_eligible: true
+    detector_band: ''
+    planning_eligible: false
     runtime_eligible: false
-    promotion_eligible: true
-    primary_anchor_eligible: true
+    promotion_eligible: false
+    primary_anchor_eligible: false
     enabled: true
     detector_name: LiquidationCascadeProxyDetector
     runtime_tags:
@@ -3639,21 +3706,24 @@ events:
       research_family: POSITIONING_EXTREMES
       detector_contract: true
       detector:
-        signal_definition: 'Detects liquidation-cascade-like conditions using only native exchange data. Fires when OI pct
-          drop >= rolling_quantile(oi_pct_drop, oi_drop_quantile) AND taker_base_volume >= rolling_quantile(volume, vol_surge_quantile)
-          AND min(low[i-ret_window:i]) / close[i-ret_window] - 1 <= -price_drop_th, then retains only episodes whose net OI
-          reduction exceeds min_episode_oi_reduction_pct.
+        signal_definition: 'Detects liquidation-cascade-like conditions using only
+          native exchange data. Fires when OI pct drop >= rolling_quantile(oi_pct_drop,
+          oi_drop_quantile) AND taker_base_volume >= rolling_quantile(volume, vol_surge_quantile)
+          AND min(low[i-ret_window:i]) / close[i-ret_window] - 1 <= -price_drop_th,
+          then retains only episodes whose net OI reduction exceeds min_episode_oi_reduction_pct.
 
           '
         formula: 'oi_pct_drop[i]  = -(oi_delta_1h[i] / oi_notional[i])
 
           oi_drop_th[i]   = quantile(oi_pct_drop[1..i-1], oi_drop_quantile, window=oi_window)
 
-          vol_th[i]       = quantile(taker_base_volume[1..i-1], vol_surge_quantile, window=vol_window)
+          vol_th[i]       = quantile(taker_base_volume[1..i-1], vol_surge_quantile,
+          window=vol_window)
 
           price_drop[i]   = -(min(low[i-ret_window:i]) / close[i-ret_window] - 1)
 
-          mask[i]         = (oi_pct_drop >= oi_drop_th) AND (volume >= vol_th) AND (price_drop >= price_drop_th)
+          mask[i]         = (oi_pct_drop >= oi_drop_th) AND (volume >= vol_th) AND
+          (price_drop >= price_drop_th)
 
           episode         = contiguous mask episode with max_gap=1
 
@@ -3684,13 +3754,14 @@ events:
         - 0.97
         - 0.99
         - 0.995
-        calibration_target: 'Maximize AUC of forward return (price recovery) vs oi_reduction_pct. Require at least 30 events
-          over calibration window.
+        calibration_target: 'Maximize AUC of forward return (price recovery) vs oi_reduction_pct.
+          Require at least 30 events over calibration window.
 
           '
         failure_modes:
         - Low-OI instrument: oi_delta_1h noisy, pct drop threshold unreliable
-        - Trending OI regime (perpetual growth): baseline quantile inflates, events suppressed
+        - Trending OI regime (perpetual growth): baseline quantile inflates, events
+            suppressed
         - Volume regime change: vol_th must be recalibrated per-regime
       expected_behavior:
         holding_horizon_bars: 1-96
@@ -3704,9 +3775,11 @@ events:
         - DELEVERAGING_WAVE active and unresolved: cascade already captured
         - LOW_LIQUIDITY_STATE active: oi_delta_1h noise inflates pct drop signal
         expected_overlap:
-        - OI_FLUSH: high co-occurrence (OI_FLUSH is a subset without volume/price confirmation)
+        - OI_FLUSH: high co-occurrence (OI_FLUSH is a subset without volume/price
+            confirmation)
         - DELEVERAGING_WAVE: moderate co-occurrence for sustained unwinds
-        - FUNDING_EXTREME_ONSET: low co-occurrence (proxy fires on execution, not funding level)
+        - FUNDING_EXTREME_ONSET: low co-occurrence (proxy fires on execution, not
+            funding level)
       trigger: Detector triggers on OI drop + volume surge + price drop coincidence
       confirmation: Post-detection price recovery confirms forced-selling exhaustion
       cluster_id: oi_dynamic
@@ -3786,7 +3859,8 @@ events:
     parameters:
       synthetic_coverage: covered
       notes:
-      - This detector is evaluated on bar features and depends on a prior forced-flow cluster being present in recent history.
+      - This detector is evaluated on bar features and depends on a prior forced-flow
+        cluster being present in recent history.
       research_family: FORCED_FLOW_AND_EXHAUSTION
       trigger: Detector triggers on liquidation exhaustion reversal pattern
       confirmation: Post-detection price action confirms signal validity
@@ -3892,8 +3966,8 @@ events:
     operational_role: trigger
     deployment_disposition: secondary_or_confirm
     runtime_category: active_runtime_event
-    detector_band: research_trigger
-    planning_eligible: true
+    detector_band: ''
+    planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
     primary_anchor_eligible: false
@@ -3973,11 +4047,11 @@ events:
     operational_role: trigger
     deployment_disposition: primary_trigger_candidate
     runtime_category: active_runtime_event
-    detector_band: deployable_core
-    planning_eligible: true
-    runtime_eligible: true
-    promotion_eligible: true
-    primary_anchor_eligible: true
+    detector_band: ''
+    planning_eligible: false
+    runtime_eligible: false
+    promotion_eligible: false
+    primary_anchor_eligible: false
     enabled: true
     detector_name: LiquidityStressDetector
     runtime_tags:
@@ -4048,11 +4122,11 @@ events:
     operational_role: trigger
     deployment_disposition: secondary_or_confirm
     runtime_category: active_runtime_event
-    detector_band: deployable_core
-    planning_eligible: true
-    runtime_eligible: true
-    promotion_eligible: true
-    primary_anchor_eligible: true
+    detector_band: ''
+    planning_eligible: false
+    runtime_eligible: false
+    promotion_eligible: false
+    primary_anchor_eligible: false
     enabled: true
     detector_name: DirectLiquidityStressDetector
     runtime_tags: []
@@ -4114,14 +4188,14 @@ events:
     strategy_only: false
     default_executable: true
     deconflict_priority: 0
-    notes: 'Hybrid liquidity-stress evidence: direct book stress when available plus bar-range expansion and optional trade-flow
-      collapse confirmation.'
+    notes: 'Hybrid liquidity-stress evidence: direct book stress when available plus
+      bar-range expansion and optional trade-flow collapse confirmation.'
     maturity: standard
     tier: B
     operational_role: trigger
     deployment_disposition: secondary_or_confirm
     runtime_category: active_runtime_event
-    detector_band: composite_or_fragile
+    detector_band: ''
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -4146,9 +4220,10 @@ events:
       maturity: standard
       synthetic_coverage: covered
       research_family: LIQUIDITY_DISLOCATION
-      trigger: Detector triggers when direct liquidity stress and proxy range-stress confirmation align.
-      confirmation: Spread stress should remain elevated briefly while proxy range expansion or trade-flow weakness confirms
-        the shock.
+      trigger: Detector triggers when direct liquidity stress and proxy range-stress
+        confirmation align.
+      confirmation: Spread stress should remain elevated briefly while proxy range
+        expansion or trade-flow weakness confirms the shock.
       expected_behavior:
         holding_horizon_bars: 1-12
         invalidation_conditions:
@@ -4221,15 +4296,17 @@ events:
     - event_type: VOL_SHOCK
       penalty_factor: 0.5
       block: false
-      reason: Vol signal unreliable during thin-book conditions; vol expansion may be noise-driven. Partial penalty.
+      reason: Vol signal unreliable during thin-book conditions; vol expansion may
+        be noise-driven. Partial penalty.
     suppressed_by: []
     parameters:
       synthetic_coverage: covered
       research_family: LIQUIDITY_DISLOCATION
       detector_contract: true
       detector:
-        signal_definition: 'Identifies bars where an absolute return shock (abs_return >= t_shock) is immediately followed
-          by consecutive bars with below-median volume AND above-median intrabar range, indicating liquidity has withdrawn
+        signal_definition: 'Identifies bars where an absolute return shock (abs_return
+          >= t_shock) is immediately followed by consecutive bars with below-median
+          volume AND above-median intrabar range, indicating liquidity has withdrawn
           post-impulse.
 
           '
@@ -4243,7 +4320,8 @@ events:
 
           shock_onset      = (abs_return[i] >= t_shock) AND (abs_return[i-1] < t_shock)
 
-          vacuum_bar[j]    = (vol_ratio[j] < vol_ratio_floor) AND (range_pct[j] > range_multiplier * range_med[j])
+          vacuum_bar[j]    = (vol_ratio[j] < vol_ratio_floor) AND (range_pct[j] >
+          range_multiplier * range_med[j])
 
           event detected   = shock_onset[i] AND count(vacuum_bar, i+1..i+k) >= min_vacuum_bars
 
@@ -4257,8 +4335,8 @@ events:
         lookback_bars: 480
         warmup_bars: 480
         bar_type: bar_close
-        timestamp_alignment: 'Event detected_ts = timestamp of last vacuum bar (exit bar). Signal available at bar close;
-          no intrabar lookahead.
+        timestamp_alignment: 'Event detected_ts = timestamp of last vacuum bar (exit
+          bar). Signal available at bar close; no intrabar lookahead.
 
           '
         minimum_sample_size: 50
@@ -4272,11 +4350,12 @@ events:
         - 0.9
         - 0.95
         - 0.99
-        calibration_target: 'Minimum event count >= min_events_calibration; prefer higher quantile.
+        calibration_target: 'Minimum event count >= min_events_calibration; prefer
+          higher quantile.
 
           '
-        stability_requirement: 'Selected threshold must yield >= min_events_calibration events on both in-sample and the most
-          recent 12-month rolling window.
+        stability_requirement: 'Selected threshold must yield >= min_events_calibration
+          events on both in-sample and the most recent 12-month rolling window.
 
           '
         failure_modes:
@@ -4394,8 +4473,8 @@ events:
     operational_role: trigger
     deployment_disposition: secondary_or_confirm
     runtime_category: active_runtime_event
-    detector_band: research_trigger
-    planning_eligible: true
+    detector_band: ''
+    planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
     primary_anchor_eligible: false
@@ -4473,11 +4552,11 @@ events:
     operational_role: trigger
     deployment_disposition: secondary_or_confirm
     runtime_category: active_runtime_event
-    detector_band: research_trigger
-    planning_eligible: true
+    detector_band: ''
+    planning_eligible: false
     runtime_eligible: false
-    promotion_eligible: true
-    primary_anchor_eligible: true
+    promotion_eligible: false
+    primary_anchor_eligible: false
     enabled: true
     detector_name: OIFlushDetector
     runtime_tags:
@@ -4548,7 +4627,8 @@ events:
     strategy_only: false
     default_executable: true
     deconflict_priority: 0
-    notes: Negative OI spike is normalized as OI contraction/unwind, not directional alpha.
+    notes: Negative OI spike is normalized as OI contraction/unwind, not directional
+      alpha.
     maturity: ''
     tier: B
     operational_role: trigger
@@ -4557,7 +4637,7 @@ events:
     detector_band: deployable_core
     planning_eligible: true
     runtime_eligible: true
-    promotion_eligible: true
+    promotion_eligible: false
     primary_anchor_eligible: true
     enabled: true
     detector_name: OISpikeNegativeDetector
@@ -4663,11 +4743,11 @@ events:
     operational_role: trigger
     deployment_disposition: secondary_or_confirm
     runtime_category: active_runtime_event
-    detector_band: research_trigger
-    planning_eligible: true
+    detector_band: ''
+    planning_eligible: false
     runtime_eligible: false
-    promotion_eligible: true
-    primary_anchor_eligible: true
+    promotion_eligible: false
+    primary_anchor_eligible: false
     enabled: true
     detector_name: OISpikePositiveDetector
     runtime_tags:
@@ -4737,8 +4817,8 @@ events:
     operational_role: trigger
     deployment_disposition: secondary_or_confirm
     runtime_category: active_runtime_event
-    detector_band: research_trigger
-    planning_eligible: true
+    detector_band: ''
+    planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
     primary_anchor_eligible: false
@@ -4822,8 +4902,8 @@ events:
     operational_role: trigger
     deployment_disposition: secondary_or_confirm
     runtime_category: active_runtime_event
-    detector_band: research_trigger
-    planning_eligible: true
+    detector_band: ''
+    planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
     primary_anchor_eligible: false
@@ -4898,8 +4978,8 @@ events:
     operational_role: trigger
     deployment_disposition: secondary_or_confirm
     runtime_category: active_runtime_event
-    detector_band: research_trigger
-    planning_eligible: true
+    detector_band: ''
+    planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
     primary_anchor_eligible: false
@@ -5029,6 +5109,11 @@ events:
         sign_field: price_oi_quadrant
       context_requirements:
         price_oi_quadrant: price_down_oi_down
+      expected_behavior:
+        disabled_regimes:
+        - 'stale_open_interest: OI unavailable or stale'
+        - 'low_liquidity: price/OI quadrant unreliable'
+        - 'execution_friction_blocked: spread/slippage too high'
     templates:
     - positioning_flush_reversal
     - long_flush_rebound
@@ -5100,6 +5185,11 @@ events:
         sign_field: price_oi_quadrant
       context_requirements:
         price_oi_quadrant: price_down_oi_up
+      expected_behavior:
+        disabled_regimes:
+        - 'stale_open_interest: OI unavailable or stale'
+        - 'low_liquidity: price/OI quadrant unreliable'
+        - 'execution_friction_blocked: spread/slippage too high'
     templates:
     - carry_continuation_confirmed
     - only_if_oi
@@ -5170,6 +5260,11 @@ events:
         sign_field: price_oi_quadrant
       context_requirements:
         price_oi_quadrant: price_up_oi_down
+      expected_behavior:
+        disabled_regimes:
+        - 'stale_open_interest: OI unavailable or stale'
+        - 'low_liquidity: price/OI quadrant unreliable'
+        - 'execution_friction_blocked: spread/slippage too high'
     templates:
     - squeeze_followthrough_confirmed
     - positioning_flush_reversal
@@ -5241,6 +5336,11 @@ events:
         sign_field: price_oi_quadrant
       context_requirements:
         price_oi_quadrant: price_up_oi_up
+      expected_behavior:
+        disabled_regimes:
+        - 'stale_open_interest: OI unavailable or stale'
+        - 'low_liquidity: price/OI quadrant unreliable'
+        - 'execution_friction_blocked: spread/slippage too high'
     templates:
     - carry_continuation_confirmed
     - squeeze_followthrough_confirmed
@@ -5268,13 +5368,14 @@ events:
     strategy_only: false
     default_executable: true
     deconflict_priority: 0
-    notes: Hybrid liquidity-stress evidence via synchronized return, realized-volatility, volume, and flow-pressure imbalance.
+    notes: Hybrid liquidity-stress evidence via synchronized return, realized-volatility,
+      volume, and flow-pressure imbalance.
     maturity: standard
     tier: B
     operational_role: trigger
     deployment_disposition: secondary_or_confirm
     runtime_category: active_runtime_event
-    detector_band: composite_or_fragile
+    detector_band: ''
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -5299,10 +5400,10 @@ events:
       maturity: standard
       synthetic_coverage: covered
       research_family: LIQUIDITY_DISLOCATION
-      trigger: Detector triggers when return expansion, realized-volatility shock, volume expansion, and flow pressure align
-        into a direct imbalance surface.
-      confirmation: The synchronized stress cluster persists long enough to confirm a liquidity-stress shock rather than an
-        isolated print.
+      trigger: Detector triggers when return expansion, realized-volatility shock,
+        volume expansion, and flow pressure align into a direct imbalance surface.
+      confirmation: The synchronized stress cluster persists long enough to confirm
+        a liquidity-stress shock rather than an isolated print.
       expected_behavior:
         holding_horizon_bars: 1-12
         invalidation_conditions:
@@ -5356,8 +5457,8 @@ events:
     operational_role: trigger
     deployment_disposition: secondary_or_confirm
     runtime_category: active_runtime_event
-    detector_band: research_trigger
-    planning_eligible: true
+    detector_band: ''
+    planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
     primary_anchor_eligible: false
@@ -5433,8 +5534,8 @@ events:
     operational_role: trigger
     deployment_disposition: secondary_or_confirm
     runtime_category: active_runtime_event
-    detector_band: research_trigger
-    planning_eligible: true
+    detector_band: ''
+    planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
     primary_anchor_eligible: false
@@ -5511,8 +5612,8 @@ events:
     operational_role: trigger
     deployment_disposition: secondary_or_confirm
     runtime_category: active_runtime_event
-    detector_band: research_trigger
-    planning_eligible: true
+    detector_band: ''
+    planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
     primary_anchor_eligible: false
@@ -5588,8 +5689,8 @@ events:
     operational_role: context
     deployment_disposition: context_only
     runtime_category: active_runtime_event
-    detector_band: context_only
-    planning_eligible: true
+    detector_band: ''
+    planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
     primary_anchor_eligible: false
@@ -5614,23 +5715,23 @@ events:
     - event_type: LIQUIDITY_VACUUM
       penalty_factor: 0.0
       block: true
-      reason: 'News window: directional information dominates; structural detectors fire spuriously. Block entirely during
-        active news window.'
+      reason: 'News window: directional information dominates; structural detectors
+        fire spuriously. Block entirely during active news window.'
     - event_type: VOL_SHOCK
       penalty_factor: 0.0
       block: true
-      reason: 'News window: directional information dominates; structural detectors fire spuriously. Block entirely during
-        active news window.'
+      reason: 'News window: directional information dominates; structural detectors
+        fire spuriously. Block entirely during active news window.'
     - event_type: CROSS_VENUE_DESYNC
       penalty_factor: 0.0
       block: true
-      reason: 'News window: directional information dominates; structural detectors fire spuriously. Block entirely during
-        active news window.'
+      reason: 'News window: directional information dominates; structural detectors
+        fire spuriously. Block entirely during active news window.'
     - event_type: BREAKOUT_TRIGGER
       penalty_factor: 0.0
       block: true
-      reason: 'News window: directional information dominates; structural detectors fire spuriously. Block entirely during
-        active news window.'
+      reason: 'News window: directional information dominates; structural detectors
+        fire spuriously. Block entirely during active news window.'
     suppressed_by: []
     parameters:
       synthetic_coverage: covered
@@ -5679,7 +5780,7 @@ events:
     operational_role: sequence_component
     deployment_disposition: research_only
     runtime_category: research_only
-    detector_band: composite_or_fragile
+    detector_band: ''
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -5757,7 +5858,7 @@ events:
     operational_role: sequence_component
     deployment_disposition: research_only
     runtime_category: research_only
-    detector_band: composite_or_fragile
+    detector_band: ''
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -5833,7 +5934,7 @@ events:
     operational_role: sequence_component
     deployment_disposition: research_only
     runtime_category: research_only
-    detector_band: composite_or_fragile
+    detector_band: ''
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -5911,7 +6012,7 @@ events:
     operational_role: sequence_component
     deployment_disposition: research_only
     runtime_category: research_only
-    detector_band: composite_or_fragile
+    detector_band: ''
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -5986,8 +6087,8 @@ events:
     operational_role: context
     deployment_disposition: context_only
     runtime_category: active_runtime_event
-    detector_band: context_only
-    planning_eligible: true
+    detector_band: ''
+    planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
     primary_anchor_eligible: false
@@ -6065,8 +6166,8 @@ events:
     operational_role: context
     deployment_disposition: context_only
     runtime_category: active_runtime_event
-    detector_band: context_only
-    planning_eligible: true
+    detector_band: ''
+    planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
     primary_anchor_eligible: false
@@ -6144,8 +6245,8 @@ events:
     operational_role: trigger
     deployment_disposition: secondary_or_confirm
     runtime_category: active_runtime_event
-    detector_band: research_trigger
-    planning_eligible: true
+    detector_band: ''
+    planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
     primary_anchor_eligible: false
@@ -6218,11 +6319,11 @@ events:
     operational_role: trigger
     deployment_disposition: primary_trigger_candidate
     runtime_category: active_runtime_event
-    detector_band: deployable_core
-    planning_eligible: true
-    runtime_eligible: true
-    promotion_eligible: true
-    primary_anchor_eligible: true
+    detector_band: ''
+    planning_eligible: false
+    runtime_eligible: false
+    promotion_eligible: false
+    primary_anchor_eligible: false
     enabled: true
     detector_name: SpotPerpBasisShockDetector
     runtime_tags:
@@ -6299,8 +6400,8 @@ events:
     operational_role: trigger
     deployment_disposition: secondary_or_confirm
     runtime_category: active_runtime_event
-    detector_band: research_trigger
-    planning_eligible: true
+    detector_band: ''
+    planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
     primary_anchor_eligible: false
@@ -6326,28 +6427,28 @@ events:
     - event_type: LIQUIDITY_VACUUM
       penalty_factor: 0.3
       block: false
-      reason: Spread elevation makes execution-heavy mean-reversion templates uneconomic. Penalize heavily but do not block
-        entirely.
+      reason: Spread elevation makes execution-heavy mean-reversion templates uneconomic.
+        Penalize heavily but do not block entirely.
     - event_type: BREAKOUT_TRIGGER
       penalty_factor: 0.3
       block: false
-      reason: Spread elevation makes execution-heavy mean-reversion templates uneconomic. Penalize heavily but do not block
-        entirely.
+      reason: Spread elevation makes execution-heavy mean-reversion templates uneconomic.
+        Penalize heavily but do not block entirely.
     - event_type: RANGE_BREAKOUT
       penalty_factor: 0.3
       block: false
-      reason: Spread elevation makes execution-heavy mean-reversion templates uneconomic. Penalize heavily but do not block
-        entirely.
+      reason: Spread elevation makes execution-heavy mean-reversion templates uneconomic.
+        Penalize heavily but do not block entirely.
     - event_type: CROSS_VENUE_DESYNC
       penalty_factor: 0.3
       block: false
-      reason: Spread elevation makes execution-heavy mean-reversion templates uneconomic. Penalize heavily but do not block
-        entirely.
+      reason: Spread elevation makes execution-heavy mean-reversion templates uneconomic.
+        Penalize heavily but do not block entirely.
     - event_type: DEPTH_COLLAPSE
       penalty_factor: 0.3
       block: false
-      reason: Spread elevation makes execution-heavy mean-reversion templates uneconomic. Penalize heavily but do not block
-        entirely.
+      reason: Spread elevation makes execution-heavy mean-reversion templates uneconomic.
+        Penalize heavily but do not block entirely.
     suppressed_by: []
     parameters:
       synthetic_coverage: covered
@@ -6402,8 +6503,8 @@ events:
     operational_role: trigger
     deployment_disposition: secondary_or_confirm
     runtime_category: active_runtime_event
-    detector_band: research_trigger
-    planning_eligible: true
+    detector_band: ''
+    planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
     primary_anchor_eligible: false
@@ -6479,8 +6580,8 @@ events:
     operational_role: trigger
     deployment_disposition: secondary_or_confirm
     runtime_category: active_runtime_event
-    detector_band: research_trigger
-    planning_eligible: true
+    detector_band: ''
+    planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
     primary_anchor_eligible: false
@@ -6556,8 +6657,8 @@ events:
     operational_role: trigger
     deployment_disposition: secondary_or_confirm
     runtime_category: active_runtime_event
-    detector_band: research_trigger
-    planning_eligible: true
+    detector_band: ''
+    planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
     primary_anchor_eligible: false
@@ -6636,8 +6737,8 @@ events:
     operational_role: trigger
     deployment_disposition: secondary_or_confirm
     runtime_category: active_runtime_event
-    detector_band: research_trigger
-    planning_eligible: true
+    detector_band: ''
+    planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
     primary_anchor_eligible: false
@@ -6713,8 +6814,8 @@ events:
     operational_role: trigger
     deployment_disposition: secondary_or_confirm
     runtime_category: active_runtime_event
-    detector_band: research_trigger
-    planning_eligible: true
+    detector_band: ''
+    planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
     primary_anchor_eligible: false
@@ -6790,8 +6891,8 @@ events:
     operational_role: trigger
     deployment_disposition: secondary_or_confirm
     runtime_category: active_runtime_event
-    detector_band: research_trigger
-    planning_eligible: true
+    detector_band: ''
+    planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
     primary_anchor_eligible: false
@@ -6885,8 +6986,8 @@ events:
     operational_role: trigger
     deployment_disposition: secondary_or_confirm
     runtime_category: active_runtime_event
-    detector_band: research_trigger
-    planning_eligible: true
+    detector_band: ''
+    planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
     primary_anchor_eligible: false
@@ -6961,8 +7062,8 @@ events:
     operational_role: trigger
     deployment_disposition: secondary_or_confirm
     runtime_category: active_runtime_event
-    detector_band: research_trigger
-    planning_eligible: true
+    detector_band: ''
+    planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
     primary_anchor_eligible: false
@@ -7038,8 +7139,8 @@ events:
     operational_role: trigger
     deployment_disposition: secondary_or_confirm
     runtime_category: active_runtime_event
-    detector_band: research_trigger
-    planning_eligible: true
+    detector_band: ''
+    planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
     primary_anchor_eligible: false
@@ -7114,10 +7215,10 @@ events:
     operational_role: trigger
     deployment_disposition: secondary_or_confirm
     runtime_category: active_runtime_event
-    detector_band: research_trigger
-    planning_eligible: true
+    detector_band: ''
+    planning_eligible: false
     runtime_eligible: false
-    promotion_eligible: true
+    promotion_eligible: false
     primary_anchor_eligible: false
     enabled: true
     detector_name: VolRelaxationDetector
@@ -7185,17 +7286,18 @@ events:
     strategy_only: false
     default_executable: true
     deconflict_priority: 0
-    notes: Canonical volatility shock; current detector implementation also models relaxation boundary.
+    notes: Canonical volatility shock; current detector implementation also models
+      relaxation boundary.
     maturity: ''
     tier: A
     operational_role: trigger
     deployment_disposition: primary_trigger_candidate
     runtime_category: active_runtime_event
-    detector_band: deployable_core
-    planning_eligible: true
-    runtime_eligible: true
-    promotion_eligible: true
-    primary_anchor_eligible: true
+    detector_band: ''
+    planning_eligible: false
+    runtime_eligible: false
+    promotion_eligible: false
+    primary_anchor_eligible: false
     enabled: true
     detector_name: VolShockRelaxationDetector
     runtime_tags:
@@ -7220,10 +7322,11 @@ events:
       synthetic_coverage: covered
       detector_contract: true
       detector:
-        signal_definition: 'Detects realized-volatility shock onset using a point-in-time-safe dynamic threshold on the realized-volatility
-          shock ratio. The emitted event is the first bar where the shock ratio crosses above the dynamic threshold; post-event
-          fields record relaxation and decay diagnostics, but the detector does not require a separate bootstrap-confirmed
-          relaxation gate before emission.
+        signal_definition: 'Detects realized-volatility shock onset using a point-in-time-safe
+          dynamic threshold on the realized-volatility shock ratio. The emitted event
+          is the first bar where the shock ratio crosses above the dynamic threshold;
+          post-event fields record relaxation and decay diagnostics, but the detector
+          does not require a separate bootstrap-confirmed relaxation gate before emission.
 
           '
         formula: 'logret[i]        = log(close[i] / close[i-1])
@@ -7234,12 +7337,14 @@ events:
 
           shock_ratio[i]   = realized_vol[i] / rv_base[i]
 
-          shock_threshold[i] = trailing_quantile(shock_ratio, baseline_window, shock_quantile, lag=1)[i]
+          shock_threshold[i] = trailing_quantile(shock_ratio, baseline_window, shock_quantile,
+          lag=1)[i]
 
-          onset[i]         = shock_ratio[i-1] < shock_threshold[i-1] AND shock_ratio[i] >= shock_threshold[i]
+          onset[i]         = shock_ratio[i-1] < shock_threshold[i-1] AND shock_ratio[i]
+          >= shock_threshold[i]
 
-          relax_exit[j]    = first j >= i such that shock_ratio[j] <= relax_threshold for relax_consecutive_bars consecutive
-          bars
+          relax_exit[j]    = first j >= i such that shock_ratio[j] <= relax_threshold
+          for relax_consecutive_bars consecutive bars
 
           event            = onset[i]
 
@@ -7250,8 +7355,9 @@ events:
         lookback_bars: 288
         warmup_bars: 288
         bar_type: close_to_close
-        timestamp_alignment: 'Event anchor at first bar crossing above the dynamic shock threshold (shock onset). Detected
-          at bar close; downstream metadata records the subsequent relaxation boundary.
+        timestamp_alignment: 'Event anchor at first bar crossing above the dynamic
+          shock threshold (shock onset). Detected at bar close; downstream metadata
+          records the subsequent relaxation boundary.
 
           '
         minimum_sample_size: 200
@@ -7264,12 +7370,14 @@ events:
         - 2.25
         - 2.5
         - 3.0
-        calibration_target: 'Maximize stability of point-in-time shock-onset detection and usefulness of post-event decay
-          telemetry (half-life, excess vol area, secondary-shock incidence) while keeping sufficient event counts per window.
+        calibration_target: 'Maximize stability of point-in-time shock-onset detection
+          and usefulness of post-event decay telemetry (half-life, excess vol area,
+          secondary-shock incidence) while keeping sufficient event counts per window.
 
           '
-        stability_requirement: 'Shock threshold and onset frequency should remain stable across yearly splits and major symbols
-          after accounting for realized-vol regime differences.
+        stability_requirement: 'Shock threshold and onset frequency should remain
+          stable across yearly splits and major symbols after accounting for realized-vol
+          regime differences.
 
           '
         failure_modes:
@@ -7328,11 +7436,11 @@ events:
     operational_role: trigger
     deployment_disposition: primary_trigger_candidate
     runtime_category: active_runtime_event
-    detector_band: deployable_core
-    planning_eligible: true
-    runtime_eligible: true
-    promotion_eligible: true
-    primary_anchor_eligible: true
+    detector_band: ''
+    planning_eligible: false
+    runtime_eligible: false
+    promotion_eligible: false
+    primary_anchor_eligible: false
     enabled: true
     detector_name: VolSpikeDetector
     runtime_tags:
@@ -7399,13 +7507,14 @@ events:
     strategy_only: false
     default_executable: true
     deconflict_priority: 0
-    notes: 'Hybrid liquidity-stress recovery evidence: wick and reclaim structure confirmed by realized-volume expansion.'
+    notes: 'Hybrid liquidity-stress recovery evidence: wick and reclaim structure
+      confirmed by realized-volume expansion.'
     maturity: standard
     tier: B
     operational_role: trigger
     deployment_disposition: secondary_or_confirm
     runtime_category: active_runtime_event
-    detector_band: composite_or_fragile
+    detector_band: ''
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -7430,8 +7539,10 @@ events:
       maturity: standard
       synthetic_coverage: covered
       research_family: LIQUIDITY_DISLOCATION
-      trigger: Detector triggers when wick-dominance and reclaim structure align with abnormal realized volume.
-      confirmation: Follow-through should hold the reclaimed range while realized volume remains elevated versus baseline.
+      trigger: Detector triggers when wick-dominance and reclaim structure align with
+        abnormal realized volume.
+      confirmation: Follow-through should hold the reclaimed range while realized
+        volume remains elevated versus baseline.
       expected_behavior:
         holding_horizon_bars: 1-12
         invalidation_conditions:
@@ -7478,8 +7589,8 @@ events:
     operational_role: trigger
     deployment_disposition: secondary_or_confirm
     runtime_category: active_runtime_event
-    detector_band: research_trigger
-    planning_eligible: true
+    detector_band: ''
+    planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
     primary_anchor_eligible: false

@@ -7,7 +7,7 @@ event_atoms:
     templates: [mean_reversion, exhaustion_reversal]
     horizons: [12b, 24b, 48b]
     required_feature_keys: [close, rv_96, oi_delta_1h, liquidation_notional]
-    thesis_eligible: true
+    thesis_eligible: false
     research_only: false
   - id: trend_exhaustion_trigger_failure
     event_family: trend_failure
@@ -16,7 +16,7 @@ event_atoms:
     templates: [mean_reversion, exhaustion_reversal]
     horizons: [12b, 24b, 48b]
     required_feature_keys: [close, rv_96]
-    thesis_eligible: true
+    thesis_eligible: false
     research_only: false
   - id: false_breakout_failure
     event_family: trend_failure
@@ -25,7 +25,7 @@ event_atoms:
     templates: [mean_reversion, exhaustion_reversal]
     horizons: [12b, 24b, 48b]
     required_feature_keys: [close]
-    thesis_eligible: true
+    thesis_eligible: false
     research_only: false
   - id: failed_continuation_failure
     event_family: trend_failure
@@ -34,7 +34,7 @@ event_atoms:
     templates: [mean_reversion, exhaustion_reversal]
     horizons: [12b, 24b, 48b]
     required_feature_keys: [close, high, low]
-    thesis_eligible: true
+    thesis_eligible: false
     research_only: false
   - id: momentum_divergence_failure
     event_family: trend_failure
@@ -43,7 +43,7 @@ event_atoms:
     templates: [mean_reversion, exhaustion_reversal]
     horizons: [12b, 24b, 48b]
     required_feature_keys: [close]
-    thesis_eligible: true
+    thesis_eligible: false
     research_only: false
   - id: climax_volume_bar_failure
     event_family: trend_failure
@@ -52,5 +52,5 @@ event_atoms:
     templates: [mean_reversion, exhaustion_reversal]
     horizons: [12b, 24b, 48b]
     required_feature_keys: [close, high, low, volume]
-    thesis_eligible: true
+    thesis_eligible: false
     research_only: false

@@ -7,7 +7,7 @@ event_atoms:
     templates: [continuation]
     horizons: [48b]
     required_feature_keys: [rv_96]
-    thesis_eligible: true
+    thesis_eligible: false
     research_only: false
   - id: funding_persistence_probe
     event_family: funding
@@ -16,5 +16,5 @@ event_atoms:
     templates: [continuation]
     horizons: [48b]
     required_feature_keys: [funding_rate_bps]
-    thesis_eligible: true
+    thesis_eligible: false
     research_only: false

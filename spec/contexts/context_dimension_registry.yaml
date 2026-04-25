@@ -108,6 +108,15 @@ dimensions:
       exhaustion: {}
       transition: {}
 
+  ms_trend_state:
+    values:
+      trend: {}
+      chop: {}
+      bullish:
+        alias_of: trend
+      bearish:
+        alias_of: trend
+
   basis_phase:
     values:
       neutral: {}

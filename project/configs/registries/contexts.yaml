@@ -89,9 +89,13 @@ context_dimensions:
     allowed_values:
     - trend
     - chop
+    - bullish
+    - bearish
     mapping:
       trend: TREND_ACTIVE
       chop: CHOP_ACTIVE
+      bullish: TREND_ACTIVE
+      bearish: TREND_ACTIVE
   oi_phase:
     allowed_values:
     - neutral
