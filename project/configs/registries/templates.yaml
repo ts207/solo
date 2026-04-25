@@ -61,6 +61,12 @@ templates:
     supports_trigger_types:
     - EVENT
     - SEQUENCE
+  cascade_continuation_until_cooldown:
+    enabled: true
+    template_kind: expression_template
+    supports_contexts: true
+    supports_directions: []
+    supports_trigger_types: []
   continuation:
     enabled: true
     template_kind: expression_template

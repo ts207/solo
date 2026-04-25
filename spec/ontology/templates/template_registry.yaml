@@ -67,6 +67,9 @@ defaults:
 families:
   BASIS_FUNDING_DISLOCATION:
     allowed_templates:
+    - mean_reversion
+    - continuation
+    - reversal_or_squeeze
     - carry_unwind_reversal
     - carry_continuation_confirmed
     - basis_funding_convergence
@@ -92,6 +95,10 @@ families:
     - only_if_trend
     - only_if_regime
     - drawdown_filter
+    - mean_reversion
+    - exhaustion_reversal
+    - momentum_fade
+    - range_reversion
   INFORMATION_DESYNC:
     allowed_templates:
     - desync_repair

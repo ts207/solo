@@ -1,32 +1,62 @@
 version: edge_cells_v2
 context_cells:
-  - id: high_vol
-    dimension: vol_regime
-    values: [high]
-    required_feature_key: high_vol_regime
-    executability_class: runtime
-    max_conjunction_depth: 1
-  - id: wide_spread
-    dimension: ms_spread_state
-    values: [wide]
-    required_feature_key: ms_spread_state
-    executability_class: runtime
-    max_conjunction_depth: 1
-  - id: bullish_trend
-    dimension: ms_trend_state
-    values: [bullish]
-    required_feature_key: ms_trend_state
-    executability_class: runtime
-    max_conjunction_depth: 1
-  - id: bearish_trend
-    dimension: ms_trend_state
-    values: [bearish]
-    required_feature_key: ms_trend_state
-    executability_class: runtime
-    max_conjunction_depth: 1
-  - id: chop
-    dimension: ms_trend_state
-    values: [chop]
-    required_feature_key: ms_trend_state
-    executability_class: runtime
-    max_conjunction_depth: 1
+- id: high_vol
+  dimension: vol_regime
+  values:
+  - high
+  required_feature_key: high_vol_regime
+  executability_class: runtime
+  max_conjunction_depth: 1
+- id: wide_spread
+  dimension: ms_spread_state
+  values:
+  - wide
+  required_feature_key: ms_spread_state
+  executability_class: runtime
+  max_conjunction_depth: 1
+- id: bullish_trend
+  dimension: ms_trend_state
+  values:
+  - bullish
+  required_feature_key: ms_trend_state
+  executability_class: runtime
+  max_conjunction_depth: 1
+- id: bearish_trend
+  dimension: ms_trend_state
+  values:
+  - bearish
+  required_feature_key: ms_trend_state
+  executability_class: runtime
+  max_conjunction_depth: 1
+- id: chop
+  dimension: ms_trend_state
+  values:
+  - chop
+  required_feature_key: ms_trend_state
+  executability_class: runtime
+  max_conjunction_depth: 1
+- id: forced_flow_cooldown
+  dimension: forced_flow_phase
+  values:
+  - cooldown
+- id: forced_flow_refill
+  dimension: forced_flow_phase
+  values:
+  - refill
+- id: liquidity_refill
+  dimension: liquidity_phase
+  values:
+  - refill
+  - recovered
+- id: oi_flush
+  dimension: oi_phase
+  values:
+  - flush
+- id: funding_positive_persistent
+  dimension: funding_phase
+  values:
+  - positive_persistent
+- id: price_down_oi_down
+  dimension: price_oi_quadrant
+  values:
+  - price_down_oi_down

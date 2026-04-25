@@ -1,56 +1,119 @@
 version: edge_cells_v2
 event_atoms:
-  - id: liquidation_exhaustion_reversal_failure
-    event_family: trend_failure
-    event_type: LIQUIDATION_EXHAUSTION_REVERSAL
-    directions: [long, short]
-    templates: [mean_reversion, exhaustion_reversal]
-    horizons: [12b, 24b, 48b]
-    required_feature_keys: [close, rv_96, oi_delta_1h, liquidation_notional]
-    thesis_eligible: false
-    research_only: false
-  - id: trend_exhaustion_trigger_failure
-    event_family: trend_failure
-    event_type: TREND_EXHAUSTION_TRIGGER
-    directions: [long, short]
-    templates: [mean_reversion, exhaustion_reversal]
-    horizons: [12b, 24b, 48b]
-    required_feature_keys: [close, rv_96]
-    thesis_eligible: false
-    research_only: false
-  - id: false_breakout_failure
-    event_family: trend_failure
-    event_type: FALSE_BREAKOUT
-    directions: [long, short]
-    templates: [mean_reversion, exhaustion_reversal]
-    horizons: [12b, 24b, 48b]
-    required_feature_keys: [close]
-    thesis_eligible: false
-    research_only: false
-  - id: failed_continuation_failure
-    event_family: trend_failure
-    event_type: FAILED_CONTINUATION
-    directions: [long, short]
-    templates: [mean_reversion, exhaustion_reversal]
-    horizons: [12b, 24b, 48b]
-    required_feature_keys: [close, high, low]
-    thesis_eligible: false
-    research_only: false
-  - id: momentum_divergence_failure
-    event_family: trend_failure
-    event_type: MOMENTUM_DIVERGENCE_TRIGGER
-    directions: [long, short]
-    templates: [mean_reversion, exhaustion_reversal]
-    horizons: [12b, 24b, 48b]
-    required_feature_keys: [close]
-    thesis_eligible: false
-    research_only: false
-  - id: climax_volume_bar_failure
-    event_family: trend_failure
-    event_type: CLIMAX_VOLUME_BAR
-    directions: [long, short]
-    templates: [mean_reversion, exhaustion_reversal]
-    horizons: [12b, 24b, 48b]
-    required_feature_keys: [close, high, low, volume]
-    thesis_eligible: false
-    research_only: false
+- id: liquidation_exhaustion_reversal_failure
+  event_family: trend_failure
+  event_type: LIQUIDATION_EXHAUSTION_REVERSAL
+  directions:
+  - long
+  - short
+  templates:
+  - mean_reversion
+  - exhaustion_reversal
+  horizons:
+  - 12b
+  - 24b
+  - 48b
+  required_feature_keys:
+  - close
+  - rv_96
+  - oi_delta_1h
+  - liquidation_notional
+  search_role: diagnostic
+  promotion_role: ineligible
+  runtime_role: observer
+- id: trend_exhaustion_trigger_failure
+  event_family: trend_failure
+  event_type: TREND_EXHAUSTION_TRIGGER
+  directions:
+  - long
+  - short
+  templates:
+  - mean_reversion
+  - exhaustion_reversal
+  horizons:
+  - 12b
+  - 24b
+  - 48b
+  required_feature_keys:
+  - close
+  - rv_96
+  search_role: diagnostic
+  promotion_role: ineligible
+  runtime_role: observer
+- id: false_breakout_failure
+  event_family: trend_failure
+  event_type: FALSE_BREAKOUT
+  directions:
+  - long
+  - short
+  templates:
+  - mean_reversion
+  - exhaustion_reversal
+  horizons:
+  - 12b
+  - 24b
+  - 48b
+  required_feature_keys:
+  - close
+  search_role: diagnostic
+  promotion_role: ineligible
+  runtime_role: observer
+- id: failed_continuation_failure
+  event_family: trend_failure
+  event_type: FAILED_CONTINUATION
+  directions:
+  - long
+  - short
+  templates:
+  - mean_reversion
+  - exhaustion_reversal
+  horizons:
+  - 12b
+  - 24b
+  - 48b
+  required_feature_keys:
+  - close
+  - high
+  - low
+  search_role: diagnostic
+  promotion_role: ineligible
+  runtime_role: observer
+- id: momentum_divergence_failure
+  event_family: trend_failure
+  event_type: MOMENTUM_DIVERGENCE_TRIGGER
+  directions:
+  - long
+  - short
+  templates:
+  - mean_reversion
+  - exhaustion_reversal
+  horizons:
+  - 12b
+  - 24b
+  - 48b
+  required_feature_keys:
+  - close
+  search_role: diagnostic
+  promotion_role: ineligible
+  runtime_role: observer
+- id: climax_volume_bar_failure
+  event_family: trend_failure
+  event_type: CLIMAX_VOLUME_BAR
+  directions:
+  - long
+  - short
+  templates:
+  - mean_reversion
+  - exhaustion_reversal
+  horizons:
+  - 12b
+  - 24b
+  - 48b
+  required_feature_keys:
+  - close
+  - high
+  - low
+  - volume
+  search_role: diagnostic
+  promotion_role: ineligible
+  runtime_role: observer

@@ -4,11 +4,11 @@ import yaml
 from pathlib import Path
 from typing import Any, List, Tuple
 
-def validate_context_registry() -> List[Tuple[str, str]]:
+def validate_context_registry(root: Path = Path(".")) -> List[Tuple[str, str]]:
     errors: List[Tuple[str, str]] = []
     
-    contexts_yaml_path = Path("project/configs/registries/contexts.yaml")
-    dim_registry_path = Path("spec/contexts/context_dimension_registry.yaml")
+    contexts_yaml_path = root / "project/configs/registries/contexts.yaml"
+    dim_registry_path = root / "spec/contexts/context_dimension_registry.yaml"
     
     if not contexts_yaml_path.exists():
         errors.append((str(contexts_yaml_path), "File missing"))

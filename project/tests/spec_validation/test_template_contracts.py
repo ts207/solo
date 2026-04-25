@@ -12,7 +12,7 @@ def test_template_contract_lint_detects_missing_concrete_fields(monkeypatch) -> 
     monkeypatch.setattr(
         template_lint,
         "load_template_registry",
-        lambda: {
+        lambda **_: {
             "operators": {
                 "forced_flow_rebound": {
                     "template_kind": "expression_template",
@@ -25,7 +25,7 @@ def test_template_contract_lint_detects_missing_concrete_fields(monkeypatch) -> 
     monkeypatch.setattr(
         template_lint,
         "load_yaml_relative",
-        lambda path: {
+        lambda path, **_: {
             "spec/templates/template_contract.yaml": {
                 "required_expression_fields": ["side_policy", "entry", "exit", "labels.primary"],
                 "generic_template_replacements": {},

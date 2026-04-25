@@ -75,7 +75,6 @@ def _lineage_rows(registry: DiscoveryRegistry) -> list[dict[str, Any]]:
         for cell in cells:
             source_context_cell = cell.cell_id if cell is not None else "unconditional"
             runtime_executable = cell is not None and cell.executability_class == "runtime"
-            thesis_eligible = bool(atom.thesis_eligible and not atom.research_only)
             if cell is not None and cell.executability_class == "research_only":
                 thesis_eligible = False
             for hyp in _hypotheses_for_atom(atom, cell):
@@ -103,7 +102,7 @@ def _lineage_rows(registry: DiscoveryRegistry) -> list[dict[str, Any]]:
                         "context_json": json.dumps(context, sort_keys=True),
                         "context_dimension_count": len(context),
                         "runtime_executable": bool(runtime_executable),
-                        "thesis_eligible": bool(thesis_eligible),
+                        "thesis_eligible": bool(atom.promotion_role == "eligible"),
                         "executability_class": (
                             "unconditional" if cell is None else cell.executability_class
                         ),
@@ -146,6 +145,10 @@ def _compile_search_spec(registry: DiscoveryRegistry, lineage: pd.DataFrame) -> 
             "phase": "edge_cells_v1",
             "description": "Generated bounded search space for cell-first discovery.",
             "source_discovery_mode": "edge_cells",
+        },
+        "template_policy": {
+            "generic_templates_allowed": True,
+            "reason": "compiled_from_discovery"
         },
         "triggers": {"events": events},
         "horizons": horizons,

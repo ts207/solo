@@ -60,6 +60,9 @@ event_families:
     description: Extreme basis and funding rate dislocations.
     searchable: true
     allowed_templates:
+    - mean_reversion
+    - continuation
+    - reversal_or_squeeze
     - carry_unwind_reversal
     - carry_continuation_confirmed
     - basis_funding_convergence
@@ -83,6 +86,8 @@ event_families:
     - only_if_trend
     - only_if_regime
     - drawdown_filter
+    - mean_reversion
+    - exhaustion_reversal
   TREND_FAILURE_EXHAUSTION:
     description: Exhaustion of trend momentum and climax volume reversals.
     searchable: true

@@ -143,6 +143,18 @@ def build_context_registry_payload() -> Dict[str, Any]:
                 if str(label).strip() and str(state_id).strip()
             }
         normalized[str(family).strip()] = row
+
+    # Load legacy aliases from authored source
+    dim_registry_path = PROJECT_ROOT.parent / "spec/contexts/context_dimension_registry.yaml"
+    legacy_aliases = {}
+    if dim_registry_path.exists():
+        try:
+            with open(dim_registry_path, "r") as f:
+                dim_doc = yaml.safe_load(f)
+            legacy_aliases = dim_doc.get("legacy_context_aliases", {})
+        except Exception:
+            pass
+
     return {
         "version": 1,
         "kind": "context_registry",
@@ -155,6 +167,7 @@ def build_context_registry_payload() -> Dict[str, Any]:
             "generated_notice": "GENERATED FILE - DO NOT EDIT",
         },
         "context_dimensions": normalized,
+        "legacy_context_aliases": legacy_aliases,
     }
 
 

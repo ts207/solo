@@ -10,9 +10,9 @@ metadata:
   - spec/multiplicity/families.yaml
   - spec/multiplicity/taxonomy.yaml
   notes: Canonical authored template source. Generated runtime and ontology template
-    registries are rebuilt from this file. Event rows use research_family as the
-    coarse search/template grouping key; canonical_family is generated only for
-    compatibility sidecars.
+    registries are rebuilt from this file. Event rows use research_family as the coarse
+    search/template grouping key; canonical_family is generated only for compatibility
+    sidecars.
   phase2_search_unit: trigger_x_context_state_x_expression_template_x_side_policy_x_label_contract_x_cost_model
   template_kind_policy: Expression templates are the primary search unit. Filter templates
     are optional overlays. Execution-template-only search branches are reserved and
@@ -116,6 +116,9 @@ families:
     - tail_risk_avoid
   BASIS_FUNDING_DISLOCATION:
     templates:
+    - mean_reversion
+    - continuation
+    - reversal_or_squeeze
     - carry_unwind_reversal
     - carry_continuation_confirmed
     - basis_funding_convergence
@@ -137,6 +140,8 @@ families:
     - only_if_trend
     - only_if_regime
     - drawdown_filter
+    - mean_reversion
+    - exhaustion_reversal
   TREND_FAILURE_EXHAUSTION:
     templates:
     - mean_reversion
@@ -226,6 +231,7 @@ events:
     - overshoot_repair
     - only_if_liquidity
     - slippage_aware_filter
+    - mean_reversion
     horizons:
     - 15m
     max_candidates_per_run: 600
@@ -250,6 +256,7 @@ events:
     - overshoot_repair
     - only_if_liquidity
     - slippage_aware_filter
+    - mean_reversion
     horizons:
     - 15m
     max_candidates_per_run: 600
@@ -504,6 +511,9 @@ events:
     - only_if_funding
     - only_if_oi
     - tail_risk_avoid
+    - convexity_capture
+    - continuation
+    - mean_reversion
     horizons:
     - 60m
     max_candidates_per_run: 250
@@ -644,6 +654,8 @@ events:
     - only_if_funding
     - only_if_oi
     - tail_risk_avoid
+    - continuation
+    - mean_reversion
     horizons:
     - 5m
     - 60m
@@ -674,6 +686,12 @@ events:
     - only_if_funding
     - only_if_oi
     - tail_risk_avoid
+    - mean_reversion
+    - exhaustion_reversal
+    - continuation
+    - momentum_fade
+    - range_reversion
+    - reversal_or_squeeze
     horizons:
     - 5m
     - 15m
@@ -732,6 +750,7 @@ events:
     - range_reversion
     - only_if_trend
     - drawdown_filter
+    - continuation
     horizons:
     - 60m
     max_candidates_per_run: 500
@@ -795,6 +814,10 @@ events:
     - momentum_fade
     - only_if_trend
     - drawdown_filter
+    - mean_reversion
+    - exhaustion_reversal
+    - continuation
+    - range_reversion
     horizons:
     - 60m
     max_candidates_per_run: 400
@@ -807,6 +830,7 @@ events:
     - range_reversion
     - only_if_trend
     - drawdown_filter
+    - continuation
     horizons:
     - 60m
     max_candidates_per_run: 400
@@ -942,9 +966,14 @@ events:
   FND_DISLOC:
     research_family: BASIS_FUNDING_DISLOCATION
     templates:
+    - reversal_or_squeeze
+    - continuation
+    - mean_reversion
     - basis_funding_convergence
     - basis_convergence
     - basis_repair
+    - overshoot_repair
+    - tail_risk_avoid
     horizons:
     - 15m
     - 60m
@@ -952,9 +981,14 @@ events:
   BASIS_DISLOC:
     research_family: BASIS_FUNDING_DISLOCATION
     templates:
+    - reversal_or_squeeze
+    - continuation
+    - mean_reversion
     - basis_convergence
     - basis_repair
     - basis_funding_convergence
+    - overshoot_repair
+    - tail_risk_avoid
     horizons:
     - 15m
     - 60m
@@ -1273,15 +1307,24 @@ operators:
     operator: '>'
     threshold: 1.0
     entry:
-      trigger_delay_bars: [1, 2]
-      required_confirmations: [basis_dislocation_active]
-      forbidden_states: [execution_blocked]
+      trigger_delay_bars:
+      - 1
+      - 2
+      required_confirmations:
+      - basis_dislocation_active
+      forbidden_states:
+      - execution_blocked
     exit:
-      horizon_bars: [12, 24, 48]
-      invalidation: [basis_widens_after_entry]
+      horizon_bars:
+      - 12
+      - 24
+      - 48
+      invalidation:
+      - basis_widens_after_entry
     labels:
       primary: basis_zscore_delta_h
-      secondary: [hedged_basis_pnl_h]
+      secondary:
+      - hedged_basis_pnl_h
       success_condition: basis_zscore_moves_toward_zero
     risk:
       sizing_profile: hedged_reduced
@@ -1441,15 +1484,23 @@ operators:
     operator: '>'
     threshold: 1.5
     entry:
-      trigger_delay_bars: [1]
-      required_confirmations: [desync_active]
-      forbidden_states: [execution_blocked]
+      trigger_delay_bars:
+      - 1
+      required_confirmations:
+      - desync_active
+      forbidden_states:
+      - execution_blocked
     exit:
-      horizon_bars: [6, 12, 24]
-      invalidation: [spread_widens_after_entry]
+      horizon_bars:
+      - 6
+      - 12
+      - 24
+      invalidation:
+      - spread_widens_after_entry
     labels:
       primary: spread_convergence_h
-      secondary: [hedged_basis_pnl_h]
+      secondary:
+      - hedged_basis_pnl_h
       success_condition: spread_converges_after_cost
     risk:
       sizing_profile: hedged_reduced
@@ -1572,7 +1623,10 @@ operators:
     - liquidity_normalization_h
     template_kind: expression_template
     entry:
-      trigger_delay_bars: [1, 2, 3]
+      trigger_delay_bars:
+      - 1
+      - 2
+      - 3
       required_confirmations:
       - liquidation_cooldown
       - spread_refill
@@ -1581,7 +1635,9 @@ operators:
       - cascade_reacceleration
       - spread_blowout
     exit:
-      horizon_bars: [12, 24]
+      horizon_bars:
+      - 12
+      - 24
       max_hold_bars: 24
       stop: cascade_reacceleration
     labels:
@@ -1633,15 +1689,24 @@ operators:
     - path_drawdown_h
     template_kind: expression_template
     entry:
-      trigger_delay_bars: [1, 2]
-      required_confirmations: [liquidation_cooldown]
-      forbidden_states: [cascade_reacceleration]
+      trigger_delay_bars:
+      - 1
+      - 2
+      required_confirmations:
+      - liquidation_cooldown
+      forbidden_states:
+      - cascade_reacceleration
     exit:
-      horizon_bars: [12, 24]
-      invalidation: [cascade_reacceleration]
+      horizon_bars:
+      - 12
+      - 24
+      invalidation:
+      - cascade_reacceleration
     labels:
       primary: contrarian_signed_return_h
-      secondary: [mfe_h, mae_h]
+      secondary:
+      - mfe_h
+      - mae_h
       success_condition: contrarian_signed_return_h_after_cost_gt_threshold
     risk:
       sizing_profile: reduced_until_cooldown_confirmed
@@ -1685,15 +1750,25 @@ operators:
     - signed_return_h
     template_kind: expression_template
     entry:
-      trigger_delay_bars: [1, 2]
-      required_confirmations: [liquidity_refill]
-      forbidden_states: [spread_blowout, liquidity_vacuum]
+      trigger_delay_bars:
+      - 1
+      - 2
+      required_confirmations:
+      - liquidity_refill
+      forbidden_states:
+      - spread_blowout
+      - liquidity_vacuum
     exit:
-      horizon_bars: [12, 24]
-      invalidation: [refill_failure, spread_reblowout]
+      horizon_bars:
+      - 12
+      - 24
+      invalidation:
+      - refill_failure
+      - spread_reblowout
     labels:
       primary: liquidity_normalization_h
-      secondary: [signed_return_h]
+      secondary:
+      - signed_return_h
       success_condition: liquidity_normalizes_after_cost
     risk:
       sizing_profile: reduced_until_refill_confirmed
@@ -1737,15 +1812,26 @@ operators:
     - mae_h
     template_kind: expression_template
     entry:
-      trigger_delay_bars: [1, 2]
-      required_confirmations: [oi_flush_or_funding_normalization]
-      forbidden_states: [forced_flow_reacceleration, execution_blocked]
+      trigger_delay_bars:
+      - 1
+      - 2
+      required_confirmations:
+      - oi_flush_or_funding_normalization
+      forbidden_states:
+      - forced_flow_reacceleration
+      - execution_blocked
     exit:
-      horizon_bars: [12, 24, 48]
-      invalidation: [funding_reaccelerates_with_crowded_side]
+      horizon_bars:
+      - 12
+      - 24
+      - 48
+      invalidation:
+      - funding_reaccelerates_with_crowded_side
     labels:
       primary: contrarian_signed_return_h
-      secondary: [mfe_h, mae_h]
+      secondary:
+      - mfe_h
+      - mae_h
       success_condition: contrarian_signed_return_h_after_cost_gt_threshold
     risk:
       sizing_profile: reduced_crowding_unwind
@@ -1789,15 +1875,24 @@ operators:
     - mae_h
     template_kind: expression_template
     entry:
-      trigger_delay_bars: [1, 2]
-      required_confirmations: [oi_flush]
-      forbidden_states: [cascade_reacceleration]
+      trigger_delay_bars:
+      - 1
+      - 2
+      required_confirmations:
+      - oi_flush
+      forbidden_states:
+      - cascade_reacceleration
     exit:
-      horizon_bars: [12, 24]
-      invalidation: [oi_flush_reaccelerates]
+      horizon_bars:
+      - 12
+      - 24
+      invalidation:
+      - oi_flush_reaccelerates
     labels:
       primary: contrarian_signed_return_h
-      secondary: [mfe_h, mae_h]
+      secondary:
+      - mfe_h
+      - mae_h
       success_condition: contrarian_signed_return_h_after_cost_gt_threshold
     risk:
       sizing_profile: reduced_after_flush
@@ -1841,15 +1936,25 @@ operators:
     - mae_h
     template_kind: expression_template
     entry:
-      trigger_delay_bars: [1, 2]
-      required_confirmations: [price_down_oi_down, selling_pressure_cools]
-      forbidden_states: [cascade_reacceleration]
+      trigger_delay_bars:
+      - 1
+      - 2
+      required_confirmations:
+      - price_down_oi_down
+      - selling_pressure_cools
+      forbidden_states:
+      - cascade_reacceleration
     exit:
-      horizon_bars: [12, 24]
-      invalidation: [new_low_with_oi_expansion]
+      horizon_bars:
+      - 12
+      - 24
+      invalidation:
+      - new_low_with_oi_expansion
     labels:
       primary: contrarian_signed_return_h
-      secondary: [mfe_h, mae_h]
+      secondary:
+      - mfe_h
+      - mae_h
       success_condition: rebound_after_long_flush_after_cost
     risk:
       sizing_profile: reduced_after_flush
@@ -1900,15 +2005,29 @@ operators:
     - mae_h
     template_kind: expression_template
     entry:
-      trigger_delay_bars: [1, 2]
-      required_confirmations: [trend_confirmation, oi_expansion]
-      forbidden_states: [forced_flow_reacceleration, liquidity_blocked]
+      trigger_delay_bars:
+      - 1
+      - 2
+      required_confirmations:
+      - trend_confirmation
+      - oi_expansion
+      forbidden_states:
+      - forced_flow_reacceleration
+      - liquidity_blocked
     exit:
-      horizon_bars: [12, 24, 48]
-      invalidation: [trend_break, oi_flush]
+      horizon_bars:
+      - 12
+      - 24
+      - 48
+      invalidation:
+      - trend_break
+      - oi_flush
     labels:
       primary: signed_return_h
-      secondary: [mfe_h, mae_h, path_acceleration_h]
+      secondary:
+      - mfe_h
+      - mae_h
+      - path_acceleration_h
       success_condition: signed_return_h_after_cost_gt_threshold
     risk:
       sizing_profile: normal_if_liquid
@@ -1952,15 +2071,24 @@ operators:
     - hedged_basis_pnl_h
     template_kind: expression_template
     entry:
-      trigger_delay_bars: [1, 2]
-      required_confirmations: [basis_or_funding_dislocation_active]
-      forbidden_states: [execution_blocked]
+      trigger_delay_bars:
+      - 1
+      - 2
+      required_confirmations:
+      - basis_or_funding_dislocation_active
+      forbidden_states:
+      - execution_blocked
     exit:
-      horizon_bars: [12, 24, 48]
-      invalidation: [basis_widens_after_entry]
+      horizon_bars:
+      - 12
+      - 24
+      - 48
+      invalidation:
+      - basis_widens_after_entry
     labels:
       primary: basis_zscore_delta_h
-      secondary: [hedged_basis_pnl_h]
+      secondary:
+      - hedged_basis_pnl_h
       success_condition: basis_zscore_moves_toward_zero
     risk:
       sizing_profile: hedged_reduced
@@ -2001,15 +2129,25 @@ operators:
     - return_skew_h
     template_kind: expression_template
     entry:
-      trigger_delay_bars: [1]
-      required_confirmations: [squeeze_direction_confirmed, liquidity_not_blocked]
-      forbidden_states: [spread_blowout]
+      trigger_delay_bars:
+      - 1
+      required_confirmations:
+      - squeeze_direction_confirmed
+      - liquidity_not_blocked
+      forbidden_states:
+      - spread_blowout
     exit:
-      horizon_bars: [6, 12, 24]
-      invalidation: [squeeze_failed_reversal]
+      horizon_bars:
+      - 6
+      - 12
+      - 24
+      invalidation:
+      - squeeze_failed_reversal
     labels:
       primary: path_acceleration_h
-      secondary: [mfe_h, return_skew_h]
+      secondary:
+      - mfe_h
+      - return_skew_h
       success_condition: path_acceleration_h_after_cost_gt_threshold
     risk:
       sizing_profile: reduced_convex
@@ -2048,15 +2186,24 @@ operators:
     - hedged_basis_pnl_h
     template_kind: expression_template
     entry:
-      trigger_delay_bars: [1, 2]
-      required_confirmations: [basis_dislocation_active]
-      forbidden_states: [execution_blocked]
+      trigger_delay_bars:
+      - 1
+      - 2
+      required_confirmations:
+      - basis_dislocation_active
+      forbidden_states:
+      - execution_blocked
     exit:
-      horizon_bars: [12, 24, 48]
-      invalidation: [basis_widens_after_entry]
+      horizon_bars:
+      - 12
+      - 24
+      - 48
+      invalidation:
+      - basis_widens_after_entry
     labels:
       primary: basis_zscore_delta_h
-      secondary: [hedged_basis_pnl_h]
+      secondary:
+      - hedged_basis_pnl_h
       success_condition: basis_zscore_moves_toward_zero
     risk:
       sizing_profile: hedged_reduced
@@ -2585,6 +2732,16 @@ operators:
     feature: rv_96
     operator: '>'
     threshold: 0.0
+  cascade_continuation_until_cooldown:
+    enabled: true
+    template_kind: expression_template
+    contract_status: concrete_template
+    side_policy: directional
+    label_target: fwd_return_h
+    test_spec: mean_gt_0
+    compatible_families:
+    - FORCED_FLOW_AND_EXHAUSTION
+    - POSITIONING_EXTREMES
 expression_templates:
   basis_repair:
     feature: basis_zscore

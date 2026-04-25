@@ -1,9 +1,18 @@
 from __future__ import annotations
 
 from typing import Any, List, Mapping, Tuple
+from pathlib import Path
+import yaml
 
-from project.spec_registry.loaders import load_yaml_relative
+def _mapping(value: Any) -> Mapping[str, Any]:
+    return value if isinstance(value, Mapping) else {}
 
+def _load_yaml_at(root: Path, relative_path: str) -> dict[str, Any]:
+    path = root / relative_path
+    if not path.exists():
+        return {}
+    with open(path, "r", encoding="utf-8") as f:
+        return yaml.safe_load(f) or {}
 
 _EXPECTED_FUNDING_VARIANTS = {
     "FUNDING_POS_EXTREME_ONSET",
@@ -23,13 +32,8 @@ _EXPECTED_OI_QUADRANTS = {
     "PRICE_DOWN_OI_DOWN": "price_down_oi_down",
 }
 
-
-def _mapping(value: Any) -> Mapping[str, Any]:
-    return value if isinstance(value, Mapping) else {}
-
-
-def validate_event_directionality_contracts() -> List[Tuple[str, str]]:
-    contract = load_yaml_relative("spec/events/event_directionality_contract.yaml")
+def validate_event_directionality_contracts(root: Path = Path(".")) -> List[Tuple[str, str]]:
+    contract = _load_yaml_at(root, "spec/events/event_directionality_contract.yaml")
     funding_variants = _mapping(contract.get("funding_phase_events"))
     quadrant_events = _mapping(contract.get("quadrant_events"))
     legacy_mappings = _mapping(contract.get("legacy_event_mappings"))
@@ -55,7 +59,7 @@ def validate_event_directionality_contracts() -> List[Tuple[str, str]]:
 
     for event_type, row in sorted(funding_variants.items()):
         event = str(event_type).strip().upper()
-        spec = load_yaml_relative(f"spec/events/{event}.yaml")
+        spec = _load_yaml_at(root, f"spec/events/{event}.yaml")
         expected_phase = str(_mapping(row).get("funding_phase", "")).strip()
         context_phase = str(_mapping(spec.get("context_requirements")).get("funding_phase", "")).strip()
         source = str(_mapping(row).get("source_event_type", "")).strip().upper()
@@ -74,7 +78,7 @@ def validate_event_directionality_contracts() -> List[Tuple[str, str]]:
             errors.append((f"spec/events/{event}.yaml", "semantic funding variants must use research_placeholder layer"))
 
     for event_type, expected_context in sorted(_EXPECTED_OI_QUADRANTS.items()):
-        spec = load_yaml_relative(f"spec/events/{event_type}.yaml")
+        spec = _load_yaml_at(root, f"spec/events/{event_type}.yaml")
         context_value = str(
             _mapping(spec.get("context_requirements")).get("price_oi_quadrant", "")
         ).strip()

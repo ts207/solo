@@ -1,38 +1,78 @@
 version: edge_cells_v2
 event_atoms:
-  - id: zscore_stretch_repair
-    event_family: statistical_stretch
-    event_type: ZSCORE_STRETCH
-    directions: [long, short]
-    templates: [mean_reversion, overshoot_repair, tail_risk_avoid]
-    horizons: [12b, 24b, 48b]
-    required_feature_keys: [close]
-    thesis_eligible: false
-    research_only: false
-  - id: band_break_repair
-    event_family: statistical_stretch
-    event_type: BAND_BREAK
-    directions: [long, short]
-    templates: [mean_reversion, overshoot_repair, tail_risk_avoid]
-    horizons: [12b, 24b, 48b]
-    required_feature_keys: [close]
-    thesis_eligible: false
-    research_only: false
-  - id: overshoot_after_shock_repair
-    event_family: statistical_stretch
-    event_type: OVERSHOOT_AFTER_SHOCK
-    directions: [long, short]
-    templates: [mean_reversion, overshoot_repair, tail_risk_avoid]
-    horizons: [12b, 24b, 48b]
-    required_feature_keys: [close]
-    thesis_eligible: false
-    research_only: false
-  - id: gap_overshoot_repair
-    event_family: statistical_stretch
-    event_type: GAP_OVERSHOOT
-    directions: [long, short]
-    templates: [mean_reversion, overshoot_repair, tail_risk_avoid]
-    horizons: [12b, 24b, 48b]
-    required_feature_keys: [close]
-    thesis_eligible: false
-    research_only: false
+- id: zscore_stretch_repair
+  event_family: statistical_stretch
+  event_type: ZSCORE_STRETCH
+  directions:
+  - long
+  - short
+  templates:
+  - mean_reversion
+  - overshoot_repair
+  - tail_risk_avoid
+  horizons:
+  - 12b
+  - 24b
+  - 48b
+  required_feature_keys:
+  - close
+  search_role: diagnostic
+  promotion_role: ineligible
+  runtime_role: observer
+- id: band_break_repair
+  event_family: statistical_stretch
+  event_type: BAND_BREAK
+  directions:
+  - long
+  - short
+  templates:
+  - mean_reversion
+  - overshoot_repair
+  - tail_risk_avoid
+  horizons:
+  - 12b
+  - 24b
+  - 48b
+  required_feature_keys:
+  - close
+  search_role: diagnostic
+  promotion_role: ineligible
+  runtime_role: observer
+- id: overshoot_after_shock_repair
+  event_family: statistical_stretch
+  event_type: OVERSHOOT_AFTER_SHOCK
+  directions:
+  - long
+  - short
+  templates:
+  - mean_reversion
+  - overshoot_repair
+  - tail_risk_avoid
+  horizons:
+  - 12b
+  - 24b
+  - 48b
+  required_feature_keys:
+  - close
+  search_role: diagnostic
+  promotion_role: ineligible
+  runtime_role: observer
+- id: gap_overshoot_repair
+  event_family: statistical_stretch
+  event_type: GAP_OVERSHOOT
+  directions:
+  - long
+  - short
+  templates:
+  - mean_reversion
+  - overshoot_repair
+  - tail_risk_avoid
+  horizons:
+  - 12b
+  - 24b
+  - 48b
+  required_feature_keys:
+  - close
+  search_role: diagnostic
+  promotion_role: ineligible
+  runtime_role: observer

@@ -63,3 +63,7 @@ context_cells:
   required_feature_key: price_down_oi_down
   executability_class: runtime
   max_conjunction_depth: 1
+- id: forced_flow_refill
+  dimension: forced_flow_phase
+  values:
+  - refill

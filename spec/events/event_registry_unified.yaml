@@ -50,6 +50,9 @@ families:
   BASIS_FUNDING_DISLOCATION:
     parameters: {}
     templates:
+    - mean_reversion
+    - continuation
+    - reversal_or_squeeze
     - carry_unwind_reversal
     - carry_continuation_confirmed
     - basis_funding_convergence
@@ -79,6 +82,8 @@ families:
     - only_if_trend
     - only_if_regime
     - drawdown_filter
+    - mean_reversion
+    - exhaustion_reversal
   INFORMATION_DESYNC:
     parameters: {}
     templates:
@@ -605,9 +610,14 @@ events:
       cooldown_bars: 12
       min_basis_bps: 10.0
     templates:
+    - reversal_or_squeeze
+    - continuation
+    - mean_reversion
     - basis_convergence
     - basis_repair
     - basis_funding_convergence
+    - overshoot_repair
+    - tail_risk_avoid
     horizons:
     - 15m
     - 60m
@@ -1519,6 +1529,7 @@ events:
     - overshoot_repair
     - only_if_liquidity
     - slippage_aware_filter
+    - mean_reversion
     horizons:
     - 15m
     max_candidates_per_run: 600
@@ -1993,9 +2004,14 @@ events:
       cooldown_bars: 12
       min_basis_bps: 5.0
     templates:
+    - reversal_or_squeeze
+    - continuation
+    - mean_reversion
     - basis_funding_convergence
     - basis_convergence
     - basis_repair
+    - overshoot_repair
+    - tail_risk_avoid
     horizons:
     - 15m
     - 60m
@@ -3645,6 +3661,12 @@ events:
     - only_if_funding
     - only_if_oi
     - tail_risk_avoid
+    - mean_reversion
+    - exhaustion_reversal
+    - continuation
+    - momentum_fade
+    - range_reversion
+    - reversal_or_squeeze
     horizons:
     - 5m
     - 15m
@@ -3938,6 +3960,10 @@ events:
     - momentum_fade
     - only_if_trend
     - drawdown_filter
+    - mean_reversion
+    - exhaustion_reversal
+    - continuation
+    - range_reversion
     horizons:
     - 60m
     max_candidates_per_run: 400
@@ -4714,6 +4740,8 @@ events:
     - only_if_funding
     - only_if_oi
     - tail_risk_avoid
+    - continuation
+    - mean_reversion
     horizons:
     - 5m
     - 60m
@@ -4789,6 +4817,9 @@ events:
     - only_if_funding
     - only_if_oi
     - tail_risk_avoid
+    - convexity_capture
+    - continuation
+    - mean_reversion
     horizons:
     - 60m
     max_candidates_per_run: 250
@@ -5043,6 +5074,7 @@ events:
     - range_reversion
     - only_if_trend
     - drawdown_filter
+    - continuation
     horizons:
     - 60m
     max_candidates_per_run: 400
@@ -6475,6 +6507,7 @@ events:
     - overshoot_repair
     - only_if_liquidity
     - slippage_aware_filter
+    - mean_reversion
     horizons:
     - 15m
     max_candidates_per_run: 600
@@ -6958,6 +6991,7 @@ events:
     - range_reversion
     - only_if_trend
     - drawdown_filter
+    - continuation
     horizons:
     - 60m
     max_candidates_per_run: 500

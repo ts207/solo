@@ -16,8 +16,6 @@ class EventAtom:
     templates: tuple[str, ...]
     horizons: tuple[str, ...]
     required_feature_keys: tuple[str, ...] = ()
-    thesis_eligible: bool = True
-    research_only: bool = False
     search_role: str = ""
     promotion_role: str = ""
     runtime_role: str = ""

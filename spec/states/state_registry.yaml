@@ -46,9 +46,9 @@ context_dimensions:
     allowed_values:
     - trend
     - chop
-    mapping:
-      trend: TREND_ACTIVE
-      chop: CHOP_ACTIVE
+    - bullish
+    - bearish
+    mapping: {}
   trend_structure:
     allowed_values:
     - trend
@@ -798,28 +798,6 @@ states:
   min_events: 1
   activation_rule: open interest in elevated or compressed regime
   decay_rule: open interest normalizes
-  allowed_templates:
-  - continuation
-- version: 1
-  kind: state_definition
-  state_id: MS_SPREAD_STATE
-  family: MICROSTRUCTURE_CONTEXT
-  source_event_type: LIQUIDITY_STRESS_DIRECT
-  state_scope: source_only
-  min_events: 1
-  activation_rule: spread context is elevated or compressed
-  decay_rule: spread normalizes
-  allowed_templates:
-  - continuation
-- version: 1
-  kind: state_definition
-  state_id: MS_TREND_STATE
-  family: MICROSTRUCTURE_CONTEXT
-  source_event_type: TREND_ACCELERATION
-  state_scope: source_only
-  min_events: 1
-  activation_rule: trend context is active or choppy
-  decay_rule: trend context normalizes
   allowed_templates:
   - continuation
 - version: 1

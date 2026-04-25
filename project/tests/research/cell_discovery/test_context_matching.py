@@ -18,11 +18,14 @@ def _write_minimal_discovery_spec(base: Path, *, context_values: list[str]) -> N
                 "event_atoms": [
                     {
                         "id": "vol_shock_core",
-                        "event_family": "volatility",
-                        "event_type": "VOL_SHOCK",
+                        "event_family": "FORCED_FLOW_AND_EXHAUSTION",
+                        "event_type": "LIQUIDATION_CASCADE",
                         "directions": ["long"],
                         "templates": ["continuation"],
                         "horizons": ["12b"],
+                        "search_role": "primary_trigger",
+                        "promotion_role": "eligible",
+                        "runtime_role": "trade_trigger",
                     }
                 ]
             }
@@ -105,9 +108,9 @@ def test_context_state_mask_uses_required_feature_key_when_dimension_column_miss
 
 
 def test_load_registry_rejects_context_values_outside_authoritative_registry(tmp_path: Path) -> None:
-    _write_minimal_discovery_spec(tmp_path, context_values=["trend"])
+    _write_minimal_discovery_spec(tmp_path, context_values=["invalid_trend"])
 
-    with pytest.raises(ValueError, match="invalid values for ms_trend_state: trend"):
+    with pytest.raises(ValueError, match="Context cell trend_probe has invalid values for ms_trend_state: invalid_trend"):
         load_registry(tmp_path)
 
 

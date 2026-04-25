@@ -1,3 +1,4 @@
+from pathlib import Path
 from typing import List, Optional, Tuple
 
 from project.domain.compiled_registry import get_domain_registry
@@ -8,11 +9,16 @@ from project.spec_validation.loaders import (
 )
 
 
-def validate_ontology() -> List[Tuple[str, str]]:
+def validate_ontology(root: Path = Path(".")) -> List[Tuple[str, str]]:
     errors = []
+    # Note: load_ontology_events and load_ontology_states use get_domain_registry()
+    # which currently depends on PROJECT_ROOT/REPO_ROOT. 
+    # For now we assume they are consistent with the root.
     events = load_ontology_events()
     states = load_ontology_states()
-    family_registry = load_family_registry()
+    
+    from project.spec_validation.loaders import load_yaml
+    family_registry = load_yaml(root / "spec" / "grammar" / "family_registry.yaml")
 
     event_fams = set((family_registry or {}).get("event_families", {}))
     state_fams = set((family_registry or {}).get("state_families", {}))

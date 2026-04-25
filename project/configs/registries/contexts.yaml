@@ -91,11 +91,6 @@ context_dimensions:
     - chop
     - bullish
     - bearish
-    mapping:
-      trend: TREND_ACTIVE
-      chop: CHOP_ACTIVE
-      bullish: TREND_ACTIVE
-      bearish: TREND_ACTIVE
   oi_phase:
     allowed_values:
     - neutral
@@ -150,3 +145,25 @@ context_dimensions:
     mapping:
       low: LOW_VOL_REGIME
       high: HIGH_VOL_REGIME
+legacy_context_aliases:
+  vol_regime.low:
+    maps_to:
+      vol_phase: compressed
+  vol_regime.high:
+    maps_to:
+      vol_phase: shock
+  carry_state.funding_pos:
+    maps_to:
+      funding_phase: positive_persistent
+  carry_state.funding_neg:
+    maps_to:
+      funding_phase: negative_persistent
+  liquidity_regime.low:
+    maps_to:
+      liquidity_phase: thin
+  liquidity_regime.refill:
+    maps_to:
+      liquidity_phase: refill
+  ms_spread_state.wide:
+    maps_to:
+      execution_friction: elevated

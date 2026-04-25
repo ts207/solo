@@ -1,50 +1,96 @@
 version: edge_cells_v2
 metadata:
   surface_role: guard_filter
-  notes: Guard and filter candidates; do not treat winners as direct alpha entries without later lifecycle validation.
+  notes: Guard and filter candidates; do not treat winners as direct alpha entries
+    without later lifecycle validation.
 event_atoms:
-  - id: spread_blowout_guard
-    event_family: guard_filter
-    event_type: SPREAD_BLOWOUT
-    directions: [long, short]
-    templates: [slippage_aware_filter, only_if_liquidity]
-    horizons: [12b, 24b, 48b]
-    required_feature_keys: [spread_zscore]
-    thesis_eligible: false
-    research_only: false
-  - id: spread_regime_widening_guard
-    event_family: guard_filter
-    event_type: SPREAD_REGIME_WIDENING_EVENT
-    directions: [long, short]
-    templates: [slippage_aware_filter, tail_risk_avoid]
-    horizons: [12b, 24b, 48b]
-    required_feature_keys: [spread_zscore]
-    thesis_eligible: false
-    research_only: false
-  - id: slippage_spike_guard
-    event_family: guard_filter
-    event_type: SLIPPAGE_SPIKE_EVENT
-    directions: [long, short]
-    templates: [slippage_aware_filter, tail_risk_avoid]
-    horizons: [12b, 24b, 48b]
-    required_feature_keys: [spread_zscore]
-    thesis_eligible: false
-    research_only: false
-  - id: session_open_guard
-    event_family: guard_filter
-    event_type: SESSION_OPEN_EVENT
-    directions: [long, short]
-    templates: [mean_reversion, continuation]
-    horizons: [12b, 24b, 48b]
-    required_feature_keys: [close]
-    thesis_eligible: false
-    research_only: false
-  - id: funding_timestamp_guard
-    event_family: guard_filter
-    event_type: FUNDING_TIMESTAMP_EVENT
-    directions: [long, short]
-    templates: [mean_reversion, continuation]
-    horizons: [12b, 24b, 48b]
-    required_feature_keys: [funding_rate_bps]
-    thesis_eligible: false
-    research_only: false
+- id: spread_blowout_guard
+  event_family: guard_filter
+  event_type: SPREAD_BLOWOUT
+  directions:
+  - long
+  - short
+  templates:
+  - slippage_aware_filter
+  - only_if_liquidity
+  horizons:
+  - 12b
+  - 24b
+  - 48b
+  required_feature_keys:
+  - spread_zscore
+  search_role: diagnostic
+  promotion_role: ineligible
+  runtime_role: observer
+- id: spread_regime_widening_guard
+  event_family: guard_filter
+  event_type: SPREAD_REGIME_WIDENING_EVENT
+  directions:
+  - long
+  - short
+  templates:
+  - slippage_aware_filter
+  - tail_risk_avoid
+  horizons:
+  - 12b
+  - 24b
+  - 48b
+  required_feature_keys:
+  - spread_zscore
+  search_role: diagnostic
+  promotion_role: ineligible
+  runtime_role: observer
+- id: slippage_spike_guard
+  event_family: guard_filter
+  event_type: SLIPPAGE_SPIKE_EVENT
+  directions:
+  - long
+  - short
+  templates:
+  - slippage_aware_filter
+  - tail_risk_avoid
+  horizons:
+  - 12b
+  - 24b
+  - 48b
+  required_feature_keys:
+  - spread_zscore
+  search_role: diagnostic
+  promotion_role: ineligible
+  runtime_role: observer
+- id: session_open_guard
+  event_family: guard_filter
+  event_type: SESSION_OPEN_EVENT
+  directions:
+  - long
+  - short
+  templates:
+  - mean_reversion
+  - continuation
+  horizons:
+  - 12b
+  - 24b
+  - 48b
+  required_feature_keys:
+  - close
+  search_role: context
+  promotion_role: ineligible
+  runtime_role: guard
+- id: funding_timestamp_guard
+  event_family: guard_filter
+  event_type: FUNDING_TIMESTAMP_EVENT
+  directions:
+  - long
+  - short
+  templates:
+  - mean_reversion
+  - continuation
+  horizons:
+  - 12b
+  - 24b
+  - 48b
+  required_feature_keys:
+  - funding_rate_bps
+  search_role: context
+  promotion_role: ineligible
+  runtime_role: guard

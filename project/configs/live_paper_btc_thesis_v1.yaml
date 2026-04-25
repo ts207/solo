@@ -19,10 +19,10 @@ execution_degradation_block_edge_bps: -8.0
 execution_degradation_throttle_scale: 0.5
 runtime_metrics_snapshot_path: artifacts/live_runtime_metrics_paper_btc_thesis.json
 strategy_runtime:
-  implemented: true
+  implemented: false
   thesis_run_id: productive_golden_path_20260416T041539Z_c7e116bafd
   include_pending_theses: false
-  auto_submit: true
+  auto_submit: false
   supported_event_families:
     - VOL_SHOCK
     - LIQUIDITY_VACUUM
@@ -79,3 +79,4 @@ runtime_alerts:
   ratio_min_total: 8
   trade_small_probe_ratio_baseline: 1.0
   trade_small_probe_ratio_tolerance_fraction: 0.5
+.5

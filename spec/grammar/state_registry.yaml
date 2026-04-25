@@ -65,6 +65,8 @@ regimes:
   ms_trend_state:
   - trend
   - chop
+  - bullish
+  - bearish
   oi_phase:
   - neutral
   - expansion
@@ -119,9 +121,6 @@ context_state_map:
   ms_spread_state:
     tight: spread_tight
     wide: spread_wide
-  ms_trend_state:
-    trend: trend_active
-    chop: chop_active
   trend_structure:
     trend: trending_state
     chop: chop_state

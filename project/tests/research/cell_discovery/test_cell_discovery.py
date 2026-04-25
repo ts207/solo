@@ -142,6 +142,9 @@ def test_compiler_lineage_is_atom_specific_for_mixed_authored_surface(tmp_path: 
                 directions=("long",),
                 templates=("mean_reversion",),
                 horizons=("12b",),
+                search_role="context",
+                promotion_role="ineligible",
+                runtime_role="observer",
             ),
             EventAtom(
                 atom_id="funding_short_cont",
@@ -150,6 +153,9 @@ def test_compiler_lineage_is_atom_specific_for_mixed_authored_surface(tmp_path: 
                 directions=("short",),
                 templates=("continuation",),
                 horizons=("24b",),
+                search_role="primary_trigger",
+                promotion_role="eligible",
+                runtime_role="trade_trigger",
             ),
         ),
         context_cells=(),
@@ -547,7 +553,7 @@ def test_scoreboard_rejects_too_little_forward_support(tmp_path: Path) -> None:
                     "robustness_score": 0.9,
                     "fold_valid_count": 3.0,
                     "fold_fail_ratio": 0.0,
-                    "forward_n": 20.0,
+                    "forward_n": 5.0,
                     "fold_median_after_cost_expectancy": 40.0,
                     "fold_median_t_stat": 3.0,
                 },
@@ -589,7 +595,7 @@ def test_scoreboard_rejects_too_little_forward_support(tmp_path: Path) -> None:
     rejected = scoreboard[scoreboard["context_cell"] == "bullish_trend"].iloc[0]
 
     assert rejected["status"] == "rejected_insufficient_forward_support"
-    assert float(rejected["forward_n"]) == 20.0
+    assert float(rejected["forward_n"]) == 5.0
     assert float(rejected["rank_score"]) == 0.0
 
 

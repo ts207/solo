@@ -1,15 +1,15 @@
-workflow_id: live_paper_btc_thesis_v1
+workflow_id: live_paper_bybit_oi_spike_neg_v1
 golden_workflow_config: project/configs/golden_workflow.yaml
-runtime_run_id: live_paper_btc_thesis_v1
-runtime_mode: trading
+runtime_run_id: live_paper_bybit_oi_spike_neg_v1
+runtime_mode: monitor_only
 stale_threshold_sec: 60.0
 freshness_streams:
   - symbol: BTCUSDT
     stream: kline_5m
 oms_lineage:
   order_source: paper_oms
-  session_id: live-paper-btc-thesis-session
-live_state_snapshot_path: artifacts/live_state_paper_btc_thesis.json
+  session_id: live-paper-bybit-oi-spike-neg-session
+live_state_snapshot_path: artifacts/live_state_paper_bybit_oi_spike_neg.json
 microstructure_recovery_streak: 2
 account_sync_interval_seconds: 15.0
 account_sync_failure_threshold: 4
@@ -17,16 +17,14 @@ execution_degradation_min_samples: 4
 execution_degradation_warn_edge_bps: 0.0
 execution_degradation_block_edge_bps: -8.0
 execution_degradation_throttle_scale: 0.5
-runtime_metrics_snapshot_path: artifacts/live_runtime_metrics_paper_btc_thesis.json
+runtime_metrics_snapshot_path: artifacts/live_runtime_metrics_paper_bybit_oi_spike_neg.json
 strategy_runtime:
-  implemented: true
+  implemented: false
   thesis_run_id: campaign_pe_oi_spike_neg_20260416T092104Z_f6e6885923
   include_pending_theses: false
-  auto_submit: true
+  auto_submit: false
   supported_event_families:
-    - VOL_SHOCK
-    - LIQUIDITY_VACUUM
-    - LIQUIDATION_CASCADE
+    - OI_SPIKE_NEGATIVE
   allowed_actions:
     - probe
     - trade_small
@@ -51,7 +49,7 @@ strategy_runtime:
     min_risk_scale: 0.1
     kill_on_disable: false
   portfolio_candidate_batch_size: 5
-  memory_root: artifacts/live_memory/paper_btc_thesis
+  memory_root: artifacts/live_memory/paper_bybit_oi_spike_neg
   event_detector:
     vol_shock_min_abs_move_bps: 35.0
     liquidity_vacuum_min_spread_bps: 5.0
@@ -67,8 +65,8 @@ strategy_runtime:
     max_contradiction_penalty: 0.4
 
 runtime_alerts:
-  metrics_path: artifacts/live_runtime_metrics_paper_btc_thesis.json
-  alert_log_path: artifacts/live_runtime_alerts_paper_btc_thesis.jsonl
+  metrics_path: artifacts/live_runtime_metrics_paper_bybit_oi_spike_neg.json
+  alert_log_path: artifacts/live_runtime_alerts_paper_bybit_oi_spike_neg.jsonl
   poll_interval_seconds: 15.0
   snapshot_max_age_seconds: 180.0
   decision_drought_seconds: 3600.0

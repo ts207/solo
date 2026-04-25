@@ -28,8 +28,8 @@ def test_local_trade_runtime_lint_matches_generated_governance() -> None:
 def test_local_governance_lint_detects_non_runtime_mismatch(monkeypatch) -> None:
     monkeypatch.setattr(
         governance_lint,
-        "build_detector_eligibility_matrix_rows",
-        lambda: [
+        "_load_json",
+        lambda _: [
             {
                 "event_name": "TEST_EVENT",
                 "runtime": False,
@@ -42,8 +42,8 @@ def test_local_governance_lint_detects_non_runtime_mismatch(monkeypatch) -> None
     )
     monkeypatch.setattr(
         governance_lint,
-        "load_active_event_contracts",
-        lambda: {
+        "_load_active_event_contracts",
+        lambda **_: {
             "TEST_EVENT": {
                 "raw": {
                     "governance": {

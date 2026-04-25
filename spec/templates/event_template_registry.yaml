@@ -117,6 +117,9 @@ families:
     - tail_risk_avoid
   BASIS_FUNDING_DISLOCATION:
     templates:
+    - mean_reversion
+    - continuation
+    - reversal_or_squeeze
     - carry_unwind_reversal
     - carry_continuation_confirmed
     - basis_funding_convergence
@@ -138,6 +141,10 @@ families:
     - only_if_trend
     - only_if_regime
     - drawdown_filter
+    - mean_reversion
+    - exhaustion_reversal
+    - momentum_fade
+    - range_reversion
   TREND_FAILURE_EXHAUSTION:
     templates:
     - mean_reversion
@@ -229,6 +236,7 @@ events:
     - overshoot_repair
     - only_if_liquidity
     - slippage_aware_filter
+    - mean_reversion
     horizons:
     - 15m
     max_candidates_per_run: 600
@@ -255,6 +263,7 @@ events:
     - overshoot_repair
     - only_if_liquidity
     - slippage_aware_filter
+    - mean_reversion
     horizons:
     - 15m
     max_candidates_per_run: 600
@@ -529,6 +538,9 @@ events:
     - only_if_funding
     - only_if_oi
     - tail_risk_avoid
+    - convexity_capture
+    - continuation
+    - mean_reversion
     horizons:
     - 60m
     max_candidates_per_run: 250
@@ -682,6 +694,8 @@ events:
     - only_if_funding
     - only_if_oi
     - tail_risk_avoid
+    - continuation
+    - mean_reversion
     horizons:
     - 5m
     - 60m
@@ -714,6 +728,12 @@ events:
     - only_if_funding
     - only_if_oi
     - tail_risk_avoid
+    - mean_reversion
+    - exhaustion_reversal
+    - continuation
+    - momentum_fade
+    - range_reversion
+    - reversal_or_squeeze
     horizons:
     - 5m
     - 15m
@@ -776,6 +796,7 @@ events:
     - range_reversion
     - only_if_trend
     - drawdown_filter
+    - continuation
     horizons:
     - 60m
     max_candidates_per_run: 500
@@ -844,6 +865,10 @@ events:
     - momentum_fade
     - only_if_trend
     - drawdown_filter
+    - mean_reversion
+    - exhaustion_reversal
+    - continuation
+    - range_reversion
     horizons:
     - 60m
     max_candidates_per_run: 400
@@ -857,6 +882,7 @@ events:
     - range_reversion
     - only_if_trend
     - drawdown_filter
+    - continuation
     horizons:
     - 60m
     max_candidates_per_run: 400
@@ -1004,9 +1030,14 @@ events:
   FND_DISLOC:
     research_family: BASIS_FUNDING_DISLOCATION
     templates:
+    - reversal_or_squeeze
+    - continuation
+    - mean_reversion
     - basis_funding_convergence
     - basis_convergence
     - basis_repair
+    - overshoot_repair
+    - tail_risk_avoid
     horizons:
     - 15m
     - 60m
@@ -1015,9 +1046,14 @@ events:
   BASIS_DISLOC:
     research_family: BASIS_FUNDING_DISLOCATION
     templates:
+    - reversal_or_squeeze
+    - continuation
+    - mean_reversion
     - basis_convergence
     - basis_repair
     - basis_funding_convergence
+    - overshoot_repair
+    - tail_risk_avoid
     horizons:
     - 15m
     - 60m
@@ -2783,6 +2819,16 @@ operators:
     feature: rv_96
     operator: '>'
     threshold: 0.0
+  cascade_continuation_until_cooldown:
+    enabled: true
+    template_kind: expression_template
+    contract_status: concrete_template
+    side_policy: directional
+    label_target: fwd_return_h
+    test_spec: mean_gt_0
+    compatible_families:
+    - FORCED_FLOW_AND_EXHAUSTION
+    - POSITIONING_EXTREMES
 expression_templates:
   basis_repair:
     feature: basis_zscore

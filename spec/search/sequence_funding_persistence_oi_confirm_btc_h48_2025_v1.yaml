@@ -2,31 +2,29 @@ version: 1
 kind: search_space
 metadata:
   phase: funding_continuation_forward_falsification
-  description: "Bounded BTCUSDT funding-persistence plus OI-confirmation forward check."
+  description: Bounded BTCUSDT funding-persistence plus OI-confirmation forward check.
   search_tier: sequence_confirmation
   default_symbols:
-    - BTCUSDT
+  - BTCUSDT
 triggers:
   events:
-    - FUNDING_PERSISTENCE_TRIGGER
-    - OI_SPIKE_POSITIVE
+  - FUNDING_PERSISTENCE_TRIGGER
+  - OI_SPIKE_POSITIVE
 horizons:
-  - 48b
+- 48b
 directions:
-  - long
+- long
 entry_lag: 1
 cost_profiles:
-  - standard
+- standard
 expression_templates:
-  - continuation
+- continuation
 filter_templates: []
 execution_templates: []
 include_sequences: true
 include_interactions: false
-
 discovery_search:
   mode: flat
-
   trigger_viability:
     enabled: true
     max_templates: 1
@@ -35,23 +33,22 @@ discovery_search:
     allow_both_directions: false
     top_k_triggers: null
     min_stage_score: 0.0
-
   template_refinement:
     enabled: false
     top_k_templates_per_trigger: 1
     min_stage_score: 0.0
-
   execution_refinement:
     enabled: false
     top_k_shapes_per_template: 1
     min_stage_score: 0.0
-
   context_refinement:
     enabled: false
     max_context_dims: 0
     top_k_contexts_per_candidate: 0
     require_unconditional_baseline: true
     min_context_gain: 0.0
-
 discovery_selection:
-  mode: "off"
+  mode: 'off'
+template_policy:
+  generic_templates_allowed: true
+  reason: legacy_disabled_research_surface

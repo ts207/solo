@@ -16,9 +16,10 @@ from project.spec_validation.ontology import validate_ontology
 from project.spec_validation.templates import validate_template_contracts, validate_event_template_matrix
 from project.spec_validation.contexts import validate_context_registry
 
-
 def run_all_validations(*, root: Path | str = ".", verbose: bool = False) -> int:
+    from project.spec_validation.discovery import validate_all_discovery_specs
     repo_root = Path(root).resolve()
+    
     search_dir = Path(SEARCH_DIR)
     if search_dir == Path(DEFAULT_SEARCH_DIR):
         search_dir = repo_root / "spec" / "search"
@@ -28,29 +29,32 @@ def run_all_validations(*, root: Path | str = ".", verbose: bool = False) -> int
         print(f"Spec validation root: {repo_root}")
 
     print("Running Ontology validation...")
-    all_errors.extend(validate_ontology())
+    all_errors.extend(validate_ontology(root=repo_root))
 
     print("Running Grammar validation...")
-    all_errors.extend(validate_grammar())
+    all_errors.extend(validate_grammar(root=repo_root))
 
     print("Running Governance validation...")
-    all_errors.extend(validate_governance_consistency())
+    all_errors.extend(validate_governance_consistency(root=repo_root))
 
     print("Running Event directionality validation...")
-    all_errors.extend(validate_event_directionality_contracts())
+    all_errors.extend(validate_event_directionality_contracts(root=repo_root))
 
     print("Running Template contract validation...")
-    all_errors.extend(validate_template_contracts())
-    all_errors.extend(validate_event_template_matrix())
+    all_errors.extend(validate_template_contracts(root=repo_root))
+    all_errors.extend(validate_event_template_matrix(root=repo_root))
 
     print("Running Context validation...")
-    all_errors.extend(validate_context_registry())
+    all_errors.extend(validate_context_registry(root=repo_root))
+
+    print("Running Discovery spec validation...")
+    all_errors.extend(validate_all_discovery_specs(root=repo_root / "spec" / "discovery"))
 
     print("Running Search spec validation...")
     for p in sorted(search_dir.glob("*.yaml")):
         print(f"  Checking {p.name}...")
         try:
-            doc = load_search_spec(str(p))
+            doc = load_search_spec(str(p), repo_root=repo_root)
             if not doc:
                 all_errors.append((str(p), "empty or unreadable search spec"))
         except Exception as exc:

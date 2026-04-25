@@ -9,7 +9,7 @@ def test_cell_coverage_audit_reports_authored_tier2_surfaces() -> None:
     payload = build_cell_coverage_audit()
 
     assert payload["status"] == "ok"
-    assert payload["registry_event_count"] == 71
+    assert payload["registry_event_count"] == 83
     assert payload["default_search_event_count"] == 60
     assert payload["cell_event_count"] == 60
     assert payload["cell_coverage_fraction_of_default_search"] == 1.0

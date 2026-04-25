@@ -159,3 +159,29 @@ context_gate:
   require_unconditional_not_opposite: false
   max_context_dims_discovery: 2
   max_context_dims_bridge: 1
+
+legacy_context_aliases:
+  vol_regime.low:
+    maps_to:
+      vol_phase: compressed
+  vol_regime.high:
+    maps_to:
+      vol_phase: shock
+
+  carry_state.funding_pos:
+    maps_to:
+      funding_phase: positive_persistent
+  carry_state.funding_neg:
+    maps_to:
+      funding_phase: negative_persistent
+
+  liquidity_regime.low:
+    maps_to:
+      liquidity_phase: thin
+  liquidity_regime.refill:
+    maps_to:
+      liquidity_phase: refill
+
+  ms_spread_state.wide:
+    maps_to:
+      execution_friction: elevated

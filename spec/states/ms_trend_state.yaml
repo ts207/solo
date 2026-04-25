@@ -3,8 +3,8 @@ kind: state_context_dimension
 state_name: ms_trend_state
 source_feature: ms_trend_state
 allowed_values:
-  - trend
-  - chop
-mapping:
-  trend: TREND_ACTIVE
-  chop: CHOP_ACTIVE
+- trend
+- chop
+- bullish
+- bearish
+mapping: {}

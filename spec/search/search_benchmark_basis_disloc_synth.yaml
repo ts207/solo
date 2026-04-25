@@ -21,3 +21,6 @@ cost_profiles:
 - standard
 expression_templates:
 - mean_reversion
+template_policy:
+  generic_templates_allowed: true
+  reason: legacy_disabled_research_surface

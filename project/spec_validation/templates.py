@@ -1,9 +1,14 @@
 from __future__ import annotations
 
-from typing import Any, List, Mapping, Tuple
+import json
+from pathlib import Path
+from typing import Any, List, Mapping, Tuple, Dict
+import yaml
 
-from project.spec_registry.loaders import load_template_registry, load_yaml_relative
+from project.spec_validation.loaders import load_template_registry, load_template_registry as load_canonical_registry, load_yaml
 
+def load_yaml_relative(relative_path: str, root: Path = Path(".")) -> Dict[str, Any]:
+    return load_yaml(root / relative_path)
 
 def _has_path(row: Mapping[str, Any], path: str) -> bool:
     current: Any = row
@@ -13,20 +18,23 @@ def _has_path(row: Mapping[str, Any], path: str) -> bool:
         current = current[part]
     return current not in (None, "", [], {})
 
-
-def validate_template_contracts() -> List[Tuple[str, str]]:
-    registry = load_template_registry()
+def validate_template_contracts(root: Path = Path(".")) -> List[Tuple[str, str]]:
+    registry = load_template_registry(root=root)
     operators = registry.get("operators", {}) if isinstance(registry, dict) else {}
     if not isinstance(operators, dict):
         return [("spec/templates/registry.yaml", "operators must be a mapping")]
 
-    contract = load_yaml_relative("spec/templates/template_contract.yaml")
+    contract_path = "spec/templates/template_contract.yaml"
+    contract = load_yaml_relative(contract_path, root=root)
+    if not isinstance(contract, dict):
+        return [(contract_path, "Root must be a mapping")]
+
     required_fields = (
-        contract.get("required_expression_fields", []) if isinstance(contract, dict) else []
+        contract.get("required_expression_fields", [])
     )
     required_paths = [str(item).strip() for item in required_fields if str(item).strip()]
 
-    label_contracts = load_yaml_relative("spec/templates/template_label_contracts.yaml")
+    label_contracts = load_yaml_relative("spec/templates/template_label_contracts.yaml", root=root)
     concrete_templates = set()
     if isinstance(label_contracts, dict) and isinstance(label_contracts.get("template_labels"), dict):
         concrete_templates = {
@@ -36,7 +44,7 @@ def validate_template_contracts() -> List[Tuple[str, str]]:
         }
 
     abstract_templates = set()
-    replacements = contract.get("generic_template_replacements", {}) if isinstance(contract, dict) else {}
+    replacements = contract.get("generic_template_replacements", {})
     if isinstance(replacements, dict):
         abstract_templates = {str(item).strip() for item in replacements if str(item).strip()}
 
@@ -76,12 +84,11 @@ def validate_template_contracts() -> List[Tuple[str, str]]:
 
     return errors
 
-
-def validate_event_template_matrix() -> List[Tuple[str, str]]:
+def validate_event_template_matrix(root: Path = Path(".")) -> List[Tuple[str, str]]:
     errors: List[Tuple[str, str]] = []
     
     matrix_path = "spec/compatibility/event_template_matrix.yaml"
-    matrix_doc = load_yaml_relative(matrix_path)
+    matrix_doc = load_yaml_relative(matrix_path, root=root)
     if not isinstance(matrix_doc, dict):
         return [(matrix_path, "Root must be a mapping")]
         
@@ -89,11 +96,7 @@ def validate_event_template_matrix() -> List[Tuple[str, str]]:
     if not isinstance(matrix, dict):
         return [(matrix_path, "event_template_matrix must be a mapping")]
         
-    # We enforce that all runtime_default=True events (from generated eligibility matrix)
-    # MUST be defined in the event_template_matrix.
-    import json
-    from pathlib import Path
-    eligibility_path = Path("docs/generated/detector_eligibility_matrix.json")
+    eligibility_path = root / "docs/generated/detector_eligibility_matrix.json"
     if not eligibility_path.exists():
         return [("docs/generated/detector_eligibility_matrix.json", "Missing eligibility matrix")]
         
@@ -108,5 +111,40 @@ def validate_event_template_matrix() -> List[Tuple[str, str]]:
             event_name = row.get("event_name", "")
             if event_name not in matrix:
                 errors.append((matrix_path, f"Missing matrix coverage for runtime event: {event_name}"))
+
+    # Enforce that every template name in event_template_matrix exists in the template registry
+    registry = load_template_registry(root=root)
+    known_templates = set()
+    if isinstance(registry, dict):
+        known_templates.update(registry.get("operators", {}).keys())
+        known_templates.update(registry.get("filter_templates", {}).keys())
+        known_templates.update(registry.get("expression_templates", {}).keys())
+    
+    contract = load_yaml_relative("spec/templates/template_contract.yaml", root=root)
+    if isinstance(contract, dict):
+        replacements = contract.get("generic_template_replacements", {})
+        if isinstance(replacements, dict):
+            known_templates.update(replacements.keys())
+            
+    # Generic abstract templates are only allowed under status: forbidden in the matrix
+    abstract_templates = {
+        "mean_reversion", "continuation", "exhaustion_reversal", 
+        "reversal_or_squeeze", "convexity_capture", "trend_continuation",
+        "generic_continuation", "generic_mean_reversion", "unconditioned_mean_reversion"
+    }
+
+    for event_name, templates in matrix.items():
+        if not isinstance(templates, dict):
+            continue
+        for template_name, cfg in templates.items():
+            status = cfg.get("status") if isinstance(cfg, dict) else ""
+            
+            if template_name in abstract_templates:
+                if status != "forbidden":
+                     errors.append((matrix_path, f"Generic abstract template '{template_name}' must be marked as 'forbidden' in matrix under event '{event_name}'"))
+                continue
+
+            if template_name not in known_templates:
+                errors.append((matrix_path, f"Unknown template '{template_name}' referenced under event '{event_name}'"))
                 
     return errors
