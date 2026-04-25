@@ -64,7 +64,7 @@ def _evaluate_row(*args, **kwargs):
 
 def _eval_row(**overrides):
     row = {
-        "event_type": "VOL_SHOCK",
+        "event_type": "LIQUIDATION_CASCADE",
         "candidate_id": "cand_1",
         "plan_row_id": "p1",
         "q_value": 0.01,
@@ -95,7 +95,7 @@ def _eval_row(**overrides):
     return _evaluate_row(
         row=row,
         hypothesis_index={"p1": {"statuses": ["executed"], "executed": True}},
-        negative_control_summary={"by_event": {"VOL_SHOCK": {"pass_rate_after_bh": 0.0}}},
+        negative_control_summary={"by_event": {"LIQUIDATION_CASCADE": {"pass_rate_after_bh": 0.0}}},
         max_q_value=0.10,
         min_events=100,
         min_stability_score=0.05,
@@ -121,7 +121,7 @@ def test_promote_candidate_happy_path():
 
 def test_load_bridge_metrics_prefers_versioned_enriched_snapshot(tmp_path):
     bridge_root = tmp_path / "bridge_eval"
-    event_dir = bridge_root / "VOL_SHOCK"
+    event_dir = bridge_root / "LIQUIDATION_CASCADE"
     event_dir.mkdir(parents=True, exist_ok=True)
     (event_dir / "bridge_candidate_metrics.csv").write_text(
         "candidate_id,event_type,gate_bridge_tradable\nc1,VOL_SHOCK,0\n",
@@ -141,13 +141,13 @@ def test_load_bridge_metrics_prefers_versioned_enriched_snapshot(tmp_path):
 
 def test_load_bridge_metrics_reads_bridge_evaluation_parquet(tmp_path):
     bridge_root = tmp_path / "bridge_eval"
-    event_dir = bridge_root / "VOL_SHOCK"
+    event_dir = bridge_root / "LIQUIDATION_CASCADE"
     event_dir.mkdir(parents=True, exist_ok=True)
     pd.DataFrame(
         [
             {
                 "candidate_id": "c1",
-                "event_type": "VOL_SHOCK",
+                "event_type": "LIQUIDATION_CASCADE",
                 "gate_bridge_tradable": True,
                 "bridge_validation_after_cost_bps": 9.5,
             }
@@ -162,18 +162,18 @@ def test_load_bridge_metrics_reads_bridge_evaluation_parquet(tmp_path):
 
 def test_load_bridge_metrics_prefers_canonical_parquet_over_stale_versioned_csv(tmp_path):
     bridge_root = tmp_path / "bridge_eval"
-    event_dir = bridge_root / "VOL_SHOCK"
+    event_dir = bridge_root / "LIQUIDATION_CASCADE"
     event_dir.mkdir(parents=True, exist_ok=True)
     (event_dir / "phase2_candidates_bridge_eval_v1.csv").write_text(
         "candidate_id,event_type,gate_bridge_tradable,bridge_validation_after_cost_bps\n"
-        "c1,VOL_SHOCK,0,-3.0\n",
+        "c1,LIQUIDATION_CASCADE,0,-3.0\n",
         encoding="utf-8",
     )
     pd.DataFrame(
         [
             {
                 "candidate_id": "c1",
-                "event_type": "VOL_SHOCK",
+                "event_type": "LIQUIDATION_CASCADE",
                 "gate_bridge_tradable": True,
                 "bridge_validation_after_cost_bps": 9.5,
             }
@@ -192,7 +192,7 @@ def test_merge_bridge_metrics_overrides_phase2_bridge_fields():
         [
             {
                 "candidate_id": "c1",
-                "event_type": "VOL_SHOCK",
+                "event_type": "LIQUIDATION_CASCADE",
                 "gate_bridge_tradable": False,
             }
         ]
@@ -201,7 +201,7 @@ def test_merge_bridge_metrics_overrides_phase2_bridge_fields():
         [
             {
                 "candidate_id": "c1",
-                "event_type": "VOL_SHOCK",
+                "event_type": "LIQUIDATION_CASCADE",
                 "gate_bridge_tradable": True,
                 "bridge_validation_after_cost_bps": 7.0,
             }
@@ -219,8 +219,8 @@ def test_stabilize_promoted_output_schema_keeps_contract_columns_when_empty():
                 "candidate_id": "cand_1",
                 "run_id": "r1",
                 "symbol": "BTCUSDT",
-                "event": "VOL_SHOCK",
-                "event_type": "VOL_SHOCK",
+                "event": "LIQUIDATION_CASCADE",
+                "event_type": "LIQUIDATION_CASCADE",
                 "promotion_decision": "rejected",
                 "promotion_tier": "research",
                 "selection_score": 0.1,
@@ -256,11 +256,11 @@ def test_load_dynamic_min_events_by_event_uses_source_event_and_max_threshold(tm
             "states:\n"
             "  - state_id: A\n"
             "    family: VOLATILITY_TRANSITION\n"
-            "    source_event_type: VOL_SHOCK\n"
+            "    source_event_type: LIQUIDATION_CASCADE\n"
             "    min_events: 250\n"
             "  - state_id: B\n"
-            "    family: VOLATILITY_TRANSITION\n"
-            "    source_event_type: VOL_SHOCK\n"
+            "    family: FORCED_FLOW_AND_EXHAUSTION\n"
+            "    source_event_type: LIQUIDATION_CASCADE\n"
             "    min_events: 300\n"
             "  - state_id: C\n"
             "    family: LIQUIDITY_DISLOCATION\n"
@@ -270,7 +270,7 @@ def test_load_dynamic_min_events_by_event_uses_source_event_and_max_threshold(tm
     )
 
     out = _load_dynamic_min_events_by_event(tmp_path)
-    assert out["VOL_SHOCK"] == 300
+    assert out["LIQUIDATION_CASCADE"] == 300
     assert out["LIQUIDITY_VACUUM"] == 200
 
 
@@ -303,7 +303,7 @@ def test_promote_candidate_rejects_cost_and_controls():
 def test_promote_candidate_research_profile_softens_baseline_placebo_and_timeframe():
     common = {
         "row": {
-            "event_type": "BASIS_DISLOCATION",
+            "event_type": "LIQUIDATION_CASCADE",
             "candidate_id": "cand_research",
             "plan_row_id": "p1",
             "q_value": 0.01,
@@ -335,7 +335,7 @@ def test_promote_candidate_research_profile_softens_baseline_placebo_and_timefra
         },
         "hypothesis_index": {"p1": {"statuses": ["executed"], "executed": True}},
         "negative_control_summary": {
-            "by_event": {"BASIS_DISLOCATION": {"pass_rate_after_bh": 0.0}}
+            "by_event": {"LIQUIDATION_CASCADE": {"pass_rate_after_bh": 0.0}}
         },
         "max_q_value": 0.10,
         "min_events": 50,
@@ -374,7 +374,7 @@ def test_promote_candidate_research_profile_softens_baseline_placebo_and_timefra
 def test_promote_candidate_rejects_missing_hypothesis_audit():
     out = _evaluate_row(
         row={
-            "event_type": "VOL_SHOCK",
+            "event_type": "LIQUIDATION_CASCADE",
             "candidate_id": "cand_2",
             "plan_row_id": "missing",
             "q_value": 0.01,
@@ -407,7 +407,7 @@ def test_promote_candidate_rejects_missing_hypothesis_audit():
 def test_promote_candidate_rejects_retail_viability_when_required():
     out = _evaluate_row(
         row={
-            "event_type": "VOL_SHOCK",
+            "event_type": "LIQUIDATION_CASCADE",
             "candidate_id": "cand_retail",
             "plan_row_id": "p1",
             "q_value": 0.01,
@@ -429,7 +429,7 @@ def test_promote_candidate_rejects_retail_viability_when_required():
             "tob_coverage": 0.9,
         },
         hypothesis_index={"p1": {"statuses": ["executed"], "executed": True}},
-        negative_control_summary={"by_event": {"VOL_SHOCK": {"pass_rate_after_bh": 0.0}}},
+        negative_control_summary={"by_event": {"LIQUIDATION_CASCADE": {"pass_rate_after_bh": 0.0}}},
         max_q_value=0.10,
         min_events=100,
         min_stability_score=0.05,
@@ -454,7 +454,7 @@ def test_promote_candidate_rejects_retail_viability_when_required():
 def test_promote_candidate_rejects_low_capital_viability_when_required():
     out = _evaluate_row(
         row={
-            "event_type": "VOL_SHOCK",
+            "event_type": "LIQUIDATION_CASCADE",
             "candidate_id": "cand_low_cap",
             "plan_row_id": "p1",
             "q_value": 0.01,
@@ -476,7 +476,7 @@ def test_promote_candidate_rejects_low_capital_viability_when_required():
             "tob_coverage": 0.9,
         },
         hypothesis_index={"p1": {"statuses": ["executed"], "executed": True}},
-        negative_control_summary={"by_event": {"VOL_SHOCK": {"pass_rate_after_bh": 0.0}}},
+        negative_control_summary={"by_event": {"LIQUIDATION_CASCADE": {"pass_rate_after_bh": 0.0}}},
         max_q_value=0.10,
         min_events=100,
         min_stability_score=0.05,
@@ -498,13 +498,13 @@ def test_negative_control_diagnostics_reports_event_coverage():
     audit_df = pd.DataFrame(
         [
             {
-                "event_type": "VOL_SHOCK",
+                "event_type": "LIQUIDATION_CASCADE",
                 "promotion_decision": "promoted",
                 "control_pass_rate": 0.001,
                 "control_rate_source": "summary.by_event.VOL_SHOCK.pass_rate_after_bh",
             },
             {
-                "event_type": "VOL_SHOCK",
+                "event_type": "LIQUIDATION_CASCADE",
                 "promotion_decision": "rejected",
                 "control_pass_rate": None,
                 "control_rate_source": "missing",
@@ -521,7 +521,7 @@ def test_negative_control_diagnostics_reports_event_coverage():
         audit_df=audit_df,
         negative_control_summary={
             "global": {"pass_rate_after_bh": 0.01},
-            "by_event": {"VOL_SHOCK": {"pass_rate_after_bh": 0.001}},
+            "by_event": {"LIQUIDATION_CASCADE": {"pass_rate_after_bh": 0.001}},
         },
         max_negative_control_pass_rate=0.01,
         allow_missing_negative_controls=False,
@@ -529,8 +529,8 @@ def test_negative_control_diagnostics_reports_event_coverage():
 
     assert diagnostics["audit"]["candidates_total"] == 3
     assert diagnostics["audit"]["control_rate_missing_count"] == 1
-    assert diagnostics["by_event"]["VOL_SHOCK"]["candidate_count"] == 2
-    assert diagnostics["by_event"]["VOL_SHOCK"]["promoted_count"] == 1
+    assert diagnostics["by_event"]["LIQUIDATION_CASCADE"]["candidate_count"] == 2
+    assert diagnostics["by_event"]["LIQUIDATION_CASCADE"]["promoted_count"] == 1
 
 
 def test_build_promotion_statistical_audit_populates_primary_fail_gate_and_trace():
@@ -538,7 +538,7 @@ def test_build_promotion_statistical_audit_populates_primary_fail_gate_and_trace
         [
             {
                 "candidate_id": "cand_promoted",
-                "event_type": "VOL_SHOCK",
+                "event_type": "LIQUIDATION_CASCADE",
                 "promotion_decision": "promoted",
                 "promotion_track": "standard",
                 "promotion_fail_gate_primary": "",
@@ -569,7 +569,7 @@ def test_build_promotion_statistical_audit_populates_primary_fail_gate_and_trace
             },
             {
                 "candidate_id": "cand_redundant",
-                "event_type": "VOL_SHOCK",
+                "event_type": "LIQUIDATION_CASCADE",
                 "promotion_decision": "rejected",
                 "promotion_track": "fallback_only",
                 "promotion_fail_gate_primary": "",
@@ -669,7 +669,7 @@ def test_build_promotion_statistical_audit_avoids_warning_spam_for_missing_optio
         [
             {
                 "candidate_id": "cand_sparse",
-                "event_type": "VOL_SHOCK",
+                "event_type": "LIQUIDATION_CASCADE",
                 "promotion_decision": "rejected",
                 "promotion_track": "fallback_only",
                 "promotion_fail_gate_primary": "",
@@ -710,7 +710,7 @@ def test_build_promotion_capital_footprint_report():
         [
             {
                 "candidate_id": "c1",
-                "event_type": "VOL_SHOCK",
+                "event_type": "LIQUIDATION_CASCADE",
                 "promotion_track": "standard",
                 "capacity_proxy": 0.5,
                 "turnover_proxy_mean": 1.0,
@@ -750,7 +750,7 @@ def test_apply_portfolio_overlap_gate_drops_high_overlap_candidates():
         [
             {
                 "candidate_id": "cand_a",
-                "event_type": "VOL_SHOCK",
+                "event_type": "LIQUIDATION_CASCADE",
                 "symbol": "BTCUSDT",
                 "condition": "all",
                 "action": "long",
@@ -760,7 +760,7 @@ def test_apply_portfolio_overlap_gate_drops_high_overlap_candidates():
             },
             {
                 "candidate_id": "cand_b",
-                "event_type": "VOL_SHOCK",
+                "event_type": "LIQUIDATION_CASCADE",
                 "symbol": "BTCUSDT",
                 "condition": "all",
                 "action": "long",
@@ -798,7 +798,7 @@ def test_portfolio_diversification_violations_detect_overlap_and_correlation():
         [
             {
                 "candidate_id": "cand_a",
-                "event_type": "VOL_SHOCK",
+                "event_type": "LIQUIDATION_CASCADE",
                 "symbol": "BTCUSDT",
                 "condition": "all",
                 "action": "long",
@@ -808,7 +808,7 @@ def test_portfolio_diversification_violations_detect_overlap_and_correlation():
             },
             {
                 "candidate_id": "cand_b",
-                "event_type": "VOL_SHOCK",
+                "event_type": "LIQUIDATION_CASCADE",
                 "symbol": "BTCUSDT",
                 "condition": "all",
                 "action": "long",

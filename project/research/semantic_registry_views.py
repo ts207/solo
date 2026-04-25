@@ -33,6 +33,7 @@ def build_canonical_semantic_registry_views(
         family_name = str(spec.research_family or spec.canonical_family or spec.canonical_regime).strip().upper()
         event_rows[event_id] = {
             "enabled": bool(spec.enabled),
+            "planning_eligible": bool(spec.planning_eligible),
             "family": family_name,
             "research_family": str(spec.research_family).strip().upper(),
             "canonical_family": str(spec.canonical_family).strip().upper(),

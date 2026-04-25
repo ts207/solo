@@ -27,7 +27,7 @@
         "deconflict_priority": 0,
         "default_executable": true,
         "detector": "BasisDislocationDetector",
-        "detector_band": "deployable_core",
+        "detector_band": "research_trigger",
         "disposition": "merge",
         "enabled": true,
         "event_type": "BASIS_DISLOC",
@@ -68,12 +68,12 @@
           "z_threshold": 5.0
         },
         "phase": "shock",
-        "planning_eligible": true,
-        "primary_anchor_eligible": true,
-        "promotion_eligible": true,
+        "planning_eligible": false,
+        "primary_anchor_eligible": false,
+        "promotion_eligible": false,
         "reports_dir": "basis_dislocation",
         "research_only": false,
-        "runtime_eligible": true,
+        "runtime_eligible": false,
         "sequence_eligible": true,
         "signal_column": "basis_dislocation_event",
         "strategy_only": false,
@@ -236,9 +236,9 @@
           "window_end": 32
         },
         "phase": "persistence",
-        "planning_eligible": true,
-        "primary_anchor_eligible": true,
-        "promotion_eligible": true,
+        "planning_eligible": false,
+        "primary_anchor_eligible": false,
+        "promotion_eligible": false,
         "reports_dir": "cross_venue_desync",
         "research_only": false,
         "runtime_eligible": false,
@@ -295,7 +295,7 @@
         "deconflict_priority": 0,
         "default_executable": true,
         "detector": "FndDislocDetector",
-        "detector_band": "deployable_core",
+        "detector_band": "research_trigger",
         "disposition": "merge",
         "enabled": true,
         "event_type": "FND_DISLOC",
@@ -340,12 +340,12 @@
           "threshold_bps": 2.0
         },
         "phase": "shock",
-        "planning_eligible": true,
-        "primary_anchor_eligible": true,
-        "promotion_eligible": true,
+        "planning_eligible": false,
+        "primary_anchor_eligible": false,
+        "promotion_eligible": false,
         "reports_dir": "funding_dislocation",
         "research_only": false,
-        "runtime_eligible": true,
+        "runtime_eligible": false,
         "sequence_eligible": true,
         "signal_column": "funding_dislocation_event",
         "strategy_only": false,
@@ -529,9 +529,9 @@
           "vol_burst_quantile": 0.9
         },
         "phase": "onset",
-        "planning_eligible": true,
-        "primary_anchor_eligible": true,
-        "promotion_eligible": true,
+        "planning_eligible": false,
+        "primary_anchor_eligible": false,
+        "promotion_eligible": false,
         "reports_dir": "funding_events",
         "research_only": false,
         "runtime_eligible": false,
@@ -650,9 +650,9 @@
           "trigger": "Detector triggers on funding flip pattern"
         },
         "phase": "flip",
-        "planning_eligible": true,
-        "primary_anchor_eligible": true,
-        "promotion_eligible": true,
+        "planning_eligible": false,
+        "primary_anchor_eligible": false,
+        "promotion_eligible": false,
         "reports_dir": "positioning_extremes",
         "research_only": false,
         "runtime_eligible": false,
@@ -712,7 +712,7 @@
         "deconflict_priority": 0,
         "default_executable": false,
         "detector": "FundingFlipDetector",
-        "detector_band": "",
+        "detector_band": "semantic_variant",
         "disposition": "rename",
         "enabled": false,
         "event_type": "FUNDING_FLIP_TO_NEGATIVE",
@@ -741,6 +741,13 @@
             "sign_field": "funding_sign",
             "sign_required": true,
             "sign_source": "funding"
+          },
+          "expected_behavior": {
+            "disabled_regimes": [
+              "low_liquidity: funding/OI signals unreliable",
+              "stale_funding: funding timestamp unavailable or stale",
+              "execution_friction_blocked: spread/slippage too high"
+            ]
           },
           "merge_gap_bars": 1,
           "min_occurrences": 0,
@@ -803,7 +810,7 @@
         "deconflict_priority": 0,
         "default_executable": false,
         "detector": "FundingFlipDetector",
-        "detector_band": "",
+        "detector_band": "semantic_variant",
         "disposition": "rename",
         "enabled": false,
         "event_type": "FUNDING_FLIP_TO_POSITIVE",
@@ -832,6 +839,13 @@
             "sign_field": "funding_sign",
             "sign_required": true,
             "sign_source": "funding"
+          },
+          "expected_behavior": {
+            "disabled_regimes": [
+              "low_liquidity: funding/OI signals unreliable",
+              "stale_funding: funding timestamp unavailable or stale",
+              "execution_friction_blocked: spread/slippage too high"
+            ]
           },
           "merge_gap_bars": 1,
           "min_occurrences": 0,
@@ -894,7 +908,7 @@
         "deconflict_priority": 0,
         "default_executable": false,
         "detector": "FundingExtremeOnsetDetector",
-        "detector_band": "",
+        "detector_band": "semantic_variant",
         "disposition": "rename",
         "enabled": false,
         "event_type": "FUNDING_NEG_EXTREME_ONSET",
@@ -922,6 +936,13 @@
             "sign_field": "funding_sign",
             "sign_required": true,
             "sign_source": "funding"
+          },
+          "expected_behavior": {
+            "disabled_regimes": [
+              "low_liquidity: funding/OI signals unreliable",
+              "stale_funding: funding timestamp unavailable or stale",
+              "execution_friction_blocked: spread/slippage too high"
+            ]
           },
           "merge_gap_bars": 1,
           "min_occurrences": 0,
@@ -985,7 +1006,7 @@
         "deconflict_priority": 0,
         "default_executable": false,
         "detector": "FundingNormalizationDetector",
-        "detector_band": "",
+        "detector_band": "semantic_variant",
         "disposition": "rename",
         "enabled": false,
         "event_type": "FUNDING_NEG_NORMALIZATION",
@@ -1013,6 +1034,13 @@
             "sign_field": "funding_sign",
             "sign_required": true,
             "sign_source": "funding"
+          },
+          "expected_behavior": {
+            "disabled_regimes": [
+              "low_liquidity: funding/OI signals unreliable",
+              "stale_funding: funding timestamp unavailable or stale",
+              "execution_friction_blocked: spread/slippage too high"
+            ]
           },
           "merge_gap_bars": 1,
           "min_occurrences": 0,
@@ -1076,7 +1104,7 @@
         "deconflict_priority": 0,
         "default_executable": false,
         "detector": "FundingPersistenceDetector",
-        "detector_band": "",
+        "detector_band": "semantic_variant",
         "disposition": "rename",
         "enabled": false,
         "event_type": "FUNDING_NEG_PERSISTENCE",
@@ -1105,6 +1133,13 @@
             "sign_field": "funding_sign",
             "sign_required": true,
             "sign_source": "funding"
+          },
+          "expected_behavior": {
+            "disabled_regimes": [
+              "low_liquidity: funding/OI signals unreliable",
+              "stale_funding: funding timestamp unavailable or stale",
+              "execution_friction_blocked: spread/slippage too high"
+            ]
           },
           "merge_gap_bars": 1,
           "min_occurrences": 0,
@@ -1243,9 +1278,9 @@
           "vol_burst_quantile": 0.9
         },
         "phase": "normalization",
-        "planning_eligible": true,
+        "planning_eligible": false,
         "primary_anchor_eligible": false,
-        "promotion_eligible": true,
+        "promotion_eligible": false,
         "reports_dir": "funding_events",
         "research_only": false,
         "runtime_eligible": false,
@@ -1510,7 +1545,7 @@
         "deconflict_priority": 0,
         "default_executable": false,
         "detector": "FundingExtremeOnsetDetector",
-        "detector_band": "",
+        "detector_band": "semantic_variant",
         "disposition": "rename",
         "enabled": false,
         "event_type": "FUNDING_POS_EXTREME_ONSET",
@@ -1538,6 +1573,13 @@
             "sign_field": "funding_sign",
             "sign_required": true,
             "sign_source": "funding"
+          },
+          "expected_behavior": {
+            "disabled_regimes": [
+              "low_liquidity: funding/OI signals unreliable",
+              "stale_funding: funding timestamp unavailable or stale",
+              "execution_friction_blocked: spread/slippage too high"
+            ]
           },
           "merge_gap_bars": 1,
           "min_occurrences": 0,
@@ -1601,7 +1643,7 @@
         "deconflict_priority": 0,
         "default_executable": false,
         "detector": "FundingNormalizationDetector",
-        "detector_band": "",
+        "detector_band": "semantic_variant",
         "disposition": "rename",
         "enabled": false,
         "event_type": "FUNDING_POS_NORMALIZATION",
@@ -1629,6 +1671,13 @@
             "sign_field": "funding_sign",
             "sign_required": true,
             "sign_source": "funding"
+          },
+          "expected_behavior": {
+            "disabled_regimes": [
+              "low_liquidity: funding/OI signals unreliable",
+              "stale_funding: funding timestamp unavailable or stale",
+              "execution_friction_blocked: spread/slippage too high"
+            ]
           },
           "merge_gap_bars": 1,
           "min_occurrences": 0,
@@ -1692,7 +1741,7 @@
         "deconflict_priority": 0,
         "default_executable": false,
         "detector": "FundingPersistenceDetector",
-        "detector_band": "",
+        "detector_band": "semantic_variant",
         "disposition": "rename",
         "enabled": false,
         "event_type": "FUNDING_POS_PERSISTENCE",
@@ -1721,6 +1770,13 @@
             "sign_field": "funding_sign",
             "sign_required": true,
             "sign_source": "funding"
+          },
+          "expected_behavior": {
+            "disabled_regimes": [
+              "low_liquidity: funding/OI signals unreliable",
+              "stale_funding: funding timestamp unavailable or stale",
+              "execution_friction_blocked: spread/slippage too high"
+            ]
           },
           "merge_gap_bars": 1,
           "min_occurrences": 0,
@@ -1879,7 +1935,7 @@
         "deconflict_priority": 0,
         "default_executable": true,
         "detector": "SpotPerpBasisShockDetector",
-        "detector_band": "deployable_core",
+        "detector_band": "research_trigger",
         "disposition": "merge",
         "enabled": true,
         "event_type": "SPOT_PERP_BASIS_SHOCK",
@@ -1926,12 +1982,12 @@
           "z_threshold": 5.0
         },
         "phase": "shock",
-        "planning_eligible": true,
-        "primary_anchor_eligible": true,
-        "promotion_eligible": true,
+        "planning_eligible": false,
+        "primary_anchor_eligible": false,
+        "promotion_eligible": false,
         "reports_dir": "information_desync",
         "research_only": false,
-        "runtime_eligible": true,
+        "runtime_eligible": false,
         "sequence_eligible": true,
         "signal_column": "spot_perp_basis_shock_event",
         "strategy_only": false,
@@ -2086,7 +2142,7 @@
           "threshold_z": 3.0
         },
         "phase": "divergence",
-        "planning_eligible": true,
+        "planning_eligible": false,
         "primary_anchor_eligible": false,
         "promotion_eligible": false,
         "reports_dir": "cross_asset_desync_event",
@@ -2187,9 +2243,9 @@
           "trigger": "Detector triggers on index component divergence pattern"
         },
         "phase": "divergence",
-        "planning_eligible": true,
-        "primary_anchor_eligible": true,
-        "promotion_eligible": true,
+        "planning_eligible": false,
+        "primary_anchor_eligible": false,
+        "promotion_eligible": false,
         "reports_dir": "information_desync",
         "research_only": false,
         "runtime_eligible": false,
@@ -2287,9 +2343,9 @@
           "trigger": "Detector triggers on lead lag break pattern"
         },
         "phase": "divergence",
-        "planning_eligible": true,
-        "primary_anchor_eligible": true,
-        "promotion_eligible": true,
+        "planning_eligible": false,
+        "primary_anchor_eligible": false,
+        "promotion_eligible": false,
         "reports_dir": "information_desync",
         "research_only": false,
         "runtime_eligible": false,
@@ -2388,7 +2444,7 @@
           "trigger": "Detector triggers on fee regime change event pattern"
         },
         "phase": "transition",
-        "planning_eligible": true,
+        "planning_eligible": false,
         "primary_anchor_eligible": false,
         "promotion_eligible": false,
         "reports_dir": "execution_friction",
@@ -2484,7 +2540,7 @@
           "trigger": "Detector triggers on slippage spike event pattern"
         },
         "phase": "shock",
-        "planning_eligible": true,
+        "planning_eligible": false,
         "primary_anchor_eligible": false,
         "promotion_eligible": false,
         "reports_dir": "execution_friction",
@@ -2584,7 +2640,7 @@
           "trigger": "Detector triggers on spread regime widening event pattern"
         },
         "phase": "persistence",
-        "planning_eligible": true,
+        "planning_eligible": false,
         "primary_anchor_eligible": false,
         "promotion_eligible": false,
         "reports_dir": "execution_friction",
@@ -3073,9 +3129,9 @@
           "vol_window": 288
         },
         "phase": "onset",
-        "planning_eligible": true,
-        "primary_anchor_eligible": true,
-        "promotion_eligible": true,
+        "planning_eligible": false,
+        "primary_anchor_eligible": false,
+        "promotion_eligible": false,
         "reports_dir": "liquidation_events",
         "research_only": false,
         "runtime_eligible": false,
@@ -3288,9 +3344,9 @@
           "z_threshold": 3.0
         },
         "phase": "collapse",
-        "planning_eligible": true,
+        "planning_eligible": false,
         "primary_anchor_eligible": false,
-        "promotion_eligible": true,
+        "promotion_eligible": false,
         "reports_dir": "liquidity_dislocation",
         "research_only": false,
         "runtime_eligible": false,
@@ -3306,7 +3362,8 @@
           "stop_run_repair",
           "overshoot_repair",
           "only_if_liquidity",
-          "slippage_aware_filter"
+          "slippage_aware_filter",
+          "mean_reversion"
         ],
         "threshold_parameters": {
           "cooldown_bars": 12,
@@ -3494,7 +3551,7 @@
           "z_threshold": 3.0
         },
         "phase": "shock",
-        "planning_eligible": true,
+        "planning_eligible": false,
         "primary_anchor_eligible": false,
         "promotion_eligible": false,
         "reports_dir": "liquidity_dislocation",
@@ -3551,7 +3608,7 @@
         "deconflict_priority": 0,
         "default_executable": true,
         "detector": "LiquidityStressDetector",
-        "detector_band": "deployable_core",
+        "detector_band": "research_trigger",
         "disposition": "keep",
         "enabled": true,
         "event_type": "LIQUIDITY_SHOCK",
@@ -3595,12 +3652,12 @@
           "trigger": "Detector triggers on liquidity shock pattern"
         },
         "phase": "shock",
-        "planning_eligible": true,
-        "primary_anchor_eligible": true,
-        "promotion_eligible": true,
+        "planning_eligible": false,
+        "primary_anchor_eligible": false,
+        "promotion_eligible": false,
         "reports_dir": "liquidity_shock",
         "research_only": false,
-        "runtime_eligible": true,
+        "runtime_eligible": false,
         "sequence_eligible": true,
         "signal_column": "liquidity_shock_event",
         "strategy_only": false,
@@ -3650,7 +3707,7 @@
         "deconflict_priority": 0,
         "default_executable": true,
         "detector": "DirectLiquidityStressDetector",
-        "detector_band": "deployable_core",
+        "detector_band": "research_trigger",
         "disposition": "merge",
         "enabled": true,
         "event_type": "LIQUIDITY_STRESS_DIRECT",
@@ -3691,12 +3748,12 @@
           "trigger": "Detector triggers on liquidity stress direct pattern"
         },
         "phase": "shock",
-        "planning_eligible": true,
-        "primary_anchor_eligible": true,
-        "promotion_eligible": true,
+        "planning_eligible": false,
+        "primary_anchor_eligible": false,
+        "promotion_eligible": false,
         "reports_dir": "liquidity_shock",
         "research_only": false,
-        "runtime_eligible": true,
+        "runtime_eligible": false,
         "sequence_eligible": true,
         "signal_column": "liquidity_stress_direct_event",
         "strategy_only": false,
@@ -4124,7 +4181,7 @@
           "z_threshold": 3.0
         },
         "phase": "shock",
-        "planning_eligible": true,
+        "planning_eligible": false,
         "primary_anchor_eligible": false,
         "promotion_eligible": false,
         "reports_dir": "liquidity_dislocation",
@@ -4431,7 +4488,7 @@
           "z_threshold": 3.0
         },
         "phase": "shock",
-        "planning_eligible": true,
+        "planning_eligible": false,
         "primary_anchor_eligible": false,
         "promotion_eligible": false,
         "reports_dir": "liquidity_dislocation",
@@ -4450,7 +4507,8 @@
           "stop_run_repair",
           "overshoot_repair",
           "only_if_liquidity",
-          "slippage_aware_filter"
+          "slippage_aware_filter",
+          "mean_reversion"
         ],
         "threshold_parameters": {
           "cooldown_bars": 12,
@@ -4533,7 +4591,7 @@
           "z_threshold": 3.0
         },
         "phase": "shock",
-        "planning_eligible": true,
+        "planning_eligible": false,
         "primary_anchor_eligible": false,
         "promotion_eligible": false,
         "reports_dir": "liquidity_dislocation",
@@ -4732,9 +4790,9 @@
           "trigger": "Detector triggers on oi spike positive pattern"
         },
         "phase": "expansion",
-        "planning_eligible": true,
-        "primary_anchor_eligible": true,
-        "promotion_eligible": true,
+        "planning_eligible": false,
+        "primary_anchor_eligible": false,
+        "promotion_eligible": false,
         "reports_dir": "oi_shocks",
         "research_only": false,
         "runtime_eligible": false,
@@ -4750,7 +4808,10 @@
           "squeeze_followthrough_confirmed",
           "only_if_funding",
           "only_if_oi",
-          "tail_risk_avoid"
+          "tail_risk_avoid",
+          "convexity_capture",
+          "continuation",
+          "mean_reversion"
         ],
         "threshold_parameters": {
           "cooldown_bars": 0,
@@ -4787,7 +4848,7 @@
         "deconflict_priority": 0,
         "default_executable": false,
         "detector": "OISpikePositiveDetector",
-        "detector_band": "",
+        "detector_band": "semantic_variant",
         "disposition": "rename",
         "enabled": false,
         "event_type": "PRICE_DOWN_OI_UP",
@@ -4815,6 +4876,13 @@
             "sign_field": "price_oi_quadrant",
             "sign_required": true,
             "sign_source": "price"
+          },
+          "expected_behavior": {
+            "disabled_regimes": [
+              "stale_open_interest: OI unavailable or stale",
+              "low_liquidity: price/OI quadrant unreliable",
+              "execution_friction_blocked: spread/slippage too high"
+            ]
           },
           "merge_gap_bars": 1,
           "min_occurrences": 0,
@@ -4878,7 +4946,7 @@
         "deconflict_priority": 0,
         "default_executable": false,
         "detector": "OISpikePositiveDetector",
-        "detector_band": "",
+        "detector_band": "semantic_variant",
         "disposition": "rename",
         "enabled": false,
         "event_type": "PRICE_UP_OI_UP",
@@ -4906,6 +4974,13 @@
             "sign_field": "price_oi_quadrant",
             "sign_required": true,
             "sign_source": "price"
+          },
+          "expected_behavior": {
+            "disabled_regimes": [
+              "stale_open_interest: OI unavailable or stale",
+              "low_liquidity: price/OI quadrant unreliable",
+              "execution_friction_blocked: spread/slippage too high"
+            ]
           },
           "merge_gap_bars": 1,
           "min_occurrences": 0,
@@ -5108,7 +5183,7 @@
           "trigger": "Detector triggers on deleveraging wave pattern"
         },
         "phase": "unwind",
-        "planning_eligible": true,
+        "planning_eligible": false,
         "primary_anchor_eligible": false,
         "promotion_eligible": false,
         "reports_dir": "positioning_extremes",
@@ -5212,9 +5287,9 @@
           "trigger": "Detector triggers on oi flush pattern"
         },
         "phase": "unwind",
-        "planning_eligible": true,
-        "primary_anchor_eligible": true,
-        "promotion_eligible": true,
+        "planning_eligible": false,
+        "primary_anchor_eligible": false,
+        "promotion_eligible": false,
         "reports_dir": "oi_shocks",
         "research_only": false,
         "runtime_eligible": false,
@@ -5359,7 +5434,7 @@
         "phase": "unwind",
         "planning_eligible": true,
         "primary_anchor_eligible": true,
-        "promotion_eligible": true,
+        "promotion_eligible": false,
         "reports_dir": "oi_shocks",
         "research_only": false,
         "runtime_eligible": true,
@@ -5376,7 +5451,9 @@
           "convexity_capture",
           "only_if_funding",
           "only_if_oi",
-          "tail_risk_avoid"
+          "tail_risk_avoid",
+          "continuation",
+          "mean_reversion"
         ],
         "threshold_parameters": {
           "cooldown_bars": 0,
@@ -5473,7 +5550,7 @@
           "wick_ratio_min": 0.55
         },
         "phase": "recovery",
-        "planning_eligible": true,
+        "planning_eligible": false,
         "primary_anchor_eligible": false,
         "promotion_eligible": false,
         "reports_dir": "forced_flow_and_exhaustion",
@@ -5541,7 +5618,7 @@
         "deconflict_priority": 0,
         "default_executable": false,
         "detector": "OISpikeNegativeDetector",
-        "detector_band": "",
+        "detector_band": "semantic_variant",
         "disposition": "rename",
         "enabled": false,
         "event_type": "PRICE_DOWN_OI_DOWN",
@@ -5569,6 +5646,13 @@
             "sign_field": "price_oi_quadrant",
             "sign_required": true,
             "sign_source": "price"
+          },
+          "expected_behavior": {
+            "disabled_regimes": [
+              "stale_open_interest: OI unavailable or stale",
+              "low_liquidity: price/OI quadrant unreliable",
+              "execution_friction_blocked: spread/slippage too high"
+            ]
           },
           "merge_gap_bars": 1,
           "min_occurrences": 0,
@@ -5633,7 +5717,7 @@
         "deconflict_priority": 0,
         "default_executable": false,
         "detector": "OISpikeNegativeDetector",
-        "detector_band": "",
+        "detector_band": "semantic_variant",
         "disposition": "rename",
         "enabled": false,
         "event_type": "PRICE_UP_OI_DOWN",
@@ -5661,6 +5745,13 @@
             "sign_field": "price_oi_quadrant",
             "sign_required": true,
             "sign_source": "price"
+          },
+          "expected_behavior": {
+            "disabled_regimes": [
+              "stale_open_interest: OI unavailable or stale",
+              "low_liquidity: price/OI quadrant unreliable",
+              "execution_friction_blocked: spread/slippage too high"
+            ]
           },
           "merge_gap_bars": 1,
           "min_occurrences": 0,
@@ -5770,9 +5861,9 @@
           "trigger": "Detector triggers on beta spike event pattern"
         },
         "phase": "transition",
-        "planning_eligible": true,
-        "primary_anchor_eligible": true,
-        "promotion_eligible": true,
+        "planning_eligible": false,
+        "primary_anchor_eligible": false,
+        "promotion_eligible": false,
         "reports_dir": "regime_transition",
         "research_only": false,
         "runtime_eligible": false,
@@ -5868,7 +5959,7 @@
           "trigger": "Detector triggers on chop to trend shift pattern"
         },
         "phase": "transition",
-        "planning_eligible": true,
+        "planning_eligible": false,
         "primary_anchor_eligible": false,
         "promotion_eligible": false,
         "reports_dir": "regime_transition",
@@ -5967,9 +6058,9 @@
           "trigger": "Detector triggers on correlation breakdown event pattern"
         },
         "phase": "transition",
-        "planning_eligible": true,
-        "primary_anchor_eligible": true,
-        "promotion_eligible": true,
+        "planning_eligible": false,
+        "primary_anchor_eligible": false,
+        "promotion_eligible": false,
         "reports_dir": "regime_transition",
         "research_only": false,
         "runtime_eligible": false,
@@ -6065,7 +6156,7 @@
           "trigger": "Detector triggers on trend to chop shift pattern"
         },
         "phase": "transition",
-        "planning_eligible": true,
+        "planning_eligible": false,
         "primary_anchor_eligible": false,
         "promotion_eligible": false,
         "reports_dir": "regime_transition",
@@ -6164,7 +6255,7 @@
           "trigger": "Detector triggers on vol regime shift event pattern"
         },
         "phase": "transition",
-        "planning_eligible": true,
+        "planning_eligible": false,
         "primary_anchor_eligible": false,
         "promotion_eligible": false,
         "reports_dir": "regime_transition",
@@ -6265,7 +6356,7 @@
           "trigger": "Detector triggers on funding timestamp event pattern"
         },
         "phase": "window",
-        "planning_eligible": true,
+        "planning_eligible": false,
         "primary_anchor_eligible": false,
         "promotion_eligible": false,
         "reports_dir": "temporal_structure",
@@ -6360,7 +6451,7 @@
           "trigger": "Detector triggers on scheduled news window event pattern"
         },
         "phase": "window",
-        "planning_eligible": true,
+        "planning_eligible": false,
         "primary_anchor_eligible": false,
         "promotion_eligible": false,
         "reports_dir": "temporal_structure",
@@ -6462,7 +6553,7 @@
           "trigger": "Detector triggers on session close event pattern"
         },
         "phase": "window",
-        "planning_eligible": true,
+        "planning_eligible": false,
         "primary_anchor_eligible": false,
         "promotion_eligible": false,
         "reports_dir": "temporal_structure",
@@ -6566,7 +6657,7 @@
           "trigger": "Detector triggers on session open event pattern"
         },
         "phase": "window",
-        "planning_eligible": true,
+        "planning_eligible": false,
         "primary_anchor_eligible": false,
         "promotion_eligible": false,
         "reports_dir": "temporal_structure",
@@ -6665,7 +6756,7 @@
           "trigger": "Detector triggers on band break pattern"
         },
         "phase": "breakout",
-        "planning_eligible": true,
+        "planning_eligible": false,
         "primary_anchor_eligible": false,
         "promotion_eligible": false,
         "reports_dir": "statistical_dislocation",
@@ -6860,7 +6951,7 @@
           "trigger": "Detector triggers on gap overshoot pattern"
         },
         "phase": "overshoot",
-        "planning_eligible": true,
+        "planning_eligible": false,
         "primary_anchor_eligible": false,
         "promotion_eligible": false,
         "reports_dir": "statistical_dislocation",
@@ -6960,7 +7051,7 @@
           "trigger": "Detector triggers on overshoot after shock pattern"
         },
         "phase": "overshoot",
-        "planning_eligible": true,
+        "planning_eligible": false,
         "primary_anchor_eligible": false,
         "promotion_eligible": false,
         "reports_dir": "statistical_dislocation",
@@ -7060,7 +7151,7 @@
           "zscore_quantile": 0.96
         },
         "phase": "stretch",
-        "planning_eligible": true,
+        "planning_eligible": false,
         "primary_anchor_eligible": false,
         "promotion_eligible": false,
         "reports_dir": "statistical_dislocation",
@@ -7160,7 +7251,7 @@
           "trigger": "Detector triggers on pullback pivot pattern"
         },
         "phase": "recovery",
-        "planning_eligible": true,
+        "planning_eligible": false,
         "primary_anchor_eligible": false,
         "promotion_eligible": false,
         "reports_dir": "trend_structure",
@@ -7260,7 +7351,7 @@
           "trigger": "Detector triggers on range breakout pattern"
         },
         "phase": "breakout",
-        "planning_eligible": true,
+        "planning_eligible": false,
         "primary_anchor_eligible": false,
         "promotion_eligible": false,
         "reports_dir": "trend_structure",
@@ -7360,7 +7451,7 @@
           "trigger": "Detector triggers on support resistance break pattern"
         },
         "phase": "breakout",
-        "planning_eligible": true,
+        "planning_eligible": false,
         "primary_anchor_eligible": false,
         "promotion_eligible": false,
         "reports_dir": "trend_structure",
@@ -7461,7 +7552,7 @@
           "trigger": "Detector triggers on trend acceleration pattern"
         },
         "phase": "persistence",
-        "planning_eligible": true,
+        "planning_eligible": false,
         "primary_anchor_eligible": false,
         "promotion_eligible": false,
         "reports_dir": "trend_structure",
@@ -7566,7 +7657,7 @@
           "vol_quantile": 0.992
         },
         "phase": "exhaustion",
-        "planning_eligible": true,
+        "planning_eligible": false,
         "primary_anchor_eligible": false,
         "promotion_eligible": false,
         "reports_dir": "forced_flow_and_exhaustion",
@@ -7663,7 +7754,7 @@
           "trigger": "Detector triggers on failed continuation pattern"
         },
         "phase": "failure",
-        "planning_eligible": true,
+        "planning_eligible": false,
         "primary_anchor_eligible": false,
         "promotion_eligible": false,
         "reports_dir": "forced_flow_and_exhaustion",
@@ -7758,7 +7849,7 @@
           "trigger": "Detector triggers on false breakout pattern"
         },
         "phase": "failure",
-        "planning_eligible": true,
+        "planning_eligible": false,
         "primary_anchor_eligible": false,
         "promotion_eligible": false,
         "reports_dir": "trend_structure",
@@ -7994,7 +8085,7 @@
           "window_end": 32
         },
         "phase": "exhaustion",
-        "planning_eligible": true,
+        "planning_eligible": false,
         "primary_anchor_eligible": false,
         "promotion_eligible": false,
         "reports_dir": "directional_exhaustion_after_forced_flow",
@@ -8104,7 +8195,7 @@
           "trigger": "Detector triggers on momentum divergence trigger pattern"
         },
         "phase": "exhaustion",
-        "planning_eligible": true,
+        "planning_eligible": false,
         "primary_anchor_eligible": false,
         "promotion_eligible": false,
         "reports_dir": "forced_flow_and_exhaustion",
@@ -8199,7 +8290,7 @@
           "trigger": "Detector triggers on trend deceleration pattern"
         },
         "phase": "exhaustion",
-        "planning_eligible": true,
+        "planning_eligible": false,
         "primary_anchor_eligible": false,
         "promotion_eligible": false,
         "reports_dir": "trend_structure",
@@ -8316,7 +8407,7 @@
           "vol_window": 288
         },
         "phase": "onset",
-        "planning_eligible": true,
+        "planning_eligible": false,
         "primary_anchor_eligible": false,
         "promotion_eligible": false,
         "reports_dir": "forced_flow_and_exhaustion",
@@ -8430,7 +8521,7 @@
           "vol_lookback_window": 288
         },
         "phase": "persistence",
-        "planning_eligible": true,
+        "planning_eligible": false,
         "primary_anchor_eligible": false,
         "promotion_eligible": false,
         "reports_dir": "volatility_transition",
@@ -8487,7 +8578,7 @@
         "deconflict_priority": 0,
         "default_executable": true,
         "detector": "VolSpikeDetector",
-        "detector_band": "deployable_core",
+        "detector_band": "research_trigger",
         "disposition": "keep",
         "enabled": true,
         "event_type": "VOL_SPIKE",
@@ -8528,12 +8619,12 @@
           "trigger": "Detector triggers on vol spike pattern"
         },
         "phase": "shock",
-        "planning_eligible": true,
-        "primary_anchor_eligible": true,
-        "promotion_eligible": true,
+        "planning_eligible": false,
+        "primary_anchor_eligible": false,
+        "promotion_eligible": false,
         "reports_dir": "volatility_transition",
         "research_only": false,
-        "runtime_eligible": true,
+        "runtime_eligible": false,
         "sequence_eligible": true,
         "signal_column": "vol_spike_event",
         "strategy_only": false,
@@ -8631,7 +8722,7 @@
           "vol_lookback_window": 96
         },
         "phase": "breakout",
-        "planning_eligible": true,
+        "planning_eligible": false,
         "primary_anchor_eligible": false,
         "promotion_eligible": false,
         "reports_dir": "volatility_transition",
@@ -8735,7 +8826,7 @@
           "vol_lookback_window": 288
         },
         "phase": "breakout",
-        "planning_eligible": true,
+        "planning_eligible": false,
         "primary_anchor_eligible": false,
         "promotion_eligible": false,
         "reports_dir": "volatility_transition",
@@ -8927,9 +9018,9 @@
           "vol_lookback_window": 288
         },
         "phase": "normalization",
-        "planning_eligible": true,
+        "planning_eligible": false,
         "primary_anchor_eligible": false,
-        "promotion_eligible": true,
+        "promotion_eligible": false,
         "reports_dir": "volatility_transition",
         "research_only": false,
         "runtime_eligible": false,
@@ -8986,7 +9077,7 @@
         "deconflict_priority": 0,
         "default_executable": true,
         "detector": "VolShockRelaxationDetector",
-        "detector_band": "deployable_core",
+        "detector_band": "research_trigger",
         "disposition": "keep",
         "enabled": true,
         "event_type": "VOL_SHOCK",
@@ -9084,12 +9175,12 @@
           "synthetic_coverage": "covered"
         },
         "phase": "shock",
-        "planning_eligible": true,
-        "primary_anchor_eligible": true,
-        "promotion_eligible": true,
+        "planning_eligible": false,
+        "primary_anchor_eligible": false,
+        "promotion_eligible": false,
         "reports_dir": "vol_shock_relaxation",
         "research_only": false,
-        "runtime_eligible": true,
+        "runtime_eligible": false,
         "sequence_eligible": true,
         "signal_column": "vol_shock_relaxation_event",
         "strategy_only": false,
@@ -9285,7 +9376,7 @@
         "trigger": "Detector triggers on band break pattern"
       },
       "phase": "breakout",
-      "planning_eligible": true,
+      "planning_eligible": false,
       "primary_anchor_eligible": false,
       "promotion_eligible": false,
       "reports_dir": "statistical_dislocation",
@@ -9338,7 +9429,7 @@
       "deconflict_priority": 0,
       "default_executable": true,
       "detector": "BasisDislocationDetector",
-      "detector_band": "deployable_core",
+      "detector_band": "research_trigger",
       "disposition": "merge",
       "enabled": true,
       "event_type": "BASIS_DISLOC",
@@ -9379,12 +9470,12 @@
         "z_threshold": 5.0
       },
       "phase": "shock",
-      "planning_eligible": true,
-      "primary_anchor_eligible": true,
-      "promotion_eligible": true,
+      "planning_eligible": false,
+      "primary_anchor_eligible": false,
+      "promotion_eligible": false,
       "reports_dir": "basis_dislocation",
       "research_only": false,
-      "runtime_eligible": true,
+      "runtime_eligible": false,
       "sequence_eligible": true,
       "signal_column": "basis_dislocation_event",
       "strategy_only": false,
@@ -9475,9 +9566,9 @@
         "trigger": "Detector triggers on beta spike event pattern"
       },
       "phase": "transition",
-      "planning_eligible": true,
-      "primary_anchor_eligible": true,
-      "promotion_eligible": true,
+      "planning_eligible": false,
+      "primary_anchor_eligible": false,
+      "promotion_eligible": false,
       "reports_dir": "regime_transition",
       "research_only": false,
       "runtime_eligible": false,
@@ -9576,7 +9667,7 @@
         "vol_lookback_window": 96
       },
       "phase": "breakout",
-      "planning_eligible": true,
+      "planning_eligible": false,
       "primary_anchor_eligible": false,
       "promotion_eligible": false,
       "reports_dir": "volatility_transition",
@@ -9679,7 +9770,7 @@
         "trigger": "Detector triggers on chop to trend shift pattern"
       },
       "phase": "transition",
-      "planning_eligible": true,
+      "planning_eligible": false,
       "primary_anchor_eligible": false,
       "promotion_eligible": false,
       "reports_dir": "regime_transition",
@@ -9781,7 +9872,7 @@
         "vol_quantile": 0.992
       },
       "phase": "exhaustion",
-      "planning_eligible": true,
+      "planning_eligible": false,
       "primary_anchor_eligible": false,
       "promotion_eligible": false,
       "reports_dir": "forced_flow_and_exhaustion",
@@ -9974,9 +10065,9 @@
         "trigger": "Detector triggers on correlation breakdown event pattern"
       },
       "phase": "transition",
-      "planning_eligible": true,
-      "primary_anchor_eligible": true,
-      "promotion_eligible": true,
+      "planning_eligible": false,
+      "primary_anchor_eligible": false,
+      "promotion_eligible": false,
       "reports_dir": "regime_transition",
       "research_only": false,
       "runtime_eligible": false,
@@ -10128,7 +10219,7 @@
         "threshold_z": 3.0
       },
       "phase": "divergence",
-      "planning_eligible": true,
+      "planning_eligible": false,
       "primary_anchor_eligible": false,
       "promotion_eligible": false,
       "reports_dir": "cross_asset_desync_event",
@@ -10299,9 +10390,9 @@
         "window_end": 32
       },
       "phase": "persistence",
-      "planning_eligible": true,
-      "primary_anchor_eligible": true,
-      "promotion_eligible": true,
+      "planning_eligible": false,
+      "primary_anchor_eligible": false,
+      "promotion_eligible": false,
       "reports_dir": "cross_venue_desync",
       "research_only": false,
       "runtime_eligible": false,
@@ -10402,7 +10493,7 @@
         "trigger": "Detector triggers on deleveraging wave pattern"
       },
       "phase": "unwind",
-      "planning_eligible": true,
+      "planning_eligible": false,
       "primary_anchor_eligible": false,
       "promotion_eligible": false,
       "reports_dir": "positioning_extremes",
@@ -10509,9 +10600,9 @@
         "z_threshold": 3.0
       },
       "phase": "collapse",
-      "planning_eligible": true,
+      "planning_eligible": false,
       "primary_anchor_eligible": false,
-      "promotion_eligible": true,
+      "promotion_eligible": false,
       "reports_dir": "liquidity_dislocation",
       "research_only": false,
       "runtime_eligible": false,
@@ -10527,7 +10618,8 @@
         "stop_run_repair",
         "overshoot_repair",
         "only_if_liquidity",
-        "slippage_aware_filter"
+        "slippage_aware_filter",
+        "mean_reversion"
       ],
       "threshold_parameters": {
         "cooldown_bars": 12,
@@ -10713,7 +10805,7 @@
         "trigger": "Detector triggers on failed continuation pattern"
       },
       "phase": "failure",
-      "planning_eligible": true,
+      "planning_eligible": false,
       "primary_anchor_eligible": false,
       "promotion_eligible": false,
       "reports_dir": "forced_flow_and_exhaustion",
@@ -10808,7 +10900,7 @@
         "trigger": "Detector triggers on false breakout pattern"
       },
       "phase": "failure",
-      "planning_eligible": true,
+      "planning_eligible": false,
       "primary_anchor_eligible": false,
       "promotion_eligible": false,
       "reports_dir": "trend_structure",
@@ -10910,7 +11002,7 @@
         "trigger": "Detector triggers on fee regime change event pattern"
       },
       "phase": "transition",
-      "planning_eligible": true,
+      "planning_eligible": false,
       "primary_anchor_eligible": false,
       "promotion_eligible": false,
       "reports_dir": "execution_friction",
@@ -11080,7 +11172,7 @@
       "deconflict_priority": 0,
       "default_executable": true,
       "detector": "FndDislocDetector",
-      "detector_band": "deployable_core",
+      "detector_band": "research_trigger",
       "disposition": "merge",
       "enabled": true,
       "event_type": "FND_DISLOC",
@@ -11125,12 +11217,12 @@
         "threshold_bps": 2.0
       },
       "phase": "shock",
-      "planning_eligible": true,
-      "primary_anchor_eligible": true,
-      "promotion_eligible": true,
+      "planning_eligible": false,
+      "primary_anchor_eligible": false,
+      "promotion_eligible": false,
       "reports_dir": "funding_dislocation",
       "research_only": false,
-      "runtime_eligible": true,
+      "runtime_eligible": false,
       "sequence_eligible": true,
       "signal_column": "funding_dislocation_event",
       "strategy_only": false,
@@ -11239,7 +11331,7 @@
         "window_end": 32
       },
       "phase": "exhaustion",
-      "planning_eligible": true,
+      "planning_eligible": false,
       "primary_anchor_eligible": false,
       "promotion_eligible": false,
       "reports_dir": "directional_exhaustion_after_forced_flow",
@@ -11439,9 +11531,9 @@
         "vol_burst_quantile": 0.9
       },
       "phase": "onset",
-      "planning_eligible": true,
-      "primary_anchor_eligible": true,
-      "promotion_eligible": true,
+      "planning_eligible": false,
+      "primary_anchor_eligible": false,
+      "promotion_eligible": false,
       "reports_dir": "funding_events",
       "research_only": false,
       "runtime_eligible": false,
@@ -11560,9 +11652,9 @@
         "trigger": "Detector triggers on funding flip pattern"
       },
       "phase": "flip",
-      "planning_eligible": true,
-      "primary_anchor_eligible": true,
-      "promotion_eligible": true,
+      "planning_eligible": false,
+      "primary_anchor_eligible": false,
+      "promotion_eligible": false,
       "reports_dir": "positioning_extremes",
       "research_only": false,
       "runtime_eligible": false,
@@ -11622,7 +11714,7 @@
       "deconflict_priority": 0,
       "default_executable": false,
       "detector": "FundingFlipDetector",
-      "detector_band": "",
+      "detector_band": "semantic_variant",
       "disposition": "rename",
       "enabled": false,
       "event_type": "FUNDING_FLIP_TO_NEGATIVE",
@@ -11651,6 +11743,13 @@
           "sign_field": "funding_sign",
           "sign_required": true,
           "sign_source": "funding"
+        },
+        "expected_behavior": {
+          "disabled_regimes": [
+            "low_liquidity: funding/OI signals unreliable",
+            "stale_funding: funding timestamp unavailable or stale",
+            "execution_friction_blocked: spread/slippage too high"
+          ]
         },
         "merge_gap_bars": 1,
         "min_occurrences": 0,
@@ -11713,7 +11812,7 @@
       "deconflict_priority": 0,
       "default_executable": false,
       "detector": "FundingFlipDetector",
-      "detector_band": "",
+      "detector_band": "semantic_variant",
       "disposition": "rename",
       "enabled": false,
       "event_type": "FUNDING_FLIP_TO_POSITIVE",
@@ -11742,6 +11841,13 @@
           "sign_field": "funding_sign",
           "sign_required": true,
           "sign_source": "funding"
+        },
+        "expected_behavior": {
+          "disabled_regimes": [
+            "low_liquidity: funding/OI signals unreliable",
+            "stale_funding: funding timestamp unavailable or stale",
+            "execution_friction_blocked: spread/slippage too high"
+          ]
         },
         "merge_gap_bars": 1,
         "min_occurrences": 0,
@@ -11804,7 +11910,7 @@
       "deconflict_priority": 0,
       "default_executable": false,
       "detector": "FundingExtremeOnsetDetector",
-      "detector_band": "",
+      "detector_band": "semantic_variant",
       "disposition": "rename",
       "enabled": false,
       "event_type": "FUNDING_NEG_EXTREME_ONSET",
@@ -11832,6 +11938,13 @@
           "sign_field": "funding_sign",
           "sign_required": true,
           "sign_source": "funding"
+        },
+        "expected_behavior": {
+          "disabled_regimes": [
+            "low_liquidity: funding/OI signals unreliable",
+            "stale_funding: funding timestamp unavailable or stale",
+            "execution_friction_blocked: spread/slippage too high"
+          ]
         },
         "merge_gap_bars": 1,
         "min_occurrences": 0,
@@ -11895,7 +12008,7 @@
       "deconflict_priority": 0,
       "default_executable": false,
       "detector": "FundingNormalizationDetector",
-      "detector_band": "",
+      "detector_band": "semantic_variant",
       "disposition": "rename",
       "enabled": false,
       "event_type": "FUNDING_NEG_NORMALIZATION",
@@ -11923,6 +12036,13 @@
           "sign_field": "funding_sign",
           "sign_required": true,
           "sign_source": "funding"
+        },
+        "expected_behavior": {
+          "disabled_regimes": [
+            "low_liquidity: funding/OI signals unreliable",
+            "stale_funding: funding timestamp unavailable or stale",
+            "execution_friction_blocked: spread/slippage too high"
+          ]
         },
         "merge_gap_bars": 1,
         "min_occurrences": 0,
@@ -11986,7 +12106,7 @@
       "deconflict_priority": 0,
       "default_executable": false,
       "detector": "FundingPersistenceDetector",
-      "detector_band": "",
+      "detector_band": "semantic_variant",
       "disposition": "rename",
       "enabled": false,
       "event_type": "FUNDING_NEG_PERSISTENCE",
@@ -12015,6 +12135,13 @@
           "sign_field": "funding_sign",
           "sign_required": true,
           "sign_source": "funding"
+        },
+        "expected_behavior": {
+          "disabled_regimes": [
+            "low_liquidity: funding/OI signals unreliable",
+            "stale_funding: funding timestamp unavailable or stale",
+            "execution_friction_blocked: spread/slippage too high"
+          ]
         },
         "merge_gap_bars": 1,
         "min_occurrences": 0,
@@ -12153,9 +12280,9 @@
         "vol_burst_quantile": 0.9
       },
       "phase": "normalization",
-      "planning_eligible": true,
+      "planning_eligible": false,
       "primary_anchor_eligible": false,
-      "promotion_eligible": true,
+      "promotion_eligible": false,
       "reports_dir": "funding_events",
       "research_only": false,
       "runtime_eligible": false,
@@ -12420,7 +12547,7 @@
       "deconflict_priority": 0,
       "default_executable": false,
       "detector": "FundingExtremeOnsetDetector",
-      "detector_band": "",
+      "detector_band": "semantic_variant",
       "disposition": "rename",
       "enabled": false,
       "event_type": "FUNDING_POS_EXTREME_ONSET",
@@ -12448,6 +12575,13 @@
           "sign_field": "funding_sign",
           "sign_required": true,
           "sign_source": "funding"
+        },
+        "expected_behavior": {
+          "disabled_regimes": [
+            "low_liquidity: funding/OI signals unreliable",
+            "stale_funding: funding timestamp unavailable or stale",
+            "execution_friction_blocked: spread/slippage too high"
+          ]
         },
         "merge_gap_bars": 1,
         "min_occurrences": 0,
@@ -12511,7 +12645,7 @@
       "deconflict_priority": 0,
       "default_executable": false,
       "detector": "FundingNormalizationDetector",
-      "detector_band": "",
+      "detector_band": "semantic_variant",
       "disposition": "rename",
       "enabled": false,
       "event_type": "FUNDING_POS_NORMALIZATION",
@@ -12539,6 +12673,13 @@
           "sign_field": "funding_sign",
           "sign_required": true,
           "sign_source": "funding"
+        },
+        "expected_behavior": {
+          "disabled_regimes": [
+            "low_liquidity: funding/OI signals unreliable",
+            "stale_funding: funding timestamp unavailable or stale",
+            "execution_friction_blocked: spread/slippage too high"
+          ]
         },
         "merge_gap_bars": 1,
         "min_occurrences": 0,
@@ -12602,7 +12743,7 @@
       "deconflict_priority": 0,
       "default_executable": false,
       "detector": "FundingPersistenceDetector",
-      "detector_band": "",
+      "detector_band": "semantic_variant",
       "disposition": "rename",
       "enabled": false,
       "event_type": "FUNDING_POS_PERSISTENCE",
@@ -12631,6 +12772,13 @@
           "sign_field": "funding_sign",
           "sign_required": true,
           "sign_source": "funding"
+        },
+        "expected_behavior": {
+          "disabled_regimes": [
+            "low_liquidity: funding/OI signals unreliable",
+            "stale_funding: funding timestamp unavailable or stale",
+            "execution_friction_blocked: spread/slippage too high"
+          ]
         },
         "merge_gap_bars": 1,
         "min_occurrences": 0,
@@ -12740,7 +12888,7 @@
         "trigger": "Detector triggers on funding timestamp event pattern"
       },
       "phase": "window",
-      "planning_eligible": true,
+      "planning_eligible": false,
       "primary_anchor_eligible": false,
       "promotion_eligible": false,
       "reports_dir": "temporal_structure",
@@ -12838,7 +12986,7 @@
         "trigger": "Detector triggers on gap overshoot pattern"
       },
       "phase": "overshoot",
-      "planning_eligible": true,
+      "planning_eligible": false,
       "primary_anchor_eligible": false,
       "promotion_eligible": false,
       "reports_dir": "statistical_dislocation",
@@ -12937,9 +13085,9 @@
         "trigger": "Detector triggers on index component divergence pattern"
       },
       "phase": "divergence",
-      "planning_eligible": true,
-      "primary_anchor_eligible": true,
-      "promotion_eligible": true,
+      "planning_eligible": false,
+      "primary_anchor_eligible": false,
+      "promotion_eligible": false,
       "reports_dir": "information_desync",
       "research_only": false,
       "runtime_eligible": false,
@@ -13037,9 +13185,9 @@
         "trigger": "Detector triggers on lead lag break pattern"
       },
       "phase": "divergence",
-      "planning_eligible": true,
-      "primary_anchor_eligible": true,
-      "promotion_eligible": true,
+      "planning_eligible": false,
+      "primary_anchor_eligible": false,
+      "promotion_eligible": false,
       "reports_dir": "information_desync",
       "research_only": false,
       "runtime_eligible": false,
@@ -13343,9 +13491,9 @@
         "vol_window": 288
       },
       "phase": "onset",
-      "planning_eligible": true,
-      "primary_anchor_eligible": true,
-      "promotion_eligible": true,
+      "planning_eligible": false,
+      "primary_anchor_eligible": false,
+      "promotion_eligible": false,
       "reports_dir": "liquidation_events",
       "research_only": false,
       "runtime_eligible": false,
@@ -13632,7 +13780,7 @@
         "z_threshold": 3.0
       },
       "phase": "shock",
-      "planning_eligible": true,
+      "planning_eligible": false,
       "primary_anchor_eligible": false,
       "promotion_eligible": false,
       "reports_dir": "liquidity_dislocation",
@@ -13689,7 +13837,7 @@
       "deconflict_priority": 0,
       "default_executable": true,
       "detector": "LiquidityStressDetector",
-      "detector_band": "deployable_core",
+      "detector_band": "research_trigger",
       "disposition": "keep",
       "enabled": true,
       "event_type": "LIQUIDITY_SHOCK",
@@ -13733,12 +13881,12 @@
         "trigger": "Detector triggers on liquidity shock pattern"
       },
       "phase": "shock",
-      "planning_eligible": true,
-      "primary_anchor_eligible": true,
-      "promotion_eligible": true,
+      "planning_eligible": false,
+      "primary_anchor_eligible": false,
+      "promotion_eligible": false,
       "reports_dir": "liquidity_shock",
       "research_only": false,
-      "runtime_eligible": true,
+      "runtime_eligible": false,
       "sequence_eligible": true,
       "signal_column": "liquidity_shock_event",
       "strategy_only": false,
@@ -13788,7 +13936,7 @@
       "deconflict_priority": 0,
       "default_executable": true,
       "detector": "DirectLiquidityStressDetector",
-      "detector_band": "deployable_core",
+      "detector_band": "research_trigger",
       "disposition": "merge",
       "enabled": true,
       "event_type": "LIQUIDITY_STRESS_DIRECT",
@@ -13829,12 +13977,12 @@
         "trigger": "Detector triggers on liquidity stress direct pattern"
       },
       "phase": "shock",
-      "planning_eligible": true,
-      "primary_anchor_eligible": true,
-      "promotion_eligible": true,
+      "planning_eligible": false,
+      "primary_anchor_eligible": false,
+      "promotion_eligible": false,
       "reports_dir": "liquidity_shock",
       "research_only": false,
-      "runtime_eligible": true,
+      "runtime_eligible": false,
       "sequence_eligible": true,
       "signal_column": "liquidity_stress_direct_event",
       "strategy_only": false,
@@ -14255,7 +14403,7 @@
         "trigger": "Detector triggers on momentum divergence trigger pattern"
       },
       "phase": "exhaustion",
-      "planning_eligible": true,
+      "planning_eligible": false,
       "primary_anchor_eligible": false,
       "promotion_eligible": false,
       "reports_dir": "forced_flow_and_exhaustion",
@@ -14351,9 +14499,9 @@
         "trigger": "Detector triggers on oi flush pattern"
       },
       "phase": "unwind",
-      "planning_eligible": true,
-      "primary_anchor_eligible": true,
-      "promotion_eligible": true,
+      "planning_eligible": false,
+      "primary_anchor_eligible": false,
+      "promotion_eligible": false,
       "reports_dir": "oi_shocks",
       "research_only": false,
       "runtime_eligible": false,
@@ -14498,7 +14646,7 @@
       "phase": "unwind",
       "planning_eligible": true,
       "primary_anchor_eligible": true,
-      "promotion_eligible": true,
+      "promotion_eligible": false,
       "reports_dir": "oi_shocks",
       "research_only": false,
       "runtime_eligible": true,
@@ -14515,7 +14663,9 @@
         "convexity_capture",
         "only_if_funding",
         "only_if_oi",
-        "tail_risk_avoid"
+        "tail_risk_avoid",
+        "continuation",
+        "mean_reversion"
       ],
       "threshold_parameters": {
         "cooldown_bars": 0,
@@ -14596,9 +14746,9 @@
         "trigger": "Detector triggers on oi spike positive pattern"
       },
       "phase": "expansion",
-      "planning_eligible": true,
-      "primary_anchor_eligible": true,
-      "promotion_eligible": true,
+      "planning_eligible": false,
+      "primary_anchor_eligible": false,
+      "promotion_eligible": false,
       "reports_dir": "oi_shocks",
       "research_only": false,
       "runtime_eligible": false,
@@ -14614,7 +14764,10 @@
         "squeeze_followthrough_confirmed",
         "only_if_funding",
         "only_if_oi",
-        "tail_risk_avoid"
+        "tail_risk_avoid",
+        "convexity_capture",
+        "continuation",
+        "mean_reversion"
       ],
       "threshold_parameters": {
         "cooldown_bars": 0,
@@ -14703,7 +14856,7 @@
         "z_threshold": 3.0
       },
       "phase": "shock",
-      "planning_eligible": true,
+      "planning_eligible": false,
       "primary_anchor_eligible": false,
       "promotion_eligible": false,
       "reports_dir": "liquidity_dislocation",
@@ -14813,7 +14966,7 @@
         "trigger": "Detector triggers on overshoot after shock pattern"
       },
       "phase": "overshoot",
-      "planning_eligible": true,
+      "planning_eligible": false,
       "primary_anchor_eligible": false,
       "promotion_eligible": false,
       "reports_dir": "statistical_dislocation",
@@ -14928,7 +15081,7 @@
         "wick_ratio_min": 0.55
       },
       "phase": "recovery",
-      "planning_eligible": true,
+      "planning_eligible": false,
       "primary_anchor_eligible": false,
       "promotion_eligible": false,
       "reports_dir": "forced_flow_and_exhaustion",
@@ -14996,7 +15149,7 @@
       "deconflict_priority": 0,
       "default_executable": false,
       "detector": "OISpikeNegativeDetector",
-      "detector_band": "",
+      "detector_band": "semantic_variant",
       "disposition": "rename",
       "enabled": false,
       "event_type": "PRICE_DOWN_OI_DOWN",
@@ -15024,6 +15177,13 @@
           "sign_field": "price_oi_quadrant",
           "sign_required": true,
           "sign_source": "price"
+        },
+        "expected_behavior": {
+          "disabled_regimes": [
+            "stale_open_interest: OI unavailable or stale",
+            "low_liquidity: price/OI quadrant unreliable",
+            "execution_friction_blocked: spread/slippage too high"
+          ]
         },
         "merge_gap_bars": 1,
         "min_occurrences": 0,
@@ -15088,7 +15248,7 @@
       "deconflict_priority": 0,
       "default_executable": false,
       "detector": "OISpikePositiveDetector",
-      "detector_band": "",
+      "detector_band": "semantic_variant",
       "disposition": "rename",
       "enabled": false,
       "event_type": "PRICE_DOWN_OI_UP",
@@ -15116,6 +15276,13 @@
           "sign_field": "price_oi_quadrant",
           "sign_required": true,
           "sign_source": "price"
+        },
+        "expected_behavior": {
+          "disabled_regimes": [
+            "stale_open_interest: OI unavailable or stale",
+            "low_liquidity: price/OI quadrant unreliable",
+            "execution_friction_blocked: spread/slippage too high"
+          ]
         },
         "merge_gap_bars": 1,
         "min_occurrences": 0,
@@ -15179,7 +15346,7 @@
       "deconflict_priority": 0,
       "default_executable": false,
       "detector": "OISpikeNegativeDetector",
-      "detector_band": "",
+      "detector_band": "semantic_variant",
       "disposition": "rename",
       "enabled": false,
       "event_type": "PRICE_UP_OI_DOWN",
@@ -15207,6 +15374,13 @@
           "sign_field": "price_oi_quadrant",
           "sign_required": true,
           "sign_source": "price"
+        },
+        "expected_behavior": {
+          "disabled_regimes": [
+            "stale_open_interest: OI unavailable or stale",
+            "low_liquidity: price/OI quadrant unreliable",
+            "execution_friction_blocked: spread/slippage too high"
+          ]
         },
         "merge_gap_bars": 1,
         "min_occurrences": 0,
@@ -15271,7 +15445,7 @@
       "deconflict_priority": 0,
       "default_executable": false,
       "detector": "OISpikePositiveDetector",
-      "detector_band": "",
+      "detector_band": "semantic_variant",
       "disposition": "rename",
       "enabled": false,
       "event_type": "PRICE_UP_OI_UP",
@@ -15299,6 +15473,13 @@
           "sign_field": "price_oi_quadrant",
           "sign_required": true,
           "sign_source": "price"
+        },
+        "expected_behavior": {
+          "disabled_regimes": [
+            "stale_open_interest: OI unavailable or stale",
+            "low_liquidity: price/OI quadrant unreliable",
+            "execution_friction_blocked: spread/slippage too high"
+          ]
         },
         "merge_gap_bars": 1,
         "min_occurrences": 0,
@@ -15514,7 +15695,7 @@
         "trigger": "Detector triggers on pullback pivot pattern"
       },
       "phase": "recovery",
-      "planning_eligible": true,
+      "planning_eligible": false,
       "primary_anchor_eligible": false,
       "promotion_eligible": false,
       "reports_dir": "trend_structure",
@@ -15614,7 +15795,7 @@
         "trigger": "Detector triggers on range breakout pattern"
       },
       "phase": "breakout",
-      "planning_eligible": true,
+      "planning_eligible": false,
       "primary_anchor_eligible": false,
       "promotion_eligible": false,
       "reports_dir": "trend_structure",
@@ -15714,7 +15895,7 @@
         "vol_lookback_window": 288
       },
       "phase": "breakout",
-      "planning_eligible": true,
+      "planning_eligible": false,
       "primary_anchor_eligible": false,
       "promotion_eligible": false,
       "reports_dir": "volatility_transition",
@@ -15813,7 +15994,7 @@
         "trigger": "Detector triggers on scheduled news window event pattern"
       },
       "phase": "window",
-      "planning_eligible": true,
+      "planning_eligible": false,
       "primary_anchor_eligible": false,
       "promotion_eligible": false,
       "reports_dir": "temporal_structure",
@@ -16282,7 +16463,7 @@
         "trigger": "Detector triggers on session close event pattern"
       },
       "phase": "window",
-      "planning_eligible": true,
+      "planning_eligible": false,
       "primary_anchor_eligible": false,
       "promotion_eligible": false,
       "reports_dir": "temporal_structure",
@@ -16386,7 +16567,7 @@
         "trigger": "Detector triggers on session open event pattern"
       },
       "phase": "window",
-      "planning_eligible": true,
+      "planning_eligible": false,
       "primary_anchor_eligible": false,
       "promotion_eligible": false,
       "reports_dir": "temporal_structure",
@@ -16483,7 +16664,7 @@
         "trigger": "Detector triggers on slippage spike event pattern"
       },
       "phase": "shock",
-      "planning_eligible": true,
+      "planning_eligible": false,
       "primary_anchor_eligible": false,
       "promotion_eligible": false,
       "reports_dir": "execution_friction",
@@ -16536,7 +16717,7 @@
       "deconflict_priority": 0,
       "default_executable": true,
       "detector": "SpotPerpBasisShockDetector",
-      "detector_band": "deployable_core",
+      "detector_band": "research_trigger",
       "disposition": "merge",
       "enabled": true,
       "event_type": "SPOT_PERP_BASIS_SHOCK",
@@ -16583,12 +16764,12 @@
         "z_threshold": 5.0
       },
       "phase": "shock",
-      "planning_eligible": true,
-      "primary_anchor_eligible": true,
-      "promotion_eligible": true,
+      "planning_eligible": false,
+      "primary_anchor_eligible": false,
+      "promotion_eligible": false,
       "reports_dir": "information_desync",
       "research_only": false,
-      "runtime_eligible": true,
+      "runtime_eligible": false,
       "sequence_eligible": true,
       "signal_column": "spot_perp_basis_shock_event",
       "strategy_only": false,
@@ -16686,7 +16867,7 @@
         "z_threshold": 3.0
       },
       "phase": "shock",
-      "planning_eligible": true,
+      "planning_eligible": false,
       "primary_anchor_eligible": false,
       "promotion_eligible": false,
       "reports_dir": "liquidity_dislocation",
@@ -16705,7 +16886,8 @@
         "stop_run_repair",
         "overshoot_repair",
         "only_if_liquidity",
-        "slippage_aware_filter"
+        "slippage_aware_filter",
+        "mean_reversion"
       ],
       "threshold_parameters": {
         "cooldown_bars": 12,
@@ -16790,7 +16972,7 @@
         "trigger": "Detector triggers on spread regime widening event pattern"
       },
       "phase": "persistence",
-      "planning_eligible": true,
+      "planning_eligible": false,
       "primary_anchor_eligible": false,
       "promotion_eligible": false,
       "reports_dir": "execution_friction",
@@ -16890,7 +17072,7 @@
         "trigger": "Detector triggers on support resistance break pattern"
       },
       "phase": "breakout",
-      "planning_eligible": true,
+      "planning_eligible": false,
       "primary_anchor_eligible": false,
       "promotion_eligible": false,
       "reports_dir": "trend_structure",
@@ -16991,7 +17173,7 @@
         "z_threshold": 3.0
       },
       "phase": "shock",
-      "planning_eligible": true,
+      "planning_eligible": false,
       "primary_anchor_eligible": false,
       "promotion_eligible": false,
       "reports_dir": "liquidity_dislocation",
@@ -17094,7 +17276,7 @@
         "trigger": "Detector triggers on trend acceleration pattern"
       },
       "phase": "persistence",
-      "planning_eligible": true,
+      "planning_eligible": false,
       "primary_anchor_eligible": false,
       "promotion_eligible": false,
       "reports_dir": "trend_structure",
@@ -17195,7 +17377,7 @@
         "trigger": "Detector triggers on trend deceleration pattern"
       },
       "phase": "exhaustion",
-      "planning_eligible": true,
+      "planning_eligible": false,
       "primary_anchor_eligible": false,
       "promotion_eligible": false,
       "reports_dir": "trend_structure",
@@ -17312,7 +17494,7 @@
         "vol_window": 288
       },
       "phase": "onset",
-      "planning_eligible": true,
+      "planning_eligible": false,
       "primary_anchor_eligible": false,
       "promotion_eligible": false,
       "reports_dir": "forced_flow_and_exhaustion",
@@ -17423,7 +17605,7 @@
         "trigger": "Detector triggers on trend to chop shift pattern"
       },
       "phase": "transition",
-      "planning_eligible": true,
+      "planning_eligible": false,
       "primary_anchor_eligible": false,
       "promotion_eligible": false,
       "reports_dir": "regime_transition",
@@ -17523,7 +17705,7 @@
         "vol_lookback_window": 288
       },
       "phase": "persistence",
-      "planning_eligible": true,
+      "planning_eligible": false,
       "primary_anchor_eligible": false,
       "promotion_eligible": false,
       "reports_dir": "volatility_transition",
@@ -17623,7 +17805,7 @@
         "trigger": "Detector triggers on vol regime shift event pattern"
       },
       "phase": "transition",
-      "planning_eligible": true,
+      "planning_eligible": false,
       "primary_anchor_eligible": false,
       "promotion_eligible": false,
       "reports_dir": "regime_transition",
@@ -17723,9 +17905,9 @@
         "vol_lookback_window": 288
       },
       "phase": "normalization",
-      "planning_eligible": true,
+      "planning_eligible": false,
       "primary_anchor_eligible": false,
-      "promotion_eligible": true,
+      "promotion_eligible": false,
       "reports_dir": "volatility_transition",
       "research_only": false,
       "runtime_eligible": false,
@@ -17780,7 +17962,7 @@
       "deconflict_priority": 0,
       "default_executable": true,
       "detector": "VolShockRelaxationDetector",
-      "detector_band": "deployable_core",
+      "detector_band": "research_trigger",
       "disposition": "keep",
       "enabled": true,
       "event_type": "VOL_SHOCK",
@@ -17878,12 +18060,12 @@
         "synthetic_coverage": "covered"
       },
       "phase": "shock",
-      "planning_eligible": true,
-      "primary_anchor_eligible": true,
-      "promotion_eligible": true,
+      "planning_eligible": false,
+      "primary_anchor_eligible": false,
+      "promotion_eligible": false,
       "reports_dir": "vol_shock_relaxation",
       "research_only": false,
-      "runtime_eligible": true,
+      "runtime_eligible": false,
       "sequence_eligible": true,
       "signal_column": "vol_shock_relaxation_event",
       "strategy_only": false,
@@ -17932,7 +18114,7 @@
       "deconflict_priority": 0,
       "default_executable": true,
       "detector": "VolSpikeDetector",
-      "detector_band": "deployable_core",
+      "detector_band": "research_trigger",
       "disposition": "keep",
       "enabled": true,
       "event_type": "VOL_SPIKE",
@@ -17973,12 +18155,12 @@
         "trigger": "Detector triggers on vol spike pattern"
       },
       "phase": "shock",
-      "planning_eligible": true,
-      "primary_anchor_eligible": true,
-      "promotion_eligible": true,
+      "planning_eligible": false,
+      "primary_anchor_eligible": false,
+      "promotion_eligible": false,
       "reports_dir": "volatility_transition",
       "research_only": false,
-      "runtime_eligible": true,
+      "runtime_eligible": false,
       "sequence_eligible": true,
       "signal_column": "vol_spike_event",
       "strategy_only": false,
@@ -18168,7 +18350,7 @@
         "zscore_quantile": 0.96
       },
       "phase": "stretch",
-      "planning_eligible": true,
+      "planning_eligible": false,
       "primary_anchor_eligible": false,
       "promotion_eligible": false,
       "reports_dir": "statistical_dislocation",

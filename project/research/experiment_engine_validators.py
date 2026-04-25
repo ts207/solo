@@ -247,7 +247,8 @@ def _validate_event_trigger(request: AgentExperimentRequest, registries: Registr
     for event_id in requested:
         if event_id not in allowed_events:
             raise ValueError(f"Event ID '{event_id}' is not in the authoritative registry.")
-        if not allowed_events[event_id].get("enabled", True):
+        ev = allowed_events[event_id]
+        if not ev.get("enabled", True) and not ev.get("planning_eligible", False):
             raise ValueError(f"Event ID '{event_id}' is disabled.")
 
 

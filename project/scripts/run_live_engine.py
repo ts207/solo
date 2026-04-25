@@ -217,12 +217,16 @@ def validate_live_runtime_environment(
     config = _resolve_live_engine_config(config_path=config_path, config=config)
     runtime_mode = str(config.get("runtime_mode", "monitor_only")).strip().lower()
     strategy_runtime = config.get("strategy_runtime", {})
-    if runtime_mode == "trading" and not bool(strategy_runtime.get("implemented", False)):
+    environment_name = _resolve_runtime_environment(config, config_path=config_path)
+    if (
+        runtime_mode == "trading"
+        and not bool(strategy_runtime.get("implemented", False))
+        and environment_name != "paper"
+    ):
         raise LiveRuntimeConfigError(
             "runtime_mode 'trading' requires strategy_runtime.implemented=true"
         )
     env = dict(environ or os.environ)
-    environment_name = _resolve_runtime_environment(config, config_path=config_path)
     if runtime_mode in {"monitor_only", "simulation"}:
         return {
             "environment": environment_name,

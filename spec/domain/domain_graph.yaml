@@ -4,8 +4,8 @@ metadata:
   status: generated
   graph_role: runtime_read_model
   schema_version: 2
-  generated_at_utc: '2026-04-25T05:51:36Z'
-  spec_sources_digest: 7c2602c0f5ef04a3c59312f535baf9113a3507ffe431a08a8ed77306beb6039b
+  generated_at_utc: '2026-04-25T09:45:51Z'
+  spec_sources_digest: 461e212a92cdfea03736a53aba440ae6f38b6402619147b1bad4870f3c4ea33b
   notes: Compiled runtime read model. Semantic nodes are normalized for direct runtime/search
     loading.
 events:
@@ -39,7 +39,7 @@ events:
     runtime_category: active_runtime_event
     maturity: standard
     default_executable: true
-    detector_band: ''
+    detector_band: composite_or_fragile
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -141,7 +141,7 @@ events:
     runtime_category: active_runtime_event
     maturity: ''
     default_executable: true
-    detector_band: ''
+    detector_band: research_trigger
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -239,7 +239,7 @@ events:
     runtime_category: active_runtime_event
     maturity: ''
     default_executable: true
-    detector_band: ''
+    detector_band: research_trigger
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -279,9 +279,14 @@ events:
       min_basis_bps: 10.0
     runtime:
       templates:
+      - reversal_or_squeeze
+      - continuation
+      - mean_reversion
       - basis_convergence
       - basis_repair
       - basis_funding_convergence
+      - overshoot_repair
+      - tail_risk_avoid
       horizons:
       - 15m
       - 60m
@@ -334,7 +339,7 @@ events:
     runtime_category: active_runtime_event
     maturity: ''
     default_executable: true
-    detector_band: ''
+    detector_band: research_trigger
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -433,7 +438,7 @@ events:
     runtime_category: active_runtime_event
     maturity: ''
     default_executable: true
-    detector_band: ''
+    detector_band: research_trigger
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -537,7 +542,7 @@ events:
     runtime_category: active_runtime_event
     maturity: ''
     default_executable: true
-    detector_band: ''
+    detector_band: research_trigger
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -637,7 +642,7 @@ events:
     runtime_category: active_runtime_event
     maturity: ''
     default_executable: true
-    detector_band: ''
+    detector_band: research_trigger
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -743,7 +748,7 @@ events:
     runtime_category: research_only
     maturity: ''
     default_executable: false
-    detector_band: ''
+    detector_band: composite_or_fragile
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -842,7 +847,7 @@ events:
     runtime_category: active_runtime_event
     maturity: ''
     default_executable: true
-    detector_band: ''
+    detector_band: research_trigger
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -941,7 +946,7 @@ events:
     runtime_category: active_runtime_event
     maturity: ''
     default_executable: true
-    detector_band: ''
+    detector_band: context_only
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -1094,7 +1099,7 @@ events:
     runtime_category: active_runtime_event
     maturity: standard
     default_executable: true
-    detector_band: ''
+    detector_band: research_trigger
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -1265,7 +1270,7 @@ events:
     runtime_category: active_runtime_event
     maturity: ''
     default_executable: true
-    detector_band: ''
+    detector_band: research_trigger
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -1384,7 +1389,7 @@ events:
     runtime_category: active_runtime_event
     maturity: standard
     default_executable: true
-    detector_band: ''
+    detector_band: research_trigger
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -1437,6 +1442,7 @@ events:
       - overshoot_repair
       - only_if_liquidity
       - slippage_aware_filter
+      - mean_reversion
       horizons:
       - 15m
       conditioning_cols:
@@ -1489,7 +1495,7 @@ events:
     runtime_category: active_runtime_event
     maturity: standard
     default_executable: true
-    detector_band: ''
+    detector_band: composite_or_fragile
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -1595,7 +1601,7 @@ events:
     runtime_category: active_runtime_event
     maturity: ''
     default_executable: true
-    detector_band: ''
+    detector_band: research_trigger
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -1696,7 +1702,7 @@ events:
     runtime_category: active_runtime_event
     maturity: ''
     default_executable: true
-    detector_band: ''
+    detector_band: research_trigger
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -1799,7 +1805,7 @@ events:
     runtime_category: active_runtime_event
     maturity: ''
     default_executable: true
-    detector_band: ''
+    detector_band: research_trigger
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -1897,7 +1903,7 @@ events:
     runtime_category: active_runtime_event
     maturity: standard
     default_executable: true
-    detector_band: ''
+    detector_band: composite_or_fragile
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -2012,7 +2018,7 @@ events:
     runtime_category: active_runtime_event
     maturity: ''
     default_executable: true
-    detector_band: ''
+    detector_band: research_trigger
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -2056,9 +2062,14 @@ events:
       min_basis_bps: 5.0
     runtime:
       templates:
+      - reversal_or_squeeze
+      - continuation
+      - mean_reversion
       - basis_funding_convergence
       - basis_convergence
       - basis_repair
+      - overshoot_repair
+      - tail_risk_avoid
       horizons:
       - 15m
       - 60m
@@ -2111,7 +2122,7 @@ events:
     runtime_category: active_runtime_event
     maturity: standard
     default_executable: true
-    detector_band: ''
+    detector_band: research_trigger
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -2231,7 +2242,7 @@ events:
     runtime_category: active_runtime_event
     maturity: standard
     default_executable: true
-    detector_band: ''
+    detector_band: research_trigger
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -2432,7 +2443,7 @@ events:
     runtime_category: active_runtime_event
     maturity: ''
     default_executable: true
-    detector_band: ''
+    detector_band: research_trigger
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -2539,7 +2550,7 @@ events:
     runtime_category: active_runtime_event
     maturity: ''
     default_executable: false
-    detector_band: ''
+    detector_band: semantic_variant
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -2641,7 +2652,7 @@ events:
     runtime_category: active_runtime_event
     maturity: ''
     default_executable: false
-    detector_band: ''
+    detector_band: semantic_variant
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -2743,7 +2754,7 @@ events:
     runtime_category: active_runtime_event
     maturity: ''
     default_executable: false
-    detector_band: ''
+    detector_band: semantic_variant
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -2845,7 +2856,7 @@ events:
     runtime_category: active_runtime_event
     maturity: ''
     default_executable: false
-    detector_band: ''
+    detector_band: semantic_variant
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -2947,7 +2958,7 @@ events:
     runtime_category: active_runtime_event
     maturity: ''
     default_executable: false
-    detector_band: ''
+    detector_band: semantic_variant
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -3053,7 +3064,7 @@ events:
     runtime_category: active_runtime_event
     maturity: ''
     default_executable: true
-    detector_band: ''
+    detector_band: research_trigger
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -3356,7 +3367,7 @@ events:
     runtime_category: active_runtime_event
     maturity: ''
     default_executable: false
-    detector_band: ''
+    detector_band: semantic_variant
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -3458,7 +3469,7 @@ events:
     runtime_category: active_runtime_event
     maturity: ''
     default_executable: false
-    detector_band: ''
+    detector_band: semantic_variant
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -3560,7 +3571,7 @@ events:
     runtime_category: active_runtime_event
     maturity: ''
     default_executable: false
-    detector_band: ''
+    detector_band: semantic_variant
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -3666,7 +3677,7 @@ events:
     runtime_category: active_runtime_event
     maturity: ''
     default_executable: false
-    detector_band: ''
+    detector_band: context_only
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -3778,7 +3789,7 @@ events:
     runtime_category: active_runtime_event
     maturity: ''
     default_executable: true
-    detector_band: ''
+    detector_band: research_trigger
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -3877,7 +3888,7 @@ events:
     runtime_category: active_runtime_event
     maturity: ''
     default_executable: true
-    detector_band: ''
+    detector_band: research_trigger
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -3978,7 +3989,7 @@ events:
     runtime_category: active_runtime_event
     maturity: ''
     default_executable: true
-    detector_band: ''
+    detector_band: research_trigger
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -4162,6 +4173,12 @@ events:
       - only_if_funding
       - only_if_oi
       - tail_risk_avoid
+      - mean_reversion
+      - exhaustion_reversal
+      - continuation
+      - momentum_fade
+      - range_reversion
+      - reversal_or_squeeze
       horizons:
       - 5m
       - 15m
@@ -4217,7 +4234,7 @@ events:
     runtime_category: active_runtime_event
     maturity: experimental
     default_executable: true
-    detector_band: ''
+    detector_band: composite_or_fragile
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -4505,6 +4522,10 @@ events:
       - momentum_fade
       - only_if_trend
       - drawdown_filter
+      - mean_reversion
+      - exhaustion_reversal
+      - continuation
+      - range_reversion
       horizons:
       - 60m
       conditioning_cols:
@@ -4556,7 +4577,7 @@ events:
     runtime_category: active_runtime_event
     maturity: ''
     default_executable: true
-    detector_band: ''
+    detector_band: research_trigger
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -4661,7 +4682,7 @@ events:
     runtime_category: active_runtime_event
     maturity: ''
     default_executable: true
-    detector_band: ''
+    detector_band: research_trigger
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -4762,7 +4783,7 @@ events:
     runtime_category: active_runtime_event
     maturity: ''
     default_executable: true
-    detector_band: ''
+    detector_band: research_trigger
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -4861,7 +4882,7 @@ events:
     runtime_category: active_runtime_event
     maturity: standard
     default_executable: true
-    detector_band: ''
+    detector_band: composite_or_fragile
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -5168,7 +5189,7 @@ events:
     runtime_category: active_runtime_event
     maturity: ''
     default_executable: true
-    detector_band: ''
+    detector_band: research_trigger
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -5271,7 +5292,7 @@ events:
     runtime_category: active_runtime_event
     maturity: ''
     default_executable: true
-    detector_band: ''
+    detector_band: research_trigger
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -5462,6 +5483,8 @@ events:
       - only_if_funding
       - only_if_oi
       - tail_risk_avoid
+      - continuation
+      - mean_reversion
       horizons:
       - 5m
       - 60m
@@ -5514,7 +5537,7 @@ events:
     runtime_category: active_runtime_event
     maturity: ''
     default_executable: true
-    detector_band: ''
+    detector_band: research_trigger
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -5563,6 +5586,9 @@ events:
       - only_if_funding
       - only_if_oi
       - tail_risk_avoid
+      - convexity_capture
+      - continuation
+      - mean_reversion
       horizons:
       - 60m
       conditioning_cols:
@@ -5614,7 +5640,7 @@ events:
     runtime_category: active_runtime_event
     maturity: standard
     default_executable: true
-    detector_band: ''
+    detector_band: research_trigger
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -5723,7 +5749,7 @@ events:
     runtime_category: active_runtime_event
     maturity: ''
     default_executable: true
-    detector_band: ''
+    detector_band: research_trigger
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -5823,7 +5849,7 @@ events:
     runtime_category: active_runtime_event
     maturity: ''
     default_executable: true
-    detector_band: ''
+    detector_band: research_trigger
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -5889,6 +5915,7 @@ events:
       - range_reversion
       - only_if_trend
       - drawdown_filter
+      - continuation
       horizons:
       - 60m
       conditioning_cols:
@@ -5940,7 +5967,7 @@ events:
     runtime_category: active_runtime_event
     maturity: ''
     default_executable: false
-    detector_band: ''
+    detector_band: semantic_variant
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -6042,7 +6069,7 @@ events:
     runtime_category: active_runtime_event
     maturity: ''
     default_executable: false
-    detector_band: ''
+    detector_band: semantic_variant
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -6143,7 +6170,7 @@ events:
     runtime_category: active_runtime_event
     maturity: ''
     default_executable: false
-    detector_band: ''
+    detector_band: semantic_variant
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -6245,7 +6272,7 @@ events:
     runtime_category: active_runtime_event
     maturity: ''
     default_executable: false
-    detector_band: ''
+    detector_band: semantic_variant
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -6348,7 +6375,7 @@ events:
     runtime_category: active_runtime_event
     maturity: standard
     default_executable: true
-    detector_band: ''
+    detector_band: composite_or_fragile
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -6454,7 +6481,7 @@ events:
     runtime_category: active_runtime_event
     maturity: ''
     default_executable: true
-    detector_band: ''
+    detector_band: research_trigger
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -6555,7 +6582,7 @@ events:
     runtime_category: active_runtime_event
     maturity: ''
     default_executable: true
-    detector_band: ''
+    detector_band: research_trigger
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -6657,7 +6684,7 @@ events:
     runtime_category: active_runtime_event
     maturity: ''
     default_executable: true
-    detector_band: ''
+    detector_band: research_trigger
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -6758,7 +6785,7 @@ events:
     runtime_category: active_runtime_event
     maturity: ''
     default_executable: false
-    detector_band: ''
+    detector_band: context_only
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -6873,7 +6900,7 @@ events:
     runtime_category: research_only
     maturity: ''
     default_executable: false
-    detector_band: ''
+    detector_band: composite_or_fragile
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -6976,7 +7003,7 @@ events:
     runtime_category: research_only
     maturity: ''
     default_executable: false
-    detector_band: ''
+    detector_band: composite_or_fragile
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -7077,7 +7104,7 @@ events:
     runtime_category: research_only
     maturity: ''
     default_executable: false
-    detector_band: ''
+    detector_band: composite_or_fragile
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -7180,7 +7207,7 @@ events:
     runtime_category: research_only
     maturity: ''
     default_executable: false
-    detector_band: ''
+    detector_band: composite_or_fragile
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -7280,7 +7307,7 @@ events:
     runtime_category: active_runtime_event
     maturity: ''
     default_executable: false
-    detector_band: ''
+    detector_band: context_only
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -7383,7 +7410,7 @@ events:
     runtime_category: active_runtime_event
     maturity: ''
     default_executable: false
-    detector_band: ''
+    detector_band: context_only
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -7486,7 +7513,7 @@ events:
     runtime_category: active_runtime_event
     maturity: ''
     default_executable: true
-    detector_band: ''
+    detector_band: research_trigger
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -7584,7 +7611,7 @@ events:
     runtime_category: active_runtime_event
     maturity: ''
     default_executable: true
-    detector_band: ''
+    detector_band: research_trigger
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -7689,7 +7716,7 @@ events:
     runtime_category: active_runtime_event
     maturity: ''
     default_executable: true
-    detector_band: ''
+    detector_band: research_trigger
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -7765,6 +7792,7 @@ events:
       - overshoot_repair
       - only_if_liquidity
       - slippage_aware_filter
+      - mean_reversion
       horizons:
       - 15m
       conditioning_cols:
@@ -7816,7 +7844,7 @@ events:
     runtime_category: active_runtime_event
     maturity: ''
     default_executable: true
-    detector_band: ''
+    detector_band: research_trigger
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -7917,7 +7945,7 @@ events:
     runtime_category: active_runtime_event
     maturity: ''
     default_executable: true
-    detector_band: ''
+    detector_band: research_trigger
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -8018,7 +8046,7 @@ events:
     runtime_category: active_runtime_event
     maturity: standard
     default_executable: true
-    detector_band: ''
+    detector_band: research_trigger
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -8122,7 +8150,7 @@ events:
     runtime_category: active_runtime_event
     maturity: ''
     default_executable: true
-    detector_band: ''
+    detector_band: research_trigger
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -8224,7 +8252,7 @@ events:
     runtime_category: active_runtime_event
     maturity: ''
     default_executable: true
-    detector_band: ''
+    detector_band: research_trigger
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -8325,7 +8353,7 @@ events:
     runtime_category: active_runtime_event
     maturity: ''
     default_executable: true
-    detector_band: ''
+    detector_band: research_trigger
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -8393,6 +8421,7 @@ events:
       - range_reversion
       - only_if_trend
       - drawdown_filter
+      - continuation
       horizons:
       - 60m
       conditioning_cols:
@@ -8444,7 +8473,7 @@ events:
     runtime_category: active_runtime_event
     maturity: ''
     default_executable: true
-    detector_band: ''
+    detector_band: research_trigger
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -8544,7 +8573,7 @@ events:
     runtime_category: active_runtime_event
     maturity: ''
     default_executable: true
-    detector_band: ''
+    detector_band: research_trigger
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -8645,7 +8674,7 @@ events:
     runtime_category: active_runtime_event
     maturity: ''
     default_executable: true
-    detector_band: ''
+    detector_band: research_trigger
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -8745,7 +8774,7 @@ events:
     runtime_category: active_runtime_event
     maturity: ''
     default_executable: true
-    detector_band: ''
+    detector_band: research_trigger
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -8847,7 +8876,7 @@ events:
     runtime_category: active_runtime_event
     maturity: ''
     default_executable: true
-    detector_band: ''
+    detector_band: research_trigger
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -9016,7 +9045,7 @@ events:
     runtime_category: active_runtime_event
     maturity: ''
     default_executable: true
-    detector_band: ''
+    detector_band: research_trigger
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -9116,7 +9145,7 @@ events:
     runtime_category: active_runtime_event
     maturity: standard
     default_executable: true
-    detector_band: ''
+    detector_band: composite_or_fragile
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -9215,7 +9244,7 @@ events:
     runtime_category: active_runtime_event
     maturity: ''
     default_executable: true
-    detector_band: ''
+    detector_band: research_trigger
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -11159,6 +11188,16 @@ templates:
     supports_trigger_types:
     - EVENT
     - SEQUENCE
+  cascade_continuation_until_cooldown:
+    template_id: cascade_continuation_until_cooldown
+    compatible_families:
+    - FORCED_FLOW_AND_EXHAUSTION
+    - POSITIONING_EXTREMES
+    template_kind: expression_template
+    side_policy: directional
+    label_target: fwd_return_h
+    requires_direction: true
+    supports_trigger_types: []
   continuation:
     template_id: continuation
     compatible_families:
@@ -12365,6 +12404,9 @@ runtime:
       BASIS_FUNDING_DISLOCATION:
         parameters: {}
         templates:
+        - mean_reversion
+        - continuation
+        - reversal_or_squeeze
         - carry_unwind_reversal
         - carry_continuation_confirmed
         - basis_funding_convergence
@@ -12394,6 +12436,8 @@ runtime:
         - only_if_trend
         - only_if_regime
         - drawdown_filter
+        - mean_reversion
+        - exhaustion_reversal
       INFORMATION_DESYNC:
         parameters: {}
         templates:
@@ -12555,9 +12599,14 @@ runtime:
         max_candidates_per_run: 350
       BASIS_DISLOC:
         templates:
+        - reversal_or_squeeze
+        - continuation
+        - mean_reversion
         - basis_convergence
         - basis_repair
         - basis_funding_convergence
+        - overshoot_repair
+        - tail_risk_avoid
         horizons:
         - 15m
         - 60m
@@ -12850,6 +12899,7 @@ runtime:
         - overshoot_repair
         - only_if_liquidity
         - slippage_aware_filter
+        - mean_reversion
         horizons:
         - 15m
         conditioning_cols:
@@ -13016,9 +13066,14 @@ runtime:
         max_candidates_per_run: 500
       FND_DISLOC:
         templates:
+        - reversal_or_squeeze
+        - continuation
+        - mean_reversion
         - basis_funding_convergence
         - basis_convergence
         - basis_repair
+        - overshoot_repair
+        - tail_risk_avoid
         horizons:
         - 15m
         - 60m
@@ -13547,6 +13602,12 @@ runtime:
         - only_if_funding
         - only_if_oi
         - tail_risk_avoid
+        - mean_reversion
+        - exhaustion_reversal
+        - continuation
+        - momentum_fade
+        - range_reversion
+        - reversal_or_squeeze
         horizons:
         - 5m
         - 15m
@@ -13611,6 +13672,10 @@ runtime:
         - momentum_fade
         - only_if_trend
         - drawdown_filter
+        - mean_reversion
+        - exhaustion_reversal
+        - continuation
+        - range_reversion
         horizons:
         - 60m
         conditioning_cols:
@@ -13833,6 +13898,8 @@ runtime:
         - only_if_funding
         - only_if_oi
         - tail_risk_avoid
+        - continuation
+        - mean_reversion
         horizons:
         - 5m
         - 60m
@@ -13862,6 +13929,9 @@ runtime:
         - only_if_funding
         - only_if_oi
         - tail_risk_avoid
+        - convexity_capture
+        - continuation
+        - mean_reversion
         horizons:
         - 60m
         conditioning_cols:
@@ -13947,6 +14017,7 @@ runtime:
         - range_reversion
         - only_if_trend
         - drawdown_filter
+        - continuation
         horizons:
         - 60m
         conditioning_cols:
@@ -14458,6 +14529,7 @@ runtime:
         - overshoot_repair
         - only_if_liquidity
         - slippage_aware_filter
+        - mean_reversion
         horizons:
         - 15m
         conditioning_cols:
@@ -14633,6 +14705,7 @@ runtime:
         - range_reversion
         - only_if_trend
         - drawdown_filter
+        - continuation
         horizons:
         - 60m
         conditioning_cols:
@@ -14979,6 +15052,9 @@ runtime:
         - tail_risk_avoid
       BASIS_FUNDING_DISLOCATION:
         templates:
+        - mean_reversion
+        - continuation
+        - reversal_or_squeeze
         - carry_unwind_reversal
         - carry_continuation_confirmed
         - basis_funding_convergence
@@ -15000,6 +15076,8 @@ runtime:
         - only_if_trend
         - only_if_regime
         - drawdown_filter
+        - mean_reversion
+        - exhaustion_reversal
       TREND_FAILURE_EXHAUSTION:
         templates:
         - mean_reversion
@@ -15124,12 +15202,6 @@ runtime:
   - family: ms_spread_state
     label: wide
     state_id: SPREAD_WIDE
-  - family: ms_trend_state
-    label: chop
-    state_id: CHOP_ACTIVE
-  - family: ms_trend_state
-    label: trend
-    state_id: TREND_ACTIVE
   - family: trend_structure
     label: chop
     state_id: CHOP_STATE
@@ -15217,6 +15289,21 @@ runtime:
     - 6
     - 12
     mode: ordered_strict
+    allowed_templates:
+    - mean_reversion
+    side_policy:
+      type: directional
+    required_contexts:
+      liquidity_phase:
+      - normal
+    forbidden_contexts:
+      execution_friction:
+      - severe
+      - blocked
+    labels:
+      primary: signed_return_h
+    invalidation:
+    - spread_blowout
   - name: compression_breakout
     events:
     - RANGE_COMPRESSION_END
@@ -15226,13 +15313,45 @@ runtime:
     - 12
     - 6
     mode: ordered_strict
+    allowed_templates:
+    - mean_reversion
+    side_policy:
+      type: directional
+    required_contexts:
+      liquidity_phase:
+      - normal
+    forbidden_contexts:
+      execution_friction:
+      - severe
+      - blocked
+    labels:
+      primary: signed_return_h
+    invalidation:
+    - spread_blowout
   - name: liquidity_stress_repair
     events:
     - SPREAD_BLOWOUT
-    - ABSORPTION_EVENT
+    - ABSORPTION_PROXY
     max_gap:
     - 6
     mode: ordered_strict
+    required_contexts:
+      liquidity_phase:
+      - refill
+      - recovered
+    forbidden_contexts:
+      execution_friction:
+      - severe
+      - blocked
+    allowed_templates:
+    - liquidity_refill_repair
+    side_policy:
+      type: contrarian_or_repair
+    labels:
+      primary: signed_return_h
+    invalidation:
+    - spread_blowout
+    - cascade_reacceleration
   - name: vol_forced_unwind_cascade
     events:
     - VOL_SHOCK
@@ -15242,6 +15361,21 @@ runtime:
     - 6
     - 12
     mode: ordered_strict
+    allowed_templates:
+    - mean_reversion
+    side_policy:
+      type: directional
+    required_contexts:
+      liquidity_phase:
+      - normal
+    forbidden_contexts:
+      execution_friction:
+      - severe
+      - blocked
+    labels:
+      primary: signed_return_h
+    invalidation:
+    - spread_blowout
   - name: liquidity_cascade_chain
     events:
     - DEPTH_COLLAPSE
@@ -15251,6 +15385,21 @@ runtime:
     - 6
     - 6
     mode: ordered_strict
+    allowed_templates:
+    - mean_reversion
+    side_policy:
+      type: directional
+    required_contexts:
+      liquidity_phase:
+      - normal
+    forbidden_contexts:
+      execution_friction:
+      - severe
+      - blocked
+    labels:
+      primary: signed_return_h
+    invalidation:
+    - spread_blowout
   - name: regime_recovery
     events:
     - TREND_EXHAUSTION_TRIGGER
@@ -15260,6 +15409,21 @@ runtime:
     - 12
     - 12
     mode: ordered_strict
+    allowed_templates:
+    - mean_reversion
+    side_policy:
+      type: directional
+    required_contexts:
+      liquidity_phase:
+      - normal
+    forbidden_contexts:
+      execution_friction:
+      - severe
+      - blocked
+    labels:
+      primary: signed_return_h
+    invalidation:
+    - spread_blowout
   - name: statistical_reversion_chain
     events:
     - ZSCORE_STRETCH
@@ -15269,6 +15433,21 @@ runtime:
     - 6
     - 6
     mode: ordered_strict
+    allowed_templates:
+    - mean_reversion
+    side_policy:
+      type: directional
+    required_contexts:
+      liquidity_phase:
+      - normal
+    forbidden_contexts:
+      execution_friction:
+      - severe
+      - blocked
+    labels:
+      primary: signed_return_h
+    invalidation:
+    - spread_blowout
   - name: carry_unwind_cycle
     events:
     - FUNDING_PERSISTENCE_TRIGGER
@@ -15283,6 +15462,17 @@ runtime:
     invalidation:
     - liquidity_phase: blocked
     - trend_phase: strong_continuation_against_trade
+    side_policy:
+      type: directional
+    required_contexts:
+      liquidity_phase:
+      - normal
+    forbidden_contexts:
+      execution_friction:
+      - severe
+      - blocked
+    labels:
+      primary: signed_return_h
   - name: forced_flow_rebound_setup
     events:
     - LIQUIDATION_CASCADE
@@ -15302,6 +15492,19 @@ runtime:
     - forced_flow_rebound
     - cooldown_reversal
     - liquidity_refill_repair
+    side_policy:
+      type: directional
+    required_contexts:
+      liquidity_phase:
+      - normal
+    forbidden_contexts:
+      execution_friction:
+      - severe
+      - blocked
+    labels:
+      primary: signed_return_h
+    invalidation:
+    - spread_blowout
   - name: confirmed_carry_continuation
     events:
     - FUNDING_PERSISTENCE_TRIGGER
@@ -15315,6 +15518,19 @@ runtime:
     - LOW_FRICTION_STATE
     allowed_templates:
     - carry_continuation_confirmed
+    side_policy:
+      type: directional
+    required_contexts:
+      liquidity_phase:
+      - normal
+    forbidden_contexts:
+      execution_friction:
+      - severe
+      - blocked
+    labels:
+      primary: signed_return_h
+    invalidation:
+    - spread_blowout
   interaction_definitions:
   - name: crowding_liquidity_shock
     left: FUNDING_EXTREME_ONSET

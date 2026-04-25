@@ -111,6 +111,7 @@ class CandidateDiscoveryConfig:
     min_validation_n_obs: Optional[int] = None
     min_test_n_obs: Optional[int] = None
     min_total_n_obs: Optional[int] = None
+    gate_profile: Optional[str] = None
 
     def resolved_out_dir(self) -> Path:
         if self.out_dir is not None:

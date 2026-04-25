@@ -6,8 +6,8 @@
 
 ### BASIS_DISLOC
 
-- Detector: `BasisDislocationDetector` | enabled=`True` | band=`deployable_core`
-- Eligibility: planning=`True` | runtime=`True` | promotion=`True` | primary_anchor=`True` | legacy_default_executable=`True`
+- Detector: `BasisDislocationDetector` | enabled=`True` | band=`research_trigger`
+- Eligibility: planning=`False` | runtime=`False` | promotion=`False` | primary_anchor=`False` | legacy_default_executable=`True`
 - Family: canonical=`BASIS_FUNDING_DISLOCATION`
 - Shape: subtype=`basis_dislocation` | phase=`shock` | evidence=`statistical` | layer=`canonical` | disposition=`merge`
 - Scope: asset=`single_asset` | venue=`cross_venue` | research_only=`False` | composite=`False` | context_tag=`False`
@@ -19,7 +19,7 @@
 ### CROSS_VENUE_DESYNC
 
 - Detector: `CrossVenueDesyncDetector` | enabled=`True` | band=`research_trigger`
-- Eligibility: planning=`True` | runtime=`False` | promotion=`True` | primary_anchor=`True` | legacy_default_executable=`True`
+- Eligibility: planning=`False` | runtime=`False` | promotion=`False` | primary_anchor=`False` | legacy_default_executable=`True`
 - Family: canonical=`INFORMATION_DESYNC`
 - Shape: subtype=`cross_venue_desync` | phase=`persistence` | evidence=`inferred_cross_asset` | layer=`canonical` | disposition=`merge`
 - Scope: asset=`single_asset` | venue=`cross_venue` | research_only=`False` | composite=`False` | context_tag=`False`
@@ -30,8 +30,8 @@
 
 ### FND_DISLOC
 
-- Detector: `FndDislocDetector` | enabled=`True` | band=`deployable_core`
-- Eligibility: planning=`True` | runtime=`True` | promotion=`True` | primary_anchor=`True` | legacy_default_executable=`True`
+- Detector: `FndDislocDetector` | enabled=`True` | band=`research_trigger`
+- Eligibility: planning=`False` | runtime=`False` | promotion=`False` | primary_anchor=`False` | legacy_default_executable=`True`
 - Family: canonical=`BASIS_FUNDING_DISLOCATION`
 - Shape: subtype=`funding_dislocation` | phase=`shock` | evidence=`direct` | layer=`canonical` | disposition=`merge`
 - Scope: asset=`single_asset` | venue=`cross_venue` | research_only=`False` | composite=`False` | context_tag=`False`
@@ -43,7 +43,7 @@
 ### FUNDING_EXTREME_ONSET
 
 - Detector: `FundingExtremeOnsetDetector` | enabled=`True` | band=`research_trigger`
-- Eligibility: planning=`True` | runtime=`False` | promotion=`True` | primary_anchor=`True` | legacy_default_executable=`True`
+- Eligibility: planning=`False` | runtime=`False` | promotion=`False` | primary_anchor=`False` | legacy_default_executable=`True`
 - Family: canonical=`POSITIONING_EXTREMES`
 - Shape: subtype=`funding_extreme` | phase=`onset` | evidence=`direct` | layer=`canonical` | disposition=`merge`
 - Scope: asset=`single_asset` | venue=`cross_venue` | research_only=`False` | composite=`False` | context_tag=`False`
@@ -55,7 +55,7 @@
 ### FUNDING_FLIP
 
 - Detector: `FundingFlipDetector` | enabled=`True` | band=`research_trigger`
-- Eligibility: planning=`True` | runtime=`False` | promotion=`True` | primary_anchor=`True` | legacy_default_executable=`True`
+- Eligibility: planning=`False` | runtime=`False` | promotion=`False` | primary_anchor=`False` | legacy_default_executable=`True`
 - Family: canonical=`POSITIONING_EXTREMES`
 - Shape: subtype=`funding_flip` | phase=`flip` | evidence=`direct` | layer=`canonical` | disposition=`merge`
 - Scope: asset=`single_asset` | venue=`cross_venue` | research_only=`False` | composite=`False` | context_tag=`False`
@@ -66,7 +66,7 @@
 
 ### FUNDING_FLIP_TO_NEGATIVE
 
-- Detector: `FundingFlipDetector` | enabled=`False` | band=``
+- Detector: `FundingFlipDetector` | enabled=`False` | band=`semantic_variant`
 - Eligibility: planning=`False` | runtime=`False` | promotion=`False` | primary_anchor=`False` | legacy_default_executable=`False`
 - Family: canonical=`POSITIONING_EXTREMES`
 - Shape: subtype=`funding_flip_to_negative` | phase=`flip` | evidence=`direct` | layer=`research_placeholder` | disposition=`rename`
@@ -77,7 +77,7 @@
 
 ### FUNDING_FLIP_TO_POSITIVE
 
-- Detector: `FundingFlipDetector` | enabled=`False` | band=``
+- Detector: `FundingFlipDetector` | enabled=`False` | band=`semantic_variant`
 - Eligibility: planning=`False` | runtime=`False` | promotion=`False` | primary_anchor=`False` | legacy_default_executable=`False`
 - Family: canonical=`POSITIONING_EXTREMES`
 - Shape: subtype=`funding_flip_to_positive` | phase=`flip` | evidence=`direct` | layer=`research_placeholder` | disposition=`rename`
@@ -88,7 +88,7 @@
 
 ### FUNDING_NEG_EXTREME_ONSET
 
-- Detector: `FundingExtremeOnsetDetector` | enabled=`False` | band=``
+- Detector: `FundingExtremeOnsetDetector` | enabled=`False` | band=`semantic_variant`
 - Eligibility: planning=`False` | runtime=`False` | promotion=`False` | primary_anchor=`False` | legacy_default_executable=`False`
 - Family: canonical=`POSITIONING_EXTREMES`
 - Shape: subtype=`funding_negative_extreme_onset` | phase=`onset` | evidence=`direct` | layer=`research_placeholder` | disposition=`rename`
@@ -99,7 +99,7 @@
 
 ### FUNDING_NEG_NORMALIZATION
 
-- Detector: `FundingNormalizationDetector` | enabled=`False` | band=``
+- Detector: `FundingNormalizationDetector` | enabled=`False` | band=`semantic_variant`
 - Eligibility: planning=`False` | runtime=`False` | promotion=`False` | primary_anchor=`False` | legacy_default_executable=`False`
 - Family: canonical=`POSITIONING_EXTREMES`
 - Shape: subtype=`funding_negative_normalization` | phase=`normalization` | evidence=`direct` | layer=`research_placeholder` | disposition=`rename`
@@ -110,7 +110,7 @@
 
 ### FUNDING_NEG_PERSISTENCE
 
-- Detector: `FundingPersistenceDetector` | enabled=`False` | band=``
+- Detector: `FundingPersistenceDetector` | enabled=`False` | band=`semantic_variant`
 - Eligibility: planning=`False` | runtime=`False` | promotion=`False` | primary_anchor=`False` | legacy_default_executable=`False`
 - Family: canonical=`POSITIONING_EXTREMES`
 - Shape: subtype=`funding_negative_persistence` | phase=`persistence` | evidence=`direct` | layer=`research_placeholder` | disposition=`rename`
@@ -122,7 +122,7 @@
 ### FUNDING_NORMALIZATION_TRIGGER
 
 - Detector: `FundingNormalizationDetector` | enabled=`True` | band=`research_trigger`
-- Eligibility: planning=`True` | runtime=`False` | promotion=`True` | primary_anchor=`False` | legacy_default_executable=`True`
+- Eligibility: planning=`False` | runtime=`False` | promotion=`False` | primary_anchor=`False` | legacy_default_executable=`True`
 - Family: canonical=`POSITIONING_EXTREMES`
 - Shape: subtype=`funding_normalization` | phase=`normalization` | evidence=`direct` | layer=`canonical` | disposition=`merge`
 - Scope: asset=`single_asset` | venue=`cross_venue` | research_only=`False` | composite=`False` | context_tag=`False`
@@ -145,7 +145,7 @@
 
 ### FUNDING_POS_EXTREME_ONSET
 
-- Detector: `FundingExtremeOnsetDetector` | enabled=`False` | band=``
+- Detector: `FundingExtremeOnsetDetector` | enabled=`False` | band=`semantic_variant`
 - Eligibility: planning=`False` | runtime=`False` | promotion=`False` | primary_anchor=`False` | legacy_default_executable=`False`
 - Family: canonical=`POSITIONING_EXTREMES`
 - Shape: subtype=`funding_positive_extreme_onset` | phase=`onset` | evidence=`direct` | layer=`research_placeholder` | disposition=`rename`
@@ -156,7 +156,7 @@
 
 ### FUNDING_POS_NORMALIZATION
 
-- Detector: `FundingNormalizationDetector` | enabled=`False` | band=``
+- Detector: `FundingNormalizationDetector` | enabled=`False` | band=`semantic_variant`
 - Eligibility: planning=`False` | runtime=`False` | promotion=`False` | primary_anchor=`False` | legacy_default_executable=`False`
 - Family: canonical=`POSITIONING_EXTREMES`
 - Shape: subtype=`funding_positive_normalization` | phase=`normalization` | evidence=`direct` | layer=`research_placeholder` | disposition=`rename`
@@ -167,7 +167,7 @@
 
 ### FUNDING_POS_PERSISTENCE
 
-- Detector: `FundingPersistenceDetector` | enabled=`False` | band=``
+- Detector: `FundingPersistenceDetector` | enabled=`False` | band=`semantic_variant`
 - Eligibility: planning=`False` | runtime=`False` | promotion=`False` | primary_anchor=`False` | legacy_default_executable=`False`
 - Family: canonical=`POSITIONING_EXTREMES`
 - Shape: subtype=`funding_positive_persistence` | phase=`persistence` | evidence=`direct` | layer=`research_placeholder` | disposition=`rename`
@@ -190,8 +190,8 @@
 
 ### SPOT_PERP_BASIS_SHOCK
 
-- Detector: `SpotPerpBasisShockDetector` | enabled=`True` | band=`deployable_core`
-- Eligibility: planning=`True` | runtime=`True` | promotion=`True` | primary_anchor=`True` | legacy_default_executable=`True`
+- Detector: `SpotPerpBasisShockDetector` | enabled=`True` | band=`research_trigger`
+- Eligibility: planning=`False` | runtime=`False` | promotion=`False` | primary_anchor=`False` | legacy_default_executable=`True`
 - Family: canonical=`INFORMATION_DESYNC`
 - Shape: subtype=`spot_perp_basis_shock` | phase=`shock` | evidence=`inferred_cross_asset` | layer=`canonical` | disposition=`merge`
 - Scope: asset=`single_asset` | venue=`cross_venue` | research_only=`False` | composite=`False` | context_tag=`False`
@@ -205,7 +205,7 @@
 ### CROSS_ASSET_DESYNC_EVENT
 
 - Detector: `CrossAssetDesyncDetector` | enabled=`True` | band=`context_only`
-- Eligibility: planning=`True` | runtime=`False` | promotion=`False` | primary_anchor=`False` | legacy_default_executable=`True`
+- Eligibility: planning=`False` | runtime=`False` | promotion=`False` | primary_anchor=`False` | legacy_default_executable=`True`
 - Family: canonical=`INFORMATION_DESYNC`
 - Shape: subtype=`cross_asset_desync` | phase=`divergence` | evidence=`inferred_cross_asset` | layer=`canonical` | disposition=`keep`
 - Scope: asset=`cross_asset` | venue=`multi_venue` | research_only=`False` | composite=`False` | context_tag=`False`
@@ -217,7 +217,7 @@
 ### INDEX_COMPONENT_DIVERGENCE
 
 - Detector: `IndexComponentDivergenceDetector` | enabled=`True` | band=`research_trigger`
-- Eligibility: planning=`True` | runtime=`False` | promotion=`True` | primary_anchor=`True` | legacy_default_executable=`True`
+- Eligibility: planning=`False` | runtime=`False` | promotion=`False` | primary_anchor=`False` | legacy_default_executable=`True`
 - Family: canonical=`INFORMATION_DESYNC`
 - Shape: subtype=`index_component_divergence` | phase=`divergence` | evidence=`inferred_cross_asset` | layer=`canonical` | disposition=`keep`
 - Scope: asset=`cross_asset` | venue=`multi_venue` | research_only=`False` | composite=`False` | context_tag=`False`
@@ -229,7 +229,7 @@
 ### LEAD_LAG_BREAK
 
 - Detector: `LeadLagBreakDetector` | enabled=`True` | band=`research_trigger`
-- Eligibility: planning=`True` | runtime=`False` | promotion=`True` | primary_anchor=`True` | legacy_default_executable=`True`
+- Eligibility: planning=`False` | runtime=`False` | promotion=`False` | primary_anchor=`False` | legacy_default_executable=`True`
 - Family: canonical=`INFORMATION_DESYNC`
 - Shape: subtype=`lead_lag_break` | phase=`divergence` | evidence=`inferred_cross_asset` | layer=`canonical` | disposition=`keep`
 - Scope: asset=`cross_asset` | venue=`multi_venue` | research_only=`False` | composite=`False` | context_tag=`False`
@@ -243,7 +243,7 @@
 ### FEE_REGIME_CHANGE_EVENT
 
 - Detector: `FeeRegimeChangeDetector` | enabled=`True` | band=`research_trigger`
-- Eligibility: planning=`True` | runtime=`False` | promotion=`False` | primary_anchor=`False` | legacy_default_executable=`True`
+- Eligibility: planning=`False` | runtime=`False` | promotion=`False` | primary_anchor=`False` | legacy_default_executable=`True`
 - Family: canonical=`EXECUTION_FRICTION`
 - Shape: subtype=`fee_regime_change` | phase=`transition` | evidence=`direct` | layer=`canonical` | disposition=`keep`
 - Scope: asset=`single_asset` | venue=`single_venue` | research_only=`False` | composite=`False` | context_tag=`False`
@@ -255,7 +255,7 @@
 ### SLIPPAGE_SPIKE_EVENT
 
 - Detector: `SlippageSpikeDetector` | enabled=`True` | band=`research_trigger`
-- Eligibility: planning=`True` | runtime=`False` | promotion=`False` | primary_anchor=`False` | legacy_default_executable=`True`
+- Eligibility: planning=`False` | runtime=`False` | promotion=`False` | primary_anchor=`False` | legacy_default_executable=`True`
 - Family: canonical=`EXECUTION_FRICTION`
 - Shape: subtype=`slippage_spike` | phase=`shock` | evidence=`direct` | layer=`canonical` | disposition=`keep`
 - Scope: asset=`single_asset` | venue=`single_venue` | research_only=`False` | composite=`False` | context_tag=`False`
@@ -267,7 +267,7 @@
 ### SPREAD_REGIME_WIDENING_EVENT
 
 - Detector: `SpreadRegimeWideningDetector` | enabled=`True` | band=`research_trigger`
-- Eligibility: planning=`True` | runtime=`False` | promotion=`False` | primary_anchor=`False` | legacy_default_executable=`True`
+- Eligibility: planning=`False` | runtime=`False` | promotion=`False` | primary_anchor=`False` | legacy_default_executable=`True`
 - Family: canonical=`EXECUTION_FRICTION`
 - Shape: subtype=`spread_regime_widening` | phase=`persistence` | evidence=`direct` | layer=`canonical` | disposition=`keep`
 - Scope: asset=`single_asset` | venue=`single_venue` | research_only=`False` | composite=`False` | context_tag=`False`
@@ -307,7 +307,7 @@
 ### LIQUIDATION_CASCADE_PROXY
 
 - Detector: `LiquidationCascadeProxyDetector` | enabled=`True` | band=`composite_or_fragile`
-- Eligibility: planning=`True` | runtime=`False` | promotion=`True` | primary_anchor=`True` | legacy_default_executable=`True`
+- Eligibility: planning=`False` | runtime=`False` | promotion=`False` | primary_anchor=`False` | legacy_default_executable=`True`
 - Family: canonical=`POSITIONING_EXTREMES`
 - Shape: subtype=`liquidation_cascade_proxy` | phase=`onset` | evidence=`proxy` | layer=`canonical` | disposition=`merge`
 - Scope: asset=`single_asset` | venue=`single_venue` | research_only=`False` | composite=`False` | context_tag=`False`
@@ -332,11 +332,11 @@
 ### DEPTH_COLLAPSE
 
 - Detector: `DepthCollapseDetector` | enabled=`True` | band=`research_trigger`
-- Eligibility: planning=`True` | runtime=`False` | promotion=`True` | primary_anchor=`False` | legacy_default_executable=`True`
+- Eligibility: planning=`False` | runtime=`False` | promotion=`False` | primary_anchor=`False` | legacy_default_executable=`True`
 - Family: canonical=`LIQUIDITY_DISLOCATION`
 - Shape: subtype=`depth_collapse` | phase=`collapse` | evidence=`direct` | layer=`canonical` | disposition=`merge`
 - Scope: asset=`single_asset` | venue=`single_venue` | research_only=`False` | composite=`False` | context_tag=`False`
-- Runtime config: signal=`depth_collapse_event` | file=`liquidity_dislocation_events.parquet` | templates=`['liquidity_refill_repair', 'stop_run_repair', 'overshoot_repair', 'only_if_liquidity', 'slippage_aware_filter']` | horizons=`['15m']` | max_candidates=`600`
+- Runtime config: signal=`depth_collapse_event` | file=`liquidity_dislocation_events.parquet` | templates=`['liquidity_refill_repair', 'stop_run_repair', 'overshoot_repair', 'only_if_liquidity', 'slippage_aware_filter', 'mean_reversion']` | horizons=`['15m']` | max_candidates=`600`
 - Thresholds: `{'merge_gap_bars': 0, 'cooldown_bars': 12, 'min_occurrences': 0, 'lookback_window': 288, 'z_threshold': 3.0, 'min_volume_quantile': 0.2}`
 - Tags: `['liquidity_stress']`
 - Notes: Direct depth failure evidence for liquidity stress.
@@ -355,7 +355,7 @@
 ### LIQUIDITY_GAP_PRINT
 
 - Detector: `LiquidityGapDetector` | enabled=`True` | band=`research_trigger`
-- Eligibility: planning=`True` | runtime=`False` | promotion=`False` | primary_anchor=`False` | legacy_default_executable=`True`
+- Eligibility: planning=`False` | runtime=`False` | promotion=`False` | primary_anchor=`False` | legacy_default_executable=`True`
 - Family: canonical=`LIQUIDITY_DISLOCATION`
 - Shape: subtype=`gap_print` | phase=`shock` | evidence=`direct` | layer=`canonical` | disposition=`merge`
 - Scope: asset=`single_asset` | venue=`single_venue` | research_only=`False` | composite=`False` | context_tag=`False`
@@ -366,8 +366,8 @@
 
 ### LIQUIDITY_SHOCK
 
-- Detector: `LiquidityStressDetector` | enabled=`True` | band=`deployable_core`
-- Eligibility: planning=`True` | runtime=`True` | promotion=`True` | primary_anchor=`True` | legacy_default_executable=`True`
+- Detector: `LiquidityStressDetector` | enabled=`True` | band=`research_trigger`
+- Eligibility: planning=`False` | runtime=`False` | promotion=`False` | primary_anchor=`False` | legacy_default_executable=`True`
 - Family: canonical=`LIQUIDITY_DISLOCATION`
 - Shape: subtype=`liquidity_shock` | phase=`shock` | evidence=`hybrid` | layer=`canonical` | disposition=`keep`
 - Scope: asset=`single_asset` | venue=`single_venue` | research_only=`False` | composite=`False` | context_tag=`False`
@@ -378,8 +378,8 @@
 
 ### LIQUIDITY_STRESS_DIRECT
 
-- Detector: `DirectLiquidityStressDetector` | enabled=`True` | band=`deployable_core`
-- Eligibility: planning=`True` | runtime=`True` | promotion=`True` | primary_anchor=`True` | legacy_default_executable=`True`
+- Detector: `DirectLiquidityStressDetector` | enabled=`True` | band=`research_trigger`
+- Eligibility: planning=`False` | runtime=`False` | promotion=`False` | primary_anchor=`False` | legacy_default_executable=`True`
 - Family: canonical=`LIQUIDITY_DISLOCATION`
 - Shape: subtype=`liquidity_stress` | phase=`shock` | evidence=`direct` | layer=`canonical` | disposition=`merge`
 - Scope: asset=`single_asset` | venue=`single_venue` | research_only=`False` | composite=`False` | context_tag=`False`
@@ -413,7 +413,7 @@
 ### ORDERFLOW_IMBALANCE_SHOCK
 
 - Detector: `OrderflowImbalanceDetector` | enabled=`True` | band=`research_trigger`
-- Eligibility: planning=`True` | runtime=`False` | promotion=`False` | primary_anchor=`False` | legacy_default_executable=`True`
+- Eligibility: planning=`False` | runtime=`False` | promotion=`False` | primary_anchor=`False` | legacy_default_executable=`True`
 - Family: canonical=`LIQUIDITY_DISLOCATION`
 - Shape: subtype=`orderflow_imbalance` | phase=`shock` | evidence=`direct` | layer=`canonical` | disposition=`merge`
 - Scope: asset=`single_asset` | venue=`single_venue` | research_only=`False` | composite=`False` | context_tag=`False`
@@ -448,11 +448,11 @@
 ### SPREAD_BLOWOUT
 
 - Detector: `SpreadBlowoutDetector` | enabled=`True` | band=`research_trigger`
-- Eligibility: planning=`True` | runtime=`False` | promotion=`False` | primary_anchor=`False` | legacy_default_executable=`True`
+- Eligibility: planning=`False` | runtime=`False` | promotion=`False` | primary_anchor=`False` | legacy_default_executable=`True`
 - Family: canonical=`LIQUIDITY_DISLOCATION`
 - Shape: subtype=`spread_widening` | phase=`shock` | evidence=`direct` | layer=`canonical` | disposition=`merge`
 - Scope: asset=`single_asset` | venue=`single_venue` | research_only=`False` | composite=`False` | context_tag=`False`
-- Runtime config: signal=`spread_blowout_event` | file=`liquidity_dislocation_events.parquet` | templates=`['liquidity_refill_repair', 'stop_run_repair', 'overshoot_repair', 'only_if_liquidity', 'slippage_aware_filter']` | horizons=`['15m']` | max_candidates=`600`
+- Runtime config: signal=`spread_blowout_event` | file=`liquidity_dislocation_events.parquet` | templates=`['liquidity_refill_repair', 'stop_run_repair', 'overshoot_repair', 'only_if_liquidity', 'slippage_aware_filter', 'mean_reversion']` | horizons=`['15m']` | max_candidates=`600`
 - Thresholds: `{'merge_gap_bars': 0, 'cooldown_bars': 12, 'min_occurrences': 0, 'lookback_window': 288, 'z_threshold': 3.0, 'min_volume_quantile': 0.2}`
 - Tags: `['liquidity_stress', 'execution_cost']`
 - Notes: Spread blowout retained as liquidity-stress subtype.
@@ -460,7 +460,7 @@
 ### SWEEP_STOPRUN
 
 - Detector: `StopRunDetector` | enabled=`True` | band=`research_trigger`
-- Eligibility: planning=`True` | runtime=`False` | promotion=`False` | primary_anchor=`False` | legacy_default_executable=`True`
+- Eligibility: planning=`False` | runtime=`False` | promotion=`False` | primary_anchor=`False` | legacy_default_executable=`True`
 - Family: canonical=`LIQUIDITY_DISLOCATION`
 - Shape: subtype=`sweep_stoprun` | phase=`shock` | evidence=`hybrid` | layer=`canonical` | disposition=`merge`
 - Scope: asset=`single_asset` | venue=`single_venue` | research_only=`False` | composite=`False` | context_tag=`False`
@@ -485,18 +485,18 @@
 ### OI_SPIKE_POSITIVE
 
 - Detector: `OISpikePositiveDetector` | enabled=`True` | band=`research_trigger`
-- Eligibility: planning=`True` | runtime=`False` | promotion=`True` | primary_anchor=`True` | legacy_default_executable=`True`
+- Eligibility: planning=`False` | runtime=`False` | promotion=`False` | primary_anchor=`False` | legacy_default_executable=`True`
 - Family: canonical=`POSITIONING_EXTREMES`
 - Shape: subtype=`oi_spike_positive` | phase=`expansion` | evidence=`direct` | layer=`canonical` | disposition=`merge`
 - Scope: asset=`single_asset` | venue=`single_venue` | research_only=`False` | composite=`False` | context_tag=`False`
-- Runtime config: signal=`oi_spike_pos_event` | file=`oi_shock_events.parquet` | templates=`['carry_continuation_confirmed', 'squeeze_followthrough_confirmed', 'only_if_funding', 'only_if_oi', 'tail_risk_avoid']` | horizons=`['60m']` | max_candidates=`250`
+- Runtime config: signal=`oi_spike_pos_event` | file=`oi_shock_events.parquet` | templates=`['carry_continuation_confirmed', 'squeeze_followthrough_confirmed', 'only_if_funding', 'only_if_oi', 'tail_risk_avoid', 'convexity_capture', 'continuation', 'mean_reversion']` | horizons=`['60m']` | max_candidates=`250`
 - Thresholds: `{'merge_gap_bars': 1, 'cooldown_bars': 0, 'min_occurrences': 0, 'oi_window': 96, 'spike_z_th': 2.5}`
 - Tags: `['oi_dynamic']`
 - Notes: Direction stays in subtype; canonical regime is positioning expansion.
 
 ### PRICE_DOWN_OI_UP
 
-- Detector: `OISpikePositiveDetector` | enabled=`False` | band=``
+- Detector: `OISpikePositiveDetector` | enabled=`False` | band=`semantic_variant`
 - Eligibility: planning=`False` | runtime=`False` | promotion=`False` | primary_anchor=`False` | legacy_default_executable=`False`
 - Family: canonical=`POSITIONING_EXTREMES`
 - Shape: subtype=`price_down_oi_up` | phase=`expansion` | evidence=`direct` | layer=`research_placeholder` | disposition=`rename`
@@ -507,7 +507,7 @@
 
 ### PRICE_UP_OI_UP
 
-- Detector: `OISpikePositiveDetector` | enabled=`False` | band=``
+- Detector: `OISpikePositiveDetector` | enabled=`False` | band=`semantic_variant`
 - Eligibility: planning=`False` | runtime=`False` | promotion=`False` | primary_anchor=`False` | legacy_default_executable=`False`
 - Family: canonical=`POSITIONING_EXTREMES`
 - Shape: subtype=`price_up_oi_up` | phase=`expansion` | evidence=`direct` | layer=`research_placeholder` | disposition=`rename`
@@ -533,7 +533,7 @@
 ### DELEVERAGING_WAVE
 
 - Detector: `DeleveragingWaveDetector` | enabled=`True` | band=`research_trigger`
-- Eligibility: planning=`True` | runtime=`False` | promotion=`False` | primary_anchor=`False` | legacy_default_executable=`True`
+- Eligibility: planning=`False` | runtime=`False` | promotion=`False` | primary_anchor=`False` | legacy_default_executable=`True`
 - Family: canonical=`POSITIONING_EXTREMES`
 - Shape: subtype=`deleveraging_wave` | phase=`unwind` | evidence=`hybrid` | layer=`canonical` | disposition=`keep`
 - Scope: asset=`single_asset` | venue=`single_venue` | research_only=`False` | composite=`False` | context_tag=`False`
@@ -545,7 +545,7 @@
 ### OI_FLUSH
 
 - Detector: `OIFlushDetector` | enabled=`True` | band=`research_trigger`
-- Eligibility: planning=`True` | runtime=`False` | promotion=`True` | primary_anchor=`True` | legacy_default_executable=`True`
+- Eligibility: planning=`False` | runtime=`False` | promotion=`False` | primary_anchor=`False` | legacy_default_executable=`True`
 - Family: canonical=`POSITIONING_EXTREMES`
 - Shape: subtype=`oi_flush` | phase=`unwind` | evidence=`direct` | layer=`canonical` | disposition=`merge`
 - Scope: asset=`single_asset` | venue=`single_venue` | research_only=`False` | composite=`False` | context_tag=`False`
@@ -557,11 +557,11 @@
 ### OI_SPIKE_NEGATIVE
 
 - Detector: `OISpikeNegativeDetector` | enabled=`True` | band=`deployable_core`
-- Eligibility: planning=`True` | runtime=`True` | promotion=`True` | primary_anchor=`True` | legacy_default_executable=`True`
+- Eligibility: planning=`True` | runtime=`True` | promotion=`False` | primary_anchor=`True` | legacy_default_executable=`True`
 - Family: canonical=`POSITIONING_EXTREMES`
 - Shape: subtype=`oi_flush` | phase=`unwind` | evidence=`direct` | layer=`canonical` | disposition=`merge`
 - Scope: asset=`single_asset` | venue=`single_venue` | research_only=`False` | composite=`False` | context_tag=`False`
-- Runtime config: signal=`oi_spike_neg_event` | file=`oi_shock_events.parquet` | templates=`['positioning_flush_reversal', 'long_flush_rebound', 'convexity_capture', 'only_if_funding', 'only_if_oi', 'tail_risk_avoid']` | horizons=`['5m', '60m']` | max_candidates=`250`
+- Runtime config: signal=`oi_spike_neg_event` | file=`oi_shock_events.parquet` | templates=`['positioning_flush_reversal', 'long_flush_rebound', 'convexity_capture', 'only_if_funding', 'only_if_oi', 'tail_risk_avoid', 'continuation', 'mean_reversion']` | horizons=`['5m', '60m']` | max_candidates=`250`
 - Thresholds: `{'merge_gap_bars': 1, 'cooldown_bars': 0, 'min_occurrences': 0, 'oi_window': 96, 'spike_z_th': 2.5}`
 - Tags: `['oi_dynamic']`
 - Notes: Negative OI spike is normalized as OI contraction/unwind, not directional alpha.
@@ -569,7 +569,7 @@
 ### POST_DELEVERAGING_REBOUND
 
 - Detector: `PostDeleveragingReboundDetector` | enabled=`True` | band=`research_trigger`
-- Eligibility: planning=`True` | runtime=`False` | promotion=`False` | primary_anchor=`False` | legacy_default_executable=`True`
+- Eligibility: planning=`False` | runtime=`False` | promotion=`False` | primary_anchor=`False` | legacy_default_executable=`True`
 - Family: canonical=`FORCED_FLOW_AND_EXHAUSTION`
 - Shape: subtype=`post_deleveraging_rebound` | phase=`recovery` | evidence=`hybrid` | layer=`canonical` | disposition=`merge`
 - Scope: asset=`single_asset` | venue=`single_venue` | research_only=`False` | composite=`False` | context_tag=`False`
@@ -579,7 +579,7 @@
 
 ### PRICE_DOWN_OI_DOWN
 
-- Detector: `OISpikeNegativeDetector` | enabled=`False` | band=``
+- Detector: `OISpikeNegativeDetector` | enabled=`False` | band=`semantic_variant`
 - Eligibility: planning=`False` | runtime=`False` | promotion=`False` | primary_anchor=`False` | legacy_default_executable=`False`
 - Family: canonical=`POSITIONING_EXTREMES`
 - Shape: subtype=`price_down_oi_down` | phase=`unwind` | evidence=`direct` | layer=`research_placeholder` | disposition=`rename`
@@ -590,7 +590,7 @@
 
 ### PRICE_UP_OI_DOWN
 
-- Detector: `OISpikeNegativeDetector` | enabled=`False` | band=``
+- Detector: `OISpikeNegativeDetector` | enabled=`False` | band=`semantic_variant`
 - Eligibility: planning=`False` | runtime=`False` | promotion=`False` | primary_anchor=`False` | legacy_default_executable=`False`
 - Family: canonical=`POSITIONING_EXTREMES`
 - Shape: subtype=`price_up_oi_down` | phase=`unwind` | evidence=`direct` | layer=`research_placeholder` | disposition=`rename`
@@ -604,7 +604,7 @@
 ### BETA_SPIKE_EVENT
 
 - Detector: `BetaSpikeDetector` | enabled=`True` | band=`research_trigger`
-- Eligibility: planning=`True` | runtime=`False` | promotion=`True` | primary_anchor=`True` | legacy_default_executable=`True`
+- Eligibility: planning=`False` | runtime=`False` | promotion=`False` | primary_anchor=`False` | legacy_default_executable=`True`
 - Family: canonical=`REGIME_TRANSITION`
 - Shape: subtype=`beta_spike` | phase=`transition` | evidence=`inferred_cross_asset` | layer=`canonical` | disposition=`keep`
 - Scope: asset=`cross_asset` | venue=`multi_venue` | research_only=`False` | composite=`False` | context_tag=`False`
@@ -616,7 +616,7 @@
 ### CHOP_TO_TREND_SHIFT
 
 - Detector: `ChopToTrendDetector` | enabled=`True` | band=`research_trigger`
-- Eligibility: planning=`True` | runtime=`False` | promotion=`False` | primary_anchor=`False` | legacy_default_executable=`True`
+- Eligibility: planning=`False` | runtime=`False` | promotion=`False` | primary_anchor=`False` | legacy_default_executable=`True`
 - Family: canonical=`REGIME_TRANSITION`
 - Shape: subtype=`chop_to_trend` | phase=`transition` | evidence=`hybrid` | layer=`canonical` | disposition=`keep`
 - Scope: asset=`single_asset` | venue=`single_venue` | research_only=`False` | composite=`False` | context_tag=`False`
@@ -628,7 +628,7 @@
 ### CORRELATION_BREAKDOWN_EVENT
 
 - Detector: `CorrelationBreakdownDetector` | enabled=`True` | band=`research_trigger`
-- Eligibility: planning=`True` | runtime=`False` | promotion=`True` | primary_anchor=`True` | legacy_default_executable=`True`
+- Eligibility: planning=`False` | runtime=`False` | promotion=`False` | primary_anchor=`False` | legacy_default_executable=`True`
 - Family: canonical=`REGIME_TRANSITION`
 - Shape: subtype=`correlation_breakdown` | phase=`transition` | evidence=`inferred_cross_asset` | layer=`canonical` | disposition=`keep`
 - Scope: asset=`cross_asset` | venue=`multi_venue` | research_only=`False` | composite=`False` | context_tag=`False`
@@ -640,7 +640,7 @@
 ### TREND_TO_CHOP_SHIFT
 
 - Detector: `TrendToChopDetector` | enabled=`True` | band=`research_trigger`
-- Eligibility: planning=`True` | runtime=`False` | promotion=`False` | primary_anchor=`False` | legacy_default_executable=`True`
+- Eligibility: planning=`False` | runtime=`False` | promotion=`False` | primary_anchor=`False` | legacy_default_executable=`True`
 - Family: canonical=`REGIME_TRANSITION`
 - Shape: subtype=`trend_to_chop` | phase=`transition` | evidence=`hybrid` | layer=`canonical` | disposition=`keep`
 - Scope: asset=`single_asset` | venue=`single_venue` | research_only=`False` | composite=`False` | context_tag=`False`
@@ -652,7 +652,7 @@
 ### VOL_REGIME_SHIFT_EVENT
 
 - Detector: `VolRegimeShiftDetector` | enabled=`True` | band=`research_trigger`
-- Eligibility: planning=`True` | runtime=`False` | promotion=`False` | primary_anchor=`False` | legacy_default_executable=`True`
+- Eligibility: planning=`False` | runtime=`False` | promotion=`False` | primary_anchor=`False` | legacy_default_executable=`True`
 - Family: canonical=`REGIME_TRANSITION`
 - Shape: subtype=`vol_regime_shift` | phase=`transition` | evidence=`statistical` | layer=`canonical` | disposition=`keep`
 - Scope: asset=`single_asset` | venue=`single_venue` | research_only=`False` | composite=`False` | context_tag=`False`
@@ -666,7 +666,7 @@
 ### FUNDING_TIMESTAMP_EVENT
 
 - Detector: `FundingTimestampDetector` | enabled=`True` | band=`context_only`
-- Eligibility: planning=`True` | runtime=`False` | promotion=`False` | primary_anchor=`False` | legacy_default_executable=`False`
+- Eligibility: planning=`False` | runtime=`False` | promotion=`False` | primary_anchor=`False` | legacy_default_executable=`False`
 - Family: canonical=`TEMPORAL_STRUCTURE`
 - Shape: subtype=`funding_timestamp` | phase=`window` | evidence=`contextual` | layer=`context_tag` | disposition=`demote`
 - Scope: asset=`multi_asset` | venue=`market_wide` | research_only=`False` | composite=`False` | context_tag=`True`
@@ -678,7 +678,7 @@
 ### SCHEDULED_NEWS_WINDOW_EVENT
 
 - Detector: `ScheduledNewsDetector` | enabled=`True` | band=`context_only`
-- Eligibility: planning=`True` | runtime=`False` | promotion=`False` | primary_anchor=`False` | legacy_default_executable=`False`
+- Eligibility: planning=`False` | runtime=`False` | promotion=`False` | primary_anchor=`False` | legacy_default_executable=`False`
 - Family: canonical=`TEMPORAL_STRUCTURE`
 - Shape: subtype=`scheduled_news_window` | phase=`window` | evidence=`contextual` | layer=`context_tag` | disposition=`demote`
 - Scope: asset=`multi_asset` | venue=`market_wide` | research_only=`False` | composite=`False` | context_tag=`True`
@@ -690,7 +690,7 @@
 ### SESSION_CLOSE_EVENT
 
 - Detector: `SessionCloseDetector` | enabled=`True` | band=`context_only`
-- Eligibility: planning=`True` | runtime=`False` | promotion=`False` | primary_anchor=`False` | legacy_default_executable=`False`
+- Eligibility: planning=`False` | runtime=`False` | promotion=`False` | primary_anchor=`False` | legacy_default_executable=`False`
 - Family: canonical=`TEMPORAL_STRUCTURE`
 - Shape: subtype=`session_close` | phase=`window` | evidence=`contextual` | layer=`context_tag` | disposition=`demote`
 - Scope: asset=`multi_asset` | venue=`market_wide` | research_only=`False` | composite=`False` | context_tag=`True`
@@ -702,7 +702,7 @@
 ### SESSION_OPEN_EVENT
 
 - Detector: `SessionOpenDetector` | enabled=`True` | band=`context_only`
-- Eligibility: planning=`True` | runtime=`False` | promotion=`False` | primary_anchor=`False` | legacy_default_executable=`False`
+- Eligibility: planning=`False` | runtime=`False` | promotion=`False` | primary_anchor=`False` | legacy_default_executable=`False`
 - Family: canonical=`TEMPORAL_STRUCTURE`
 - Shape: subtype=`session_open` | phase=`window` | evidence=`contextual` | layer=`context_tag` | disposition=`demote`
 - Scope: asset=`multi_asset` | venue=`market_wide` | research_only=`False` | composite=`False` | context_tag=`True`
@@ -716,7 +716,7 @@
 ### BAND_BREAK
 
 - Detector: `BandBreakDetector` | enabled=`True` | band=`research_trigger`
-- Eligibility: planning=`True` | runtime=`False` | promotion=`False` | primary_anchor=`False` | legacy_default_executable=`True`
+- Eligibility: planning=`False` | runtime=`False` | promotion=`False` | primary_anchor=`False` | legacy_default_executable=`True`
 - Family: canonical=`STATISTICAL_DISLOCATION`
 - Shape: subtype=`band_break` | phase=`breakout` | evidence=`statistical` | layer=`canonical` | disposition=`merge`
 - Scope: asset=`single_asset` | venue=`single_venue` | research_only=`False` | composite=`False` | context_tag=`False`
@@ -740,7 +740,7 @@
 ### GAP_OVERSHOOT
 
 - Detector: `GapOvershootDetector` | enabled=`True` | band=`research_trigger`
-- Eligibility: planning=`True` | runtime=`False` | promotion=`False` | primary_anchor=`False` | legacy_default_executable=`True`
+- Eligibility: planning=`False` | runtime=`False` | promotion=`False` | primary_anchor=`False` | legacy_default_executable=`True`
 - Family: canonical=`STATISTICAL_DISLOCATION`
 - Shape: subtype=`gap_overshoot` | phase=`overshoot` | evidence=`statistical` | layer=`canonical` | disposition=`keep`
 - Scope: asset=`single_asset` | venue=`single_venue` | research_only=`False` | composite=`False` | context_tag=`False`
@@ -752,7 +752,7 @@
 ### OVERSHOOT_AFTER_SHOCK
 
 - Detector: `OvershootDetector` | enabled=`True` | band=`research_trigger`
-- Eligibility: planning=`True` | runtime=`False` | promotion=`False` | primary_anchor=`False` | legacy_default_executable=`True`
+- Eligibility: planning=`False` | runtime=`False` | promotion=`False` | primary_anchor=`False` | legacy_default_executable=`True`
 - Family: canonical=`STATISTICAL_DISLOCATION`
 - Shape: subtype=`overshoot_after_shock` | phase=`overshoot` | evidence=`statistical` | layer=`canonical` | disposition=`keep`
 - Scope: asset=`single_asset` | venue=`single_venue` | research_only=`False` | composite=`False` | context_tag=`False`
@@ -764,7 +764,7 @@
 ### ZSCORE_STRETCH
 
 - Detector: `ZScoreStretchDetector` | enabled=`True` | band=`research_trigger`
-- Eligibility: planning=`True` | runtime=`False` | promotion=`False` | primary_anchor=`False` | legacy_default_executable=`True`
+- Eligibility: planning=`False` | runtime=`False` | promotion=`False` | primary_anchor=`False` | legacy_default_executable=`True`
 - Family: canonical=`STATISTICAL_DISLOCATION`
 - Shape: subtype=`zscore_stretch` | phase=`stretch` | evidence=`statistical` | layer=`canonical` | disposition=`keep`
 - Scope: asset=`single_asset` | venue=`single_venue` | research_only=`False` | composite=`False` | context_tag=`False`
@@ -778,7 +778,7 @@
 ### PULLBACK_PIVOT
 
 - Detector: `PullbackPivotDetector` | enabled=`True` | band=`research_trigger`
-- Eligibility: planning=`True` | runtime=`False` | promotion=`False` | primary_anchor=`False` | legacy_default_executable=`True`
+- Eligibility: planning=`False` | runtime=`False` | promotion=`False` | primary_anchor=`False` | legacy_default_executable=`True`
 - Family: canonical=`TREND_STRUCTURE`
 - Shape: subtype=`pullback_pivot` | phase=`recovery` | evidence=`hybrid` | layer=`canonical` | disposition=`keep`
 - Scope: asset=`single_asset` | venue=`single_venue` | research_only=`False` | composite=`False` | context_tag=`False`
@@ -790,7 +790,7 @@
 ### RANGE_BREAKOUT
 
 - Detector: `RangeBreakoutDetector` | enabled=`True` | band=`research_trigger`
-- Eligibility: planning=`True` | runtime=`False` | promotion=`False` | primary_anchor=`False` | legacy_default_executable=`True`
+- Eligibility: planning=`False` | runtime=`False` | promotion=`False` | primary_anchor=`False` | legacy_default_executable=`True`
 - Family: canonical=`TREND_STRUCTURE`
 - Shape: subtype=`range_breakout` | phase=`breakout` | evidence=`hybrid` | layer=`canonical` | disposition=`keep`
 - Scope: asset=`single_asset` | venue=`single_venue` | research_only=`False` | composite=`False` | context_tag=`False`
@@ -802,7 +802,7 @@
 ### SUPPORT_RESISTANCE_BREAK
 
 - Detector: `SREventDetector` | enabled=`True` | band=`research_trigger`
-- Eligibility: planning=`True` | runtime=`False` | promotion=`False` | primary_anchor=`False` | legacy_default_executable=`True`
+- Eligibility: planning=`False` | runtime=`False` | promotion=`False` | primary_anchor=`False` | legacy_default_executable=`True`
 - Family: canonical=`TREND_STRUCTURE`
 - Shape: subtype=`support_resistance_break` | phase=`breakout` | evidence=`hybrid` | layer=`canonical` | disposition=`merge`
 - Scope: asset=`single_asset` | venue=`single_venue` | research_only=`False` | composite=`False` | context_tag=`False`
@@ -814,7 +814,7 @@
 ### TREND_ACCELERATION
 
 - Detector: `TrendAccelerationDetector` | enabled=`True` | band=`research_trigger`
-- Eligibility: planning=`True` | runtime=`False` | promotion=`False` | primary_anchor=`False` | legacy_default_executable=`True`
+- Eligibility: planning=`False` | runtime=`False` | promotion=`False` | primary_anchor=`False` | legacy_default_executable=`True`
 - Family: canonical=`TREND_STRUCTURE`
 - Shape: subtype=`trend_acceleration` | phase=`persistence` | evidence=`hybrid` | layer=`canonical` | disposition=`keep`
 - Scope: asset=`single_asset` | venue=`single_venue` | research_only=`False` | composite=`False` | context_tag=`False`
@@ -828,7 +828,7 @@
 ### CLIMAX_VOLUME_BAR
 
 - Detector: `ClimaxVolumeDetector` | enabled=`True` | band=`research_trigger`
-- Eligibility: planning=`True` | runtime=`False` | promotion=`False` | primary_anchor=`False` | legacy_default_executable=`True`
+- Eligibility: planning=`False` | runtime=`False` | promotion=`False` | primary_anchor=`False` | legacy_default_executable=`True`
 - Family: canonical=`FORCED_FLOW_AND_EXHAUSTION`
 - Shape: subtype=`climax_volume` | phase=`exhaustion` | evidence=`hybrid` | layer=`canonical` | disposition=`merge`
 - Scope: asset=`single_asset` | venue=`single_venue` | research_only=`False` | composite=`False` | context_tag=`False`
@@ -840,7 +840,7 @@
 ### FAILED_CONTINUATION
 
 - Detector: `FailedContinuationDetector` | enabled=`True` | band=`research_trigger`
-- Eligibility: planning=`True` | runtime=`False` | promotion=`False` | primary_anchor=`False` | legacy_default_executable=`True`
+- Eligibility: planning=`False` | runtime=`False` | promotion=`False` | primary_anchor=`False` | legacy_default_executable=`True`
 - Family: canonical=`FORCED_FLOW_AND_EXHAUSTION`
 - Shape: subtype=`failed_continuation` | phase=`failure` | evidence=`hybrid` | layer=`canonical` | disposition=`keep`
 - Scope: asset=`single_asset` | venue=`single_venue` | research_only=`False` | composite=`False` | context_tag=`False`
@@ -852,7 +852,7 @@
 ### FALSE_BREAKOUT
 
 - Detector: `FalseBreakoutDetector` | enabled=`True` | band=`research_trigger`
-- Eligibility: planning=`True` | runtime=`False` | promotion=`False` | primary_anchor=`False` | legacy_default_executable=`True`
+- Eligibility: planning=`False` | runtime=`False` | promotion=`False` | primary_anchor=`False` | legacy_default_executable=`True`
 - Family: canonical=`TREND_STRUCTURE`
 - Shape: subtype=`false_breakout` | phase=`failure` | evidence=`hybrid` | layer=`canonical` | disposition=`merge`
 - Scope: asset=`single_asset` | venue=`single_venue` | research_only=`False` | composite=`False` | context_tag=`False`
@@ -875,7 +875,7 @@
 ### FORCED_FLOW_EXHAUSTION
 
 - Detector: `ForcedFlowExhaustionDetector` | enabled=`True` | band=`research_trigger`
-- Eligibility: planning=`True` | runtime=`False` | promotion=`False` | primary_anchor=`False` | legacy_default_executable=`True`
+- Eligibility: planning=`False` | runtime=`False` | promotion=`False` | primary_anchor=`False` | legacy_default_executable=`True`
 - Family: canonical=`FORCED_FLOW_AND_EXHAUSTION`
 - Shape: subtype=`forced_flow_exhaustion` | phase=`exhaustion` | evidence=`hybrid` | layer=`canonical` | disposition=`keep`
 - Scope: asset=`single_asset` | venue=`single_venue` | research_only=`False` | composite=`False` | context_tag=`False`
@@ -887,7 +887,7 @@
 ### MOMENTUM_DIVERGENCE_TRIGGER
 
 - Detector: `MomentumDivergenceDetector` | enabled=`True` | band=`research_trigger`
-- Eligibility: planning=`True` | runtime=`False` | promotion=`False` | primary_anchor=`False` | legacy_default_executable=`True`
+- Eligibility: planning=`False` | runtime=`False` | promotion=`False` | primary_anchor=`False` | legacy_default_executable=`True`
 - Family: canonical=`FORCED_FLOW_AND_EXHAUSTION`
 - Shape: subtype=`momentum_divergence` | phase=`exhaustion` | evidence=`hybrid` | layer=`canonical` | disposition=`merge`
 - Scope: asset=`single_asset` | venue=`single_venue` | research_only=`False` | composite=`False` | context_tag=`False`
@@ -899,7 +899,7 @@
 ### TREND_DECELERATION
 
 - Detector: `TrendDecelerationDetector` | enabled=`True` | band=`research_trigger`
-- Eligibility: planning=`True` | runtime=`False` | promotion=`False` | primary_anchor=`False` | legacy_default_executable=`True`
+- Eligibility: planning=`False` | runtime=`False` | promotion=`False` | primary_anchor=`False` | legacy_default_executable=`True`
 - Family: canonical=`TREND_STRUCTURE`
 - Shape: subtype=`trend_deceleration` | phase=`exhaustion` | evidence=`hybrid` | layer=`canonical` | disposition=`merge`
 - Scope: asset=`single_asset` | venue=`single_venue` | research_only=`False` | composite=`False` | context_tag=`False`
@@ -911,7 +911,7 @@
 ### TREND_EXHAUSTION_TRIGGER
 
 - Detector: `TrendExhaustionDetector` | enabled=`True` | band=`research_trigger`
-- Eligibility: planning=`True` | runtime=`False` | promotion=`False` | primary_anchor=`False` | legacy_default_executable=`True`
+- Eligibility: planning=`False` | runtime=`False` | promotion=`False` | primary_anchor=`False` | legacy_default_executable=`True`
 - Family: canonical=`FORCED_FLOW_AND_EXHAUSTION`
 - Shape: subtype=`trend_exhaustion` | phase=`onset` | evidence=`hybrid` | layer=`canonical` | disposition=`keep`
 - Scope: asset=`single_asset` | venue=`single_venue` | research_only=`False` | composite=`False` | context_tag=`False`
@@ -925,7 +925,7 @@
 ### VOL_CLUSTER_SHIFT
 
 - Detector: `VolClusterShiftDetector` | enabled=`True` | band=`research_trigger`
-- Eligibility: planning=`True` | runtime=`False` | promotion=`False` | primary_anchor=`False` | legacy_default_executable=`True`
+- Eligibility: planning=`False` | runtime=`False` | promotion=`False` | primary_anchor=`False` | legacy_default_executable=`True`
 - Family: canonical=`VOLATILITY_TRANSITION`
 - Shape: subtype=`vol_cluster_shift` | phase=`persistence` | evidence=`statistical` | layer=`canonical` | disposition=`merge`
 - Scope: asset=`single_asset` | venue=`single_venue` | research_only=`False` | composite=`False` | context_tag=`False`
@@ -936,8 +936,8 @@
 
 ### VOL_SPIKE
 
-- Detector: `VolSpikeDetector` | enabled=`True` | band=`deployable_core`
-- Eligibility: planning=`True` | runtime=`True` | promotion=`True` | primary_anchor=`True` | legacy_default_executable=`True`
+- Detector: `VolSpikeDetector` | enabled=`True` | band=`research_trigger`
+- Eligibility: planning=`False` | runtime=`False` | promotion=`False` | primary_anchor=`False` | legacy_default_executable=`True`
 - Family: canonical=`VOLATILITY_TRANSITION`
 - Shape: subtype=`vol_spike` | phase=`shock` | evidence=`direct` | layer=`canonical` | disposition=`keep`
 - Scope: asset=`single_asset` | venue=`single_venue` | research_only=`False` | composite=`False` | context_tag=`False`
@@ -951,7 +951,7 @@
 ### BREAKOUT_TRIGGER
 
 - Detector: `BreakoutTriggerDetector` | enabled=`True` | band=`research_trigger`
-- Eligibility: planning=`True` | runtime=`False` | promotion=`False` | primary_anchor=`False` | legacy_default_executable=`True`
+- Eligibility: planning=`False` | runtime=`False` | promotion=`False` | primary_anchor=`False` | legacy_default_executable=`True`
 - Family: canonical=`VOLATILITY_TRANSITION`
 - Shape: subtype=`breakout_trigger` | phase=`breakout` | evidence=`hybrid` | layer=`canonical` | disposition=`merge`
 - Scope: asset=`single_asset` | venue=`single_venue` | research_only=`False` | composite=`False` | context_tag=`False`
@@ -963,7 +963,7 @@
 ### RANGE_COMPRESSION_END
 
 - Detector: `RangeCompressionDetector` | enabled=`True` | band=`research_trigger`
-- Eligibility: planning=`True` | runtime=`False` | promotion=`False` | primary_anchor=`False` | legacy_default_executable=`True`
+- Eligibility: planning=`False` | runtime=`False` | promotion=`False` | primary_anchor=`False` | legacy_default_executable=`True`
 - Family: canonical=`VOLATILITY_TRANSITION`
 - Shape: subtype=`range_compression_end` | phase=`breakout` | evidence=`hybrid` | layer=`canonical` | disposition=`merge`
 - Scope: asset=`single_asset` | venue=`single_venue` | research_only=`False` | composite=`False` | context_tag=`False`
@@ -987,7 +987,7 @@
 ### VOL_RELAXATION_START
 
 - Detector: `VolRelaxationDetector` | enabled=`True` | band=`research_trigger`
-- Eligibility: planning=`True` | runtime=`False` | promotion=`True` | primary_anchor=`False` | legacy_default_executable=`True`
+- Eligibility: planning=`False` | runtime=`False` | promotion=`False` | primary_anchor=`False` | legacy_default_executable=`True`
 - Family: canonical=`VOLATILITY_TRANSITION`
 - Shape: subtype=`vol_relaxation_start` | phase=`normalization` | evidence=`direct` | layer=`canonical` | disposition=`keep`
 - Scope: asset=`single_asset` | venue=`single_venue` | research_only=`False` | composite=`False` | context_tag=`False`
@@ -1000,8 +1000,8 @@
 
 ### VOL_SHOCK
 
-- Detector: `VolShockRelaxationDetector` | enabled=`True` | band=`deployable_core`
-- Eligibility: planning=`True` | runtime=`True` | promotion=`True` | primary_anchor=`True` | legacy_default_executable=`True`
+- Detector: `VolShockRelaxationDetector` | enabled=`True` | band=`research_trigger`
+- Eligibility: planning=`False` | runtime=`False` | promotion=`False` | primary_anchor=`False` | legacy_default_executable=`True`
 - Family: canonical=`VOLATILITY_TRANSITION`
 - Shape: subtype=`vol_shock` | phase=`shock` | evidence=`statistical` | layer=`canonical` | disposition=`keep`
 - Scope: asset=`single_asset` | venue=`single_venue` | research_only=`False` | composite=`False` | context_tag=`False`

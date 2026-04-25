@@ -26,6 +26,7 @@ _MINIMAL_SEARCH_SPEC = {
     "directions": ["long", "short"],
     "entry_lag": 1,
     "expression_templates": ["continuation", "mean_reversion"],
+    "template_policy": {"generic_templates_allowed": True, "reason": "test fixture"},
     "contexts": {},
     "include_sequences": False,
     "include_interactions": False,

@@ -83,6 +83,9 @@ directions:
 entry_lag: 1
 cost_profiles:
   - standard
+template_policy:
+  generic_templates_allowed: true
+  reason: broad discovery surface intentionally uses generic templates; concrete templates added via event-scoped narrowing
 expression_templates:
   - mean_reversion
   - continuation

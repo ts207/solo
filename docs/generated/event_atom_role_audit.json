@@ -1,9 +1,10 @@
 {
   "total_atoms": 95,
   "by_detector_band": {
-    "": 83,
-    "research_trigger": 8,
-    "deployable_core": 4
+    "research_trigger": 80,
+    "deployable_core": 4,
+    "composite_or_fragile": 7,
+    "context_only": 4
   },
   "by_search_role": {
     "diagnostic": 75,
@@ -26,7 +27,7 @@
     {
       "id": "vol_shock_core",
       "event_type": "VOL_SHOCK",
-      "detector_band": "",
+      "detector_band": "research_trigger",
       "search_role": "diagnostic",
       "promotion_role": "ineligible",
       "runtime_role": "observer"
@@ -34,7 +35,7 @@
     {
       "id": "funding_extreme_core",
       "event_type": "FUNDING_EXTREME_ONSET",
-      "detector_band": "",
+      "detector_band": "research_trigger",
       "search_role": "diagnostic",
       "promotion_role": "ineligible",
       "runtime_role": "observer"
@@ -50,7 +51,7 @@
     {
       "id": "range_breakout_trend",
       "event_type": "RANGE_BREAKOUT",
-      "detector_band": "",
+      "detector_band": "research_trigger",
       "search_role": "diagnostic",
       "promotion_role": "ineligible",
       "runtime_role": "observer"
@@ -58,7 +59,7 @@
     {
       "id": "pullback_pivot_trend",
       "event_type": "PULLBACK_PIVOT",
-      "detector_band": "",
+      "detector_band": "research_trigger",
       "search_role": "diagnostic",
       "promotion_role": "ineligible",
       "runtime_role": "observer"
@@ -66,7 +67,7 @@
     {
       "id": "trend_acceleration_trend",
       "event_type": "TREND_ACCELERATION",
-      "detector_band": "",
+      "detector_band": "research_trigger",
       "search_role": "diagnostic",
       "promotion_role": "ineligible",
       "runtime_role": "observer"
@@ -74,7 +75,7 @@
     {
       "id": "support_resistance_break_trend",
       "event_type": "SUPPORT_RESISTANCE_BREAK",
-      "detector_band": "",
+      "detector_band": "research_trigger",
       "search_role": "diagnostic",
       "promotion_role": "ineligible",
       "runtime_role": "observer"
@@ -98,7 +99,7 @@
     {
       "id": "trend_exhaustion_trigger_failure",
       "event_type": "TREND_EXHAUSTION_TRIGGER",
-      "detector_band": "",
+      "detector_band": "research_trigger",
       "search_role": "diagnostic",
       "promotion_role": "ineligible",
       "runtime_role": "observer"
@@ -106,7 +107,7 @@
     {
       "id": "false_breakout_failure",
       "event_type": "FALSE_BREAKOUT",
-      "detector_band": "",
+      "detector_band": "research_trigger",
       "search_role": "diagnostic",
       "promotion_role": "ineligible",
       "runtime_role": "observer"
@@ -114,7 +115,7 @@
     {
       "id": "failed_continuation_failure",
       "event_type": "FAILED_CONTINUATION",
-      "detector_band": "",
+      "detector_band": "research_trigger",
       "search_role": "diagnostic",
       "promotion_role": "ineligible",
       "runtime_role": "observer"
@@ -122,7 +123,7 @@
     {
       "id": "momentum_divergence_failure",
       "event_type": "MOMENTUM_DIVERGENCE_TRIGGER",
-      "detector_band": "",
+      "detector_band": "research_trigger",
       "search_role": "diagnostic",
       "promotion_role": "ineligible",
       "runtime_role": "observer"
@@ -130,7 +131,7 @@
     {
       "id": "climax_volume_bar_failure",
       "event_type": "CLIMAX_VOLUME_BAR",
-      "detector_band": "",
+      "detector_band": "research_trigger",
       "search_role": "diagnostic",
       "promotion_role": "ineligible",
       "runtime_role": "observer"
@@ -146,7 +147,7 @@
     {
       "id": "trend_exhaustion_focused",
       "event_type": "TREND_EXHAUSTION_TRIGGER",
-      "detector_band": "",
+      "detector_band": "research_trigger",
       "search_role": "diagnostic",
       "promotion_role": "ineligible",
       "runtime_role": "observer"
@@ -154,7 +155,7 @@
     {
       "id": "post_deleveraging_rebound_focused",
       "event_type": "POST_DELEVERAGING_REBOUND",
-      "detector_band": "",
+      "detector_band": "research_trigger",
       "search_role": "diagnostic",
       "promotion_role": "ineligible",
       "runtime_role": "observer"
@@ -162,7 +163,7 @@
     {
       "id": "zscore_stretch_repair",
       "event_type": "ZSCORE_STRETCH",
-      "detector_band": "",
+      "detector_band": "research_trigger",
       "search_role": "diagnostic",
       "promotion_role": "ineligible",
       "runtime_role": "observer"
@@ -170,7 +171,7 @@
     {
       "id": "band_break_repair",
       "event_type": "BAND_BREAK",
-      "detector_band": "",
+      "detector_band": "research_trigger",
       "search_role": "diagnostic",
       "promotion_role": "ineligible",
       "runtime_role": "observer"
@@ -178,7 +179,7 @@
     {
       "id": "overshoot_after_shock_repair",
       "event_type": "OVERSHOOT_AFTER_SHOCK",
-      "detector_band": "",
+      "detector_band": "research_trigger",
       "search_role": "diagnostic",
       "promotion_role": "ineligible",
       "runtime_role": "observer"
@@ -186,7 +187,7 @@
     {
       "id": "gap_overshoot_repair",
       "event_type": "GAP_OVERSHOOT",
-      "detector_band": "",
+      "detector_band": "research_trigger",
       "search_role": "diagnostic",
       "promotion_role": "ineligible",
       "runtime_role": "observer"
@@ -202,7 +203,7 @@
     {
       "id": "liquidation_cascade_proxy_positioning",
       "event_type": "LIQUIDATION_CASCADE_PROXY",
-      "detector_band": "",
+      "detector_band": "composite_or_fragile",
       "search_role": "confirm",
       "promotion_role": "requires_composite",
       "runtime_role": "unavailable"
@@ -218,7 +219,7 @@
     {
       "id": "oi_spike_positive_positioning",
       "event_type": "OI_SPIKE_POSITIVE",
-      "detector_band": "",
+      "detector_band": "research_trigger",
       "search_role": "diagnostic",
       "promotion_role": "ineligible",
       "runtime_role": "observer"
@@ -226,7 +227,7 @@
     {
       "id": "oi_flush_positioning",
       "event_type": "OI_FLUSH",
-      "detector_band": "",
+      "detector_band": "research_trigger",
       "search_role": "diagnostic",
       "promotion_role": "ineligible",
       "runtime_role": "observer"
@@ -234,7 +235,7 @@
     {
       "id": "deleveraging_wave_positioning",
       "event_type": "DELEVERAGING_WAVE",
-      "detector_band": "",
+      "detector_band": "research_trigger",
       "search_role": "diagnostic",
       "promotion_role": "ineligible",
       "runtime_role": "observer"
@@ -242,7 +243,7 @@
     {
       "id": "post_deleveraging_rebound_positioning",
       "event_type": "POST_DELEVERAGING_REBOUND",
-      "detector_band": "",
+      "detector_band": "research_trigger",
       "search_role": "diagnostic",
       "promotion_role": "ineligible",
       "runtime_role": "observer"
@@ -250,7 +251,7 @@
     {
       "id": "sweep_stoprun_repair",
       "event_type": "SWEEP_STOPRUN",
-      "detector_band": "",
+      "detector_band": "research_trigger",
       "search_role": "diagnostic",
       "promotion_role": "ineligible",
       "runtime_role": "observer"
@@ -258,7 +259,7 @@
     {
       "id": "depth_collapse_repair",
       "event_type": "DEPTH_COLLAPSE",
-      "detector_band": "",
+      "detector_band": "research_trigger",
       "search_role": "diagnostic",
       "promotion_role": "ineligible",
       "runtime_role": "observer"
@@ -266,7 +267,7 @@
     {
       "id": "spread_blowout_repair",
       "event_type": "SPREAD_BLOWOUT",
-      "detector_band": "",
+      "detector_band": "research_trigger",
       "search_role": "diagnostic",
       "promotion_role": "ineligible",
       "runtime_role": "observer"
@@ -274,7 +275,7 @@
     {
       "id": "liquidity_gap_print_repair",
       "event_type": "LIQUIDITY_GAP_PRINT",
-      "detector_band": "",
+      "detector_band": "research_trigger",
       "search_role": "diagnostic",
       "promotion_role": "ineligible",
       "runtime_role": "observer"
@@ -282,7 +283,7 @@
     {
       "id": "orderflow_imbalance_shock_repair",
       "event_type": "ORDERFLOW_IMBALANCE_SHOCK",
-      "detector_band": "",
+      "detector_band": "research_trigger",
       "search_role": "diagnostic",
       "promotion_role": "ineligible",
       "runtime_role": "observer"
@@ -290,7 +291,7 @@
     {
       "id": "sweep_stoprun_stress",
       "event_type": "SWEEP_STOPRUN",
-      "detector_band": "",
+      "detector_band": "research_trigger",
       "search_role": "diagnostic",
       "promotion_role": "ineligible",
       "runtime_role": "observer"
@@ -298,7 +299,7 @@
     {
       "id": "depth_collapse_stress",
       "event_type": "DEPTH_COLLAPSE",
-      "detector_band": "",
+      "detector_band": "research_trigger",
       "search_role": "diagnostic",
       "promotion_role": "ineligible",
       "runtime_role": "observer"
@@ -306,7 +307,7 @@
     {
       "id": "spread_blowout_stress",
       "event_type": "SPREAD_BLOWOUT",
-      "detector_band": "",
+      "detector_band": "research_trigger",
       "search_role": "diagnostic",
       "promotion_role": "ineligible",
       "runtime_role": "observer"
@@ -314,7 +315,7 @@
     {
       "id": "liquidity_shock_stress",
       "event_type": "LIQUIDITY_SHOCK",
-      "detector_band": "",
+      "detector_band": "research_trigger",
       "search_role": "diagnostic",
       "promotion_role": "ineligible",
       "runtime_role": "observer"
@@ -322,7 +323,7 @@
     {
       "id": "liquidity_gap_print_stress",
       "event_type": "LIQUIDITY_GAP_PRINT",
-      "detector_band": "",
+      "detector_band": "research_trigger",
       "search_role": "diagnostic",
       "promotion_role": "ineligible",
       "runtime_role": "observer"
@@ -330,7 +331,7 @@
     {
       "id": "orderflow_imbalance_shock_stress",
       "event_type": "ORDERFLOW_IMBALANCE_SHOCK",
-      "detector_band": "",
+      "detector_band": "research_trigger",
       "search_role": "diagnostic",
       "promotion_role": "ineligible",
       "runtime_role": "observer"
@@ -338,7 +339,7 @@
     {
       "id": "failed_continuation_runtime",
       "event_type": "FAILED_CONTINUATION",
-      "detector_band": "",
+      "detector_band": "research_trigger",
       "search_role": "diagnostic",
       "promotion_role": "ineligible",
       "runtime_role": "observer"
@@ -346,7 +347,7 @@
     {
       "id": "false_breakout_runtime",
       "event_type": "FALSE_BREAKOUT",
-      "detector_band": "",
+      "detector_band": "research_trigger",
       "search_role": "diagnostic",
       "promotion_role": "ineligible",
       "runtime_role": "observer"
@@ -354,7 +355,7 @@
     {
       "id": "momentum_divergence_runtime",
       "event_type": "MOMENTUM_DIVERGENCE_TRIGGER",
-      "detector_band": "",
+      "detector_band": "research_trigger",
       "search_role": "diagnostic",
       "promotion_role": "ineligible",
       "runtime_role": "observer"
@@ -362,7 +363,7 @@
     {
       "id": "climax_volume_bar_runtime",
       "event_type": "CLIMAX_VOLUME_BAR",
-      "detector_band": "",
+      "detector_band": "research_trigger",
       "search_role": "diagnostic",
       "promotion_role": "ineligible",
       "runtime_role": "observer"
@@ -370,7 +371,7 @@
     {
       "id": "vol_shock_probe",
       "event_type": "VOL_SHOCK",
-      "detector_band": "",
+      "detector_band": "research_trigger",
       "search_role": "diagnostic",
       "promotion_role": "ineligible",
       "runtime_role": "observer"
@@ -386,7 +387,7 @@
     {
       "id": "forced_flow_exhaustion_residual",
       "event_type": "FORCED_FLOW_EXHAUSTION",
-      "detector_band": "",
+      "detector_band": "research_trigger",
       "search_role": "diagnostic",
       "promotion_role": "ineligible",
       "runtime_role": "observer"
@@ -394,7 +395,7 @@
     {
       "id": "flow_exhaustion_proxy_residual",
       "event_type": "FLOW_EXHAUSTION_PROXY",
-      "detector_band": "",
+      "detector_band": "composite_or_fragile",
       "search_role": "confirm",
       "promotion_role": "requires_composite",
       "runtime_role": "unavailable"
@@ -402,7 +403,7 @@
     {
       "id": "trend_deceleration_residual",
       "event_type": "TREND_DECELERATION",
-      "detector_band": "",
+      "detector_band": "research_trigger",
       "search_role": "diagnostic",
       "promotion_role": "ineligible",
       "runtime_role": "observer"
@@ -410,7 +411,7 @@
     {
       "id": "absorption_proxy_repair",
       "event_type": "ABSORPTION_PROXY",
-      "detector_band": "",
+      "detector_band": "composite_or_fragile",
       "search_role": "confirm",
       "promotion_role": "requires_composite",
       "runtime_role": "unavailable"
@@ -418,7 +419,7 @@
     {
       "id": "depth_stress_proxy_repair",
       "event_type": "DEPTH_STRESS_PROXY",
-      "detector_band": "",
+      "detector_band": "composite_or_fragile",
       "search_role": "confirm",
       "promotion_role": "requires_composite",
       "runtime_role": "unavailable"
@@ -426,7 +427,7 @@
     {
       "id": "liquidity_stress_direct_repair",
       "event_type": "LIQUIDITY_STRESS_DIRECT",
-      "detector_band": "",
+      "detector_band": "research_trigger",
       "search_role": "diagnostic",
       "promotion_role": "ineligible",
       "runtime_role": "observer"
@@ -434,7 +435,7 @@
     {
       "id": "liquidity_stress_proxy_repair",
       "event_type": "LIQUIDITY_STRESS_PROXY",
-      "detector_band": "",
+      "detector_band": "composite_or_fragile",
       "search_role": "confirm",
       "promotion_role": "requires_composite",
       "runtime_role": "unavailable"
@@ -442,7 +443,7 @@
     {
       "id": "price_vol_imbalance_proxy_repair",
       "event_type": "PRICE_VOL_IMBALANCE_PROXY",
-      "detector_band": "",
+      "detector_band": "composite_or_fragile",
       "search_role": "confirm",
       "promotion_role": "requires_composite",
       "runtime_role": "unavailable"
@@ -450,7 +451,7 @@
     {
       "id": "wick_reversal_proxy_repair",
       "event_type": "WICK_REVERSAL_PROXY",
-      "detector_band": "",
+      "detector_band": "composite_or_fragile",
       "search_role": "confirm",
       "promotion_role": "requires_composite",
       "runtime_role": "unavailable"
@@ -458,7 +459,7 @@
     {
       "id": "funding_flip_basis_runtime",
       "event_type": "FUNDING_FLIP",
-      "detector_band": "",
+      "detector_band": "research_trigger",
       "search_role": "diagnostic",
       "promotion_role": "ineligible",
       "runtime_role": "observer"
@@ -466,7 +467,7 @@
     {
       "id": "fnd_disloc_basis_runtime",
       "event_type": "FND_DISLOC",
-      "detector_band": "",
+      "detector_band": "research_trigger",
       "search_role": "diagnostic",
       "promotion_role": "ineligible",
       "runtime_role": "observer"
@@ -474,7 +475,7 @@
     {
       "id": "basis_disloc_runtime",
       "event_type": "BASIS_DISLOC",
-      "detector_band": "",
+      "detector_band": "research_trigger",
       "search_role": "diagnostic",
       "promotion_role": "ineligible",
       "runtime_role": "observer"
@@ -482,7 +483,7 @@
     {
       "id": "spot_perp_basis_shock_runtime",
       "event_type": "SPOT_PERP_BASIS_SHOCK",
-      "detector_band": "",
+      "detector_band": "research_trigger",
       "search_role": "diagnostic",
       "promotion_role": "ineligible",
       "runtime_role": "observer"
@@ -490,7 +491,7 @@
     {
       "id": "cross_venue_desync_basis_runtime",
       "event_type": "CROSS_VENUE_DESYNC",
-      "detector_band": "",
+      "detector_band": "research_trigger",
       "search_role": "diagnostic",
       "promotion_role": "ineligible",
       "runtime_role": "observer"
@@ -498,7 +499,7 @@
     {
       "id": "vol_cluster_shift_transition",
       "event_type": "VOL_CLUSTER_SHIFT",
-      "detector_band": "",
+      "detector_band": "research_trigger",
       "search_role": "diagnostic",
       "promotion_role": "ineligible",
       "runtime_role": "observer"
@@ -506,7 +507,7 @@
     {
       "id": "range_compression_end_transition",
       "event_type": "RANGE_COMPRESSION_END",
-      "detector_band": "",
+      "detector_band": "research_trigger",
       "search_role": "diagnostic",
       "promotion_role": "ineligible",
       "runtime_role": "observer"
@@ -514,7 +515,7 @@
     {
       "id": "breakout_trigger_transition",
       "event_type": "BREAKOUT_TRIGGER",
-      "detector_band": "",
+      "detector_band": "research_trigger",
       "search_role": "diagnostic",
       "promotion_role": "ineligible",
       "runtime_role": "observer"
@@ -522,7 +523,7 @@
     {
       "id": "vol_shock_core",
       "event_type": "VOL_SHOCK",
-      "detector_band": "",
+      "detector_band": "research_trigger",
       "search_role": "diagnostic",
       "promotion_role": "ineligible",
       "runtime_role": "observer"
@@ -530,7 +531,7 @@
     {
       "id": "vol_spike_core",
       "event_type": "VOL_SPIKE",
-      "detector_band": "",
+      "detector_band": "research_trigger",
       "search_role": "diagnostic",
       "promotion_role": "ineligible",
       "runtime_role": "observer"
@@ -538,7 +539,7 @@
     {
       "id": "vol_relaxation_core",
       "event_type": "VOL_RELAXATION_START",
-      "detector_band": "",
+      "detector_band": "research_trigger",
       "search_role": "diagnostic",
       "promotion_role": "ineligible",
       "runtime_role": "observer"
@@ -554,7 +555,7 @@
     {
       "id": "funding_extreme_core",
       "event_type": "FUNDING_EXTREME_ONSET",
-      "detector_band": "",
+      "detector_band": "research_trigger",
       "search_role": "diagnostic",
       "promotion_role": "ineligible",
       "runtime_role": "observer"
@@ -570,7 +571,7 @@
     {
       "id": "vol_shock_core",
       "event_type": "VOL_SHOCK",
-      "detector_band": "",
+      "detector_band": "research_trigger",
       "search_role": "diagnostic",
       "promotion_role": "ineligible",
       "runtime_role": "observer"
@@ -578,7 +579,7 @@
     {
       "id": "vol_spike_core",
       "event_type": "VOL_SPIKE",
-      "detector_band": "",
+      "detector_band": "research_trigger",
       "search_role": "diagnostic",
       "promotion_role": "ineligible",
       "runtime_role": "observer"
@@ -586,7 +587,7 @@
     {
       "id": "vol_relaxation_core",
       "event_type": "VOL_RELAXATION_START",
-      "detector_band": "",
+      "detector_band": "research_trigger",
       "search_role": "diagnostic",
       "promotion_role": "ineligible",
       "runtime_role": "observer"
@@ -602,7 +603,7 @@
     {
       "id": "funding_extreme_core",
       "event_type": "FUNDING_EXTREME_ONSET",
-      "detector_band": "",
+      "detector_band": "research_trigger",
       "search_role": "diagnostic",
       "promotion_role": "ineligible",
       "runtime_role": "observer"
@@ -618,7 +619,7 @@
     {
       "id": "spread_blowout_guard",
       "event_type": "SPREAD_BLOWOUT",
-      "detector_band": "",
+      "detector_band": "research_trigger",
       "search_role": "diagnostic",
       "promotion_role": "ineligible",
       "runtime_role": "observer"
@@ -626,7 +627,7 @@
     {
       "id": "spread_regime_widening_guard",
       "event_type": "SPREAD_REGIME_WIDENING_EVENT",
-      "detector_band": "",
+      "detector_band": "research_trigger",
       "search_role": "diagnostic",
       "promotion_role": "ineligible",
       "runtime_role": "observer"
@@ -634,7 +635,7 @@
     {
       "id": "slippage_spike_guard",
       "event_type": "SLIPPAGE_SPIKE_EVENT",
-      "detector_band": "",
+      "detector_band": "research_trigger",
       "search_role": "diagnostic",
       "promotion_role": "ineligible",
       "runtime_role": "observer"
@@ -642,7 +643,7 @@
     {
       "id": "session_open_guard",
       "event_type": "SESSION_OPEN_EVENT",
-      "detector_band": "",
+      "detector_band": "context_only",
       "search_role": "context",
       "promotion_role": "ineligible",
       "runtime_role": "guard"
@@ -650,7 +651,7 @@
     {
       "id": "funding_timestamp_guard",
       "event_type": "FUNDING_TIMESTAMP_EVENT",
-      "detector_band": "",
+      "detector_band": "context_only",
       "search_role": "context",
       "promotion_role": "ineligible",
       "runtime_role": "guard"
@@ -658,7 +659,7 @@
     {
       "id": "cross_venue_desync_repair",
       "event_type": "CROSS_VENUE_DESYNC",
-      "detector_band": "",
+      "detector_band": "research_trigger",
       "search_role": "diagnostic",
       "promotion_role": "ineligible",
       "runtime_role": "observer"
@@ -666,7 +667,7 @@
     {
       "id": "spot_perp_basis_shock_desync",
       "event_type": "SPOT_PERP_BASIS_SHOCK",
-      "detector_band": "",
+      "detector_band": "research_trigger",
       "search_role": "diagnostic",
       "promotion_role": "ineligible",
       "runtime_role": "observer"
@@ -674,7 +675,7 @@
     {
       "id": "lead_lag_break_desync",
       "event_type": "LEAD_LAG_BREAK",
-      "detector_band": "",
+      "detector_band": "research_trigger",
       "search_role": "diagnostic",
       "promotion_role": "ineligible",
       "runtime_role": "observer"
@@ -682,7 +683,7 @@
     {
       "id": "session_open_temporal",
       "event_type": "SESSION_OPEN_EVENT",
-      "detector_band": "",
+      "detector_band": "context_only",
       "search_role": "context",
       "promotion_role": "ineligible",
       "runtime_role": "guard"
@@ -690,7 +691,7 @@
     {
       "id": "funding_timestamp_temporal",
       "event_type": "FUNDING_TIMESTAMP_EVENT",
-      "detector_band": "",
+      "detector_band": "context_only",
       "search_role": "context",
       "promotion_role": "ineligible",
       "runtime_role": "guard"
@@ -698,7 +699,7 @@
     {
       "id": "spread_regime_widening_guard",
       "event_type": "SPREAD_REGIME_WIDENING_EVENT",
-      "detector_band": "",
+      "detector_band": "research_trigger",
       "search_role": "diagnostic",
       "promotion_role": "ineligible",
       "runtime_role": "observer"
@@ -706,7 +707,7 @@
     {
       "id": "slippage_spike_guard",
       "event_type": "SLIPPAGE_SPIKE_EVENT",
-      "detector_band": "",
+      "detector_band": "research_trigger",
       "search_role": "diagnostic",
       "promotion_role": "ineligible",
       "runtime_role": "observer"
@@ -714,7 +715,7 @@
     {
       "id": "lead_lag_break_temporal",
       "event_type": "LEAD_LAG_BREAK",
-      "detector_band": "",
+      "detector_band": "research_trigger",
       "search_role": "diagnostic",
       "promotion_role": "ineligible",
       "runtime_role": "observer"
@@ -722,7 +723,7 @@
     {
       "id": "correlation_breakdown_regime",
       "event_type": "CORRELATION_BREAKDOWN_EVENT",
-      "detector_band": "",
+      "detector_band": "research_trigger",
       "search_role": "diagnostic",
       "promotion_role": "ineligible",
       "runtime_role": "observer"
@@ -730,7 +731,7 @@
     {
       "id": "beta_spike_regime",
       "event_type": "BETA_SPIKE_EVENT",
-      "detector_band": "",
+      "detector_band": "research_trigger",
       "search_role": "diagnostic",
       "promotion_role": "ineligible",
       "runtime_role": "observer"
@@ -738,7 +739,7 @@
     {
       "id": "vol_regime_shift_regime",
       "event_type": "VOL_REGIME_SHIFT_EVENT",
-      "detector_band": "",
+      "detector_band": "research_trigger",
       "search_role": "diagnostic",
       "promotion_role": "ineligible",
       "runtime_role": "observer"
@@ -746,7 +747,7 @@
     {
       "id": "chop_to_trend_shift_regime",
       "event_type": "CHOP_TO_TREND_SHIFT",
-      "detector_band": "",
+      "detector_band": "research_trigger",
       "search_role": "diagnostic",
       "promotion_role": "ineligible",
       "runtime_role": "observer"
@@ -754,7 +755,7 @@
     {
       "id": "trend_to_chop_shift_regime",
       "event_type": "TREND_TO_CHOP_SHIFT",
-      "detector_band": "",
+      "detector_band": "research_trigger",
       "search_role": "diagnostic",
       "promotion_role": "ineligible",
       "runtime_role": "observer"
@@ -762,7 +763,7 @@
     {
       "id": "vol_shock_probe",
       "event_type": "VOL_SHOCK",
-      "detector_band": "",
+      "detector_band": "research_trigger",
       "search_role": "diagnostic",
       "promotion_role": "ineligible",
       "runtime_role": "observer"
@@ -770,7 +771,7 @@
     {
       "id": "vol_shock_probe",
       "event_type": "VOL_SHOCK",
-      "detector_band": "",
+      "detector_band": "research_trigger",
       "search_role": "diagnostic",
       "promotion_role": "ineligible",
       "runtime_role": "observer"

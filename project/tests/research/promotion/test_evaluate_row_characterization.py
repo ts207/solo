@@ -34,7 +34,7 @@ def _base_kwargs():
 
 def _passing_row():
     return {
-        "event_type": "VOL_SHOCK",
+        "event_type": "LIQUIDATION_CASCADE",
         "n_events": 50,
         "q_value": 0.01,
         "event_is_descriptive": False,

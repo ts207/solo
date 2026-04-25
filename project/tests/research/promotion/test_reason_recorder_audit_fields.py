@@ -33,7 +33,7 @@ def _kwargs():
 
 def _row():
     return {
-        "event_type": "VOL_SHOCK",
+        "event_type": "LIQUIDATION_CASCADE",
         "run_mode": "research",
         "n_events": 50,
         "q_value": 0.01,

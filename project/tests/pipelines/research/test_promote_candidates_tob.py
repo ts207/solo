@@ -7,7 +7,7 @@ def test_promotion_tob_coverage_gate():
     # Base row that passes all other gates
     row = {
         "candidate_id": "test_1",
-        "event_type": "VOL_SHOCK",
+        "event_type": "LIQUIDATION_CASCADE",
         "n_events": 200,
         "q_value": 0.01,
         "gate_stability": "pass",

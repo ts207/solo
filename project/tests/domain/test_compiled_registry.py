@@ -283,6 +283,88 @@ def test_domain_init_exposes_compiled_registry_api():
     assert isinstance(registry, domain.DomainRegistry)
 
 
+def test_event_row_governance_fields_are_not_overridden_by_raw_blank_values():
+    """event_row() must emit computed governance values, not raw blank/None from the YAML."""
+    from project.domain.models import EventDefinition, DomainRegistry
+
+    # Build a synthetic EventDefinition with well-known governance values and a raw
+    # dict that contains blank/None for those same fields (simulating stale YAML rows).
+    raw_with_blanks = {
+        "planning_eligible": None,
+        "runtime_eligible": "",
+        "promotion_eligible": None,
+        "primary_anchor_eligible": "",
+        "detector_band": "",
+        # keep a non-governance field in raw so row is non-trivial
+        "notes": "from raw",
+    }
+    spec = EventDefinition(
+        event_type="SYNTHETIC_TEST_EVENT",
+        canonical_family="TEST_FAMILY",
+        canonical_regime="TEST_REGIME",
+        event_kind="market_event",
+        reports_dir="test",
+        events_file="test.parquet",
+        signal_column="synthetic_test_event",
+        planning_eligible=True,
+        runtime_eligible=True,
+        promotion_eligible=True,
+        primary_anchor_eligible=True,
+        detector_band="deployable_core",
+        raw=raw_with_blanks,
+    )
+
+    # Build a minimal registry that contains only this synthetic event.
+    registry = DomainRegistry(
+        event_definitions={"SYNTHETIC_TEST_EVENT": spec},
+        state_definitions={},
+        template_registry_payload={},
+        family_registry_payload={},
+        thesis_definitions={},
+        context_state_map={},
+        searchable_event_families=(),
+        searchable_state_families=(),
+        state_aliases=(),
+        stress_scenarios=(),
+        kill_switch_candidate_features=(),
+        sequence_definitions=(),
+        interaction_definitions=(),
+        gates_spec={},
+        unified_registry_path="",
+    )
+
+    row = registry.event_row("SYNTHETIC_TEST_EVENT")
+
+    # Governance fields must reflect computed EventDefinition values, not raw blanks.
+    assert row["planning_eligible"] is True, "planning_eligible was overridden by raw None"
+    assert row["runtime_eligible"] is True, "runtime_eligible was overridden by raw blank"
+    assert row["promotion_eligible"] is True, "promotion_eligible was overridden by raw None"
+    assert row["primary_anchor_eligible"] is True, "primary_anchor_eligible was overridden by raw blank"
+    assert row["detector_band"] == "deployable_core", "detector_band was overridden by raw blank"
+
+    # Non-governance field from raw should still be preserved via setdefault.
+    assert row["notes"] == "from raw"
+
+
+def test_event_row_governance_fields_populated_for_live_events():
+    """Spot-check that key real events have non-blank governance fields in event_row()."""
+    registry = get_domain_registry()
+    checks = {
+        "VOL_SHOCK": {"detector_band": "research_trigger", "planning_eligible": False},
+        "LIQUIDATION_CASCADE": {"detector_band": "deployable_core", "planning_eligible": True},
+        "LIQUIDITY_VACUUM": {"detector_band": "deployable_core", "promotion_eligible": True},
+        "OI_SPIKE_NEGATIVE": {"detector_band": "deployable_core", "primary_anchor_eligible": True},
+        "FUNDING_PERSISTENCE_TRIGGER": {"detector_band": "research_trigger", "planning_eligible": True},
+    }
+    for event_type, expected in checks.items():
+        row = registry.event_row(event_type)
+        assert row, f"event_row({event_type!r}) returned empty"
+        for field, value in expected.items():
+            assert row[field] == value, (
+                f"{event_type}.{field}: expected {value!r}, got {row[field]!r}"
+            )
+
+
 def test_events_contracts_delegates_to_compiled_domain():
     from project.domain.models import EventDefinition
     from project.events.contracts import (

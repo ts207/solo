@@ -13,7 +13,7 @@ class MockContract:
 
 def test_hierarchical_defense_success():
     row = {
-        "event_type": "VOL_SPIKE",
+        "event_type": "LIQUIDATION_CASCADE",
         "n_events": 100,
         "q_value": 0.01,
         "expectancy": 0.0020,  # 20 bps

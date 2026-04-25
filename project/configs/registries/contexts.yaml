@@ -87,7 +87,6 @@ context_dimensions:
       wide: SPREAD_WIDE
   ms_trend_state:
     allowed_values:
-    - trend
     - chop
     - bullish
     - bearish

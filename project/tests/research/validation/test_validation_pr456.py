@@ -81,7 +81,7 @@ def test_evidence_bundle_policy_and_serialization(tmp_path: Path):
     row = {
         "candidate_id": "cand_1",
         "run_id": "r1",
-        "event_type": "VOL_SHOCK",
+        "event_type": "LIQUIDATION_CASCADE",
         "n_events": 250,
         "validation_samples": 120,
         "test_samples": 80,
@@ -163,7 +163,7 @@ def test_evidence_bundle_policy_and_serialization(tmp_path: Path):
 def test_build_evidence_bundle_accepts_vectorized_returns_oos_combined():
     row = {
         "candidate_id": "cand_vector",
-        "event_type": "VOL_SHOCK",
+        "event_type": "LIQUIDATION_CASCADE",
         "returns_oos_combined": np.array([0.1] * 12),
     }
 
@@ -176,7 +176,7 @@ def test_build_evidence_bundle_accepts_vectorized_returns_oos_combined():
 def test_build_evidence_bundle_accepts_legacy_serialized_returns_oos_combined():
     row = {
         "candidate_id": "cand_legacy",
-        "event_type": "VOL_SHOCK",
+        "event_type": "LIQUIDATION_CASCADE",
         "returns_oos_combined": "[np.float64(0.1), np.float64(0.2)]",
     }
 
@@ -189,7 +189,7 @@ def test_build_evidence_bundle_accepts_legacy_serialized_returns_oos_combined():
 def test_build_evidence_bundle_rejects_malformed_serialized_returns_oos_combined():
     row = {
         "candidate_id": "cand_bad_text",
-        "event_type": "VOL_SHOCK",
+        "event_type": "LIQUIDATION_CASCADE",
         "returns_oos_combined": "not a valid vector",
     }
 
@@ -200,7 +200,7 @@ def test_build_evidence_bundle_rejects_malformed_serialized_returns_oos_combined
 def test_build_evidence_bundle_rejects_object_returns_oos_combined():
     row = {
         "candidate_id": "cand_bad",
-        "event_type": "VOL_SHOCK",
+        "event_type": "LIQUIDATION_CASCADE",
         "returns_oos_combined": {"unexpected": 1},
     }
 
@@ -213,7 +213,7 @@ def test_build_promotion_statistical_audit_retains_bundle_reporting_fields():
         [
             {
                 "candidate_id": "cand_1",
-                "event_type": "VOL_SHOCK",
+                "event_type": "LIQUIDATION_CASCADE",
                 "promotion_decision": "promoted",
                 "promotion_track": "standard",
                 "promotion_tier": "deployable",

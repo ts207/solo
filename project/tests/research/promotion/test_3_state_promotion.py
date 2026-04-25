@@ -72,7 +72,7 @@ def test_evidence_bundle_3_state_logic():
 def test_promotion_decisions_handles_string_gates():
     dummy_row = {
         "candidate_id": "test_cand_2",
-        "event_type": "VOL_SHOCK",
+        "event_type": "LIQUIDATION_CASCADE",
         "symbol": "BTCUSDT",
         "plan_row_id": "plan_x",
         "horizon": "24b",

@@ -338,11 +338,11 @@ class DomainRegistry:
         row.setdefault("default_executable", event.default_executable)
         row.setdefault("research_only", event.research_only)
         row.setdefault("strategy_only", event.strategy_only)
-        row.setdefault("planning_eligible", event.planning_eligible)
-        row.setdefault("runtime_eligible", event.runtime_eligible)
-        row.setdefault("promotion_eligible", event.promotion_eligible)
-        row.setdefault("primary_anchor_eligible", event.primary_anchor_eligible)
-        row.setdefault("detector_band", event.detector_band)
+        row["planning_eligible"] = event.planning_eligible
+        row["runtime_eligible"] = event.runtime_eligible
+        row["promotion_eligible"] = event.promotion_eligible
+        row["primary_anchor_eligible"] = event.primary_anchor_eligible
+        row["detector_band"] = event.detector_band
         row.setdefault("notes", event.notes)
         row.setdefault("routing_profile_ref", event.routing_profile_ref)
         row.setdefault("parameters", dict(event.parameters))

@@ -420,7 +420,7 @@ events:
     operational_role: trigger
     deployment_disposition: secondary_or_confirm
     runtime_category: active_runtime_event
-    detector_band: ''
+    detector_band: 'composite_or_fragile'
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -498,7 +498,7 @@ events:
     operational_role: trigger
     deployment_disposition: secondary_or_confirm
     runtime_category: active_runtime_event
-    detector_band: ''
+    detector_band: 'research_trigger'
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -572,7 +572,7 @@ events:
     operational_role: trigger
     deployment_disposition: primary_trigger_candidate
     runtime_category: active_runtime_event
-    detector_band: ''
+    detector_band: 'research_trigger'
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -647,7 +647,7 @@ events:
     operational_role: trigger
     deployment_disposition: secondary_or_confirm
     runtime_category: active_runtime_event
-    detector_band: ''
+    detector_band: 'research_trigger'
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -722,7 +722,7 @@ events:
     operational_role: trigger
     deployment_disposition: secondary_or_confirm
     runtime_category: active_runtime_event
-    detector_band: ''
+    detector_band: 'research_trigger'
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -802,7 +802,7 @@ events:
     operational_role: trigger
     deployment_disposition: secondary_or_confirm
     runtime_category: active_runtime_event
-    detector_band: ''
+    detector_band: 'research_trigger'
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -878,7 +878,7 @@ events:
     operational_role: trigger
     deployment_disposition: secondary_or_confirm
     runtime_category: active_runtime_event
-    detector_band: ''
+    detector_band: 'research_trigger'
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -960,7 +960,7 @@ events:
     operational_role: research_only
     deployment_disposition: research_only
     runtime_category: research_only
-    detector_band: ''
+    detector_band: 'composite_or_fragile'
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -1034,7 +1034,7 @@ events:
     operational_role: trigger
     deployment_disposition: secondary_or_confirm
     runtime_category: active_runtime_event
-    detector_band: ''
+    detector_band: 'research_trigger'
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -1109,7 +1109,7 @@ events:
     operational_role: filter
     deployment_disposition: repair_before_promotion
     runtime_category: active_runtime_event
-    detector_band: ''
+    detector_band: 'context_only'
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -1237,7 +1237,7 @@ events:
     operational_role: trigger
     deployment_disposition: secondary_or_confirm
     runtime_category: active_runtime_event
-    detector_band: ''
+    detector_band: 'research_trigger'
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -1382,7 +1382,7 @@ events:
     operational_role: trigger
     deployment_disposition: secondary_or_confirm
     runtime_category: active_runtime_event
-    detector_band: ''
+    detector_band: 'research_trigger'
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -1477,7 +1477,7 @@ events:
     operational_role: trigger
     deployment_disposition: secondary_or_confirm
     runtime_category: active_runtime_event
-    detector_band: ''
+    detector_band: 'research_trigger'
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -1559,7 +1559,7 @@ events:
     operational_role: trigger
     deployment_disposition: secondary_or_confirm
     runtime_category: active_runtime_event
-    detector_band: ''
+    detector_band: 'composite_or_fragile'
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -1641,7 +1641,7 @@ events:
     operational_role: trigger
     deployment_disposition: secondary_or_confirm
     runtime_category: active_runtime_event
-    detector_band: ''
+    detector_band: 'research_trigger'
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -1718,7 +1718,7 @@ events:
     operational_role: trigger
     deployment_disposition: secondary_or_confirm
     runtime_category: active_runtime_event
-    detector_band: ''
+    detector_band: 'research_trigger'
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -1797,7 +1797,7 @@ events:
     operational_role: trigger
     deployment_disposition: secondary_or_confirm
     runtime_category: active_runtime_event
-    detector_band: ''
+    detector_band: 'research_trigger'
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -1871,7 +1871,7 @@ events:
     operational_role: trigger
     deployment_disposition: secondary_or_confirm
     runtime_category: active_runtime_event
-    detector_band: ''
+    detector_band: 'composite_or_fragile'
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -1962,7 +1962,7 @@ events:
     operational_role: trigger
     deployment_disposition: primary_trigger_candidate
     runtime_category: active_runtime_event
-    detector_band: ''
+    detector_band: 'research_trigger'
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -2041,7 +2041,7 @@ events:
     operational_role: trigger
     deployment_disposition: secondary_or_confirm
     runtime_category: active_runtime_event
-    detector_band: ''
+    detector_band: 'research_trigger'
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -2135,7 +2135,7 @@ events:
     operational_role: trigger
     deployment_disposition: secondary_or_confirm
     runtime_category: active_runtime_event
-    detector_band: ''
+    detector_band: 'research_trigger'
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -2311,7 +2311,7 @@ events:
     operational_role: trigger
     deployment_disposition: secondary_or_confirm
     runtime_category: active_runtime_event
-    detector_band: ''
+    detector_band: 'research_trigger'
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -2394,7 +2394,7 @@ events:
     operational_role: ''
     deployment_disposition: ''
     runtime_category: active_runtime_event
-    detector_band: ''
+    detector_band: 'semantic_variant'
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -2470,7 +2470,7 @@ events:
     operational_role: ''
     deployment_disposition: ''
     runtime_category: active_runtime_event
-    detector_band: ''
+    detector_band: 'semantic_variant'
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -2546,7 +2546,7 @@ events:
     operational_role: ''
     deployment_disposition: ''
     runtime_category: active_runtime_event
-    detector_band: ''
+    detector_band: 'semantic_variant'
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -2622,7 +2622,7 @@ events:
     operational_role: ''
     deployment_disposition: ''
     runtime_category: active_runtime_event
-    detector_band: ''
+    detector_band: 'semantic_variant'
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -2698,7 +2698,7 @@ events:
     operational_role: ''
     deployment_disposition: ''
     runtime_category: active_runtime_event
-    detector_band: ''
+    detector_band: 'semantic_variant'
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -2778,7 +2778,7 @@ events:
     operational_role: trigger
     deployment_disposition: secondary_or_confirm
     runtime_category: active_runtime_event
-    detector_band: ''
+    detector_band: 'research_trigger'
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -3031,7 +3031,7 @@ events:
     operational_role: ''
     deployment_disposition: ''
     runtime_category: active_runtime_event
-    detector_band: ''
+    detector_band: 'semantic_variant'
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -3107,7 +3107,7 @@ events:
     operational_role: ''
     deployment_disposition: ''
     runtime_category: active_runtime_event
-    detector_band: ''
+    detector_band: 'semantic_variant'
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -3183,7 +3183,7 @@ events:
     operational_role: ''
     deployment_disposition: ''
     runtime_category: active_runtime_event
-    detector_band: ''
+    detector_band: 'semantic_variant'
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -3263,7 +3263,7 @@ events:
     operational_role: context
     deployment_disposition: context_only
     runtime_category: active_runtime_event
-    detector_band: ''
+    detector_band: 'context_only'
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -3351,7 +3351,7 @@ events:
     operational_role: trigger
     deployment_disposition: secondary_or_confirm
     runtime_category: active_runtime_event
-    detector_band: ''
+    detector_band: 'research_trigger'
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -3426,7 +3426,7 @@ events:
     operational_role: trigger
     deployment_disposition: secondary_or_confirm
     runtime_category: active_runtime_event
-    detector_band: ''
+    detector_band: 'research_trigger'
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -3503,7 +3503,7 @@ events:
     operational_role: trigger
     deployment_disposition: secondary_or_confirm
     runtime_category: active_runtime_event
-    detector_band: ''
+    detector_band: 'research_trigger'
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -3698,7 +3698,7 @@ events:
     operational_role: trigger
     deployment_disposition: secondary_or_confirm
     runtime_category: active_runtime_event
-    detector_band: ''
+    detector_band: 'composite_or_fragile'
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -3992,7 +3992,7 @@ events:
     operational_role: trigger
     deployment_disposition: secondary_or_confirm
     runtime_category: active_runtime_event
-    detector_band: ''
+    detector_band: 'research_trigger'
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -4073,7 +4073,7 @@ events:
     operational_role: trigger
     deployment_disposition: primary_trigger_candidate
     runtime_category: active_runtime_event
-    detector_band: ''
+    detector_band: 'research_trigger'
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -4148,7 +4148,7 @@ events:
     operational_role: trigger
     deployment_disposition: secondary_or_confirm
     runtime_category: active_runtime_event
-    detector_band: ''
+    detector_band: 'research_trigger'
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -4221,7 +4221,7 @@ events:
     operational_role: trigger
     deployment_disposition: secondary_or_confirm
     runtime_category: active_runtime_event
-    detector_band: ''
+    detector_band: 'composite_or_fragile'
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -4499,7 +4499,7 @@ events:
     operational_role: trigger
     deployment_disposition: secondary_or_confirm
     runtime_category: active_runtime_event
-    detector_band: ''
+    detector_band: 'research_trigger'
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -4578,7 +4578,7 @@ events:
     operational_role: trigger
     deployment_disposition: secondary_or_confirm
     runtime_category: active_runtime_event
-    detector_band: ''
+    detector_band: 'research_trigger'
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -4771,7 +4771,7 @@ events:
     operational_role: trigger
     deployment_disposition: secondary_or_confirm
     runtime_category: active_runtime_event
-    detector_band: ''
+    detector_band: 'research_trigger'
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -4848,7 +4848,7 @@ events:
     operational_role: trigger
     deployment_disposition: secondary_or_confirm
     runtime_category: active_runtime_event
-    detector_band: ''
+    detector_band: 'research_trigger'
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -4933,7 +4933,7 @@ events:
     operational_role: trigger
     deployment_disposition: secondary_or_confirm
     runtime_category: active_runtime_event
-    detector_band: ''
+    detector_band: 'research_trigger'
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -5009,7 +5009,7 @@ events:
     operational_role: trigger
     deployment_disposition: secondary_or_confirm
     runtime_category: active_runtime_event
-    detector_band: ''
+    detector_band: 'research_trigger'
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -5103,7 +5103,7 @@ events:
     operational_role: ''
     deployment_disposition: ''
     runtime_category: active_runtime_event
-    detector_band: ''
+    detector_band: 'semantic_variant'
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -5179,7 +5179,7 @@ events:
     operational_role: ''
     deployment_disposition: ''
     runtime_category: active_runtime_event
-    detector_band: ''
+    detector_band: 'semantic_variant'
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -5254,7 +5254,7 @@ events:
     operational_role: ''
     deployment_disposition: ''
     runtime_category: active_runtime_event
-    detector_band: ''
+    detector_band: 'semantic_variant'
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -5330,7 +5330,7 @@ events:
     operational_role: ''
     deployment_disposition: ''
     runtime_category: active_runtime_event
-    detector_band: ''
+    detector_band: 'semantic_variant'
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -5407,7 +5407,7 @@ events:
     operational_role: trigger
     deployment_disposition: secondary_or_confirm
     runtime_category: active_runtime_event
-    detector_band: ''
+    detector_band: 'composite_or_fragile'
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -5489,7 +5489,7 @@ events:
     operational_role: trigger
     deployment_disposition: secondary_or_confirm
     runtime_category: active_runtime_event
-    detector_band: ''
+    detector_band: 'research_trigger'
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -5566,7 +5566,7 @@ events:
     operational_role: trigger
     deployment_disposition: secondary_or_confirm
     runtime_category: active_runtime_event
-    detector_band: ''
+    detector_band: 'research_trigger'
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -5644,7 +5644,7 @@ events:
     operational_role: trigger
     deployment_disposition: secondary_or_confirm
     runtime_category: active_runtime_event
-    detector_band: ''
+    detector_band: 'research_trigger'
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -5721,7 +5721,7 @@ events:
     operational_role: context
     deployment_disposition: context_only
     runtime_category: active_runtime_event
-    detector_band: ''
+    detector_band: 'context_only'
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -5812,7 +5812,7 @@ events:
     operational_role: sequence_component
     deployment_disposition: research_only
     runtime_category: research_only
-    detector_band: ''
+    detector_band: 'composite_or_fragile'
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -5890,7 +5890,7 @@ events:
     operational_role: sequence_component
     deployment_disposition: research_only
     runtime_category: research_only
-    detector_band: ''
+    detector_band: 'composite_or_fragile'
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -5966,7 +5966,7 @@ events:
     operational_role: sequence_component
     deployment_disposition: research_only
     runtime_category: research_only
-    detector_band: ''
+    detector_band: 'composite_or_fragile'
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -6044,7 +6044,7 @@ events:
     operational_role: sequence_component
     deployment_disposition: research_only
     runtime_category: research_only
-    detector_band: ''
+    detector_band: 'composite_or_fragile'
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -6119,7 +6119,7 @@ events:
     operational_role: context
     deployment_disposition: context_only
     runtime_category: active_runtime_event
-    detector_band: ''
+    detector_band: 'context_only'
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -6198,7 +6198,7 @@ events:
     operational_role: context
     deployment_disposition: context_only
     runtime_category: active_runtime_event
-    detector_band: ''
+    detector_band: 'context_only'
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -6277,7 +6277,7 @@ events:
     operational_role: trigger
     deployment_disposition: secondary_or_confirm
     runtime_category: active_runtime_event
-    detector_band: ''
+    detector_band: 'research_trigger'
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -6351,7 +6351,7 @@ events:
     operational_role: trigger
     deployment_disposition: primary_trigger_candidate
     runtime_category: active_runtime_event
-    detector_band: ''
+    detector_band: 'research_trigger'
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -6432,7 +6432,7 @@ events:
     operational_role: trigger
     deployment_disposition: secondary_or_confirm
     runtime_category: active_runtime_event
-    detector_band: ''
+    detector_band: 'research_trigger'
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -6536,7 +6536,7 @@ events:
     operational_role: trigger
     deployment_disposition: secondary_or_confirm
     runtime_category: active_runtime_event
-    detector_band: ''
+    detector_band: 'research_trigger'
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -6613,7 +6613,7 @@ events:
     operational_role: trigger
     deployment_disposition: secondary_or_confirm
     runtime_category: active_runtime_event
-    detector_band: ''
+    detector_band: 'research_trigger'
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -6690,7 +6690,7 @@ events:
     operational_role: trigger
     deployment_disposition: secondary_or_confirm
     runtime_category: active_runtime_event
-    detector_band: ''
+    detector_band: 'research_trigger'
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -6770,7 +6770,7 @@ events:
     operational_role: trigger
     deployment_disposition: secondary_or_confirm
     runtime_category: active_runtime_event
-    detector_band: ''
+    detector_band: 'research_trigger'
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -6847,7 +6847,7 @@ events:
     operational_role: trigger
     deployment_disposition: secondary_or_confirm
     runtime_category: active_runtime_event
-    detector_band: ''
+    detector_band: 'research_trigger'
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -6924,7 +6924,7 @@ events:
     operational_role: trigger
     deployment_disposition: secondary_or_confirm
     runtime_category: active_runtime_event
-    detector_band: ''
+    detector_band: 'research_trigger'
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -7020,7 +7020,7 @@ events:
     operational_role: trigger
     deployment_disposition: secondary_or_confirm
     runtime_category: active_runtime_event
-    detector_band: ''
+    detector_band: 'research_trigger'
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -7096,7 +7096,7 @@ events:
     operational_role: trigger
     deployment_disposition: secondary_or_confirm
     runtime_category: active_runtime_event
-    detector_band: ''
+    detector_band: 'research_trigger'
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -7173,7 +7173,7 @@ events:
     operational_role: trigger
     deployment_disposition: secondary_or_confirm
     runtime_category: active_runtime_event
-    detector_band: ''
+    detector_band: 'research_trigger'
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -7249,7 +7249,7 @@ events:
     operational_role: trigger
     deployment_disposition: secondary_or_confirm
     runtime_category: active_runtime_event
-    detector_band: ''
+    detector_band: 'research_trigger'
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -7327,7 +7327,7 @@ events:
     operational_role: trigger
     deployment_disposition: primary_trigger_candidate
     runtime_category: active_runtime_event
-    detector_band: ''
+    detector_band: 'research_trigger'
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -7470,7 +7470,7 @@ events:
     operational_role: trigger
     deployment_disposition: primary_trigger_candidate
     runtime_category: active_runtime_event
-    detector_band: ''
+    detector_band: 'research_trigger'
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -7548,7 +7548,7 @@ events:
     operational_role: trigger
     deployment_disposition: secondary_or_confirm
     runtime_category: active_runtime_event
-    detector_band: ''
+    detector_band: 'composite_or_fragile'
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -7623,7 +7623,7 @@ events:
     operational_role: trigger
     deployment_disposition: secondary_or_confirm
     runtime_category: active_runtime_event
-    detector_band: ''
+    detector_band: 'research_trigger'
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false

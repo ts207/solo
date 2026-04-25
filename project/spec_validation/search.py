@@ -56,11 +56,11 @@ def resolve_templates(search_cfg: Dict[str, Any]) -> List[str]:
     policy = search_cfg.get("template_policy", {})
     generic_allowed = policy.get("generic_templates_allowed", False)
     reason = policy.get("reason", "")
-    
-    abstract_templates = {
-        "mean_reversion", "continuation", "exhaustion_reversal", 
-        "reversal_or_squeeze", "convexity_capture", "trend_continuation",
-        "generic_continuation", "generic_mean_reversion", "unconditioned_mean_reversion"
+
+    # Templates requiring explicit policy acknowledgment — either unregistered or broad-scope generics.
+    _truly_abstract = {
+        "generic_continuation", "generic_mean_reversion", "unconditioned_mean_reversion",
+        "continuation", "mean_reversion",
     }
 
     resolved = [templates] if isinstance(templates, str) else list(templates)
@@ -69,18 +69,27 @@ def resolve_templates(search_cfg: Dict[str, Any]) -> List[str]:
     invalid_filter_templates: List[str] = []
     invalid_execution_templates: List[str] = []
     invalid_abstract_templates: List[str] = []
-    
+
     for raw in resolved:
         token = str(raw).strip()
         if not token:
             continue
-        if token in abstract_templates:
+        is_unresolvable = (
+            not registry.is_expression_template(token)
+            and not registry.is_filter_template(token)
+            and not registry.is_execution_template(token)
+        )
+        needs_policy = token in _truly_abstract
+        if is_unresolvable:
+            invalid_abstract_templates.append(token)
+            continue
+        if needs_policy:
             if not generic_allowed:
                 invalid_abstract_templates.append(token)
+                continue
             elif not reason:
                 raise ValueError(f"Template policy allows generic templates but missing 'reason' for {token}")
-            continue
-            
+
         if registry.is_filter_template(token):
             invalid_filter_templates.append(token)
             continue
@@ -90,7 +99,7 @@ def resolve_templates(search_cfg: Dict[str, Any]) -> List[str]:
         if token not in seen:
             normalized.append(token)
             seen.add(token)
-            
+
     if invalid_abstract_templates:
         raise ValueError(
             "Search spec templates must be concrete expression templates; "
@@ -131,11 +140,11 @@ def resolve_entry_lags(search_cfg: Dict[str, Any]) -> List[int]:
             seen.add(lag)
     return normalized if normalized else [1]
 
-def expand_triggers(triggers: Dict[str, Any]) -> Dict[str, List[str]]:
+def expand_triggers(triggers: Dict[str, Any]) -> Dict[str, Any]:
     # Support being passed either the triggers dict or the whole spec
     actual_triggers = triggers.get("triggers", triggers) if "triggers" in triggers else triggers
-    
-    event_ids = set()
+
+    event_ids: set[str] = set()
     if "events" in actual_triggers:
         for ev in actual_triggers["events"]:
             event_ids.add(ev)
@@ -145,22 +154,43 @@ def expand_triggers(triggers: Dict[str, Any]) -> Dict[str, List[str]]:
     if "regimes" in actual_triggers:
         for reg in actual_triggers["regimes"]:
             event_ids.update(get_event_ids_for_regime(reg, executable_only=True))
-            
+
     # Also support canonical_regimes as requested by test
     if "canonical_regimes" in actual_triggers:
         for reg in actual_triggers["canonical_regimes"]:
             event_ids.update(get_event_ids_for_regime(reg, executable_only=True))
-            
-    return {"events": sorted(list(event_ids))}
+
+    # Build event_family_map so the generator can look up filter templates per event
+    registry = get_domain_registry()
+    event_family_map: Dict[str, str] = {}
+    for eid in event_ids:
+        spec = registry.get_event(eid)
+        if spec is not None:
+            family = str(spec.research_family or spec.canonical_family or spec.canonical_regime).strip().upper()
+            if family:
+                event_family_map[eid] = family
+
+    return {"events": sorted(list(event_ids)), "event_family_map": event_family_map}
 
 def resolve_filter_template_names(search_cfg: Dict[str, Any]) -> List[str]:
-    return []
+    raw = search_cfg.get("filter_templates", [])
+    if raw == "*":
+        registry = get_domain_registry()
+        return [name for name, op in registry.template_operator_definitions.items() if op.template_kind == "filter_template"]
+    if not isinstance(raw, list):
+        return []
+    return [str(t).strip() for t in raw if str(t).strip()]
 
 def resolve_execution_template_names(search_cfg: Dict[str, Any]) -> List[str]:
-    return []
+    raw = search_cfg.get("execution_templates", [])
+    if not isinstance(raw, list):
+        return []
+    return [str(t).strip() for t in raw if str(t).strip()]
 
-def resolve_filter_templates(search_cfg: Dict[str, Any]) -> List[str]:
-    return []
+def resolve_filter_templates(family_name: str) -> List[Dict[str, Any]]:
+    """Return filter template dicts for a given event family name."""
+    registry = get_domain_registry()
+    return list(registry.family_filter_templates(family_name))
 
 def resolve_execution_templates(search_cfg: Dict[str, Any]) -> List[str]:
-    return []
+    return resolve_execution_template_names(search_cfg)
