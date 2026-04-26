@@ -323,7 +323,7 @@ def _benchmark_slice(
     start_date = "2021-01-01"
     end_date = "2025-12-31"
 
-    generated_proposal_dir = data_root / "runs" / run_id / "generated_proposals"
+    generated_proposal_dir = data_root / "reports" / "phase2" / run_id / "generated_proposals"
 
     commands = [
         [
