@@ -7,6 +7,7 @@ from project.eval.splits import (
     build_time_splits,
     build_time_splits_with_purge,
     build_walk_forward_split_labels,
+    label_timestamps_by_windows,
 )
 
 __all__ = [
@@ -15,5 +16,6 @@ __all__ = [
     "build_time_splits",
     "build_time_splits_with_purge",
     "build_walk_forward_split_labels",
+    "label_timestamps_by_windows",
     "multiplicity",
 ]

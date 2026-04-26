@@ -1,0 +1,21 @@
+name: full-suite
+
+"on":
+  schedule:
+    - cron: "0 4 * * *"
+  workflow_dispatch:
+
+jobs:
+  test-all:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - run: pip install -e ".[dev]" --constraint constraints.lock
+      - run: PYTHONPATH=. pytest -q -n auto
+      - run: PYTHONPATH=. pytest -q -m "audit"
+      - run: PYTHONPATH=. pytest -q project/tests/perf --benchmark-only || true

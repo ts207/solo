@@ -22,7 +22,7 @@ RUNTIME_MAX_ROWS ?= 500
 
 .PHONY: help first-edge discover discover-plan list-artifacts summarize explain-empty proposal-inspect \
 	validate promote export bind-config paper-run live-run deploy-status list-theses \
-	deploy-paper check-domain-graph domain-graph benchmark-supported-path \
+	deploy-paper check-domain-graph domain-graph check-registry-sync benchmark-supported-path \
 	discover-cells-verify discover-cells-plan discover-cells-run \
 	check-hygiene clean clean-runtime clean-run-data clean-all-data clean-hygiene \
 	governance minimum-green-gate
@@ -49,6 +49,8 @@ help:
 	  '  make check-hygiene' \
 	  '  make clean-runtime|clean-run-data|clean-all-data|clean-hygiene' \
 	  '  make check-domain-graph' \
+	  '  make check-registry-sync' \
+	  '  make check-spec-sync' \
 	  '  make domain-graph' \
 	  '  make governance' \
 	  '  make minimum-green-gate' \
@@ -78,6 +80,9 @@ clean-hygiene:
 check-domain-graph:
 	@$(CLI) validate specs --root . >/dev/null
 	@PYTHONPATH=$(PYTHONPATH) $(PYTHON) project/scripts/check_domain_graph_freshness.py
+
+check-registry-sync:
+	@PYTHONPATH=$(PYTHONPATH) $(PYTHON) project/scripts/check_registry_sync.py
 
 domain-graph:
 	@PYTHONPATH=$(PYTHONPATH) $(PYTHON) project/scripts/build_domain_graph.py
@@ -189,3 +194,20 @@ advanced-discover-triggers-parameter:
 
 advanced-discover-triggers-cluster:
 	@$(CLI) discover triggers feature-cluster --symbol "$(SYMBOLS)" $(if $(OUTPUT_DIR),--output_dir "$(OUTPUT_DIR)",)
+
+funnel:
+	@test -n "$(RUN_ID)" || (echo 'RUN_ID is required' >&2; exit 2)
+	@$(CLI) discover funnel --run_id "$(RUN_ID)" $(if $(DATA_ROOT),--data_root "$(DATA_ROOT)",)
+
+forward-confirm:
+	@test -n "$(RUN_ID)" || (echo 'RUN_ID is required' >&2; exit 2)
+	@test -n "$(WINDOW)" || (echo 'WINDOW is required, e.g. 2025-07-01/2025-09-30' >&2; exit 2)
+	@$(CLI) validate forward-confirm --run_id "$(RUN_ID)" --window "$(WINDOW)" $(if $(DATA_ROOT),--data_root "$(DATA_ROOT)",)
+
+
+registries:
+	@PYTHONPATH=$(PYTHONPATH) $(PYTHON) project/scripts/build_template_registries.py
+
+check-spec-sync:
+	@PYTHONPATH=$(PYTHONPATH) $(PYTHON) project/scripts/build_template_registries.py --check
+	@PYTHONPATH=$(PYTHONPATH) $(PYTHON) project/scripts/check_registry_sync.py

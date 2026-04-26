@@ -59,6 +59,7 @@ class ThesisStateManager:
         state.last_health_update = datetime.now(timezone.utc).isoformat()
 
         if health_state == "disabled":
+            state.size_scalar = 0.0
             state.transition_to("disabled", reason="decay_monitor_disable")
         elif health_state == "degraded":
             state.transition_to("degraded", reason="decay_monitor_degraded")

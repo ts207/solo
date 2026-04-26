@@ -16,7 +16,7 @@ from project.research.experiment_engine_schema import (
     AgentExperimentRequest,
     RegistryBundle,
 )
-from project.research.search.feasibility import check_hypothesis_feasibility
+from project.research.search.feasibility import check_hypothesis_feasibility, filter_hypotheses_with_report
 
 log = logging.getLogger(__name__)
 
@@ -397,35 +397,14 @@ def expand_hypotheses(
         elif t_type_upper == "INTERACTION":
             hypotheses.extend(_expand_interaction_triggers(request, context_slices))
 
-    # Filter hypotheses that are incompatible with the template-family contract.
-    # This catches e.g. CLIMAX_VOLUME_BAR + trend_continuation at plan time
-    # rather than letting them silently produce zero t-stat results at evaluation.
+    # Filter infeasible hypotheses with a structured report.  Older versions only
+    # logged template-family incompatibilities; the report is consumed by
+    # build_experiment_plan() to fail zero-feasible plans and persist drop reasons.
     registry = get_domain_registry()
-    valid_hypotheses = []
-    incompatible_pairs: set[tuple[str, str]] = set()
-    for hyp in hypotheses:
-        result = check_hypothesis_feasibility(hyp, registry=registry)
-        if not result.valid and "incompatible_template_family" in result.reasons:
-            pair = (hyp.trigger.event_id or "", hyp.template_id)
-            if pair not in incompatible_pairs:
-                log.warning(
-                    "Dropping incompatible hypothesis: event=%r template=%r event_family=%r — "
-                    "template is not compatible with this event family",
-                    hyp.trigger.event_id,
-                    hyp.template_id,
-                    result.details.get("compat_event_family", "unknown"),
-                )
-                incompatible_pairs.add(pair)
-        else:
-            valid_hypotheses.append(hyp)
-    if incompatible_pairs:
-        log.warning(
-            "%d incompatible event+template combinations removed from plan (%d hypotheses dropped). "
-            "Review proposal template vs event family compatibility.",
-            len(incompatible_pairs),
-            len(hypotheses) - len(valid_hypotheses),
-        )
-    hypotheses = valid_hypotheses
+    hypotheses, feasibility_report = filter_hypotheses_with_report(hypotheses, registry=registry)
+    expand_hypotheses.last_feasibility_report = feasibility_report  # type: ignore[attr-defined]
+    for reason, count in feasibility_report.counts_by_reason().items():
+        log.warning("Dropped %d infeasible hypotheses during plan expansion: %s", count, reason)
 
     # Apply search budget
     max_total = request.search_control.max_hypotheses_total

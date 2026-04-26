@@ -118,3 +118,15 @@ def negative_control_out_dir(
     run_id: str,
 ) -> Path:
     return Path(data_root) / "reports" / "negative_control" / str(run_id)
+
+
+def phase2_funnel_path(
+    *,
+    data_root: Path,
+    run_id: str,
+) -> Path:
+    return phase2_run_dir(data_root=data_root, run_id=run_id) / "funnel.json"
+
+
+def phase2_funnel_index_path(*, data_root: Path) -> Path:
+    return Path(data_root) / "reports" / "phase2" / "funnel_index.parquet"

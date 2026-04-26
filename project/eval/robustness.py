@@ -36,6 +36,7 @@ def block_bootstrap_pnl(
     random_seed: int = _DEFAULT_RANDOM_SEED,
     periods_per_year: Optional[int] = None,
     pnl_mode: Literal["dollar", "return"] = "dollar",
+    capital_base: float = 1.0,
 ) -> Dict[str, float]:
     pnl = pd.to_numeric(pnl_series, errors="coerce").dropna().values
     n = len(pnl)
@@ -44,6 +45,10 @@ def block_bootstrap_pnl(
 
     if periods_per_year is None:
         periods_per_year = BARS_PER_YEAR_BY_TIMEFRAME["5m"]
+
+    capital_base_value = float(capital_base)
+    if pnl_mode == "dollar" and (not np.isfinite(capital_base_value) or capital_base_value <= 0.0):
+        raise ValueError("capital_base must be finite and > 0 for dollar-mode bootstrap drawdown")
 
     rng = np.random.default_rng(random_seed)
     n_blocks = int(np.ceil(n / block_size_bars))
@@ -72,8 +77,13 @@ def block_bootstrap_pnl(
             equity = np.concatenate([[1.0], np.cumprod(1.0 + bootstrapped_pnl)])
             max_drawdowns.append(_max_drawdown(equity))
         else:
-            equity = np.concatenate([[0.0], np.cumsum(bootstrapped_pnl)])
-            max_drawdowns.append(_max_drawdown(equity, fallback_absolute=True))
+            # Dollar PnL is additive around a strictly positive capital base.
+            # Starting the path at zero mixes absolute and percentage drawdown
+            # units whenever the running peak is non-positive.
+            equity = np.concatenate(
+                [[capital_base_value], capital_base_value + np.cumsum(bootstrapped_pnl)]
+            )
+            max_drawdowns.append(_max_drawdown(equity))
 
     return {
         "bootstrap_return_p05": float(np.percentile(annualized_returns, 5)),
@@ -83,6 +93,8 @@ def block_bootstrap_pnl(
         "bootstrap_drawdown_p50": float(np.percentile(max_drawdowns, 50)),
         "bootstrap_drawdown_p95": float(np.percentile(max_drawdowns, 95)),
         "bootstrap_random_seed": int(random_seed),
+        "bootstrap_pnl_mode": str(pnl_mode),
+        "bootstrap_capital_base": float(capital_base_value if pnl_mode == "dollar" else 1.0),
     }
 
 

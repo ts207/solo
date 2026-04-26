@@ -46,11 +46,12 @@ from project.research.search.search_feature_utils import (
 from project.research.services.pathing import (
     phase2_candidates_path,
     phase2_diagnostics_path,
+    phase2_funnel_path,
     phase2_hypotheses_dir,
     phase2_run_dir,
 )
 from project.research.services.phase2_diagnostics import build_search_engine_diagnostics
-from project.research.services.reporting_service import write_json_report
+from project.research.services.reporting_service import append_phase2_funnel_index, write_json_report
 from project.spec_registry import load_yaml_path
 from project.spec_validation import validate_search_spec_doc
 from project.specs.gates import load_gates_spec, select_bridge_gate_spec, select_phase2_gate_spec
@@ -66,6 +67,7 @@ _DEFAULT_BROAD_SEARCH_SPECS = {
 }
 
 _DEFAULT_PHASE2_MIN_T_STAT = 1.5
+_DEFAULT_PHASE2_MIN_T_STAT_NET = 1.5
 
 
 def _safe_concat(frames: list, **kwargs) -> pd.DataFrame:
@@ -375,7 +377,7 @@ def _merge_rejection_reason_counts(
     if rejected_by_min_n:
         counts["min_sample_size"] = counts.get("min_sample_size", 0) + int(rejected_by_min_n)
     if rejected_by_min_t_stat:
-        counts["min_t_stat"] = counts.get("min_t_stat", 0) + int(rejected_by_min_t_stat)
+        counts["min_t_stat_net"] = counts.get("min_t_stat_net", 0) + int(rejected_by_min_t_stat)
     return counts
 
 
@@ -386,7 +388,10 @@ def _resolve_search_min_t_stat(
 ) -> float:
     if explicit_min_t_stat is not None:
         return float(explicit_min_t_stat)
-    raw = phase2_gates.get("min_t_stat", _DEFAULT_PHASE2_MIN_T_STAT)
+    if bool(phase2_gates.get("use_net_gate", True)):
+        raw = phase2_gates.get("min_t_stat_net", phase2_gates.get("min_t_stat", _DEFAULT_PHASE2_MIN_T_STAT_NET))
+    else:
+        raw = phase2_gates.get("min_t_stat", _DEFAULT_PHASE2_MIN_T_STAT)
     return float(raw)
 
 
@@ -394,6 +399,60 @@ def _bool_mask(frame: pd.DataFrame, column: str) -> pd.Series:
     if frame.empty or column not in frame.columns:
         return pd.Series(False, index=frame.index, dtype=bool)
     return frame[column].fillna(False).astype(bool)
+
+
+
+def _numeric_series(frame: pd.DataFrame, column: str, default: float = 0.0) -> pd.Series:
+    if frame.empty or column not in frame.columns:
+        return pd.Series(default, index=frame.index, dtype=float)
+    return pd.to_numeric(frame[column], errors="coerce").fillna(default).astype(float)
+
+
+def _funnel_examples(frame: pd.DataFrame, reason_col: str = "gate_status", *, limit: int = 5) -> dict[str, list[str]]:
+    examples: dict[str, list[str]] = {}
+    if frame.empty or reason_col not in frame.columns:
+        return examples
+    id_col = "hypothesis_id" if "hypothesis_id" in frame.columns else "candidate_id"
+    for _, row in frame.iterrows():
+        reason = str(row.get(reason_col, "") or "unknown")
+        bucket = examples.setdefault(reason, [])
+        if len(bucket) < int(limit):
+            bucket.append(str(row.get(id_col, "")))
+    return examples
+
+
+def _build_funnel_payload(
+    *,
+    run_id: str,
+    program_id: str,
+    gate_funnel: Mapping[str, Any],
+    candidate_universe: pd.DataFrame,
+    written_candidates: pd.DataFrame,
+) -> dict[str, Any]:
+    drops_by_reason: dict[str, int] = {}
+    if not candidate_universe.empty and "gate_status" in candidate_universe.columns:
+        drops_by_reason = {
+            str(k): int(v)
+            for k, v in candidate_universe["gate_status"].fillna("unknown").astype(str).value_counts().sort_index().items()
+            if str(k) != "passed"
+        }
+    return {
+        "run_id": str(run_id),
+        "program_id": str(program_id or ""),
+        "generated": int(gate_funnel.get("generated", 0) or 0),
+        "feasible": int(gate_funnel.get("feasible", 0) or 0),
+        "t_gross_passed": int(gate_funnel.get("t_gross_passed", 0) or 0),
+        "t_net_passed": int(gate_funnel.get("t_net_passed", gate_funnel.get("pass_min_t_stat_net", 0)) or 0),
+        "mean_net_passed": int(gate_funnel.get("mean_net_passed", 0) or 0),
+        "q_passed": int(gate_funnel.get("q_passed", gate_funnel.get("pass_multiplicity", 0)) or 0),
+        "robust_passed": int(gate_funnel.get("robust_passed", gate_funnel.get("pass_regime_stable", 0)) or 0),
+        "cost_survival_passed": int(gate_funnel.get("cost_survival_passed", gate_funnel.get("pass_after_cost_stressed_positive", 0)) or 0),
+        "promoted_research": 0,
+        "promoted_deploy": 0,
+        "drops_by_reason": drops_by_reason,
+        "examples_dropped": _funnel_examples(candidate_universe),
+        "phase2_candidates_written": int(len(written_candidates)),
+    }
 
 
 def _first_present_column(columns: list[str], available_columns: pd.Index) -> str | None:
@@ -648,6 +707,7 @@ def _build_gate_funnel(
     candidate_universe: pd.DataFrame,
     written_candidates: pd.DataFrame,
     min_n: int,
+    min_t_stat_net: float = 0.0,
 ) -> dict[str, int]:
     valid_mask = _bool_mask(metrics, "valid")
     # TICKET-012: Ensure n_values is a series even if 'n' column is missing to avoid .fillna AttributeError
@@ -656,6 +716,17 @@ def _build_gate_funnel(
     else:
         n_values = pd.Series(0.0, index=metrics.index)
     pass_min_n = valid_mask & (n_values >= int(min_n))
+    t_gross = _numeric_series(metrics, "t_stat_gross")
+    t_net = _numeric_series(metrics, "t_stat_net") if "t_stat_net" in metrics.columns else _numeric_series(metrics, "t_stat")
+    mean_net = (
+        _numeric_series(metrics, "mean_return_net_bps")
+        if "mean_return_net_bps" in metrics.columns
+        else _numeric_series(metrics, "cost_adjusted_return_bps")
+    )
+    threshold = abs(float(min_t_stat_net or 0.0))
+    pass_t_gross = pass_min_n & (t_gross.abs() >= threshold)
+    pass_t_net = pass_min_n & (t_net.abs() >= threshold)
+    pass_mean_net = pass_t_net & (mean_net >= 0.0)
 
     funnel: dict[str, int] = {
         "generated": int(hypotheses_generated),
@@ -663,6 +734,9 @@ def _build_gate_funnel(
         "metrics_emitted": int(len(metrics)),
         "valid_metrics": int(valid_mask.sum()),
         "pass_min_sample_size": int(pass_min_n.sum()),
+        "t_gross_passed": int(pass_t_gross.sum()),
+        "t_net_passed": int(pass_t_net.sum()),
+        "mean_net_passed": int(pass_mean_net.sum()),
         "bridge_candidate_universe": int(len(candidate_universe)),
         "phase2_candidates_written": int(len(written_candidates)),
     }
@@ -678,6 +752,9 @@ def _build_gate_funnel(
     ):
         stage_mask &= _bool_mask(written_candidates, column)
         funnel[label] = int(stage_mask.sum())
+    funnel["q_passed"] = int(funnel.get("pass_multiplicity", 0))
+    funnel["robust_passed"] = int(funnel.get("pass_regime_stable", 0))
+    funnel["cost_survival_passed"] = int(funnel.get("pass_after_cost_stressed_positive", 0))
     return funnel
 
 
@@ -1494,6 +1571,7 @@ def run(
                         candidate_universe=pd.DataFrame(),
                         written_candidates=pd.DataFrame(),
                         min_n=resolved_min_n,
+                        min_t_stat_net=resolved_min_t_stat,
                     ),
                 )
             )
@@ -1648,6 +1726,7 @@ def run(
                         candidate_universe=h_candidate_universe,
                         written_candidates=candidates,
                         min_n=resolved_min_n,
+                        min_t_stat_net=resolved_min_t_stat,
                     ),
                 )
             )
@@ -1718,6 +1797,7 @@ def run(
                         candidate_universe=pd.DataFrame(),
                         written_candidates=pd.DataFrame(),
                         min_n=resolved_min_n,
+                        min_t_stat_net=resolved_min_t_stat,
                     ),
                 )
             )
@@ -1742,7 +1822,11 @@ def run(
                     >= int(resolved_min_n)
                 )
                 & (
-                    pd.to_numeric(metrics.get("t_stat", 0.0), errors="coerce").abs().fillna(0.0)
+                    (
+                        pd.to_numeric(metrics.get("t_stat_net", metrics.get("t_stat", 0.0)), errors="coerce")
+                        .abs()
+                        .fillna(0.0)
+                    )
                     < float(resolved_min_t_stat)
                 )
             ).sum()
@@ -1766,8 +1850,8 @@ def run(
                 "min_sample_size", 0
             ) + int(rejected_by_min_n)
         if rejected_by_min_t_stat:
-            aggregated_rejection_reasons["min_t_stat"] = aggregated_rejection_reasons.get(
-                "min_t_stat", 0
+            aggregated_rejection_reasons["min_t_stat_net"] = aggregated_rejection_reasons.get(
+                "min_t_stat_net", 0
             ) + int(rejected_by_min_t_stat)
 
         regime_conditional_source = metrics[
@@ -1886,6 +1970,7 @@ def run(
                     candidate_universe=candidate_universe,
                     written_candidates=candidates,
                     min_n=resolved_min_n,
+                    min_t_stat_net=resolved_min_t_stat,
                 ),
             )
         )
@@ -2113,6 +2198,26 @@ def run(
         write_parquet(final_df, output_path)
         validate_schema_at_producer(final_df, "phase2_candidates", context="phase2_search_engine:diversified")
 
+    metrics_for_funnel = (
+        _safe_concat(metrics_frames, ignore_index=True)
+        if metrics_frames
+        else pd.DataFrame()
+    )
+    candidate_universe_for_funnel = (
+        _safe_concat(candidate_universe_frames, ignore_index=True)
+        if candidate_universe_frames
+        else pd.DataFrame()
+    )
+    gate_funnel_payload = _build_gate_funnel(
+        hypotheses_generated=total_hypotheses_generated,
+        feasible_hypotheses=total_feasible_hypotheses,
+        metrics=metrics_for_funnel,
+        candidate_universe=candidate_universe_for_funnel,
+        written_candidates=final_df,
+        min_n=resolved_min_n,
+        min_t_stat_net=resolved_min_t_stat,
+    )
+
     main_diag = build_search_engine_diagnostics(
         run_id=run_id,
         discovery_profile=str(search_profile["discovery_profile"]),
@@ -2139,22 +2244,7 @@ def run(
         min_n=resolved_min_n,
         search_budget=search_budget,
         use_context_quality=use_context_quality,
-        gate_funnel=_build_gate_funnel(
-            hypotheses_generated=total_hypotheses_generated,
-            feasible_hypotheses=total_feasible_hypotheses,
-            metrics=(
-                _safe_concat(metrics_frames, ignore_index=True)
-                if metrics_frames
-                else pd.DataFrame()
-            ),
-            candidate_universe=(
-                _safe_concat(candidate_universe_frames, ignore_index=True)
-                if candidate_universe_frames
-                else pd.DataFrame()
-            ),
-            written_candidates=final_df,
-            min_n=resolved_min_n,
-        ),
+        gate_funnel=gate_funnel_payload,
     )
     if symbol_diagnostics:
         main_diag["symbol_diagnostics"] = symbol_diagnostics
@@ -2167,6 +2257,23 @@ def run(
         main_diag["feature_columns"] = int(
             max(int(diag.get("feature_columns", 0) or 0) for diag in symbol_diagnostics)
         )
+
+    funnel_payload = _build_funnel_payload(
+        run_id=run_id,
+        program_id=(experiment_plan.program_id if experiment_plan is not None else ""),
+        gate_funnel=gate_funnel_payload,
+        candidate_universe=candidate_universe_for_funnel,
+        written_candidates=final_df,
+    )
+    funnel_path = phase2_funnel_path(data_root=data_root, run_id=run_id)
+    write_json_report(funnel_payload, funnel_path)
+    try:
+        append_phase2_funnel_index(funnel_payload, data_root=data_root)
+    except Exception as exc:
+        log.warning("Failed to append phase2 funnel index: %s", exc)
+    main_diag.setdefault("artifact_paths", {})
+    if isinstance(main_diag.get("artifact_paths"), dict):
+        main_diag["artifact_paths"]["funnel"] = str(funnel_path)
 
     write_json_report(main_diag, diagnostics_path)
 

@@ -58,6 +58,21 @@ def _registry_semantics(event_type: str) -> tuple[str, str]:
     )
 
 
+def _net_t_stat_series(frame: pd.DataFrame) -> pd.Series:
+    source = frame["t_stat_net"] if "t_stat_net" in frame.columns else frame.get("t_stat", 0.0)
+    return pd.to_numeric(source, errors="coerce").fillna(0.0)
+
+
+def _net_mean_series(frame: pd.DataFrame) -> pd.Series:
+    if "mean_return_net_bps" in frame.columns:
+        source = frame["mean_return_net_bps"]
+    elif "cost_adjusted_return_bps" in frame.columns:
+        source = frame["cost_adjusted_return_bps"]
+    else:
+        source = frame.get("mean_return_bps", 0.0)
+    return pd.to_numeric(source, errors="coerce").fillna(0.0)
+
+
 def hypotheses_to_bridge_candidates(
     metrics_df: pd.DataFrame,
     *,
@@ -139,15 +154,22 @@ def hypotheses_to_bridge_candidates(
     entry_lag_series = pd.to_numeric(raw_entry_lag, errors="coerce").fillna(1).astype(int)
     out["entry_lag_bars"] = entry_lag_series
     out["entry_lag"] = entry_lag_series
-    out["t_stat"] = filtered["t_stat"].astype(float)
+    out["t_stat"] = _net_t_stat_series(filtered).astype(float)
+    out["t_stat_net"] = out["t_stat"]
+    if "t_stat_gross" in filtered.columns:
+        out["t_stat_gross"] = pd.to_numeric(filtered["t_stat_gross"], errors="coerce").fillna(out["t_stat"]).astype(float)
     out["n"] = filtered["n"].astype(int)
     out["sample_size"] = out["n"]
     out["n_events"] = out["n"]
     out["gate_search_min_sample_size"] = out["n"] >= int(min_n)
-    out["gate_search_min_t_stat"] = (
-        pd.to_numeric(filtered["t_stat"], errors="coerce").fillna(0.0).abs()
-        >= float(min_t_stat)
-    )
+    net_t_stat = _net_t_stat_series(filtered)
+    out["gate_search_min_t_stat"] = net_t_stat.abs() >= float(min_t_stat)
+    out["gate_search_min_t_stat_net"] = out["gate_search_min_t_stat"]
+    if "t_stat_gross" in filtered.columns:
+        out["gate_search_min_t_stat_gross"] = (
+            pd.to_numeric(filtered["t_stat_gross"], errors="coerce").fillna(0.0).abs()
+            >= float(min_t_stat)
+        )
     for source_col in (
         "train_n_obs",
         "validation_n_obs",
@@ -163,13 +185,19 @@ def hypotheses_to_bridge_candidates(
             out[source_col] = 0
 
     # Financial Mappings (bps -> decimal)
-    out["expectancy"] = filtered["mean_return_bps"] / 10000.0
-    out["mean_return_bps"] = filtered["mean_return_bps"]
-    out["after_cost_expectancy_per_trade"] = filtered["cost_adjusted_return_bps"] / 10000.0
+    gross_mean = pd.to_numeric(filtered.get("mean_return_gross_bps", filtered["mean_return_bps"]), errors="coerce").fillna(0.0)
+    net_mean = _net_mean_series(filtered)
+    out["expectancy"] = gross_mean / 10000.0
+    out["mean_return_bps"] = gross_mean
+    out["mean_return_gross_bps"] = gross_mean
+    out["mean_return_net_bps"] = net_mean
+    if "expected_cost_bps_per_trade" in filtered.columns:
+        out["expected_cost_bps_per_trade"] = pd.to_numeric(filtered["expected_cost_bps_per_trade"], errors="coerce").fillna(0.0)
+    out["after_cost_expectancy_per_trade"] = net_mean / 10000.0
 
     # Stress testing: subtract an additional 2bps
     out["stressed_after_cost_expectancy_per_trade"] = (
-        filtered["cost_adjusted_return_bps"] - 2.0
+        net_mean - 2.0
     ) / 10000.0
 
     # Rich Metrics
@@ -195,15 +223,16 @@ def hypotheses_to_bridge_candidates(
     out["gate_c_regime_stable"] = filtered["robustness_score"] >= float(
         bridge_min_regime_stability_score
     )
-    out["gate_after_cost_positive"] = filtered["cost_adjusted_return_bps"] > 0
+    out["gate_after_cost_positive"] = net_mean > 0
+    out["gate_mean_return_net_nonnegative"] = net_mean >= 0
     out["gate_after_cost_stressed_positive"] = (
-        filtered["cost_adjusted_return_bps"] - float(bridge_stress_cost_buffer_bps)
+        net_mean - float(bridge_stress_cost_buffer_bps)
     ) > 0
 
     # Overall Tradability
     # A candidate is "tradable" if it passes t-stat, n, OOS score,
     # and survives at least 50% of stress scenarios.
-    tradable_t_stat = pd.to_numeric(out["t_stat"], errors="coerce").fillna(0.0).abs()
+    tradable_t_stat = pd.to_numeric(out["t_stat_net"], errors="coerce").fillna(0.0).abs()
     out["gate_bridge_tradable"] = (
         (tradable_t_stat >= float(bridge_min_t_stat))
         & (out["gate_after_cost_stressed_positive"])
@@ -211,6 +240,25 @@ def hypotheses_to_bridge_candidates(
         & (out["stress_test_survival"] >= float(bridge_min_stress_survival))
     )
 
+    out["gate_status"] = np.select(
+        [
+            ~out["gate_search_min_sample_size"].astype(bool),
+            ~out["gate_search_min_t_stat_net"].astype(bool),
+            ~out["gate_mean_return_net_nonnegative"].astype(bool),
+            ~out["gate_after_cost_stressed_positive"].astype(bool),
+            ~out["gate_oos_validation"].astype(bool),
+            out["stress_test_survival"] < float(bridge_min_stress_survival),
+        ],
+        [
+            "dropped:min_sample_size",
+            "dropped:t_net",
+            "dropped:mean_net",
+            "dropped:cost_survival",
+            "dropped:robustness",
+            "dropped:robustness",
+        ],
+        default="passed",
+    )
     out["bridge_eval_status"] = np.where(out["gate_bridge_tradable"], "tradable", "rejected")
     out["promotion_track"] = np.where(out["gate_bridge_tradable"], "standard", "fallback_only")
 
@@ -302,9 +350,7 @@ def split_bridge_candidates(
 
     valid_mask = metrics_df["valid"].fillna(False)
     min_n_mask = pd.to_numeric(metrics_df["n"], errors="coerce").fillna(0) >= int(min_n)
-    min_t_mask = pd.to_numeric(metrics_df["t_stat"], errors="coerce").fillna(0.0).abs() >= float(
-        min_t_stat
-    )
+    min_t_mask = _net_t_stat_series(metrics_df).abs() >= float(min_t_stat)
     pass_mask = valid_mask.copy()
     if require_min_n:
         pass_mask = pass_mask & min_n_mask
@@ -323,9 +369,12 @@ def split_bridge_candidates(
             else:
                 if int(pd.to_numeric(row.get("n", 0), errors="coerce") or 0) < int(min_n):
                     row_reasons.append("min_sample_size")
-                row_t_stat = float(pd.to_numeric(row.get("t_stat", 0.0), errors="coerce") or 0.0)
+                row_t_stat = float(pd.to_numeric(row.get("t_stat_net", row.get("t_stat", 0.0)), errors="coerce") or 0.0)
                 if abs(row_t_stat) < float(min_t_stat):
-                    row_reasons.append("min_t_stat")
+                    row_reasons.append("min_t_stat_net")
+                row_mean_net = float(pd.to_numeric(row.get("mean_return_net_bps", row.get("cost_adjusted_return_bps", 0.0)), errors="coerce") or 0.0)
+                if row_mean_net < 0.0:
+                    row_reasons.append("mean_return_net_negative")
             if not row_reasons:
                 row_reasons = ["filtered_out"]
             reasons.append(row_reasons)

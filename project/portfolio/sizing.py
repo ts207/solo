@@ -2,11 +2,6 @@ from __future__ import annotations
 
 import logging
 from typing import Any, Dict
-
-import numpy as np
-import pandas as pd
-
-from project.core.execution_costs import estimate_transaction_cost_bps
 from project.portfolio.risk_budget import (
     calculate_cluster_risk_multiplier,
     calculate_portfolio_risk_multiplier,
@@ -34,7 +29,7 @@ def _resolve_volatility_adjustment(vol_regime: float, portfolio_state: Dict[str,
     target_vol = abs(float(portfolio_state.get("target_vol", 0.0)))
     if observed_vol <= 0.0 or target_vol <= 0.0:
         return 1.0
-    return float(np.clip(target_vol / observed_vol, 0.0, 1.0))
+    return float(min(1.0, max(0.0, target_vol / observed_vol)))
 
 
 def _resolve_net_expected_return(
@@ -60,7 +55,7 @@ def calculate_target_notional(
     expected_cost_bps: float = 0.0,
     *,
     concentration_cap_pct: float = 0.05,
-    max_kelly_multiplier: float = 5.0,
+    max_kelly_multiplier: float | None = None,
 ) -> Dict[str, Any]:
     """
     Calculate target notional based on trade edge and portfolio constraints.
@@ -68,6 +63,10 @@ def calculate_target_notional(
     portfolio_value = max(0.0, float(portfolio_state.get("portfolio_value", 1000000.0) or 0.0))
     liquidity_usd = max(0.0, float(liquidity_usd or 0.0))
     concentration_cap_pct = max(0.0, float(concentration_cap_pct))
+    if max_kelly_multiplier is None:
+        max_kelly_multiplier = portfolio_state.get(
+            "max_kelly_multiplier", portfolio_state.get("kelly_fraction", 0.5)
+        )
     max_kelly_multiplier = max(0.0, float(max_kelly_multiplier))
 
     # 1. Base Sizing from Edge (Kelly-ish / Risk-Adjusted)
@@ -84,7 +83,7 @@ def calculate_target_notional(
     edge = float(event_score) * net_expected_return
 
     # Kelly-like multiplier
-    confidence_multiplier = np.clip(edge / risk_scale, 0.0, max_kelly_multiplier)
+    confidence_multiplier = min(max_kelly_multiplier, max(0.0, edge / risk_scale))
 
     # Base position size (e.g. 0.1% of portfolio per unit of confidence)
     base_notional = portfolio_value * 0.001 * confidence_multiplier
@@ -138,6 +137,7 @@ def calculate_target_notional(
         "risk_multiplier": float(risk_mult),
         "correlation_adjustment": float(corr_adj),
         "volatility_adjustment": float(vol_adj),
+        "max_kelly_multiplier": float(max_kelly_multiplier),
     }
 
 
@@ -176,6 +176,10 @@ def calculate_execution_aware_target_notional(
     )
 
     turnover = float(abs(provisional["target_notional"]))
+    from project.core.execution_costs import estimate_transaction_cost_bps
+
+    import pandas as pd
+
     idx = pd.Index([0])
     frame = pd.DataFrame(
         {

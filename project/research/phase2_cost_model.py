@@ -51,3 +51,39 @@ def init_cost_calibrator(
         min_tob_coverage=float(args.cost_min_tob_coverage),
         tob_tolerance_minutes=int(args.cost_tob_tolerance_minutes),
     )
+
+
+def expected_cost_per_trade_bps(
+    features,
+    hypothesis=None,
+    *,
+    cost_spec: dict | None = None,
+):
+    """Return expected per-trade execution cost in basis points.
+
+    The phase-2 evaluator consumes this vector to compute net return statistics.
+    The default implementation preserves the existing static round-trip cost
+    contract while accepting optional dynamic columns for future calibrated cost
+    models.
+    """
+    import pandas as pd
+
+    idx = getattr(features, "index", None)
+    cost_spec = dict(cost_spec or {})
+    base_cost = float(
+        cost_spec.get(
+            "cost_bps",
+            cost_spec.get("round_trip_cost_bps", cost_spec.get("static_cost_bps", 0.0)),
+        )
+    )
+    if features is not None:
+        for column in (
+            "expected_cost_bps_per_trade",
+            "round_trip_cost_bps",
+            "cost_bps",
+            "estimated_cost_bps",
+        ):
+            if column in getattr(features, "columns", []):
+                values = pd.to_numeric(features[column], errors="coerce").fillna(base_cost)
+                return values.astype(float)
+    return pd.Series(base_cost, index=idx, dtype=float)

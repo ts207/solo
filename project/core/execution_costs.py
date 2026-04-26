@@ -112,7 +112,14 @@ def estimate_transaction_cost_bps(
     config: Dict[str, float],
 ) -> pd.Series:
     """
-    Estimate per-bar transaction cost in bps from spread, volatility, and liquidity proxies.
+    Estimate one-way per-turnover transaction cost in bps from spread, volatility,
+    and liquidity proxies.
+
+    The returned series is a *single-fill / per-side* cost. Ledger code multiplies
+    this by realized turnover, so a full enter+exit trade pays the value twice via
+    two separate one-way turnovers. Candidate-level evaluators that subtract cost
+    once per completed trade should use ``2 * estimate_transaction_cost_bps(...)``
+    or the explicit ``round_trip_cost_bps`` returned by ``resolve_execution_costs``.
 
     Supports both a static model and a dynamic model with spread, volatility, liquidity,
     and impact components. The function lives in `project.core` so portfolio, engine,

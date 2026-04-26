@@ -95,6 +95,22 @@ def _run_discover_explain_empty(args: argparse.Namespace) -> int:
 
     payload = explain_empty_discovery(run_id=args.run_id, data_root=_path_or_none(args.data_root))
     sys.stdout.write(format_explain_empty_text(payload))
+    classification = str(payload.get("classification", "") or "")
+    if classification in {"hypotheses_rejected_pre_metrics", "zero_feasible_hypotheses"}:
+        return 1
+    feasibility = payload.get("feasibility_summary", {})
+    if isinstance(feasibility, dict) and int(feasibility.get("feasible", 1) or 0) <= 0:
+        return 1
+    return 0
+
+
+def _run_discover_funnel(args: argparse.Namespace) -> int:
+    data_root = _path_or_none(args.data_root) or PROJECT_ROOT.parent / "data"
+    path = data_root / "reports" / "phase2" / args.run_id / "funnel.json"
+    if not path.exists():
+        _emit_json({"status": "missing", "run_id": args.run_id, "path": str(path)})
+        return 1
+    _emit_json(json.loads(path.read_text(encoding="utf-8")))
     return 0
 
 
@@ -208,6 +224,18 @@ def _run_validate_specs(args: argparse.Namespace) -> int:
     return int(run_all_validations(root=Path(args.root), verbose=args.verbose))
 
 
+def _run_validate_forward_confirm(args: argparse.Namespace) -> int:
+    from project.validate.forward_confirm import forward_confirm
+
+    payload = forward_confirm(
+        run_id=args.run_id,
+        window=args.window,
+        data_root=_path_or_none(args.data_root),
+    )
+    _emit_json(payload)
+    return 0
+
+
 def _run_promote(args: argparse.Namespace) -> int:
     from project import promote
 
@@ -216,6 +244,8 @@ def _run_promote(args: argparse.Namespace) -> int:
         symbols=args.symbols,
         out_dir=_path_or_none(args.out_dir),
         retail_profile=args.retail_profile,
+        promotion_profile=getattr(args, "promotion_profile", "auto"),
+        require_forward_confirmation=getattr(args, "require_forward_confirmation", None),
     )
     if getattr(result, "diagnostics", None) is not None:
         _emit_json(result.diagnostics)
@@ -408,6 +438,10 @@ def build_parser() -> argparse.ArgumentParser:
     explain_empty.add_argument("--run_id", required=True)
     explain_empty.add_argument("--data_root")
     explain_empty.set_defaults(func=_run_discover_explain_empty)
+    funnel = discover_sub.add_parser("funnel")
+    funnel.add_argument("--run_id", required=True)
+    funnel.add_argument("--data_root")
+    funnel.set_defaults(func=_run_discover_funnel)
 
     cells = discover_sub.add_parser("cells", help="cell-first discovery lane")
     cells_sub = cells.add_subparsers(dest="cells_action")
@@ -476,6 +510,11 @@ def build_parser() -> argparse.ArgumentParser:
     validate_specs.add_argument("--root", default=".")
     validate_specs.add_argument("--verbose", action="store_true")
     validate_specs.set_defaults(func=_run_validate_specs)
+    forward_confirm = validate_sub.add_parser("forward-confirm")
+    forward_confirm.add_argument("--run_id", required=True)
+    forward_confirm.add_argument("--window", required=True)
+    forward_confirm.add_argument("--data_root")
+    forward_confirm.set_defaults(func=_run_validate_forward_confirm)
 
     promote = sub.add_parser("promote", help="canonical promotion/export stage")
     promote_sub = promote.add_subparsers(dest="promote_action")
@@ -484,6 +523,8 @@ def build_parser() -> argparse.ArgumentParser:
     promote_run.add_argument("--symbols", required=True)
     promote_run.add_argument("--out_dir")
     promote_run.add_argument("--retail_profile", default="capital_constrained")
+    promote_run.add_argument("--promotion_profile", choices=["auto", "research", "deploy"], default="auto")
+    promote_run.add_argument("--require_forward_confirmation", type=int, default=None)
     promote_run.set_defaults(func=_run_promote)
     promote_export = promote_sub.add_parser("export")
     promote_export.add_argument("--run_id", required=True)

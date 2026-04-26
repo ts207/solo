@@ -37,3 +37,28 @@ make minimum-green-gate
 ## Interface update rule
 
 If you change commands, contracts, workflows, stage ownership, packaging semantics, artifact layouts, or architecture boundaries, update `README.md`, relevant package READMEs, and regression tests in the same change.
+
+
+## Pre-commit and commit messages
+
+Install hooks after cloning:
+
+```bash
+pip install -e ".[dev]"
+pre-commit install
+pre-commit install --hook-type commit-msg
+```
+
+Commits must follow Conventional Commits:
+
+```text
+fix(research): fail zero-feasible discovery runs
+feat(promote): require deploy forward confirmation
+ci: add minimum green gate workflow
+```
+
+Single-character, empty, or placeholder commit messages are rejected by `project/scripts/check_commit_msg.py`.
+
+## Pull request standard
+
+Every PR must include Summary, Test plan, Risk, and Rollback sections. User-visible workflow, artifact, or operator-contract changes must update the relevant docs and tests in the same change.

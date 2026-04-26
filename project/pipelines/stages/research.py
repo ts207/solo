@@ -32,6 +32,7 @@ _PROFILE_PROMOTION_DEFAULTS = {
         "min_cost_survival_ratio": 0.50,
         "min_tob_coverage": 0.50,
         "max_negative_control_pass_rate": 0.10,
+        "require_forward_confirmation": False,
     },
     "deploy": {
         "max_q_value": 0.10,
@@ -41,6 +42,7 @@ _PROFILE_PROMOTION_DEFAULTS = {
         "min_cost_survival_ratio": 0.75,
         "min_tob_coverage": 0.60,
         "max_negative_control_pass_rate": 0.01,
+        "require_forward_confirmation": True,
     },
 }
 
@@ -138,6 +140,7 @@ def _resolve_candidate_promotion_thresholds(args: Any) -> Dict[str, float]:
                 _LEGACY_PROMOTION_DEFAULTS["max_negative_control_pass_rate"],
             )
         ),
+        "require_forward_confirmation": bool(profile_defaults.get("require_forward_confirmation", False)),
     }
 
     for key, legacy_default in _LEGACY_PROMOTION_DEFAULTS.items():
@@ -511,6 +514,8 @@ def build_research_stages(
                 str(int(args.candidate_promotion_allow_missing_negative_controls)),
                 "--min_dsr",
                 "0" if promotion_profile == "research" else "0.5",
+                "--require_forward_confirmation",
+                str(int(bool(promotion_thresholds.get("require_forward_confirmation", False)))),
             ]
         )
 

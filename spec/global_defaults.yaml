@@ -12,3 +12,9 @@ defaults:
     ms_oi_state: ["DECEL", "STABLE", "ACCEL"]
     severity_bucket: ["minor", "moderate", "extreme"]
   conditioning_cols: ["vol_regime", "carry_state", "funding_bps", "ms_trend_state", "ms_spread_state", "ms_liq_state", "ms_oi_state", "severity_bucket"]
+
+profit_controls:
+  # Deploy sizing uses fractional Kelly by default. This caps the Kelly-like
+  # confidence multiplier used by project.portfolio.sizing.calculate_target_notional.
+  max_kelly_multiplier: 0.5
+  portfolio_circuit_config: spec/runtime/portfolio_circuit.yaml

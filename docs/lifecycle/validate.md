@@ -81,12 +81,7 @@ Validation is not the same as promotion. It identifies candidates that can enter
 Origin-window validation is research validation only. It must not be treated as
 release readiness when an unseen forward window is available.
 
-Before promotion/export, a candidate needs either:
-
-- a successful forward-window confirmation run with nonempty Phase 2
-  candidates, positive after-cost expectancy, and passing statistical gates; or
-- an explicit lifecycle note explaining why forward confirmation is unavailable
-  and why promotion is still governed under the current policy.
+Before deploy promotion/export, a candidate needs a successful forward-window confirmation artifact at `data/reports/validation/<run_id>/forward_confirmation.json`. Produce it with `edge validate forward-confirm --run_id <run_id> --window <ISO8601-start>/<ISO8601-end>`. Research-profile validation may proceed without this artifact; deploy-profile promotion degrades candidates with `forward_confirmation_missing`, `forward_confirmation_drift`, or sign-flip reasons instead of promoting them.
 
 `confirmatory` is a lifecycle role, not currently a `run_all --mode` value. A
 forward confirmation run may still execute under `run_mode=research` when

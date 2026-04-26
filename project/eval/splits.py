@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from datetime import timedelta
-from typing import List
+from typing import List, Sequence
 
 import pandas as pd
 
@@ -16,6 +16,18 @@ class SplitWindow:
     def to_dict(self) -> dict:
         return {"label": self.label, "start": self.start.isoformat(), "end": self.end.isoformat()}
 
+    def contains(self, ts: pd.Timestamp, *, include_end: bool = False) -> bool:
+        """Return True when ``ts`` belongs to this window.
+
+        Default split membership is half-open, ``[start, end)``, which prevents
+        boundary events from appearing in two adjacent windows.  Use
+        ``include_end=True`` only for the final terminal window.
+        """
+        normalized = _normalize_ts(ts)
+        if include_end:
+            return bool(self.start <= normalized <= self.end)
+        return bool(self.start <= normalized < self.end)
+
 
 def _normalize_ts(value: str | pd.Timestamp) -> pd.Timestamp:
     ts = pd.Timestamp(value)
@@ -25,6 +37,31 @@ def _normalize_ts(value: str | pd.Timestamp) -> pd.Timestamp:
         ts = ts.tz_convert("UTC")
     return ts
 
+
+
+def label_timestamps_by_windows(
+    timestamps: Sequence[str | pd.Timestamp] | pd.Series | pd.Index,
+    windows: Sequence[SplitWindow],
+) -> pd.Series:
+    """Assign labels to timestamps using non-overlapping split windows.
+
+    All non-final windows use half-open membership ``[start, end)``.  The final
+    window includes its terminal ``end`` so the dataset's last row is retained
+    without creating double-counted boundary observations.
+    """
+    ts = pd.to_datetime(pd.Series(list(timestamps)), utc=True, errors="coerce")
+    labels = pd.Series("", index=range(len(ts)), dtype="object")
+    if not windows:
+        return labels
+    last_idx = len(windows) - 1
+    for i, window in enumerate(windows):
+        include_end = i == last_idx
+        if include_end:
+            mask = (ts >= window.start) & (ts <= window.end)
+        else:
+            mask = (ts >= window.start) & (ts < window.end)
+        labels.loc[mask.fillna(False)] = str(window.label)
+    return labels
 
 def build_time_splits(
     *,

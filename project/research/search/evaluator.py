@@ -22,6 +22,7 @@ import pandas as pd
 from project.core.timeframes import bars_per_year
 from project.domain.hypotheses import HypothesisSpec
 from project.research.helpers.shrinkage import _effective_sample_size, _time_decay_weights
+from project.research.phase2_cost_model import expected_cost_per_trade_bps
 from project.research.robustness.kill_switch import detect_kill_switches
 
 # Robustness framework imports
@@ -79,7 +80,12 @@ METRICS_COLUMNS = [
     "validation_samples",
     "test_samples",
     "mean_return_bps",
+    "mean_return_gross_bps",
+    "mean_return_net_bps",
+    "expected_cost_bps_per_trade",
     "t_stat",
+    "t_stat_gross",
+    "t_stat_net",
     "sharpe",
     "hit_rate",
     "cost_adjusted_return_bps",
@@ -287,6 +293,49 @@ class EvaluationContext:
         return labels
 
 
+def _weighted_newey_west_mean_std(
+    values: pd.Series,
+    weights: pd.Series,
+    *,
+    horizon_bars: int,
+) -> tuple[float, float, float]:
+    aligned = pd.concat(
+        [pd.to_numeric(values, errors="coerce"), pd.to_numeric(weights, errors="coerce")],
+        axis=1,
+    ).dropna()
+    if aligned.empty:
+        return 0.0, 0.0, 0.0
+    x = aligned.iloc[:, 0].astype(float)
+    w = aligned.iloc[:, 1].astype(float).clip(lower=0.0)
+    w_sum = float(w.sum())
+    if w_sum <= 0.0:
+        return 0.0, 0.0, 0.0
+    mean = float((x * w).sum() / w_sum)
+    v1 = w_sum
+    v2 = float((w**2).sum())
+    denom = v1 - (v2 / v1) if v1 > 0 else 0.0
+    if denom <= 0.0:
+        return mean, 0.0, 0.0
+    weighted_var = float((w * (x - mean) ** 2).sum() / denom)
+    nw_var = weighted_var
+    n_samples = int(len(x))
+    hbars = int(max(1, horizon_bars))
+    if hbars > 1 and n_samples > hbars:
+        x_demeaned = (x - mean).to_numpy()
+        w_arr = w.to_numpy()
+        cov_sum = 0.0
+        for lag in range(1, hbars):
+            kernel = 1.0 - (lag / hbars)
+            w_lag = w_arr[lag:] * w_arr[:-lag]
+            x_lag = x_demeaned[lag:] * x_demeaned[:-lag]
+            cov_sum += 2.0 * kernel * float((w_lag * x_lag).sum() / denom)
+        nw_var += cov_sum
+    std = float(np.sqrt(max(0.0, nw_var)))
+    n_eff = float(_effective_sample_size(w))
+    t_stat = mean / (std / np.sqrt(max(1.0, n_eff))) if std >= 1e-10 else 0.0
+    return mean, std, t_stat
+
+
 def _normal_p_value(stat: float) -> float:
     # E-EVAL-001: one-sided right-tail p-value for directional hypotheses.
     # erfc(t/√2)/2 == P(Z > t) for Z ~ N(0,1).
@@ -323,7 +372,12 @@ def _null_row(spec: HypothesisSpec, n: int, reason: str = "unknown") -> Dict[str
             "validation_samples": 0,
             "test_samples": 0,
             "mean_return_bps": 0.0,
+            "mean_return_gross_bps": 0.0,
+            "mean_return_net_bps": 0.0,
+            "expected_cost_bps_per_trade": 0.0,
             "t_stat": 0.0,
+            "t_stat_gross": 0.0,
+            "t_stat_net": 0.0,
             "sharpe": 0.0,
             "hit_rate": 0.0,
             "cost_adjusted_return_bps": 0.0,
@@ -532,51 +586,31 @@ def evaluate_hypothesis_batch(
             rows.append(_null_row(spec, n, sign_reason or "direction_resolution_failed"))
             continue
 
-        # 2. Weighted Mean
-        w_sum = event_weights.sum()
-        weighted_mean = float((signed * event_weights).sum() / w_sum)
+        # 2. Gross and net expected returns with matched Newey-West HAC statistics.
+        per_trade_cost_bps = expected_cost_per_trade_bps(
+            features.loc[signed.index] if hasattr(features, "loc") else features,
+            spec,
+            cost_spec={"cost_bps": float(cost_bps)},
+        ).reindex(signed.index).fillna(float(cost_bps)).astype(float)
+        signed_net = signed.astype(float) - per_trade_cost_bps
 
-        # SF-003: Newey-West robust variance (handling overlap serial correlation).
-        # We manually calculate an approximated AR(hbars) overlapping variance for t-stats,
-        # integrating the reliability weights.
-        v1 = w_sum
-        v2 = (event_weights**2).sum()
-        denom = v1 - (v2 / v1)
+        gross_mean_bps, gross_std, t_stat_gross = _weighted_newey_west_mean_std(
+            signed,
+            event_weights,
+            horizon_bars=hbars,
+        )
+        net_mean_bps, net_std, t_stat_net = _weighted_newey_west_mean_std(
+            signed_net,
+            event_weights,
+            horizon_bars=hbars,
+        )
+        weighted_mean = gross_mean_bps
+        weighted_std = gross_std
 
-        if denom > 0:
-            # Base sample weighted variance
-            weighted_var = ((event_weights * (signed - weighted_mean) ** 2).sum()) / denom
-
-            # Newey-West overlap correction
-            # Lags up to (hbars - 1)
-            nw_var = weighted_var
-            n_samples = len(signed)
-
-            if hbars > 1 and n_samples > hbars:
-                signed_demeaned = (signed - weighted_mean).values
-                w_arr = event_weights.values
-
-                # Approximate sum of autocorrelations out to hbars - 1 lag
-                cov_sum = 0.0
-                for lag in range(1, hbars):
-                    # Bartlett kernel weight: 1 - lag / hbars
-                    kernel = 1.0 - (lag / hbars)
-
-                    # Weighted auto-covariance at this lag
-                    w_lag = w_arr[lag:] * w_arr[:-lag]
-                    x_lag = signed_demeaned[lag:] * signed_demeaned[:-lag]
-                    cov_lag = (w_lag * x_lag).sum() / denom
-
-                    cov_sum += 2.0 * kernel * cov_lag
-
-                nw_var += cov_sum
-
-            weighted_std = np.sqrt(max(0.0, float(nw_var)))
-        else:
-            weighted_std = 0.0
-
-        # Check for zero variance or too small sample early
-        if weighted_std < 1e-10:
+        # Check for zero variance or too small sample early.  Constant costs preserve
+        # variance, but dynamic costs can make gross/net variance differ; fail only
+        # when both are degenerate.
+        if gross_std < 1e-10 and net_std < 1e-10:
             rows.append(_null_row(spec, n, "low_variance"))
             continue
 
@@ -634,21 +668,22 @@ def evaluate_hypothesis_batch(
         if "volume" in features.columns:
             capacity = float(features["volume"][mask].median())
 
-        # T-stat using Newey-West weighted standard error.
-        # Overlap density adjustment is already captured structurally by NW variance above,
-        # so we use raw sqrt(n_eff_w) for the denominator to prevent double-penalizing.
-        t_stat = weighted_mean / (weighted_std / np.sqrt(max(1.0, n_eff_w)))
+        # Load-bearing search statistic is net of expected execution cost; gross is retained
+        # as an explicit diagnostic to expose the cost shadow.
+        t_stat = t_stat_net
 
         # Strategy Sharpe (Scaling by realized trades per year)
         trades_per_year = n * (ann / len(features))
         trades_per_year = min(
             trades_per_year, ann
         )  # Cap at theoretical max to avoid sparse-trigger Sharpe inflation
-        sharpe = (weighted_mean / weighted_std) * np.sqrt(trades_per_year)
-        hit_rate = float((signed > 0).mean())
-        mean_bps = weighted_mean
-        cost_adj_bps = mean_bps - cost_bps
-        p_value = _normal_p_value(t_stat)
+        sharpe_base_std = net_std if net_std >= 1e-10 else weighted_std
+        sharpe = (net_mean_bps / sharpe_base_std) * np.sqrt(trades_per_year) if sharpe_base_std >= 1e-10 else 0.0
+        hit_rate = float((signed_net > 0).mean())
+        mean_bps = gross_mean_bps
+        cost_adj_bps = net_mean_bps
+        expected_cost_mean_bps = float(per_trade_cost_bps.mean()) if len(per_trade_cost_bps) else float(cost_bps)
+        p_value = _normal_p_value(t_stat_net)
 
         candidate = CandidateHypothesis(spec=spec, search_spec_name="evaluation")
         checked = FeasibilityCheckedHypothesis(
@@ -662,7 +697,12 @@ def evaluate_hypothesis_batch(
                 "n": n,
                 **split_counts,
                 "mean_return_bps": round(mean_bps, 4),
+                "mean_return_gross_bps": round(gross_mean_bps, 4),
+                "mean_return_net_bps": round(net_mean_bps, 4),
+                "expected_cost_bps_per_trade": round(expected_cost_mean_bps, 4),
                 "t_stat": round(t_stat, 4),
+                "t_stat_gross": round(t_stat_gross, 4),
+                "t_stat_net": round(t_stat_net, 4),
                 "sharpe": round(sharpe, 4),
                 "hit_rate": round(hit_rate, 4),
                 "cost_adjusted_return_bps": round(cost_adj_bps, 4),
@@ -700,6 +740,10 @@ def evaluate_hypothesis_batch(
             )
             for k, v in prechecks.items():
                 row[k] = v
+            row["after_cost_expectancy_bps"] = round(net_mean_bps, 4)
+            row["mean_return_net_bps"] = round(net_mean_bps, 4)
+            row["t_stat_net"] = round(t_stat_net, 4)
+            row["t_stat_gross"] = round(t_stat_gross, 4)
         except Exception as e:
             log.warning(f"Failed to inject prechecks: {e}")
             for k in METRICS_COLUMNS:
@@ -767,6 +811,15 @@ def evaluate_hypothesis_batch(
             except Exception:
                 pass
 
+        # Net/gross aliases are load-bearing for phase-2 gating and diagnostics.
+        row["mean_return_gross_bps"] = row.get("mean_return_gross_bps", round(gross_mean_bps, 4))
+        row["mean_return_net_bps"] = row.get("mean_return_net_bps", round(net_mean_bps, 4))
+        row["expected_cost_bps_per_trade"] = row.get("expected_cost_bps_per_trade", round(expected_cost_mean_bps, 4))
+        row["t_stat_gross"] = row.get("t_stat_gross", round(t_stat_gross, 4))
+        row["t_stat_net"] = row.get("t_stat_net", round(t_stat_net, 4))
+        row["t_stat"] = row.get("t_stat", round(t_stat_net, 4))
+        row["cost_adjusted_return_bps"] = row.get("cost_adjusted_return_bps", round(net_mean_bps, 4))
+        row["after_cost_expectancy_bps"] = row.get("after_cost_expectancy_bps", round(net_mean_bps, 4))
         rows.append({column: row.get(column, np.nan) for column in METRICS_COLUMNS if column in row})
         for c in METRICS_COLUMNS:
             if c not in rows[-1]:

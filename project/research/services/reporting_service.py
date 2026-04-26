@@ -144,3 +144,9 @@ def write_promotion_reports(
         diagnostics, out_dir / "promotion_diagnostics.json"
     )
     return result
+
+
+def append_phase2_funnel_index(payload: Mapping[str, Any], *, data_root: Path) -> Path:
+    from project.io.funnel import append_funnel_index
+
+    return append_funnel_index(payload, data_root=data_root)

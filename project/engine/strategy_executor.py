@@ -385,30 +385,43 @@ def calculate_strategy_returns(
     if "base_slippage_bps" not in execution_cfg:
         execution_cfg["base_slippage_bps"] = float(cost_bps) / 2.0
 
-    turnover_proxy = (target_position - target_position.shift(1).fillna(0.0)).abs()
+    # Cost bps is charged by compute_pnl_ledger on the *executed* turnover at
+    # timestamp t: abs(target_position[t-1] - target_position[t-2]).  Build the
+    # same turnover vector here; using the same-bar target delta would misalign
+    # dynamic impact costs by one bar and can leak post-decision liquidity state.
+    turnover_proxy = (target_position.shift(1).fillna(0.0) - target_position.shift(2).fillna(0.0)).abs()
 
     def _to_series(val, idx) -> pd.Series:
         if isinstance(val, pd.Series):
             return pd.to_numeric(val, errors="coerce").reindex(idx).fillna(0.0)
         return pd.Series(float(val) if val is not None else 0.0, index=idx)
 
+    cost_feature_lag_bars = max(
+        0, int(execution_cfg.get("cost_feature_lag_bars", params.get("cost_feature_lag_bars", 1)) or 0)
+    )
+    strategy_metadata["execution_cost_feature_lag_bars_used"] = cost_feature_lag_bars
+
+    def _cost_input(val, idx) -> pd.Series:
+        series = _to_series(val, idx)
+        if cost_feature_lag_bars > 0:
+            series = series.shift(cost_feature_lag_bars).fillna(0.0)
+        return series
+
+    cost_frame = pd.DataFrame(
+        {
+            "spread_bps": _cost_input(features_aligned.get("spread_bps", 0.0), timestamp_index),
+            "close": _cost_input(close.reindex(timestamp_index).astype(float), timestamp_index),
+            "high": _cost_input(bars_indexed.get("high", close), timestamp_index),
+            "low": _cost_input(bars_indexed.get("low", close), timestamp_index),
+            "quote_volume": _cost_input(features_aligned.get("quote_volume", 0.0), timestamp_index),
+            "tob_coverage": _cost_input(features_aligned.get("tob_coverage", 0.0), timestamp_index),
+            "depth_usd": _cost_input(features_aligned.get("depth_usd", 0.0), timestamp_index),
+        },
+        index=timestamp_index,
+    )
+
     dynamic_cost_bps = estimate_transaction_cost_bps(
-        frame=pd.DataFrame(
-            {
-                "spread_bps": _to_series(features_aligned.get("spread_bps", 0.0), timestamp_index),
-                "close": close.reindex(timestamp_index).astype(float),
-                "high": _to_series(bars_indexed.get("high", close), timestamp_index),
-                "low": _to_series(bars_indexed.get("low", close), timestamp_index),
-                "quote_volume": _to_series(
-                    features_aligned.get("quote_volume", 0.0), timestamp_index
-                ),
-                "tob_coverage": _to_series(
-                    features_aligned.get("tob_coverage", 0.0), timestamp_index
-                ),
-                "depth_usd": _to_series(features_aligned.get("depth_usd", 0.0), timestamp_index),
-            },
-            index=timestamp_index,
-        ),
+        frame=cost_frame,
         turnover=turnover_proxy,
         config=execution_cfg,
     )

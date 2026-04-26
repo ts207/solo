@@ -67,6 +67,9 @@ class SearchControl:
     max_hypotheses_per_template: int
     max_hypotheses_per_event_family: int
     random_seed: int = 42
+    # Minimum feasible hypotheses required after registry/template/data-contract filtering.
+    # Set to 0 only for explicit diagnostic runs that intentionally allow empty plans.
+    min_feasible: int = 1
 
 
 @dataclass(frozen=True)
@@ -99,6 +102,7 @@ class ValidatedExperimentPlan:
     required_features: List[str]
     required_states: List[str]
     estimated_hypothesis_count: int
+    feasibility_summary: Dict[str, Any] = field(default_factory=dict)
 
 
 class RegistryBundle:

@@ -1,5 +1,16 @@
 # Edge
 
+
+## First commands after clone
+
+```bash
+pip install -e ".[dev]"
+pre-commit install
+pre-commit install --hook-type commit-msg
+make minimum-green-gate
+```
+
+
 Edge is a governed crypto research-to-runtime repository. The canonical lifecycle is:
 
 ```text

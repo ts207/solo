@@ -98,9 +98,9 @@ PYTHONPATH=. python3 project/scripts/build_domain_graph.py
 
 ### Hypothesis feasibility and template-family compatibility
 
-`project/research/search/feasibility.check_hypothesis_feasibility` filters incompatible event+template pairs at plan time. Incompatible hypotheses are **silently dropped** — `estimated_hypothesis_count` in `validated_plan.json` becomes 0 with no error.
+`project/research/search/feasibility.check_hypothesis_feasibility` filters incompatible event+template pairs at plan time and now records a `feasibility_summary` in `validated_plan.json`. A run fails closed when feasible hypotheses are below `search_control.min_feasible` (default: 1); use the explicit allow-empty/min-feasible escape valve only for diagnostic exploration.
 
-**Always verify `estimated_hypothesis_count > 0` in `data/artifacts/experiments/<prog>/<run_id>/validated_plan.json` before concluding an event has no edge.**
+Use `edge discover explain-empty --run_id <run_id>` for grouped drop reasons and `edge discover funnel --run_id <run_id>` for generated → feasible → gated → promoted survival counts.
 
 Compatible templates by event family:
 - VOLATILITY_EXPANSION / VOLATILITY_TRANSITION → `mean_reversion`, `continuation`, `impulse_continuation`, `vol_breakout`
@@ -117,7 +117,7 @@ data/
     features/perp/<SYMBOL>/5m/market_context/...
   artifacts/experiments/<program_id>/
     <run_id>/evaluation_results.parquet   ← primary result artifact
-    <run_id>/validated_plan.json          ← check estimated_hypothesis_count
+    <run_id>/validated_plan.json          ← feasibility_summary + estimated_hypothesis_count
     memory/event_statistics.parquet       ← per-event summary across runs
     memory/tested_ledger.parquet          ← eval_status per hypothesis
   reports/

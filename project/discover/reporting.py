@@ -72,6 +72,38 @@ def load_phase2_diagnostics(*, run_id: str, data_root: Path | None = None) -> tu
     return payload if isinstance(payload, dict) else {}, path
 
 
+
+
+def load_phase2_funnel(*, run_id: str, data_root: Path | None = None) -> tuple[dict[str, Any], Path]:
+    root = resolve_data_root(data_root)
+    path = root / "reports" / "phase2" / str(run_id) / "funnel.json"
+    if not path.exists():
+        return {}, path
+    try:
+        payload = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError, ValueError, TypeError):
+        return {}, path
+    return payload if isinstance(payload, dict) else {}, path
+
+
+def _load_validated_plan_feasibility(*, run_id: str, data_root: Path | None = None) -> dict[str, Any]:
+    root = resolve_data_root(data_root)
+    experiments_root = root / "artifacts" / "experiments"
+    if not experiments_root.exists():
+        return {}
+    for path in experiments_root.glob(f"*/{run_id}/validated_plan.json"):
+        try:
+            payload = json.loads(path.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError, TypeError, ValueError):
+            continue
+        if not isinstance(payload, dict):
+            continue
+        summary = payload.get("feasibility_summary", {})
+        if isinstance(summary, dict) and summary:
+            return summary
+    return {}
+
+
 def _score_column(df: pd.DataFrame) -> tuple[str | None, bool]:
     """
     Returns (column_name, lower_is_better).
@@ -180,6 +212,7 @@ def build_discover_summary(*, run_id: str, data_root: Path | None = None, top_k:
 
     candidates, candidates_path = load_phase2_candidates(run_id=run_id, data_root=root)
     diagnostics, diagnostics_path = load_phase2_diagnostics(run_id=run_id, data_root=root)
+    funnel, funnel_path = load_phase2_funnel(run_id=run_id, data_root=root)
     gate_funnel = diagnostics.get("gate_funnel") if isinstance(diagnostics.get("gate_funnel"), dict) else {}
 
     final_mask = (
@@ -213,6 +246,7 @@ def build_discover_summary(*, run_id: str, data_root: Path | None = None, top_k:
         "artifact_paths": {
             "phase2_candidates": _relpath(root, candidates_path),
             "phase2_diagnostics": _relpath(root, diagnostics_path),
+            "funnel": _relpath(root, funnel_path),
         },
         "counts": {
             "candidates_total": int(len(candidates)),
@@ -227,6 +261,7 @@ def build_discover_summary(*, run_id: str, data_root: Path | None = None, top_k:
             "event_flag_rows": int(diagnostics.get("event_flag_rows", 0) or 0),
             "event_flag_columns_merged": int(diagnostics.get("event_flag_columns_merged", 0) or 0),
             "gate_funnel": gate_funnel,
+            "funnel": funnel,
         },
         "metrics": {
             "after_cost_expectancy_bps": {
@@ -272,6 +307,8 @@ def format_discover_summary_text(summary: dict[str, Any]) -> str:
         for key in ("phase2_candidates", "phase2_diagnostics"):
             if key in artifacts:
                 lines.append(f"  - {key}: {artifacts[key]}")
+        if "funnel" in artifacts:
+            lines.append(f"  - funnel: {artifacts['funnel']}")
 
     lines.append("counts:")
     lines.append(f"  - candidates_total: {int(counts.get('candidates_total', 0) or 0)}")
@@ -285,6 +322,12 @@ def format_discover_summary_text(summary: dict[str, Any]) -> str:
                 lines.append(f"  - {key}: {int(value)}")
             except Exception:
                 lines.append(f"  - {key}: {value}")
+    funnel = diagnostics.get("funnel", {}) if isinstance(diagnostics.get("funnel"), dict) else {}
+    if funnel:
+        lines.append("funnel:")
+        for key in ("generated", "feasible", "t_net_passed", "mean_net_passed", "q_passed", "robust_passed", "cost_survival_passed", "promoted_research", "promoted_deploy"):
+            if key in funnel:
+                lines.append(f"  - {key}: {funnel.get(key)}")
 
     if metrics:
         after_cost = (
@@ -338,6 +381,9 @@ def format_discover_summary_text(summary: dict[str, Any]) -> str:
 
 def explain_empty_discovery(*, run_id: str, data_root: Path | None = None) -> dict[str, Any]:
     summary = build_discover_summary(run_id=run_id, data_root=data_root, top_k=0)
+    feasibility_summary = _load_validated_plan_feasibility(run_id=run_id, data_root=data_root)
+    if feasibility_summary:
+        summary["feasibility_summary"] = feasibility_summary
 
     counts = summary.get("counts", {}) if isinstance(summary.get("counts"), dict) else {}
     candidates_total = int(counts.get("candidates_total", 0) or 0)
@@ -447,6 +493,18 @@ def format_explain_empty_text(payload: dict[str, Any]) -> str:
                 lines.append(f"  - {key}: {int(value)}")
             except Exception:
                 lines.append(f"  - {key}: {value}")
+
+    feasibility_summary = payload.get("feasibility_summary", {})
+    if isinstance(feasibility_summary, dict) and feasibility_summary:
+        lines.append("feasibility_summary:")
+        for key in ("generated", "feasible", "dropped"):
+            if key in feasibility_summary:
+                lines.append(f"  - {key}: {feasibility_summary.get(key)}")
+        counts_by_reason = feasibility_summary.get("counts_by_reason", {})
+        if isinstance(counts_by_reason, dict) and counts_by_reason:
+            lines.append("why_hypotheses_were_dropped:")
+            for reason_key, count in sorted(counts_by_reason.items()):
+                lines.append(f"  - {reason_key}: {count}")
 
     top_rejections = payload.get("top_rejection_reasons", [])
     if isinstance(top_rejections, list) and top_rejections:

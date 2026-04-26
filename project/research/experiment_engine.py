@@ -25,6 +25,7 @@ from project.research.experiment_engine_schema import (
     TriggerSpace,
     ValidatedExperimentPlan,
 )
+from project.research.search.feasibility import FeasibilityError, FeasibilityReport
 from project.research.experiment_engine_validators import (
     _validate_campaign_status,
     _validate_contexts,
@@ -124,6 +125,26 @@ def validate_agent_request(
             raise ValueError(
                 f"Unsupported trigger type in experiment config: {trigger_type}"
             )
+
+
+
+
+def _validate_feasibility_threshold(
+    *,
+    feasible_count: int,
+    min_feasible: int,
+    report: FeasibilityReport | None = None,
+) -> None:
+    if int(feasible_count) >= int(min_feasible):
+        return
+    summary = report.summary(limit=5) if report is not None else {}
+    counts = summary.get("counts_by_reason", {}) if isinstance(summary, dict) else {}
+    reason_text = ", ".join(f"{k}={v}" for k, v in sorted(counts.items())) or "no detailed reasons"
+    raise FeasibilityError(
+        "Experiment plan has fewer feasible hypotheses than required "
+        f"(feasible={int(feasible_count)}, min_feasible={int(min_feasible)}; {reason_text}).",
+        report=report,
+    )
 
 
 def resolve_required_detectors(
@@ -244,6 +265,7 @@ def export_experiment_artifacts(
         "required_detectors": plan.required_detectors,
         "required_features": plan.required_features,
         "required_states": plan.required_states,
+        "feasibility_summary": dict(plan.feasibility_summary or {}),
     }
     (out_dir / "validated_plan.json").write_text(json.dumps(plan_dict, indent=2))
 
@@ -344,6 +366,13 @@ def build_experiment_plan(
     request = load_agent_experiment_config(config_path)
     validate_agent_request(request, registries, data_root=data_root)
     hypotheses = expand_hypotheses(request, registries)
+    feasibility_report = getattr(expand_hypotheses, "last_feasibility_report", None)
+    min_feasible = int(getattr(request.search_control, "min_feasible", 1) or 0)
+    _validate_feasibility_threshold(
+        feasible_count=len(hypotheses),
+        min_feasible=min_feasible,
+        report=feasibility_report,
+    )
 
     plan = ValidatedExperimentPlan(
         program_id=request.program_id,
@@ -352,6 +381,11 @@ def build_experiment_plan(
         required_features=resolve_required_features(hypotheses, registries),
         required_states=resolve_required_states(hypotheses, registries),
         estimated_hypothesis_count=len(hypotheses),
+        feasibility_summary=(
+            feasibility_report.summary(limit=5)
+            if feasibility_report is not None
+            else {"generated": len(hypotheses), "feasible": len(hypotheses), "dropped": 0}
+        ),
     )
 
     if out_dir is not None:

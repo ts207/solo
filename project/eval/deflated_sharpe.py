@@ -18,6 +18,8 @@ class DeflatedSharpeResult:
     n_trials: int
     n_obs: int
     passed: bool
+    raw_sharpe_ratio: float = 0.0
+    raw_benchmark_sharpe: float = 0.0
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -28,6 +30,8 @@ class DeflatedSharpeResult:
             "n_trials": self.n_trials,
             "n_obs": self.n_obs,
             "passed": self.passed,
+            "raw_sharpe_ratio": self.raw_sharpe_ratio,
+            "raw_benchmark_sharpe": self.raw_benchmark_sharpe,
         }
 
 
@@ -44,19 +48,28 @@ def compute_deflated_sharpe(
     if n_obs < 3 or float(np.std(values, ddof=1)) <= 0.0:
         return DeflatedSharpeResult(0.0, 0.0, 0.0, 0.0, int(n_trials), n_obs, False)
     periods = max(1, int(periods_per_year))
-    sharpe = float(np.mean(values) / np.std(values, ddof=1) * math.sqrt(periods))
     trials = max(1, int(n_trials))
-    benchmark = NormalDist().inv_cdf(1.0 - 0.5 / trials) / math.sqrt(max(1, n_obs - 1))
-    benchmark *= math.sqrt(periods)
-    standard_error = math.sqrt(max(1e-12, (1.0 + 0.5 * sharpe * sharpe) / max(1, n_obs - 1)))
-    dsr = (sharpe - benchmark) / standard_error
+
+    # Keep statistical testing in per-observation Sharpe units. Annualizing before
+    # computing the DSR standard error distorts high-frequency series because the
+    # standard-error formula is for the raw sample Sharpe estimator.
+    raw_sharpe = float(np.mean(values) / np.std(values, ddof=1))
+    annualized_sharpe = float(raw_sharpe * math.sqrt(periods))
+    raw_benchmark = NormalDist().inv_cdf(1.0 - 0.5 / trials) / math.sqrt(max(1, n_obs - 1))
+    annualized_benchmark = float(raw_benchmark * math.sqrt(periods))
+    standard_error = math.sqrt(
+        max(1e-12, (1.0 + 0.5 * raw_sharpe * raw_sharpe) / max(1, n_obs - 1))
+    )
+    dsr = (raw_sharpe - raw_benchmark) / standard_error
     probability = NormalDist().cdf(dsr)
     return DeflatedSharpeResult(
-        sharpe_ratio=float(sharpe),
+        sharpe_ratio=float(annualized_sharpe),
         deflated_sharpe_ratio=float(dsr),
         probability_positive=float(probability),
-        benchmark_sharpe=float(benchmark),
+        benchmark_sharpe=float(annualized_benchmark),
         n_trials=trials,
         n_obs=n_obs,
         passed=bool(probability >= float(min_probability)),
+        raw_sharpe_ratio=float(raw_sharpe),
+        raw_benchmark_sharpe=float(raw_benchmark),
     )

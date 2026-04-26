@@ -16,6 +16,11 @@ class DecayRule:
     window_samples: int
     action: str  # warn, downsize, disable
     downsize_factor: float = 0.5
+    # Escalate a repeated breach to disable after this many sample-equivalents.
+    # Supports explicit realised fields (edge_breach_samples,
+    # decay_edge_breach_samples, breach_sample_count) and repeated breached
+    # assessment windows (streak * window_samples).
+    disable_threshold_samples: int | None = None
 
 
 @dataclass
@@ -36,11 +41,11 @@ def default_decay_rules() -> List[DecayRule]:
     Conservative default decay rules applied when the operator provides none.
 
     - edge_decay: downsize to 50% when realized edge falls below 50% of expected
-      for 10+ samples.  Protects against gradual alpha erosion.
+      for 10+ samples; auto-disable after a persistent 20-sample-equivalent breach.
     - slippage_spike: downsize when realized slippage exceeds 2× research
-      calibration (20 bps) for 5+ samples.  Catches execution regime change.
-    - hit_rate_decay: emit warning when hit rate falls below 40% for 10+ samples.
-      Early signal of regime incompatibility.
+      calibration (20 bps) for 5+ samples; auto-disable after 10-sample persistence.
+    - hit_rate_decay: emit warning when hit rate falls below 40% for 10+ samples;
+      auto-disable after a persistent 20-sample-equivalent breach.
     """
     return [
         DecayRule(
@@ -50,6 +55,7 @@ def default_decay_rules() -> List[DecayRule]:
             window_samples=10,
             action="downsize",
             downsize_factor=0.50,
+            disable_threshold_samples=20,
         ),
         DecayRule(
             rule_id="slippage_spike_default",
@@ -58,6 +64,7 @@ def default_decay_rules() -> List[DecayRule]:
             window_samples=5,
             action="downsize",
             downsize_factor=0.50,
+            disable_threshold_samples=10,
         ),
         DecayRule(
             rule_id="hit_rate_decay_default",
@@ -65,6 +72,7 @@ def default_decay_rules() -> List[DecayRule]:
             threshold=0.40,
             window_samples=10,
             action="warn",
+            disable_threshold_samples=20,
         ),
     ]
 
@@ -73,6 +81,45 @@ class DecayMonitor:
     def __init__(self, rules: List[DecayRule]):
         self.rules = rules
         self.health_history: List[ThesisHealthSnapshot] = []
+        self._trigger_streaks: Dict[tuple[str, str], int] = {}
+
+    @staticmethod
+    def _explicit_breach_samples(realized_metrics: Dict[str, Any], metric: str) -> int | None:
+        for key in (
+            f"decay_{metric}_breach_samples",
+            f"{metric}_breach_samples",
+            "breach_sample_count",
+        ):
+            if key in realized_metrics and realized_metrics.get(key) is not None:
+                try:
+                    return max(0, int(realized_metrics.get(key, 0) or 0))
+                except (TypeError, ValueError):
+                    return None
+        return None
+
+    def _breach_is_persistent(
+        self,
+        *,
+        thesis_id: str,
+        rule: DecayRule,
+        realized_metrics: Dict[str, Any],
+        triggered: bool,
+    ) -> bool:
+        key = (str(thesis_id), str(rule.rule_id))
+        if not triggered:
+            self._trigger_streaks[key] = 0
+            return False
+
+        streak = int(self._trigger_streaks.get(key, 0)) + 1
+        self._trigger_streaks[key] = streak
+        threshold = rule.disable_threshold_samples
+        if threshold is None or threshold <= 0:
+            return False
+
+        explicit_samples = self._explicit_breach_samples(realized_metrics, rule.metric)
+        if explicit_samples is not None and explicit_samples >= int(threshold):
+            return True
+        return streak * max(1, int(rule.window_samples)) >= int(threshold)
 
     def assess_thesis_health(
         self,
@@ -115,8 +162,21 @@ class DecayMonitor:
                 if payoff_ratio > 0.0 and payoff_ratio < rule.threshold:
                     triggered = True
 
+            persistent = self._breach_is_persistent(
+                thesis_id=thesis_id,
+                rule=rule,
+                realized_metrics=realized_metrics,
+                triggered=triggered,
+            )
             if triggered:
-                reasons.append(f"decay_{rule.metric}")
+                base_reason = f"decay_{rule.metric}"
+                reasons.append(base_reason)
+                if persistent:
+                    reasons.append(f"{base_reason}_persistent")
+                    health_state = "disabled"
+                    if "disable" not in actions:
+                        actions.append("disable")
+                    continue
                 if rule.action == "disable":
                     health_state = "disabled"
                     actions.append("disable")

@@ -1,9 +1,8 @@
 from __future__ import annotations
 
 import logging
+import math
 from typing import Dict
-
-import numpy as np
 
 _LOG = logging.getLogger(__name__)
 
@@ -30,7 +29,7 @@ def calculate_portfolio_risk_multiplier(
     vol_scale = target_vol / max(1e-6, current_vol)
 
     risk_mult = min(1.0, leverage_cap, vol_scale)
-    return float(np.clip(risk_mult, 0.0, 1.0))
+    return float(min(1.0, max(0.0, risk_mult)))
 
 
 def get_asset_correlation_adjustment(
@@ -64,15 +63,15 @@ def calculate_cluster_risk_multiplier(
 
     # Inverse square root scaling for clusters (1 -> 1.0, 2 -> 0.707, 3 -> 0.577)
     # This ensures the total risk of the cluster grows sub-linearly.
-    multiplier = 1.0 / np.sqrt(count)
+    multiplier = 1.0 / math.sqrt(count)
 
     # Smooth exponential decay beyond the cluster cap (replaces hard 0.5 step).
     # At cap+1: ~0.70×, at cap+2: ~0.50×, at cap+3: ~0.35× — avoids cliff effects.
     if count > max_strategies_per_cluster:
         excess = count - max_strategies_per_cluster
-        multiplier *= float(np.exp(-0.35 * excess))
+        multiplier *= float(math.exp(-0.35 * excess))
 
-    return float(np.clip(multiplier, 0.1, 1.0))
+    return float(min(1.0, max(0.1, multiplier)))
 
 
 def calculate_edge_risk_multiplier(
@@ -95,7 +94,7 @@ def calculate_edge_risk_multiplier(
     probability_scale = (float(fill_probability) - 0.50) / 0.15
     confidence_scale = float(edge_confidence)
     multiplier = min(1.0, rr_scale, probability_scale, confidence_scale)
-    return float(np.clip(multiplier, min_multiplier, 1.0))
+    return float(min(1.0, max(float(min_multiplier), multiplier)))
 
 
 def calculate_execution_quality_multiplier(
@@ -110,7 +109,7 @@ def calculate_execution_quality_multiplier(
     """Return a risk scale from current realized execution quality."""
 
     if explicit_quality is not None:
-        return float(np.clip(float(explicit_quality), min_multiplier, 1.0))
+        return float(min(1.0, max(float(min_multiplier), float(explicit_quality))))
 
     multiplier = 1.0
     if (
@@ -124,9 +123,9 @@ def calculate_execution_quality_multiplier(
             multiplier = min(multiplier, budget / max(realized, 1e-9))
 
     if fill_rate is not None and min_fill_rate is not None and float(min_fill_rate) > 0.0:
-        observed = float(np.clip(float(fill_rate), 0.0, 1.0))
-        required = float(np.clip(float(min_fill_rate), 1e-9, 1.0))
+        observed = float(min(1.0, max(0.0, float(fill_rate))))
+        required = float(min(1.0, max(1e-9, float(min_fill_rate))))
         if observed < required:
             multiplier = min(multiplier, observed / required)
 
-    return float(np.clip(multiplier, min_multiplier, 1.0))
+    return float(min(1.0, max(float(min_multiplier), multiplier)))

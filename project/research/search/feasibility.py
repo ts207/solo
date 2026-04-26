@@ -15,6 +15,107 @@ from project.research.search.evaluator_utils import load_context_state_map
 from project.research.search.role_contracts import validate_standalone_event_role
 
 
+
+
+@dataclass(frozen=True)
+class FeasibilityDrop:
+    hypothesis_id: str
+    trigger_key: str
+    template_id: str
+    reason: str
+    reasons: tuple[str, ...] = ()
+    details: Dict[str, Any] = field(default_factory=dict)
+
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            "hypothesis_id": self.hypothesis_id,
+            "trigger_key": self.trigger_key,
+            "template_id": self.template_id,
+            "reason": self.reason,
+            "reasons": list(self.reasons),
+            "details": dict(self.details),
+        }
+
+
+@dataclass(frozen=True)
+class FeasibilityReport:
+    generated: int
+    feasible: int
+    dropped: tuple[FeasibilityDrop, ...] = ()
+
+    @property
+    def dropped_count(self) -> int:
+        return len(self.dropped)
+
+    def counts_by_reason(self) -> Dict[str, int]:
+        counts: Dict[str, int] = {}
+        for drop in self.dropped:
+            reason = str(drop.reason or "infeasible")
+            counts[reason] = counts.get(reason, 0) + 1
+        return dict(sorted(counts.items()))
+
+    def examples_by_reason(self, *, limit: int = 5) -> Dict[str, list[Dict[str, Any]]]:
+        examples: Dict[str, list[Dict[str, Any]]] = {}
+        for drop in self.dropped:
+            reason = str(drop.reason or "infeasible")
+            bucket = examples.setdefault(reason, [])
+            if len(bucket) < int(limit):
+                bucket.append(drop.to_dict())
+        return examples
+
+    def summary(self, *, limit: int = 5) -> Dict[str, Any]:
+        return {
+            "generated": int(self.generated),
+            "feasible": int(self.feasible),
+            "dropped": int(self.dropped_count),
+            "counts_by_reason": self.counts_by_reason(),
+            "examples": self.examples_by_reason(limit=limit),
+        }
+
+    def to_dict(self, *, limit: int = 25) -> Dict[str, Any]:
+        payload = self.summary(limit=5)
+        payload["dropped_examples"] = [d.to_dict() for d in self.dropped[: int(limit)]]
+        return payload
+
+
+class FeasibilityError(ValueError):
+    def __init__(self, message: str, report: FeasibilityReport | None = None):
+        super().__init__(message)
+        self.report = report
+
+
+def filter_hypotheses_with_report(
+    hypotheses: Iterable[HypothesisSpec],
+    *,
+    features: pd.DataFrame | None = None,
+    registry: DomainRegistry | None = None,
+) -> tuple[list[HypothesisSpec], FeasibilityReport]:
+    registry = registry or get_domain_registry()
+    source = list(hypotheses or [])
+    survivors: list[HypothesisSpec] = []
+    drops: list[FeasibilityDrop] = []
+    for spec in source:
+        result = check_hypothesis_feasibility(spec, features=features, registry=registry)
+        if result.valid:
+            survivors.append(spec)
+            continue
+        drops.append(
+            FeasibilityDrop(
+                hypothesis_id=spec.hypothesis_id(),
+                trigger_key=spec.trigger.label(),
+                template_id=str(spec.template_id),
+                reason=result.primary_reason or "infeasible",
+                reasons=tuple(result.reasons),
+                details=dict(result.details),
+            )
+        )
+    return survivors, FeasibilityReport(
+        generated=len(source),
+        feasible=len(survivors),
+        dropped=tuple(drops),
+    )
+
+
 @dataclass(frozen=True)
 class FeasibilityResult:
     valid: bool

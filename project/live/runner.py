@@ -48,6 +48,7 @@ from project.live.market_state_builder import (
     build_measured_market_state,
 )
 from project.live.memory import append_live_episode
+from project.live.portfolio_circuit import PortfolioCircuitBreaker, PortfolioCircuitConfig
 from project.live.oms import (
     OrderManager,
     OrderStatus,
@@ -169,6 +170,9 @@ class LiveEngineRunner:
         else:
             self.order_manager = OrderManager()
         self.strategy_runtime = dict(strategy_runtime or {})
+        self.portfolio_circuit = PortfolioCircuitBreaker(
+            PortfolioCircuitConfig.from_mapping(self.strategy_runtime.get("portfolio_circuit", {}))
+        )
         self._execution_model_config = self._resolve_execution_model_config()
         self._live_quality_thresholds = self._resolve_live_quality_thresholds()
         self._kill_on_live_quality_disable = bool(
@@ -581,6 +585,16 @@ class LiveEngineRunner:
             "signal_monitor": self.signal_monitor.check().as_dict(),
             "symbols": list(self.symbols),
             "kill_switch": self.state_store.get_kill_switch_snapshot(),
+            "portfolio_circuit": {
+                "enabled": bool(self.portfolio_circuit.config.enabled),
+                "history_count": int(len(self.portfolio_circuit.history)),
+                "last_verdict": {
+                    "triggered": bool(self.portfolio_circuit.last_verdict.triggered),
+                    "reason": str(self.portfolio_circuit.last_verdict.reason),
+                    "message": str(self.portfolio_circuit.last_verdict.message),
+                    "metrics": dict(self.portfolio_circuit.last_verdict.metrics),
+                },
+            },
             "account": {
                 "wallet_balance": float(account.wallet_balance),
                 "margin_balance": float(account.margin_balance),
@@ -672,6 +686,7 @@ class LiveEngineRunner:
                         window_samples=window,
                         action="downsize",
                         downsize_factor=0.50,
+                        disable_threshold_samples=window * 2,
                     )
                 )
                 _LOG.info(
@@ -691,6 +706,7 @@ class LiveEngineRunner:
                         threshold=hr_threshold,
                         window_samples=window,
                         action="warn",
+                        disable_threshold_samples=window * 2,
                     )
                 )
                 _LOG.info(
@@ -1148,6 +1164,9 @@ class LiveEngineRunner:
                 "max_gross_leverage": 1.0,
                 "target_vol": 0.1,
                 "current_vol": 0.1,
+                "max_kelly_multiplier": float(
+                    self.strategy_runtime.get("max_kelly_multiplier", 0.5) or 0.5
+                ),
                 "bucket_exposures": {},
                 "active_cluster_counts": cluster_counts,
                 "available_balance": float(acc.available_balance),
@@ -1490,8 +1509,33 @@ class LiveEngineRunner:
             "net_expectancy_bps": float(thesis.evidence.net_expectancy_bps or 0.0),
             "hit_rate": expected_hit_rate,
         }
+        previous_thesis_state = self.thesis_manager.get_state(thesis.thesis_id)
+        previous_state_name = previous_thesis_state.state if previous_thesis_state else ""
         health = self.decay_monitor.assess_thesis_health(thesis.thesis_id, realized, expected)
-        self.thesis_manager.update_health(thesis.thesis_id, health.health_state, health.actions_taken)
+        self.thesis_manager.update_health(
+            thesis.thesis_id, health.health_state, health.actions_taken
+        )
+        if health.health_state == "disabled" and previous_state_name != "disabled":
+            reason = ",".join(health.reason_codes) or "decay_persistent"
+            self.kill_switch.disable_thesis(thesis.thesis_id, reason=reason, operator="system")
+            if self._audit_log is not None:
+                self._audit_log.append(
+                    OperatorActionEvent(
+                        session_id=self._session_id,
+                        action="decay_auto_disabled",
+                        target=str(thesis.thesis_id),
+                        operator="system",
+                        reason=reason,
+                        metadata={
+                            "actions_taken": list(health.actions_taken),
+                            "reason_codes": list(health.reason_codes),
+                            "sample_count": int(health.sample_count),
+                            "realized_edge_bps": float(health.realized_edge_bps),
+                            "expected_edge_bps": float(health.expected_edge_bps),
+                            "hit_rate": float(health.hit_rate),
+                        },
+                    )
+                )
 
         records = [
             item
@@ -2317,6 +2361,15 @@ class LiveEngineRunner:
                 if event is not None:
                     self.data_manager.ticker_queue.task_done()
 
+    def _evaluate_portfolio_circuit(self) -> None:
+        verdict = self.portfolio_circuit.evaluate_account(self.state_store.account)
+        if not verdict.triggered:
+            return
+        self.kill_switch.trigger(
+            KillSwitchReason.PORTFOLIO_CIRCUIT,
+            f"{verdict.reason}: {verdict.message}",
+        )
+
     async def _sync_account_state(self):
         while self._running:
             try:
@@ -2324,6 +2377,7 @@ class LiveEngineRunner:
                 if isinstance(snapshot, dict):
                     self.state_store.update_from_exchange_snapshot(snapshot)
                     self.account_sync_failure_count = 0
+                    self._evaluate_portfolio_circuit()
                     self.persist_runtime_metrics_snapshot()
             except asyncio.CancelledError:
                 break

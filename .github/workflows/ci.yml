@@ -1,0 +1,84 @@
+name: ci
+
+"on":
+  pull_request:
+  push:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - run: pip install -e ".[dev]" --constraint constraints.lock
+      - run: ruff check .
+      - run: ruff format --check .
+      - run: pyright
+      - run: python project/scripts/check_banned_imports.py --all
+
+  test-fast:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - run: pip install -e ".[dev]" --constraint constraints.lock
+      - run: PYTHONPATH=. pytest -q -m "not slow and not integration" --maxfail=1 -n auto
+
+  coverage-critical:
+    runs-on: ubuntu-latest
+    needs: [test-fast]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - run: pip install -e ".[dev]" --constraint constraints.lock
+      - run: >
+          PYTHONPATH=. pytest -q -m "not slow and not integration"
+          --cov=project/core --cov=project/eval --cov=project/domain
+          --cov=project/promote --cov=project/specs
+          --cov-report=xml --cov-fail-under=85
+
+  gates:
+    runs-on: ubuntu-latest
+    needs: [test-fast]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - run: pip install -e ".[dev]" --constraint constraints.lock
+      - run: make minimum-green-gate
+      - run: make check-domain-graph
+      - run: make check-spec-sync
+      - run: make check-registry-sync
+
+  pr-size:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Warn on large pull requests
+        run: |
+          base="${{ github.event.pull_request.base.sha }}"
+          head="${{ github.event.pull_request.head.sha }}"
+          changed=$(git diff --numstat "$base" "$head" | awk '{add+=$1; del+=$2} END {print add+del+0}')
+          echo "changed_lines=$changed"
+          if [ "$changed" -gt 1000 ]; then
+            echo "::warning::PR changes $changed lines; soft cap is 1000 lines."
+          fi

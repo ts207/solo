@@ -39,6 +39,7 @@ class KillSwitchReason(Enum):
     STALE_DATA = auto()
     MICROSTRUCTURE_BREAKDOWN = auto()
     LIVE_QUALITY_DEGRADATION = auto()
+    PORTFOLIO_CIRCUIT = auto()
     ACCOUNT_SYNC_LOSS = auto()
     MANUAL = auto()
 

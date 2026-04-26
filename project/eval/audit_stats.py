@@ -34,26 +34,36 @@ def permutation_test(
 
 def detect_selection_bias(p_values: List[float], n_hypotheses: int) -> Dict[str, Any]:
     """
-    Check if the best p-value in a set is better than what would be
-    expected by chance given the total number of hypotheses tested.
+    Diagnose whether the best p-value is suspicious after a multiple-search campaign.
+
+    Under the global null with ``m`` independent tests, the expected minimum p-value
+    is ``1 / (m + 1)`` and the probability of observing a minimum at least this
+    small is ``1 - (1 - best_p) ** m``. Selection/mining risk is therefore driven
+    by p-values that are *too small* relative to the search burden, not by p-values
+    that are weaker than the expected null minimum. Weak best p-values are reported
+    separately as underpowered evidence.
     """
-    if not p_values:
-        return {"is_biased": False, "reason": "No p-values provided"}
+    clean = [float(p) for p in p_values if p is not None and np.isfinite(float(p))]
+    if not clean:
+        return {"is_biased": False, "reason": "No finite p-values provided"}
 
-    best_p = min(p_values)
-    # Expected best p-value from n_hypotheses independent uniform [0,1] tests is 1/(n+1)
-    expected_best_p = 1.0 / (n_hypotheses + 1)
+    m = max(1, int(n_hypotheses))
+    best_p = float(min(max(p, 0.0) for p in clean))
+    best_p = min(best_p, 1.0)
+    expected_best_p = 1.0 / (m + 1.0)
+    global_null_p_value = float(1.0 - (1.0 - best_p) ** m)
 
-    # Sidak correction for the best p-value
-    # alpha_corrected = 1 - (1 - alpha_global)^(1/n)
-    # If best_p > alpha_corrected, we fail to reject the global null
-
-    is_biased = bool(best_p > expected_best_p * 2.0)  # Heuristic: if best is 2x expected, it's weak
+    too_good_for_trials = bool(best_p < expected_best_p * 0.10 and global_null_p_value < 0.05)
+    weak_best_p = bool(best_p > expected_best_p * 2.0)
 
     return {
         "best_observed_p": best_p,
-        "expected_best_p": expected_best_p,
-        "n_hypotheses": n_hypotheses,
-        "is_biased": is_biased,
-        "is_suspicious": bool(best_p > expected_best_p * 5.0),  # Very weak best p
+        "expected_best_p": float(expected_best_p),
+        "global_null_p_value": global_null_p_value,
+        "n_hypotheses": m,
+        "is_biased": too_good_for_trials,
+        "is_suspicious": too_good_for_trials,
+        "too_good_for_trials": too_good_for_trials,
+        "weak_best_p": weak_best_p,
+        "is_underpowered": weak_best_p,
     }

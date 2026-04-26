@@ -81,12 +81,7 @@ Confirmatory runs require stronger lineage:
 - validation lineage
 
 When an unseen forward window exists, validation lineage alone is not enough for
-release interpretation. Promotion/export should be blocked operationally unless
-the candidate has survived a documented forward confirmation run or the lifecycle
-record states why such confirmation is unavailable. A source run that validates
-only the origin window remains research-valid but non-deployable. The forward
-confirmation role can be documented in proposal artifacts even when the pipeline
-execution mode remains `research`.
+release interpretation. Deploy-profile promotion requires `data/reports/validation/<run_id>/forward_confirmation.json`; absent or drifting confirmation moves the candidate to degraded state and writes no deploy promotion. Research-profile promotion remains available for paper/research artifacts. Use `edge discover funnel --run_id <run_id>` to inspect generated → feasible → t-net → q → robust → cost-survival → promoted counts.
 
 ## Outputs
 

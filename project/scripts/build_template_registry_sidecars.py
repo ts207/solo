@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 from __future__ import annotations
 
+import argparse
+import difflib
 from pathlib import Path
 from typing import Any, Dict
 
@@ -140,23 +142,62 @@ def _write_yaml(path: Path, payload: Dict[str, Any]) -> None:
     path.write_text(yaml.safe_dump(payload, sort_keys=False), encoding="utf-8")
 
 
-def main() -> int:
-    compat_path = resolve_relative_spec_path(
-        "spec/templates/event_template_registry.yaml",
-        repo_root=PROJECT_ROOT.parent,
-    )
-    runtime_path = PROJECT_ROOT / "configs" / "registries" / "templates.yaml"
-    ontology_path = resolve_relative_spec_path(
-        "spec/ontology/templates/template_registry.yaml",
-        repo_root=PROJECT_ROOT.parent,
-    )
-    _write_yaml(compat_path, build_template_registry_compat_payload())
-    _write_yaml(runtime_path, build_runtime_template_registry_payload())
-    _write_yaml(ontology_path, build_ontology_template_registry_payload())
-    print(f"Wrote {compat_path}")
-    print(f"Wrote {runtime_path}")
-    print(f"Wrote {ontology_path}")
-    return 0
+def _render_yaml(payload: Dict[str, Any]) -> str:
+    return yaml.safe_dump(payload, sort_keys=False)
+
+
+def _check_or_write(path: Path, payload: Dict[str, Any], *, check: bool) -> bool:
+    rendered = _render_yaml(payload)
+    if check:
+        current = path.read_text(encoding="utf-8") if path.exists() else ""
+        if current != rendered:
+            diff = "\n".join(
+                difflib.unified_diff(
+                    current.splitlines(),
+                    rendered.splitlines(),
+                    fromfile=str(path),
+                    tofile=f"{path} (regenerated)",
+                    lineterm="",
+                )
+            )
+            print(f"Template registry sidecar is stale: {path}")
+            if diff:
+                print(diff)
+            return False
+        print(f"Template registry sidecar is fresh: {path}")
+        return True
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(rendered, encoding="utf-8")
+    print(f"Wrote {path}")
+    return True
+
+
+def main(argv: list[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(description="Build or check generated template registry sidecars.")
+    parser.add_argument("--check", action="store_true", help="fail if generated sidecars are stale")
+    args = parser.parse_args(argv)
+
+    outputs = [
+        (
+            resolve_relative_spec_path(
+                "spec/templates/event_template_registry.yaml",
+                repo_root=PROJECT_ROOT.parent,
+            ),
+            build_template_registry_compat_payload(),
+        ),
+        (PROJECT_ROOT / "configs" / "registries" / "templates.yaml", build_runtime_template_registry_payload()),
+        (
+            resolve_relative_spec_path(
+                "spec/ontology/templates/template_registry.yaml",
+                repo_root=PROJECT_ROOT.parent,
+            ),
+            build_ontology_template_registry_payload(),
+        ),
+    ]
+    ok = True
+    for path, payload in outputs:
+        ok = _check_or_write(path, payload, check=args.check) and ok
+    return 0 if ok else 1
 
 
 if __name__ == "__main__":

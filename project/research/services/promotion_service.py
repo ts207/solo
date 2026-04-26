@@ -40,7 +40,15 @@ from project.research.services import promotion_artifacts as _promotion_artifact
 from project.research.services import promotion_diagnostics as _promotion_diagnostics
 from project.research.services import promotion_inputs as _promotion_inputs
 from project.research.services import promotion_policy as _promotion_policy
-from project.research.services.reporting_service import write_promotion_reports
+from project.research.services.pathing import phase2_funnel_path
+from project.research.services.reporting_service import (
+    append_phase2_funnel_index,
+    write_promotion_reports,
+)
+from project.promote.forward_confirmation import (
+    load_forward_confirmation,
+    validate_forward_confirmation,
+)
 from project.research.validation.evidence_bundle import (
     bundle_to_flat_record,
     serialize_evidence_bundles,
@@ -77,6 +85,7 @@ class PromotionConfig:
     objective_spec: Optional[str]
     retail_profiles_spec: Optional[str]
     promotion_profile: str = "auto"
+    require_forward_confirmation: bool = False
 
     def resolved_out_dir(self) -> Path:
         data_root = get_data_root()
@@ -111,6 +120,7 @@ class PromotionConfig:
             "objective_spec": self.objective_spec,
             "retail_profiles_spec": self.retail_profiles_spec,
             "promotion_profile": self.promotion_profile,
+            "require_forward_confirmation": int(self.require_forward_confirmation),
         }
 
 
@@ -135,6 +145,7 @@ PROMOTION_CONFIG_DEFAULTS: Dict[str, Any] = {
     "objective_spec": None,
     "retail_profiles_spec": None,
     "promotion_profile": "auto",
+    "require_forward_confirmation": False,
 }
 
 
@@ -327,6 +338,70 @@ _diagnose_missing_fields = _promotion_inputs._diagnose_missing_fields
 
 
 
+
+
+
+def _numeric_candidate_metric(df: pd.DataFrame, columns: tuple[str, ...], *, prefer: str = "median") -> float | None:
+    for column in columns:
+        if column not in df.columns:
+            continue
+        values = pd.to_numeric(df[column], errors="coerce").dropna()
+        if values.empty:
+            continue
+        if prefer == "max_abs":
+            idx = values.abs().idxmax()
+            return float(values.loc[idx])
+        return float(values.median())
+    return None
+
+
+def _candidate_forward_metric_snapshot(candidates_df: pd.DataFrame) -> Dict[str, float]:
+    if candidates_df.empty:
+        return {}
+    metrics: Dict[str, float] = {}
+    t_stat_net = _numeric_candidate_metric(
+        candidates_df,
+        ("t_stat_net", "t_stat", "net_t_stat"),
+        prefer="max_abs",
+    )
+    mean_net = _numeric_candidate_metric(
+        candidates_df,
+        ("mean_return_net_bps", "after_cost_expectancy_bps", "cost_adjusted_return_bps"),
+    )
+    sharpe_net = _numeric_candidate_metric(candidates_df, ("sharpe_net", "sharpe", "risk_adjusted_score"))
+    if t_stat_net is not None:
+        metrics["t_stat_net"] = t_stat_net
+    if mean_net is not None:
+        metrics["mean_return_net_bps"] = mean_net
+    if sharpe_net is not None:
+        metrics["sharpe_net"] = sharpe_net
+    return metrics
+
+
+def _append_promotion_counts_to_funnel(
+    *,
+    data_root: Path,
+    run_id: str,
+    promotion_profile: str,
+    promoted_count: int,
+) -> None:
+    funnel_path = phase2_funnel_path(data_root=data_root, run_id=run_id)
+    if not funnel_path.exists():
+        return
+    try:
+        payload = json.loads(funnel_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError, TypeError, ValueError):
+        return
+    if not isinstance(payload, dict):
+        return
+    profile = str(promotion_profile or "research").strip().lower()
+    key = "promoted_deploy" if profile == "deploy" else "promoted_research"
+    payload[key] = int(promoted_count)
+    atomic_write_json(funnel_path, payload)
+    try:
+        append_phase2_funnel_index(payload, data_root=data_root)
+    except Exception:
+        logging.warning("Failed to update phase2 funnel index for promoted run %s", run_id, exc_info=True)
 
 def _apply_detector_governance_policy(promoted_df: pd.DataFrame) -> tuple[pd.DataFrame, dict[str, int]]:
     if promoted_df.empty:
@@ -693,6 +768,21 @@ def execute_promotion(config: PromotionConfig) -> PromotionServiceResult:
             source_run_mode=source_run_mode,
             project_root=PROJECT_ROOT.parent,
         )
+        forward_confirmation_required = bool(
+            config.require_forward_confirmation or resolved_policy.promotion_profile == "deploy"
+        )
+        forward_confirmation_passed = True
+        forward_confirmation_reasons: list[str] = []
+        forward_confirmation_metrics = _candidate_forward_metric_snapshot(candidates_df)
+        if forward_confirmation_required and not candidates_df.empty:
+            confirmation = load_forward_confirmation(config.run_id, data_root)
+            forward_confirmation_passed, forward_confirmation_reasons = validate_forward_confirmation(
+                confirmation,
+                candidate_metrics=forward_confirmation_metrics,
+            )
+            if not forward_confirmation_passed:
+                candidates_df = candidates_df.iloc[0:0].copy()
+
         audit_df, promoted_df, diagnostics = promote_candidates(
             candidates_df=candidates_df,
             promotion_spec=promotion_spec,
@@ -739,6 +829,20 @@ def execute_promotion(config: PromotionConfig) -> PromotionServiceResult:
             use_effective_q_value=getattr(resolved_policy, "use_effective_q_value", True),
         )
         diagnostics["promotion_profile"] = resolved_policy.promotion_profile
+        diagnostics["forward_confirmation_required"] = bool(forward_confirmation_required)
+        diagnostics["forward_confirmation_passed"] = bool(forward_confirmation_passed)
+        diagnostics["forward_confirmation_candidate_metrics"] = forward_confirmation_metrics
+        if forward_confirmation_reasons:
+            diagnostics["forward_confirmation_reasons"] = list(forward_confirmation_reasons)
+            _record_degraded_state(
+                diagnostics,
+                code=forward_confirmation_reasons[0],
+                message="Deploy promotion requires a passing forward confirmation artifact.",
+                details={
+                    "run_id": config.run_id,
+                    "reasons": list(forward_confirmation_reasons),
+                },
+            )
 
         # Write multiplicity scope diagnostics
         multiplicity_scope_diag = diagnostics.get("multiplicity_scope_diagnostics", {})
@@ -775,6 +879,12 @@ def execute_promotion(config: PromotionConfig) -> PromotionServiceResult:
         promoted_df = annotate_regime_metadata(promoted_df)
         promoted_df, detector_governance_stats = _apply_detector_governance_policy(promoted_df)
         diagnostics["detector_governance_policy"] = detector_governance_stats
+        _append_promotion_counts_to_funnel(
+            data_root=data_root,
+            run_id=config.run_id,
+            promotion_profile=resolved_policy.promotion_profile,
+            promoted_count=int(len(promoted_df)),
+        )
 
         evidence_bundles = []
         invalid_promoted_rows: list[str] = []
