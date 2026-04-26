@@ -1,0 +1,16 @@
+version: 1
+kind: state_context_dimension
+state_name: forced_flow_phase
+source_feature: forced_flow_phase
+allowed_values:
+  - none
+  - pre_cascade
+  - cascade
+  - cooldown
+  - refill
+  - rebound_confirmed
+  - reacceleration
+mapping:
+  cascade: MS_LIQUIDATION_STATE
+  cooldown: POST_CASCADE_RECOVERY_STATE
+  refill: REFILL_LAG_STATE

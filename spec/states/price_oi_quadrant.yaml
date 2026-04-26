@@ -1,0 +1,11 @@
+version: 1
+kind: state_context_dimension
+state_name: price_oi_quadrant
+source_feature: price_oi_quadrant
+allowed_values:
+  - price_up_oi_up
+  - price_up_oi_down
+  - price_down_oi_up
+  - price_down_oi_down
+mapping:
+  price_down_oi_down: MS_LIQUIDATION_STATE

@@ -21,6 +21,35 @@ context_dimensions:
     mapping:
       funding_neg: FUNDING_NEGATIVE
       funding_pos: FUNDING_POSITIVE
+  forced_flow_phase:
+    allowed_values:
+    - none
+    - pre_cascade
+    - cascade
+    - cooldown
+    - refill
+    - rebound_confirmed
+    - reacceleration
+    mapping:
+      cascade: MS_LIQUIDATION_STATE
+      cooldown: POST_CASCADE_RECOVERY_STATE
+      refill: REFILL_LAG_STATE
+  funding_phase:
+    allowed_values:
+    - neutral
+    - positive_onset
+    - negative_onset
+    - positive_persistent
+    - negative_persistent
+    - positive_normalizing
+    - negative_normalizing
+    - flip_to_positive
+    - flip_to_negative
+    mapping:
+      positive_persistent: MS_FUNDING_STATE
+      negative_persistent: MS_FUNDING_STATE
+      positive_normalizing: FUNDING_NORMALIZATION_STATE
+      negative_normalizing: FUNDING_NORMALIZATION_STATE
   funding_regime:
     allowed_values:
     - crowded
@@ -28,6 +57,19 @@ context_dimensions:
     mapping:
       crowded: CROWDING_STATE
       normalizing: FUNDING_NORMALIZATION_STATE
+  liquidity_phase:
+    allowed_values:
+    - normal
+    - thin
+    - vacuum
+    - collapse
+    - refill
+    - recovered
+    mapping:
+      thin: LOW_LIQUIDITY_STATE
+      vacuum: LIQUIDITY_ABSENCE_STATE
+      collapse: DEPTH_RECOVERY_STATE
+      refill: REFILL_LAG_STATE
   liquidity_regime:
     allowed_values:
     - low
@@ -46,9 +88,31 @@ context_dimensions:
     allowed_values:
     - trend
     - chop
+    - bullish
+    - bearish
     mapping:
       trend: TREND_ACTIVE
       chop: CHOP_ACTIVE
+      bullish: BULL_TREND_REGIME
+      bearish: BEAR_TREND_REGIME
+  oi_phase:
+    allowed_values:
+    - neutral
+    - expansion
+    - contraction
+    - flush
+    - rebuild
+    mapping:
+      contraction: OI_CONTRACTION_STATE
+      flush: OI_CONTRACTION_STATE
+  price_oi_quadrant:
+    allowed_values:
+    - price_up_oi_up
+    - price_up_oi_down
+    - price_down_oi_up
+    - price_down_oi_down
+    mapping:
+      price_down_oi_down: MS_LIQUIDATION_STATE
   trend_structure:
     allowed_values:
     - trend

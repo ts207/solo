@@ -6,22 +6,21 @@ metadata:
 event_metadata:
   ABSORPTION_EVENT:
     evidence_tier: proxy
-    family: LIQUIDITY_DISLOCATION
-    description: 'Hybrid liquidity-stress evidence: direct imbalance-stall confirmation
-      combined with spread and RV stress.'
+    family: UNSPECIFIED
+    description: ABSORPTION_EVENT canonical proxy compatibility entry.
   DEPTH_COLLAPSE:
     evidence_tier: proxy
-    family: LIQUIDITY_DISLOCATION
-    description: Direct depth failure evidence for liquidity stress.
+    family: UNSPECIFIED
+    description: DEPTH_COLLAPSE canonical proxy compatibility entry.
   FORCED_FLOW_EXHAUSTION:
     evidence_tier: proxy
-    family: FORCED_FLOW_AND_EXHAUSTION
-    description: Exhaustion regime with forced-flow mechanics.
+    family: UNSPECIFIED
+    description: FORCED_FLOW_EXHAUSTION canonical proxy compatibility entry.
   ORDERFLOW_IMBALANCE_SHOCK:
     evidence_tier: proxy
-    family: LIQUIDITY_DISLOCATION
-    description: Orderflow imbalance is treated as a liquidity-stress subtype.
+    family: UNSPECIFIED
+    description: ORDERFLOW_IMBALANCE_SHOCK canonical proxy compatibility entry.
   SWEEP_STOPRUN:
     evidence_tier: proxy
-    family: LIQUIDITY_DISLOCATION
-    description: Stop-run style liquidity stress.
+    family: UNSPECIFIED
+    description: SWEEP_STOPRUN canonical proxy compatibility entry.

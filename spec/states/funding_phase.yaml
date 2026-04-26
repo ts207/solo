@@ -1,0 +1,19 @@
+version: 1
+kind: state_context_dimension
+state_name: funding_phase
+source_feature: funding_phase
+allowed_values:
+  - neutral
+  - positive_onset
+  - negative_onset
+  - positive_persistent
+  - negative_persistent
+  - positive_normalizing
+  - negative_normalizing
+  - flip_to_positive
+  - flip_to_negative
+mapping:
+  positive_persistent: MS_FUNDING_STATE
+  negative_persistent: MS_FUNDING_STATE
+  positive_normalizing: FUNDING_NORMALIZATION_STATE
+  negative_normalizing: FUNDING_NORMALIZATION_STATE

@@ -1,0 +1,16 @@
+version: 1
+kind: state_context_dimension
+state_name: liquidity_phase
+source_feature: liquidity_phase
+allowed_values:
+  - normal
+  - thin
+  - vacuum
+  - collapse
+  - refill
+  - recovered
+mapping:
+  thin: LOW_LIQUIDITY_STATE
+  vacuum: LIQUIDITY_ABSENCE_STATE
+  collapse: DEPTH_RECOVERY_STATE
+  refill: REFILL_LAG_STATE

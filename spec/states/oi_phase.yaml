@@ -1,0 +1,13 @@
+version: 1
+kind: state_context_dimension
+state_name: oi_phase
+source_feature: oi_phase
+allowed_values:
+  - neutral
+  - expansion
+  - contraction
+  - flush
+  - rebuild
+mapping:
+  contraction: OI_CONTRACTION_STATE
+  flush: OI_CONTRACTION_STATE

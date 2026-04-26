@@ -5,6 +5,10 @@ source_feature: ms_trend_state
 allowed_values:
   - trend
   - chop
+  - bullish
+  - bearish
 mapping:
   trend: TREND_ACTIVE
   chop: CHOP_ACTIVE
+  bullish: BULL_TREND_REGIME
+  bearish: BEAR_TREND_REGIME

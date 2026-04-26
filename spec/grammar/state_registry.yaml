@@ -9,9 +9,34 @@ regimes:
   carry_state:
   - funding_neg
   - funding_pos
+  forced_flow_phase:
+  - none
+  - pre_cascade
+  - cascade
+  - cooldown
+  - refill
+  - rebound_confirmed
+  - reacceleration
+  funding_phase:
+  - neutral
+  - positive_onset
+  - negative_onset
+  - positive_persistent
+  - negative_persistent
+  - positive_normalizing
+  - negative_normalizing
+  - flip_to_positive
+  - flip_to_negative
   funding_regime:
   - crowded
   - normalizing
+  liquidity_phase:
+  - normal
+  - thin
+  - vacuum
+  - collapse
+  - refill
+  - recovered
   liquidity_regime:
   - low
   - refill
@@ -21,6 +46,19 @@ regimes:
   ms_trend_state:
   - trend
   - chop
+  - bullish
+  - bearish
+  oi_phase:
+  - neutral
+  - expansion
+  - contraction
+  - flush
+  - rebuild
+  price_oi_quadrant:
+  - price_up_oi_up
+  - price_up_oi_down
+  - price_down_oi_up
+  - price_down_oi_down
   trend_structure:
   - trend
   - chop
@@ -31,9 +69,23 @@ context_state_map:
   carry_state:
     funding_neg: funding_negative
     funding_pos: funding_positive
+  forced_flow_phase:
+    cascade: ms_liquidation_state
+    cooldown: post_cascade_recovery_state
+    refill: refill_lag_state
+  funding_phase:
+    positive_persistent: ms_funding_state
+    negative_persistent: ms_funding_state
+    positive_normalizing: funding_normalization_state
+    negative_normalizing: funding_normalization_state
   funding_regime:
     crowded: crowding_state
     normalizing: funding_normalization_state
+  liquidity_phase:
+    thin: low_liquidity_state
+    vacuum: liquidity_absence_state
+    collapse: depth_recovery_state
+    refill: refill_lag_state
   liquidity_regime:
     low: low_liquidity_state
     refill: refill_lag_state
@@ -43,6 +95,13 @@ context_state_map:
   ms_trend_state:
     trend: trend_active
     chop: chop_active
+    bullish: bull_trend_regime
+    bearish: bear_trend_regime
+  oi_phase:
+    contraction: oi_contraction_state
+    flush: oi_contraction_state
+  price_oi_quadrant:
+    price_down_oi_down: ms_liquidation_state
   trend_structure:
     trend: trending_state
     chop: chop_state
