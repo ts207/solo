@@ -18,7 +18,7 @@ from project import PROJECT_ROOT
 class BenchmarkSlice:
     slice_id: str
     event_id: str
-    proposal_path: str
+    spec_dir: str
     symbol: str = "BTCUSDT"
 
 
@@ -26,22 +26,7 @@ SUITE: tuple[BenchmarkSlice, ...] = (
     BenchmarkSlice(
         slice_id="liquidation_exhaustion",
         event_id="LIQUIDATION_EXHAUSTION_REVERSAL",
-        proposal_path="spec/proposals/single_event_liquidation_exhaustion_reversal_bounce_h24_v1.yaml",
-    ),
-    BenchmarkSlice(
-        slice_id="liquidity_vacuum",
-        event_id="LIQUIDITY_VACUUM",
-        proposal_path="spec/proposals/benchmark_liquidity_vacuum_reversal_h12_v1.yaml",
-    ),
-    BenchmarkSlice(
-        slice_id="vol_shock",
-        event_id="VOL_SHOCK",
-        proposal_path="spec/proposals/benchmark_vol_shock_continuation_h12_v1.yaml",
-    ),
-    BenchmarkSlice(
-        slice_id="funding_dislocation",
-        event_id="FND_DISLOC",
-        proposal_path="spec/proposals/benchmark_fnd_disloc_reversion_h12_v1.yaml",
+        spec_dir="spec/discovery/tier2_liquidation_exhaustion_focused_v1",
     ),
 )
 
@@ -319,8 +304,60 @@ def _benchmark_slice(
     runtime_max_rows: int,
 ) -> dict[str, Any]:
     run_id = f"{run_prefix}_{slice_spec.slice_id}"
-    proposal = PROJECT_ROOT.parent / slice_spec.proposal_path
+    start_date = "2024-01-01"
+    end_date = "2024-01-31"
+
+    # Generated proposal path for the second stage
+    generated_proposal_dir = data_root / "runs" / run_id / "generated_proposals"
+    # We assume one proposal is generated for the benchmark event
+    proposal_name = f"cell_{slice_spec.event_id.lower()}_unconditional.yaml"
+    generated_proposal = generated_proposal_dir / proposal_name
+
     commands = [
+        [
+            sys.executable,
+            "-m",
+            "project.cli",
+            "discover",
+            "cells",
+            "run",
+            "--run_id",
+            run_id,
+            "--symbols",
+            slice_spec.symbol,
+            "--start",
+            start_date,
+            "--end",
+            end_date,
+            "--data_root",
+            str(data_root),
+            "--spec_dir",
+            slice_spec.spec_dir,
+        ],
+        [
+            sys.executable,
+            "-m",
+            "project.cli",
+            "discover",
+            "cells",
+            "summarize",
+            "--run_id",
+            run_id,
+            "--data_root",
+            str(data_root),
+        ],
+        [
+            sys.executable,
+            "-m",
+            "project.cli",
+            "discover",
+            "cells",
+            "assemble-theses",
+            "--run_id",
+            run_id,
+            "--data_root",
+            str(data_root),
+        ],
         [
             sys.executable,
             "-m",
@@ -328,7 +365,7 @@ def _benchmark_slice(
             "discover",
             "run",
             "--proposal",
-            str(proposal),
+            str(generated_proposal),
             "--run_id",
             run_id,
             "--data_root",
@@ -387,7 +424,22 @@ def _benchmark_slice(
 
     command_results: list[dict[str, Any]] = []
     for index, command in enumerate(commands):
+        # Index 3 is 'discover run' using generated proposal
         if index == 3:
+            if not generated_proposal.exists():
+                command_results.append(
+                    {
+                        "command": command,
+                        "returncode": 1,
+                        "stdout_tail": "",
+                        "stderr_tail": f"generated proposal missing: {generated_proposal}",
+                        "status": "failed_generated_proposal_missing",
+                    }
+                )
+                break
+
+        # Index 6 is 'promote export'
+        if index == 6:
             promotion_count = _promotion_metrics(data_root, run_id)["promotion_count"]
             if promotion_count <= 0:
                 command_results.append(
@@ -401,6 +453,8 @@ def _benchmark_slice(
                 )
                 continue
         command_results.append(_run_command(command))
+        if command_results[-1]["returncode"] != 0:
+            break
     metrics = _collect_metrics(
         data_root,
         run_id,

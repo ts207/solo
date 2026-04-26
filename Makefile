@@ -34,7 +34,7 @@ RUNTIME_MAX_ROWS ?= 500
 help:
 	@printf '%s\n' \
 	  'Canonical stage targets:' \
-	  '  make first-edge RUN_ID=<run_id> DATA_ROOT=<lake> START=<start> END=<end> [PROMOTION_PROFILE=research|deploy|disabled]' \
+	  '  make first-edge RUN_ID=<run_id> DATA_ROOT=<lake> START=<start> END=<end>' \
 	  '  make discover RUN_ID=<run_id> START=<start> END=<end> [DATA_ROOT=...] [SPEC_DIR=...] [REGISTRY_ROOT=...]' \
 	  '  make discover-proposal PROPOSAL=<proposal.yaml> RUN_ID=<run_id> [DATA_ROOT=...] [REGISTRY_ROOT=...]' \
 	  '  make list-artifacts RUN_ID=<run_id> [DATA_ROOT=...]' \
@@ -98,7 +98,11 @@ discover-proposal-plan:
 	@test -n "$(PROPOSAL)" || (echo 'PROPOSAL is required' >&2; exit 2)
 	@$(CLI) discover plan --proposal "$(PROPOSAL)" $(if $(RUN_ID),--run_id "$(RUN_ID)",) $(if $(DATA_ROOT),--data_root "$(DATA_ROOT)",) --registry_root "$(REGISTRY_ROOT)"
 
-discover-plan: discover-proposal-plan
+discover-plan:
+	@test -n "$(RUN_ID)" || (echo 'RUN_ID is required' >&2; exit 2)
+	@test -n "$(START)" || (echo 'START is required' >&2; exit 2)
+	@test -n "$(END)" || (echo 'END is required' >&2; exit 2)
+	@$(CLI) discover cells plan --run_id "$(RUN_ID)" --symbols "$(SYMBOLS)" --timeframe "$(TIMEFRAME)" --start "$(START)" --end "$(END)" --spec_dir "$(SPEC_DIR)" --registry_root "$(REGISTRY_ROOT)" $(if $(DATA_ROOT),--data_root "$(DATA_ROOT)",)
 
 first-edge:
 	@test -n "$(RUN_ID)" || (echo 'RUN_ID is required' >&2; exit 2)
