@@ -219,6 +219,11 @@ events:
     operational_role: trigger
     deployment_disposition: secondary_or_confirm
     runtime_category: active_runtime_event
+  PRICE_DOWN_OI_DOWN:
+    tier: A
+    operational_role: trigger
+    deployment_disposition: primary_trigger_candidate
+    runtime_category: active_runtime_event
   PRICE_VOL_IMBALANCE_PROXY:
     tier: B
     operational_role: trigger

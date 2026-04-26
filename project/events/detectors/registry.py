@@ -45,7 +45,8 @@ def _candidate_detector_classes(event_type: str) -> list[type[Any]]:
 
 def get_detector_class(event_type: str) -> type[Any] | None:
     load_all_detectors()
-    token = str(event_type).strip().upper()
+    from project.events.event_aliases import resolve_event_alias
+    token = resolve_event_alias(str(event_type).strip().upper())
     candidates = _candidate_detector_classes(token)
     if candidates:
         return sorted(

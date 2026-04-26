@@ -853,7 +853,7 @@ events:
     subtype: price_down_oi_down
     phase: unwind
     evidence_mode: direct
-    layer: research_placeholder
+    layer: canonical
     disposition: rename
     asset_scope: single_asset
     venue_scope: single_venue

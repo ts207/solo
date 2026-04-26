@@ -533,7 +533,7 @@ events:
     tags: []
   PRICE_DOWN_OI_DOWN:
     detector: OISpikeNegativeDetector
-    enabled: false
+    enabled: true
     family: POSITIONING_EXTREMES
     instrument_classes: []
     requires_features: []

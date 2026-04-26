@@ -7,11 +7,11 @@ from typing import Any
 import numpy as np
 import pandas as pd
 
-from project.events.detector_contract import detector_metadata_from_class
+from project.events.detector_contract import DetectorLogicContract, detector_metadata_from_class
 from project.events.shared import EVENT_COLUMNS, emit_event, format_event_id
 
 
-class BaseEventDetector(ABC):
+class BaseEventDetector(DetectorLogicContract, ABC):
     """
     Abstract base class for all event detectors.
     """

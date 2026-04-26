@@ -4798,7 +4798,7 @@ events:
     subtype: price_down_oi_down
     phase: unwind
     evidence_mode: direct
-    layer: research_placeholder
+    layer: canonical
     disposition: rename
     asset_scope: single_asset
     venue_scope: single_venue
@@ -4807,20 +4807,20 @@ events:
     is_strategy_construct: false
     research_only: false
     strategy_only: false
-    default_executable: false
+    default_executable: true
     deconflict_priority: 0
     notes: Price down with OI down; long flush or deleveraging.
     maturity: ''
-    tier: ''
-    operational_role: ''
-    deployment_disposition: ''
+    tier: A
+    operational_role: trigger
+    deployment_disposition: primary_trigger_candidate
     runtime_category: active_runtime_event
-    detector_band: ''
+    detector_band: deployable_core
     planning_eligible: false
     runtime_eligible: false
-    promotion_eligible: false
+    promotion_eligible: true
     primary_anchor_eligible: false
-    enabled: false
+    enabled: true
     detector_name: OISpikeNegativeDetector
     runtime_tags: []
     instrument_classes: []
@@ -4843,7 +4843,7 @@ events:
       cluster_id: oi_dynamic
       role:
         detector_role: trigger
-        trade_role: secondary_confirm
+        trade_role: primary_trigger
         state_role: none
         guard_role: none
       directionality:
@@ -4853,11 +4853,6 @@ events:
         sign_field: price_oi_quadrant
       context_requirements:
         price_oi_quadrant: price_down_oi_down
-      expected_behavior:
-        disabled_regimes:
-        - 'stale_open_interest: OI unavailable or stale'
-        - 'low_liquidity: price/OI quadrant unreliable'
-        - 'execution_friction_blocked: spread/slippage too high'
   PRICE_DOWN_OI_UP:
     research_family: POSITIONING_EXTREMES
     canonical_family: POSITIONING_EXTREMES

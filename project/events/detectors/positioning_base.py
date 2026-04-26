@@ -17,6 +17,10 @@ from project.features.context_guards import state_at_least, state_at_most
 
 
 class PositioningDetectorV2Base(BaseDetectorV2):
+    promotion_eligible = True
+    planning_default = True
+    runtime_default = True
+
     def compute_severity(self, idx: int, intensity: float, features: Mapping[str, pd.Series], **params: Any) -> float:
         if intensity >= 1.8:
             return 1.0

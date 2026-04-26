@@ -6,6 +6,7 @@ import numpy as np
 import pandas as pd
 
 from project.events.detectors.base import MarketEventDetector
+from project.events.detectors.registry import register_detector
 from project.events.detectors.threshold import ThresholdDetector
 from project.events.registries.oi import (
     ensure_oi_detectors_registered,
@@ -18,6 +19,13 @@ from project.research.analyzers import run_analyzer_suite
 
 class BaseOIShockDetector(ThresholdDetector, MarketEventDetector):
     """Base logic for Open Interest (OI) shock detectors."""
+
+    event_version = "v2"
+    promotion_eligible = True
+    planning_default = True
+    runtime_default = True
+    supports_confidence = True
+    supports_quality_flag = True
 
     required_columns = (
         "timestamp",
@@ -296,3 +304,8 @@ def analyze_oi_family(
     market = df[["timestamp", "close"]].copy() if not df.empty and "close" in df.columns else None
     analyzer_results = run_analyzer_suite(events, market=market) if not events.empty else {}
     return events, analyzer_results
+
+
+register_detector("OI_SPIKE_POSITIVE", OISpikePositiveDetector)
+register_detector("OI_SPIKE_NEGATIVE", OISpikeNegativeDetector)
+register_detector("OI_FLUSH", OIFlushDetector)

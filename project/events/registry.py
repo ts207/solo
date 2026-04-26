@@ -251,9 +251,10 @@ def _parameters(row: dict) -> dict:
 
 
 def _bool_from_row(row: dict, *keys: str, default: bool = False) -> bool:
+    from project.core.coercion import as_bool
     for key in keys:
         if key in row:
-            return bool(row.get(key))
+            return as_bool(row.get(key))
     return default
 
 
@@ -408,13 +409,13 @@ def get_detector_contract(event_name: str) -> DetectorContract:
     row.setdefault("detector_name", event_def.detector_name)
     row.setdefault("tier", event_def.tier)
     row.setdefault("default_executable", event_def.default_executable)
-    row.setdefault("is_composite", event_def.is_composite)
-    row.setdefault("is_context_tag", event_def.is_context_tag)
-    row.setdefault("is_strategy_construct", event_def.is_strategy_construct)
     row.setdefault("planning_eligible", event_def.planning_eligible)
     row.setdefault("runtime_eligible", event_def.runtime_eligible)
     row.setdefault("promotion_eligible", event_def.promotion_eligible)
     row.setdefault("primary_anchor_eligible", event_def.primary_anchor_eligible)
+    row.setdefault("is_composite", event_def.is_composite)
+    row.setdefault("is_context_tag", event_def.is_context_tag)
+    row.setdefault("is_strategy_construct", event_def.is_strategy_construct)
     row.setdefault("enabled", event_def.enabled)
     row.setdefault("canonical_family", event_def.canonical_family)
     row.setdefault("canonical_regime", event_def.canonical_regime)
@@ -444,10 +445,10 @@ def get_detector_contract(event_name: str) -> DetectorContract:
     composite = _bool_from_row(row, "composite", "is_composite", default=role == "composite")
     research_only = _bool_from_row(row, "research_only", default=role in {"composite", "research_only"})
     detector_band = detector_metadata.detector_band
-    runtime_default = detector_metadata.runtime_default
-    planning_default = detector_metadata.planning_default
-    promotion_eligible = detector_metadata.promotion_eligible
-    primary_anchor_eligible = detector_metadata.primary_anchor_eligible
+    runtime_default = _bool_from_row(row, "runtime_default", "runtime_eligible", default=detector_metadata.runtime_default)
+    planning_default = _bool_from_row(row, "planning_default", "planning_eligible", default=detector_metadata.planning_default)
+    promotion_eligible = _bool_from_row(row, "promotion_eligible", default=detector_metadata.promotion_eligible)
+    primary_anchor_eligible = _bool_from_row(row, "primary_anchor_eligible", default=detector_metadata.primary_anchor_eligible)
     calibration_mode_default, threshold_version_default = _load_calibration_defaults(canonical_name, event_version)
     try:
         return DetectorContract(

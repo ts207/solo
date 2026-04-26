@@ -1,5 +1,11 @@
 version: 1
 kind: contrast_rules
-rules:
-  - dimension: vol_regime
-  - dimension: ms_trend_state
+contrast_rules:
+  - id: vol_regime_contrast
+    type: in_bucket_vs_unconditional
+    dimension: vol_regime
+    min_lift_bps: 5.0
+  - id: trend_state_contrast
+    type: in_bucket_vs_unconditional
+    dimension: ms_trend_state
+    min_lift_bps: 5.0

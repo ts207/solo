@@ -26,3 +26,9 @@ aliases:
     runtime_identity: false
     promotion_identity: false
     reason: Historical event id retained for old detector registrations.
+  PRICE_DOWN_OI_DOWN:
+    canonical_event_type: OI_SPIKE_NEGATIVE
+    scope: runtime_identity
+  PRICE_UP_OI_DOWN:
+    canonical_event_type: OI_SPIKE_NEGATIVE
+    scope: runtime_identity

@@ -28,6 +28,9 @@ class BaseDetectorV2(DetectorLogicContract):
     supports_quality_flag: bool = True
     cooldown_semantics: str = "event_timestamp_plus_cooldown_bars"
     merge_key_strategy: str = "symbol_plus_cluster_id"
+    promotion_eligible: bool = True
+    planning_default: bool = True
+    runtime_default: bool = True
 
     def __init__(self, **_: Any) -> None:
         self._contract = get_detector_contract(self.event_name)

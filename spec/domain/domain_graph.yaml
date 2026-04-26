@@ -4,8 +4,8 @@ metadata:
   status: generated
   graph_role: runtime_read_model
   schema_version: 2
-  generated_at_utc: '2026-04-26T09:23:12Z'
-  spec_sources_digest: 2aa9c5a9dabca0a7ebccf532439660d5f5bf9e2ae1697a41235c7c90582899d2
+  generated_at_utc: '2026-04-26T10:05:30Z'
+  spec_sources_digest: 98bf5205729bb1b76724c272e34919056317c8dd026785bedba810060fcc06a7
   notes: Compiled runtime read model. Semantic nodes are normalized for direct runtime/search
     loading.
 events:
@@ -5254,20 +5254,20 @@ events:
     strategy_only: false
     deconflict_priority: 0
     disposition: rename
-    layer: research_placeholder
+    layer: canonical
     notes: Price down with OI down; long flush or deleveraging.
-    tier: ''
-    operational_role: ''
-    deployment_disposition: ''
+    tier: A
+    operational_role: trigger
+    deployment_disposition: primary_trigger_candidate
     runtime_category: active_runtime_event
     maturity: ''
-    default_executable: false
-    detector_band: ''
+    default_executable: true
+    detector_band: deployable_core
     planning_eligible: false
     runtime_eligible: false
-    promotion_eligible: false
+    promotion_eligible: true
     primary_anchor_eligible: false
-    enabled: false
+    enabled: true
     detector_name: OISpikeNegativeDetector
     instrument_classes: []
     requires_features: []
@@ -5292,7 +5292,7 @@ events:
       cluster_id: oi_dynamic
       role:
         detector_role: trigger
-        trade_role: secondary_confirm
+        trade_role: primary_trigger
         state_role: none
         guard_role: none
       directionality:
@@ -5302,11 +5302,6 @@ events:
         sign_field: price_oi_quadrant
       context_requirements:
         price_oi_quadrant: price_down_oi_down
-      expected_behavior:
-        disabled_regimes:
-        - 'stale_open_interest: OI unavailable or stale'
-        - 'low_liquidity: price/OI quadrant unreliable'
-        - 'execution_friction_blocked: spread/slippage too high'
     runtime:
       templates:
       - reversal_or_squeeze
