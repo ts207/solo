@@ -382,6 +382,8 @@ def _benchmark_slice(
             run_id,
             "--data_root",
             str(data_root),
+            "--promotion_profile",
+            "research",
         ],
         [
             sys.executable,
