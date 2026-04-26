@@ -1,0 +1,7 @@
+version: 1
+kind: horizon_registry
+horizons:
+  - id: 12b
+    bars: 12
+  - id: 24b
+    bars: 24

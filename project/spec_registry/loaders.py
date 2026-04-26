@@ -108,7 +108,7 @@ def load_family_spec(family_id: str) -> dict[str, Any]:
 
 @functools.lru_cache(maxsize=1)
 def load_unified_event_registry() -> dict[str, Any]:
-    return load_yaml_relative("project/configs/registries/events.yaml")
+    return load_yaml_relative("spec/events/event_registry_unified.yaml")
 
 
 @functools.lru_cache(maxsize=1)

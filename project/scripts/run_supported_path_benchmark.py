@@ -24,9 +24,9 @@ class BenchmarkSlice:
 
 SUITE: tuple[BenchmarkSlice, ...] = (
     BenchmarkSlice(
-        slice_id="breakout_vol_transition",
-        event_id="BREAKOUT_TRIGGER",
-        spec_dir="spec/discovery/tier2_volatility_transition_runtime_v1",
+        slice_id="price_down_oi_down",
+        event_id="PRICE_DOWN_OI_DOWN",
+        spec_dir="spec/discovery/benchmark_eligible_v1",
     ),
 )
 
@@ -383,7 +383,7 @@ def _benchmark_slice(
             "--data_root",
             str(data_root),
             "--promotion_profile",
-            "disabled",
+            "research",
         ],
         [
             sys.executable,

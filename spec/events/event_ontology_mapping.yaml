@@ -27,1138 +27,1339 @@ allowed_values:
   - statistical
 events:
   ABSORPTION_PROXY:
-    canonical_regime: ''
-    subtype: ''
-    phase: ''
-    evidence_mode: ''
-    layer: ''
-    disposition: ''
-    asset_scope: ''
-    venue_scope: ''
+    canonical_regime: LIQUIDITY_STRESS
+    subtype: absorption
+    phase: persistence
+    evidence_mode: hybrid
+    layer: canonical
+    disposition: merge
+    asset_scope: single_asset
+    venue_scope: single_venue
     deconflict_priority: 0
     research_only: false
     strategy_only: false
-    notes: ''
+    notes: 'Hybrid liquidity-stress evidence: direct imbalance-stall confirmation
+      combined with spread and RV stress.'
     is_composite: false
     is_context_tag: false
     is_strategy_construct: false
   BAND_BREAK:
-    canonical_regime: ''
-    subtype: ''
-    phase: ''
-    evidence_mode: ''
-    layer: ''
-    disposition: ''
-    asset_scope: ''
-    venue_scope: ''
+    canonical_regime: STATISTICAL_STRETCH_OVERSHOOT
+    subtype: band_break
+    phase: breakout
+    evidence_mode: statistical
+    layer: canonical
+    disposition: merge
+    asset_scope: single_asset
+    venue_scope: single_venue
     deconflict_priority: 0
     research_only: false
     strategy_only: false
-    notes: ''
+    notes: Statistical band escape; retained as subtype under stretch/overshoot.
     is_composite: false
     is_context_tag: false
     is_strategy_construct: false
   BASIS_DISLOC:
-    canonical_regime: ''
-    subtype: ''
-    phase: ''
-    evidence_mode: ''
-    layer: ''
-    disposition: ''
-    asset_scope: ''
-    venue_scope: ''
+    canonical_regime: BASIS_FUNDING_DISLOCATION
+    subtype: basis_dislocation
+    phase: shock
+    evidence_mode: statistical
+    layer: canonical
+    disposition: merge
+    asset_scope: single_asset
+    venue_scope: cross_venue
     deconflict_priority: 0
     research_only: false
     strategy_only: false
-    notes: ''
+    notes: Canonical basis dislocation surface.
     is_composite: false
     is_context_tag: false
     is_strategy_construct: false
   BETA_SPIKE_EVENT:
-    canonical_regime: ''
-    subtype: ''
-    phase: ''
-    evidence_mode: ''
-    layer: ''
-    disposition: ''
-    asset_scope: ''
-    venue_scope: ''
+    canonical_regime: REGIME_TRANSITION
+    subtype: beta_spike
+    phase: transition
+    evidence_mode: inferred_cross_asset
+    layer: canonical
+    disposition: keep
+    asset_scope: cross_asset
+    venue_scope: multi_venue
     deconflict_priority: 0
     research_only: false
     strategy_only: false
-    notes: ''
+    notes: Cross-asset transition evidence via beta instability.
     is_composite: false
     is_context_tag: false
     is_strategy_construct: false
   BREAKOUT_TRIGGER:
-    canonical_regime: ''
-    subtype: ''
-    phase: ''
-    evidence_mode: ''
-    layer: ''
-    disposition: ''
-    asset_scope: ''
-    venue_scope: ''
+    canonical_regime: VOLATILITY_RELAXATION_COMPRESSION_RELEASE
+    subtype: breakout_trigger
+    phase: breakout
+    evidence_mode: hybrid
+    layer: canonical
+    disposition: merge
+    asset_scope: single_asset
+    venue_scope: single_venue
     deconflict_priority: 0
     research_only: false
     strategy_only: false
-    notes: ''
+    notes: Compression-release bridge event; not a standalone canonical regime.
     is_composite: false
     is_context_tag: false
     is_strategy_construct: false
   CHOP_TO_TREND_SHIFT:
-    canonical_regime: ''
-    subtype: ''
-    phase: ''
-    evidence_mode: ''
-    layer: ''
-    disposition: ''
-    asset_scope: ''
-    venue_scope: ''
+    canonical_regime: REGIME_TRANSITION
+    subtype: chop_to_trend
+    phase: transition
+    evidence_mode: hybrid
+    layer: canonical
+    disposition: keep
+    asset_scope: single_asset
+    venue_scope: single_venue
     deconflict_priority: 0
     research_only: false
     strategy_only: false
-    notes: ''
+    notes: Transition from choppy to directional conditions.
     is_composite: false
     is_context_tag: false
     is_strategy_construct: false
   CLIMAX_VOLUME_BAR:
-    canonical_regime: ''
-    subtype: ''
-    phase: ''
-    evidence_mode: ''
-    layer: ''
-    disposition: ''
-    asset_scope: ''
-    venue_scope: ''
+    canonical_regime: TREND_FAILURE_EXHAUSTION
+    subtype: climax_volume
+    phase: exhaustion
+    evidence_mode: hybrid
+    layer: canonical
+    disposition: merge
+    asset_scope: single_asset
+    venue_scope: single_venue
     deconflict_priority: 0
     research_only: false
     strategy_only: false
-    notes: ''
+    notes: Exhaustion marker rather than standalone family.
     is_composite: false
     is_context_tag: false
     is_strategy_construct: false
   COPULA_PAIRS_TRADING:
-    canonical_regime: ''
-    subtype: ''
-    phase: ''
-    evidence_mode: ''
-    layer: ''
-    disposition: ''
-    asset_scope: ''
-    venue_scope: ''
+    canonical_regime: STATISTICAL_STRETCH_OVERSHOOT
+    subtype: copula_pairs_trading
+    phase: strategy
+    evidence_mode: statistical
+    layer: strategy_construct
+    disposition: demote
+    asset_scope: cross_asset
+    venue_scope: multi_venue
     deconflict_priority: 0
     research_only: false
-    strategy_only: false
-    notes: ''
+    strategy_only: true
+    notes: Relative-value strategy/search construct, not a canonical market event.
     is_composite: false
     is_context_tag: false
-    is_strategy_construct: false
+    is_strategy_construct: true
   CORRELATION_BREAKDOWN_EVENT:
-    canonical_regime: ''
-    subtype: ''
-    phase: ''
-    evidence_mode: ''
-    layer: ''
-    disposition: ''
-    asset_scope: ''
-    venue_scope: ''
+    canonical_regime: REGIME_TRANSITION
+    subtype: correlation_breakdown
+    phase: transition
+    evidence_mode: inferred_cross_asset
+    layer: canonical
+    disposition: keep
+    asset_scope: cross_asset
+    venue_scope: multi_venue
     deconflict_priority: 0
     research_only: false
     strategy_only: false
-    notes: ''
+    notes: Cross-asset regime transition via correlation instability.
     is_composite: false
     is_context_tag: false
     is_strategy_construct: false
   CROSS_ASSET_DESYNC_EVENT:
-    canonical_regime: ''
-    subtype: ''
-    phase: ''
-    evidence_mode: ''
-    layer: ''
-    disposition: ''
-    asset_scope: ''
-    venue_scope: ''
+    canonical_regime: CROSS_ASSET_DESYNCHRONIZATION
+    subtype: cross_asset_desync
+    phase: divergence
+    evidence_mode: inferred_cross_asset
+    layer: canonical
+    disposition: keep
+    asset_scope: cross_asset
+    venue_scope: multi_venue
     deconflict_priority: 0
     research_only: false
     strategy_only: false
-    notes: ''
+    notes: First-class cross-asset desynchronization regime.
     is_composite: false
     is_context_tag: false
     is_strategy_construct: false
   CROSS_VENUE_DESYNC:
-    canonical_regime: ''
-    subtype: ''
-    phase: ''
-    evidence_mode: ''
-    layer: ''
-    disposition: ''
-    asset_scope: ''
-    venue_scope: ''
+    canonical_regime: BASIS_FUNDING_DISLOCATION
+    subtype: cross_venue_desync
+    phase: persistence
+    evidence_mode: inferred_cross_asset
+    layer: canonical
+    disposition: merge
+    asset_scope: single_asset
+    venue_scope: cross_venue
     deconflict_priority: 0
     research_only: false
     strategy_only: false
-    notes: ''
+    notes: Cross-venue basis persistence folded into basis/funding dislocation.
     is_composite: false
     is_context_tag: false
     is_strategy_construct: false
   DELEVERAGING_WAVE:
-    canonical_regime: ''
-    subtype: ''
-    phase: ''
-    evidence_mode: ''
-    layer: ''
-    disposition: ''
-    asset_scope: ''
-    venue_scope: ''
+    canonical_regime: POSITIONING_UNWIND_DELEVERAGING
+    subtype: deleveraging_wave
+    phase: unwind
+    evidence_mode: hybrid
+    layer: canonical
+    disposition: keep
+    asset_scope: single_asset
+    venue_scope: single_venue
     deconflict_priority: 0
     research_only: false
     strategy_only: false
-    notes: ''
+    notes: Positioning unwind regime with explicit deleveraging dynamics.
     is_composite: false
     is_context_tag: false
     is_strategy_construct: false
   DEPTH_COLLAPSE:
-    canonical_regime: ''
-    subtype: ''
-    phase: ''
-    evidence_mode: ''
-    layer: ''
-    disposition: ''
-    asset_scope: ''
-    venue_scope: ''
+    canonical_regime: LIQUIDITY_STRESS
+    subtype: depth_collapse
+    phase: collapse
+    evidence_mode: direct
+    layer: canonical
+    disposition: merge
+    asset_scope: single_asset
+    venue_scope: single_venue
     deconflict_priority: 0
     research_only: false
     strategy_only: false
-    notes: ''
+    notes: Direct depth failure evidence for liquidity stress.
     is_composite: false
     is_context_tag: false
     is_strategy_construct: false
   DEPTH_STRESS_PROXY:
-    canonical_regime: ''
-    subtype: ''
-    phase: ''
-    evidence_mode: ''
-    layer: ''
-    disposition: ''
-    asset_scope: ''
-    venue_scope: ''
+    canonical_regime: LIQUIDITY_STRESS
+    subtype: depth_collapse
+    phase: collapse
+    evidence_mode: hybrid
+    layer: canonical
+    disposition: merge
+    asset_scope: single_asset
+    venue_scope: single_venue
     deconflict_priority: 0
     research_only: false
     strategy_only: false
-    notes: ''
+    notes: 'Hybrid liquidity-stress evidence: direct micro-depth depletion combined
+      with spread and RV stress.'
     is_composite: false
     is_context_tag: false
     is_strategy_construct: false
   FAILED_CONTINUATION:
-    canonical_regime: ''
-    subtype: ''
-    phase: ''
-    evidence_mode: ''
-    layer: ''
-    disposition: ''
-    asset_scope: ''
-    venue_scope: ''
+    canonical_regime: TREND_FAILURE_EXHAUSTION
+    subtype: failed_continuation
+    phase: failure
+    evidence_mode: hybrid
+    layer: canonical
+    disposition: keep
+    asset_scope: single_asset
+    venue_scope: single_venue
     deconflict_priority: 0
     research_only: false
     strategy_only: false
-    notes: ''
+    notes: Trend-follow signal failure belongs in exhaustion/failure regime.
     is_composite: false
     is_context_tag: false
     is_strategy_construct: false
   FALSE_BREAKOUT:
-    canonical_regime: ''
-    subtype: ''
-    phase: ''
-    evidence_mode: ''
-    layer: ''
-    disposition: ''
-    asset_scope: ''
-    venue_scope: ''
+    canonical_regime: TREND_FAILURE_EXHAUSTION
+    subtype: false_breakout
+    phase: failure
+    evidence_mode: hybrid
+    layer: canonical
+    disposition: merge
+    asset_scope: single_asset
+    venue_scope: single_venue
     deconflict_priority: 0
     research_only: false
     strategy_only: false
-    notes: ''
+    notes: Breakout failure surface under trend failure/exhaustion.
     is_composite: false
     is_context_tag: false
     is_strategy_construct: false
   FEE_REGIME_CHANGE_EVENT:
-    canonical_regime: ''
-    subtype: ''
-    phase: ''
-    evidence_mode: ''
-    layer: ''
-    disposition: ''
-    asset_scope: ''
-    venue_scope: ''
+    canonical_regime: EXECUTION_FRICTION
+    subtype: fee_regime_change
+    phase: transition
+    evidence_mode: direct
+    layer: canonical
+    disposition: keep
+    asset_scope: single_asset
+    venue_scope: single_venue
     deconflict_priority: 0
     research_only: false
     strategy_only: false
-    notes: ''
+    notes: Execution-cost regime shift.
     is_composite: false
     is_context_tag: false
     is_strategy_construct: false
   FLOW_EXHAUSTION_PROXY:
-    canonical_regime: ''
-    subtype: ''
-    phase: ''
-    evidence_mode: ''
-    layer: ''
-    disposition: ''
-    asset_scope: ''
-    venue_scope: ''
+    canonical_regime: TREND_FAILURE_EXHAUSTION
+    subtype: flow_exhaustion
+    phase: exhaustion
+    evidence_mode: hybrid
+    layer: canonical
+    disposition: merge
+    asset_scope: single_asset
+    venue_scope: single_venue
     deconflict_priority: 0
     research_only: false
     strategy_only: false
-    notes: ''
+    notes: 'Hybrid exhaustion evidence: liquidation and OI unwind confirmation combined
+      with price and volatility exhaustion.'
     is_composite: false
     is_context_tag: false
     is_strategy_construct: false
   FND_DISLOC:
-    canonical_regime: ''
-    subtype: ''
-    phase: ''
-    evidence_mode: ''
-    layer: ''
-    disposition: ''
-    asset_scope: ''
-    venue_scope: ''
+    canonical_regime: BASIS_FUNDING_DISLOCATION
+    subtype: funding_dislocation
+    phase: shock
+    evidence_mode: direct
+    layer: canonical
+    disposition: merge
+    asset_scope: single_asset
+    venue_scope: cross_venue
     deconflict_priority: 0
     research_only: false
     strategy_only: false
-    notes: ''
+    notes: Funding dislocation folded into basis/funding regime.
     is_composite: false
     is_context_tag: false
     is_strategy_construct: false
   FORCED_FLOW_EXHAUSTION:
-    canonical_regime: ''
-    subtype: ''
-    phase: ''
-    evidence_mode: ''
-    layer: ''
-    disposition: ''
-    asset_scope: ''
-    venue_scope: ''
+    canonical_regime: TREND_FAILURE_EXHAUSTION
+    subtype: forced_flow_exhaustion
+    phase: exhaustion
+    evidence_mode: hybrid
+    layer: canonical
+    disposition: keep
+    asset_scope: single_asset
+    venue_scope: single_venue
     deconflict_priority: 0
     research_only: false
     strategy_only: false
-    notes: ''
+    notes: Exhaustion regime with forced-flow mechanics.
     is_composite: false
     is_context_tag: false
     is_strategy_construct: false
   FUNDING_EXTREME_ONSET:
-    canonical_regime: ''
-    subtype: ''
-    phase: ''
-    evidence_mode: ''
-    layer: ''
-    disposition: ''
-    asset_scope: ''
-    venue_scope: ''
+    canonical_regime: BASIS_FUNDING_DISLOCATION
+    subtype: funding_extreme
+    phase: onset
+    evidence_mode: direct
+    layer: canonical
+    disposition: merge
+    asset_scope: single_asset
+    venue_scope: cross_venue
     deconflict_priority: 0
     research_only: false
     strategy_only: false
-    notes: ''
+    notes: Funding extreme onset under basis/funding dislocation.
     is_composite: false
     is_context_tag: false
     is_strategy_construct: false
   FUNDING_FLIP:
-    canonical_regime: ''
-    subtype: ''
-    phase: ''
-    evidence_mode: ''
-    layer: ''
-    disposition: ''
-    asset_scope: ''
-    venue_scope: ''
+    canonical_regime: BASIS_FUNDING_DISLOCATION
+    subtype: funding_flip
+    phase: flip
+    evidence_mode: direct
+    layer: canonical
+    disposition: merge
+    asset_scope: single_asset
+    venue_scope: cross_venue
     deconflict_priority: 0
     research_only: false
     strategy_only: false
-    notes: ''
+    notes: Funding sign inversion as subtype metadata.
+    is_composite: false
+    is_context_tag: false
+    is_strategy_construct: false
+  FUNDING_FLIP_TO_NEGATIVE:
+    canonical_regime: BASIS_FUNDING_DISLOCATION
+    subtype: funding_flip_to_negative
+    phase: flip
+    evidence_mode: direct
+    layer: research_placeholder
+    disposition: rename
+    asset_scope: single_asset
+    venue_scope: cross_venue
+    deconflict_priority: 0
+    research_only: false
+    strategy_only: false
+    notes: Semantic split of funding flip to negative; not a standalone detector.
+    is_composite: false
+    is_context_tag: false
+    is_strategy_construct: false
+  FUNDING_FLIP_TO_POSITIVE:
+    canonical_regime: BASIS_FUNDING_DISLOCATION
+    subtype: funding_flip_to_positive
+    phase: flip
+    evidence_mode: direct
+    layer: research_placeholder
+    disposition: rename
+    asset_scope: single_asset
+    venue_scope: cross_venue
+    deconflict_priority: 0
+    research_only: false
+    strategy_only: false
+    notes: Semantic split of funding flip to positive; not a standalone detector.
+    is_composite: false
+    is_context_tag: false
+    is_strategy_construct: false
+  FUNDING_NEG_EXTREME_ONSET:
+    canonical_regime: BASIS_FUNDING_DISLOCATION
+    subtype: funding_negative_extreme_onset
+    phase: onset
+    evidence_mode: direct
+    layer: research_placeholder
+    disposition: rename
+    asset_scope: single_asset
+    venue_scope: cross_venue
+    deconflict_priority: 0
+    research_only: false
+    strategy_only: false
+    notes: Semantic split of negative funding extreme onset; not a standalone detector.
+    is_composite: false
+    is_context_tag: false
+    is_strategy_construct: false
+  FUNDING_NEG_NORMALIZATION:
+    canonical_regime: BASIS_FUNDING_DISLOCATION
+    subtype: funding_negative_normalization
+    phase: normalization
+    evidence_mode: direct
+    layer: research_placeholder
+    disposition: rename
+    asset_scope: single_asset
+    venue_scope: cross_venue
+    deconflict_priority: 0
+    research_only: false
+    strategy_only: false
+    notes: Semantic split of negative funding normalization; not a standalone detector.
+    is_composite: false
+    is_context_tag: false
+    is_strategy_construct: false
+  FUNDING_NEG_PERSISTENCE:
+    canonical_regime: BASIS_FUNDING_DISLOCATION
+    subtype: funding_negative_persistence
+    phase: persistence
+    evidence_mode: direct
+    layer: research_placeholder
+    disposition: rename
+    asset_scope: single_asset
+    venue_scope: cross_venue
+    deconflict_priority: 0
+    research_only: false
+    strategy_only: false
+    notes: Semantic split of negative funding persistence; not a standalone detector.
     is_composite: false
     is_context_tag: false
     is_strategy_construct: false
   FUNDING_NORMALIZATION_TRIGGER:
-    canonical_regime: ''
-    subtype: ''
-    phase: ''
-    evidence_mode: ''
-    layer: ''
-    disposition: ''
-    asset_scope: ''
-    venue_scope: ''
+    canonical_regime: BASIS_FUNDING_DISLOCATION
+    subtype: funding_normalization
+    phase: normalization
+    evidence_mode: direct
+    layer: canonical
+    disposition: merge
+    asset_scope: single_asset
+    venue_scope: cross_venue
     deconflict_priority: 0
     research_only: false
     strategy_only: false
-    notes: ''
+    notes: Normalization phase of funding dislocation.
     is_composite: false
     is_context_tag: false
     is_strategy_construct: false
   FUNDING_PERSISTENCE_TRIGGER:
-    canonical_regime: ''
-    subtype: ''
-    phase: ''
-    evidence_mode: ''
-    layer: ''
-    disposition: ''
-    asset_scope: ''
-    venue_scope: ''
+    canonical_regime: BASIS_FUNDING_DISLOCATION
+    subtype: funding_persistence
+    phase: persistence
+    evidence_mode: direct
+    layer: canonical
+    disposition: merge
+    asset_scope: single_asset
+    venue_scope: cross_venue
     deconflict_priority: 0
     research_only: false
     strategy_only: false
-    notes: ''
+    notes: Persistence phase of funding dislocation.
+    is_composite: false
+    is_context_tag: false
+    is_strategy_construct: false
+  FUNDING_POS_EXTREME_ONSET:
+    canonical_regime: BASIS_FUNDING_DISLOCATION
+    subtype: funding_positive_extreme_onset
+    phase: onset
+    evidence_mode: direct
+    layer: research_placeholder
+    disposition: rename
+    asset_scope: single_asset
+    venue_scope: cross_venue
+    deconflict_priority: 0
+    research_only: false
+    strategy_only: false
+    notes: Semantic split of positive funding extreme onset; not a standalone detector.
+    is_composite: false
+    is_context_tag: false
+    is_strategy_construct: false
+  FUNDING_POS_NORMALIZATION:
+    canonical_regime: BASIS_FUNDING_DISLOCATION
+    subtype: funding_positive_normalization
+    phase: normalization
+    evidence_mode: direct
+    layer: research_placeholder
+    disposition: rename
+    asset_scope: single_asset
+    venue_scope: cross_venue
+    deconflict_priority: 0
+    research_only: false
+    strategy_only: false
+    notes: Semantic split of positive funding normalization; not a standalone detector.
+    is_composite: false
+    is_context_tag: false
+    is_strategy_construct: false
+  FUNDING_POS_PERSISTENCE:
+    canonical_regime: BASIS_FUNDING_DISLOCATION
+    subtype: funding_positive_persistence
+    phase: persistence
+    evidence_mode: direct
+    layer: research_placeholder
+    disposition: rename
+    asset_scope: single_asset
+    venue_scope: cross_venue
+    deconflict_priority: 0
+    research_only: false
+    strategy_only: false
+    notes: Semantic split of positive funding persistence; not a standalone detector.
     is_composite: false
     is_context_tag: false
     is_strategy_construct: false
   FUNDING_TIMESTAMP_EVENT:
-    canonical_regime: ''
-    subtype: ''
-    phase: ''
-    evidence_mode: ''
-    layer: ''
-    disposition: ''
-    asset_scope: ''
-    venue_scope: ''
+    canonical_regime: SCHEDULED_TEMPORAL_WINDOW
+    subtype: funding_timestamp
+    phase: window
+    evidence_mode: contextual
+    layer: context_tag
+    disposition: demote
+    asset_scope: multi_asset
+    venue_scope: market_wide
     deconflict_priority: 0
     research_only: false
     strategy_only: false
-    notes: ''
+    notes: Mechanical funding window context; not a canonical regime.
     is_composite: false
-    is_context_tag: false
+    is_context_tag: true
     is_strategy_construct: false
   GAP_OVERSHOOT:
-    canonical_regime: ''
-    subtype: ''
-    phase: ''
-    evidence_mode: ''
-    layer: ''
-    disposition: ''
-    asset_scope: ''
-    venue_scope: ''
+    canonical_regime: STATISTICAL_STRETCH_OVERSHOOT
+    subtype: gap_overshoot
+    phase: overshoot
+    evidence_mode: statistical
+    layer: canonical
+    disposition: keep
+    asset_scope: single_asset
+    venue_scope: single_venue
     deconflict_priority: 0
     research_only: false
     strategy_only: false
-    notes: ''
+    notes: Gap-extension overshoot state.
     is_composite: false
     is_context_tag: false
     is_strategy_construct: false
   INDEX_COMPONENT_DIVERGENCE:
-    canonical_regime: ''
-    subtype: ''
-    phase: ''
-    evidence_mode: ''
-    layer: ''
-    disposition: ''
-    asset_scope: ''
-    venue_scope: ''
+    canonical_regime: CROSS_ASSET_DESYNCHRONIZATION
+    subtype: index_component_divergence
+    phase: divergence
+    evidence_mode: inferred_cross_asset
+    layer: canonical
+    disposition: keep
+    asset_scope: cross_asset
+    venue_scope: multi_venue
     deconflict_priority: 0
     research_only: false
     strategy_only: false
-    notes: ''
+    notes: Cross-asset divergence between index and components.
     is_composite: false
     is_context_tag: false
     is_strategy_construct: false
   LEAD_LAG_BREAK:
-    canonical_regime: ''
-    subtype: ''
-    phase: ''
-    evidence_mode: ''
-    layer: ''
-    disposition: ''
-    asset_scope: ''
-    venue_scope: ''
+    canonical_regime: CROSS_ASSET_DESYNCHRONIZATION
+    subtype: lead_lag_break
+    phase: divergence
+    evidence_mode: inferred_cross_asset
+    layer: canonical
+    disposition: keep
+    asset_scope: cross_asset
+    venue_scope: multi_venue
     deconflict_priority: 0
     research_only: false
     strategy_only: false
-    notes: ''
+    notes: Lead/lag structure break.
     is_composite: false
     is_context_tag: false
     is_strategy_construct: false
   LIQUIDATION_CASCADE:
-    canonical_regime: ''
-    subtype: ''
-    phase: ''
-    evidence_mode: ''
-    layer: ''
-    disposition: ''
-    asset_scope: ''
-    venue_scope: ''
+    canonical_regime: LIQUIDATION_CASCADE
+    subtype: liquidation_cascade
+    phase: cascade
+    evidence_mode: direct
+    layer: canonical
+    disposition: keep
+    asset_scope: single_asset
+    venue_scope: single_venue
     deconflict_priority: 0
     research_only: false
     strategy_only: false
-    notes: ''
+    notes: Structurally distinct canonical cascade regime.
     is_composite: false
     is_context_tag: false
     is_strategy_construct: false
   LIQUIDATION_CASCADE_PROXY:
-    canonical_regime: ''
-    subtype: ''
-    phase: ''
-    evidence_mode: ''
-    layer: ''
-    disposition: ''
-    asset_scope: ''
-    venue_scope: ''
+    canonical_regime: LIQUIDATION_CASCADE
+    subtype: liquidation_cascade_proxy
+    phase: onset
+    evidence_mode: proxy
+    layer: canonical
+    disposition: merge
+    asset_scope: single_asset
+    venue_scope: single_venue
     deconflict_priority: 0
     research_only: false
     strategy_only: false
-    notes: ''
+    notes: Use when liquidation_notional data is unavailable (e.g., Bybit native data
+      without cross-exchange liquidation feed). Expected to have lower precision than
+      LIQUIDATION_CASCADE but comparable recall for large cascade events.
     is_composite: false
     is_context_tag: false
     is_strategy_construct: false
   LIQUIDATION_EXHAUSTION_REVERSAL:
-    canonical_regime: ''
-    subtype: ''
-    phase: ''
-    evidence_mode: ''
-    layer: ''
-    disposition: ''
-    asset_scope: ''
-    venue_scope: ''
+    canonical_regime: TREND_FAILURE_EXHAUSTION
+    subtype: liquidation_exhaustion_reversal
+    phase: recovery
+    evidence_mode: hybrid
+    layer: canonical
+    disposition: merge
+    asset_scope: single_asset
+    venue_scope: single_venue
     deconflict_priority: 0
     research_only: false
     strategy_only: false
-    notes: ''
+    notes: Reversal after forced liquidation exhaustion.
     is_composite: false
     is_context_tag: false
     is_strategy_construct: false
   LIQUIDITY_GAP_PRINT:
-    canonical_regime: ''
-    subtype: ''
-    phase: ''
-    evidence_mode: ''
-    layer: ''
-    disposition: ''
-    asset_scope: ''
-    venue_scope: ''
+    canonical_regime: LIQUIDITY_STRESS
+    subtype: gap_print
+    phase: shock
+    evidence_mode: direct
+    layer: canonical
+    disposition: merge
+    asset_scope: single_asset
+    venue_scope: single_venue
     deconflict_priority: 0
     research_only: false
     strategy_only: false
-    notes: ''
+    notes: Gap print inside liquidity-stress regime.
     is_composite: false
     is_context_tag: false
     is_strategy_construct: false
   LIQUIDITY_SHOCK:
-    canonical_regime: ''
-    subtype: ''
-    phase: ''
-    evidence_mode: ''
-    layer: ''
-    disposition: ''
-    asset_scope: ''
-    venue_scope: ''
+    canonical_regime: LIQUIDITY_STRESS
+    subtype: liquidity_shock
+    phase: shock
+    evidence_mode: hybrid
+    layer: canonical
+    disposition: keep
+    asset_scope: single_asset
+    venue_scope: single_venue
     deconflict_priority: 0
     research_only: false
     strategy_only: false
-    notes: ''
+    notes: High-level liquidity stress onset.
     is_composite: false
     is_context_tag: false
     is_strategy_construct: false
   LIQUIDITY_STRESS_DIRECT:
-    canonical_regime: ''
-    subtype: ''
-    phase: ''
-    evidence_mode: ''
-    layer: ''
-    disposition: ''
-    asset_scope: ''
-    venue_scope: ''
+    canonical_regime: LIQUIDITY_STRESS
+    subtype: liquidity_stress
+    phase: shock
+    evidence_mode: direct
+    layer: canonical
+    disposition: merge
+    asset_scope: single_asset
+    venue_scope: single_venue
     deconflict_priority: 0
     research_only: false
     strategy_only: false
-    notes: ''
+    notes: Direct evidence mode for liquidity stress.
     is_composite: false
     is_context_tag: false
     is_strategy_construct: false
   LIQUIDITY_STRESS_PROXY:
-    canonical_regime: ''
-    subtype: ''
-    phase: ''
-    evidence_mode: ''
-    layer: ''
-    disposition: ''
-    asset_scope: ''
-    venue_scope: ''
+    canonical_regime: LIQUIDITY_STRESS
+    subtype: liquidity_stress
+    phase: shock
+    evidence_mode: hybrid
+    layer: canonical
+    disposition: merge
+    asset_scope: single_asset
+    venue_scope: single_venue
     deconflict_priority: 0
     research_only: false
     strategy_only: false
-    notes: ''
+    notes: 'Hybrid liquidity-stress evidence: direct book stress when available plus
+      bar-range expansion and optional trade-flow collapse confirmation.'
     is_composite: false
     is_context_tag: false
     is_strategy_construct: false
   LIQUIDITY_VACUUM:
-    canonical_regime: ''
-    subtype: ''
-    phase: ''
-    evidence_mode: ''
-    layer: ''
-    disposition: ''
-    asset_scope: ''
-    venue_scope: ''
+    canonical_regime: LIQUIDITY_STRESS
+    subtype: liquidity_vacuum
+    phase: collapse
+    evidence_mode: direct
+    layer: canonical
+    disposition: keep
+    asset_scope: single_asset
+    venue_scope: single_venue
     deconflict_priority: 0
     research_only: false
     strategy_only: false
-    notes: ''
+    notes: Thin-book vacuum regime.
     is_composite: false
     is_context_tag: false
     is_strategy_construct: false
   MOMENTUM_DIVERGENCE_TRIGGER:
-    canonical_regime: ''
-    subtype: ''
-    phase: ''
-    evidence_mode: ''
-    layer: ''
-    disposition: ''
-    asset_scope: ''
-    venue_scope: ''
+    canonical_regime: TREND_FAILURE_EXHAUSTION
+    subtype: momentum_divergence
+    phase: exhaustion
+    evidence_mode: hybrid
+    layer: canonical
+    disposition: merge
+    asset_scope: single_asset
+    venue_scope: single_venue
     deconflict_priority: 0
     research_only: false
     strategy_only: false
-    notes: ''
+    notes: Divergence-based exhaustion signal.
     is_composite: false
     is_context_tag: false
     is_strategy_construct: false
   OI_FLUSH:
-    canonical_regime: ''
-    subtype: ''
-    phase: ''
-    evidence_mode: ''
-    layer: ''
-    disposition: ''
-    asset_scope: ''
-    venue_scope: ''
+    canonical_regime: POSITIONING_UNWIND_DELEVERAGING
+    subtype: oi_flush
+    phase: unwind
+    evidence_mode: direct
+    layer: canonical
+    disposition: merge
+    asset_scope: single_asset
+    venue_scope: single_venue
     deconflict_priority: 0
     research_only: false
     strategy_only: false
-    notes: ''
+    notes: OI flush folded into unwind/deleveraging regime.
     is_composite: false
     is_context_tag: false
     is_strategy_construct: false
   OI_SPIKE_NEGATIVE:
-    canonical_regime: ''
-    subtype: ''
-    phase: ''
-    evidence_mode: ''
-    layer: ''
-    disposition: ''
-    asset_scope: ''
-    venue_scope: ''
+    canonical_regime: POSITIONING_EXPANSION
+    subtype: oi_spike_negative
+    phase: expansion
+    evidence_mode: direct
+    layer: canonical
+    disposition: merge
+    asset_scope: single_asset
+    venue_scope: single_venue
     deconflict_priority: 0
     research_only: false
     strategy_only: false
-    notes: ''
+    notes: Direction stays in subtype; canonical regime is positioning expansion.
     is_composite: false
     is_context_tag: false
     is_strategy_construct: false
   OI_SPIKE_POSITIVE:
-    canonical_regime: ''
-    subtype: ''
-    phase: ''
-    evidence_mode: ''
-    layer: ''
-    disposition: ''
-    asset_scope: ''
-    venue_scope: ''
+    canonical_regime: POSITIONING_EXPANSION
+    subtype: oi_spike_positive
+    phase: expansion
+    evidence_mode: direct
+    layer: canonical
+    disposition: merge
+    asset_scope: single_asset
+    venue_scope: single_venue
     deconflict_priority: 0
     research_only: false
     strategy_only: false
-    notes: ''
+    notes: Direction stays in subtype; canonical regime is positioning expansion.
     is_composite: false
     is_context_tag: false
     is_strategy_construct: false
   ORDERFLOW_IMBALANCE_SHOCK:
-    canonical_regime: ''
-    subtype: ''
-    phase: ''
-    evidence_mode: ''
-    layer: ''
-    disposition: ''
-    asset_scope: ''
-    venue_scope: ''
+    canonical_regime: LIQUIDITY_STRESS
+    subtype: orderflow_imbalance
+    phase: shock
+    evidence_mode: direct
+    layer: canonical
+    disposition: merge
+    asset_scope: single_asset
+    venue_scope: single_venue
     deconflict_priority: 0
     research_only: false
     strategy_only: false
-    notes: ''
+    notes: Orderflow imbalance is treated as a liquidity-stress subtype.
     is_composite: false
     is_context_tag: false
     is_strategy_construct: false
   OVERSHOOT_AFTER_SHOCK:
-    canonical_regime: ''
-    subtype: ''
-    phase: ''
-    evidence_mode: ''
-    layer: ''
-    disposition: ''
-    asset_scope: ''
-    venue_scope: ''
+    canonical_regime: STATISTICAL_STRETCH_OVERSHOOT
+    subtype: overshoot_after_shock
+    phase: overshoot
+    evidence_mode: statistical
+    layer: canonical
+    disposition: keep
+    asset_scope: single_asset
+    venue_scope: single_venue
     deconflict_priority: 0
     research_only: false
     strategy_only: false
-    notes: ''
+    notes: Statistical overshoot conditional on preceding shock.
     is_composite: false
     is_context_tag: false
     is_strategy_construct: false
   POST_DELEVERAGING_REBOUND:
-    canonical_regime: ''
-    subtype: ''
-    phase: ''
-    evidence_mode: ''
-    layer: ''
-    disposition: ''
-    asset_scope: ''
-    venue_scope: ''
+    canonical_regime: POSITIONING_UNWIND_DELEVERAGING
+    subtype: post_deleveraging_rebound
+    phase: recovery
+    evidence_mode: hybrid
+    layer: canonical
+    disposition: merge
+    asset_scope: single_asset
+    venue_scope: single_venue
     deconflict_priority: 0
     research_only: false
     strategy_only: false
-    notes: ''
+    notes: Recovery phase following deleveraging wave.
+    is_composite: false
+    is_context_tag: false
+    is_strategy_construct: false
+  PRICE_DOWN_OI_DOWN:
+    canonical_regime: POSITIONING_UNWIND_DELEVERAGING
+    subtype: price_down_oi_down
+    phase: unwind
+    evidence_mode: direct
+    layer: research_placeholder
+    disposition: rename
+    asset_scope: single_asset
+    venue_scope: single_venue
+    deconflict_priority: 0
+    research_only: false
+    strategy_only: false
+    notes: Price down with OI down; long flush or deleveraging.
+    is_composite: false
+    is_context_tag: false
+    is_strategy_construct: false
+  PRICE_DOWN_OI_UP:
+    canonical_regime: POSITIONING_EXPANSION
+    subtype: price_down_oi_up
+    phase: expansion
+    evidence_mode: direct
+    layer: research_placeholder
+    disposition: rename
+    asset_scope: single_asset
+    venue_scope: single_venue
+    deconflict_priority: 0
+    research_only: false
+    strategy_only: false
+    notes: Price down with OI up; short build or bearish expansion.
+    is_composite: false
+    is_context_tag: false
+    is_strategy_construct: false
+  PRICE_UP_OI_DOWN:
+    canonical_regime: POSITIONING_UNWIND_DELEVERAGING
+    subtype: price_up_oi_down
+    phase: unwind
+    evidence_mode: direct
+    layer: research_placeholder
+    disposition: rename
+    asset_scope: single_asset
+    venue_scope: single_venue
+    deconflict_priority: 0
+    research_only: false
+    strategy_only: false
+    notes: Price up with OI down; short squeeze or covering.
+    is_composite: false
+    is_context_tag: false
+    is_strategy_construct: false
+  PRICE_UP_OI_UP:
+    canonical_regime: POSITIONING_EXPANSION
+    subtype: price_up_oi_up
+    phase: expansion
+    evidence_mode: direct
+    layer: research_placeholder
+    disposition: rename
+    asset_scope: single_asset
+    venue_scope: single_venue
+    deconflict_priority: 0
+    research_only: false
+    strategy_only: false
+    notes: Price up with OI up; long build or trend participation.
     is_composite: false
     is_context_tag: false
     is_strategy_construct: false
   PRICE_VOL_IMBALANCE_PROXY:
-    canonical_regime: ''
-    subtype: ''
-    phase: ''
-    evidence_mode: ''
-    layer: ''
-    disposition: ''
-    asset_scope: ''
-    venue_scope: ''
+    canonical_regime: LIQUIDITY_STRESS
+    subtype: price_vol_imbalance
+    phase: shock
+    evidence_mode: hybrid
+    layer: canonical
+    disposition: merge
+    asset_scope: single_asset
+    venue_scope: single_venue
     deconflict_priority: 0
     research_only: false
     strategy_only: false
-    notes: ''
+    notes: Hybrid liquidity-stress evidence via synchronized return, realized-volatility,
+      volume, and flow-pressure imbalance.
     is_composite: false
     is_context_tag: false
     is_strategy_construct: false
   PULLBACK_PIVOT:
-    canonical_regime: ''
-    subtype: ''
-    phase: ''
-    evidence_mode: ''
-    layer: ''
-    disposition: ''
-    asset_scope: ''
-    venue_scope: ''
+    canonical_regime: TREND_CONTINUATION
+    subtype: pullback_pivot
+    phase: recovery
+    evidence_mode: hybrid
+    layer: canonical
+    disposition: keep
+    asset_scope: single_asset
+    venue_scope: single_venue
     deconflict_priority: 0
     research_only: false
     strategy_only: false
-    notes: ''
+    notes: Pullback continuation setup.
     is_composite: false
     is_context_tag: false
     is_strategy_construct: false
   RANGE_BREAKOUT:
-    canonical_regime: ''
-    subtype: ''
-    phase: ''
-    evidence_mode: ''
-    layer: ''
-    disposition: ''
-    asset_scope: ''
-    venue_scope: ''
+    canonical_regime: TREND_CONTINUATION
+    subtype: range_breakout
+    phase: breakout
+    evidence_mode: hybrid
+    layer: canonical
+    disposition: keep
+    asset_scope: single_asset
+    venue_scope: single_venue
     deconflict_priority: 0
     research_only: false
     strategy_only: false
-    notes: ''
+    notes: Directional breakout retained under trend continuation.
     is_composite: false
     is_context_tag: false
     is_strategy_construct: false
   RANGE_COMPRESSION_END:
-    canonical_regime: ''
-    subtype: ''
-    phase: ''
-    evidence_mode: ''
-    layer: ''
-    disposition: ''
-    asset_scope: ''
-    venue_scope: ''
+    canonical_regime: VOLATILITY_RELAXATION_COMPRESSION_RELEASE
+    subtype: range_compression_end
+    phase: breakout
+    evidence_mode: hybrid
+    layer: canonical
+    disposition: merge
+    asset_scope: single_asset
+    venue_scope: single_venue
     deconflict_priority: 0
     research_only: false
     strategy_only: false
-    notes: ''
+    notes: Compression-release subtype rather than standalone family.
     is_composite: false
     is_context_tag: false
     is_strategy_construct: false
   SCHEDULED_NEWS_WINDOW_EVENT:
-    canonical_regime: ''
-    subtype: ''
-    phase: ''
-    evidence_mode: ''
-    layer: ''
-    disposition: ''
-    asset_scope: ''
-    venue_scope: ''
+    canonical_regime: SCHEDULED_TEMPORAL_WINDOW
+    subtype: scheduled_news_window
+    phase: window
+    evidence_mode: contextual
+    layer: context_tag
+    disposition: demote
+    asset_scope: multi_asset
+    venue_scope: market_wide
     deconflict_priority: 0
     research_only: false
     strategy_only: false
-    notes: ''
+    notes: Context gate for scheduled news windows.
     is_composite: false
-    is_context_tag: false
+    is_context_tag: true
     is_strategy_construct: false
   SEQ_FND_EXTREME_THEN_BREAKOUT:
-    canonical_regime: ''
-    subtype: ''
-    phase: ''
-    evidence_mode: ''
-    layer: ''
-    disposition: ''
-    asset_scope: ''
-    venue_scope: ''
+    canonical_regime: BASIS_FUNDING_DISLOCATION
+    subtype: funding_extreme_then_breakout
+    phase: confirmation
+    evidence_mode: sequence_confirmed
+    layer: composite
+    disposition: demote
+    asset_scope: single_asset
+    venue_scope: cross_venue
     deconflict_priority: 0
-    research_only: false
+    research_only: true
     strategy_only: false
-    notes: ''
-    is_composite: false
+    notes: Composite research hypothesis, not a canonical event.
+    is_composite: true
     is_context_tag: false
     is_strategy_construct: false
   SEQ_LIQ_VACUUM_THEN_DEPTH_RECOVERY:
-    canonical_regime: ''
-    subtype: ''
-    phase: ''
-    evidence_mode: ''
-    layer: ''
-    disposition: ''
-    asset_scope: ''
-    venue_scope: ''
+    canonical_regime: LIQUIDITY_STRESS
+    subtype: liquidity_vacuum_then_depth_recovery
+    phase: confirmation
+    evidence_mode: sequence_confirmed
+    layer: composite
+    disposition: demote
+    asset_scope: single_asset
+    venue_scope: single_venue
     deconflict_priority: 0
-    research_only: false
+    research_only: true
     strategy_only: false
-    notes: ''
-    is_composite: false
+    notes: Composite liquidity repair motif.
+    is_composite: true
     is_context_tag: false
     is_strategy_construct: false
   SEQ_OI_SPIKEPOS_THEN_VOL_SPIKE:
-    canonical_regime: ''
-    subtype: ''
-    phase: ''
-    evidence_mode: ''
-    layer: ''
-    disposition: ''
-    asset_scope: ''
-    venue_scope: ''
+    canonical_regime: POSITIONING_EXPANSION
+    subtype: oi_spike_positive_then_vol_spike
+    phase: confirmation
+    evidence_mode: sequence_confirmed
+    layer: composite
+    disposition: demote
+    asset_scope: single_asset
+    venue_scope: single_venue
     deconflict_priority: 0
-    research_only: false
+    research_only: true
     strategy_only: false
-    notes: ''
-    is_composite: false
+    notes: Composite positioning/volatility hypothesis.
+    is_composite: true
     is_context_tag: false
     is_strategy_construct: false
   SEQ_VOL_COMP_THEN_BREAKOUT:
-    canonical_regime: ''
-    subtype: ''
-    phase: ''
-    evidence_mode: ''
-    layer: ''
-    disposition: ''
-    asset_scope: ''
-    venue_scope: ''
+    canonical_regime: VOLATILITY_RELAXATION_COMPRESSION_RELEASE
+    subtype: vol_compression_then_breakout
+    phase: confirmation
+    evidence_mode: sequence_confirmed
+    layer: composite
+    disposition: demote
+    asset_scope: single_asset
+    venue_scope: single_venue
     deconflict_priority: 0
-    research_only: false
+    research_only: true
     strategy_only: false
-    notes: ''
-    is_composite: false
+    notes: Composite compression-release hypothesis.
+    is_composite: true
     is_context_tag: false
     is_strategy_construct: false
   SESSION_CLOSE_EVENT:
-    canonical_regime: ''
-    subtype: ''
-    phase: ''
-    evidence_mode: ''
-    layer: ''
-    disposition: ''
-    asset_scope: ''
-    venue_scope: ''
+    canonical_regime: SCHEDULED_TEMPORAL_WINDOW
+    subtype: session_close
+    phase: window
+    evidence_mode: contextual
+    layer: context_tag
+    disposition: demote
+    asset_scope: multi_asset
+    venue_scope: market_wide
     deconflict_priority: 0
     research_only: false
     strategy_only: false
-    notes: ''
+    notes: Session close context tag.
     is_composite: false
-    is_context_tag: false
+    is_context_tag: true
     is_strategy_construct: false
   SESSION_OPEN_EVENT:
-    canonical_regime: ''
-    subtype: ''
-    phase: ''
-    evidence_mode: ''
-    layer: ''
-    disposition: ''
-    asset_scope: ''
-    venue_scope: ''
+    canonical_regime: SCHEDULED_TEMPORAL_WINDOW
+    subtype: session_open
+    phase: window
+    evidence_mode: contextual
+    layer: context_tag
+    disposition: demote
+    asset_scope: multi_asset
+    venue_scope: market_wide
     deconflict_priority: 0
     research_only: false
     strategy_only: false
-    notes: ''
+    notes: Session open context tag.
     is_composite: false
-    is_context_tag: false
+    is_context_tag: true
     is_strategy_construct: false
   SLIPPAGE_SPIKE_EVENT:
-    canonical_regime: ''
-    subtype: ''
-    phase: ''
-    evidence_mode: ''
-    layer: ''
-    disposition: ''
-    asset_scope: ''
-    venue_scope: ''
+    canonical_regime: EXECUTION_FRICTION
+    subtype: slippage_spike
+    phase: shock
+    evidence_mode: direct
+    layer: canonical
+    disposition: keep
+    asset_scope: single_asset
+    venue_scope: single_venue
     deconflict_priority: 0
     research_only: false
     strategy_only: false
-    notes: ''
+    notes: Execution friction shock.
     is_composite: false
     is_context_tag: false
     is_strategy_construct: false
   SPOT_PERP_BASIS_SHOCK:
-    canonical_regime: ''
-    subtype: ''
-    phase: ''
-    evidence_mode: ''
-    layer: ''
-    disposition: ''
-    asset_scope: ''
-    venue_scope: ''
+    canonical_regime: BASIS_FUNDING_DISLOCATION
+    subtype: spot_perp_basis_shock
+    phase: shock
+    evidence_mode: inferred_cross_asset
+    layer: canonical
+    disposition: merge
+    asset_scope: single_asset
+    venue_scope: cross_venue
     deconflict_priority: 0
     research_only: false
     strategy_only: false
-    notes: ''
+    notes: Spot/perp basis shock is a basis/funding subtype.
     is_composite: false
     is_context_tag: false
     is_strategy_construct: false
   SPREAD_BLOWOUT:
-    canonical_regime: ''
-    subtype: ''
-    phase: ''
-    evidence_mode: ''
-    layer: ''
-    disposition: ''
-    asset_scope: ''
-    venue_scope: ''
+    canonical_regime: LIQUIDITY_STRESS
+    subtype: spread_widening
+    phase: shock
+    evidence_mode: direct
+    layer: canonical
+    disposition: merge
+    asset_scope: single_asset
+    venue_scope: single_venue
     deconflict_priority: 0
     research_only: false
     strategy_only: false
-    notes: ''
+    notes: Spread blowout retained as liquidity-stress subtype.
     is_composite: false
     is_context_tag: false
     is_strategy_construct: false
   SPREAD_REGIME_WIDENING_EVENT:
-    canonical_regime: ''
-    subtype: ''
-    phase: ''
-    evidence_mode: ''
-    layer: ''
-    disposition: ''
-    asset_scope: ''
-    venue_scope: ''
+    canonical_regime: EXECUTION_FRICTION
+    subtype: spread_regime_widening
+    phase: persistence
+    evidence_mode: direct
+    layer: canonical
+    disposition: keep
+    asset_scope: single_asset
+    venue_scope: single_venue
     deconflict_priority: 0
     research_only: false
     strategy_only: false
-    notes: ''
+    notes: Persistent execution-friction regime widening.
     is_composite: false
     is_context_tag: false
     is_strategy_construct: false
   SUPPORT_RESISTANCE_BREAK:
-    canonical_regime: ''
-    subtype: ''
-    phase: ''
-    evidence_mode: ''
-    layer: ''
-    disposition: ''
-    asset_scope: ''
-    venue_scope: ''
+    canonical_regime: TREND_CONTINUATION
+    subtype: support_resistance_break
+    phase: breakout
+    evidence_mode: hybrid
+    layer: canonical
+    disposition: merge
+    asset_scope: single_asset
+    venue_scope: single_venue
     deconflict_priority: 0
     research_only: false
     strategy_only: false
-    notes: ''
+    notes: Structural breakout subtype within trend continuation.
     is_composite: false
     is_context_tag: false
     is_strategy_construct: false
   SWEEP_STOPRUN:
-    canonical_regime: ''
-    subtype: ''
-    phase: ''
-    evidence_mode: ''
-    layer: ''
-    disposition: ''
-    asset_scope: ''
-    venue_scope: ''
+    canonical_regime: LIQUIDITY_STRESS
+    subtype: sweep_stoprun
+    phase: shock
+    evidence_mode: hybrid
+    layer: canonical
+    disposition: merge
+    asset_scope: single_asset
+    venue_scope: single_venue
     deconflict_priority: 0
     research_only: false
     strategy_only: false
-    notes: ''
+    notes: Stop-run style liquidity stress.
     is_composite: false
     is_context_tag: false
     is_strategy_construct: false
   TREND_ACCELERATION:
-    canonical_regime: ''
-    subtype: ''
-    phase: ''
-    evidence_mode: ''
-    layer: ''
-    disposition: ''
-    asset_scope: ''
-    venue_scope: ''
+    canonical_regime: TREND_CONTINUATION
+    subtype: trend_acceleration
+    phase: persistence
+    evidence_mode: hybrid
+    layer: canonical
+    disposition: keep
+    asset_scope: single_asset
+    venue_scope: single_venue
     deconflict_priority: 0
     research_only: false
     strategy_only: false
-    notes: ''
+    notes: Continuation regime with accelerating trend.
     is_composite: false
     is_context_tag: false
     is_strategy_construct: false
   TREND_DECELERATION:
-    canonical_regime: ''
-    subtype: ''
-    phase: ''
-    evidence_mode: ''
-    layer: ''
-    disposition: ''
-    asset_scope: ''
-    venue_scope: ''
+    canonical_regime: TREND_FAILURE_EXHAUSTION
+    subtype: trend_deceleration
+    phase: exhaustion
+    evidence_mode: hybrid
+    layer: canonical
+    disposition: merge
+    asset_scope: single_asset
+    venue_scope: single_venue
     deconflict_priority: 0
     research_only: false
     strategy_only: false
-    notes: ''
+    notes: Deceleration belongs with trend failure/exhaustion.
     is_composite: false
     is_context_tag: false
     is_strategy_construct: false
   TREND_EXHAUSTION_TRIGGER:
-    canonical_regime: ''
-    subtype: ''
-    phase: ''
-    evidence_mode: ''
-    layer: ''
-    disposition: ''
-    asset_scope: ''
-    venue_scope: ''
+    canonical_regime: TREND_FAILURE_EXHAUSTION
+    subtype: trend_exhaustion
+    phase: onset
+    evidence_mode: hybrid
+    layer: canonical
+    disposition: keep
+    asset_scope: single_asset
+    venue_scope: single_venue
     deconflict_priority: 0
     research_only: false
     strategy_only: false
-    notes: ''
+    notes: Canonical exhaustion onset.
     is_composite: false
     is_context_tag: false
     is_strategy_construct: false
   TREND_TO_CHOP_SHIFT:
-    canonical_regime: ''
-    subtype: ''
-    phase: ''
-    evidence_mode: ''
-    layer: ''
-    disposition: ''
-    asset_scope: ''
-    venue_scope: ''
+    canonical_regime: REGIME_TRANSITION
+    subtype: trend_to_chop
+    phase: transition
+    evidence_mode: hybrid
+    layer: canonical
+    disposition: keep
+    asset_scope: single_asset
+    venue_scope: single_venue
     deconflict_priority: 0
     research_only: false
     strategy_only: false
-    notes: ''
+    notes: Transition from directional to choppy conditions.
     is_composite: false
     is_context_tag: false
     is_strategy_construct: false
   VOL_CLUSTER_SHIFT:
-    canonical_regime: ''
-    subtype: ''
-    phase: ''
-    evidence_mode: ''
-    layer: ''
-    disposition: ''
-    asset_scope: ''
-    venue_scope: ''
+    canonical_regime: VOLATILITY_EXPANSION
+    subtype: vol_cluster_shift
+    phase: persistence
+    evidence_mode: statistical
+    layer: canonical
+    disposition: merge
+    asset_scope: single_asset
+    venue_scope: single_venue
     deconflict_priority: 0
     research_only: false
     strategy_only: false
-    notes: ''
+    notes: Volatility cluster migration under expansion regime.
     is_composite: false
     is_context_tag: false
     is_strategy_construct: false
   VOL_REGIME_SHIFT_EVENT:
-    canonical_regime: ''
-    subtype: ''
-    phase: ''
-    evidence_mode: ''
-    layer: ''
-    disposition: ''
-    asset_scope: ''
-    venue_scope: ''
+    canonical_regime: REGIME_TRANSITION
+    subtype: vol_regime_shift
+    phase: transition
+    evidence_mode: statistical
+    layer: canonical
+    disposition: keep
+    asset_scope: single_asset
+    venue_scope: single_venue
     deconflict_priority: 0
     research_only: false
     strategy_only: false
-    notes: ''
+    notes: Regime transition expressed through volatility-state change.
     is_composite: false
     is_context_tag: false
     is_strategy_construct: false
   VOL_RELAXATION_START:
-    canonical_regime: ''
-    subtype: ''
-    phase: ''
-    evidence_mode: ''
-    layer: ''
-    disposition: ''
-    asset_scope: ''
-    venue_scope: ''
+    canonical_regime: VOLATILITY_RELAXATION_COMPRESSION_RELEASE
+    subtype: vol_relaxation_start
+    phase: normalization
+    evidence_mode: direct
+    layer: canonical
+    disposition: keep
+    asset_scope: single_asset
+    venue_scope: single_venue
     deconflict_priority: 0
     research_only: false
     strategy_only: false
-    notes: ''
+    notes: Start of volatility normalization after expansion.
     is_composite: false
     is_context_tag: false
     is_strategy_construct: false
   VOL_SHOCK:
-    canonical_regime: ''
-    subtype: ''
-    phase: ''
-    evidence_mode: ''
-    layer: ''
-    disposition: ''
-    asset_scope: ''
-    venue_scope: ''
+    canonical_regime: VOLATILITY_TRANSITION
+    subtype: vol_shock
+    phase: shock
+    evidence_mode: statistical
+    layer: canonical
+    disposition: keep
+    asset_scope: single_asset
+    venue_scope: single_venue
     deconflict_priority: 0
     research_only: false
     strategy_only: false
-    notes: ''
+    notes: Canonical volatility shock; current detector implementation also models
+      relaxation boundary.
     is_composite: false
     is_context_tag: false
     is_strategy_construct: false
   VOL_SPIKE:
-    canonical_regime: ''
-    subtype: ''
-    phase: ''
-    evidence_mode: ''
-    layer: ''
-    disposition: ''
-    asset_scope: ''
-    venue_scope: ''
+    canonical_regime: VOLATILITY_EXPANSION
+    subtype: vol_spike
+    phase: shock
+    evidence_mode: direct
+    layer: canonical
+    disposition: keep
+    asset_scope: single_asset
+    venue_scope: single_venue
     deconflict_priority: 0
     research_only: false
     strategy_only: false
-    notes: ''
+    notes: Canonical realized-volatility expansion onset.
     is_composite: false
     is_context_tag: false
     is_strategy_construct: false
   WICK_REVERSAL_PROXY:
-    canonical_regime: ''
-    subtype: ''
-    phase: ''
-    evidence_mode: ''
-    layer: ''
-    disposition: ''
-    asset_scope: ''
-    venue_scope: ''
+    canonical_regime: LIQUIDITY_STRESS
+    subtype: wick_reversal
+    phase: recovery
+    evidence_mode: hybrid
+    layer: canonical
+    disposition: merge
+    asset_scope: single_asset
+    venue_scope: single_venue
     deconflict_priority: 0
     research_only: false
     strategy_only: false
-    notes: ''
+    notes: 'Hybrid liquidity-stress recovery evidence: wick and reclaim structure
+      confirmed by realized-volume expansion.'
     is_composite: false
     is_context_tag: false
     is_strategy_construct: false
   ZSCORE_STRETCH:
-    canonical_regime: ''
-    subtype: ''
-    phase: ''
-    evidence_mode: ''
-    layer: ''
-    disposition: ''
-    asset_scope: ''
-    venue_scope: ''
+    canonical_regime: STATISTICAL_STRETCH_OVERSHOOT
+    subtype: zscore_stretch
+    phase: stretch
+    evidence_mode: statistical
+    layer: canonical
+    disposition: keep
+    asset_scope: single_asset
+    venue_scope: single_venue
     deconflict_priority: 0
     research_only: false
     strategy_only: false
-    notes: ''
+    notes: Canonical stretch/overshoot event.
     is_composite: false
     is_context_tag: false
     is_strategy_construct: false

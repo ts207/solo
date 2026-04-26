@@ -11,8 +11,8 @@ import yaml
 
 from project.domain.compiled_registry import get_domain_registry
 from project.research import discovery
+from project.core.stats import bh_adjust
 from project.research.gating import (
-    bh_adjust,
     build_event_return_frame,
 )
 from project.research.multiplicity import simes_p_value

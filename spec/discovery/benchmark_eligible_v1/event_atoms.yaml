@@ -1,0 +1,19 @@
+version: edge_cells_v2
+event_atoms:
+- id: price_down_oi_down_core
+  event_family: forced_flow_and_exhaustion
+  event_type: PRICE_DOWN_OI_DOWN
+  directions:
+  - long
+  - short
+  templates:
+  - mean_reversion
+  - continuation
+  horizons:
+  - 12b
+  - 24b
+  required_feature_keys:
+  - rv_96
+  search_role: primary_trigger
+  promotion_role: eligible
+  runtime_role: observer

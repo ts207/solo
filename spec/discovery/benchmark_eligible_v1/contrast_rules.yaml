@@ -1,0 +1,5 @@
+version: 1
+kind: contrast_rules
+rules:
+  - dimension: vol_regime
+  - dimension: ms_trend_state

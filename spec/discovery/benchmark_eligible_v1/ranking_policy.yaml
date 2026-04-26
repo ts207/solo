@@ -1,0 +1,5 @@
+version: 1
+kind: ranking_policy
+primary_ranking_metric: net_mean_bps
+min_sample_size: 1
+min_lift_bps: 0.1
