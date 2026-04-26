@@ -7,6 +7,7 @@ from typing import Any
 
 import pandas as pd
 
+from project.core.feature_schema import feature_dataset_dir_name
 from project.core.timeframes import bars_dataset_name, funding_dataset_name, normalize_timeframe
 from project.events.detectors.registry import get_detector_class
 from project.features import build_features
@@ -184,6 +185,31 @@ def _event_status(column_statuses: Mapping[str, Mapping[str, Any]]) -> tuple[str
     return "pass", blocking, degraded
 
 
+def _load_precomputed_features(
+    data_root: Path,
+    *,
+    run_id: str,
+    market: str,
+    symbol: str,
+    timeframe: str,
+    start: str,
+    end: str,
+) -> pd.DataFrame:
+    dataset = feature_dataset_dir_name()
+    candidates = [
+        run_scoped_lake_path(data_root, run_id, "features", market, symbol, timeframe, dataset),
+        Path(data_root) / "lake" / "features" / market / symbol / timeframe / dataset,
+    ]
+    features_dir = choose_partition_dir(candidates)
+    if not features_dir:
+        return pd.DataFrame()
+    files = prune_partition_files_by_window(list_parquet_files(features_dir), start=start, end=end)
+    if not files:
+        return pd.DataFrame()
+    df = read_parquet(files)
+    return filter_time_window(df, start=start, end=end) if not df.empty else df
+
+
 def analyze_feature_surface_viability(
     *,
     data_root: Path,
@@ -242,23 +268,33 @@ def analyze_feature_surface_viability(
             continue
 
         try:
-            funding = _load_funding_for_viability(
+            features = _load_precomputed_features(
                 data_root=data_root,
                 run_id=run_id,
+                market=market,
                 symbol=symbol,
                 timeframe=tf,
                 start=start,
                 end=end,
             )
-            features = build_features(
-                bars,
-                funding,
-                symbol,
-                run_id=run_id,
-                data_root=data_root,
-                market=market,
-                timeframe=tf,
-            )
+            if features.empty:
+                funding = _load_funding_for_viability(
+                    data_root=data_root,
+                    run_id=run_id,
+                    symbol=symbol,
+                    timeframe=tf,
+                    start=start,
+                    end=end,
+                )
+                features = build_features(
+                    bars,
+                    funding,
+                    symbol,
+                    run_id=run_id,
+                    data_root=data_root,
+                    market=market,
+                    timeframe=tf,
+                )
         except Exception as exc:
             per_symbol[symbol] = {
                 "status": "unknown",
