@@ -141,6 +141,9 @@ def resolve_phase2_gate_params(
         ),
         "multiplicity_cluster_threshold": float(_pick("multiplicity_cluster_threshold", 0.85)),
         "multiplicity_enable_by_diagnostic": bool(_pick("multiplicity_enable_by_diagnostic", True)),
+        # T2.1 — p95 cost survival: gate passes when gross edge exceeds p95 cost scenario.
+        # Set to 0 to disable; 0.5 requires survival in at least 50% of p95 scenarios.
+        "min_cost_survival_p95": float(_pick("min_cost_survival_p95", 0.5)),
     }
 
 

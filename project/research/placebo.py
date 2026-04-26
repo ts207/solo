@@ -1,6 +1,16 @@
+"""Placebo evaluation functions (M4).
+
+Tests specificity: that the apparent edge attaches to the *event*, not just
+to the regime in which the event tends to occur.
+
+Key function:
+    build_placebo_series   — construct regime-matched random timestamps
+    evaluate_specificity_lift — gate: U(h) - U_placebo_p95 >= min_lift
+"""
 from __future__ import annotations
 
 import logging
+import math
 from typing import Any
 
 import numpy as np
@@ -160,4 +170,122 @@ def evaluate_direction_reversal_placebo(
         "actual_mean": float(actual_mean),
         "reversed_mean": float(reversed_mean),
         "pass": bool(actual_mean > 0 and reversed_mean < 0),
+    }
+
+
+def build_placebo_series(
+    events: pd.Series,
+    regime_state: pd.Series,
+    *,
+    density_match: bool = True,
+    regime_match: bool = True,
+    n: int = 500,
+    random_seed: int = _DEFAULT_RANDOM_SEED,
+) -> list[pd.Series]:
+    """Build n regime-matched random timestamp series (M4).
+
+    Each returned series has the same density and regime distribution as
+    the real event series but with randomised timing within regime windows.
+    Used to test whether the edge is event-driven or regime-driven.
+
+    Args:
+        events: boolean or 0/1 Series indexed by bar, True where event fires.
+        regime_state: categorical Series with the same index.
+        density_match: if True, preserve overall event density.
+        regime_match: if True, preserve regime-conditional density.
+        n: number of placebo draws to generate.
+        random_seed: for reproducibility.
+    """
+    rng = np.random.default_rng(random_seed)
+    idx = events.index
+    total_bars = len(idx)
+    if total_bars == 0:
+        return []
+
+    event_mask = events.fillna(False).astype(bool)
+    n_events = int(event_mask.sum())
+    if n_events == 0:
+        return [pd.Series(False, index=idx, dtype=bool) for _ in range(n)]
+
+    if regime_match and regime_state is not None and len(regime_state) == total_bars:
+        regime_arr = regime_state.reindex(idx).fillna("unknown").astype(str).to_numpy()
+        # Compute event counts per regime
+        real_regimes = regime_arr[event_mask.to_numpy()]
+        unique_regimes, regime_counts = np.unique(real_regimes, return_counts=True)
+        regime_positions: dict[str, np.ndarray] = {}
+        for r in unique_regimes:
+            regime_positions[r] = np.where(regime_arr == r)[0]
+    else:
+        regime_match = False
+
+    placebo_series_list = []
+    for _ in range(n):
+        placebo = np.zeros(total_bars, dtype=bool)
+        if regime_match:
+            for regime, count in zip(unique_regimes, regime_counts):
+                positions = regime_positions.get(regime, np.array([], dtype=int))
+                if len(positions) == 0 or count == 0:
+                    continue
+                chosen = rng.choice(positions, size=min(int(count), len(positions)), replace=False)
+                placebo[chosen] = True
+        else:
+            chosen = rng.choice(total_bars, size=n_events, replace=False)
+            placebo[chosen] = True
+        placebo_series_list.append(pd.Series(placebo, index=idx))
+
+    return placebo_series_list
+
+
+def _quick_lwc(returns_series: pd.Series, kelly_fraction: float = 0.5) -> float:
+    """Approximate expected log-wealth contribution in bps (M1 formula)."""
+    r = pd.to_numeric(returns_series, errors="coerce").dropna()
+    if len(r) < 4:
+        return 0.0
+    mu = float(r.mean())
+    std = float(r.std(ddof=1))
+    if std < 1e-12:
+        return 0.0
+    f = min(kelly_fraction, abs(mu) / (std**2))
+    lwc = f * mu - 0.5 * f**2 * std**2
+    return lwc * 1e4
+
+
+def evaluate_specificity_lift(
+    real_returns: pd.Series,
+    placebo_return_series: list[pd.Series],
+    *,
+    kelly_fraction: float = 0.5,
+    min_specificity_lift_bps: float = 0.3,
+    percentile: int = 95,
+) -> dict[str, Any]:
+    """Gate: U(h) - U_placebo_p95 >= min_specificity_lift (M4).
+
+    Args:
+        real_returns: per-event net returns for the actual hypothesis.
+        placebo_return_series: list of per-event return series for placebos.
+        kelly_fraction: fractional Kelly for LWC computation.
+        min_specificity_lift_bps: minimum required lift over placebo p95.
+        percentile: placebo quantile to use (95 by default).
+    """
+    real_lwc = _quick_lwc(real_returns, kelly_fraction)
+
+    if not placebo_return_series:
+        return {
+            "real_lwc_bps": real_lwc,
+            "placebo_p95_lwc_bps": 0.0,
+            "specificity_lift_bps": real_lwc,
+            "pass": real_lwc >= min_specificity_lift_bps,
+            "n_placebo": 0,
+        }
+
+    placebo_lwcs = [_quick_lwc(s, kelly_fraction) for s in placebo_return_series]
+    placebo_p95 = float(np.percentile(placebo_lwcs, percentile))
+    lift = real_lwc - placebo_p95
+
+    return {
+        "real_lwc_bps": round(real_lwc, 4),
+        "placebo_p95_lwc_bps": round(placebo_p95, 4),
+        "specificity_lift_bps": round(lift, 4),
+        "pass": bool(lift >= min_specificity_lift_bps),
+        "n_placebo": len(placebo_return_series),
     }

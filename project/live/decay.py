@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import logging
+import math
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from typing import Any
@@ -34,6 +35,7 @@ class ThesisHealthSnapshot:
     sample_count: int
     actions_taken: list[str] = field(default_factory=list)
     reason_codes: list[str] = field(default_factory=list)
+    half_life_days: float | None = None
 
 
 def default_decay_rules() -> list[DecayRule]:
@@ -187,6 +189,12 @@ class DecayMonitor:
                     health_state = "watch"
                     actions.append("warn")
 
+        prior_snapshots = [s for s in self.health_history if s.thesis_id == thesis_id]
+        half_life = estimate_edge_half_life(prior_snapshots) if len(prior_snapshots) >= 4 else None
+        if half_life is not None and half_life < 7.0 and health_state not in ("disabled", "degraded"):
+            health_state = "watch"
+            reasons.append("half_life_short")
+
         snapshot = ThesisHealthSnapshot(
             thesis_id=thesis_id,
             timestamp=datetime.now(UTC).isoformat(),
@@ -197,6 +205,7 @@ class DecayMonitor:
             sample_count=sample_count,
             actions_taken=actions,
             reason_codes=reasons,
+            half_life_days=half_life,
         )
         self.health_history.append(snapshot)
         return snapshot
@@ -216,3 +225,34 @@ def calculate_thesis_decay_rate(snapshots: list[ThesisHealthSnapshot]) -> float:
         if item.health_state in {"watch", "degraded", "disabled"} or item.reason_codes
     )
     return float(degraded / len(snapshots))
+
+
+def estimate_edge_half_life(
+    snapshots: list[ThesisHealthSnapshot],
+    *,
+    bars_per_day: float = 288.0,
+) -> float | None:
+    """Fit edge_t = edge_0 * exp(-λ * t) via OLS on log(edge).
+
+    Returns estimated half-life in days, or None when data are insufficient
+    (fewer than 4 samples or all-zero edge).
+    """
+    edges = [s.realized_edge_bps for s in snapshots if s.realized_edge_bps > 0]
+    if len(edges) < 4:
+        return None
+    n = len(edges)
+    xs = list(range(n))
+    log_edges = [math.log(e) for e in edges]
+    x_mean = sum(xs) / n
+    y_mean = sum(log_edges) / n
+    ss_xy = sum((x - x_mean) * (y - y_mean) for x, y in zip(xs, log_edges, strict=False))
+    ss_xx = sum((x - x_mean) ** 2 for x in xs)
+    if ss_xx < 1e-12:
+        return None
+    slope = ss_xy / ss_xx
+    if slope >= 0.0:
+        # Edge is flat or growing — no decay
+        return None
+    lambda_per_bar = -slope
+    half_life_bars = math.log(2.0) / lambda_per_bar
+    return half_life_bars / max(bars_per_day, 1.0)

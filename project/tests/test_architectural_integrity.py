@@ -127,6 +127,7 @@ _PACKAGE_DEPENDENCY_ROWS = [
             "project.domain",
             "project.compilers",
             "project.portfolio",
+            "project.promote",
             "project.live",
             "project.operator",
             "project.episodes",
@@ -313,7 +314,6 @@ def test_explicit_package_roots_stay_shallow() -> None:
         PROJECT_ROOT / "compilers" / "__init__.py",
         PROJECT_ROOT / "eval" / "__init__.py",
         PROJECT_ROOT / "experiments" / "__init__.py",
-        PROJECT_ROOT / "portfolio" / "__init__.py",
         PROJECT_ROOT / "spec_validation" / "__init__.py",
         PROJECT_ROOT / "research" / "clustering" / "__init__.py",
         PROJECT_ROOT / "research" / "reports" / "__init__.py",
@@ -323,6 +323,7 @@ def test_explicit_package_roots_stay_shallow() -> None:
         PROJECT_ROOT / "pipelines" / "clean" / "__init__.py",
         PROJECT_ROOT / "pipelines" / "features" / "__init__.py",
         PROJECT_ROOT / "pipelines" / "ingest" / "__init__.py",
+        PROJECT_ROOT / "portfolio" / "__init__.py",
         PROJECT_ROOT / "live" / "__init__.py",
     ]
 

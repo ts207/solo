@@ -29,6 +29,7 @@ from project.promote.forward_confirmation import (
     load_forward_confirmation,
     validate_forward_confirmation,
 )
+from project.promote.portfolio_selection import PortfolioSelector, PortfolioSelectorConfig
 from project.research.audit_historical_artifacts import build_run_historical_trust_summary
 from project.research.CANONICAL_PIPELINE import persist_canonical_pipeline_artifact
 from project.research.decision_trace_artifacts import (
@@ -880,6 +881,24 @@ def execute_promotion(config: PromotionConfig) -> PromotionServiceResult:
         promoted_df = annotate_regime_metadata(promoted_df)
         promoted_df, detector_governance_stats = _apply_detector_governance_policy(promoted_df)
         diagnostics["detector_governance_policy"] = detector_governance_stats
+
+        if not promoted_df.empty:
+            _portfolio_cfg = PortfolioSelectorConfig()
+            _selector = PortfolioSelector(config=_portfolio_cfg)
+            _selected_df, _kelly_fractions = _selector.select(promoted_df, profile="deploy")
+            if not _selected_df.empty:
+                if "kelly_fraction" not in promoted_df.columns:
+                    promoted_df["kelly_fraction"] = float("nan")
+                id_col = "hypothesis_id" if "hypothesis_id" in promoted_df.columns else None
+                if id_col and _kelly_fractions:
+                    promoted_df["kelly_fraction"] = promoted_df[id_col].map(
+                        lambda h: _kelly_fractions.get(str(h), float("nan"))
+                    )
+                diagnostics["portfolio_selection"] = {
+                    "n_candidates": len(promoted_df),
+                    "n_selected": len(_selected_df),
+                    "kelly_fractions": _kelly_fractions,
+                }
         _append_promotion_counts_to_funnel(
             data_root=data_root,
             run_id=config.run_id,

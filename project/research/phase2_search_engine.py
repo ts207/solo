@@ -750,6 +750,7 @@ def _build_gate_funnel(
         ("pass_oos_validation", "gate_oos_validation"),
         ("pass_after_cost_positive", "gate_after_cost_positive"),
         ("pass_after_cost_stressed_positive", "gate_after_cost_stressed_positive"),
+        ("pass_cost_p95_survival", "gate_cost_p95_survival"),
         ("pass_multiplicity", "gate_multiplicity"),
         ("pass_regime_stable", "gate_c_regime_stable"),
         ("phase2_final", "gate_bridge_tradable"),
@@ -969,6 +970,37 @@ def _hypothesis_region_key(hypothesis: Any, *, program_id: str, symbol: str) -> 
             "context_hash": stable_hash((context_blob,)),
         }
     )
+
+
+def _filter_negative_results(
+    hypotheses: list[Any],
+    *,
+    program_id: str,
+    symbol: str,
+    data_root: Path,
+) -> tuple[list[Any], int]:
+    """Skip hypotheses with an active negative-result registry entry."""
+    from project.research.knowledge.negative_results import (
+        _hypothesis_fingerprint,
+        load_active_negative_results,
+    )
+
+    active = load_active_negative_results(program_id, data_root=data_root)
+    if active.empty:
+        return list(hypotheses), 0
+
+    active_fps: set[str] = set(active["fingerprint"].astype(str).tolist())
+    filtered: list[Any] = []
+    skipped = 0
+    for hypothesis in hypotheses:
+        h_key = _hypothesis_region_key(hypothesis, program_id=program_id, symbol=symbol)
+        if _hypothesis_fingerprint(h_key) in active_fps:
+            skipped += 1
+            continue
+        filtered.append(hypothesis)
+    if skipped:
+        log.info("Skipped %d hypotheses with active negative results for %s", skipped, symbol)
+    return filtered, skipped
 
 
 def _filter_previously_tested_hypotheses(
@@ -1439,14 +1471,23 @@ def run(
                 symbol=symbol,
                 avoid_region_keys=avoid_region_keys,
             )
+            hypotheses, skipped_negative = _filter_negative_results(
+                hypotheses,
+                program_id=experiment_plan.program_id,
+                symbol=symbol,
+                data_root=data_root,
+            )
             generation_audit = {
                 "counts": {
                     "generated": len(planned_hypotheses),
                     "feasible": len(hypotheses),
-                    "rejected": skipped_prior_regions,
+                    "rejected": skipped_prior_regions + skipped_negative,
                 },
                 "rejection_reason_counts": (
-                    {"prior_tested_region": skipped_prior_regions} if skipped_prior_regions else {}
+                    {
+                        **({"prior_tested_region": skipped_prior_regions} if skipped_prior_regions else {}),
+                        **({"negative_result_registry": skipped_negative} if skipped_negative else {}),
+                    }
                 ),
             }
             log.info(
@@ -1477,6 +1518,18 @@ def run(
                 }
                 generation_audit.setdefault("counts", {})
                 generation_audit["counts"]["feasible"] = len(hypotheses)
+            hypotheses, skipped_negative = _filter_negative_results(
+                hypotheses,
+                program_id="",
+                symbol=symbol,
+                data_root=data_root,
+            )
+            if skipped_negative:
+                counts = generation_audit.setdefault("counts", {})
+                counts["rejected"] = int(counts.get("rejected", 0)) + skipped_negative
+                counts["feasible"] = len(hypotheses)
+                reasons = generation_audit.setdefault("rejection_reason_counts", {})
+                reasons["negative_result_registry"] = skipped_negative
             _write_hypothesis_audit_artifacts(
                 phase2_hypotheses_dir(data_root=data_root, run_id=run_id),
                 symbol,
@@ -1865,6 +1918,48 @@ def run(
         if not regime_conditional_source.empty:
             regime_conditional_inputs.append(regime_conditional_source)
 
+        # T2.4 — Bound-search axis selection: when enabled in the search spec,
+        # run horizon/lag sweep on train, select on validation, restrict metrics
+        # to the validated parameter set before passing to bridge.
+        _bound_search_cfg = _h_spec_doc.get("bound_search", {}) if _h_spec_doc else {}
+        if isinstance(_bound_search_cfg, dict) and bool(_bound_search_cfg.get("enabled", False)):
+            try:
+                from project.research.search.bound_search import BoundSearchSweep
+                _sweep = BoundSearchSweep.from_mapping(_bound_search_cfg)
+                if not metrics.empty and "event_type" in metrics.columns and "horizon" in metrics.columns:
+                    _bound_results = []
+                    for _evt_type, _evt_group in metrics.groupby("event_type"):
+                        _event_returns: dict[tuple[int, int], pd.Series] = {}
+                        for _, _erow in _evt_group.iterrows():
+                            _h = int(_erow.get("horizon", 0) or 0)
+                            _lag = int(_erow.get("entry_lag", 0) or 0)
+                            _n = int(_erow.get("n", 0) or 0)
+                            if _h > 0 and _n > 0:
+                                _event_returns[(_h, _lag)] = pd.Series(
+                                    [float(_erow.get("mean_return_net_bps", 0.0) or 0.0)] * _n
+                                )
+                        _result = _sweep.run_for_event(str(_evt_type), _event_returns)
+                        _bound_results.append(_result)
+                        if _result.selected:
+                            _best_h = _result.best_horizon
+                            _best_lag = _result.best_lag
+                            _keep_mask = (
+                                (metrics["event_type"] != str(_evt_type))
+                                | (
+                                    (metrics["horizon"].astype(float).round(0).astype(int) == _best_h)
+                                    & (metrics.get("entry_lag", pd.Series(0, index=metrics.index)).fillna(0).astype(int) == _best_lag)
+                                )
+                            )
+                            metrics = metrics[_keep_mask].copy()
+                    log.info(
+                        "BoundSearch selected %d/%d event axes for %s",
+                        sum(r.selected for r in _bound_results),
+                        len(_bound_results),
+                        symbol,
+                    )
+            except Exception as _bs_exc:
+                log.debug("BoundSearchSweep skipped: %s", _bs_exc)
+
         # 4. Convert to bridge candidates
         candidates, gate_failures = split_bridge_candidates(
             metrics,
@@ -1900,8 +1995,12 @@ def run(
             and "p_value" in candidate_universe.columns
             and "family_id" in candidate_universe.columns
         ):
-            from project.research.multiplicity import apply_multiplicity_controls
+            from project.research.multiplicity import (
+                apply_multiplicity_controls,
+                dedup_bh_pool_by_fingerprint,
+            )
 
+            candidate_universe = dedup_bh_pool_by_fingerprint(candidate_universe)
             candidate_universe = apply_multiplicity_controls(
                 candidate_universe,
                 max_q=multiplicity_max_q,
@@ -1922,6 +2021,12 @@ def run(
         if not candidates.empty:
             if "candidate_id" in candidates.columns:
                 candidates["candidate_id"] = symbol + "::" + candidates["candidate_id"].astype(str)
+            try:
+                from project.eval.empirical_bayes import apply_shrinkage, fit_prior
+                _eb_prior = fit_prior(candidates)
+                candidates = apply_shrinkage(candidates, _eb_prior)
+            except Exception as _eb_exc:
+                log.debug("empirical_bayes shrinkage skipped: %s", _eb_exc)
             all_candidates.append(candidates)
         total_metrics_rows += len(metrics)
         total_valid_metrics_rows += valid_metrics_rows

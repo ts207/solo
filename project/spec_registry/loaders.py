@@ -108,7 +108,7 @@ def load_family_spec(family_id: str) -> dict[str, Any]:
 
 @functools.lru_cache(maxsize=1)
 def load_unified_event_registry() -> dict[str, Any]:
-    return load_yaml_relative("spec/events/event_registry_unified.yaml")
+    return load_yaml_relative("project/configs/registries/events.yaml")
 
 
 @functools.lru_cache(maxsize=1)
@@ -215,7 +215,7 @@ def _load_state_defaults() -> dict[str, Any]:
 
 
 def _context_dimensions_from_registry() -> dict[str, dict[str, Any]]:
-    payload = load_yaml_relative("spec/contexts/context_dimension_registry.yaml")
+    payload = load_yaml_relative("project/configs/registries/contexts.yaml")
     raw_dimensions = payload.get("dimensions", {}) if isinstance(payload, dict) else {}
     if not isinstance(raw_dimensions, dict):
         return {}

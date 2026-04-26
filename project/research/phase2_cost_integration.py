@@ -51,10 +51,13 @@ def candidate_cost_fields(
             "cost_input_coverage": 0.0,
             "cost_model_valid": False,
             "cost_ratio": 0.0,
+            "cost_p95_bps": 0.0,
+            "cost_std_bps": 0.0,
             "gate_after_cost_positive": bool(expectancy_per_trade > 0.0),
             "gate_after_cost_stressed_positive": bool(expectancy_per_trade > 0.0),
             "gate_cost_model_valid": False,
             "gate_cost_ratio": True,
+            "gate_cost_p95_survival": bool(expectancy_per_trade > 0.0),
         }
 
     idx = sub.index
@@ -98,6 +101,23 @@ def candidate_cost_fields(
     )
     gross_proxy = max(1e-9, abs(float(expectancy_per_trade)) + round_trip_cost_per_trade)
     cost_ratio = float(min(2.0, max(0.0, round_trip_cost_per_trade / gross_proxy)))
+
+    # T2.1 — p95 cost survival gate.
+    # cost_bps_series represents realised cost distribution; p95 is the 95th percentile.
+    # Gate passes when gross expectancy exceeds p95 cost (edge survives stress scenarios).
+    finite_costs = cost_values[np.isfinite(cost_values)]
+    if len(finite_costs) >= 5:
+        cost_p95_bps = float(np.percentile(finite_costs, 95))
+        cost_std_bps = float(np.std(finite_costs, ddof=1))
+    else:
+        # Fallback: assume 1.645-sigma above mean (normal approximation)
+        cost_mean = float(np.nanmean(cost_values)) if cost_values.size else 0.0
+        cost_std_bps = cost_mean * 0.5
+        cost_p95_bps = cost_mean + 1.645 * cost_std_bps
+
+    gross_mean_bps = float(expectancy_per_trade) * 1e4 + round_trip_cost_per_trade * 1e4
+    gate_cost_p95_survival = bool(gross_mean_bps > cost_p95_bps)
+
     return {
         "after_cost_expectancy_per_trade": after_cost,
         "stressed_after_cost_expectancy_per_trade": stressed_after_cost,
@@ -106,8 +126,11 @@ def candidate_cost_fields(
         "cost_input_coverage": cost_input_coverage,
         "cost_model_valid": cost_model_valid,
         "cost_ratio": cost_ratio,
+        "cost_p95_bps": round(cost_p95_bps, 4),
+        "cost_std_bps": round(cost_std_bps, 4),
         "gate_after_cost_positive": bool(after_cost > 0.0),
         "gate_after_cost_stressed_positive": bool(stressed_after_cost > 0.0),
         "gate_cost_model_valid": cost_model_valid,
         "gate_cost_ratio": bool(cost_ratio < 0.60),
+        "gate_cost_p95_survival": gate_cost_p95_survival,
     }

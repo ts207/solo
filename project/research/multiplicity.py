@@ -529,3 +529,76 @@ def build_multiplicity_diagnostics(
         if "family_cluster_id" in scored.columns
         else {},
     }
+
+
+def dedup_bh_pool_by_fingerprint(
+    candidates: pd.DataFrame,
+    *,
+    fingerprint_cols: tuple[str, ...] = (
+        "event_type",
+        "template_id",
+        "direction",
+        "horizon",
+        "symbol",
+    ),
+    keep: str = "best_t_stat",
+    eligible_col: str = "multiplicity_pool_eligible",
+) -> pd.DataFrame:
+    """Mark duplicate hypotheses across proposals ineligible for the BH pool (T3.5).
+
+    When two proposals test the same event+template+direction+horizon+symbol
+    combination, counting both in the BH denominator inflates the test pool and
+    makes BH overly conservative. This function keeps the row with the best
+    t_stat_net in the pool and marks duplicates as ineligible.
+
+    Args:
+        candidates: DataFrame of candidates, potentially from multiple proposals.
+        fingerprint_cols: Columns that define hypothesis identity.
+        keep: "best_t_stat" keeps the highest |t_stat_net| per group.
+        eligible_col: Column to write pool eligibility into.
+    """
+    out = candidates.copy()
+    if out.empty:
+        return out
+
+    # Build fingerprint from available cols
+    avail_cols = [c for c in fingerprint_cols if c in out.columns]
+    if not avail_cols:
+        return out
+
+    fp_series = out[avail_cols].fillna("").astype(str).apply(
+        lambda row: "|".join(row.values), axis=1
+    )
+    out["_bh_fingerprint"] = fp_series
+
+    if eligible_col not in out.columns:
+        out[eligible_col] = True
+    else:
+        out[eligible_col] = out[eligible_col].fillna(True).astype(bool)
+
+    t_col = next((c for c in ("t_stat_net", "t_stat") if c in out.columns), None)
+
+    seen_fps: dict[str, int] = {}  # fingerprint -> best row index
+    for idx, row in out.iterrows():
+        fp = str(row["_bh_fingerprint"])
+        if fp not in seen_fps:
+            seen_fps[fp] = int(idx)  # type: ignore[arg-type]
+        else:
+            # Check if this row is better
+            if t_col is not None:
+                current_t = abs(float(pd.to_numeric(out.at[idx, t_col], errors="coerce") or 0.0))
+                best_t = abs(float(pd.to_numeric(out.at[seen_fps[fp], t_col], errors="coerce") or 0.0))
+                if current_t > best_t:
+                    out.at[seen_fps[fp], eligible_col] = False
+                    seen_fps[fp] = int(idx)  # type: ignore[arg-type]
+                else:
+                    out.at[idx, eligible_col] = False
+            else:
+                out.at[idx, eligible_col] = False
+
+    n_deduped = int((~out[eligible_col]).sum())
+    if n_deduped:
+        log.info("BH-pool dedup: marked %d duplicate hypotheses ineligible", n_deduped)
+
+    out = out.drop(columns=["_bh_fingerprint"])
+    return out

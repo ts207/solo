@@ -116,6 +116,10 @@ METRICS_COLUMNS = [
     "symbol_timeframe_key",
     "valid",
     "invalid_reason",
+    "log_wealth_contribution_bps",
+    "funding_cost_bps_per_trade",
+    "specificity_lift_bps",
+    "specificity_lift_pass",
 ]
 
 EVENT_TIMESTAMP_COLUMNS = [
@@ -594,6 +598,25 @@ def evaluate_hypothesis_batch(
         ).reindex(signed.index).fillna(float(cost_bps)).astype(float)
         signed_net = signed.astype(float) - per_trade_cost_bps
 
+        # T2.2 — subtract perp funding cost from net returns.
+        # funding_rate_scaled is the 8-hour decimal rate (e.g. 0.0001 = 1 bps).
+        # A long position pays positive funding; short position receives it.
+        # Cost per trade = rate * direction_sign * (horizon_bars / 96 funding periods).
+        _funding_col = next(
+            (c for c in ("funding_rate_scaled", "funding_rate_realized", "funding_rate")
+             if c in features.columns),
+            None,
+        )
+        if _funding_col is not None:
+            _funding_at_events = (
+                pd.to_numeric(features[_funding_col], errors="coerce")
+                .reindex(signed.index)
+                .fillna(0.0)
+            )
+            _funding_periods = hbars / 96.0  # 8h periods per trade
+            _funding_cost_bps = _funding_at_events * direction_sign * _funding_periods * 1e4
+            signed_net = signed_net - _funding_cost_bps
+
         gross_mean_bps, gross_std, t_stat_gross = _weighted_newey_west_mean_std(
             signed,
             event_weights,
@@ -810,6 +833,57 @@ def evaluate_hypothesis_batch(
                     )
             except Exception:
                 pass
+
+        # M1 — expected log-wealth contribution at fractional-Kelly size.
+        # U(h) = E[log(1 + f* * r_net)] approximated as f* * mu - 0.5 * f*^2 * sigma^2
+        # using the Taylor expansion of log(1+x). f* = 0.5 (fractional Kelly default).
+        _kelly_fraction = 0.5
+        if net_std > 1e-10 and n > 0:
+            _f_star = min(_kelly_fraction, abs(net_mean_bps / 1e4) / max((net_std / 1e4) ** 2, 1e-12))
+            _f_star = min(_f_star, _kelly_fraction)
+            _lwc = _f_star * (net_mean_bps / 1e4) - 0.5 * _f_star**2 * (net_std / 1e4) ** 2
+        else:
+            _lwc = 0.0
+        row["log_wealth_contribution_bps"] = round(_lwc * 1e4, 4)
+
+        if _funding_col is not None:
+            row["funding_cost_bps_per_trade"] = round(
+                float(_funding_cost_bps.mean()) if hasattr(_funding_cost_bps, "mean") else 0.0, 4
+            )
+        else:
+            row["funding_cost_bps_per_trade"] = 0.0
+
+        # M4 — Specificity lift: run regime-matched placebo test on high-quality candidates.
+        # Only runs when |t_stat_net| > 2.0 to keep batch evaluation fast (50 draws).
+        row["specificity_lift_bps"] = float("nan")
+        row["specificity_lift_pass"] = False
+        if abs(t_stat_net) > 2.0 and len(signed_net) >= 10:
+            try:
+                from project.research.placebo import build_placebo_series, evaluate_specificity_lift
+                _event_mask_series = pd.Series(mask, index=features.index)
+                _regime_series = eval_context.regime_labels.reindex(features.index)
+                _placebo_list = build_placebo_series(
+                    _event_mask_series,
+                    _regime_series,
+                    n=50,
+                    random_seed=42,
+                )
+                _placebo_returns: list[pd.Series] = []
+                for _ps in _placebo_list:
+                    _ps_mask = _ps.fillna(False).astype(bool)
+                    _ps_events = fwd[_ps_mask]
+                    if len(_ps_events) >= 4:
+                        _placebo_returns.append(_ps_events * direction_sign)
+                _spec_result = evaluate_specificity_lift(
+                    signed_net,
+                    _placebo_returns,
+                    kelly_fraction=0.5,
+                    min_specificity_lift_bps=0.3,
+                )
+                row["specificity_lift_bps"] = _spec_result.get("specificity_lift_bps", float("nan"))
+                row["specificity_lift_pass"] = bool(_spec_result.get("pass", False))
+            except Exception as _spec_exc:
+                log.debug("specificity_lift skipped: %s", _spec_exc)
 
         # Net/gross aliases are load-bearing for phase-2 gating and diagnostics.
         row["mean_return_gross_bps"] = row.get("mean_return_gross_bps", round(gross_mean_bps, 4))
