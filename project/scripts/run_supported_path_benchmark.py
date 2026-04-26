@@ -110,6 +110,22 @@ def _promotion_metrics(data_root: Path, run_id: str) -> dict[str, Any]:
     }
 
 
+def _resolve_generated_proposal(
+    generated_proposal_dir: Path,
+    event_id: str,
+) -> Path | None:
+    proposals = sorted(generated_proposal_dir.glob("*.yaml"))
+    if not proposals:
+        return None
+
+    event_key = event_id.lower()
+    matching = [path for path in proposals if event_key in path.name.lower()]
+    if matching:
+        return matching[0]
+
+    return proposals[0]
+
+
 def _thesis_metrics(data_root: Path, run_id: str) -> dict[str, Any]:
     thesis_path = data_root / "live" / "theses" / run_id / "promoted_theses.json"
     payload = _json_load(thesis_path)
@@ -307,18 +323,7 @@ def _benchmark_slice(
     start_date = "2024-01-01"
     end_date = "2024-01-31"
 
-    # Resolve generated proposal path dynamically
     generated_proposal_dir = data_root / "runs" / run_id / "generated_proposals"
-    proposal_name_fallback = f"cell_{slice_spec.event_id.lower()}_unconditional.yaml"
-    generated_proposal = generated_proposal_dir / proposal_name_fallback
-
-    if execute:
-        # After assemble-theses, we find the actual file
-        proposals = sorted(generated_proposal_dir.glob("*.yaml"))
-        if proposals:
-            # Prefer one matching event_id
-            event_match = [p for p in proposals if slice_spec.event_id.lower() in p.name.lower()]
-            generated_proposal = event_match[0] if event_match else proposals[0]
 
     commands = [
         [
@@ -372,7 +377,7 @@ def _benchmark_slice(
             "discover",
             "run",
             "--proposal",
-            "RESOLVED_AT_RUNTIME",  # Placeholder, will be replaced in execute loop
+            "RESOLVED_AT_RUNTIME",
             "--run_id",
             run_id,
             "--data_root",
@@ -415,8 +420,9 @@ def _benchmark_slice(
         ],
     ]
     if not execute:
-        # For dry-run, show the fallback path in planned commands
-        commands[3][commands[3].index("RESOLVED_AT_RUNTIME")] = str(generated_proposal)
+        # Dry-run fallback display
+        fallback = generated_proposal_dir / f"cell_{slice_spec.event_id.lower()}_generated.yaml"
+        commands[3][commands[3].index("RESOLVED_AT_RUNTIME")] = str(fallback)
         return {
             "slice": asdict(slice_spec),
             "run_id": run_id,
@@ -433,27 +439,21 @@ def _benchmark_slice(
 
     command_results: list[dict[str, Any]] = []
     for index, command in enumerate(commands):
-        # Index 3 is 'discover run' using generated proposal
         if index == 3:
-            # Re-scan after assemble-theses finished in previous step
-            proposals = sorted(generated_proposal_dir.glob("*.yaml"))
-            if not proposals:
+            resolved = _resolve_generated_proposal(generated_proposal_dir, slice_spec.event_id)
+            if resolved is None:
                 command_results.append(
                     {
                         "command": command,
                         "returncode": 1,
                         "stdout_tail": "",
-                        "stderr_tail": f"no generated proposals found in {generated_proposal_dir}",
-                        "status": "failed_no_generated_proposals",
+                        "stderr_tail": f"no generated proposals found in: {generated_proposal_dir}",
+                        "status": "failed_generated_proposal_missing",
                     }
                 )
                 break
-            
-            event_match = [p for p in proposals if slice_spec.event_id.lower() in p.name.lower()]
-            generated_proposal = event_match[0] if event_match else proposals[0]
-            command[command.index("RESOLVED_AT_RUNTIME")] = str(generated_proposal)
+            command[command.index("RESOLVED_AT_RUNTIME")] = str(resolved)
 
-        # Index 6 is 'promote export'
         if index == 6:
             promotion_count = _promotion_metrics(data_root, run_id)["promotion_count"]
             if promotion_count <= 0:
