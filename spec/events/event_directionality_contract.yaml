@@ -1,0 +1,94 @@
+version: 1
+kind: event_directionality_contract
+metadata:
+  status: authored
+
+required_fields:
+  direction_hint:
+    allowed_values: [long, short, both, none]
+  sign_source:
+    allowed_values: [price, oi, funding, liquidation_side, basis, spread, none]
+  sign_required:
+    type: boolean
+  sign_field:
+    required_when_sign_required: true
+
+quadrant_events:
+  PRICE_UP_OI_UP:
+    price_direction: up
+    oi_direction: up
+    interpretation: long_build_or_trend_participation
+  PRICE_UP_OI_DOWN:
+    price_direction: up
+    oi_direction: down
+    interpretation: short_squeeze_or_covering
+  PRICE_DOWN_OI_UP:
+    price_direction: down
+    oi_direction: up
+    interpretation: short_build_or_bearish_expansion
+  PRICE_DOWN_OI_DOWN:
+    price_direction: down
+    oi_direction: down
+    interpretation: long_flush_or_deleveraging
+
+funding_phase_events:
+  FUNDING_POS_EXTREME_ONSET:
+    source_event_type: FUNDING_EXTREME_ONSET
+    funding_sign: positive
+    funding_phase: positive_onset
+  FUNDING_NEG_EXTREME_ONSET:
+    source_event_type: FUNDING_EXTREME_ONSET
+    funding_sign: negative
+    funding_phase: negative_onset
+  FUNDING_POS_PERSISTENCE:
+    source_event_type: FUNDING_PERSISTENCE_TRIGGER
+    funding_sign: positive
+    funding_phase: positive_persistent
+  FUNDING_NEG_PERSISTENCE:
+    source_event_type: FUNDING_PERSISTENCE_TRIGGER
+    funding_sign: negative
+    funding_phase: negative_persistent
+  FUNDING_POS_NORMALIZATION:
+    source_event_type: FUNDING_NORMALIZATION_TRIGGER
+    funding_sign: positive
+    funding_phase: positive_normalizing
+  FUNDING_NEG_NORMALIZATION:
+    source_event_type: FUNDING_NORMALIZATION_TRIGGER
+    funding_sign: negative
+    funding_phase: negative_normalizing
+  FUNDING_FLIP_TO_POSITIVE:
+    source_event_type: FUNDING_FLIP
+    funding_sign: positive
+    funding_phase: flip_to_positive
+  FUNDING_FLIP_TO_NEGATIVE:
+    source_event_type: FUNDING_FLIP
+    funding_sign: negative
+    funding_phase: flip_to_negative
+
+legacy_event_mappings:
+  FUNDING_EXTREME_ONSET:
+    requires_context_dimension: funding_phase
+    variants:
+      - FUNDING_POS_EXTREME_ONSET
+      - FUNDING_NEG_EXTREME_ONSET
+  FUNDING_PERSISTENCE_TRIGGER:
+    requires_context_dimension: funding_phase
+    variants:
+      - FUNDING_POS_PERSISTENCE
+      - FUNDING_NEG_PERSISTENCE
+  FUNDING_NORMALIZATION_TRIGGER:
+    requires_context_dimension: funding_phase
+    variants:
+      - FUNDING_POS_NORMALIZATION
+      - FUNDING_NEG_NORMALIZATION
+  FUNDING_FLIP:
+    requires_context_dimension: funding_phase
+    variants:
+      - FUNDING_FLIP_TO_POSITIVE
+      - FUNDING_FLIP_TO_NEGATIVE
+  OI_SPIKE_POSITIVE:
+    normalized_as: OI_EXPANSION_EVENT
+    requires_context_dimension: price_oi_quadrant
+  OI_SPIKE_NEGATIVE:
+    normalized_as: OI_FLUSH
+    requires_context_dimension: price_oi_quadrant

@@ -1,0 +1,67 @@
+program_id: single_event_liq_exhaust_exhaustion_reversal_long_h05_low_vol_fast_support_v1
+description: >
+  Phase S5 detector-parameter configuration: keep the low-vol 5-bar
+  exhaustion_reversal expression fixed and modestly relax support thresholds
+  while requiring fast rebound confirmation. Phase 2 gates are unchanged.
+start: "2024-01-01"
+end: "2024-12-31"
+symbols:
+  - BTCUSDT
+timeframe: 5m
+instrument_classes:
+  - crypto
+objective_name: retail_profitability
+promotion_profile: disabled
+search_spec:
+  path: spec/search/single_event_liquidation_exhaustion_low_vol_exhaustion_reversal_h05_v1.yaml
+avoid_region_keys: []
+contexts:
+  vol_regime:
+    - low
+hypothesis:
+  anchor:
+    type: event
+    event_id: LIQUIDATION_EXHAUSTION_REVERSAL
+  filters:
+    contexts:
+      vol_regime:
+        - low
+  sampling_policy:
+    mode: episodic
+    entry_lag_bars: 1
+    overlap_policy: suppress
+  template:
+    id: exhaustion_reversal
+  direction: long
+  horizon_bars: 5
+knobs:
+  - name: event_parameter_overrides
+    value:
+      LIQUIDATION_EXHAUSTION_REVERSAL:
+        oi_drop_quantile: 0.75
+        liquidation_quantile: 0.80
+        return_quantile: 0.70
+        wick_quantile: 0.65
+        rebound_quantile: 0.65
+        reversal_quantile: 0.60
+        rebound_window: 5
+        rebound_window_bars: 5
+        post_cluster_lookback: 24
+        cooldown_bars: 12
+        rebound_return_min: 0.0008
+artifacts:
+  matrix_phase: S
+  matrix_run: S5
+  context: low_vol_control
+  template_config: exhaustion_reversal
+  detector_profile: fast_support
+  parent_run_id: single_event_liq_exhaust_20260421T103141Z_ccb04aff6a
+  research_question: >
+    Does a support-oriented fast detector preserve enough 5-bar expectancy and
+    robustness to clear bridge gates?
+  decision_rules:
+    require_bridge_candidate_for_survival: true
+    min_events: 50
+    phase2_gates_unchanged: true
+    reject_if_support_below_events: 50
+version: 1

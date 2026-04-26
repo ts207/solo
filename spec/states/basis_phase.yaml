@@ -1,0 +1,17 @@
+version: 1
+kind: state_context_dimension
+state_name: basis_phase
+source_feature: basis_zscore
+allowed_values:
+- neutral
+- positive_dislocation
+- negative_dislocation
+- widening
+- converging
+- normalized
+mapping: {}
+canonical_metrics:
+- basis_zscore
+thresholds: []
+update_cadence: 5m
+acceptance_test_id: BASIS_PHASE_STABILITY_V1

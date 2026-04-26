@@ -1,0 +1,35 @@
+version: 1
+kind: event_role_contract
+metadata:
+  status: authored
+  purpose: Separate detector emission roles from thesis/trade roles.
+
+roles:
+  primary_trigger:
+    can_anchor_alpha: true
+    requires_promotion: true
+  secondary_confirm:
+    can_anchor_alpha: false
+  state_source:
+    can_anchor_alpha: false
+  context_tag:
+    can_anchor_alpha: false
+  execution_guard:
+    can_anchor_alpha: false
+  risk_guard:
+    can_anchor_alpha: false
+  composite_trigger:
+    can_anchor_alpha: maybe
+    requires_sequence_contract: true
+  diagnostic_only:
+    can_anchor_alpha: false
+
+plan_time_rules:
+  - id: no_filter_context_guard_state_standalone_alpha
+    rule: >
+      filter, context, guard, and state-source events cannot be emitted as
+      standalone alpha hypotheses unless explicitly promoted as composite_trigger.
+  - id: generated_governance_authoritative
+    rule: >
+      Planning, promotion, runtime, anchor, detector band, and version eligibility
+      are owned by generated detector governance, not local YAML runtime hints.

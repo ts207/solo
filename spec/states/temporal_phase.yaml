@@ -1,0 +1,18 @@
+version: 1
+kind: state_context_dimension
+state_name: temporal_phase
+source_feature: timestamp
+allowed_values:
+- normal
+- session_open
+- session_close
+- pre_funding_timestamp
+- post_funding_timestamp
+- pre_news
+- post_news
+mapping: {}
+canonical_metrics:
+- timestamp
+thresholds: []
+update_cadence: 5m
+acceptance_test_id: TEMPORAL_PHASE_STABILITY_V1

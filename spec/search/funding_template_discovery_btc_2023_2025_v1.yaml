@@ -1,0 +1,61 @@
+version: 1
+kind: search_space
+metadata:
+  phase: funding_template_discovery
+  description: Discovery-first BTCUSDT funding event template matrix over current
+    2023-2025 data.
+  search_tier: event_template_matrix
+  default_symbols:
+  - BTCUSDT
+triggers:
+  events:
+  - FUNDING_EXTREME_ONSET
+  - FUNDING_PERSISTENCE_TRIGGER
+horizons:
+- 24b
+- 48b
+directions:
+- long
+- short
+entry_lag: 1
+cost_profiles:
+- standard
+expression_templates:
+- reversal_or_squeeze
+- mean_reversion
+- continuation
+- exhaustion_reversal
+- convexity_capture
+filter_templates: []
+execution_templates: []
+include_sequences: false
+include_interactions: false
+discovery_search:
+  mode: flat
+  trigger_viability:
+    enabled: true
+    max_templates: 5
+    max_horizons: 2
+    max_entry_lags: 1
+    allow_both_directions: true
+    top_k_triggers: null
+    min_stage_score: 0.0
+  template_refinement:
+    enabled: false
+    top_k_templates_per_trigger: 5
+    min_stage_score: 0.0
+  execution_refinement:
+    enabled: false
+    top_k_shapes_per_template: 1
+    min_stage_score: 0.0
+  context_refinement:
+    enabled: false
+    max_context_dims: 0
+    top_k_contexts_per_candidate: 0
+    require_unconditional_baseline: true
+    min_context_gain: 0.0
+discovery_selection:
+  mode: 'off'
+template_policy:
+  generic_templates_allowed: true
+  reason: legacy_disabled_research_surface
