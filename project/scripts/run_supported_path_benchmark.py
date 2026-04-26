@@ -383,7 +383,7 @@ def _benchmark_slice(
             "--data_root",
             str(data_root),
             "--promotion_profile",
-            "research",
+            "disabled",
         ],
         [
             sys.executable,
