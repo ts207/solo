@@ -1,0 +1,14 @@
+version: 1
+kind: state_definition
+state_id: POST_ABSORPTION_STATE
+family: LIQUIDITY_DISLOCATION
+source_event_type: ABSORPTION_PROXY
+activation_rule: absorption_imbalance >= threshold
+decay_rule: exit when imbalance mean-reverts to baseline
+features_required:
+- order_book
+- market_depth
+allowed_templates:
+- mean_reversion
+- continuation
+- only_if_liquidity

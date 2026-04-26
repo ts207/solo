@@ -1,0 +1,76 @@
+event_type: DELEVERAGING_WAVE
+synthetic_coverage: covered
+reports_dir: positioning_extremes
+events_file: positioning_extremes_events.parquet
+signal_column: deleveraging_wave_event
+parameters:
+  funding_extreme_quantile: 0.99
+  oi_change_z_threshold: 3.0
+  cooldown_bars: 24
+  merge_gap_bars: 0
+research_family: POSITIONING_EXTREMES
+trigger: Detector triggers on deleveraging wave pattern
+confirmation: Post-detection price action confirms signal validity
+expected_behavior:
+  holding_horizon_bars: 4-24
+  invalidation_conditions:
+  - Position unwinds within expected horizon
+  - Funding reverses sign
+  disabled_regimes:
+  - 'Low liquidity regime: OI/vol signals unreliable'
+cluster_id: forced_liquidation
+identity:
+  canonical_regime: POSITIONING_UNWIND_DELEVERAGING
+  subtype: deleveraging_wave
+  phase: unwind
+  evidence_mode: hybrid
+  layer: canonical
+  disposition: keep
+  asset_scope: single_asset
+  venue_scope: single_venue
+governance:
+  event_kind: market_event
+  default_executable: true
+  research_only: false
+  strategy_only: false
+  context_tag: false
+  is_composite: false
+  maturity: ''
+  tier: B
+  operational_role: trigger
+  deployment_disposition: secondary_or_confirm
+  runtime_category: active_runtime_event
+runtime:
+  detector: DeleveragingWaveDetector
+  enabled: true
+  signal_column: deleveraging_wave_event
+  events_file: positioning_extremes_events.parquet
+  reports_dir: positioning_extremes
+  instrument_classes:
+  - crypto
+  - futures
+  requires_features: []
+  sequence_eligible: true
+  runtime_tags:
+  - forced_liquidation
+  - oi_dynamic
+semantics:
+  cluster_id: forced_liquidation
+  notes: Positioning unwind regime with explicit deleveraging dynamics.
+  precedence_rank: 0
+interaction:
+  suppresses:
+  - event_type: TREND_ACCELERATION
+    penalty_factor: 0.2
+    block: false
+    reason: 'Deleveraging price moves are forced liquidation artifacts, not genuine trend breakouts. Penalize continuation templates heavily.'
+  - event_type: BREAKOUT_TRIGGER
+    penalty_factor: 0.2
+    block: false
+    reason: 'Deleveraging price moves are forced liquidation artifacts, not genuine trend breakouts. Penalize continuation templates heavily.'
+  - event_type: CHOP_TO_TREND_SHIFT
+    penalty_factor: 0.2
+    block: false
+    reason: 'Deleveraging price moves are forced liquidation artifacts, not genuine trend breakouts. Penalize continuation templates heavily.'
+  suppressed_by: []
+routing: {}

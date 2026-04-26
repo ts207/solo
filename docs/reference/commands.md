@@ -90,7 +90,9 @@ edge deploy status --run_id <run_id> --config project/configs/live_paper_<run_id
 Lifecycle:
 
 ```bash
-make discover PROPOSAL=spec/proposals/canonical_event_hypothesis.yaml RUN_ID=<run_id>
+make first-edge RUN_ID=<run_id> DATA_ROOT=<lake> START=<start> END=<end>
+make discover RUN_ID=<run_id> START=<start> END=<end> [DATA_ROOT=...]
+make discover-proposal PROPOSAL=spec/proposals/...yaml RUN_ID=<run_id>
 make validate RUN_ID=<run_id>
 make promote RUN_ID=<run_id> SYMBOLS=BTCUSDT
 make export RUN_ID=<run_id>

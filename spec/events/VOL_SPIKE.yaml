@@ -1,0 +1,64 @@
+event_type: VOL_SPIKE
+synthetic_coverage: covered
+reports_dir: volatility_transition
+events_file: volatility_transition_events.parquet
+signal_column: vol_spike_event
+parameters:
+  merge_gap_bars: 1
+  cooldown_bars: 6
+  anchor_rule: first
+  min_occurrences: 5
+research_family: VOLATILITY_TRANSITION
+trigger: Detector triggers on vol spike pattern
+confirmation: Post-detection price action confirms signal validity
+expected_behavior:
+  holding_horizon_bars: 8-48
+  invalidation_conditions:
+  - Vol re-expands above threshold within horizon
+  - Second shock occurs before resolution
+  disabled_regimes:
+  - 'Low volume: vol computation noise-dominated'
+cluster_id: vol_regime
+identity:
+  canonical_regime: VOLATILITY_EXPANSION
+  subtype: vol_spike
+  phase: shock
+  evidence_mode: direct
+  layer: canonical
+  disposition: keep
+  asset_scope: single_asset
+  venue_scope: single_venue
+governance:
+  event_kind: market_event
+  default_executable: true
+  research_only: false
+  strategy_only: false
+  context_tag: false
+  is_composite: false
+  maturity: ''
+  tier: A
+  operational_role: trigger
+  deployment_disposition: primary_trigger_candidate
+  runtime_category: active_runtime_event
+runtime:
+  detector: VolSpikeDetector
+  enabled: true
+  signal_column: vol_spike_event
+  events_file: volatility_transition_events.parquet
+  reports_dir: volatility_transition
+  instrument_classes:
+  - crypto
+  - futures
+  requires_features: []
+  sequence_eligible: true
+  runtime_tags:
+  - vol_regime
+  - high_urgency
+semantics:
+  cluster_id: vol_regime
+  notes: Canonical realized-volatility expansion onset.
+  precedence_rank: 0
+interaction:
+  suppresses: []
+  suppressed_by: []
+routing: {}

@@ -290,8 +290,9 @@ def test_cli_promote_run_delegates_without_compatibility_bridge(monkeypatch):
         "symbols": "BTCUSDT",
         "out_dir": None,
         "retail_profile": "capital_constrained",
+        "promotion_profile": "auto",
+        "require_forward_confirmation": None,
     }
-
 
 def test_cli_promote_run_rejects_compatibility_bridge_flag(monkeypatch, capsys):
     cli = _load_cli_module()

@@ -5,6 +5,11 @@ CLI := PYTHONPATH=$(PYTHONPATH) $(PYTHON) -m project.cli
 RUN_ID ?=
 PROPOSAL ?=
 FIRST_EDGE_PROPOSAL ?= spec/proposals/single_event_liquidation_exhaustion_reversal_bounce_h24_v1.yaml
+DEFAULT_CELL_SPEC_DIR ?= spec/discovery
+FIRST_EDGE_SPEC_DIR ?= spec/discovery/tier2_liquidation_exhaustion_focused_v1
+SPEC_DIR ?= $(DEFAULT_CELL_SPEC_DIR)
+SEARCH_BUDGET ?=
+ASSEMBLE_LIMIT ?= 20
 PROMOTION_PROFILE ?= research
 TOP_K ?= 10
 SYMBOLS ?= BTCUSDT,ETHUSDT
@@ -16,11 +21,10 @@ OUT_DIR ?= project/configs
 CONFIG ?=
 RUNTIME_MODE ?= monitor_only
 REGISTRY_ROOT ?= project/configs/registries
-SPEC_DIR ?= spec/discovery
 EXECUTE ?= 0
 RUNTIME_MAX_ROWS ?= 500
 
-.PHONY: help first-edge discover discover-plan list-artifacts summarize explain-empty proposal-inspect \
+.PHONY: help first-edge discover discover-proposal-plan discover-proposal list-artifacts summarize summarize-proposal explain-empty proposal-inspect \
 	validate promote export bind-config paper-run live-run deploy-status list-theses \
 	deploy-paper check-domain-graph domain-graph check-registry-sync benchmark-supported-path \
 	discover-cells-verify discover-cells-plan discover-cells-run \
@@ -30,10 +34,12 @@ RUNTIME_MAX_ROWS ?= 500
 help:
 	@printf '%s\n' \
 	  'Canonical stage targets:' \
-	  '  make first-edge RUN_ID=<run_id> DATA_ROOT=<lake> [PROPOSAL=...] [PROMOTION_PROFILE=research|deploy|disabled]' \
-	  '  make discover PROPOSAL=<proposal.yaml> RUN_ID=<run_id> [DATA_ROOT=...] [REGISTRY_ROOT=...]' \
+	  '  make first-edge RUN_ID=<run_id> DATA_ROOT=<lake> START=<start> END=<end> [PROMOTION_PROFILE=research|deploy|disabled]' \
+	  '  make discover RUN_ID=<run_id> START=<start> END=<end> [DATA_ROOT=...] [SPEC_DIR=...] [REGISTRY_ROOT=...]' \
+	  '  make discover-proposal PROPOSAL=<proposal.yaml> RUN_ID=<run_id> [DATA_ROOT=...] [REGISTRY_ROOT=...]' \
 	  '  make list-artifacts RUN_ID=<run_id> [DATA_ROOT=...]' \
-	  '  make summarize RUN_ID=<run_id> [DATA_ROOT=...] [TOP_K=10]' \
+	  '  make summarize RUN_ID=<run_id> [DATA_ROOT=...]' \
+	  '  make summarize-proposal RUN_ID=<run_id> [DATA_ROOT=...] [TOP_K=10]' \
 	  '  make explain-empty RUN_ID=<run_id> [DATA_ROOT=...]' \
 	  '  make proposal-inspect PROPOSAL=<proposal.yaml> [RUN_ID=<run_id>] [DATA_ROOT=...]' \
 	  '  make validate RUN_ID=<run_id> [DATA_ROOT=...]' \
@@ -88,26 +94,42 @@ domain-graph:
 	@PYTHONPATH=$(PYTHONPATH) $(PYTHON) project/scripts/build_domain_graph.py
 	@PYTHONPATH=$(PYTHONPATH) $(PYTHON) project/scripts/check_domain_graph_freshness.py
 
-discover-plan:
+discover-proposal-plan:
 	@test -n "$(PROPOSAL)" || (echo 'PROPOSAL is required' >&2; exit 2)
 	@$(CLI) discover plan --proposal "$(PROPOSAL)" $(if $(RUN_ID),--run_id "$(RUN_ID)",) $(if $(DATA_ROOT),--data_root "$(DATA_ROOT)",) --registry_root "$(REGISTRY_ROOT)"
+
+discover-plan: discover-proposal-plan
 
 first-edge:
 	@test -n "$(RUN_ID)" || (echo 'RUN_ID is required' >&2; exit 2)
 	@test -n "$(DATA_ROOT)" || (echo 'DATA_ROOT is required (lake mount)' >&2; exit 2)
-	@$(CLI) discover run --proposal "$(if $(PROPOSAL),$(PROPOSAL),$(FIRST_EDGE_PROPOSAL))" --run_id "$(RUN_ID)" --data_root "$(DATA_ROOT)" --registry_root "$(REGISTRY_ROOT)" --promotion_profile "$(PROMOTION_PROFILE)"
-	@$(CLI) discover list-artifacts --run_id "$(RUN_ID)" --data_root "$(DATA_ROOT)"
-	@$(CLI) discover summarize --run_id "$(RUN_ID)" --data_root "$(DATA_ROOT)" --top_k "$(TOP_K)"
+	@test -n "$(START)" || (echo 'START is required' >&2; exit 2)
+	@test -n "$(END)" || (echo 'END is required' >&2; exit 2)
+	@$(CLI) discover cells run --run_id "$(RUN_ID)" --symbols "$(SYMBOLS)" --timeframe "$(TIMEFRAME)" --start "$(START)" --end "$(END)" --data_root "$(DATA_ROOT)" --spec_dir "$(FIRST_EDGE_SPEC_DIR)" --registry_root "$(REGISTRY_ROOT)" $(if $(SEARCH_BUDGET),--search_budget "$(SEARCH_BUDGET)",)
+	@$(CLI) discover cells summarize --run_id "$(RUN_ID)" --data_root "$(DATA_ROOT)"
+	@$(CLI) discover cells assemble-theses --run_id "$(RUN_ID)" --data_root "$(DATA_ROOT)" --limit "$(ASSEMBLE_LIMIT)"
 
 discover:
+	@test -n "$(RUN_ID)" || (echo 'RUN_ID is required' >&2; exit 2)
+	@test -n "$(START)" || (echo 'START is required' >&2; exit 2)
+	@test -n "$(END)" || (echo 'END is required' >&2; exit 2)
+	@$(CLI) discover cells run --run_id "$(RUN_ID)" --symbols "$(SYMBOLS)" --timeframe "$(TIMEFRAME)" --start "$(START)" --end "$(END)" --spec_dir "$(SPEC_DIR)" --registry_root "$(REGISTRY_ROOT)" $(if $(DATA_ROOT),--data_root "$(DATA_ROOT)",) $(if $(SEARCH_BUDGET),--search_budget "$(SEARCH_BUDGET)",)
+	@$(CLI) discover cells summarize --run_id "$(RUN_ID)" $(if $(DATA_ROOT),--data_root "$(DATA_ROOT)",)
+	@$(CLI) discover cells assemble-theses --run_id "$(RUN_ID)" $(if $(DATA_ROOT),--data_root "$(DATA_ROOT)",) --limit "$(ASSEMBLE_LIMIT)"
+
+discover-proposal:
 	@test -n "$(PROPOSAL)" || (echo 'PROPOSAL is required' >&2; exit 2)
-	@$(CLI) discover run --proposal "$(PROPOSAL)" $(if $(RUN_ID),--run_id "$(RUN_ID)",) $(if $(DATA_ROOT),--data_root "$(DATA_ROOT)",) --registry_root "$(REGISTRY_ROOT)"
+	@$(CLI) discover run --proposal "$(PROPOSAL)" $(if $(RUN_ID),--run_id "$(RUN_ID)",) $(if $(DATA_ROOT),--data_root "$(DATA_ROOT)",) --registry_root "$(REGISTRY_ROOT)" $(if $(PROMOTION_PROFILE),--promotion_profile "$(PROMOTION_PROFILE)",)
 
 list-artifacts:
 	@test -n "$(RUN_ID)" || (echo 'RUN_ID is required' >&2; exit 2)
 	@$(CLI) discover list-artifacts --run_id "$(RUN_ID)" $(if $(DATA_ROOT),--data_root "$(DATA_ROOT)",)
 
 summarize:
+	@test -n "$(RUN_ID)" || (echo 'RUN_ID is required' >&2; exit 2)
+	@$(CLI) discover cells summarize --run_id "$(RUN_ID)" $(if $(DATA_ROOT),--data_root "$(DATA_ROOT)",)
+
+summarize-proposal:
 	@test -n "$(RUN_ID)" || (echo 'RUN_ID is required' >&2; exit 2)
 	@$(CLI) discover summarize --run_id "$(RUN_ID)" $(if $(DATA_ROOT),--data_root "$(DATA_ROOT)",) --top_k "$(TOP_K)"
 

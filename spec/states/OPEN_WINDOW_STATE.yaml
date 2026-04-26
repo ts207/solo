@@ -1,0 +1,12 @@
+version: 1
+kind: state_definition
+state_id: OPEN_WINDOW_STATE
+family: TEMPORAL_STRUCTURE
+source_event_type: SESSION_OPEN_EVENT
+activation_rule: elapsed_minutes_from_open <= open_window
+decay_rule: exit when elapsed_minutes_from_open > open_window
+features_required:
+- timestamp
+allowed_templates:
+- mean_reversion
+- volatility_expansion_follow

@@ -80,9 +80,11 @@ edge discover run --proposal spec/proposals/other.yaml --run_id <existing_run_id
 The Make wrappers are:
 
 ```bash
-make discover-plan PROPOSAL=spec/proposals/canonical_event_hypothesis.yaml RUN_ID=<run_id>
-make discover PROPOSAL=spec/proposals/canonical_event_hypothesis.yaml RUN_ID=<run_id>
+make discover RUN_ID=<run_id> START=<start> END=<end> [DATA_ROOT=...]
+make discover-proposal PROPOSAL=spec/proposals/canonical_event_hypothesis.yaml RUN_ID=<run_id>
 ```
+
+`make discover` defaults to cell discovery through `edge discover cells run`. Use `make discover-proposal` to run a specific structured proposal YAML.
 
 ## Important Behavior
 

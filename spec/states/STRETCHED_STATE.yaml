@@ -1,0 +1,13 @@
+version: 1
+kind: state_definition
+state_id: STRETCHED_STATE
+family: STATISTICAL_DISLOCATION
+source_event_type: ZSCORE_STRETCH
+activation_rule: abs(zscore) >= stretch_threshold
+decay_rule: exit when abs(zscore) < normalization_threshold
+features_required:
+- zscore
+allowed_templates:
+- mean_reversion
+- overshoot_repair
+- tail_risk_avoid

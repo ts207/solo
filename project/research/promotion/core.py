@@ -30,19 +30,19 @@ from project.research.promotion.promotion_gate_evaluators import (
     _evaluate_market_execution_and_stability,
 )
 from project.research.promotion.promotion_reporting import (
-    apply_portfolio_overlap_gate,
-    assign_and_validate_promotion_tiers,
     build_negative_control_diagnostics,
-    build_promotion_capital_footprint,
     build_promotion_statistical_audit,
-    portfolio_diversification_violations,
 )
 from project.research.promotion.promotion_reporting_support import (
+    apply_portfolio_overlap_gate,
+    assign_and_validate_promotion_tiers,
     behavior_key,
     behavior_overlap_score,
     behavior_token_set,
+    build_promotion_capital_footprint,
     delay_profile_correlation,
     delay_profile_map,
+    portfolio_diversification_violations,
     resolve_promotion_tier,
     stabilize_promoted_output_schema,
 )

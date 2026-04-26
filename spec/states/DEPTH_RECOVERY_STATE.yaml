@@ -1,0 +1,13 @@
+version: 1
+kind: state_definition
+state_id: DEPTH_RECOVERY_STATE
+family: LIQUIDITY_DISLOCATION
+source_event_type: DEPTH_COLLAPSE
+activation_rule: depth_recovery_ratio in (recovery_min, recovery_max)
+decay_rule: exit when depth_recovery_ratio >= recovery_max OR elapsed_bars > max_horizon
+features_required:
+- market_depth
+allowed_templates:
+- pullback_entry
+- continuation
+- mean_reversion

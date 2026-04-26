@@ -1,0 +1,22 @@
+feature_family: trend_exhaustion
+version: 1.0.0
+base_timeframe: 15m
+inputs:
+  - dataset: perp_ohlcv_15m
+    columns: [close, volume]
+  - dataset: um_open_interest_hist
+    columns: [sum_open_interest]
+features:
+  - name: trend_age
+    description: Consecutive-bar count of the current directional trend
+    formula: count(consecutive bars above_or_below_ema)
+    params: {ema_window: 20}
+  - name: oi_z
+    description: Z-score of open-interest change
+    formula: (delta_oi - mean(delta_oi)) / std(delta_oi)
+    params: {window: 288}
+  - name: directional_streak
+    description: Consecutive count of same-sign returns
+    formula: count(consecutive signs of returns)
+provenance:
+  pit_constraint: "asof <= t0"

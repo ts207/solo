@@ -33,23 +33,15 @@ The repo has two operator paths (the second is the current priority):
 Zero → first edge (lake mounted):
 
 ```bash
-make first-edge RUN_ID=liq_h24_01 DATA_ROOT=$LAKE
-make explain-empty RUN_ID=liq_h24_01 DATA_ROOT=$LAKE
-make validate RUN_ID=liq_h24_01 DATA_ROOT=$LAKE
-```
-
-Inspect before running:
-
-```bash
-edge proposal inspect --proposal spec/proposals/single_event_liquidation_exhaustion_reversal_bounce_h24_v1.yaml --run_id liq_h24_01 --data_root $LAKE
+make first-edge RUN_ID=liq_cells_01 DATA_ROOT=$LAKE START=2024-01-01 END=2025-12-31
+make validate RUN_ID=liq_cells_01 DATA_ROOT=$LAKE
 ```
 
 Interpret results after discovery:
 
 ```bash
-edge discover list-artifacts --run_id liq_h24_01 --data_root $LAKE
-edge discover summarize --run_id liq_h24_01 --data_root $LAKE
-edge discover explain-empty --run_id liq_h24_01 --data_root $LAKE
+edge discover cells summarize --run_id liq_cells_01 --data_root $LAKE
+edge discover cells assemble-theses --run_id liq_cells_01 --data_root $LAKE
 ```
 
 Trade an existing thesis:
@@ -62,7 +54,11 @@ edge deploy paper-run --config project/configs/live_paper_<run_id>.yaml
 Discover then trade:
 
 ```bash
-edge discover run --proposal spec/proposals/<proposal>.yaml --run_id <run_id> --data_root <lake>
+edge discover cells run --run_id <run_id> --data_root <lake> --start <start> --end <end>
+edge discover cells summarize --run_id <run_id>
+edge discover cells assemble-theses --run_id <run_id>
+# generated proposals in data/runs/<run_id>/generated_proposals/
+edge discover run --proposal data/runs/<run_id>/generated_proposals/<proposal>.yaml --run_id <run_id>
 edge validate run --run_id <run_id>
 edge promote run --run_id <run_id> --symbols BTCUSDT
 edge deploy bind-config --run_id <run_id>
@@ -72,11 +68,8 @@ edge deploy paper-run --config project/configs/live_paper_<run_id>.yaml
 Makefile front door:
 
 ```bash
-make first-edge RUN_ID=<run_id> DATA_ROOT=<lake> [PROPOSAL=spec/proposals/...yaml] [PROMOTION_PROFILE=research|deploy|disabled]
-make discover PROPOSAL=spec/proposals/<proposal>.yaml RUN_ID=<run_id>
-make list-artifacts RUN_ID=<run_id>
-make summarize RUN_ID=<run_id>
-make explain-empty RUN_ID=<run_id>
+make first-edge RUN_ID=<run_id> DATA_ROOT=<lake> START=<start> END=<end> [PROMOTION_PROFILE=research|deploy|disabled]
+make discover RUN_ID=<run_id> START=<start> END=<end> [DATA_ROOT=...]
 make validate RUN_ID=<run_id>
 make promote RUN_ID=<run_id> SYMBOLS=BTCUSDT
 make export RUN_ID=<run_id>
@@ -88,7 +81,7 @@ make paper-run CONFIG=project/configs/live_paper_<run_id>.yaml
 
 Stage 1 — first candidate
 
-- Run one proposal and use `discover summarize` / `discover explain-empty`.
+- Run cell discovery and use `discover cells summarize` / `assemble-theses`.
 
 Stage 2 — validated candidate
 

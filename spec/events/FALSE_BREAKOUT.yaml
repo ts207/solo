@@ -1,0 +1,65 @@
+event_type: FALSE_BREAKOUT
+synthetic_coverage: covered
+reports_dir: trend_structure
+events_file: trend_structure_events.parquet
+signal_column: false_breakout_event
+parameters:
+  trend_window: 288
+  max_range_ratio: 8.0
+  breakout_z_threshold: 2.5
+  cooldown_bars: 12
+  merge_gap_bars: 0
+research_family: TREND_STRUCTURE
+trigger: Detector triggers on false breakout pattern
+confirmation: Post-detection price action confirms signal validity
+expected_behavior:
+  holding_horizon_bars: 12-48
+  invalidation_conditions:
+  - Trend reverses within holding period
+  - Range expands significantly beyond breakout level
+  disabled_regimes:
+  - 'Chop regime: no clear trend direction'
+cluster_id: trend_momentum
+identity:
+  canonical_regime: TREND_FAILURE_EXHAUSTION
+  subtype: false_breakout
+  phase: failure
+  evidence_mode: hybrid
+  layer: canonical
+  disposition: merge
+  asset_scope: single_asset
+  venue_scope: single_venue
+governance:
+  event_kind: market_event
+  default_executable: true
+  research_only: false
+  strategy_only: false
+  context_tag: false
+  is_composite: false
+  maturity: ''
+  tier: B
+  operational_role: trigger
+  deployment_disposition: secondary_or_confirm
+  runtime_category: active_runtime_event
+runtime:
+  detector: FalseBreakoutDetector
+  enabled: true
+  signal_column: false_breakout_event
+  events_file: trend_structure_events.parquet
+  reports_dir: trend_structure
+  instrument_classes:
+  - crypto
+  - futures
+  requires_features: []
+  sequence_eligible: true
+  runtime_tags:
+  - trend_momentum
+  - exhaustion
+semantics:
+  cluster_id: trend_momentum
+  notes: Breakout failure surface under trend failure/exhaustion.
+  precedence_rank: 0
+interaction:
+  suppresses: []
+  suppressed_by: []
+routing: {}

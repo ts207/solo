@@ -1,0 +1,21 @@
+version: 1
+kind: state_ontology_spec
+metadata:
+  status: generated
+  authored_source: spec/states/ILLIQUID_EXECUTION_STATE.yaml
+  generated_notice: GENERATED FILE - DO NOT EDIT
+  generated_from: spec/states/*.yaml
+state_id: ILLIQUID_EXECUTION_STATE
+family: EXECUTION_FRICTION
+source_event_type: SLIPPAGE_SPIKE_EVENT
+activation_rule: slippage spike above threshold
+decay_rule: exit when slippage returns below threshold
+allowed_templates:
+- slippage_aware_filter
+- tail_risk_avoid
+- only_if_liquidity
+state_scope: source_only
+min_events: 200
+features_required:
+- slippage_bps
+- market_depth

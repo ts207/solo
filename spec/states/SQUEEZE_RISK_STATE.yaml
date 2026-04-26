@@ -1,0 +1,16 @@
+version: 1
+kind: state_definition
+state_id: SQUEEZE_RISK_STATE
+family: POSITIONING_EXTREMES
+source_event_type: OI_SPIKE_POSITIVE
+activation_rule: crowding_state=1 AND vol_pct >= p75
+decay_rule: exit when crowding_state=0
+features_required:
+- oi_notional
+- funding_rate_scaled
+- rv_96
+allowed_templates:
+- reversal_or_squeeze
+- continuation
+- only_if_oi
+- only_if_funding

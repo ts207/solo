@@ -1,0 +1,63 @@
+event_type: OI_FLUSH
+synthetic_coverage: covered
+reports_dir: oi_shocks
+events_file: oi_shock_events.parquet
+signal_column: oi_flush_event
+parameters:
+  oi_window: 96
+  spike_z_th: 2.5
+  flush_pct_th: -0.02
+research_family: POSITIONING_EXTREMES
+trigger: Detector triggers on oi flush pattern
+confirmation: Post-detection price action confirms signal validity
+expected_behavior:
+  holding_horizon_bars: 4-24
+  invalidation_conditions:
+  - Position unwinds within expected horizon
+  - Funding reverses sign
+  disabled_regimes:
+  - 'Low liquidity regime: OI/vol signals unreliable'
+cluster_id: oi_dynamic
+identity:
+  canonical_regime: POSITIONING_UNWIND_DELEVERAGING
+  subtype: oi_flush
+  phase: unwind
+  evidence_mode: direct
+  layer: canonical
+  disposition: merge
+  asset_scope: single_asset
+  venue_scope: single_venue
+governance:
+  event_kind: market_event
+  default_executable: true
+  research_only: false
+  strategy_only: false
+  context_tag: false
+  is_composite: false
+  maturity: ''
+  tier: B
+  operational_role: trigger
+  deployment_disposition: secondary_or_confirm
+  runtime_category: active_runtime_event
+runtime:
+  detector: OIFlushDetector
+  enabled: true
+  signal_column: oi_flush_event
+  events_file: oi_shock_events.parquet
+  reports_dir: oi_shocks
+  instrument_classes:
+  - crypto
+  - futures
+  requires_features: []
+  sequence_eligible: true
+  runtime_tags:
+  - oi_dynamic
+  - high_urgency
+semantics:
+  cluster_id: oi_dynamic
+  notes: OI flush folded into unwind/deleveraging regime.
+  precedence_rank: 0
+interaction:
+  suppresses: []
+  suppressed_by: []
+routing: {}

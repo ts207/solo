@@ -1,0 +1,14 @@
+version: 1
+kind: state_definition
+state_id: ILLIQUID_EXECUTION_STATE
+family: EXECUTION_FRICTION
+source_event_type: SLIPPAGE_SPIKE_EVENT
+activation_rule: slippage spike above threshold
+decay_rule: exit when slippage returns below threshold
+features_required:
+- slippage_bps
+- market_depth
+allowed_templates:
+- slippage_aware_filter
+- tail_risk_avoid
+- only_if_liquidity

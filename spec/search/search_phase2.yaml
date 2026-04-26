@@ -1,0 +1,34 @@
+version: 1
+kind: search_spec
+metadata:
+  phase: 2
+  description: 'Context expansion: full context expansion for all searchable families.'
+search_mode: subset
+subset_rationale: Phase 2 full trigger-context cross-products.
+triggers:
+  event_families:
+  - LIQUIDITY_DISLOCATION
+  - VOLATILITY_TRANSITION
+  - POSITIONING_EXTREMES
+  - FORCED_FLOW_AND_EXHAUSTION
+  - TREND_STRUCTURE
+  state_families:
+  - LIQUIDITY_DISLOCATION
+  - VOLATILITY_TRANSITION
+  - POSITIONING_EXTREMES
+  - TREND_STRUCTURE
+  - STATISTICAL_DISLOCATION
+contexts:
+  vol_regime: '*'
+  carry_state: '*'
+  ms_trend_state: '*'
+horizons:
+- 15m
+- 60m
+directions:
+- long
+- short
+entry_lag: '*'
+cost_profiles:
+- standard
+expression_templates: '*'

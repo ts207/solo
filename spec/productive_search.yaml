@@ -1,0 +1,50 @@
+version: 1
+kind: search_space
+metadata:
+  phase: tier1_default
+  description: Overridden search surface for reliable candidate generation
+  search_tier: tier1
+  default_symbols:
+    - BTCUSDT
+triggers:
+  events:
+    - VOL_SHOCK
+    - RANGE_BREAKOUT
+horizons:
+  - 12b
+directions:
+  - long
+  - short
+entry_lag: 1
+cost_profiles:
+  - standard
+expression_templates:
+  - continuation
+filter_templates: []
+execution_templates: []
+include_sequences: false
+include_interactions: false
+
+discovery_search:
+  mode: flat
+  trigger_viability:
+    enabled: true
+    max_templates: 1
+    max_horizons: 1
+    max_entry_lags: 1
+    allow_both_directions: true
+    min_stage_score: 0.0
+  template_refinement:
+    enabled: false
+  execution_refinement:
+    enabled: false
+  context_refinement:
+    enabled: false
+
+# Override the phase 2 test statistic parameter
+test_statistic:
+  min_n: 5
+  min_t_stat: 0.0
+
+discovery_selection:
+  mode: off

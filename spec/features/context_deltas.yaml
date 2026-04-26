@@ -1,0 +1,19 @@
+feature_family: context_deltas
+version: 1.0.0
+base_timeframe: 1m
+inputs:
+  - dataset: perp_ohlcv_1m
+    columns: [close]
+  - dataset: basis_1m
+    columns: [basis_bps]
+features:
+  - name: vol_accel
+    description: Short-horizon volatility acceleration against the daily baseline
+    formula: rv_1h / rv_24h
+    params: {short_window: 60, long_window: 1440}
+  - name: basis_v
+    description: Velocity of basis dislocation over a fixed lookback horizon
+    formula: (basis_t - basis_{t-h}) / h
+    params: {horizon_bars: 12}
+provenance:
+  pit_constraint: "asof <= t0"

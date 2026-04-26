@@ -1,0 +1,4 @@
+concept_id: C_VALIDATION
+title: Validation
+canonical_stage_script: project/research/phase2_search_engine.py
+summary: Validation concepts anchor to the canonical planner-owned discovery stage.

@@ -1,0 +1,118 @@
+version: 1
+kind: event
+event_type: CROSS_ASSET_DESYNC_EVENT
+synthetic_coverage: covered
+reports_dir: cross_asset_desync_event
+events_file: cross_asset_desync_event_events.parquet
+signal_column: cross_asset_desync_event
+research_family: CROSS_ASSET_DESYNCHRONIZATION
+detector_contract: true
+description: Cross-asset desynchronization between a primary asset and an explicitly
+  paired reference asset.
+causal_mechanism: When two historically linked assets stop moving together, one leg
+  may be lagging price discovery or absorbing flow asymmetrically. The contract only
+  fires when the divergence is observed on paired data; it never degrades into a single-asset
+  anomaly label.
+parameters:
+  lookback_window: 2880
+  threshold_z: 3.0
+  min_pair_observations: 96
+  cooldown_bars: 24
+detector:
+  signal_definition: Detect a paired cross-asset spread dislocation using synchronized
+    close series for the target asset and its declared paired asset.
+  formula: 'ret_a[i] = log(close[i] / close[i-1])
+
+    ret_b[i] = log(pair_close[i] / pair_close[i-1])
+
+    basis[i] = ret_a[i] - ret_b[i]
+
+    desync_z[i] = zscore(basis, lookback_window)[i]
+
+    onset[i] = abs(desync_z[i]) >= threshold_z AND abs(desync_z[i-1]) < threshold_z'
+  required_columns:
+  - timestamp
+  - close
+  - pair_close
+  lookback_bars: 2880
+  warmup_bars: 96
+  bar_type: bar_close
+  timestamp_alignment: Event detected at bar close on the first paired bar that breaches
+    the declared desynchronization threshold.
+  minimum_sample_size: 96
+calibration:
+  default_threshold: 3.0
+  search_range:
+  - 2.0
+  - 2.5
+  - 3.0
+  - 3.5
+  - 4.0
+  calibration_target: Select the smallest threshold that preserves pair-specific stability
+    while maintaining acceptable event counts across major pairs.
+  stability_requirement: Threshold must remain within one z-score step across calibration
+    splits for the same pair universe.
+  failure_modes:
+  - Missing paired series: detector disabled and emits no event
+  - Pair definition drift: apparent spread may reflect a bad pair mapping rather than
+      true desync
+  - Stale reference feed: spread inflation is a data artifact
+expected_behavior:
+  holding_horizon_bars: 1-24
+  invalidation_conditions:
+  - Paired spread mean-reverts below 1.0 z-score before follow-through develops
+  - Pair relationship breaks structurally because the reference asset regime changed
+  false_positive_scenarios:
+  - Pair close derived from asynchronous venues
+  - Single-asset shock incorrectly joined to a stale paired series
+  disabled_regimes:
+  - SCHEDULED_NEWS_WINDOW_EVENT active on only one leg: flow is event-specific rather
+      than cross-asset desync
+  - Missing pair_close coverage: event meaning cannot be proven
+  expected_overlap:
+  - CROSS_VENUE_DESYNC: can co-occur when one asset also splits across venues
+  - VOL_SHOCK: moderate overlap when pair divergence emerges during volatility regime
+      shifts
+identity:
+  canonical_regime: CROSS_ASSET_DESYNCHRONIZATION
+  subtype: cross_asset_desync
+  phase: divergence
+  evidence_mode: inferred_cross_asset
+  layer: canonical
+  disposition: keep
+  asset_scope: cross_asset
+  venue_scope: multi_venue
+governance:
+  event_kind: market_event
+  default_executable: true
+  research_only: false
+  strategy_only: false
+  context_tag: false
+  is_composite: false
+  maturity: ''
+  tier: C
+  operational_role: filter
+  deployment_disposition: repair_before_promotion
+  runtime_category: active_runtime_event
+runtime:
+  detector: CrossAssetDesyncDetector
+  enabled: true
+  signal_column: cross_asset_desync_event
+  events_file: cross_asset_desync_event_events.parquet
+  reports_dir: cross_asset_desync_event
+  instrument_classes:
+  - crypto
+  - futures
+  requires_features: []
+  sequence_eligible: true
+  runtime_tags:
+  - desync
+semantics:
+  summary: Cross-asset desynchronization between a primary asset and an explicitly
+    paired reference asset.
+  notes: First-class cross-asset desynchronization regime.
+  precedence_rank: 0
+interaction:
+  suppresses: []
+  suppressed_by: []
+routing: {}

@@ -61,10 +61,10 @@ PYTHONPATH=. ./.venv/bin/python project/scripts/build_domain_graph.py
 ## Current Canonical Commands
 
 ```bash
-edge discover plan --proposal spec/proposals/canonical_event_hypothesis.yaml
-edge discover run --proposal spec/proposals/canonical_event_hypothesis.yaml
-edge discover cells coverage-audit
-edge discover cells spec-audit --spec_dir spec/discovery/<surface>
+edge discover cells run --run_id <run_id> --start <start> --end <end>
+edge discover cells summarize --run_id <run_id>
+edge discover cells assemble-theses --run_id <run_id>
+edge discover run --proposal <generated_proposal.yaml> --run_id <run_id>
 edge validate run --run_id <run_id>
 edge promote run --run_id <run_id> --symbols BTCUSDT
 edge promote export --run_id <run_id>

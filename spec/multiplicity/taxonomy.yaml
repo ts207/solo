@@ -1,0 +1,741 @@
+schema_version: 3
+ontology_model: event_state_template
+
+# Mechanism clusters for FDR grouping (q_value_mechanism gate)
+# Maps primary mechanism tag -> cluster description
+# Synchronized with tags in project/configs/registries/events.yaml
+mechanism_clusters:
+  funding_crowding:
+    description: "Funding rate extremes, carry persistence, funding normalization dynamics"
+    events:
+      - "FUNDING_EXTREME_ONSET"
+      - "FUNDING_FLIP"
+      - "FUNDING_NORMALIZATION_TRIGGER"
+      - "FUNDING_PERSISTENCE_TRIGGER"
+      - "SEQ_FND_EXTREME_THEN_BREAKOUT"
+  oi_dynamic:
+    description: "Open interest spikes, flushes, and OI/vol compression breakouts"
+    events:
+      - "OI_FLUSH"
+      - "OI_SPIKE_POSITIVE"
+      - "OI_SPIKE_NEGATIVE"
+      - "VOL_COMPRESSION_BREAKOUT"
+      - "SEQ_OI_SPIKEPOS_THEN_VOL_SPIKE"
+  forced_liquidation:
+    description: "Liquidation cascades, deleveraging waves, exhaustion reversals"
+    events:
+      - "LIQUIDATION_CASCADE"
+      - "LIQUIDATION_EXHAUSTION_REVERSAL"
+      - "DELEVERAGING_WAVE"
+      - "SEQ_LIQ_CASCADE_THEN_EXHAUST"
+  liquidity_stress:
+    description: "Liquidity vacuum, shock, depth collapse, spread blowout, gap prints"
+    events:
+      - "LIQUIDITY_VACUUM"
+      - "LIQUIDITY_SHOCK"
+      - "DEPTH_COLLAPSE"
+      - "SPREAD_BLOWOUT"
+      - "LIQUIDITY_GAP_PRINT"
+      - "SEQ_LIQ_VACUUM_THEN_DEPTH_RECOVERY"
+  orderflow_imbalance:
+    description: "Orderflow shock, sweep/stop-run dynamics"
+    events:
+      - "ORDERFLOW_IMBALANCE_SHOCK"
+      - "SWEEP_STOPRUN"
+  absorption_recovery:
+    description: "Absorption events and post-stress recovery signals"
+    events:
+      - "ABSORPTION_EVENT"
+  basis_dislocation:
+    description: "Basis disloc, snapback, cross-venue catchup, funding disloc"
+    events:
+      - "BASIS_DISLOC"
+      - "BASIS_SNAPBACK"
+      - "CROSS_VENUE_CATCHUP"
+      - "FND_DISLOC"
+      - "COPULA_PAIRS_TRADING"
+  statistical_stretch:
+    description: "Z-score stretch, band break, gap overshoot, overshoot after shock"
+    events:
+      - "BAND_BREAK"
+      - "ZSCORE_STRETCH"
+      - "GAP_OVERSHOOT"
+      - "OVERSHOOT_AFTER_SHOCK"
+  vol_regime:
+    description: "Vol shock, spike, relaxation start, cluster shift, compression end"
+    events:
+      - "VOL_SHOCK"
+      - "VOL_SPIKE"
+      - "VOL_RELAXATION_START"
+      - "VOL_CLUSTER_SHIFT"
+      - "RANGE_COMPRESSION_END"
+      - "BREAKOUT_TRIGGER"
+      - "SEQ_VOL_COMP_THEN_BREAKOUT"
+  trend_momentum:
+    description: "Trend acceleration, deceleration, breakout, pullback pivot, S/R break"
+    events:
+      - "TREND_ACCELERATION"
+      - "TREND_DECELERATION"
+      - "RANGE_BREAKOUT"
+      - "PULLBACK_PIVOT"
+      - "SUPPORT_RESISTANCE_BREAK"
+      - "BREAKOUT_TRIGGER"
+      - "CHOP_TO_TREND_SHIFT"
+      - "TREND_TO_CHOP_SHIFT"
+      - "TREND_EXHAUSTION_TRIGGER"
+  exhaustion:
+    description: "Climax volume, failed continuation, momentum/trend exhaustion"
+    events:
+      - "CLIMAX_VOLUME_BAR"
+      - "FAILED_CONTINUATION"
+      - "MOMENTUM_DIVERGENCE_TRIGGER"
+      - "TREND_EXHAUSTION_TRIGGER"
+      - "FORCED_FLOW_EXHAUSTION"
+  regime_shift:
+    description: "Regime transitions: vol, trend/chop, beta, correlation"
+    events:
+      - "BETA_SPIKE_EVENT"
+      - "CHOP_TO_TREND_SHIFT"
+      - "CORRELATION_BREAKDOWN_EVENT"
+      - "TREND_TO_CHOP_SHIFT"
+      - "VOL_REGIME_SHIFT_EVENT"
+  desync:
+    description: "Cross-venue desync, lead-lag break, spot/perp basis shock"
+    events:
+      - "CROSS_VENUE_DESYNC"
+      - "INDEX_COMPONENT_DIVERGENCE"
+      - "LEAD_LAG_BREAK"
+      - "SPOT_PERP_BASIS_SHOCK"
+  temporal_anchor:
+    description: "Session open/close, funding timestamp, scheduled news"
+    events:
+      - "SESSION_OPEN_EVENT"
+      - "SESSION_CLOSE_EVENT"
+      - "FUNDING_TIMESTAMP_EVENT"
+      - "SCHEDULED_NEWS_WINDOW_EVENT"
+  execution_cost:
+    description: "Fee regime changes, slippage spikes, spread regime widening"
+    events:
+      - "FEE_REGIME_CHANGE_EVENT"
+      - "SLIPPAGE_SPIKE_EVENT"
+      - "SPREAD_REGIME_WIDENING_EVENT"
+  proxy:
+    description: "Proxy/derived signals for absorption and related mechanics"
+    events:
+      - "ABSORPTION_EVENT"
+  untagged:
+    description: "Events without assigned mechanism tags"
+    events: []
+
+# Lifecycle states for all events:
+#   active       - spec + implementation + taxonomy all present; covered by validate_synthetic_detector_truth
+#   experimental - implemented but under evaluation; not yet production-qualified
+#   deprecated   - removed from active research; retained for audit trail only
+#   candidate    - in taxonomy spec but not yet implemented
+#
+# canonical_events = events where lifecycle == active
+# taxonomy_events  = all events listed in families (any lifecycle)
+#
+# IMPORTANT: Template allow-lists here are retained for ontology/backward compatibility only.
+# The authoritative runtime template configuration is spec/templates/registry.yaml.
+# Canonical template verb lexicon lives in spec/hypotheses/template_verb_lexicon.yaml.
+# `templates` is the broad family allow-list. `runtime_templates` keeps an optional
+# conservative subset for current execution paths.
+families:
+  LIQUIDITY_DISLOCATION:
+    description: "Microstructure imbalance and liquidity withdrawal/recovery dynamics."
+    events:
+      - event_id: "LIQUIDITY_VACUUM"
+        lifecycle: active
+      - event_id: "LIQUIDITY_SHOCK"
+        lifecycle: active
+      - event_id: "DEPTH_COLLAPSE"
+        lifecycle: active
+        maturity: standard
+      - event_id: "SPREAD_BLOWOUT"
+        lifecycle: active
+      - event_id: "ORDERFLOW_IMBALANCE_SHOCK"
+        lifecycle: active
+        maturity: standard
+      - event_id: "SWEEP_STOPRUN"
+        lifecycle: active
+        maturity: standard
+      - event_id: "DEPTH_RECOVERY_EVENT"
+        lifecycle: deprecated
+        deprecation_note: "Orphaned - DirectLiquidityStressDetector produces LIQUIDITY_STRESS_DIRECT, not recovery"
+      - event_id: "ABSORPTION_EVENT"
+        lifecycle: deprecated
+        deprecation_note: "Superseded by ABSORPTION_PROXY."
+      - event_id: "ABSORPTION_PROXY"
+        lifecycle: active
+        maturity: standard
+      - event_id: "DEPTH_STRESS_PROXY"
+        lifecycle: active
+        maturity: standard
+      - event_id: "LIQUIDITY_GAP_PRINT"
+        lifecycle: experimental
+      - event_id: "LIQUIDITY_STRESS_DIRECT"
+        lifecycle: active
+      - event_id: "LIQUIDITY_STRESS_PROXY"
+        lifecycle: active
+        maturity: standard
+    states:
+      - "LOW_LIQUIDITY_STATE"
+      - "REFILL_LAG_STATE"
+      - "LIQUIDITY_ABSENCE_STATE"
+      - "POST_SWEEP_STATE"
+      - "POST_ABSORPTION_STATE"
+      - "SPREAD_ELEVATED_STATE"
+      - "DEPTH_RECOVERY_STATE"
+    templates:
+      - "mean_reversion"
+      - "stop_run_repair"
+      - "overshoot_repair"
+      - "continuation"
+      - "only_if_liquidity"
+      - "slippage_aware_filter"
+    runtime_templates:
+      - "mean_reversion"
+      - "continuation"
+      - "stop_run_repair"
+      - "overshoot_repair"
+      - "only_if_liquidity"
+      - "slippage_aware_filter"
+
+  VOLATILITY_TRANSITION:
+    description: "Variance regime change and post-shock relaxation/aftershock behavior."
+    events:
+      - event_id: "VOL_SHOCK"
+        lifecycle: active
+      - event_id: "VOL_SPIKE"
+        lifecycle: active
+      - event_id: "VOL_RELAXATION_START"
+        lifecycle: active
+      - event_id: "VOL_CLUSTER_SHIFT"
+        lifecycle: experimental
+      - event_id: "RANGE_COMPRESSION_END"
+        lifecycle: active
+      - event_id: "BREAKOUT_TRIGGER"
+        lifecycle: active
+    states:
+      - "AFTERSHOCK_STATE"
+      - "POST_EXPANSION_STATE"
+      - "RELAXATION_STATE"
+      - "COMPRESSION_STATE"
+      - "PRE_BREAKOUT_TENSION_STATE"
+      - "HIGH_VOL_REGIME"
+      - "LOW_VOL_REGIME"
+    templates:
+      - "continuation"
+      - "trend_continuation"
+      - "volatility_expansion_follow"
+      - "pullback_entry"
+      - "mean_reversion"
+      - "only_if_regime"
+    runtime_templates:
+      - "mean_reversion"
+      - "continuation"
+      - "trend_continuation"
+      - "volatility_expansion_follow"
+      - "pullback_entry"
+      - "only_if_regime"
+
+  POSITIONING_EXTREMES:
+    description: "Carry/leverage crowding, squeeze, and deleveraging dynamics."
+    events:
+      - event_id: "FUNDING_EXTREME_ONSET"
+        lifecycle: active
+      - event_id: "FUNDING_EXTREME_BREAKOUT"
+        lifecycle: deprecated
+        deprecation_note: "Orphaned - no detector produces this event_type"
+      - event_id: "FUNDING_EXTREME_STAGNATION"
+        lifecycle: deprecated
+        deprecation_note: "Orphaned - no detector produces this event_type"
+      - event_id: "FUNDING_FLIP"
+        lifecycle: active
+      - event_id: "FUNDING_PERSISTENCE_TRIGGER"
+        lifecycle: active
+      - event_id: "FUNDING_NORMALIZATION_TRIGGER"
+        lifecycle: active
+      - event_id: "OI_SPIKE_POSITIVE"
+        lifecycle: active
+      - event_id: "OI_SPIKE_NEGATIVE"
+        lifecycle: active
+      - event_id: "OI_FLUSH"
+        lifecycle: active
+      - event_id: "OI_VOL_COMPRESSION_BUILDUP"
+        lifecycle: deprecated
+        deprecation_note: "Orphaned - OIShockDetector produces SPIKE/FLUSH, not compression"
+      - event_id: "OI_VOL_DIVERGENCE"
+        lifecycle: deprecated
+        deprecation_note: "Orphaned - OIShockDetector produces SPIKE/FLUSH, not divergence"
+      - event_id: "LIQUIDATION_CASCADE"
+        lifecycle: active
+      - event_id: "DELEVERAGING_WAVE"
+        lifecycle: active
+      - event_id: "LIQUIDATION_EXHAUSTION_REVERSAL"
+        lifecycle: experimental
+      - event_id: "IMBALANCE_ABSORPTION_REVERSAL"
+        lifecycle: deprecated
+        deprecation_note: "Orphaned - DirectLiquidityStressDetector produces LIQUIDITY_STRESS_DIRECT, not reversal"
+      - event_id: "POST_DELEVERAGING_REBOUND"
+        lifecycle: experimental
+    states:
+      - "CROWDING_STATE"
+      - "FUNDING_PERSISTENCE_STATE"
+      - "FUNDING_NORMALIZATION_STATE"
+      - "POST_EXTREME_CARRY_STATE"
+      - "DELEVERAGING_STATE"
+      - "POST_LIQUIDATION_STATE"
+      - "SQUEEZE_RISK_STATE"
+    templates:
+      - "reversal_or_squeeze"
+      - "mean_reversion"
+      - "continuation"
+      - "exhaustion_reversal"
+      - "convexity_capture"
+      - "only_if_funding"
+      - "only_if_oi"
+      - "tail_risk_avoid"
+    runtime_templates:
+      - "reversal_or_squeeze"
+      - "mean_reversion"
+      - "continuation"
+      - "exhaustion_reversal"
+      - "convexity_capture"
+      - "only_if_funding"
+      - "only_if_oi"
+      - "tail_risk_avoid"
+
+  FORCED_FLOW_AND_EXHAUSTION:
+    description: "Forced directional flows that transition into depletion/exhaustion."
+    events:
+      - event_id: "FORCED_FLOW_EXHAUSTION"
+        lifecycle: active
+        maturity: standard
+      - event_id: "TREND_EXHAUSTION_TRIGGER"
+        lifecycle: active
+      - event_id: "MOMENTUM_DIVERGENCE_TRIGGER"
+        lifecycle: active
+      - event_id: "CLIMAX_VOLUME_BAR"
+        lifecycle: active
+      - event_id: "FAILED_CONTINUATION"
+        lifecycle: active
+      - event_id: "FLOW_EXHAUSTION_PROXY"
+        lifecycle: active
+        maturity: standard
+    states:
+      - "POST_FORCED_FLOW_STATE"
+      - "EXHAUSTION_STATE"
+      - "DISTRIBUTION_ACCUMULATION_STATE"
+      - "POST_CLIMAX_STATE"
+      - "MEAN_REVERSION_WINDOW_STATE"
+    templates:
+      - "mean_reversion"
+      - "exhaustion_reversal"
+      - "momentum_fade"
+      - "range_reversion"
+      - "only_if_trend"
+      - "drawdown_filter"
+    runtime_templates:
+      - "mean_reversion"
+      - "exhaustion_reversal"
+      - "momentum_fade"
+      - "range_reversion"
+      - "only_if_trend"
+      - "drawdown_filter"
+
+  TREND_STRUCTURE:
+    description: "Range-to-trend transitions and trend-state continuation/failure."
+    events:
+      - event_id: "RANGE_BREAKOUT"
+        lifecycle: active
+      - event_id: "FALSE_BREAKOUT"
+        lifecycle: active
+      - event_id: "TREND_ACCELERATION"
+        lifecycle: active
+      - event_id: "TREND_DECELERATION"
+        lifecycle: active
+      - event_id: "PULLBACK_PIVOT"
+        lifecycle: active
+      - event_id: "SUPPORT_RESISTANCE_BREAK"
+        lifecycle: active
+    states:
+      - "BREAKOUT_HOLD_STATE"
+      - "POST_BREAKOUT_RETEST_STATE"
+      - "TRENDING_STATE"
+      - "CHOP_STATE"
+      - "PULLBACK_STATE"
+      - "FAILURE_STATE"
+    templates:
+      - "breakout_followthrough"
+      - "false_breakout_reversal"
+      - "pullback_entry"
+      - "trend_continuation"
+      - "continuation"
+      - "only_if_trend"
+    runtime_templates:
+      - "breakout_followthrough"
+      - "false_breakout_reversal"
+      - "pullback_entry"
+      - "trend_continuation"
+      - "continuation"
+      - "only_if_trend"
+
+  STATISTICAL_DISLOCATION:
+    description: "Distributional stretch and overshoot/repair dynamics."
+    events:
+      - event_id: "ZSCORE_STRETCH"
+        lifecycle: active
+      - event_id: "BAND_BREAK"
+        lifecycle: active
+      - event_id: "OVERSHOOT_AFTER_SHOCK"
+        lifecycle: active
+      - event_id: "GAP_OVERSHOOT"
+        lifecycle: active
+      - event_id: "BASIS_DISLOC"
+        lifecycle: active
+      - event_id: "FND_DISLOC"
+        lifecycle: active
+      - event_id: "COPULA_PAIRS_TRADING"
+        lifecycle: experimental
+      - event_id: "PRICE_VOL_IMBALANCE_PROXY"
+        lifecycle: active
+        maturity: standard
+    states:
+      - "STRETCHED_STATE"
+      - "OVERSHOOT_STATE"
+      - "REPAIR_WINDOW_STATE"
+      - "REVERSION_IN_PROGRESS_STATE"
+    templates:
+      - "mean_reversion"
+      - "overshoot_repair"
+      - "tail_risk_avoid"
+    runtime_templates:
+      - "mean_reversion"
+      - "overshoot_repair"
+      - "tail_risk_avoid"
+
+  REGIME_TRANSITION:
+    description: "Cross-regime transitions that reparameterize strategy behavior."
+    events:
+      - event_id: "VOL_REGIME_SHIFT_EVENT"
+        lifecycle: active
+      - event_id: "TREND_TO_CHOP_SHIFT"
+        lifecycle: active
+      - event_id: "CHOP_TO_TREND_SHIFT"
+        lifecycle: active
+      - event_id: "CORRELATION_BREAKDOWN_EVENT"
+        lifecycle: active
+      - event_id: "BETA_SPIKE_EVENT"
+        lifecycle: active
+    states:
+      - "RISK_ON_STATE"
+      - "RISK_OFF_STATE"
+      - "CORRELATION_BROKEN_STATE"
+      - "NEW_REGIME_STABILIZATION_STATE"
+      - "TRANSITION_TURBULENCE_STATE"
+    templates:
+      - "only_if_regime"
+      - "continuation"
+      - "mean_reversion"
+      - "drawdown_filter"
+      - "tail_risk_avoid"
+    runtime_templates:
+      - "only_if_regime"
+      - "continuation"
+      - "mean_reversion"
+      - "drawdown_filter"
+      - "tail_risk_avoid"
+
+  INFORMATION_DESYNC:
+    description: "Cross-venue/cross-signal information inefficiency and reconciliation."
+    events:
+      - event_id: "CROSS_VENUE_DESYNC"
+        lifecycle: active
+      - event_id: "INDEX_COMPONENT_DIVERGENCE"
+        lifecycle: active
+      - event_id: "SPOT_PERP_BASIS_SHOCK"
+        lifecycle: active
+      - event_id: "LEAD_LAG_BREAK"
+        lifecycle: active
+    states:
+      - "DESYNC_PERSISTENCE_STATE"
+      - "BASIS_ELEVATED_STATE"
+      - "CONVERGENCE_WINDOW_STATE"
+      - "ARBITRAGE_CROWDING_STATE"
+    templates:
+      - "desync_repair"
+      - "convergence"
+      - "basis_repair"
+      - "lead_lag_follow"
+      - "divergence_continuation"
+    runtime_templates:
+      - "desync_repair"
+      - "convergence"
+      - "basis_repair"
+      - "lead_lag_follow"
+      - "divergence_continuation"
+
+  TEMPORAL_STRUCTURE:
+    description: "Session/calendar/funding/news timing effects."
+    events:
+      - event_id: "SESSION_OPEN_EVENT"
+        lifecycle: active
+      - event_id: "SESSION_CLOSE_EVENT"
+        lifecycle: active
+      - event_id: "FUNDING_TIMESTAMP_EVENT"
+        lifecycle: active
+      - event_id: "SCHEDULED_NEWS_WINDOW_EVENT"
+        lifecycle: active
+    states:
+      - "OPEN_WINDOW_STATE"
+      - "CLOSE_WINDOW_STATE"
+      - "POST_FUNDING_WINDOW_STATE"
+      - "PRE_NEWS_STATE"
+      - "POST_NEWS_AFTERSHOCK_STATE"
+    templates:
+      - "mean_reversion"
+      - "volatility_expansion_follow"
+      - "only_if_no_news_window"
+    runtime_templates:
+      - "mean_reversion"
+      - "continuation"
+
+  EXECUTION_FRICTION:
+    description: "Tradability and cost-environment transitions affecting execution viability."
+    events:
+      - event_id: "SPREAD_REGIME_WIDENING_EVENT"
+        lifecycle: active
+      - event_id: "SLIPPAGE_SPIKE_EVENT"
+        lifecycle: active
+      - event_id: "FEE_REGIME_CHANGE_EVENT"
+        lifecycle: active
+      - event_id: "WICK_REVERSAL_PROXY"
+        lifecycle: active
+        maturity: standard
+    states:
+      - "HIGH_FRICTION_STATE"
+      - "LOW_FRICTION_STATE"
+      - "ILLIQUID_EXECUTION_STATE"
+    templates:
+      - "slippage_aware_filter"
+      - "tail_risk_avoid"
+      - "only_if_liquidity"
+    runtime_templates:
+      - "slippage_aware_filter"
+      - "tail_risk_avoid"
+
+  SEQUENCE_CHAINS:
+    description: "Multi-step market narrative sequences: detected via EventSequenceDetector."
+    events:
+      - event_id: "SEQ_FND_EXTREME_THEN_BREAKOUT"
+        lifecycle: experimental
+      - event_id: "SEQ_LIQ_VACUUM_THEN_DEPTH_RECOVERY"
+        lifecycle: experimental
+      - event_id: "SEQ_OI_SPIKEPOS_THEN_VOL_SPIKE"
+        lifecycle: experimental
+      - event_id: "SEQ_VOL_COMP_THEN_BREAKOUT"
+        lifecycle: experimental
+    states: []
+    templates:
+      - "continuation"
+      - "mean_reversion"
+    runtime_templates:
+      - "continuation"
+      - "mean_reversion"
+
+# Runtime event ids are canonical-only.
+runtime_event_aliases:
+  LIQUIDITY_VACUUM: "LIQUIDITY_VACUUM"
+  LIQUIDITY_SHOCK: "LIQUIDITY_SHOCK"
+  VOL_SHOCK: "VOL_SHOCK"
+  FUNDING_EXTREME_ONSET: "FUNDING_EXTREME_ONSET"
+  FUNDING_PERSISTENCE_TRIGGER: "FUNDING_PERSISTENCE_TRIGGER"
+  FUNDING_NORMALIZATION_TRIGGER: "FUNDING_NORMALIZATION_TRIGGER"
+  OI_SPIKE_POSITIVE: "OI_SPIKE_POSITIVE"
+  OI_SPIKE_NEGATIVE: "OI_SPIKE_NEGATIVE"
+  OI_FLUSH: "OI_FLUSH"
+  LIQUIDATION_CASCADE: "LIQUIDATION_CASCADE"
+  FORCED_FLOW_EXHAUSTION: "FORCED_FLOW_EXHAUSTION"
+  CROSS_VENUE_DESYNC: "CROSS_VENUE_DESYNC"
+
+# NOTE: implemented_events below is a legacy declaration kept for backward compatibility.
+# The authoritative lifecycle classification is now the `lifecycle` field on each event entry above.
+# canonical_events = events with lifecycle: active
+implemented_events:
+  - "BAND_BREAK"
+  - "BASIS_DISLOC"
+  - "BETA_SPIKE_EVENT"
+  - "BREAKOUT_TRIGGER"
+  - "CHOP_TO_TREND_SHIFT"
+  - "CLIMAX_VOLUME_BAR"
+  - "CORRELATION_BREAKDOWN_EVENT"
+  - "CROSS_VENUE_DESYNC"
+  - "DELEVERAGING_WAVE"
+  - "FAILED_CONTINUATION"
+  - "FALSE_BREAKOUT"
+  - "FEE_REGIME_CHANGE_EVENT"
+  - "FND_DISLOC"
+  - "FORCED_FLOW_EXHAUSTION"
+  - "FUNDING_EXTREME_ONSET"
+  - "FUNDING_FLIP"
+  - "FUNDING_NORMALIZATION_TRIGGER"
+  - "FUNDING_PERSISTENCE_TRIGGER"
+  - "FUNDING_TIMESTAMP_EVENT"
+  - "GAP_OVERSHOOT"
+  - "INDEX_COMPONENT_DIVERGENCE"
+  - "LEAD_LAG_BREAK"
+  - "LIQUIDATION_CASCADE"
+  - "LIQUIDITY_SHOCK"
+  - "LIQUIDITY_STRESS_DIRECT"
+  - "LIQUIDITY_VACUUM"
+  - "MOMENTUM_DIVERGENCE_TRIGGER"
+  - "OI_FLUSH"
+  - "OI_SPIKE_NEGATIVE"
+  - "OI_SPIKE_POSITIVE"
+  - "OVERSHOOT_AFTER_SHOCK"
+  - "PULLBACK_PIVOT"
+  - "RANGE_BREAKOUT"
+  - "RANGE_COMPRESSION_END"
+  - "SCHEDULED_NEWS_WINDOW_EVENT"
+  - "SESSION_CLOSE_EVENT"
+  - "SESSION_OPEN_EVENT"
+  - "SLIPPAGE_SPIKE_EVENT"
+  - "SPOT_PERP_BASIS_SHOCK"
+  - "SPREAD_BLOWOUT"
+  - "SPREAD_REGIME_WIDENING_EVENT"
+  - "SUPPORT_RESISTANCE_BREAK"
+  - "TREND_ACCELERATION"
+  - "TREND_DECELERATION"
+  - "TREND_EXHAUSTION_TRIGGER"
+  - "TREND_TO_CHOP_SHIFT"
+  - "VOL_CLUSTER_SHIFT"
+  - "VOL_REGIME_SHIFT_EVENT"
+  - "VOL_RELAXATION_START"
+  - "VOL_SHOCK"
+  - "VOL_SPIKE"
+  - "ZSCORE_STRETCH"
+
+planned_events:
+  - "ABSORPTION_EVENT"
+  - "BAND_BREAK"
+  - "BETA_SPIKE_EVENT"
+  - "BREAKOUT_TRIGGER"
+  - "CHOP_TO_TREND_SHIFT"
+  - "CLIMAX_VOLUME_BAR"
+  - "CORRELATION_BREAKDOWN_EVENT"
+  - "DELEVERAGING_WAVE"
+  - "DEPTH_COLLAPSE"
+  - "FAILED_CONTINUATION"
+  - "FALSE_BREAKOUT"
+  - "FEE_REGIME_CHANGE_EVENT"
+  - "FUNDING_FLIP"
+  - "FUNDING_TIMESTAMP_EVENT"
+  - "GAP_OVERSHOOT"
+  - "INDEX_COMPONENT_DIVERGENCE"
+  - "LEAD_LAG_BREAK"
+  - "LIQUIDITY_GAP_PRINT"
+  - "MOMENTUM_DIVERGENCE_TRIGGER"
+  - "ORDERFLOW_IMBALANCE_SHOCK"
+  - "OVERSHOOT_AFTER_SHOCK"
+  - "PULLBACK_PIVOT"
+  - "RANGE_BREAKOUT"
+  - "RANGE_COMPRESSION_END"
+  - "SCHEDULED_NEWS_WINDOW_EVENT"
+  - "SESSION_CLOSE_EVENT"
+  - "SESSION_OPEN_EVENT"
+  - "SLIPPAGE_SPIKE_EVENT"
+  - "SPOT_PERP_BASIS_SHOCK"
+  - "SPREAD_BLOWOUT"
+  - "SPREAD_REGIME_WIDENING_EVENT"
+  - "SUPPORT_RESISTANCE_BREAK"
+  - "SWEEP_STOPRUN"
+  - "TREND_ACCELERATION"
+  - "TREND_DECELERATION"
+  - "TREND_EXHAUSTION_TRIGGER"
+  - "TREND_TO_CHOP_SHIFT"
+  - "VOL_CLUSTER_SHIFT"
+  - "VOL_REGIME_SHIFT_EVENT"
+  - "VOL_RELAXATION_START"
+  - "VOL_SPIKE"
+  - "ZSCORE_STRETCH"
+
+unlisted_event_status: planned
+default_unlisted_event_status: planned
+# implementation_status_by_event: lifecycle is now tracked per event entry above (lifecycle field).
+# This legacy block is retained for backward audit compatibility only.
+implementation_status_by_event:
+  ABSORPTION_EVENT: deprecated
+  ABSORPTION_PROXY: experimental
+  BAND_BREAK: active
+  BASIS_DISLOC: active
+  BETA_SPIKE_EVENT: active
+  BREAKOUT_TRIGGER: active
+  CHOP_TO_TREND_SHIFT: active
+  CLIMAX_VOLUME_BAR: active
+  COPULA_PAIRS_TRADING: experimental
+  CORRELATION_BREAKDOWN_EVENT: active
+  CROSS_VENUE_DESYNC: active
+  DELEVERAGING_WAVE: active
+  DEPTH_COLLAPSE: experimental
+  DEPTH_STRESS_PROXY: experimental
+  FAILED_CONTINUATION: active
+  FALSE_BREAKOUT: active
+  FEE_REGIME_CHANGE_EVENT: active
+  FLOW_EXHAUSTION_PROXY: experimental
+  FND_DISLOC: active
+  FORCED_FLOW_EXHAUSTION: active
+  FUNDING_EXTREME_ONSET: active
+  FUNDING_FLIP: active
+  FUNDING_NORMALIZATION_TRIGGER: active
+  FUNDING_PERSISTENCE_TRIGGER: active
+  FUNDING_TIMESTAMP_EVENT: active
+  GAP_OVERSHOOT: active
+  INDEX_COMPONENT_DIVERGENCE: active
+  LEAD_LAG_BREAK: active
+  LIQUIDATION_CASCADE: active
+  LIQUIDATION_EXHAUSTION_REVERSAL: experimental
+  LIQUIDITY_GAP_PRINT: experimental
+  LIQUIDITY_SHOCK: active
+  LIQUIDITY_STRESS_DIRECT: active
+  LIQUIDITY_STRESS_PROXY: experimental
+  LIQUIDITY_VACUUM: active
+  MOMENTUM_DIVERGENCE_TRIGGER: active
+  OI_FLUSH: active
+  OI_SPIKE_NEGATIVE: active
+  OI_SPIKE_POSITIVE: active
+  ORDERFLOW_IMBALANCE_SHOCK: experimental
+  OVERSHOOT_AFTER_SHOCK: active
+  POST_DELEVERAGING_REBOUND: experimental
+  PRICE_VOL_IMBALANCE_PROXY: experimental
+  PULLBACK_PIVOT: active
+  RANGE_BREAKOUT: active
+  RANGE_COMPRESSION_END: active
+  SCHEDULED_NEWS_WINDOW_EVENT: active
+  SEQ_FND_EXTREME_THEN_BREAKOUT: experimental
+  SEQ_LIQ_VACUUM_THEN_DEPTH_RECOVERY: experimental
+  SEQ_OI_SPIKEPOS_THEN_VOL_SPIKE: experimental
+  SEQ_VOL_COMP_THEN_BREAKOUT: experimental
+  SESSION_CLOSE_EVENT: active
+  SESSION_OPEN_EVENT: active
+  SLIPPAGE_SPIKE_EVENT: active
+  SPOT_PERP_BASIS_SHOCK: active
+  SPREAD_BLOWOUT: active
+  SPREAD_REGIME_WIDENING_EVENT: active
+  SUPPORT_RESISTANCE_BREAK: active
+  SWEEP_STOPRUN: experimental
+  TREND_ACCELERATION: active
+  TREND_DECELERATION: active
+  TREND_EXHAUSTION_TRIGGER: active
+  TREND_TO_CHOP_SHIFT: active
+  VOL_CLUSTER_SHIFT: experimental
+  VOL_REGIME_SHIFT_EVENT: active
+  VOL_RELAXATION_START: active
+  VOL_SHOCK: active
+  VOL_SPIKE: active
+  WICK_REVERSAL_PROXY: experimental
+  ZSCORE_STRETCH: active
+
+# Feature (non-event) templates remain separate from event/state discovery templates.
+default_feature_templates: ["feature_conditioned_prediction"]

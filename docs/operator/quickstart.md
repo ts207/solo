@@ -29,7 +29,11 @@ edge deploy paper-run --config project/configs/live_paper_<run_id>.yaml
 Run the canonical research lifecycle:
 
 ```bash
-edge discover run --proposal <proposal.yaml>
+edge discover cells run --run_id <run_id> --start <start> --end <end>
+edge discover cells summarize --run_id <run_id>
+edge discover cells assemble-theses --run_id <run_id>
+# generated proposals in data/runs/<run_id>/generated_proposals/
+edge discover run --proposal data/runs/<run_id>/generated_proposals/<proposal>.yaml --run_id <run_id>
 edge validate run --run_id <run_id>
 edge promote run --run_id <run_id> --symbols BTCUSDT
 ```

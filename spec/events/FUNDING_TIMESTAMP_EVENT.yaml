@@ -1,0 +1,75 @@
+event_type: FUNDING_TIMESTAMP_EVENT
+synthetic_coverage: covered
+reports_dir: temporal_structure
+events_file: temporal_structure_events.parquet
+signal_column: funding_timestamp_event
+parameters:
+  event_spacing_bars: 288
+  cooldown_bars: 12
+  merge_gap_bars: 0
+  funding_abs_quantile: 0.0
+research_family: TEMPORAL_STRUCTURE
+trigger: Detector triggers on funding timestamp event pattern
+confirmation: Post-detection price action confirms signal validity
+expected_behavior:
+  holding_horizon_bars: 0-4
+  invalidation_conditions:
+  - Session closes without price action
+  disabled_regimes:
+  - 'Weekend/holiday: session timing unreliable'
+cluster_id: temporal_anchor
+identity:
+  canonical_regime: SCHEDULED_TEMPORAL_WINDOW
+  subtype: funding_timestamp
+  phase: window
+  evidence_mode: contextual
+  layer: context_tag
+  disposition: demote
+  asset_scope: multi_asset
+  venue_scope: market_wide
+governance:
+  event_kind: context_tag
+  default_executable: false
+  research_only: false
+  strategy_only: false
+  context_tag: true
+  is_composite: false
+  maturity: ''
+  tier: C
+  operational_role: context
+  deployment_disposition: context_only
+  runtime_category: active_runtime_event
+runtime:
+  detector: FundingTimestampDetector
+  enabled: true
+  signal_column: funding_timestamp_event
+  events_file: temporal_structure_events.parquet
+  reports_dir: temporal_structure
+  instrument_classes:
+  - crypto
+  - futures
+  requires_features: []
+  sequence_eligible: true
+  runtime_tags:
+  - temporal_anchor
+  - funding_crowding
+semantics:
+  cluster_id: temporal_anchor
+  notes: Mechanical funding window context; not a canonical regime.
+  precedence_rank: 0
+interaction:
+  suppresses:
+  - event_type: BASIS_DISLOC
+    penalty_factor: 0.0
+    block: true
+    reason: 'Funding payment creates mechanical basis jump; desync detectors fire falsely. Block for the payment bar and its cooldown window.'
+  - event_type: SPOT_PERP_BASIS_SHOCK
+    penalty_factor: 0.0
+    block: true
+    reason: 'Funding payment creates mechanical basis jump; desync detectors fire falsely. Block for the payment bar and its cooldown window.'
+  - event_type: CROSS_VENUE_DESYNC
+    penalty_factor: 0.0
+    block: true
+    reason: 'Funding payment creates mechanical basis jump; desync detectors fire falsely. Block for the payment bar and its cooldown window.'
+  suppressed_by: []
+routing: {}

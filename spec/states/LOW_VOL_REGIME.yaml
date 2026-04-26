@@ -1,0 +1,27 @@
+version: 1
+kind: state_definition
+state_id: LOW_VOL_REGIME
+family: VOLATILITY_TRANSITION
+source_event_type: VOL_CLUSTER_SHIFT
+state_scope: family_safe
+min_events: 300
+description: Market is in a low volatility state.
+activation_rule: rv_percentile <= 0.33
+decay_rule: exit when rv_percentile > 0.33
+features_required:
+- rv_percentile_24h
+allowed_templates:
+- continuation
+- trend_continuation
+- volatility_expansion_follow
+- pullback_entry
+- mean_reversion
+- only_if_regime
+runtime:
+  instrument_classes:
+  - crypto
+  - equities
+  - futures
+  tags:
+  - volatility
+  state_engine: VolatilityRegimeEngine

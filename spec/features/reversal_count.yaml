@@ -1,0 +1,15 @@
+feature_family: trend
+version: 1.0.0
+base_timeframe: 1m
+inputs:
+  - dataset: perp_ohlcv_1m
+    columns: [close]
+features:
+  - name: reversal_count
+    description: "Count of price reversals over a window."
+    formula: "sum(is_reversal_bar, window)"
+    params: {window: 24}
+provenance:
+  source_id: "synthetic"
+  claim_id: []
+  pit_constraint: "asof <= t0"

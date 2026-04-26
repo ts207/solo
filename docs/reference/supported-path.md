@@ -8,7 +8,8 @@ This repository declares one supported operating path. Other surfaces remain onl
 - Canonical discovery, validation, promotion, and export:
 
 ```text
-edge discover plan|run -> edge validate run -> edge promote run -> edge promote export
+edge discover cells run -> edge discover cells summarize -> edge discover cells assemble-theses
+-> edge discover run -> edge validate run -> edge promote run -> edge promote export
 ```
 
 - Governed runtime-core detector path:
@@ -18,11 +19,11 @@ strategy_runtime.event_detector.adapter = governed_runtime_core
 ```
 
 - Portfolio decision-engine allocation path in `project.portfolio.engine`.
-- Cell-first discovery when it hands off through canonical proposal artifacts:
+- Cell-first discovery is the default front door for ranking payoff concentrations:
 
 ```text
 edge discover cells run -> edge discover cells assemble-theses
--> edge discover plan|run -> edge validate run -> edge promote run
+-> edge discover run -> edge validate run -> edge promote run
 ```
 
 - Docs/governance refresh and check path:
@@ -50,10 +51,6 @@ edge discover triggers emit-registry-payload --proposal <proposal.yaml>
 ```
 
 These lanes can emit proposal material, but they are not the canonical discovery path.
-
-Cell-first discovery is research-first rather than directly deployable. Its
-scoreboard and cluster artifacts are not runtime instructions; only generated
-proposal YAML files that re-enter the canonical lifecycle are supported.
 
 ## Deprecated
 

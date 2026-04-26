@@ -1,0 +1,5 @@
+name: volume
+family: LIQUIDITY
+description: Absolute trade volume per bar.
+parameters:
+  lookback: 1

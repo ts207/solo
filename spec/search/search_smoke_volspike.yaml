@@ -1,0 +1,19 @@
+version: 1
+kind: search_spec
+metadata:
+  phase: smoke
+  description: 'Smoke test: single event VOL_SPIKE only.'
+search_mode: subset
+triggers:
+  events:
+  - VOL_SPIKE
+contexts: {}
+horizons:
+- 15m
+directions:
+- long
+- short
+entry_lag: 1
+cost_profiles:
+- standard
+expression_templates: '*'

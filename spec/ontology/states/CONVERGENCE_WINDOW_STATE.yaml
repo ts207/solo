@@ -1,0 +1,22 @@
+version: 1
+kind: state_ontology_spec
+metadata:
+  status: generated
+  authored_source: spec/states/CONVERGENCE_WINDOW_STATE.yaml
+  generated_notice: GENERATED FILE - DO NOT EDIT
+  generated_from: spec/states/*.yaml
+state_id: CONVERGENCE_WINDOW_STATE
+family: INFORMATION_DESYNC
+source_event_type: LEAD_LAG_BREAK
+activation_rule: lead-lag gap remains open within convergence horizon
+decay_rule: exit on convergence completion or timeout
+allowed_templates:
+- desync_repair
+- convergence
+- basis_repair
+- lead_lag_follow
+- divergence_continuation
+state_scope: source_only
+min_events: 200
+features_required:
+- lead_lag_gap

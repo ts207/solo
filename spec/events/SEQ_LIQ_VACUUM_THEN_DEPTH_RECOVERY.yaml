@@ -1,0 +1,66 @@
+version: 1
+kind: event
+event_type: SEQ_LIQ_VACUUM_THEN_DEPTH_RECOVERY
+active: true
+synthetic_coverage: covered
+research_family: LIQUIDITY_DISLOCATION
+reports_dir: event_sequences
+events_file: event_sequences.parquet
+signal_column: seq_liq_vacuum_then_depth_recovery_event
+parameters:
+  max_gap_bars: 48
+  cooldown_bars: 24
+trigger: Detector triggers on seq liq vacuum then depth recovery pattern
+confirmation: Post-detection price action confirms signal validity
+expected_behavior:
+  holding_horizon_bars: 1-12
+  invalidation_conditions:
+  - Volume returns above median within 1-2 bars
+  - Spread compresses back to baseline
+  disabled_regimes:
+  - 'SPREAD_BLOWOUT active: spread elevated, unreliable signal'
+cluster_id: liquidity_stress
+identity:
+  canonical_regime: LIQUIDITY_STRESS
+  subtype: liquidity_vacuum_then_depth_recovery
+  phase: confirmation
+  evidence_mode: sequence_confirmed
+  layer: composite
+  disposition: demote
+  asset_scope: single_asset
+  venue_scope: single_venue
+governance:
+  event_kind: composite_event
+  default_executable: false
+  research_only: true
+  strategy_only: false
+  context_tag: false
+  is_composite: true
+  maturity: ''
+  tier: D
+  operational_role: sequence_component
+  deployment_disposition: research_only
+  runtime_category: research_only
+runtime:
+  detector: EventSequenceDetector
+  enabled: true
+  signal_column: seq_liq_vacuum_then_depth_recovery_event
+  events_file: event_sequences.parquet
+  reports_dir: event_sequences
+  instrument_classes:
+  - crypto
+  - futures
+  requires_features: []
+  sequence_eligible: false
+  runtime_tags:
+  - liquidity_stress
+  - absorption_recovery
+  - sequence
+semantics:
+  cluster_id: liquidity_stress
+  notes: Composite liquidity repair motif.
+  precedence_rank: 0
+interaction:
+  suppresses: []
+  suppressed_by: []
+routing: {}

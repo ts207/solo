@@ -1,0 +1,14 @@
+version: 1
+kind: state_definition
+state_id: POST_FUNDING_WINDOW_STATE
+family: TEMPORAL_STRUCTURE
+source_event_type: FUNDING_TIMESTAMP_EVENT
+activation_rule: elapsed_bars <= post_funding_horizon
+decay_rule: exit when elapsed_bars > post_funding_horizon
+features_required:
+- timestamp
+- funding_rate_scaled
+allowed_templates:
+- mean_reversion
+- continuation
+- only_if_no_news_window

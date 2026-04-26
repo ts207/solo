@@ -22,7 +22,7 @@ strategy_runtime:
   implemented: true
   thesis_run_id: productive_golden_path_20260416T041539Z_c7e116bafd
   include_pending_theses: false
-  auto_submit: false
+  auto_submit: true
   supported_event_families:
     - VOL_SHOCK
     - LIQUIDITY_VACUUM

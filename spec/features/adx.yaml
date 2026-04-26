@@ -1,0 +1,15 @@
+feature_family: trend
+version: 1.0.0
+base_timeframe: 1m
+inputs:
+  - dataset: perp_ohlcv_1m
+    columns: [high, low, close]
+features:
+  - name: adx
+    description: "Average Directional Index (ADX) measuring trend strength."
+    formula: "wwma(100 * dx, window)"
+    params: {window: 14}
+provenance:
+  source_id: "synthetic"
+  claim_id: []
+  pit_constraint: "asof <= t0"

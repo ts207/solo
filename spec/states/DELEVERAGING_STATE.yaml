@@ -1,0 +1,14 @@
+version: 1
+kind: state_definition
+state_id: DELEVERAGING_STATE
+family: POSITIONING_EXTREMES
+source_event_type: DELEVERAGING_WAVE
+activation_rule: oi_delta_1h <= deleveraging_threshold AND rv_pct >= p75
+decay_rule: exit when oi_delta_1h recovers above threshold
+features_required:
+- oi_delta_1h
+- rv_96
+allowed_templates:
+- continuation
+- tail_risk_avoid
+- convexity_capture

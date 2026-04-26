@@ -1,0 +1,142 @@
+version: 1
+kind: search_space
+metadata:
+  phase: tier1_default_hierarchical_v2_folds
+  description: Full search surface excluding liquidation events.
+  search_tier: tier1
+  default_discovery_path: hierarchical_v2_with_folds
+  adoption_basis: data/reports/benchmarks/canonical_d_only_20260418/canonical_path_report.md
+  default_symbols:
+    - BTCUSDT
+    - ETHUSDT
+  tier_2_expansion: add one state slice or one filter overlay
+  tier_3_expansion: transitions and feature predicates are advanced search surfaces
+triggers:
+  events:
+    - VOL_SHOCK
+    - VOL_SPIKE
+    - VOL_CLUSTER_SHIFT
+    - RANGE_COMPRESSION_END
+    - BREAKOUT_TRIGGER
+    - LIQUIDITY_VACUUM
+    - DEPTH_COLLAPSE
+    - SPREAD_BLOWOUT
+    - FUNDING_EXTREME_ONSET
+    - FUNDING_FLIP
+    - FUNDING_PERSISTENCE_TRIGGER
+    - OI_FLUSH
+    - DELEVERAGING_WAVE
+    - FORCED_FLOW_EXHAUSTION
+    - TREND_EXHAUSTION_TRIGGER
+    - MOMENTUM_DIVERGENCE_TRIGGER
+    - CLIMAX_VOLUME_BAR
+    - ZSCORE_STRETCH
+    - BAND_BREAK
+    - OVERSHOOT_AFTER_SHOCK
+    - GAP_OVERSHOOT
+    - FND_DISLOC
+    - BASIS_DISLOC
+    - RANGE_BREAKOUT
+    - FALSE_BREAKOUT
+    - TREND_DECELERATION
+    - PULLBACK_PIVOT
+    - SPOT_PERP_BASIS_SHOCK
+    - LEAD_LAG_BREAK
+    - CROSS_VENUE_DESYNC
+    - SESSION_OPEN_EVENT
+    - FUNDING_TIMESTAMP_EVENT
+    - ABSORPTION_PROXY
+    - DEPTH_STRESS_PROXY
+    - FLOW_EXHAUSTION_PROXY
+    - LIQUIDITY_STRESS_DIRECT
+    - LIQUIDITY_STRESS_PROXY
+    - POST_DELEVERAGING_REBOUND
+    - PRICE_VOL_IMBALANCE_PROXY
+    - WICK_REVERSAL_PROXY
+    - CORRELATION_BREAKDOWN_EVENT
+    - OI_SPIKE_NEGATIVE
+    - OI_SPIKE_POSITIVE
+    - BETA_SPIKE_EVENT
+    - VOL_REGIME_SHIFT_EVENT
+    - VOL_RELAXATION_START
+    - TREND_ACCELERATION
+    - FAILED_CONTINUATION
+    - SUPPORT_RESISTANCE_BREAK
+    - CHOP_TO_TREND_SHIFT
+    - TREND_TO_CHOP_SHIFT
+    - ORDERFLOW_IMBALANCE_SHOCK
+    - LIQUIDITY_GAP_PRINT
+    - LIQUIDITY_SHOCK
+    - SPREAD_REGIME_WIDENING_EVENT
+    - SLIPPAGE_SPIKE_EVENT
+horizons:
+  - 12b
+  - 24b
+  - 48b
+directions:
+  - long
+  - short
+entry_lag: 1
+cost_profiles:
+  - standard
+expression_templates:
+  - mean_reversion
+  - continuation
+  - trend_continuation
+  - exhaustion_reversal
+  - momentum_fade
+  - pullback_entry
+  - overshoot_repair
+filter_templates: []
+execution_templates: []
+include_sequences: false
+include_interactions: false
+
+discovery_search:
+  mode: hierarchical
+
+  trigger_viability:
+    enabled: true
+    max_templates: 1
+    max_horizons: 1
+    max_entry_lags: 1
+    allow_both_directions: true
+    top_k_triggers: null
+    min_stage_score: 0.0
+
+  template_refinement:
+    enabled: true
+    top_k_templates_per_trigger: 3
+    min_stage_score: 0.0
+
+  execution_refinement:
+    enabled: true
+    top_k_shapes_per_template: 3
+    min_stage_score: 0.0
+
+  context_refinement:
+    enabled: true
+    max_context_dims: 1
+    top_k_contexts_per_candidate: 2
+    require_unconditional_baseline: true
+    min_context_gain: 0.0
+
+discovery_selection:
+  mode: "off"
+
+  overlap:
+    enabled: true
+    structural_weight: 0.5
+    fold_weight: 0.3
+    lineage_weight: 0.2
+    edge_threshold: 0.65
+
+  shortlist:
+    enabled: false
+    size: 20
+    lambda_quality: 0.7
+    lambda_overlap: 0.2
+    lambda_crowding: 0.1
+    max_per_overlap_cluster: 2
+    max_per_trigger_family: 3
+    max_per_lineage: 2

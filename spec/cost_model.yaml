@@ -1,0 +1,27 @@
+version: 1
+description: Canonical execution-cost configuration surface for research and backtest flows.
+parameters:
+  fee_bps_per_side:
+    type: float
+    minimum: 0.0
+    default: 4.0
+    description: Explicit venue fee charged on each entry and exit fill.
+  slippage_bps_per_fill:
+    type: float
+    minimum: 0.0
+    default: 2.0
+    description: Implicit execution slippage applied to each fill (minimum floor).
+  slippage_model:
+    type: string
+    enum: ["fixed", "volume_synchronized", "kyle_lambda"]
+    default: "fixed"
+    description: Model used to compute execution slippage.
+  impact_coefficient_scaling:
+    type: bool
+    default: false
+    description: Whether to scale slippage based on market depth/volume.
+derived_metrics:
+  round_trip_cost_bps:
+    formula: 2 * (fee_bps_per_side + max(slippage_bps_per_fill, dynamic_impact))
+authoritative_defaults:
+  path: project/configs/fees.yaml

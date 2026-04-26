@@ -1,0 +1,22 @@
+version: 1
+kind: state_ontology_spec
+metadata:
+  status: generated
+  authored_source: spec/states/TRENDING_STATE.yaml
+  generated_notice: GENERATED FILE - DO NOT EDIT
+  generated_from: spec/states/*.yaml
+state_id: TRENDING_STATE
+family: TREND_STRUCTURE
+source_event_type: TREND_ACCELERATION
+activation_rule: trend slope and ADX above threshold
+decay_rule: exit when slope falls below threshold
+allowed_templates:
+- pullback_entry
+- trend_continuation
+- continuation
+- only_if_trend
+state_scope: family_safe
+min_events: 250
+features_required:
+- trend_return_96
+- adx

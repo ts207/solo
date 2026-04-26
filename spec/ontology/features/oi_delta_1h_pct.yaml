@@ -1,0 +1,6 @@
+name: oi_delta_1h_pct
+family: POSITIONING
+description: 1-hour percentage change in open interest.
+parameters:
+  lookback: 288
+  window: 1h
