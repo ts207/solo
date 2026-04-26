@@ -1,0 +1,93 @@
+version: edge_cells_v2
+event_atoms:
+- id: session_open_temporal
+  event_family: temporal_execution
+  event_type: SESSION_OPEN_EVENT
+  directions:
+  - long
+  - short
+  templates:
+  - mean_reversion
+  - continuation
+  horizons:
+  - 12b
+  - 24b
+  - 48b
+  required_feature_keys:
+  - close
+  search_role: context
+  promotion_role: ineligible
+  runtime_role: guard
+- id: funding_timestamp_temporal
+  event_family: temporal_execution
+  event_type: FUNDING_TIMESTAMP_EVENT
+  directions:
+  - long
+  - short
+  templates:
+  - mean_reversion
+  - continuation
+  horizons:
+  - 12b
+  - 24b
+  - 48b
+  required_feature_keys:
+  - funding_rate_bps
+  search_role: context
+  promotion_role: ineligible
+  runtime_role: guard
+- id: spread_regime_widening_guard
+  event_family: temporal_execution
+  event_type: SPREAD_REGIME_WIDENING_EVENT
+  directions:
+  - long
+  - short
+  templates:
+  - slippage_aware_filter
+  - tail_risk_avoid
+  horizons:
+  - 12b
+  - 24b
+  - 48b
+  required_feature_keys:
+  - spread_zscore
+  search_role: diagnostic
+  promotion_role: ineligible
+  runtime_role: observer
+- id: slippage_spike_guard
+  event_family: temporal_execution
+  event_type: SLIPPAGE_SPIKE_EVENT
+  directions:
+  - long
+  - short
+  templates:
+  - slippage_aware_filter
+  - tail_risk_avoid
+  horizons:
+  - 12b
+  - 24b
+  - 48b
+  required_feature_keys:
+  - spread_zscore
+  search_role: diagnostic
+  promotion_role: ineligible
+  runtime_role: observer
+- id: lead_lag_break_temporal
+  event_family: temporal_execution
+  event_type: LEAD_LAG_BREAK
+  directions:
+  - long
+  - short
+  templates:
+  - desync_repair
+  - lead_lag_follow
+  - divergence_continuation
+  horizons:
+  - 12b
+  - 24b
+  - 48b
+  required_feature_keys:
+  - close
+  search_role: diagnostic
+  promotion_role: ineligible
+  runtime_role: observer

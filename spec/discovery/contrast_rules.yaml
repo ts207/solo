@@ -1,0 +1,5 @@
+version: edge_cells_v1
+contrast_rules:
+  - id: context_vs_unconditional
+    type: in_bucket_vs_unconditional
+    required: true

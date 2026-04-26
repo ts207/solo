@@ -381,7 +381,7 @@ states:
     instrument_classes:
     - crypto
     tags: []
-    family: FORCED_FLOW_AND_EXHAUSTION
+    family: POSITIONING_EXTREMES
     source_event_type: LIQUIDATION_EXHAUSTION_REVERSAL
   POST_CLIMAX_STATE:
     enabled: true

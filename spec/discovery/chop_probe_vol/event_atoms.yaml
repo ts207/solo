@@ -1,0 +1,17 @@
+version: edge_cells_v1
+event_atoms:
+- id: vol_shock_probe
+  event_family: volatility
+  event_type: VOL_SHOCK
+  directions:
+  - long
+  - short
+  templates:
+  - continuation
+  horizons:
+  - 48b
+  required_feature_keys:
+  - rv_96
+  search_role: diagnostic
+  promotion_role: ineligible
+  runtime_role: observer

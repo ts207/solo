@@ -1,0 +1,128 @@
+version: edge_cells_v2
+event_atoms:
+- id: absorption_proxy_repair
+  event_family: liquidity
+  event_type: ABSORPTION_PROXY
+  directions:
+  - long
+  - short
+  templates:
+  - mean_reversion
+  - stop_run_repair
+  - overshoot_repair
+  horizons:
+  - 12b
+  - 24b
+  - 48b
+  required_feature_keys:
+  - close
+  - spread_zscore
+  - rv_96
+  search_role: confirm
+  promotion_role: requires_composite
+  runtime_role: unavailable
+- id: depth_stress_proxy_repair
+  event_family: liquidity
+  event_type: DEPTH_STRESS_PROXY
+  directions:
+  - long
+  - short
+  templates:
+  - mean_reversion
+  - overshoot_repair
+  - only_if_liquidity
+  horizons:
+  - 12b
+  - 24b
+  - 48b
+  required_feature_keys:
+  - spread_zscore
+  - rv_96
+  search_role: confirm
+  promotion_role: requires_composite
+  runtime_role: unavailable
+- id: liquidity_stress_direct_repair
+  event_family: liquidity
+  event_type: LIQUIDITY_STRESS_DIRECT
+  directions:
+  - long
+  - short
+  templates:
+  - mean_reversion
+  - continuation
+  - only_if_liquidity
+  horizons:
+  - 12b
+  - 24b
+  - 48b
+  required_feature_keys:
+  - close
+  - high
+  - low
+  - depth_usd
+  - spread_bps
+  search_role: diagnostic
+  promotion_role: ineligible
+  runtime_role: observer
+- id: liquidity_stress_proxy_repair
+  event_family: liquidity
+  event_type: LIQUIDITY_STRESS_PROXY
+  directions:
+  - long
+  - short
+  templates:
+  - mean_reversion
+  - continuation
+  - overshoot_repair
+  horizons:
+  - 12b
+  - 24b
+  - 48b
+  required_feature_keys:
+  - close
+  - high
+  - low
+  search_role: confirm
+  promotion_role: requires_composite
+  runtime_role: unavailable
+- id: price_vol_imbalance_proxy_repair
+  event_family: liquidity
+  event_type: PRICE_VOL_IMBALANCE_PROXY
+  directions:
+  - long
+  - short
+  templates:
+  - mean_reversion
+  - continuation
+  - overshoot_repair
+  horizons:
+  - 12b
+  - 24b
+  - 48b
+  required_feature_keys:
+  - close
+  - rv_96
+  search_role: confirm
+  promotion_role: requires_composite
+  runtime_role: unavailable
+- id: wick_reversal_proxy_repair
+  event_family: liquidity
+  event_type: WICK_REVERSAL_PROXY
+  directions:
+  - long
+  - short
+  templates:
+  - mean_reversion
+  - stop_run_repair
+  - overshoot_repair
+  horizons:
+  - 12b
+  - 24b
+  - 48b
+  required_feature_keys:
+  - close
+  - high
+  - low
+  search_role: confirm
+  promotion_role: requires_composite
+  runtime_role: unavailable

@@ -4,8 +4,8 @@ metadata:
   status: generated
   graph_role: runtime_read_model
   schema_version: 2
-  generated_at_utc: '2026-04-21T04:23:04Z'
-  spec_sources_digest: 863f7055a59b34815ff3279dee2fd3c5e0c3c73c4336a64d0d9e76d32ba58566
+  generated_at_utc: '2026-04-26T08:25:01Z'
+  spec_sources_digest: 6e8824bcd27d6b851cfdb59a0933765046ad2eb09e16ccf8389534928335c2fa
   notes: Compiled runtime read model. Semantic nodes are normalized for direct runtime/search
     loading.
 events:
@@ -39,7 +39,7 @@ events:
     runtime_category: active_runtime_event
     maturity: standard
     default_executable: true
-    detector_band: composite_or_fragile
+    detector_band: ''
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -130,8 +130,8 @@ events:
     runtime_category: active_runtime_event
     maturity: ''
     default_executable: true
-    detector_band: research_trigger
-    planning_eligible: true
+    detector_band: ''
+    planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
     primary_anchor_eligible: false
@@ -217,11 +217,11 @@ events:
     runtime_category: active_runtime_event
     maturity: ''
     default_executable: true
-    detector_band: deployable_core
-    planning_eligible: true
-    runtime_eligible: true
-    promotion_eligible: true
-    primary_anchor_eligible: true
+    detector_band: ''
+    planning_eligible: false
+    runtime_eligible: false
+    promotion_eligible: false
+    primary_anchor_eligible: false
     enabled: true
     detector_name: BasisDislocationDetector
     instrument_classes:
@@ -301,11 +301,11 @@ events:
     runtime_category: active_runtime_event
     maturity: ''
     default_executable: true
-    detector_band: research_trigger
-    planning_eligible: true
+    detector_band: ''
+    planning_eligible: false
     runtime_eligible: false
-    promotion_eligible: true
-    primary_anchor_eligible: true
+    promotion_eligible: false
+    primary_anchor_eligible: false
     enabled: true
     detector_name: BetaSpikeDetector
     instrument_classes:
@@ -389,8 +389,8 @@ events:
     runtime_category: active_runtime_event
     maturity: ''
     default_executable: true
-    detector_band: research_trigger
-    planning_eligible: true
+    detector_band: ''
+    planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
     primary_anchor_eligible: false
@@ -482,8 +482,8 @@ events:
     runtime_category: active_runtime_event
     maturity: ''
     default_executable: true
-    detector_band: research_trigger
-    planning_eligible: true
+    detector_band: ''
+    planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
     primary_anchor_eligible: false
@@ -571,8 +571,8 @@ events:
     runtime_category: active_runtime_event
     maturity: ''
     default_executable: true
-    detector_band: research_trigger
-    planning_eligible: true
+    detector_band: ''
+    planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
     primary_anchor_eligible: false
@@ -666,7 +666,7 @@ events:
     runtime_category: research_only
     maturity: ''
     default_executable: false
-    detector_band: composite_or_fragile
+    detector_band: ''
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -754,11 +754,11 @@ events:
     runtime_category: active_runtime_event
     maturity: ''
     default_executable: true
-    detector_band: research_trigger
-    planning_eligible: true
+    detector_band: ''
+    planning_eligible: false
     runtime_eligible: false
-    promotion_eligible: true
-    primary_anchor_eligible: true
+    promotion_eligible: false
+    primary_anchor_eligible: false
     enabled: true
     detector_name: CorrelationBreakdownDetector
     instrument_classes:
@@ -842,8 +842,8 @@ events:
     runtime_category: active_runtime_event
     maturity: ''
     default_executable: true
-    detector_band: context_only
-    planning_eligible: true
+    detector_band: ''
+    planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
     primary_anchor_eligible: false
@@ -984,11 +984,11 @@ events:
     runtime_category: active_runtime_event
     maturity: standard
     default_executable: true
-    detector_band: research_trigger
-    planning_eligible: true
+    detector_band: ''
+    planning_eligible: false
     runtime_eligible: false
-    promotion_eligible: true
-    primary_anchor_eligible: true
+    promotion_eligible: false
+    primary_anchor_eligible: false
     enabled: true
     detector_name: CrossVenueDesyncDetector
     instrument_classes:
@@ -1144,8 +1144,8 @@ events:
     runtime_category: active_runtime_event
     maturity: ''
     default_executable: true
-    detector_band: research_trigger
-    planning_eligible: true
+    detector_band: ''
+    planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
     primary_anchor_eligible: false
@@ -1252,10 +1252,10 @@ events:
     runtime_category: active_runtime_event
     maturity: standard
     default_executable: true
-    detector_band: research_trigger
-    planning_eligible: true
+    detector_band: ''
+    planning_eligible: false
     runtime_eligible: false
-    promotion_eligible: true
+    promotion_eligible: false
     primary_anchor_eligible: false
     enabled: true
     detector_name: DepthCollapseDetector
@@ -1347,7 +1347,7 @@ events:
     runtime_category: active_runtime_event
     maturity: standard
     default_executable: true
-    detector_band: composite_or_fragile
+    detector_band: ''
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -1442,8 +1442,8 @@ events:
     runtime_category: active_runtime_event
     maturity: ''
     default_executable: true
-    detector_band: research_trigger
-    planning_eligible: true
+    detector_band: ''
+    planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
     primary_anchor_eligible: false
@@ -1532,8 +1532,8 @@ events:
     runtime_category: active_runtime_event
     maturity: ''
     default_executable: true
-    detector_band: research_trigger
-    planning_eligible: true
+    detector_band: ''
+    planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
     primary_anchor_eligible: false
@@ -1624,8 +1624,8 @@ events:
     runtime_category: active_runtime_event
     maturity: ''
     default_executable: true
-    detector_band: research_trigger
-    planning_eligible: true
+    detector_band: ''
+    planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
     primary_anchor_eligible: false
@@ -1711,7 +1711,7 @@ events:
     runtime_category: active_runtime_event
     maturity: standard
     default_executable: true
-    detector_band: composite_or_fragile
+    detector_band: ''
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -1815,11 +1815,11 @@ events:
     runtime_category: active_runtime_event
     maturity: ''
     default_executable: true
-    detector_band: deployable_core
-    planning_eligible: true
-    runtime_eligible: true
-    promotion_eligible: true
-    primary_anchor_eligible: true
+    detector_band: ''
+    planning_eligible: false
+    runtime_eligible: false
+    promotion_eligible: false
+    primary_anchor_eligible: false
     enabled: true
     detector_name: FndDislocDetector
     instrument_classes:
@@ -1903,8 +1903,8 @@ events:
     runtime_category: active_runtime_event
     maturity: standard
     default_executable: true
-    detector_band: research_trigger
-    planning_eligible: true
+    detector_band: ''
+    planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
     primary_anchor_eligible: false
@@ -2012,11 +2012,11 @@ events:
     runtime_category: active_runtime_event
     maturity: standard
     default_executable: true
-    detector_band: research_trigger
-    planning_eligible: true
+    detector_band: ''
+    planning_eligible: false
     runtime_eligible: false
-    promotion_eligible: true
-    primary_anchor_eligible: true
+    promotion_eligible: false
+    primary_anchor_eligible: false
     enabled: true
     detector_name: FundingExtremeOnsetDetector
     instrument_classes:
@@ -2202,11 +2202,11 @@ events:
     runtime_category: active_runtime_event
     maturity: ''
     default_executable: true
-    detector_band: research_trigger
-    planning_eligible: true
+    detector_band: ''
+    planning_eligible: false
     runtime_eligible: false
-    promotion_eligible: true
-    primary_anchor_eligible: true
+    promotion_eligible: false
+    primary_anchor_eligible: false
     enabled: true
     detector_name: FundingFlipDetector
     instrument_classes:
@@ -2298,10 +2298,10 @@ events:
     runtime_category: active_runtime_event
     maturity: ''
     default_executable: true
-    detector_band: research_trigger
-    planning_eligible: true
+    detector_band: ''
+    planning_eligible: false
     runtime_eligible: false
-    promotion_eligible: true
+    promotion_eligible: false
     primary_anchor_eligible: false
     enabled: true
     detector_name: FundingNormalizationDetector
@@ -2418,11 +2418,11 @@ events:
     runtime_category: active_runtime_event
     maturity: ''
     default_executable: true
-    detector_band: research_trigger
-    planning_eligible: true
+    detector_band: ''
+    planning_eligible: false
     runtime_eligible: false
-    promotion_eligible: true
-    primary_anchor_eligible: true
+    promotion_eligible: false
+    primary_anchor_eligible: false
     enabled: true
     detector_name: FundingPersistenceDetector
     instrument_classes:
@@ -2540,8 +2540,8 @@ events:
     runtime_category: active_runtime_event
     maturity: ''
     default_executable: false
-    detector_band: context_only
-    planning_eligible: true
+    detector_band: ''
+    planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
     primary_anchor_eligible: false
@@ -2641,8 +2641,8 @@ events:
     runtime_category: active_runtime_event
     maturity: ''
     default_executable: true
-    detector_band: research_trigger
-    planning_eligible: true
+    detector_band: ''
+    planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
     primary_anchor_eligible: false
@@ -2729,11 +2729,11 @@ events:
     runtime_category: active_runtime_event
     maturity: ''
     default_executable: true
-    detector_band: research_trigger
-    planning_eligible: true
+    detector_band: ''
+    planning_eligible: false
     runtime_eligible: false
-    promotion_eligible: true
-    primary_anchor_eligible: true
+    promotion_eligible: false
+    primary_anchor_eligible: false
     enabled: true
     detector_name: IndexComponentDivergenceDetector
     instrument_classes:
@@ -2819,11 +2819,11 @@ events:
     runtime_category: active_runtime_event
     maturity: ''
     default_executable: true
-    detector_band: research_trigger
-    planning_eligible: true
+    detector_band: ''
+    planning_eligible: false
     runtime_eligible: false
-    promotion_eligible: true
-    primary_anchor_eligible: true
+    promotion_eligible: false
+    primary_anchor_eligible: false
     enabled: true
     detector_name: LeadLagBreakDetector
     instrument_classes:
@@ -2909,11 +2909,11 @@ events:
     runtime_category: active_runtime_event
     maturity: ''
     default_executable: true
-    detector_band: deployable_core
-    planning_eligible: true
-    runtime_eligible: true
-    promotion_eligible: true
-    primary_anchor_eligible: true
+    detector_band: ''
+    planning_eligible: false
+    runtime_eligible: false
+    promotion_eligible: false
+    primary_anchor_eligible: false
     enabled: true
     detector_name: LiquidationCascadeDetector
     instrument_classes:
@@ -2948,9 +2948,8 @@ events:
       liq_multiplier: 3.0
       median_window: 288
       min_periods: 24
-      liq_vol_th_pct: 0.95
-      liq_vol_th: 0.0
-      oi_drop_pct_th: 0.003
+      liq_vol_th: 35671013.12
+      oi_drop_pct_th: 0.005
       max_gap: 6
     runtime:
       templates:
@@ -3006,11 +3005,11 @@ events:
     runtime_category: active_runtime_event
     maturity: experimental
     default_executable: true
-    detector_band: composite_or_fragile
-    planning_eligible: true
+    detector_band: ''
+    planning_eligible: false
     runtime_eligible: false
-    promotion_eligible: true
-    primary_anchor_eligible: true
+    promotion_eligible: false
+    primary_anchor_eligible: false
     enabled: true
     detector_name: LiquidationCascadeProxyDetector
     instrument_classes:
@@ -3176,8 +3175,8 @@ events:
     runtime_category: active_runtime_event
     maturity: ''
     default_executable: true
-    detector_band: research_trigger
-    planning_eligible: true
+    detector_band: ''
+    planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
     primary_anchor_eligible: false
@@ -3289,8 +3288,8 @@ events:
     runtime_category: active_runtime_event
     maturity: ''
     default_executable: true
-    detector_band: research_trigger
-    planning_eligible: true
+    detector_band: ''
+    planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
     primary_anchor_eligible: false
@@ -3383,11 +3382,11 @@ events:
     runtime_category: active_runtime_event
     maturity: ''
     default_executable: true
-    detector_band: deployable_core
-    planning_eligible: true
-    runtime_eligible: true
-    promotion_eligible: true
-    primary_anchor_eligible: true
+    detector_band: ''
+    planning_eligible: false
+    runtime_eligible: false
+    promotion_eligible: false
+    primary_anchor_eligible: false
     enabled: true
     detector_name: LiquidityStressDetector
     instrument_classes:
@@ -3474,11 +3473,11 @@ events:
     runtime_category: active_runtime_event
     maturity: ''
     default_executable: true
-    detector_band: deployable_core
-    planning_eligible: true
-    runtime_eligible: true
-    promotion_eligible: true
-    primary_anchor_eligible: true
+    detector_band: ''
+    planning_eligible: false
+    runtime_eligible: false
+    promotion_eligible: false
+    primary_anchor_eligible: false
     enabled: true
     detector_name: DirectLiquidityStressDetector
     instrument_classes: []
@@ -3562,7 +3561,7 @@ events:
     runtime_category: active_runtime_event
     maturity: standard
     default_executable: true
-    detector_band: composite_or_fragile
+    detector_band: ''
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -3651,11 +3650,11 @@ events:
     runtime_category: active_runtime_event
     maturity: ''
     default_executable: true
-    detector_band: deployable_core
-    planning_eligible: true
-    runtime_eligible: true
-    promotion_eligible: true
-    primary_anchor_eligible: true
+    detector_band: ''
+    planning_eligible: false
+    runtime_eligible: false
+    promotion_eligible: false
+    primary_anchor_eligible: false
     enabled: true
     detector_name: LiquidityVacuumDetector
     instrument_classes:
@@ -3821,8 +3820,8 @@ events:
     runtime_category: active_runtime_event
     maturity: ''
     default_executable: true
-    detector_band: research_trigger
-    planning_eligible: true
+    detector_band: ''
+    planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
     primary_anchor_eligible: false
@@ -3913,11 +3912,11 @@ events:
     runtime_category: active_runtime_event
     maturity: ''
     default_executable: true
-    detector_band: research_trigger
-    planning_eligible: true
+    detector_band: ''
+    planning_eligible: false
     runtime_eligible: false
-    promotion_eligible: true
-    primary_anchor_eligible: true
+    promotion_eligible: false
+    primary_anchor_eligible: false
     enabled: true
     detector_name: OIFlushDetector
     instrument_classes:
@@ -4005,15 +4004,15 @@ events:
     notes: Direction stays in subtype; canonical regime is positioning expansion.
     tier: B
     operational_role: trigger
-    deployment_disposition: primary
+    deployment_disposition: secondary_or_confirm
     runtime_category: active_runtime_event
     maturity: ''
     default_executable: true
-    detector_band: deployable_core
-    planning_eligible: true
-    runtime_eligible: true
-    promotion_eligible: true
-    primary_anchor_eligible: true
+    detector_band: ''
+    planning_eligible: false
+    runtime_eligible: false
+    promotion_eligible: false
+    primary_anchor_eligible: false
     enabled: true
     detector_name: OISpikeNegativeDetector
     instrument_classes:
@@ -4102,11 +4101,11 @@ events:
     runtime_category: active_runtime_event
     maturity: ''
     default_executable: true
-    detector_band: research_trigger
-    planning_eligible: true
+    detector_band: ''
+    planning_eligible: false
     runtime_eligible: false
-    promotion_eligible: true
-    primary_anchor_eligible: true
+    promotion_eligible: false
+    primary_anchor_eligible: false
     enabled: true
     detector_name: OISpikePositiveDetector
     instrument_classes:
@@ -4194,8 +4193,8 @@ events:
     runtime_category: active_runtime_event
     maturity: standard
     default_executable: true
-    detector_band: research_trigger
-    planning_eligible: true
+    detector_band: ''
+    planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
     primary_anchor_eligible: false
@@ -4292,8 +4291,8 @@ events:
     runtime_category: active_runtime_event
     maturity: ''
     default_executable: true
-    detector_band: research_trigger
-    planning_eligible: true
+    detector_band: ''
+    planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
     primary_anchor_eligible: false
@@ -4381,8 +4380,8 @@ events:
     runtime_category: active_runtime_event
     maturity: ''
     default_executable: true
-    detector_band: research_trigger
-    planning_eligible: true
+    detector_band: ''
+    planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
     primary_anchor_eligible: false
@@ -4488,7 +4487,7 @@ events:
     runtime_category: active_runtime_event
     maturity: standard
     default_executable: true
-    detector_band: composite_or_fragile
+    detector_band: ''
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -4583,8 +4582,8 @@ events:
     runtime_category: active_runtime_event
     maturity: ''
     default_executable: true
-    detector_band: research_trigger
-    planning_eligible: true
+    detector_band: ''
+    planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
     primary_anchor_eligible: false
@@ -4673,8 +4672,8 @@ events:
     runtime_category: active_runtime_event
     maturity: ''
     default_executable: true
-    detector_band: research_trigger
-    planning_eligible: true
+    detector_band: ''
+    planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
     primary_anchor_eligible: false
@@ -4764,8 +4763,8 @@ events:
     runtime_category: active_runtime_event
     maturity: ''
     default_executable: true
-    detector_band: research_trigger
-    planning_eligible: true
+    detector_band: ''
+    planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
     primary_anchor_eligible: false
@@ -4854,8 +4853,8 @@ events:
     runtime_category: active_runtime_event
     maturity: ''
     default_executable: false
-    detector_band: context_only
-    planning_eligible: true
+    detector_band: ''
+    planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
     primary_anchor_eligible: false
@@ -4958,7 +4957,7 @@ events:
     runtime_category: research_only
     maturity: ''
     default_executable: false
-    detector_band: composite_or_fragile
+    detector_band: ''
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -5050,7 +5049,7 @@ events:
     runtime_category: research_only
     maturity: ''
     default_executable: false
-    detector_band: composite_or_fragile
+    detector_band: ''
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -5140,7 +5139,7 @@ events:
     runtime_category: research_only
     maturity: ''
     default_executable: false
-    detector_band: composite_or_fragile
+    detector_band: ''
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -5232,7 +5231,7 @@ events:
     runtime_category: research_only
     maturity: ''
     default_executable: false
-    detector_band: composite_or_fragile
+    detector_band: ''
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -5321,8 +5320,8 @@ events:
     runtime_category: active_runtime_event
     maturity: ''
     default_executable: false
-    detector_band: context_only
-    planning_eligible: true
+    detector_band: ''
+    planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
     primary_anchor_eligible: false
@@ -5413,8 +5412,8 @@ events:
     runtime_category: active_runtime_event
     maturity: ''
     default_executable: false
-    detector_band: context_only
-    planning_eligible: true
+    detector_band: ''
+    planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
     primary_anchor_eligible: false
@@ -5505,8 +5504,8 @@ events:
     runtime_category: active_runtime_event
     maturity: ''
     default_executable: true
-    detector_band: research_trigger
-    planning_eligible: true
+    detector_band: ''
+    planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
     primary_anchor_eligible: false
@@ -5592,11 +5591,11 @@ events:
     runtime_category: active_runtime_event
     maturity: ''
     default_executable: true
-    detector_band: deployable_core
-    planning_eligible: true
-    runtime_eligible: true
-    promotion_eligible: true
-    primary_anchor_eligible: true
+    detector_band: ''
+    planning_eligible: false
+    runtime_eligible: false
+    promotion_eligible: false
+    primary_anchor_eligible: false
     enabled: true
     detector_name: SpotPerpBasisShockDetector
     instrument_classes:
@@ -5686,8 +5685,8 @@ events:
     runtime_category: active_runtime_event
     maturity: ''
     default_executable: true
-    detector_band: research_trigger
-    planning_eligible: true
+    detector_band: ''
+    planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
     primary_anchor_eligible: false
@@ -5802,8 +5801,8 @@ events:
     runtime_category: active_runtime_event
     maturity: ''
     default_executable: true
-    detector_band: research_trigger
-    planning_eligible: true
+    detector_band: ''
+    planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
     primary_anchor_eligible: false
@@ -5892,8 +5891,8 @@ events:
     runtime_category: active_runtime_event
     maturity: ''
     default_executable: true
-    detector_band: research_trigger
-    planning_eligible: true
+    detector_band: ''
+    planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
     primary_anchor_eligible: false
@@ -5982,8 +5981,8 @@ events:
     runtime_category: active_runtime_event
     maturity: standard
     default_executable: true
-    detector_band: research_trigger
-    planning_eligible: true
+    detector_band: ''
+    planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
     primary_anchor_eligible: false
@@ -6075,8 +6074,8 @@ events:
     runtime_category: active_runtime_event
     maturity: ''
     default_executable: true
-    detector_band: research_trigger
-    planning_eligible: true
+    detector_band: ''
+    planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
     primary_anchor_eligible: false
@@ -6166,8 +6165,8 @@ events:
     runtime_category: active_runtime_event
     maturity: ''
     default_executable: true
-    detector_band: research_trigger
-    planning_eligible: true
+    detector_band: ''
+    planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
     primary_anchor_eligible: false
@@ -6256,8 +6255,8 @@ events:
     runtime_category: active_runtime_event
     maturity: ''
     default_executable: true
-    detector_band: research_trigger
-    planning_eligible: true
+    detector_band: ''
+    planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
     primary_anchor_eligible: false
@@ -6364,8 +6363,8 @@ events:
     runtime_category: active_runtime_event
     maturity: ''
     default_executable: true
-    detector_band: research_trigger
-    planning_eligible: true
+    detector_band: ''
+    planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
     primary_anchor_eligible: false
@@ -6453,8 +6452,8 @@ events:
     runtime_category: active_runtime_event
     maturity: ''
     default_executable: true
-    detector_band: research_trigger
-    planning_eligible: true
+    detector_band: ''
+    planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
     primary_anchor_eligible: false
@@ -6543,8 +6542,8 @@ events:
     runtime_category: active_runtime_event
     maturity: ''
     default_executable: true
-    detector_band: research_trigger
-    planning_eligible: true
+    detector_band: ''
+    planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
     primary_anchor_eligible: false
@@ -6632,10 +6631,10 @@ events:
     runtime_category: active_runtime_event
     maturity: ''
     default_executable: true
-    detector_band: research_trigger
-    planning_eligible: true
+    detector_band: ''
+    planning_eligible: false
     runtime_eligible: false
-    promotion_eligible: true
+    promotion_eligible: false
     primary_anchor_eligible: false
     enabled: true
     detector_name: VolRelaxationDetector
@@ -6723,11 +6722,11 @@ events:
     runtime_category: active_runtime_event
     maturity: ''
     default_executable: true
-    detector_band: deployable_core
-    planning_eligible: true
-    runtime_eligible: true
-    promotion_eligible: true
-    primary_anchor_eligible: true
+    detector_band: ''
+    planning_eligible: false
+    runtime_eligible: false
+    promotion_eligible: false
+    primary_anchor_eligible: false
     enabled: true
     detector_name: VolShockRelaxationDetector
     instrument_classes:
@@ -6881,11 +6880,11 @@ events:
     runtime_category: active_runtime_event
     maturity: ''
     default_executable: true
-    detector_band: deployable_core
-    planning_eligible: true
-    runtime_eligible: true
-    promotion_eligible: true
-    primary_anchor_eligible: true
+    detector_band: ''
+    planning_eligible: false
+    runtime_eligible: false
+    promotion_eligible: false
+    primary_anchor_eligible: false
     enabled: true
     detector_name: VolSpikeDetector
     instrument_classes:
@@ -6970,7 +6969,7 @@ events:
     runtime_category: active_runtime_event
     maturity: standard
     default_executable: true
-    detector_band: composite_or_fragile
+    detector_band: ''
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -7058,8 +7057,8 @@ events:
     runtime_category: active_runtime_event
     maturity: ''
     default_executable: true
-    detector_band: research_trigger
-    planning_eligible: true
+    detector_band: ''
+    planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
     primary_anchor_eligible: false

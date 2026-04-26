@@ -4,24 +4,6 @@ metadata:
   status: generated
   authored_source: spec/templates/registry.yaml
 templates:
-  basis_convergence:
-    enabled: true
-    template_kind: expression_template
-    supports_contexts: true
-    supports_directions:
-    - long
-    - short
-    supports_trigger_types:
-    - EVENT
-  basis_funding_convergence:
-    enabled: true
-    template_kind: expression_template
-    supports_contexts: true
-    supports_directions:
-    - long
-    - short
-    supports_trigger_types:
-    - EVENT
   basis_repair:
     enabled: true
     template_kind: expression_template
@@ -41,32 +23,6 @@ templates:
     supports_trigger_types:
     - EVENT
     - SEQUENCE
-  carry_continuation_confirmed:
-    enabled: true
-    template_kind: expression_template
-    supports_contexts: true
-    supports_directions:
-    - long
-    - short
-    supports_trigger_types:
-    - EVENT
-    - SEQUENCE
-  carry_unwind_reversal:
-    enabled: true
-    template_kind: expression_template
-    supports_contexts: true
-    supports_directions:
-    - long
-    - short
-    supports_trigger_types:
-    - EVENT
-    - SEQUENCE
-  cascade_continuation_until_cooldown:
-    enabled: true
-    template_kind: expression_template
-    supports_contexts: true
-    supports_directions: []
-    supports_trigger_types: []
   continuation:
     enabled: true
     template_kind: expression_template
@@ -97,16 +53,6 @@ templates:
     - short
     supports_trigger_types:
     - EVENT
-  cooldown_reversal:
-    enabled: true
-    template_kind: expression_template
-    supports_contexts: true
-    supports_directions:
-    - long
-    - short
-    supports_trigger_types:
-    - EVENT
-    - SEQUENCE
   desync_repair:
     enabled: true
     template_kind: expression_template
@@ -154,16 +100,6 @@ templates:
     - short
     supports_trigger_types:
     - EVENT
-  forced_flow_rebound:
-    enabled: true
-    template_kind: expression_template
-    supports_contexts: true
-    supports_directions:
-    - long
-    - short
-    supports_trigger_types:
-    - EVENT
-    - SEQUENCE
   lead_lag_follow:
     enabled: true
     template_kind: expression_template
@@ -171,26 +107,6 @@ templates:
     supports_directions:
     - long
     - short
-    supports_trigger_types:
-    - EVENT
-    - SEQUENCE
-  liquidity_refill_repair:
-    enabled: true
-    template_kind: expression_template
-    supports_contexts: true
-    supports_directions:
-    - long
-    - short
-    supports_trigger_types:
-    - EVENT
-    - STATE
-    - SEQUENCE
-  long_flush_rebound:
-    enabled: true
-    template_kind: expression_template
-    supports_contexts: true
-    supports_directions:
-    - long
     supports_trigger_types:
     - EVENT
     - SEQUENCE
@@ -294,16 +210,6 @@ templates:
     - short
     supports_trigger_types:
     - EVENT
-  positioning_flush_reversal:
-    enabled: true
-    template_kind: expression_template
-    supports_contexts: true
-    supports_directions:
-    - long
-    - short
-    supports_trigger_types:
-    - EVENT
-    - SEQUENCE
   pullback_entry:
     enabled: true
     template_kind: expression_template
@@ -343,16 +249,6 @@ templates:
     - short
     supports_trigger_types:
     - EVENT
-  squeeze_followthrough_confirmed:
-    enabled: true
-    template_kind: expression_template
-    supports_contexts: true
-    supports_directions:
-    - long
-    - short
-    supports_trigger_types:
-    - EVENT
-    - SEQUENCE
   stop_run_repair:
     enabled: true
     template_kind: expression_template

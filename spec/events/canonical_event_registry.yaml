@@ -7,22 +7,21 @@ event_metadata:
   ABSORPTION_EVENT:
     evidence_tier: proxy
     family: LIQUIDITY_DISLOCATION
-    description: 'Hybrid absorption detector: microstructure imbalance stall confirmed
-      by spread and realized-volatility stress.'
+    description: 'Hybrid liquidity-stress evidence: direct imbalance-stall confirmation
+      combined with spread and RV stress.'
   DEPTH_COLLAPSE:
     evidence_tier: proxy
     family: LIQUIDITY_DISLOCATION
-    description: 'Hybrid depth-stress detector: direct micro-depth depletion confirmed
-      by spread and realized-volatility stress.'
+    description: Direct depth failure evidence for liquidity stress.
   FORCED_FLOW_EXHAUSTION:
     evidence_tier: proxy
     family: FORCED_FLOW_AND_EXHAUSTION
-    description: FORCED_FLOW_EXHAUSTION canonical proxy compatibility entry.
+    description: Exhaustion regime with forced-flow mechanics.
   ORDERFLOW_IMBALANCE_SHOCK:
     evidence_tier: proxy
     family: LIQUIDITY_DISLOCATION
-    description: ORDERFLOW_IMBALANCE_SHOCK canonical proxy compatibility entry.
+    description: Orderflow imbalance is treated as a liquidity-stress subtype.
   SWEEP_STOPRUN:
     evidence_tier: proxy
     family: LIQUIDITY_DISLOCATION
-    description: SWEEP_STOPRUN canonical proxy compatibility entry.
+    description: Stop-run style liquidity stress.

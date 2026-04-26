@@ -1,0 +1,72 @@
+version: edge_cells_v2
+metadata:
+  surface_role: repair_search
+  notes: Focused exhaustion/rebound surface for liquidation and trend-exhaustion mechanics.
+event_atoms:
+- id: liquidation_exhaustion_focused
+  event_family: liquidation_exhaustion
+  event_type: LIQUIDATION_EXHAUSTION_REVERSAL
+  directions:
+  - long
+  - short
+  templates:
+  - mean_reversion
+  - exhaustion_reversal
+  - momentum_fade
+  - range_reversion
+  horizons:
+  - 12b
+  - 24b
+  - 48b
+  required_feature_keys:
+  - close
+  - rv_96
+  - oi_delta_1h
+  - liquidation_notional
+  search_role: diagnostic
+  promotion_role: ineligible
+  runtime_role: observer
+- id: trend_exhaustion_focused
+  event_family: liquidation_exhaustion
+  event_type: TREND_EXHAUSTION_TRIGGER
+  directions:
+  - long
+  - short
+  templates:
+  - mean_reversion
+  - exhaustion_reversal
+  - momentum_fade
+  - range_reversion
+  horizons:
+  - 12b
+  - 24b
+  - 48b
+  required_feature_keys:
+  - close
+  - rv_96
+  search_role: diagnostic
+  promotion_role: ineligible
+  runtime_role: observer
+- id: post_deleveraging_rebound_focused
+  event_family: liquidation_exhaustion
+  event_type: POST_DELEVERAGING_REBOUND
+  directions:
+  - long
+  - short
+  templates:
+  - mean_reversion
+  - exhaustion_reversal
+  - momentum_fade
+  - range_reversion
+  horizons:
+  - 12b
+  - 24b
+  - 48b
+  required_feature_keys:
+  - close
+  - rv_96
+  - oi_delta_1h
+  - liquidation_notional
+  search_role: diagnostic
+  promotion_role: ineligible
+  runtime_role: observer
