@@ -420,9 +420,9 @@ def _benchmark_slice(
         ],
     ]
     if not execute:
-        # Dry-run fallback display
-        fallback = generated_proposal_dir / f"cell_{slice_spec.event_id.lower()}_generated.yaml"
-        commands[3][commands[3].index("RESOLVED_AT_RUNTIME")] = str(fallback)
+        # Dry-run display indicating dynamic resolution
+        placeholder = f"<{generated_proposal_dir}/*.yaml matched on {slice_spec.event_id.lower()}>"
+        commands[3][commands[3].index("RESOLVED_AT_RUNTIME")] = placeholder
         return {
             "slice": asdict(slice_spec),
             "run_id": run_id,
