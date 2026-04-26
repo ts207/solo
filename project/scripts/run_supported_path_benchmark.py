@@ -320,8 +320,8 @@ def _benchmark_slice(
     runtime_max_rows: int,
 ) -> dict[str, Any]:
     run_id = f"{run_prefix}_{slice_spec.slice_id}"
-    start_date = "2024-01-01"
-    end_date = "2024-01-31"
+    start_date = "2021-01-01"
+    end_date = "2025-12-31"
 
     generated_proposal_dir = data_root / "runs" / run_id / "generated_proposals"
 
