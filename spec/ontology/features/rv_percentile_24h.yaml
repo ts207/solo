@@ -1,6 +1,0 @@
-name: rv_percentile_24h
-family: VOLATILITY
-description: 24-hour realized volatility percentile.
-parameters:
-  lookback: 288
-  window: 24h

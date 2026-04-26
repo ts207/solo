@@ -1,6 +1,0 @@
-name: volume_ratio_15m
-family: LIQUIDITY
-description: Ratio of current 15m volume to its average.
-parameters:
-  lookback: 288
-  window: 15m

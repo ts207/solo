@@ -1,4 +1,0 @@
-contract_id: confirmatory_rerun_liquidity
-family: liquidity
-purpose: Confirmatory rerun contract for liquidity benchmarks.
-version: 1

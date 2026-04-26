@@ -1,6 +1,0 @@
-name: imbalance_zscore
-family: ORDER_FLOW
-description: Z-score of the order book imbalance.
-parameters:
-  lookback: 288
-  method: standard

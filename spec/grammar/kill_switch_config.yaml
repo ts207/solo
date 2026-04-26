@@ -1,8 +1,0 @@
-# Kill-switch candidate features
-candidates:
-  - rv_pct_17280
-  - spread_zscore
-  - funding_rate
-  - liquidation_count
-  - logret_1
-  - adv_pct_zscore

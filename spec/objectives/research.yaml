@@ -1,5 +1,0 @@
-objective:
-  id: research_profit_probe
-  description: Research profile objective. Keep sizing configurable for simulation comparisons.
-  sizing:
-    max_kelly_multiplier: 0.5

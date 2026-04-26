@@ -1,4 +1,0 @@
-concept_id: C_CONTEXT_INTERACTIONS
-title: Context Interactions
-canonical_stage_script: project/research/phase2_search_engine.py
-summary: Context interaction concepts route through the canonical planner-owned discovery stage.

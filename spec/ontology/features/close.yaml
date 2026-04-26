@@ -1,5 +1,0 @@
-name: close
-family: PRICE
-description: Closing price of the bar.
-parameters:
-  lookback: 1

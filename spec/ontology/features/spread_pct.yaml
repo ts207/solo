@@ -1,6 +1,0 @@
-name: spread_pct
-family: LIQUIDITY
-description: Relative bid-ask spread as a percentage of mid-price.
-parameters:
-  lookback: 288
-  quantile_normalize: true

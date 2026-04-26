@@ -1,7 +1,0 @@
-objective:
-  id: deploy_profit_survival
-  description: Deploy profile objective with fractional-Kelly sizing for live capital survival.
-  sizing:
-    # The sizing code interprets this as the upper bound on the Kelly-like
-    # confidence multiplier. Deploy defaults to conservative fractional Kelly.
-    max_kelly_multiplier: 0.5
