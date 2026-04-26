@@ -136,7 +136,7 @@ def _fold_forward_metrics(folds: pd.DataFrame) -> pd.DataFrame:
         signs = []
         for value in values:
             signs.append("+" if value > 0 else ("-" if value < 0 else "0"))
-        valid_count = int(len(values))
+        valid_count = len(values)
         fail_count = int((values <= 0).sum()) if valid_count else 0
         rows.append(
             {
@@ -419,9 +419,9 @@ def build_scoreboard(
     summary = {
         "schema_version": "edge_scoreboard_summary_v1",
         "run_id": run_id,
-        "raw_rows": int(len(raw)),
+        "raw_rows": len(raw),
         "unauthorized_rows_filtered": unauthorized_rows_filtered,
-        "scoreboard_rows": int(len(scoreboard)),
+        "scoreboard_rows": len(scoreboard),
         "rankable_rows": int((scoreboard.get("rank_score", pd.Series(dtype=float)) > 0).sum()),
         "top_rank_score": float(scoreboard["rank_score"].max()) if not scoreboard.empty else 0.0,
         "artifacts": {

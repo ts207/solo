@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Optional
 
 import numpy as np
 
@@ -21,7 +20,7 @@ def stationary_block_bootstrap_mean(
     *,
     mean_block_len: int,
     n_boot: int = 1000,
-    seed: Optional[int] = 1337,
+    seed: int | None = 1337,
     two_sided: bool = True,
 ) -> BootstrapMeanResult:
     """Stationary block bootstrap for the mean.

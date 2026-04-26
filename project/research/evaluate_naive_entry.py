@@ -11,7 +11,7 @@ import logging
 import re
 import sys
 from pathlib import Path
-from typing import Any, List
+from typing import Any
 
 import numpy as np
 import pandas as pd
@@ -139,7 +139,7 @@ def _load_phase2_candidates(run_id: str) -> pd.DataFrame:
     if not phase2_root.exists():
         return pd.DataFrame()
 
-    frames: List[pd.DataFrame] = []
+    frames: list[pd.DataFrame] = []
     for path in sorted(phase2_root.rglob("phase2_candidates.parquet")):
         try:
             frame = read_parquet(path)

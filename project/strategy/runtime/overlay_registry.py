@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 from copy import deepcopy
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any
 
 from project import PROJECT_ROOT
 
@@ -32,7 +32,7 @@ ALLOWED_OBJECTIVE_METRICS = {
     "geometric_mean_return",
 }
 REQUIRED_EVIDENCE_FIELDS = {"run_id", "split", "date_range", "universe", "config_hash"}
-DEFAULT_OVERLAY_SPECS: Dict[str, Dict[str, Any]] = {
+DEFAULT_OVERLAY_SPECS: dict[str, dict[str, Any]] = {
     "funding_extreme_filter": {
         "spec_version": PINNED_SPEC_VERSION,
         "name": "funding_extreme_filter",
@@ -105,7 +105,7 @@ DEFAULT_OVERLAY_SPECS: Dict[str, Dict[str, Any]] = {
 }
 
 
-def _validate_evidence_entries(spec: Dict[str, Any], source_path: Path) -> None:
+def _validate_evidence_entries(spec: dict[str, Any], source_path: Path) -> None:
     entries = spec.get("run_ids_evidence")
     if not isinstance(entries, list) or not entries:
         raise ValueError(f"APPROVED overlay requires non-empty run_ids_evidence: {source_path}")
@@ -127,7 +127,7 @@ def _validate_evidence_entries(spec: Dict[str, Any], source_path: Path) -> None:
                 )
 
 
-def _validate_approved_overlay_requirements(spec: Dict[str, Any], source_path: Path) -> None:
+def _validate_approved_overlay_requirements(spec: dict[str, Any], source_path: Path) -> None:
     _validate_evidence_entries(spec, source_path)
 
     cost_bps = spec.get("cost_bps_validated")
@@ -181,7 +181,7 @@ def _validate_approved_overlay_requirements(spec: Dict[str, Any], source_path: P
         )
 
 
-def _validate_spec(spec: Dict[str, Any], source_path: Path) -> None:
+def _validate_spec(spec: dict[str, Any], source_path: Path) -> None:
     missing = sorted(REQUIRED_FIELDS.difference(spec.keys()))
     if missing:
         raise ValueError(f"Overlay spec missing required fields {missing}: {source_path}")
@@ -197,8 +197,8 @@ def _validate_spec(spec: Dict[str, Any], source_path: Path) -> None:
         _validate_approved_overlay_requirements(spec, source_path)
 
 
-def _load_overlay_specs(edges_dir: Path = EDGES_DIR) -> Dict[str, Dict[str, Any]]:
-    registry: Dict[str, Dict[str, Any]] = deepcopy(DEFAULT_OVERLAY_SPECS)
+def _load_overlay_specs(edges_dir: Path = EDGES_DIR) -> dict[str, dict[str, Any]]:
+    registry: dict[str, dict[str, Any]] = deepcopy(DEFAULT_OVERLAY_SPECS)
     spec_paths = sorted(edges_dir.glob("*.json"))
     for spec_path in spec_paths:
         with spec_path.open("r", encoding="utf-8") as f:
@@ -223,7 +223,7 @@ def list_applicable_overlays() -> list[str]:
     )
 
 
-def get_overlay(name: str) -> Dict[str, Any]:
+def get_overlay(name: str) -> dict[str, Any]:
     key = name.strip()
     registry = _load_overlay_specs()
     if key not in registry:
@@ -232,7 +232,7 @@ def get_overlay(name: str) -> Dict[str, Any]:
     return deepcopy(registry[key])
 
 
-def apply_overlay(name: str, params: Dict[str, Any] | None = None) -> Dict[str, Any]:
+def apply_overlay(name: str, params: dict[str, Any] | None = None) -> dict[str, Any]:
     """Return params augmented with a named overlay configuration."""
     out = deepcopy(params) if params is not None else {}
     overlay = get_overlay(name)

@@ -28,15 +28,15 @@ import logging
 import threading
 import uuid
 from dataclasses import asdict, dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
-from typing import Any, Dict, List, Literal, Optional
+from typing import Any, Literal
 
 _LOG = logging.getLogger(__name__)
 
 
 def _utcnow() -> str:
-    return datetime.now(timezone.utc).isoformat()
+    return datetime.now(UTC).isoformat()
 
 
 def _new_id() -> str:
@@ -75,9 +75,9 @@ class OrderIntentEvent:
     expected_price: float = 0.0
     expected_notional: float = 0.0
     # Cap state at intent time
-    cap_state: Dict[str, Any] = field(default_factory=dict)
+    cap_state: dict[str, Any] = field(default_factory=dict)
     kill_switch_state: bool = False
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    metadata: dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass
@@ -94,7 +94,7 @@ class OrderSubmissionEvent:
     symbol: str = ""
     side: str = ""
     quantity: float = 0.0
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    metadata: dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass
@@ -109,7 +109,7 @@ class OrderAckEvent:
     exchange_order_id: str = ""
     symbol: str = ""
     status: str = ""
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    metadata: dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass
@@ -150,7 +150,7 @@ class FillEvent:
     expected_price: float = 0.0
     slippage_bps: float = 0.0
     realized_pnl: float = 0.0
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    metadata: dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass
@@ -162,8 +162,8 @@ class PositionSnapshotEvent:
     wallet_balance: float = 0.0
     total_unrealized_pnl: float = 0.0
     gross_exposure: float = 0.0
-    positions: List[Dict[str, Any]] = field(default_factory=list)
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    positions: list[dict[str, Any]] = field(default_factory=list)
+    metadata: dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass
@@ -182,8 +182,8 @@ class CapSnapshotEvent:
     daily_loss_global: float = 0.0
     daily_loss_thesis: float = 0.0
     active_thesis_count: int = 0
-    breach_type: Optional[str] = None  # None means no breach
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    breach_type: str | None = None  # None means no breach
+    metadata: dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass
@@ -205,7 +205,7 @@ class KillSwitchEvent:
     scope: str = "global"  # global | thesis:<id> | symbol:<sym> | family:<fam>
     reason: str = ""
     operator: str = ""
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    metadata: dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass
@@ -219,7 +219,7 @@ class ThesisStateChangeEvent:
     to_state: str = ""
     reason: str = ""
     operator: str = ""
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    metadata: dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass
@@ -232,7 +232,7 @@ class OperatorActionEvent:
     target: str = ""  # thesis_id / symbol / family / "global"
     operator: str = ""
     reason: str = ""
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    metadata: dict[str, Any] = field(default_factory=dict)
 
 
 # Union type for type-checking convenience
@@ -266,7 +266,7 @@ _EVENT_TYPES = {
 # ---------------------------------------------------------------------------
 
 
-def _event_to_dict(event: Any) -> Dict[str, Any]:
+def _event_to_dict(event: Any) -> dict[str, Any]:
     return asdict(event)
 
 
@@ -297,23 +297,21 @@ class AuditLog:
     def append(self, event: Any) -> None:
         """Append one event.  Fsync after write for durability."""
         line = json.dumps(_event_to_dict(event), sort_keys=True, default=str) + "\n"
-        with self._lock:
-            with self._path.open("a", encoding="utf-8") as fh:
-                fh.write(line)
-                fh.flush()
+        with self._lock, self._path.open("a", encoding="utf-8") as fh:
+            fh.write(line)
+            fh.flush()
 
-    def append_batch(self, events: List[Any]) -> None:
+    def append_batch(self, events: list[Any]) -> None:
         if not events:
             return
         lines = [json.dumps(_event_to_dict(e), sort_keys=True, default=str) + "\n" for e in events]
-        with self._lock:
-            with self._path.open("a", encoding="utf-8") as fh:
-                fh.writelines(lines)
-                fh.flush()
+        with self._lock, self._path.open("a", encoding="utf-8") as fh:
+            fh.writelines(lines)
+            fh.flush()
 
-    def load_all(self) -> List[Dict[str, Any]]:
+    def load_all(self) -> list[dict[str, Any]]:
         """Load all events as raw dicts.  Safe to call while running."""
-        events: List[Dict[str, Any]] = []
+        events: list[dict[str, Any]] = []
         with self._lock:
             text = self._path.read_text(encoding="utf-8")
         for line_no, line in enumerate(text.splitlines(), start=1):
@@ -330,13 +328,13 @@ class AuditLog:
                 )
         return events
 
-    def load_by_type(self, event_type: str) -> List[Dict[str, Any]]:
+    def load_by_type(self, event_type: str) -> list[dict[str, Any]]:
         return [e for e in self.load_all() if e.get("event_type") == event_type]
 
-    def load_for_thesis(self, thesis_id: str) -> List[Dict[str, Any]]:
+    def load_for_thesis(self, thesis_id: str) -> list[dict[str, Any]]:
         return [e for e in self.load_all() if e.get("thesis_id") == thesis_id]
 
-    def reconstruct_fill_lineage(self, fill_event_id: str) -> Dict[str, Any]:
+    def reconstruct_fill_lineage(self, fill_event_id: str) -> dict[str, Any]:
         """
         Given a fill event_id, reconstruct the full lineage chain as a dict.
 
@@ -345,7 +343,7 @@ class AuditLog:
         cap_snapshot_id.
         """
         all_events = self.load_all()
-        by_id: Dict[str, Dict[str, Any]] = {e["event_id"]: e for e in all_events if "event_id" in e}
+        by_id: dict[str, dict[str, Any]] = {e["event_id"]: e for e in all_events if "event_id" in e}
 
         fill = by_id.get(fill_event_id)
         if fill is None:

@@ -4,7 +4,7 @@ from __future__ import annotations
 import argparse
 import json
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any
 
 import yaml
 
@@ -41,8 +41,8 @@ FEATURE_CALLABLE_ALIASES = {
 }
 
 
-def get_yaml_specs(subdir: str) -> Dict[str, dict]:
-    specs: Dict[str, dict] = {}
+def get_yaml_specs(subdir: str) -> dict[str, dict]:
+    specs: dict[str, dict] = {}
     spec_path = SPEC_ROOT / subdir
     if not spec_path.exists():
         return specs
@@ -57,7 +57,7 @@ def get_yaml_specs(subdir: str) -> Dict[str, dict]:
     return specs
 
 
-def _issue(check_id: str, severity: str, message: str, path: str = "") -> Dict[str, str]:
+def _issue(check_id: str, severity: str, message: str, path: str = "") -> dict[str, str]:
     return {
         "check_id": check_id,
         "severity": severity,
@@ -66,9 +66,9 @@ def _issue(check_id: str, severity: str, message: str, path: str = "") -> Dict[s
     }
 
 
-def audit_features() -> Dict[str, Any]:
+def audit_features() -> dict[str, Any]:
     specs = get_yaml_specs("features")
-    issues: List[Dict[str, str]] = []
+    issues: list[dict[str, str]] = []
     families = sorted(
         {
             str(spec.get("feature_family", "")).strip()
@@ -147,9 +147,9 @@ def audit_features() -> Dict[str, Any]:
     }
 
 
-def audit_events() -> Dict[str, Any]:
+def audit_events() -> dict[str, Any]:
     specs = get_yaml_specs("events")
-    issues: List[Dict[str, str]] = []
+    issues: list[dict[str, str]] = []
     required = {"event_type", "reports_dir", "events_file", "signal_column"}
     skipped_files = {
         "registry",
@@ -197,7 +197,7 @@ def audit_events() -> Dict[str, Any]:
     }
 
 
-def audit_contracts() -> Dict[str, Any]:
+def audit_contracts() -> dict[str, Any]:
     stage_issues = [
         _issue("stage_registry", "error", issue, path="project/contracts/stage_dag.py")
         for issue in validate_stage_registry_definitions(PROJECT_ROOT)
@@ -216,7 +216,7 @@ def audit_contracts() -> Dict[str, Any]:
     }
 
 
-def run_audit(repo_root: Path | None = None) -> Dict[str, Any]:
+def run_audit(repo_root: Path | None = None) -> dict[str, Any]:
     del repo_root  # Reserved for future override support; audit currently uses repository globals.
     checks = [audit_features(), audit_events(), audit_contracts()]
     issues = [issue for check in checks for issue in check["issues"]]
@@ -235,7 +235,7 @@ def run_audit(repo_root: Path | None = None) -> Dict[str, Any]:
     }
 
 
-def render_markdown(report: Dict[str, Any]) -> str:
+def render_markdown(report: dict[str, Any]) -> str:
     summary = report["summary"]
     lines = [
         "# Pipeline Governance Audit",
@@ -287,7 +287,7 @@ def _write_output(path: Path, content: str) -> None:
     path.write_text(content, encoding="utf-8")
 
 
-def main(argv: List[str] | None = None) -> int:
+def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Pipeline Governance Tool")
     parser.add_argument("--audit", action="store_true", help="Run audit on specs and contracts")
     parser.add_argument("--sync", action="store_true", help="Sync schemas and registries")

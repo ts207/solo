@@ -1,8 +1,9 @@
 from __future__ import annotations
 
 import logging
+from collections.abc import Mapping
 from functools import lru_cache
-from typing import Any, Mapping, Optional
+from typing import Any
 
 import pandas as pd
 
@@ -37,15 +38,15 @@ class EventSequenceDetector(BaseEventDetector):
 
     def __init__(
         self,
-        anchor_event: Optional[str] = None,
-        trigger_event: Optional[str] = None,
+        anchor_event: str | None = None,
+        trigger_event: str | None = None,
         max_window: int = 48,
     ):
         self.anchor_event = anchor_event
         self.trigger_event = trigger_event
         self.max_window = max_window
-        self._anchor_detector: Optional[BaseEventDetector] = None
-        self._trigger_detector: Optional[BaseEventDetector] = None
+        self._anchor_detector: BaseEventDetector | None = None
+        self._trigger_detector: BaseEventDetector | None = None
         self._spec_resolved = False
 
     def _resolve_spec(self):

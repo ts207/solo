@@ -9,7 +9,8 @@ from __future__ import annotations
 
 import logging
 import multiprocessing
-from typing import Any, List, Optional, Sequence, Tuple
+from collections.abc import Sequence
+from typing import Any
 
 import pandas as pd
 
@@ -144,7 +145,7 @@ def _slice_chunk_features(chunk: Sequence[HypothesisSpec], features: pd.DataFram
 
 
 def _evaluate_chunk(
-    args: Tuple[Sequence[HypothesisSpec], pd.DataFrame, int, bool, Optional[List[Any]]],
+    args: tuple[Sequence[HypothesisSpec], pd.DataFrame, int, bool, list[Any] | None],
 ) -> pd.DataFrame:
     """Worker function: unpack and evaluate a chunk of hypotheses."""
     chunk, features, min_sample_size, use_context_quality, folds = args
@@ -160,10 +161,10 @@ def _evaluate_chunk(
 
 
 def run_distributed_search(
-    hypotheses: List[HypothesisSpec],
+    hypotheses: list[HypothesisSpec],
     features: pd.DataFrame,
     *,
-    n_workers: Optional[int] = None,
+    n_workers: int | None = None,
     chunk_size: int = 256,
     min_sample_size: int = 20,
     use_context_quality: bool = True,

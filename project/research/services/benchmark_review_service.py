@@ -2,12 +2,12 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any
 
 from project.core.exceptions import DataIntegrityError
 
 
-def _load_json(path_like: str | Path | None) -> Dict[str, Any]:
+def _load_json(path_like: str | Path | None) -> dict[str, Any]:
     if not path_like:
         return {}
     path = Path(path_like)
@@ -22,13 +22,13 @@ def _load_json(path_like: str | Path | None) -> Dict[str, Any]:
     return payload if isinstance(payload, dict) else {}
 
 
-def _selected_hypothesis_key(selected: Dict[str, Any]) -> str:
+def _selected_hypothesis_key(selected: dict[str, Any]) -> str:
     if not isinstance(selected, dict):
         return ""
     return str(selected.get("hypothesis_id", "")).strip()
 
 
-def classify_benchmark_slice(*, generated_reports: Dict[str, Any]) -> str:
+def classify_benchmark_slice(*, generated_reports: dict[str, Any]) -> str:
     live = _load_json(generated_reports.get("live_foundation"))
     comparison = _load_json(generated_reports.get("context_mode_comparison"))
 
@@ -48,9 +48,9 @@ def classify_benchmark_slice(*, generated_reports: Dict[str, Any]) -> str:
     return "coverage_limited"
 
 
-def build_benchmark_review(*, summary: Dict[str, Any]) -> Dict[str, Any]:
+def build_benchmark_review(*, summary: dict[str, Any]) -> dict[str, Any]:
     slices = []
-    status_counts: Dict[str, int] = {}
+    status_counts: dict[str, int] = {}
     for row in summary.get("slices", []):
         generated_reports = (
             dict(row.get("generated_reports", {}))
@@ -113,7 +113,7 @@ def build_benchmark_review(*, summary: Dict[str, Any]) -> Dict[str, Any]:
     }
 
 
-def render_benchmark_review_markdown(review: Dict[str, Any]) -> str:
+def render_benchmark_review_markdown(review: dict[str, Any]) -> str:
     lines = [
         "# Benchmark Review",
         "",
@@ -145,7 +145,7 @@ def render_benchmark_review_markdown(review: Dict[str, Any]) -> str:
     return "\n".join(lines)
 
 
-def write_benchmark_review(*, out_dir: Path, review: Dict[str, Any]) -> Dict[str, Path]:
+def write_benchmark_review(*, out_dir: Path, review: dict[str, Any]) -> dict[str, Path]:
     out_dir.mkdir(parents=True, exist_ok=True)
     json_path = out_dir / "benchmark_review.json"
     md_path = out_dir / "benchmark_review.md"

@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import logging
-from typing import Dict
 
 import numpy as np
 import pandas as pd
@@ -88,7 +87,7 @@ def evaluate_baseline_performance(
     returns: pd.Series,
     baseline_type: str,
     **kwargs,
-) -> Dict[str, float]:
+) -> dict[str, float]:
     """
     Helper to get baseline metrics for comparison.
     """

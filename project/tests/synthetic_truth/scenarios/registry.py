@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-from typing import Optional
-
 from .factory import ScenarioSpec
 
 try:
@@ -43,5 +41,5 @@ def get_scenarios_for_event(event_type: str) -> list[ScenarioSpec]:
     ]
 
 
-def get_scenario(name: str) -> Optional[ScenarioSpec]:
+def get_scenario(name: str) -> ScenarioSpec | None:
     return SCENARIO_REGISTRY.get(name)

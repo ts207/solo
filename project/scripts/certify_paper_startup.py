@@ -25,7 +25,7 @@ import argparse
 import json
 import logging
 import sys
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 if __package__ in {None, ""}:
@@ -51,7 +51,7 @@ def _run_certification(
     results: dict = {
         "schema_version": CERT_SCHEMA_VERSION,
         "config_path": str(config_path),
-        "certified_at_utc": datetime.now(timezone.utc).isoformat(),
+        "certified_at_utc": datetime.now(UTC).isoformat(),
         "checks": {},
         "artifacts": {},
         "passed": False,

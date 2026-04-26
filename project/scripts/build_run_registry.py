@@ -6,7 +6,6 @@ import logging
 import sqlite3
 import sys
 from pathlib import Path
-from typing import Dict, List
 
 from project.core.config import get_data_root
 
@@ -40,7 +39,7 @@ def create_schema(conn: sqlite3.Connection) -> None:
     """)
 
 
-def upsert_run(conn: sqlite3.Connection, row: Dict) -> None:
+def upsert_run(conn: sqlite3.Connection, row: dict) -> None:
     conn.execute(
         """
         INSERT OR REPLACE INTO runs (run_id, stage, status, survivors_count, tested_count, timestamp)
@@ -50,7 +49,7 @@ def upsert_run(conn: sqlite3.Connection, row: Dict) -> None:
     )
 
 
-def query_top_promoted(conn: sqlite3.Connection, limit: int = 10) -> List[Dict]:
+def query_top_promoted(conn: sqlite3.Connection, limit: int = 10) -> list[dict]:
     cur = conn.execute(
         "SELECT * FROM runs WHERE status='success' ORDER BY survivors_count DESC LIMIT ?", (limit,)
     )

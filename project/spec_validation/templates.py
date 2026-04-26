@@ -1,13 +1,14 @@
 from __future__ import annotations
 
 import json
+from collections.abc import Mapping
 from pathlib import Path
-from typing import Any, List, Mapping, Tuple, Dict
-import yaml
+from typing import Any
 
-from project.spec_validation.loaders import load_template_registry, load_template_registry as load_canonical_registry, load_yaml
+from project.spec_validation.loaders import load_template_registry, load_yaml
 
-def load_yaml_relative(relative_path: str, root: Path = Path(".")) -> Dict[str, Any]:
+
+def load_yaml_relative(relative_path: str, root: Path = Path(".")) -> dict[str, Any]:
     return load_yaml(root / relative_path)
 
 def _has_path(row: Mapping[str, Any], path: str) -> bool:
@@ -18,7 +19,7 @@ def _has_path(row: Mapping[str, Any], path: str) -> bool:
         current = current[part]
     return current not in (None, "", [], {})
 
-def validate_template_contracts(root: Path = Path(".")) -> List[Tuple[str, str]]:
+def validate_template_contracts(root: Path = Path(".")) -> list[tuple[str, str]]:
     registry = load_template_registry(root=root)
     operators = registry.get("operators", {}) if isinstance(registry, dict) else {}
     if not isinstance(operators, dict):
@@ -48,7 +49,7 @@ def validate_template_contracts(root: Path = Path(".")) -> List[Tuple[str, str]]
     if isinstance(replacements, dict):
         abstract_templates = {str(item).strip() for item in replacements if str(item).strip()}
 
-    errors: List[Tuple[str, str]] = []
+    errors: list[tuple[str, str]] = []
     for template_id, row in sorted(operators.items()):
         if not isinstance(row, Mapping):
             continue
@@ -84,28 +85,28 @@ def validate_template_contracts(root: Path = Path(".")) -> List[Tuple[str, str]]
 
     return errors
 
-def validate_event_template_matrix(root: Path = Path(".")) -> List[Tuple[str, str]]:
-    errors: List[Tuple[str, str]] = []
-    
+def validate_event_template_matrix(root: Path = Path(".")) -> list[tuple[str, str]]:
+    errors: list[tuple[str, str]] = []
+
     matrix_path = "spec/compatibility/event_template_matrix.yaml"
     matrix_doc = load_yaml_relative(matrix_path, root=root)
     if not isinstance(matrix_doc, dict):
         return [(matrix_path, "Root must be a mapping")]
-        
+
     matrix = matrix_doc.get("event_template_matrix", {})
     if not isinstance(matrix, dict):
         return [(matrix_path, "event_template_matrix must be a mapping")]
-        
+
     eligibility_path = root / "docs/generated/detector_eligibility_matrix.json"
     if not eligibility_path.exists():
         return [("docs/generated/detector_eligibility_matrix.json", "Missing eligibility matrix")]
-        
+
     try:
-        with open(eligibility_path, "r") as f:
+        with open(eligibility_path) as f:
             eligibility_rows = json.load(f)
     except Exception as e:
         return [(str(eligibility_path), f"Failed to parse: {e}")]
-        
+
     for row in eligibility_rows:
         if row.get("runtime") is True:
             event_name = row.get("event_name", "")
@@ -119,16 +120,16 @@ def validate_event_template_matrix(root: Path = Path(".")) -> List[Tuple[str, st
         known_templates.update(registry.get("operators", {}).keys())
         known_templates.update(registry.get("filter_templates", {}).keys())
         known_templates.update(registry.get("expression_templates", {}).keys())
-    
+
     contract = load_yaml_relative("spec/templates/template_contract.yaml", root=root)
     if isinstance(contract, dict):
         replacements = contract.get("generic_template_replacements", {})
         if isinstance(replacements, dict):
             known_templates.update(replacements.keys())
-            
+
     # Generic abstract templates are only allowed under status: forbidden in the matrix
     abstract_templates = {
-        "mean_reversion", "continuation", "exhaustion_reversal", 
+        "mean_reversion", "continuation", "exhaustion_reversal",
         "reversal_or_squeeze", "convexity_capture", "trend_continuation",
         "generic_continuation", "generic_mean_reversion", "unconditioned_mean_reversion"
     }
@@ -138,7 +139,7 @@ def validate_event_template_matrix(root: Path = Path(".")) -> List[Tuple[str, st
             continue
         for template_name, cfg in templates.items():
             status = cfg.get("status") if isinstance(cfg, dict) else ""
-            
+
             if template_name in abstract_templates:
                 if status != "forbidden":
                      errors.append((matrix_path, f"Generic abstract template '{template_name}' must be marked as 'forbidden' in matrix under event '{event_name}'"))
@@ -146,5 +147,5 @@ def validate_event_template_matrix(root: Path = Path(".")) -> List[Tuple[str, st
 
             if template_name not in known_templates:
                 errors.append((matrix_path, f"Unknown template '{template_name}' referenced under event '{event_name}'"))
-                
+
     return errors

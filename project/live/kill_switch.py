@@ -11,13 +11,14 @@ import asyncio
 import logging
 import threading
 import uuid
+from collections.abc import Callable
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import Enum, auto
 
 # Imported lazily to avoid a circular import (audit_log -> kill_switch -> audit_log)
 # Use TYPE_CHECKING to satisfy type checkers without causing import cycles.
-from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional
+from typing import TYPE_CHECKING, Any
 
 import pandas as pd
 
@@ -47,8 +48,8 @@ class KillSwitchReason(Enum):
 @dataclass
 class KillSwitchStatus:
     is_active: bool = False
-    reason: Optional[KillSwitchReason] = None
-    triggered_at: Optional[datetime] = None
+    reason: KillSwitchReason | None = None
+    triggered_at: datetime | None = None
     message: str = ""
     recovery_streak: int = 0
     peak_equity: float = 0.0
@@ -71,11 +72,11 @@ class KillSwitchManager:
         state_store: LiveStateStore,
         *,
         microstructure_recovery_streak: int = 3,
-        audit_log: "AuditLog | None" = None,
+        audit_log: AuditLog | None = None,
     ):
         self.state_store = state_store
         self.status = KillSwitchStatus()
-        self._on_trigger_callbacks: List[Callable[[KillSwitchReason, str], None]] = []
+        self._on_trigger_callbacks: list[Callable[[KillSwitchReason, str], None]] = []
         self.microstructure_recovery_streak = max(1, int(microstructure_recovery_streak))
         self._lock = threading.RLock()
         self._audit_log = audit_log
@@ -86,7 +87,7 @@ class KillSwitchManager:
     # ------------------------------------------------------------------
 
     def _now_iso(self) -> str:
-        return datetime.now(timezone.utc).isoformat()
+        return datetime.now(UTC).isoformat()
 
     def _emit_audit(self, **kwargs: Any) -> None:
         if self._audit_log is None:
@@ -211,7 +212,7 @@ class KillSwitchManager:
     def register_callback(self, callback: Callable[[KillSwitchReason, str], None]):
         self._on_trigger_callbacks.append(callback)
 
-    def _serialize_status(self) -> Dict[str, Any]:
+    def _serialize_status(self) -> dict[str, Any]:
         return {
             "is_active": bool(self.status.is_active),
             "reason": self.status.reason.name if self.status.reason is not None else None,
@@ -256,7 +257,7 @@ class KillSwitchManager:
         )
 
     def trigger(self, reason: KillSwitchReason, message: str = ""):
-        callbacks: List[Callable[[KillSwitchReason, str], None]] = []
+        callbacks: list[Callable[[KillSwitchReason, str], None]] = []
         with self._lock:
             if self.status.is_active:
                 return
@@ -264,7 +265,7 @@ class KillSwitchManager:
             self.status = KillSwitchStatus(
                 is_active=True,
                 reason=reason,
-                triggered_at=datetime.now(timezone.utc),
+                triggered_at=datetime.now(UTC),
                 message=message,
                 recovery_streak=0,
                 peak_equity=self.status.peak_equity,  # preserve high-water mark
@@ -319,7 +320,7 @@ class KillSwitchManager:
         max_spread_bps: float,
         min_depth_usd: float,
         min_tob_coverage: float,
-    ) -> Dict[str, object]:
+    ) -> dict[str, object]:
         gate = evaluate_pretrade_microstructure_gate(
             spread_bps=spread_bps,
             depth_usd=depth_usd,
@@ -356,7 +357,7 @@ class KillSwitchManager:
         max_spread_bps: float,
         min_depth_usd: float,
         min_tob_coverage: float,
-    ) -> Dict[str, object]:
+    ) -> dict[str, object]:
         """
         Trigger a live kill-switch when market microstructure exits the tradable envelope.
         """
@@ -433,13 +434,13 @@ class KillSwitchManager:
         research_features: pd.DataFrame,
         live_features: pd.DataFrame,
         threshold: float | None = None,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Check for feature drift between research baseline and live features.
         Triggers kill-switch if PSI exceeds PSI_ERROR_THRESHOLD on any tier-1 feature.
         """
         error_threshold = self.PSI_ERROR_THRESHOLD if threshold is None else threshold
-        drift_results: Dict[str, Any] = {
+        drift_results: dict[str, Any] = {
             "drifted_features": [],
             "psi_scores": {},
             "triggered": False,
@@ -480,7 +481,7 @@ class KillSwitchManager:
 
         return drift_results
 
-    def check_live_quality_gate(self, gate_result: Dict[str, Any]) -> Dict[str, Any]:
+    def check_live_quality_gate(self, gate_result: dict[str, Any]) -> dict[str, Any]:
         action = str(gate_result.get("action", "allow"))
         reasons = list(gate_result.get("reason_codes", []))
         if action == "disable":

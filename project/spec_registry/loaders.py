@@ -4,8 +4,9 @@ import copy
 import functools
 import json
 import os
+from collections.abc import Iterable, Mapping
 from pathlib import Path
-from typing import Any, Dict, Iterable, Mapping
+from typing import Any
 
 import yaml
 
@@ -15,7 +16,7 @@ from project.spec_registry.policy import _DEFAULT_BLUEPRINT_POLICY
 REPO_ROOT = PROJECT_ROOT.parent
 SPEC_ROOT = REPO_ROOT / "spec"
 
-ONTOLOGY_SPEC_RELATIVE_PATHS: Dict[str, str] = {
+ONTOLOGY_SPEC_RELATIVE_PATHS: dict[str, str] = {
     "taxonomy": "spec/multiplicity/taxonomy.yaml",
     "canonical_event_registry": "spec/events/canonical_event_registry.yaml",
     "template_registry": "spec/templates/registry.yaml",
@@ -27,7 +28,7 @@ ONTOLOGY_SPEC_RELATIVE_PATHS: Dict[str, str] = {
     "domain_graph": "spec/domain/domain_graph.yaml",
 }
 
-RUNTIME_SPEC_RELATIVE_PATHS: Dict[str, str] = {
+RUNTIME_SPEC_RELATIVE_PATHS: dict[str, str] = {
     "lanes": "spec/runtime/lanes.yaml",
     "firewall": "spec/runtime/firewall.yaml",
     "hashing": "spec/runtime/hashing.yaml",
@@ -45,7 +46,7 @@ def spec_root() -> Path:
     return SPEC_ROOT
 
 
-def _read_yaml(path: Path, required: bool = True) -> Dict[str, Any]:
+def _read_yaml(path: Path, required: bool = True) -> dict[str, Any]:
     if not path.exists():
         if required:
             raise FileNotFoundError(f"Spec file missing: {path}")
@@ -61,8 +62,8 @@ def _read_yaml(path: Path, required: bool = True) -> Dict[str, Any]:
     return payload if isinstance(payload, dict) else {}
 
 
-def _deep_merge(base: Mapping[str, Any], override: Mapping[str, Any]) -> Dict[str, Any]:
-    out: Dict[str, Any] = copy.deepcopy(dict(base))
+def _deep_merge(base: Mapping[str, Any], override: Mapping[str, Any]) -> dict[str, Any]:
+    out: dict[str, Any] = copy.deepcopy(dict(base))
     for key, value in dict(override).items():
         if isinstance(value, Mapping) and isinstance(out.get(key), Mapping):
             out[str(key)] = _deep_merge(dict(out[key]), dict(value))
@@ -77,26 +78,26 @@ def resolve_relative_spec_path(relative_path: str | Path, repo_root: Path | None
     return (base / rel).resolve()
 
 
-@functools.lru_cache(maxsize=None)
-def load_yaml_relative(relative_path: str) -> Dict[str, Any]:
+@functools.cache
+def load_yaml_relative(relative_path: str) -> dict[str, Any]:
     return _read_yaml(resolve_relative_spec_path(relative_path))
 
 
-def load_yaml_path(path: str | Path) -> Dict[str, Any]:
+def load_yaml_path(path: str | Path) -> dict[str, Any]:
     return _read_yaml(Path(path))
 
 
 @functools.lru_cache(maxsize=1)
-def load_gates_spec() -> Dict[str, Any]:
+def load_gates_spec() -> dict[str, Any]:
     return load_yaml_relative("spec/gates.yaml")
 
 
 @functools.lru_cache(maxsize=1)
-def load_family_specs() -> Dict[str, Any]:
+def load_family_specs() -> dict[str, Any]:
     return load_yaml_relative("spec/multiplicity/families.yaml")
 
 
-def load_family_spec(family_id: str) -> Dict[str, Any]:
+def load_family_spec(family_id: str) -> dict[str, Any]:
     payload = load_family_specs()
     families = payload.get("families", {}) if isinstance(payload, dict) else {}
     if not isinstance(families, dict):
@@ -106,22 +107,22 @@ def load_family_spec(family_id: str) -> Dict[str, Any]:
 
 
 @functools.lru_cache(maxsize=1)
-def load_unified_event_registry() -> Dict[str, Any]:
+def load_unified_event_registry() -> dict[str, Any]:
     return load_yaml_relative("spec/events/event_registry_unified.yaml")
 
 
 @functools.lru_cache(maxsize=1)
-def load_event_ontology_mapping() -> Dict[str, Any]:
+def load_event_ontology_mapping() -> dict[str, Any]:
     return load_yaml_relative("spec/events/event_ontology_mapping.yaml")
 
 
 @functools.lru_cache(maxsize=1)
-def load_template_registry() -> Dict[str, Any]:
+def load_template_registry() -> dict[str, Any]:
     return load_yaml_relative("spec/templates/registry.yaml")
 
 
 @functools.lru_cache(maxsize=1)
-def load_regime_registry() -> Dict[str, Any]:
+def load_regime_registry() -> dict[str, Any]:
     return load_yaml_relative("spec/regimes/registry.yaml")
 
 
@@ -133,7 +134,7 @@ def _iter_state_spec_paths() -> Iterable[Path]:
         yield path
 
 
-def _iter_state_definition_rows() -> Iterable[tuple[Path, Dict[str, Any]]]:
+def _iter_state_definition_rows() -> Iterable[tuple[Path, dict[str, Any]]]:
     for path in _iter_state_spec_paths():
         if path.name == _STATE_DEFAULTS_FILENAME:
             continue
@@ -150,7 +151,7 @@ def _iter_state_definition_rows() -> Iterable[tuple[Path, Dict[str, Any]]]:
         yield path, normalized
 
 
-def _iter_context_dimension_rows() -> Iterable[tuple[Path, Dict[str, Any]]]:
+def _iter_context_dimension_rows() -> Iterable[tuple[Path, dict[str, Any]]]:
     for path in _iter_state_spec_paths():
         if path.name == _STATE_DEFAULTS_FILENAME:
             continue
@@ -191,7 +192,7 @@ def _iter_context_dimension_rows() -> Iterable[tuple[Path, Dict[str, Any]]]:
         yield path, normalized
 
 
-def _load_state_defaults() -> Dict[str, Any]:
+def _load_state_defaults() -> dict[str, Any]:
     path = SPEC_ROOT / "states" / _STATE_DEFAULTS_FILENAME
     payload = _read_yaml(path, required=False)
     defaults = payload.get("defaults", payload) if isinstance(payload, dict) else {}
@@ -213,20 +214,18 @@ def _load_state_defaults() -> Dict[str, Any]:
     return normalized
 
 
-def _context_dimensions_from_registry() -> Dict[str, Dict[str, Any]]:
+def _context_dimensions_from_registry() -> dict[str, dict[str, Any]]:
     payload = load_yaml_relative("spec/contexts/context_dimension_registry.yaml")
     raw_dimensions = payload.get("dimensions", {}) if isinstance(payload, dict) else {}
     if not isinstance(raw_dimensions, dict):
         return {}
-    dimensions: Dict[str, Dict[str, Any]] = {}
+    dimensions: dict[str, dict[str, Any]] = {}
     for raw_name, raw_cfg in raw_dimensions.items():
         name = str(raw_name).strip()
         if not name or not isinstance(raw_cfg, Mapping):
             continue
         raw_values = raw_cfg.get("values", {})
-        if isinstance(raw_values, Mapping):
-            allowed_values = [str(value).strip() for value in raw_values if str(value).strip()]
-        elif isinstance(raw_values, list):
+        if isinstance(raw_values, Mapping) or isinstance(raw_values, list):
             allowed_values = [str(value).strip() for value in raw_values if str(value).strip()]
         else:
             allowed_values = []
@@ -240,7 +239,7 @@ def _context_dimensions_from_registry() -> Dict[str, Dict[str, Any]]:
 
 
 @functools.lru_cache(maxsize=1)
-def load_state_registry() -> Dict[str, Any]:
+def load_state_registry() -> dict[str, Any]:
     defaults = _load_state_defaults()
     context_dimensions = {
         str(row["state_name"]).strip(): {
@@ -269,7 +268,7 @@ def load_state_registry() -> Dict[str, Any]:
 
 
 @functools.lru_cache(maxsize=1)
-def load_state_family_registry() -> Dict[str, Any]:
+def load_state_family_registry() -> dict[str, Any]:
     defaults = _load_state_defaults()
     context_rows = [row for _, row in _iter_context_dimension_rows()]
     context_rows.sort(key=lambda row: str(row.get("state_name", "")).strip())
@@ -281,9 +280,9 @@ def load_state_family_registry() -> Dict[str, Any]:
         for row in context_rows
     }
     context_dimensions.update(_context_dimensions_from_registry())
-    family_rows: list[Dict[str, Any]] = []
+    family_rows: list[dict[str, Any]] = []
     for row in context_rows:
-        family_row: Dict[str, Any] = {
+        family_row: dict[str, Any] = {
             "name": str(row["state_name"]).strip(),
             "allowed_values": list(row["allowed_values"]),
         }
@@ -324,17 +323,17 @@ def load_state_family_registry() -> Dict[str, Any]:
 
 
 @functools.lru_cache(maxsize=1)
-def load_thesis_registry() -> Dict[str, Any]:
+def load_thesis_registry() -> dict[str, Any]:
     return load_yaml_relative("spec/theses/thesis_registry.yaml")
 
 
 @functools.lru_cache(maxsize=1)
-def load_event_contract_overrides() -> Dict[str, Any]:
+def load_event_contract_overrides() -> dict[str, Any]:
     return load_yaml_relative("spec/events/event_contract_overrides.yaml")
 
 
-@functools.lru_cache(maxsize=None)
-def load_runtime_spec(name: str) -> Dict[str, Any]:
+@functools.cache
+def load_runtime_spec(name: str) -> dict[str, Any]:
     normalized = str(name).strip().lower()
     if not normalized:
         return {}
@@ -342,7 +341,7 @@ def load_runtime_spec(name: str) -> Dict[str, Any]:
 
 
 @functools.lru_cache(maxsize=1)
-def load_blueprint_policy_spec(policy_path: str | None = None) -> Dict[str, Any]:
+def load_blueprint_policy_spec(policy_path: str | None = None) -> dict[str, Any]:
     if policy_path:
         raw = load_yaml_path(Path(policy_path).resolve())
     else:
@@ -350,7 +349,7 @@ def load_blueprint_policy_spec(policy_path: str | None = None) -> Dict[str, Any]
     return _deep_merge(_DEFAULT_BLUEPRINT_POLICY, raw)
 
 
-def _safe_objective(payload: object) -> Dict[str, Any]:
+def _safe_objective(payload: object) -> dict[str, Any]:
     if not isinstance(payload, dict):
         return {}
     raw = payload.get("objective", payload)
@@ -366,13 +365,13 @@ def _safe_objective(payload: object) -> Dict[str, Any]:
     return out
 
 
-def _safe_profiles(payload: object) -> Dict[str, Dict[str, Any]]:
+def _safe_profiles(payload: object) -> dict[str, dict[str, Any]]:
     if not isinstance(payload, dict):
         return {}
     raw_profiles = payload.get("profiles", payload)
     if not isinstance(raw_profiles, dict):
         return {}
-    out: Dict[str, Dict[str, Any]] = {}
+    out: dict[str, dict[str, Any]] = {}
     for name, cfg in raw_profiles.items():
         key = str(name).strip()
         if key and isinstance(cfg, dict):
@@ -385,7 +384,7 @@ def load_objective_spec(
     objective_name: str = "retail_profitability",
     explicit_path: str | Path | None = None,
     required: bool = False,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     resolved_name = str(objective_name).strip() or "retail_profitability"
     candidates: list[Path] = []
     if explicit_path:
@@ -409,7 +408,7 @@ def load_objective_spec(
 
 def load_retail_profiles_spec(
     *, explicit_path: str | Path | None = None, required: bool = False
-) -> Dict[str, Dict[str, Any]]:
+) -> dict[str, dict[str, Any]]:
     candidates: list[Path] = []
     if explicit_path:
         candidates.append(Path(explicit_path))
@@ -435,7 +434,7 @@ def load_retail_profile(
     profile_name: str = "capital_constrained",
     explicit_path: str | Path | None = None,
     required: bool = False,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     resolved_name = str(profile_name).strip() or "capital_constrained"
     profiles = load_retail_profiles_spec(explicit_path=explicit_path, required=required)
     if not profiles:
@@ -451,43 +450,43 @@ def load_retail_profile(
     return {}
 
 
-@functools.lru_cache(maxsize=None)
-def load_hypothesis_spec(name: str) -> Dict[str, Any]:
+@functools.cache
+def load_hypothesis_spec(name: str) -> dict[str, Any]:
     normalized = str(name).strip()
     if not normalized:
         return {}
     return load_yaml_relative(f"spec/hypotheses/{normalized}.yaml")
 
 
-@functools.lru_cache(maxsize=None)
-def load_concept_spec(concept_id: str) -> Dict[str, Any]:
+@functools.cache
+def load_concept_spec(concept_id: str) -> dict[str, Any]:
     normalized = str(concept_id).strip()
     if not normalized:
         return {}
     return load_yaml_relative(f"spec/concepts/{normalized}.yaml")
 
 
-@functools.lru_cache(maxsize=None)
-def load_global_defaults() -> Dict[str, Any]:
+@functools.cache
+def load_global_defaults() -> dict[str, Any]:
     return load_yaml_relative("spec/global_defaults.yaml")
 
 
-@functools.lru_cache(maxsize=None)
-def load_event_spec(event_type: str) -> Dict[str, Any]:
+@functools.cache
+def load_event_spec(event_type: str) -> dict[str, Any]:
     normalized = str(event_type).strip()
     if not normalized:
         return {}
     return load_yaml_relative(f"spec/events/{normalized}.yaml")
 
 
-def ontology_spec_paths(repo_root: Path | None = None) -> Dict[str, Path]:
+def ontology_spec_paths(repo_root: Path | None = None) -> dict[str, Path]:
     return {
         key: resolve_relative_spec_path(rel, repo_root=repo_root)
         for key, rel in ONTOLOGY_SPEC_RELATIVE_PATHS.items()
     }
 
 
-def runtime_spec_paths(repo_root: Path | None = None) -> Dict[str, Path]:
+def runtime_spec_paths(repo_root: Path | None = None) -> dict[str, Path]:
     return {
         key: resolve_relative_spec_path(rel, repo_root=repo_root)
         for key, rel in RUNTIME_SPEC_RELATIVE_PATHS.items()
@@ -501,7 +500,7 @@ def feature_schema_registry_path(version: str | None = None) -> Path:
     return (PROJECT_ROOT / "schemas" / f"feature_schema_{token}.json").resolve()
 
 
-def load_feature_schema_registry(version: str | None = None) -> Dict[str, Any]:
+def load_feature_schema_registry(version: str | None = None) -> dict[str, Any]:
     path = feature_schema_registry_path(version)
     if not path.exists():
         raise ValueError(f"Feature schema registry missing: {path}")

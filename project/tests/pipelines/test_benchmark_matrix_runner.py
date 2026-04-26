@@ -3,7 +3,7 @@ from __future__ import annotations
 import importlib.util
 import json
 import sys
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 from project.tests.conftest import PROJECT_ROOT
@@ -89,7 +89,7 @@ def test_benchmark_matrix_defaults_to_canonical_benchmark_root(tmp_path, monkeyp
     class FixedDatetime(datetime):
         @classmethod
         def now(cls, tz=None):
-            return datetime(2026, 1, 1, 0, 0, 0, tzinfo=timezone.utc)
+            return datetime(2026, 1, 1, 0, 0, 0, tzinfo=UTC)
 
     monkeypatch.setattr(module, "DATA_ROOT", data_root)
     monkeypatch.setenv("BACKTEST_DATA_ROOT", str(data_root))

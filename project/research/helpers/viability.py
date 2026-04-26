@@ -1,18 +1,19 @@
 from __future__ import annotations
 
 import json
-from typing import Any, Dict, Mapping, Optional
+from collections.abc import Mapping
+from typing import Any
 
 import numpy as np
 
 from project.core.coercion import safe_float, safe_int
 
 
-def _optional_finite(value: float) -> Optional[float]:
+def _optional_finite(value: float) -> float | None:
     return float(value) if np.isfinite(value) else None
 
 
-def _delay_expectancy_map(row: Mapping[str, Any]) -> Dict[int, float]:
+def _delay_expectancy_map(row: Mapping[str, Any]) -> dict[int, float]:
     payload = row.get("delay_expectancy_map")
     if isinstance(payload, str):
         text = payload.strip()
@@ -25,7 +26,7 @@ def _delay_expectancy_map(row: Mapping[str, Any]) -> Dict[int, float]:
             payload = {}
     if not isinstance(payload, Mapping):
         return {}
-    out: Dict[int, float] = {}
+    out: dict[int, float] = {}
     for key, value in payload.items():
         try:
             delay = int(float(key))
@@ -54,7 +55,7 @@ def evaluate_low_capital_viability(
     baseline_after_cost_bps: float | None = None,
     effective_cost_bps: float | None = None,
     turnover_proxy_mean: float | None = None,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     contract = dict(low_capital_contract or {})
     if not contract:
         return {
@@ -246,7 +247,7 @@ def evaluate_retail_constraints(
     min_net_expectancy_bps: float = 0.0,
     max_fee_plus_slippage_bps: float | None = None,
     max_daily_turnover_multiple: float | None = None,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     tob_coverage = safe_float(row.get("tob_coverage"), np.nan)
 
     net_expectancy_bps = safe_float(row.get("bridge_validation_after_cost_bps"), np.nan)

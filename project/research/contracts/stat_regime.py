@@ -17,8 +17,8 @@ See:
 from __future__ import annotations
 
 from dataclasses import dataclass
-from datetime import datetime, timezone
-from typing import Any, Dict, Optional
+from datetime import UTC, datetime
+from typing import Any
 
 STAT_REGIME_PRE_AUDIT = "pre_audit_stat_regime"
 STAT_REGIME_POST_AUDIT = "post_audit_stat_regime"
@@ -71,7 +71,7 @@ SEARCH_BURDEN_REQUIRED_FIELDS = {
 }
 
 
-def _parse_iso_datetime(value: Any) -> Optional[datetime]:
+def _parse_iso_datetime(value: Any) -> datetime | None:
     if value is None:
         return None
     if isinstance(value, datetime):
@@ -83,7 +83,7 @@ def _parse_iso_datetime(value: Any) -> Optional[datetime]:
         try:
             dt = datetime.strptime(text, fmt)
             if dt.tzinfo is None:
-                dt = dt.replace(tzinfo=timezone.utc)
+                dt = dt.replace(tzinfo=UTC)
             return dt
         except ValueError:
             continue
@@ -91,7 +91,7 @@ def _parse_iso_datetime(value: Any) -> Optional[datetime]:
 
 
 def _get_phase1_audit_boundary() -> datetime:
-    return _parse_iso_datetime(PHASE1_AUDIT_BOUNDARY_ISO) or datetime(2025, 1, 1, tzinfo=timezone.utc)
+    return _parse_iso_datetime(PHASE1_AUDIT_BOUNDARY_ISO) or datetime(2025, 1, 1, tzinfo=UTC)
 
 
 @dataclass(frozen=True)
@@ -104,7 +104,7 @@ class ArtifactAuditStamp:
     requires_manual_review: bool
     inference_confidence: str
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "stat_regime": self.stat_regime,
             "audit_status": self.audit_status,
@@ -117,10 +117,10 @@ class ArtifactAuditStamp:
 
 
 def infer_stat_regime_from_artifact_metadata(
-    row: Dict[str, Any],
+    row: dict[str, Any],
     *,
-    artifact_timestamp: Optional[datetime] = None,
-    audit_boundary: Optional[datetime] = None,
+    artifact_timestamp: datetime | None = None,
+    audit_boundary: datetime | None = None,
 ) -> ArtifactAuditStamp:
     explicit_regime = str(row.get("stat_regime", "")).strip()
     if explicit_regime in CANONICAL_STAT_REGIMES:
@@ -223,7 +223,7 @@ def infer_stat_regime_from_artifact_metadata(
     )
 
 
-def _has_valid_value(row: Dict[str, Any], field: str) -> bool:
+def _has_valid_value(row: dict[str, Any], field: str) -> bool:
     value = row.get(field)
     if value is None:
         return False
@@ -253,7 +253,7 @@ def default_audit_stamp(
     )
 
 
-def is_post_audit_artifact(row: Dict[str, Any]) -> bool:
+def is_post_audit_artifact(row: dict[str, Any]) -> bool:
     stamp = infer_stat_regime_from_artifact_metadata(row)
     return stamp.stat_regime == STAT_REGIME_POST_AUDIT
 
@@ -262,7 +262,7 @@ def requires_repromotion_from_stamp(stamp: ArtifactAuditStamp) -> bool:
     return stamp.stat_regime == STAT_REGIME_PRE_AUDIT or stamp.requires_repromotion
 
 
-def stamp_row(row: Dict[str, Any], *, stamp: Optional[ArtifactAuditStamp] = None) -> Dict[str, Any]:
+def stamp_row(row: dict[str, Any], *, stamp: ArtifactAuditStamp | None = None) -> dict[str, Any]:
     effective_stamp = stamp or default_audit_stamp()
     out = dict(row)
     out["stat_regime"] = effective_stamp.stat_regime
@@ -272,21 +272,21 @@ def stamp_row(row: Dict[str, Any], *, stamp: Optional[ArtifactAuditStamp] = None
 
 
 __all__ = [
-    "STAT_REGIME_PRE_AUDIT",
-    "STAT_REGIME_POST_AUDIT",
-    "STAT_REGIME_UNKNOWN",
-    "CANONICAL_STAT_REGIMES",
+    "ARTIFACT_AUDIT_VERSION_PHASE1_V1",
     "AUDIT_STATUS_CURRENT",
     "AUDIT_STATUS_DEGRADED",
-    "AUDIT_STATUS_MANUAL_REVIEW_REQUIRED",
     "AUDIT_STATUS_LEGACY",
+    "AUDIT_STATUS_MANUAL_REVIEW_REQUIRED",
     "AUDIT_STATUS_UNKNOWN",
-    "CANONICAL_AUDIT_STATUSES",
-    "ARTIFACT_AUDIT_VERSION_PHASE1_V1",
     "CANONICAL_ARTIFACT_AUDIT_VERSIONS",
+    "CANONICAL_AUDIT_STATUSES",
+    "CANONICAL_STAT_REGIMES",
+    "STAT_REGIME_POST_AUDIT",
+    "STAT_REGIME_PRE_AUDIT",
+    "STAT_REGIME_UNKNOWN",
     "ArtifactAuditStamp",
-    "infer_stat_regime_from_artifact_metadata",
     "default_audit_stamp",
+    "infer_stat_regime_from_artifact_metadata",
     "is_post_audit_artifact",
     "requires_repromotion_from_stamp",
     "stamp_row",

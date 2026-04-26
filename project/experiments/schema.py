@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-from typing import List, Optional, Union
-
 from pydantic import BaseModel, ConfigDict, Field
 
 
@@ -13,8 +11,8 @@ class ExperimentConfig(BaseModel):
 
     model_config = ConfigDict(extra="allow")
 
-    name: Optional[str] = Field(None, description="Experiment name")
-    description: Optional[str] = Field(None, description="Experiment description")
-    inherits: Optional[Union[str, List[str]]] = Field(
+    name: str | None = Field(None, description="Experiment name")
+    description: str | None = Field(None, description="Experiment description")
+    inherits: str | list[str] | None = Field(
         None, description="List of base configs to inherit from"
     )

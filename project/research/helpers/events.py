@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Dict, List
 
 import numpy as np
 import pandas as pd
@@ -12,7 +11,7 @@ from project.events.thresholding import rolling_mean_std_zscore, rolling_quantil
 from project.io.utils import ensure_dir, read_parquet, write_parquet
 
 
-def sparsify_event_mask(mask: pd.Series, min_spacing: int) -> List[int]:
+def sparsify_event_mask(mask: pd.Series, min_spacing: int) -> list[int]:
     return list(sparsify_mask(mask, min_spacing=int(min_spacing)))
 
 
@@ -61,7 +60,7 @@ def rows_for_event(
     if basis_series.isna().all():
         basis_series = safe_series(df, "cross_exchange_spread_z")
 
-    rows: List[Dict[str, object]] = []
+    rows: list[dict[str, object]] = []
     for n, idx in enumerate(idxs):
         ts = pd.to_datetime(df.at[idx, "timestamp"], utc=True, errors="coerce")
         if pd.isna(ts):

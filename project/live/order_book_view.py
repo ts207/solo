@@ -1,8 +1,9 @@
 from __future__ import annotations
 
 import math
+from collections.abc import Mapping
 from dataclasses import dataclass
-from typing import Any, Mapping
+from typing import Any
 
 
 def _optional_float(value: Any) -> float | None:
@@ -31,7 +32,7 @@ class OrderBookView:
         market_state: Mapping[str, Any] | None,
         *,
         symbol: str = "",
-    ) -> "OrderBookView":
+    ) -> OrderBookView:
         state = dict(market_state or {})
         bid = _optional_float(
             state.get("bid")

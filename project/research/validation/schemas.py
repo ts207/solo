@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import asdict, is_dataclass
-from typing import Any, Dict, List, Literal, Optional
+from typing import Any, Literal
 
 import pandas as pd
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
@@ -38,7 +38,7 @@ class ValidationSplit(BaseModel):
             return pd.Timestamp(v)
         return v
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "label": self.label,
             "start": self.start.isoformat() if isinstance(self.start, pd.Timestamp) else str(self.start),
@@ -55,7 +55,7 @@ class FoldDefinition(BaseModel):
     validation_split: ValidationSplit
     test_split: ValidationSplit
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "fold_id": self.fold_id,
             "train_split": self.train_split.to_dict(),
@@ -73,9 +73,9 @@ class EffectEstimate(BaseModel):
     n_obs: int
     n_clusters: int
     method: str
-    cluster_col: Optional[str] = None
+    cluster_col: str | None = None
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return _coerce(self.model_dump())
 
 
@@ -85,7 +85,7 @@ class MultiplicityResult(BaseModel):
     p_value_raw: float
     p_value_adj: float
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return self.model_dump()
 
 
@@ -100,9 +100,9 @@ class StabilityResult(BaseModel):
     rolling_instability_score: float = 0.0
     worst_regime_estimate: float = 0.0
     worst_symbol_estimate: float = 0.0
-    details: Dict[str, Any] = Field(default_factory=dict)
+    details: dict[str, Any] = Field(default_factory=dict)
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return _coerce(self.model_dump())
 
 
@@ -111,14 +111,14 @@ class FalsificationResult(BaseModel):
     random_placebo_pass: bool
     direction_reversal_pass: bool
     negative_control_pass: bool
-    control_pass_rate: Optional[float] = None
-    empirical_exceedance: Optional[float] = None
-    null_mean: Optional[float] = None
-    null_p95: Optional[float] = None
+    control_pass_rate: float | None = None
+    empirical_exceedance: float | None = None
+    null_mean: float | None = None
+    null_p95: float | None = None
     passes_control: bool = False
-    details: Dict[str, Any] = Field(default_factory=dict)
+    details: dict[str, Any] = Field(default_factory=dict)
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return _coerce(self.model_dump())
 
 
@@ -266,8 +266,8 @@ class PromotionDecision(BaseModel):
     promotion_status: str
     promotion_track: str
     rank_score: float
-    rejection_reasons: List[str] = Field(default_factory=list)
-    gate_results: Dict[str, Literal["pass", "fail", "missing_evidence"]] = Field(default_factory=dict)
+    rejection_reasons: list[str] = Field(default_factory=list)
+    gate_results: dict[str, Literal["pass", "fail", "missing_evidence"]] = Field(default_factory=dict)
     policy_version: str = "phase4_pr5_v1"
     bundle_version: str = "phase4_bundle_v1"
 
@@ -279,14 +279,14 @@ class PromotionDecision(BaseModel):
         return v
 
     @model_validator(mode="after")
-    def status_consistent_with_eligible(self) -> "PromotionDecision":
+    def status_consistent_with_eligible(self) -> PromotionDecision:
         if self.eligible and self.promotion_status == "rejected":
             raise ValueError("eligible=True but promotion_status='rejected'")
         if not self.eligible and self.promotion_status == "promoted":
             raise ValueError("eligible=False but promotion_status='promoted'")
         return self
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return _coerce(self.model_dump())
 
 
@@ -302,14 +302,14 @@ class EvidenceBundle(BaseModel):
     split_definition: SplitDefinition
     effect_estimates: EffectEstimates
     uncertainty_estimates: UncertaintyEstimates
-    stability_tests: Dict[str, Any] = Field(default_factory=dict)
-    falsification_results: Dict[str, Any] = Field(default_factory=dict)
+    stability_tests: dict[str, Any] = Field(default_factory=dict)
+    falsification_results: dict[str, Any] = Field(default_factory=dict)
     cost_robustness: CostRobustness
     multiplicity_adjustment: MultiplicityAdjustment
     metadata: EvidenceMetadata
-    promotion_decision: Dict[str, Any] = Field(default_factory=dict)
-    rejection_reasons: List[str] = Field(default_factory=list)
-    artifacts: Dict[str, Any] = Field(default_factory=dict)
+    promotion_decision: dict[str, Any] = Field(default_factory=dict)
+    rejection_reasons: list[str] = Field(default_factory=list)
+    artifacts: dict[str, Any] = Field(default_factory=dict)
     search_burden: SearchBurden = Field(default_factory=SearchBurden)
     policy_version: str = "phase4_pr5_v1"
     bundle_version: str = "phase4_bundle_v1"
@@ -322,7 +322,7 @@ class EvidenceBundle(BaseModel):
         return v
 
     @model_validator(mode="after")
-    def validate_nested_consistency(self) -> "EvidenceBundle":
+    def validate_nested_consistency(self) -> EvidenceBundle:
         if self.stability_tests:
             required_stability = {"sign_consistency", "stability_score"}
             missing = required_stability - set(self.stability_tests.keys())
@@ -340,5 +340,5 @@ class EvidenceBundle(BaseModel):
                 raise ValueError("promotion_decision must have 'promotion_status' field")
         return self
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return _coerce(self.model_dump())

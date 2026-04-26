@@ -1,4 +1,3 @@
-from typing import Dict, List
 
 from pydantic import BaseModel, Field
 
@@ -20,12 +19,12 @@ class ThesisIntent(BaseModel):
 
 class PortfolioContext(BaseModel):
     max_portfolio_notional: float
-    family_caps: Dict[str, float] = Field(default_factory=dict)
-    symbol_caps: Dict[str, float] = Field(default_factory=dict)
+    family_caps: dict[str, float] = Field(default_factory=dict)
+    symbol_caps: dict[str, float] = Field(default_factory=dict)
 
 
 class TargetPortfolioState(BaseModel):
-    allocations: Dict[str, float]
+    allocations: dict[str, float]
 
 
 def calculate_priority_score(intent: ThesisIntent, diversification_multiplier: float) -> float:
@@ -39,7 +38,7 @@ def calculate_priority_score(intent: ThesisIntent, diversification_multiplier: f
     )
 
 
-def generate_target_portfolio(intents: List[ThesisIntent], context: PortfolioContext) -> TargetPortfolioState:
+def generate_target_portfolio(intents: list[ThesisIntent], context: PortfolioContext) -> TargetPortfolioState:
     engine_intents = [
         EngineThesisIntent(
             thesis_id=intent.strategy_id,

@@ -19,7 +19,6 @@ Notes:
 import argparse
 import sys
 from pathlib import Path
-from typing import List
 
 import numpy as np
 import pandas as pd
@@ -73,7 +72,7 @@ def main() -> int:
     base_dir = data_root / "feature_store" / "base_features" / "trailing_return" / f"{universe_id}"
     ensure_dir(base_dir)
 
-    written_base: List[str] = []
+    written_base: list[str] = []
     for sym in symbols_sorted:
         bdir = cleaned_root / "perp" / sym / f"bars_{args.bar_interval}"
         files = sorted(list(bdir.glob("**/*.parquet"))) if bdir.exists() else []
@@ -138,7 +137,7 @@ def main() -> int:
     finalize_manifest(
         manifest,
         status="success",
-        stats={"rows": int(len(out)), "out": str(out_path), "base_written": len(written_base)},
+        stats={"rows": len(out), "out": str(out_path), "base_written": len(written_base)},
     )
     return 0
 

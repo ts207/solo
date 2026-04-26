@@ -2,8 +2,8 @@ from __future__ import annotations
 
 import importlib
 import re
+from collections.abc import Sequence
 from pathlib import Path
-from typing import Sequence
 
 import pandas as pd
 
@@ -15,7 +15,7 @@ def build_features(*args, **kwargs):
     """Research-safe adapter to the canonical feature builder."""
     module_name = "project" + ".pipelines.features.build_features"
     module = importlib.import_module(module_name)
-    return getattr(module, "build_features")(*args, **kwargs)
+    return module.build_features(*args, **kwargs)
 
 
 def filter_time_window(
@@ -95,7 +95,7 @@ def prune_partition_files_by_window(
 __all__ = [
     "build_features",
     "filter_time_window",
+    "partition_month_key",
     "prune_partition_files_by_window",
     "resolve_window_bounds",
-    "partition_month_key",
 ]

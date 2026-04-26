@@ -1,7 +1,8 @@
 from __future__ import annotations
 
+from collections.abc import Iterable, Mapping
 from functools import lru_cache
-from typing import Any, Iterable, Mapping
+from typing import Any
 
 from project import PROJECT_ROOT
 from project.domain.compiled_registry import get_domain_registry

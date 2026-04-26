@@ -1,11 +1,12 @@
 import copy
-from typing import Any, Callable, Dict, List
+from collections.abc import Callable
+from typing import Any
 
 import numpy as np
 import pandas as pd
 
 
-def perturb_exit_parameters(blueprint: Dict[str, Any], pct: float = 0.1) -> List[Dict[str, Any]]:
+def perturb_exit_parameters(blueprint: dict[str, Any], pct: float = 0.1) -> list[dict[str, Any]]:
     """
     Perturb exit parameters (t_stop/stop_value and t_target/target_value) by +/- pct.
     Returns a list of perturbed blueprints.
@@ -55,7 +56,7 @@ def perturb_exit_parameters(blueprint: Dict[str, Any], pct: float = 0.1) -> List
     return perturbed
 
 
-def perturb_delay_bars(blueprint: Dict[str, Any], delays: List[int] = None) -> List[Dict[str, Any]]:
+def perturb_delay_bars(blueprint: dict[str, Any], delays: list[int] = None) -> list[dict[str, Any]]:
     """
     Perturb delay_bars on a blueprint to evaluate delay sensitivity.
     """
@@ -86,8 +87,8 @@ def perturb_delay_bars(blueprint: Dict[str, Any], delays: List[int] = None) -> L
 
 
 def run_lightweight_eval(
-    blueprints: List[Dict[str, Any]], evaluator_fn: Callable[[Dict[str, Any]], Dict[str, float]]
-) -> Dict[str, float]:
+    blueprints: list[dict[str, Any]], evaluator_fn: Callable[[dict[str, Any]], dict[str, float]]
+) -> dict[str, float]:
     """
     Run lightweight evaluation with perturbed parameters and return the variance
     in performance metrics (e.g., win_rate, pnl).
@@ -112,10 +113,10 @@ def run_lightweight_eval(
 
 
 def append_sensitivity_to_report(
-    blueprint: Dict[str, Any],
-    evaluator_fn: Callable[[Dict[str, Any]], Dict[str, float]],
+    blueprint: dict[str, Any],
+    evaluator_fn: Callable[[dict[str, Any]], dict[str, float]],
     pct: float = 0.1,
-    delays: List[int] = None,
+    delays: list[int] = None,
 ) -> pd.DataFrame:
     """
     Perform both sweeps, run evaluations, and return a DataFrame that can be

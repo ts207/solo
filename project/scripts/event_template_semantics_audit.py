@@ -4,8 +4,9 @@ from __future__ import annotations
 import argparse
 import json
 import sys
+from collections.abc import Mapping
 from pathlib import Path
-from typing import Any, Dict, Mapping
+from typing import Any
 
 import yaml
 
@@ -13,12 +14,12 @@ from project.domain.compiled_registry import get_domain_registry
 from project.events.config import compose_event_config
 
 
-def _load_yaml(path: str) -> Dict[str, Any]:
+def _load_yaml(path: str) -> dict[str, Any]:
     payload = yaml.safe_load(Path(path).read_text(encoding="utf-8"))
     return payload if isinstance(payload, dict) else {}
 
 
-def run_audit() -> Dict[str, Any]:
+def run_audit() -> dict[str, Any]:
     registry = get_domain_registry()
     template_registry = _load_yaml("spec/templates/registry.yaml")
     ontology_template_registry = _load_yaml("spec/ontology/templates/template_registry.yaml")
@@ -53,11 +54,11 @@ def run_audit() -> Dict[str, Any]:
 
     events_using_default_template_set: list[str] = []
     events_missing_event_template_row: list[str] = []
-    events_with_unregistered_templates: Dict[str, list[str]] = {}
-    events_with_runtime_template_drops: Dict[str, Dict[str, Any]] = {}
-    intentional_runtime_template_suppression: Dict[str, Dict[str, Any]] = {}
-    events_with_templates_outside_operator_compatibility: Dict[str, Dict[str, Any]] = {}
-    single_asset_events_with_cross_asset_templates: Dict[str, list[str]] = {}
+    events_with_unregistered_templates: dict[str, list[str]] = {}
+    events_with_runtime_template_drops: dict[str, dict[str, Any]] = {}
+    intentional_runtime_template_suppression: dict[str, dict[str, Any]] = {}
+    events_with_templates_outside_operator_compatibility: dict[str, dict[str, Any]] = {}
+    single_asset_events_with_cross_asset_templates: dict[str, list[str]] = {}
 
     for event_id in registry.event_ids:
         event = registry.event_definitions[event_id]

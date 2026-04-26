@@ -1,10 +1,11 @@
 from __future__ import annotations
 
 import json
+from collections.abc import Iterable
 from dataclasses import asdict, dataclass
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
-from typing import Any, Iterable
+from typing import Any
 
 import numpy as np
 import pandas as pd
@@ -49,7 +50,7 @@ def _json_safe(value: Any) -> Any:
         )
         if isinstance(ts, pd.Timestamp):
             return ts.isoformat()
-        return ts.astimezone(timezone.utc).isoformat() if ts.tzinfo else ts.isoformat()
+        return ts.astimezone(UTC).isoformat() if ts.tzinfo else ts.isoformat()
     if isinstance(value, (np.integer,)):
         return int(value)
     if isinstance(value, (np.floating,)):
@@ -81,7 +82,7 @@ def write_engine_dataframe(
         schema_version=schema_version,
         storage_format=storage_format,
         path=str(actual_path),
-        rows=int(len(df)),
+        rows=len(df),
         columns=[str(c) for c in df.columns],
     )
 
@@ -143,7 +144,7 @@ def build_engine_run_manifest(
         "manifest_type": "engine_run_manifest",
         "manifest_version": ENGINE_RUN_MANIFEST_VERSION,
         "engine_artifact_schema_version": ENGINE_ARTIFACT_SCHEMA_VERSION,
-        "generated_at_utc": datetime.now(timezone.utc).isoformat(),
+        "generated_at_utc": datetime.now(UTC).isoformat(),
         "run_id": str(run_id),
         "engine_dir": str(engine_dir),
         "timeframe": str(timeframe),

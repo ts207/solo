@@ -2,8 +2,9 @@ from __future__ import annotations
 
 import asyncio
 import logging
-from datetime import timezone
-from typing import Any, Callable, Dict, List, Optional
+from collections.abc import Callable
+from datetime import UTC
+from typing import Any
 
 import pandas as pd
 
@@ -25,9 +26,9 @@ _LOG = logging.getLogger(__name__)
 class LiveDataManager:
     def __init__(
         self,
-        symbols: List[str],
+        symbols: list[str],
         exchange: str = "binance",
-        on_reconnect_exhausted: Optional[Callable[[], None]] = None,
+        on_reconnect_exhausted: Callable[[], None] | None = None,
         rest_client: Any | None = None,
     ):
         self.symbols = [s.lower() for s in symbols]
@@ -36,8 +37,8 @@ class LiveDataManager:
         self.ticker_queue: asyncio.Queue = asyncio.Queue(maxsize=10000)
         self._loop: asyncio.AbstractEventLoop | None = None
         # Rolling liquidation notional per symbol (reset on each bar by consumer)
-        self._liquidation_notional_by_symbol: Dict[str, float] = {}
-        self._latest_ticker_by_symbol: Dict[str, Dict[str, Any]] = {}
+        self._liquidation_notional_by_symbol: dict[str, float] = {}
+        self._latest_ticker_by_symbol: dict[str, dict[str, Any]] = {}
         self.streams = self._build_streams()
 
         if self.exchange == "binance":
@@ -57,7 +58,7 @@ class LiveDataManager:
 
         self.rest_client = rest_client
 
-    def _build_streams(self) -> List[str]:
+    def _build_streams(self) -> list[str]:
         streams = []
         for symbol in self.symbols:
             if self.exchange == "binance":
@@ -73,8 +74,8 @@ class LiveDataManager:
                 streams.append(f"tickers.{symbol_upper}")
         return streams
 
-    def health_monitor_keys(self) -> List[tuple[str, str]]:
-        keys: List[tuple[str, str]] = []
+    def health_monitor_keys(self) -> list[tuple[str, str]]:
+        keys: list[tuple[str, str]] = []
         for stream in self.streams:
             if self.exchange == "binance":
                 if "@" not in stream:
@@ -182,17 +183,17 @@ class LiveDataManager:
         if not symbol:
             return
         self._latest_ticker_by_symbol[symbol] = {
-            "best_bid_price": float(getattr(event, "best_bid_price")),
-            "best_bid_qty": float(getattr(event, "best_bid_qty")),
-            "best_ask_price": float(getattr(event, "best_ask_price")),
-            "best_ask_qty": float(getattr(event, "best_ask_qty")),
+            "best_bid_price": float(event.best_bid_price),
+            "best_bid_qty": float(event.best_bid_qty),
+            "best_ask_price": float(event.best_ask_price),
+            "best_ask_qty": float(event.best_ask_qty),
             "timestamp": event.timestamp.isoformat()
             if hasattr(event.timestamp, "isoformat")
             else str(event.timestamp),
         }
 
-    def _on_message(self, message: Dict[str, Any]):
-        arrival_ts = pd.Timestamp.now(timezone.utc)
+    def _on_message(self, message: dict[str, Any]):
+        arrival_ts = pd.Timestamp.now(UTC)
 
         if self.exchange == "binance":
             stream_name = message.get("stream", "")
@@ -241,5 +242,5 @@ class LiveDataManager:
         """Reset the liquidation notional accumulator for a symbol (call once per bar)."""
         self._liquidation_notional_by_symbol.pop(str(symbol).upper(), None)
 
-    def latest_ticker(self, symbol: str) -> Dict[str, Any]:
+    def latest_ticker(self, symbol: str) -> dict[str, Any]:
         return dict(self._latest_ticker_by_symbol.get(str(symbol).upper(), {}))

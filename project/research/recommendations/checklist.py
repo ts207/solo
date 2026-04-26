@@ -1,11 +1,11 @@
 from __future__ import annotations
 
-from typing import Any, Dict, List
+from typing import Any
 
 
 def gate_result(
     name: str, passed: bool, observed: Any, threshold: Any, note: str = ""
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     return {
         "name": name,
         "passed": bool(passed),
@@ -17,15 +17,15 @@ def gate_result(
 
 def build_checklist_payload(
     run_id: str,
-    edge_metrics: Dict[str, Any],
-    expectancy_payload: Dict[str, Any],
-    robustness_payload: Dict[str, Any],
-    capital_footprint_payload: Dict[str, Any] | None,
-    config: Dict[str, Any],
-    paths: Dict[str, str],
-) -> Dict[str, Any]:
-    reasons: List[str] = []
-    gates: List[Dict[str, Any]] = []
+    edge_metrics: dict[str, Any],
+    expectancy_payload: dict[str, Any],
+    robustness_payload: dict[str, Any],
+    capital_footprint_payload: dict[str, Any] | None,
+    config: dict[str, Any],
+    paths: dict[str, str],
+) -> dict[str, Any]:
+    reasons: list[str] = []
+    gates: list[dict[str, Any]] = []
 
     # 1. Edge Candidates Gate
     rows = int(edge_metrics.get("rows", 0))

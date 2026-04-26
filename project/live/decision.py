@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Any, Dict, List
+from typing import Any
 
 from project.live.contracts.live_trade_context import LiveTradeContext
 from project.live.contracts.trade_intent import TradeIntent
@@ -82,7 +82,7 @@ def build_trade_intent_for_match(
     *,
     context: LiveTradeContext,
     match: ThesisMatch,
-    policy_config: Dict[str, Any] | None = None,
+    policy_config: dict[str, Any] | None = None,
 ) -> tuple[DecisionScore, TradeIntent]:
     score = build_decision_score(match, context)
     intent = score_to_action(
@@ -99,10 +99,10 @@ def build_trade_intent_for_match(
 def build_candidate_trade_outcomes(
     *,
     context: LiveTradeContext,
-    ranked_matches: List[ThesisMatch],
-    policy_config: Dict[str, Any] | None = None,
-) -> List[DecisionOutcome]:
-    outcomes: List[DecisionOutcome] = []
+    ranked_matches: list[ThesisMatch],
+    policy_config: dict[str, Any] | None = None,
+) -> list[DecisionOutcome]:
+    outcomes: list[DecisionOutcome] = []
     for match in ranked_matches:
         if not match.eligibility_passed:
             continue
@@ -125,7 +125,7 @@ def build_candidate_trade_outcomes(
 @dataclass(frozen=True)
 class DecisionOutcome:
     context: LiveTradeContext
-    ranked_matches: List[ThesisMatch]
+    ranked_matches: list[ThesisMatch]
     top_score: DecisionScore | None
     trade_intent: TradeIntent
 
@@ -134,7 +134,7 @@ def decide_trade_intent(
     *,
     context: LiveTradeContext,
     thesis_store: ThesisStore,
-    policy_config: Dict[str, Any] | None = None,
+    policy_config: dict[str, Any] | None = None,
     include_pending: bool = True,
 ) -> DecisionOutcome:
     matches = retrieve_ranked_theses(

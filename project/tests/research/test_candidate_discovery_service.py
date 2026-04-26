@@ -132,7 +132,7 @@ def test_execute_candidate_discovery_success_path(monkeypatch, tmp_path: Path) -
     monkeypatch.setattr(svc, "start_manifest", lambda *args, **kwargs: {"status": "started"})
     monkeypatch.setattr(svc, "finalize_manifest", lambda manifest, status, **kwargs: manifest.update({"status": status, **kwargs}))
     monkeypatch.setattr(svc, "write_candidate_reports", lambda **kwargs: None)
-    monkeypatch.setattr(svc, "build_false_discovery_diagnostics", lambda df: {"n": int(len(df))})
+    monkeypatch.setattr(svc, "build_false_discovery_diagnostics", lambda df: {"n": len(df)})
     monkeypatch.setattr(svc, "_split_and_score_candidates", lambda *args, **kwargs: candidates_df.copy())
     monkeypatch.setattr(svc, "apply_validation_multiple_testing", lambda df: df.copy())
     monkeypatch.setattr(svc, "apply_sample_quality_gates", lambda df, **kwargs: df.copy())

@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from copy import deepcopy
-from typing import Any, Dict
+from typing import Any
 
 DEFAULT_SEARCH_SPEC = "spec/search_space.yaml"
 DEFAULT_SEARCH_MIN_N = 30
@@ -9,7 +9,7 @@ DEFAULT_MIN_T_STAT = 1.5
 _EXPLORATORY_SEARCH_MIN_N = 24
 _EXPLORATORY_MIN_T_STAT = 1.0
 
-_EXPLORATORY_HIERARCHICAL_OVERRIDES: Dict[str, Any] = {
+_EXPLORATORY_HIERARCHICAL_OVERRIDES: dict[str, Any] = {
     "trigger_viability": {
         "max_templates": 2,
         "max_horizons": 2,
@@ -30,7 +30,7 @@ _EXPLORATORY_HIERARCHICAL_OVERRIDES: Dict[str, Any] = {
 }
 
 
-def _clone_profile_overrides(profile: str) -> Dict[str, Any]:
+def _clone_profile_overrides(profile: str) -> dict[str, Any]:
     profile_name = str(profile or "standard").strip().lower()
     if profile_name == "exploratory":
         return deepcopy(_EXPLORATORY_HIERARCHICAL_OVERRIDES)
@@ -43,7 +43,7 @@ def resolve_search_profile(
     search_spec: str,
     min_n: int,
     min_t_stat: float | None,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     profile = str(discovery_profile or "standard").strip().lower()
     resolved_search_spec = str(search_spec or DEFAULT_SEARCH_SPEC).strip() or DEFAULT_SEARCH_SPEC
     resolved_min_n = int(min_n)

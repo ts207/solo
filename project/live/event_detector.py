@@ -3,8 +3,9 @@ from __future__ import annotations
 import logging
 from abc import ABC, abstractmethod
 from collections import deque
+from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
-from typing import Any, Deque, Dict, List, Mapping, Sequence
+from typing import Any
 
 import pandas as pd
 
@@ -48,7 +49,7 @@ class DetectedEvent:
     event_family: str
     canonical_regime: str
     event_side: str
-    features: Dict[str, Any]
+    features: dict[str, Any]
     event_confidence: float | None = None
     event_severity: float | None = None
     data_quality_flag: str = "ok"
@@ -69,8 +70,8 @@ class LiveEventDetectionAdapter(ABC):
         previous_close: float | None,
         volume: float | None = None,
         market_features: Mapping[str, Any] | None = None,
-        supported_event_ids: List[str] | None = None,
-        supported_event_families: List[str] | None = None,
+        supported_event_ids: list[str] | None = None,
+        supported_event_families: list[str] | None = None,
     ) -> list[DetectedEvent]:
         raise NotImplementedError
 
@@ -326,8 +327,8 @@ class HeuristicLiveEventDetectionAdapter(LiveEventDetectionAdapter):
         previous_close: float | None,
         volume: float | None = None,
         market_features: Mapping[str, Any] | None = None,
-        supported_event_ids: List[str] | None = None,
-        supported_event_families: List[str] | None = None,
+        supported_event_ids: list[str] | None = None,
+        supported_event_families: list[str] | None = None,
     ) -> list[DetectedEvent]:
         supported = _normalize_supported_event_ids(supported_event_ids, supported_event_families)
         features = dict(market_features or {})
@@ -380,7 +381,7 @@ class GovernedRuntimeCoreEventDetectionAdapter(LiveEventDetectionAdapter):
     def __init__(self, detector_config: Mapping[str, Any] | None = None) -> None:
         self._config = dict(detector_config or {})
         self._history_limit = max(128, int(self._config.get("history_limit_bars", 4096) or 4096))
-        self._history_by_key: dict[tuple[str, str], Deque[dict[str, Any]]] = {}
+        self._history_by_key: dict[tuple[str, str], deque[dict[str, Any]]] = {}
         self._warned_missing_inputs: set[tuple[str, str]] = set()
 
     def detect_events(
@@ -392,8 +393,8 @@ class GovernedRuntimeCoreEventDetectionAdapter(LiveEventDetectionAdapter):
         previous_close: float | None,
         volume: float | None = None,
         market_features: Mapping[str, Any] | None = None,
-        supported_event_ids: List[str] | None = None,
-        supported_event_families: List[str] | None = None,
+        supported_event_ids: list[str] | None = None,
+        supported_event_families: list[str] | None = None,
     ) -> list[DetectedEvent]:
         selected_contracts = self._selected_contracts(
             supported_event_ids=supported_event_ids,
@@ -589,8 +590,8 @@ def detect_live_events(
     previous_close: float | None,
     volume: float | None = None,
     market_features: Mapping[str, Any] | None = None,
-    supported_event_ids: List[str] | None = None,
-    supported_event_families: List[str] | None = None,
+    supported_event_ids: list[str] | None = None,
+    supported_event_families: list[str] | None = None,
     detector_config: Mapping[str, Any] | None = None,
 ) -> list[DetectedEvent]:
     adapter = build_live_event_detection_adapter(detector_config)
@@ -614,8 +615,8 @@ def detect_live_event(
     previous_close: float | None,
     volume: float | None = None,
     market_features: Mapping[str, Any] | None = None,
-    supported_event_ids: List[str] | None = None,
-    supported_event_families: List[str] | None = None,
+    supported_event_ids: list[str] | None = None,
+    supported_event_families: list[str] | None = None,
     detector_config: Mapping[str, Any] | None = None,
 ) -> DetectedEvent | None:
     compat_config = dict(detector_config or {})

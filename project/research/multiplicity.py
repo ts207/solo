@@ -6,7 +6,7 @@ Extracted from pipeline scripts to improve testability and separate concerns.
 from __future__ import annotations
 
 import logging
-from typing import Any, List, Optional
+from typing import Any
 
 import numpy as np
 import pandas as pd
@@ -44,9 +44,9 @@ def make_family_id(
     horizon: str,
     cond_label: str,
     *,
-    research_family: Optional[str] = None,
-    canonical_family: Optional[str] = None,
-    state_id: Optional[str] = None,
+    research_family: str | None = None,
+    canonical_family: str | None = None,
+    state_id: str | None = None,
 ) -> str:
     """BH family key based on ontology axes, stratified by symbol."""
     base = canonical_bh_group_key(
@@ -71,7 +71,7 @@ def resolved_sample_size(joined_event_count: int, symbol_event_count: int) -> in
     return max(0, min(joined, symbol_total if symbol_total > 0 else joined))
 
 
-def resolve_state_context_column(columns: pd.Index, state_id: Optional[str]) -> Optional[str]:
+def resolve_state_context_column(columns: pd.Index, state_id: str | None) -> str | None:
     state = str(state_id or "").strip()
     if not state:
         return None
@@ -273,7 +273,7 @@ def apply_multiplicity_controls(
 
 
 def apply_cross_campaign_fdr(
-    dataframes: List[pd.DataFrame], max_q: float, *, p_col_candidate: str = "p_value_for_fdr"
+    dataframes: list[pd.DataFrame], max_q: float, *, p_col_candidate: str = "p_value_for_fdr"
 ) -> pd.DataFrame:
     """
     [DEPRECATED] Use apply_canonical_cross_campaign_multiplicity instead.

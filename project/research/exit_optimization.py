@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import logging
-from typing import Any, Dict, List
+from typing import Any
 
 import numpy as np
 import pandas as pd
@@ -48,7 +48,7 @@ def _extract_horizon_returns(episodes: pd.DataFrame, horizon: int) -> pd.Series:
     for col in sequence_columns:
         if col not in episodes.columns:
             continue
-        values: List[float] = []
+        values: list[float] = []
         for entry in episodes[col].dropna():
             if isinstance(entry, str):
                 try:
@@ -74,14 +74,14 @@ def _extract_horizon_returns(episodes: pd.DataFrame, horizon: int) -> pd.Series:
 def optimize_exit_horizon(
     episodes: pd.DataFrame,
     max_horizon: int = 192,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     Find the fixed holding horizon with the highest realized mean expectancy.
     """
     if episodes.empty:
         return {"optimal_horizon": 96, "max_expectancy": 0.0, "evaluated_horizons": 0}
 
-    horizon_scores: List[tuple[int, float, int]] = []
+    horizon_scores: list[tuple[int, float, int]] = []
     for horizon in range(4, max_horizon + 1, 4):
         realized = _extract_horizon_returns(episodes, horizon)
         if realized.empty:
@@ -99,13 +99,13 @@ def optimize_exit_horizon(
         "optimal_horizon": int(optimal_horizon),
         "max_expectancy": float(max_expectancy),
         "sample_count": int(sample_count),
-        "evaluated_horizons": int(len(horizon_scores)),
+        "evaluated_horizons": len(horizon_scores),
     }
 
 
 def analyze_exit_efficiency(
     trades: pd.DataFrame,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     Analyze whether realized exits capture available move efficiently.
     """
@@ -166,5 +166,5 @@ def analyze_exit_efficiency(
         else 0.0,
         "early_exit_rate": early_exit_rate,
         "late_exit_rate": late_exit_rate,
-        "n_trades": int(len(df)),
+        "n_trades": len(df),
     }

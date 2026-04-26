@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import time
 from dataclasses import dataclass, field
-from typing import Any, Optional
+from typing import Any
 
 import pandas as pd
 
@@ -55,7 +55,7 @@ class EventTruthValidator:
         self.timing_tolerance = timing_tolerance
         self._matchers: list[Matcher] = []
 
-    def validate(self, seed: Optional[int] = None) -> ValidationResult:
+    def validate(self, seed: int | None = None) -> ValidationResult:
         start_time = time.time()
 
         df, ground_truth = self.factory.create(seed=seed)

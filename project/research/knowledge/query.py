@@ -2,8 +2,9 @@ from __future__ import annotations
 
 import argparse
 import json
+from collections.abc import Iterable
 from pathlib import Path
-from typing import Any, Dict, Iterable
+from typing import Any
 
 import pandas as pd
 
@@ -32,7 +33,7 @@ def query_static_rows(
     detector: str = "",
     feature: str = "",
     limit: int = 20,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     resolved_data_root = Path(data_root) if data_root is not None else get_data_root()
     static_root = resolved_data_root / "knowledge" / "static"
     entities = _read_optional_parquet(static_root / "entities.parquet")
@@ -103,7 +104,7 @@ def query_agent_knobs(
     include_internal: bool = False,
     mutability: str = "proposal_settable",
     limit: int = 50,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     resolved_data_root = Path(data_root) if data_root is not None else get_data_root()
     static_root = resolved_data_root / "knowledge" / "static"
     knobs = _read_optional_parquet(static_root / "agent_knobs.parquet")
@@ -135,7 +136,7 @@ def query_memory_rows(
     template_id: str = "",
     failure_class: str = "",
     limit: int = 20,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     ensure_memory_store(program_id, data_root=data_root)
     tested_regions = read_memory_table(program_id, "tested_regions", data_root=data_root)
     failures = read_memory_table(program_id, "failures", data_root=data_root)
@@ -166,7 +167,7 @@ def query_adjacent_regions(
     event_type: str,
     template: str = "",
     limit: int = 20,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     ensure_memory_store(program_id, data_root=data_root)
     tested_regions = read_memory_table(program_id, "tested_regions", data_root=data_root)
     if tested_regions.empty:
@@ -205,7 +206,7 @@ def query_dynamic_weights(
     *,
     program_id: str,
     data_root: Path | None = None,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Query dynamic quality weights computed from campaign promotion history."""
     resolved_data_root = Path(data_root) if data_root is not None else get_data_root()
 

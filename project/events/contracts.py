@@ -11,7 +11,7 @@ if TYPE_CHECKING:
     from project.domain.models import EventDefinition
 
 
-def get_event_spec(event_type: str) -> "EventDefinition | None":
+def get_event_spec(event_type: str) -> EventDefinition | None:
     from project.domain.compiled_registry import get_domain_registry
     return get_domain_registry().get_event(str(event_type).strip().upper())
 

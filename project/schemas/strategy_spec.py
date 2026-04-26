@@ -1,13 +1,13 @@
 from __future__ import annotations
 
-from typing import List, Literal, Optional
+from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
 
 class DataRequirements(BaseModel):
     model_config = ConfigDict(frozen=True)
-    bars: List[str] = Field(default_factory=lambda: ["1m"])
+    bars: list[str] = Field(default_factory=lambda: ["1m"])
     book: bool = False
     trades: bool = False
     latency_class: Literal["low", "medium", "high"] = "medium"
@@ -24,15 +24,15 @@ class EntryCondition(BaseModel):
 class EntrySpec(BaseModel):
     model_config = ConfigDict(frozen=True)
     event_family: str
-    conditions: List[EntryCondition]
+    conditions: list[EntryCondition]
     direction: Literal["LONG", "SHORT", "FLAT"]
 
 
 class ExitSpec(BaseModel):
     model_config = ConfigDict(frozen=True)
-    time_stop_bars: Optional[int] = None
-    take_profit_bps: Optional[float] = None
-    stop_loss_bps: Optional[float] = None
+    time_stop_bars: int | None = None
+    take_profit_bps: float | None = None
+    stop_loss_bps: float | None = None
 
 
 class RiskSpec(BaseModel):

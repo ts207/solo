@@ -1,13 +1,11 @@
 from __future__ import annotations
 
-from typing import Dict, List, Tuple
-
 from project import PROJECT_ROOT
 from project.pipelines.pipeline_defaults import DATA_ROOT
 from project.pipelines.pipeline_provenance import data_fingerprint
 
 
-def validate_phase2_event_chain(phase2_event_chain, event_registry_specs) -> List[str]:
+def validate_phase2_event_chain(phase2_event_chain, event_registry_specs) -> list[str]:
     import project.events.detectors.registry as _det_reg
 
     _det_reg.load_all_detectors()
@@ -24,13 +22,13 @@ def validate_phase2_event_chain(phase2_event_chain, event_registry_specs) -> Lis
 
 
 def compute_data_fingerprint(
-    symbols: List[str],
+    symbols: list[str],
     run_id: str,
     *,
-    runtime_invariants: Dict[str, object] | None = None,
-    objective_profile: Dict[str, object] | None = None,
+    runtime_invariants: dict[str, object] | None = None,
+    objective_profile: dict[str, object] | None = None,
     effective_config_hash: str | None = None,
-) -> Tuple[str, Dict[str, object]]:
+) -> tuple[str, dict[str, object]]:
     digest, lineage = data_fingerprint(
         symbols,
         run_id,

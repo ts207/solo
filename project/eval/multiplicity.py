@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Any, Dict, List, Tuple
+from typing import Any
 
 import numpy as np
 import pandas as pd
@@ -116,8 +116,8 @@ def _normalize_hypothesis_log_frame(df: pd.DataFrame) -> pd.DataFrame:
 
 
 def benjamini_hochberg(
-    p_values: List[float], alpha: float = 0.05
-) -> Tuple[List[bool], List[float]]:
+    p_values: list[float], alpha: float = 0.05
+) -> tuple[list[bool], list[float]]:
     """Apply Benjamini-Hochberg procedure for FDR control.
 
     This delegates to the shared research validation adjustment backend so
@@ -131,8 +131,8 @@ def benjamini_hochberg(
 
 
 def benjamini_yekutieli(
-    p_values: List[float], alpha: float = 0.05
-) -> Tuple[List[bool], List[float]]:
+    p_values: list[float], alpha: float = 0.05
+) -> tuple[list[bool], list[float]]:
     """Apply Benjamini-Yekutieli procedure for FDR control under dependency.
 
     This delegates to the research validation adjustment backend to avoid
@@ -145,7 +145,7 @@ def benjamini_yekutieli(
     return reject.tolist(), np.asarray(q_values, dtype=float).tolist()
 
 
-def _load_mechanism_group_map() -> Dict[str, str]:
+def _load_mechanism_group_map() -> dict[str, str]:
     """Return a mapping of event_type -> primary mechanism tag (first tag in list).
 
     Loads from the live events registry so the FDR grouping stays in sync with
@@ -168,7 +168,7 @@ def _load_mechanism_group_map() -> Dict[str, str]:
         with open(registry_path) as fh:
             data = _yaml.safe_load(fh)
 
-        mapping: Dict[str, str] = {}
+        mapping: dict[str, str] = {}
         for event_type, cfg in data.get("events", {}).items():
             tags = cfg.get("tags") or []
             if tags:
@@ -322,7 +322,7 @@ def apply_multiplicity_control(candidates: pd.DataFrame, alpha: float = 0.05) ->
     return candidates
 
 
-def report_discoveries(candidates: pd.DataFrame, alpha: float = 0.05) -> Dict[str, Any]:
+def report_discoveries(candidates: pd.DataFrame, alpha: float = 0.05) -> dict[str, Any]:
     """Compatibility shim for tests."""
     total = len(candidates)
     passed = candidates["pass_fdr"].sum() if "pass_fdr" in candidates.columns else 0

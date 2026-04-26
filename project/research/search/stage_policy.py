@@ -15,7 +15,6 @@ This module only reads those columns — it never recomputes significance.
 from __future__ import annotations
 
 import logging
-from typing import Optional
 
 import numpy as np
 import pandas as pd
@@ -183,7 +182,7 @@ def advance_stage_survivors(
     ranked: pd.DataFrame,
     *,
     stage: str,
-    top_k: Optional[int],
+    top_k: int | None,
     min_stage_score: float,
     parent_group_col: str,
 ) -> pd.DataFrame:

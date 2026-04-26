@@ -3,7 +3,7 @@
 # Do not add new callers — use the phase2_search_engine pipeline stage instead.
 from __future__ import annotations
 
-from typing import Any, Dict
+from typing import Any
 
 import numpy as np
 import pandas as pd
@@ -98,7 +98,7 @@ def calculate_expectancy_stats(
     returns: pd.Series,
     *,
     min_ess: float = 150.0,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     Calculates mean, std, t-stat, and effective sample size.
     """

@@ -3,23 +3,23 @@ from __future__ import annotations
 import hashlib
 import json
 import os
-from datetime import datetime, timezone
+from collections.abc import Mapping
+from datetime import UTC, datetime
 from functools import lru_cache
 from json import JSONDecodeError
 from pathlib import Path
-from typing import Dict, List, Mapping
 
 from project import PROJECT_ROOT
 from project.specs.manifest import validate_stage_manifest_contract
 
 
 def _utc_now_iso() -> str:
-    return datetime.now(timezone.utc).isoformat()
+    return datetime.now(UTC).isoformat()
 
 
-def _base_args_to_parameters(base_args: List[str]) -> Dict[str, object]:
+def _base_args_to_parameters(base_args: list[str]) -> dict[str, object]:
     """Best-effort CLI arg decoding for synthesized stage manifests."""
-    params: Dict[str, object] = {}
+    params: dict[str, object] = {}
     idx = 0
     while idx < len(base_args):
         token = str(base_args[idx])
@@ -81,7 +81,7 @@ def _synthesize_stage_manifest_if_missing(
     stage_instance_id: str,
     run_id: str,
     script_path: Path,
-    base_args: List[str],
+    base_args: list[str],
     log_path: Path,
     status: str,
     error: str | None = None,
@@ -89,7 +89,7 @@ def _synthesize_stage_manifest_if_missing(
 ) -> None:
     if manifest_path.exists():
         return
-    payload: Dict[str, object] = {
+    payload: dict[str, object] = {
         "run_id": run_id,
         "stage": stage,
         "stage_name": stage,
@@ -159,7 +159,7 @@ def _script_supports_flag_cached(script_path: Path, flag: str, mtime: float) -> 
 _DANGEROUS_GLOBAL_FLAGS = {"--config", "--experiment_config", "--override"}
 
 
-def _filter_unsupported_flags(script_path: Path, base_args: List[str]) -> List[str]:
+def _filter_unsupported_flags(script_path: Path, base_args: list[str]) -> list[str]:
     """Filter CLI flags the script does not explicitly support."""
     try:
         mtime = script_path.stat().st_mtime
@@ -187,7 +187,7 @@ def _filter_unsupported_flags(script_path: Path, base_args: List[str]) -> List[s
     return out
 
 
-def _flag_value(args: List[str], flag: str) -> str | None:
+def _flag_value(args: list[str], flag: str) -> str | None:
     try:
         idx = args.index(flag)
     except ValueError:
@@ -197,7 +197,7 @@ def _flag_value(args: List[str], flag: str) -> str | None:
     return str(args[idx + 1]).strip()
 
 
-def stage_instance_base(stage: str, base_args: List[str]) -> str:
+def stage_instance_base(stage: str, base_args: list[str]) -> str:
     event_type = _flag_value(base_args, "--event_type")
     if event_type and stage in {
         "build_event_registry",
@@ -296,7 +296,7 @@ def _manifest_declared_outputs_exist(
 
 def compute_stage_input_hash(
     script_path: Path,
-    base_args: List[str],
+    base_args: list[str],
     run_id: str,
     *,
     cache_context: Mapping[str, object] | None = None,

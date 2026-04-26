@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Any, Dict
+from typing import Any
 
 import pandas as pd
 
@@ -102,17 +102,17 @@ def compute_event_emission_timing(
     return timing
 
 
-def is_observational(row: Dict[str, Any]) -> bool:
+def is_observational(row: dict[str, Any]) -> bool:
     return bool(row.get("is_observational", False))
 
 
-def is_signal_eligible(row: Dict[str, Any]) -> bool:
+def is_signal_eligible(row: dict[str, Any]) -> bool:
     return bool(row.get("is_signal_eligible", True))
 
 
-def is_tradable_now(row: Dict[str, Any]) -> bool:
+def is_tradable_now(row: dict[str, Any]) -> bool:
     return bool(row.get("is_tradable_now", False))
 
 
-def is_tradable_next_bar(row: Dict[str, Any]) -> bool:
+def is_tradable_next_bar(row: dict[str, Any]) -> bool:
     return bool(row.get("is_tradable_next_bar", True))

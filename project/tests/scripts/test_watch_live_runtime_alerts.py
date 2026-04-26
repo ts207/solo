@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import json
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
 from project.scripts import watch_live_runtime_alerts
@@ -36,7 +36,7 @@ def test_load_runtime_alert_settings_reads_defaults_from_live_config(tmp_path: P
 
 
 def test_evaluate_runtime_alerts_detects_operational_problems_and_regime_shift() -> None:
-    now = datetime(2026, 4, 1, 12, 0, tzinfo=timezone.utc)
+    now = datetime(2026, 4, 1, 12, 0, tzinfo=UTC)
     previous_snapshot = {
         "generated_at": (now - timedelta(seconds=20)).isoformat(),
         "latest_market_state_by_symbol": {
@@ -99,7 +99,7 @@ def test_main_once_emits_alerts_and_nonzero_on_fail(tmp_path: Path, capsys) -> N
     metrics_path = tmp_path / "runtime_metrics.json"
     alert_log_path = tmp_path / "runtime_alerts.jsonl"
     snapshot = {
-        "generated_at": datetime(2026, 4, 1, 12, 0, tzinfo=timezone.utc).isoformat(),
+        "generated_at": datetime(2026, 4, 1, 12, 0, tzinfo=UTC).isoformat(),
         "strategy_runtime_enabled": True,
         "health": {"freshness_status": "healthy", "stale_count": 0, "stale_streams": []},
         "kill_switch": {"is_active": True, "reason": "MANUAL"},

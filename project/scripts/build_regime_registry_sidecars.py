@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any
 
 import yaml
 
@@ -10,12 +10,12 @@ from project import PROJECT_ROOT
 from project.spec_registry import load_regime_registry, resolve_relative_spec_path
 
 
-def _canonical_regime_registry() -> Dict[str, Any]:
+def _canonical_regime_registry() -> dict[str, Any]:
     payload = load_regime_registry()
     return payload if isinstance(payload, dict) else {}
 
 
-def build_regime_routing_payload() -> Dict[str, Any]:
+def build_regime_routing_payload() -> dict[str, Any]:
     canonical = _canonical_regime_registry()
     payload = dict(canonical)
     metadata = canonical.get("metadata", {})
@@ -34,7 +34,7 @@ def build_regime_routing_payload() -> Dict[str, Any]:
     return payload
 
 
-def _write_yaml(path: Path, payload: Dict[str, Any]) -> None:
+def _write_yaml(path: Path, payload: dict[str, Any]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(yaml.safe_dump(payload, sort_keys=False), encoding="utf-8")
 

@@ -2,8 +2,7 @@ from __future__ import annotations
 
 import logging
 from dataclasses import dataclass
-from datetime import datetime, timezone
-from typing import Dict, List, Optional
+from datetime import UTC, datetime
 
 _LOG = logging.getLogger(__name__)
 
@@ -38,7 +37,7 @@ class RuntimeThesisState:
 
 class ThesisStateManager:
     def __init__(self):
-        self.states: Dict[str, RuntimeThesisState] = {}
+        self.states: dict[str, RuntimeThesisState] = {}
 
     def register_thesis(self, thesis_id: str, promotion_class: str, deployment_mode: str):
         if thesis_id not in self.states:
@@ -48,15 +47,15 @@ class ThesisStateManager:
                 deployment_mode=deployment_mode,
             )
 
-    def get_state(self, thesis_id: str) -> Optional[RuntimeThesisState]:
+    def get_state(self, thesis_id: str) -> RuntimeThesisState | None:
         return self.states.get(thesis_id)
 
-    def update_health(self, thesis_id: str, health_state: str, actions: List[str]):
+    def update_health(self, thesis_id: str, health_state: str, actions: list[str]):
         state = self.get_state(thesis_id)
         if not state:
             return
 
-        state.last_health_update = datetime.now(timezone.utc).isoformat()
+        state.last_health_update = datetime.now(UTC).isoformat()
 
         if health_state == "disabled":
             state.size_scalar = 0.0
@@ -89,7 +88,7 @@ class ThesisStateManager:
         state = self.get_state(thesis_id)
         if not state:
             return
-        state.last_health_update = datetime.now(timezone.utc).isoformat()
+        state.last_health_update = datetime.now(UTC).isoformat()
         if action == "disable":
             state.size_scalar = 0.0
             state.transition_to("disabled", reason=f"live_quality:{reason}")

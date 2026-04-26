@@ -42,9 +42,8 @@ import argparse
 import asyncio
 import logging
 import sys
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
-from typing import Dict, List, Optional
 from zipfile import ZipFile
 
 import aiohttp
@@ -57,11 +56,11 @@ from project.io.utils import ensure_dir, read_parquet, write_parquet
 from project.specs.manifest import finalize_manifest, start_manifest
 
 ARCHIVE_BASE = "https://data.binance.vision/data/futures/um"
-EARLIEST_UM_FUTURES = datetime(2019, 9, 1, tzinfo=timezone.utc)
+EARLIEST_UM_FUTURES = datetime(2019, 9, 1, tzinfo=UTC)
 
 
 def _parse_date(value: str) -> datetime:
-    return datetime.strptime(value, "%Y-%m-%d").replace(tzinfo=timezone.utc)
+    return datetime.strptime(value, "%Y-%m-%d").replace(tzinfo=UTC)
 
 
 def _month_start(ts: datetime) -> datetime:
@@ -74,8 +73,8 @@ def _next_month(ts: datetime) -> datetime:
     return ts.replace(year=year, month=month, day=1, hour=0, minute=0, second=0, microsecond=0)
 
 
-def _iter_months(start: datetime, end: datetime) -> List[datetime]:
-    months: List[datetime] = []
+def _iter_months(start: datetime, end: datetime) -> list[datetime]:
+    months: list[datetime] = []
     cursor = _month_start(start)
     while cursor <= end:
         months.append(cursor)
@@ -209,7 +208,7 @@ def _partition_complete(path: Path, expected_rows: int) -> bool:
 
 
 def _symbol_month_results_are_complete(
-    results: List[Dict[str, object]], *, symbol: str
+    results: list[dict[str, object]], *, symbol: str
 ) -> tuple[bool, str | None]:
     statuses = [str(res.get("status", "")).strip().lower() for res in results]
     required_statuses = [status for status in statuses if status != "noop"]
@@ -226,7 +225,7 @@ def _symbol_month_results_are_complete(
 
 async def _download_archive(
     session: aiohttp.ClientSession, url: str, max_retries: int, backoff_sec: float
-) -> Optional[bytes]:
+) -> bytes | None:
     """
     Download a ZIP archive from the given URL using aiohttp.
 
@@ -270,7 +269,7 @@ async def _process_month(
     max_retries: int,
     backoff_sec: float,
     force: bool,
-) -> Dict[str, object]:
+) -> dict[str, object]:
     """Asynchronous helper to download and process a single month of OHLCV data.
 
     This function is designed to run concurrently for multiple months.  It respects
@@ -357,7 +356,7 @@ async def _process_month(
         return {"status": "written", "partition": str(out_path), "bars": bars_written}
 
 
-async def async_main(args: argparse.Namespace) -> Dict[str, object]:
+async def async_main(args: argparse.Namespace) -> dict[str, object]:
     """
     Entrypoint for asynchronous ingestion.
 
@@ -375,14 +374,14 @@ async def async_main(args: argparse.Namespace) -> Dict[str, object]:
     out_root = Path(args.out_root)
     concurrency = args.concurrency
 
-    stats: Dict[str, object] = {"symbols": {}}
-    outputs: List[Dict[str, object]] = []
-    failures: List[str] = []
+    stats: dict[str, object] = {"symbols": {}}
+    outputs: list[dict[str, object]] = []
+    failures: list[str] = []
     semaphore = asyncio.Semaphore(concurrency)
 
     async with aiohttp.ClientSession() as session:
         for symbol in symbols:
-            tasks: List[asyncio.Task] = []
+            tasks: list[asyncio.Task] = []
             for month_start in _iter_months(effective_start, effective_end):
                 tasks.append(
                     asyncio.create_task(
@@ -401,16 +400,14 @@ async def async_main(args: argparse.Namespace) -> Dict[str, object]:
                         )
                     )
                 )
-            missing_archives: List[str] = []
-            partitions_written: List[str] = []
-            partitions_skipped: List[str] = []
+            missing_archives: list[str] = []
+            partitions_written: list[str] = []
+            partitions_skipped: list[str] = []
             bars_written_total = 0
             results = await asyncio.gather(*tasks)
             for res in results:
                 status = res.get("status")
-                if status in {"not_found"}:
-                    missing_archives.append(res.get("archive"))
-                elif status == "failed":
+                if status in {"not_found"} or status == "failed":
                     missing_archives.append(res.get("archive"))
                 elif status == "written":
                     partitions_written.append(res.get("partition"))
@@ -479,7 +476,7 @@ def main() -> int:
     args = parser.parse_args()
 
     # Configure logging
-    log_handlers: List[logging.Handler] = [logging.StreamHandler(sys.stdout)]
+    log_handlers: list[logging.Handler] = [logging.StreamHandler(sys.stdout)]
     if args.log_path:
         ensure_dir(Path(args.log_path).parent)
         log_handlers.append(logging.FileHandler(args.log_path))
@@ -491,7 +488,7 @@ def main() -> int:
 
     # Manifest recording
     run_id = args.run_id
-    params: Dict[str, object] = {
+    params: dict[str, object] = {
         "symbols": args.symbols.split(","),
         "requested_start": args.start,
         "requested_end": args.end,
@@ -502,13 +499,13 @@ def main() -> int:
         "timeframe": args.timeframe,
         "concurrency": args.concurrency,
     }
-    inputs: List[Dict[str, object]] = []
-    outputs: List[Dict[str, object]] = []
+    inputs: list[dict[str, object]] = []
+    outputs: list[dict[str, object]] = []
     manifest = start_manifest(
         f"ingest_binance_um_ohlcv_{args.timeframe}", run_id, params, inputs, outputs
     )
 
-    result: Dict[str, object] = {"stats": {"symbols": {}}, "outputs": [], "failures": []}
+    result: dict[str, object] = {"stats": {"symbols": {}}, "outputs": [], "failures": []}
     try:
         result = asyncio.run(async_main(args))
         failures = list(result.get("failures", []))

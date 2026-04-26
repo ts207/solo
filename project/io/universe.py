@@ -1,8 +1,8 @@
 from __future__ import annotations
 
+from collections.abc import Iterable, Sequence
 from datetime import timedelta
 from pathlib import Path
-from typing import Dict, Iterable, List, Sequence, Set
 
 import pandas as pd
 
@@ -32,15 +32,15 @@ DEFAULT_TOP10_SEED = [
 ]
 
 
-def parse_symbols_arg(symbols_arg: str) -> List[str]:
+def parse_symbols_arg(symbols_arg: str) -> list[str]:
     return [s.strip() for s in str(symbols_arg).split(",") if s.strip()]
 
 
-def discover_available_symbols(data_root: Path, run_id: str) -> List[str]:
+def discover_available_symbols(data_root: Path, run_id: str) -> list[str]:
     run_scoped_root = run_scoped_lake_path(data_root, run_id, "cleaned", "perp")
     fallback_root = data_root / "lake" / "cleaned" / "perp"
 
-    symbols: Set[str] = set()
+    symbols: set[str] = set()
     for root in (run_scoped_root, fallback_root):
         if not root.exists():
             continue
@@ -90,7 +90,7 @@ def resolve_requested_symbols(
     data_root: Path,
     run_id: str,
     seed_symbols: Sequence[str] | None = None,
-) -> List[str]:
+) -> list[str]:
     parsed = parse_symbols_arg(symbols_arg)
     if parsed and all(s.upper() != "TOP10" for s in parsed):
         return parsed
@@ -121,12 +121,12 @@ def compute_monthly_top_n_symbols(
     end_ts: pd.Timestamp,
     fallback_seed: Sequence[str] | None = None,
     timeframe: str = "15m",
-) -> Dict[str, List[str]]:
+) -> dict[str, list[str]]:
     """
     Compute monthly top-N symbols by trailing lookback dollar volume.
     Returns mapping month_key (YYYY-MM) -> symbols.
     """
-    frames: List[pd.DataFrame] = []
+    frames: list[pd.DataFrame] = []
     symbols_list = [s for s in symbols if s]
     for symbol in symbols_list:
         frame = _load_symbol_cleaned_bars(data_root, run_id, symbol, timeframe=timeframe)
@@ -147,7 +147,7 @@ def compute_monthly_top_n_symbols(
     start_month = start_utc.replace(day=1, hour=0, minute=0, second=0, microsecond=0, nanosecond=0)
     end_month = end_utc.replace(day=1, hour=0, minute=0, second=0, microsecond=0, nanosecond=0)
     month_starts = pd.date_range(start=start_month, end=end_month, freq="MS", tz="UTC")
-    monthly_map: Dict[str, List[str]] = {}
+    monthly_map: dict[str, list[str]] = {}
 
     seed = list(fallback_seed) if fallback_seed else list(DEFAULT_TOP10_SEED)
     for month_start in month_starts:

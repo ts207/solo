@@ -1,4 +1,4 @@
-from typing import Any, Dict, List
+from typing import Any
 
 import numpy as np
 import pandas as pd
@@ -32,7 +32,7 @@ def permutation_test(
     return float(p_value)
 
 
-def detect_selection_bias(p_values: List[float], n_hypotheses: int) -> Dict[str, Any]:
+def detect_selection_bias(p_values: list[float], n_hypotheses: int) -> dict[str, Any]:
     """
     Diagnose whether the best p-value is suspicious after a multiple-search campaign.
 

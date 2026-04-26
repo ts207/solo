@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-from typing import Dict, List
-
 from project.strategy.dsl.contract_v1 import validate_feature_references
 from project.strategy.dsl.schema import (
     Blueprint,
@@ -17,7 +15,7 @@ from project.strategy.dsl.schema import (
 )
 
 
-def build_blueprint(raw: Dict[str, object]) -> Blueprint:
+def build_blueprint(raw: dict[str, object]) -> Blueprint:
     """
     Canonicalizes blueprint/DSL objects from loose config.
     """
@@ -47,7 +45,7 @@ def build_blueprint(raw: Dict[str, object]) -> Blueprint:
             OverlaySpec(name=str(row.get("name", "")), params=dict(row.get("params", {})))
         )
 
-    condition_nodes: List[ConditionNodeSpec] = []
+    condition_nodes: list[ConditionNodeSpec] = []
     raw_nodes = entry.get("condition_nodes", [])
     if isinstance(raw_nodes, list):
         for row in raw_nodes:

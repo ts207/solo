@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Optional
 
 import numpy as np
 import pandas as pd
@@ -29,11 +28,11 @@ class NormalizedSignal:
     confidence: float
     normalized_strength: float
     normalized_confidence: float
-    rank: Optional[int] = None
+    rank: int | None = None
 
 
 class SignalNormalizer:
-    def __init__(self, bounds: Optional[dict[str, NormalizationBounds]] = None):
+    def __init__(self, bounds: dict[str, NormalizationBounds] | None = None):
         self.bounds = bounds or {}
         self._default_bounds = NormalizationBounds(
             min_value=0.0,

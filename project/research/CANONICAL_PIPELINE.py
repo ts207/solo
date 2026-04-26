@@ -22,7 +22,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any
 
 CANONICAL_STAGE_SEQUENCE: tuple[str, ...] = (
     "ingest",
@@ -50,9 +50,9 @@ def canonical_pipeline_payload(
     run_id: str = "",
     stage: str = "",
     used_module: str = "",
-    extra: Dict[str, Any] | None = None,
-) -> Dict[str, Any]:
-    payload: Dict[str, Any] = {
+    extra: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    payload: dict[str, Any] = {
         "canonical_research_path_version": CANONICAL_RESEARCH_PATH_VERSION,
         "run_id": str(run_id or ""),
         "stage": str(stage or ""),
@@ -74,7 +74,7 @@ def persist_canonical_pipeline_artifact(
     run_id: str = "",
     stage: str = "",
     used_module: str = "",
-    extra: Dict[str, Any] | None = None,
+    extra: dict[str, Any] | None = None,
 ) -> Path:
     out_dir.mkdir(parents=True, exist_ok=True)
     payload = canonical_pipeline_payload(

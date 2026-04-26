@@ -9,7 +9,7 @@ import hashlib
 import json
 import logging
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 import numpy as np
 import pandas as pd
@@ -139,7 +139,7 @@ def _legacy_template_direction_sign(template_id: str, requested_sign: float) -> 
     return float(requested_sign)
 
 
-def event_template_map() -> Dict[str, str]:
+def event_template_map() -> dict[str, str]:
     """Hardcoded fallback template map for legacy events."""
     return {
         "VOL_SPIKE": "vol_spike_reversion",
@@ -178,7 +178,7 @@ def resolve_registry_direction_policy(
     *,
     event_type: str | None = None,
     default: float = 0.0,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     default_sign = (
         default_direction_sign_for_event_type(event_type or "", 0.0) if event_type else 0.0
     )
@@ -215,7 +215,7 @@ def candidate_return_series(
     return events_df[col] * float(direction_sign)
 
 
-def series_stats(values: pd.Series, horizon_bars: Optional[int] = None) -> Dict[str, float]:
+def series_stats(values: pd.Series, horizon_bars: int | None = None) -> dict[str, float]:
     """Compute summary statistics for a return series with optional overlap correction."""
     if values.empty:
         return {"n": 0, "mean": 0.0, "std": 0.0, "t_stat": 0.0}
@@ -240,7 +240,7 @@ def series_stats(values: pd.Series, horizon_bars: Optional[int] = None) -> Dict[
     return {"n": n, "mean": mu, "std": sigma, "t_stat": t_stat}
 
 
-def condition_routing(cond_name: str, *, strict: bool = True) -> Tuple[str, str]:
+def condition_routing(cond_name: str, *, strict: bool = True) -> tuple[str, str]:
     """Route a conditioning label to a DSL-safe condition string."""
     from project.research.condition_routing import condition_routing as _condition_routing
 
@@ -254,9 +254,9 @@ def make_family_id(
     horizon: str,
     cond_label: str,
     *,
-    research_family: Optional[str] = None,
-    canonical_family: Optional[str] = None,
-    state_id: Optional[str] = None,
+    research_family: str | None = None,
+    canonical_family: str | None = None,
+    state_id: str | None = None,
 ) -> str:
     """Compatibility wrapper around the canonical family-id builder."""
     return _canonical_make_family_id(
@@ -300,7 +300,7 @@ def _synthesize_concept_candidates(
     if use_features:
         from project.research.gating import build_event_return_frame
 
-    rows: List[Dict[str, Any]] = []
+    rows: list[dict[str, Any]] = []
     for idx, spec in enumerate(generated_specs):
         horizon_bars = int(spec.params.get("horizon_bars", 24))
         horizon_label = bars_to_timeframe(horizon_bars)
@@ -609,11 +609,11 @@ def _synthesize_registry_candidates(
     events_df: pd.DataFrame,
     horizon_bars: int,
     entry_lag_bars: int,
-    templates: Optional[tuple[str, ...]] = None,
-    horizons: Optional[tuple[str, ...]] = None,
-    directions: Optional[tuple[str, ...]] = None,
-    entry_lags: Optional[tuple[int, ...]] = None,
-    search_budget: Optional[int] = None,
+    templates: tuple[str, ...] | None = None,
+    horizons: tuple[str, ...] | None = None,
+    directions: tuple[str, ...] | None = None,
+    entry_lags: tuple[int, ...] | None = None,
+    search_budget: int | None = None,
 ) -> pd.DataFrame:
     """Synthesize strategy candidates for an event type with expanded combinations."""
     if events_df.empty:
@@ -627,7 +627,7 @@ def _synthesize_registry_candidates(
     sel_directions = list(directions) if directions else ["auto"]
     sel_entry_lags = list(entry_lags) if entry_lags else [entry_lag_bars]
 
-    rows: List[Dict[str, Any]] = []
+    rows: list[dict[str, Any]] = []
 
     # Count total combinations to check against budget
     total_combinations = (

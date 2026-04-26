@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import logging
-from typing import Any, Dict, Literal, Optional
+from typing import Any, Literal
 
 import numpy as np
 import pandas as pd
@@ -34,10 +34,10 @@ def block_bootstrap_pnl(
     block_size_bars: int = 576,
     n_iterations: int = 1000,
     random_seed: int = _DEFAULT_RANDOM_SEED,
-    periods_per_year: Optional[int] = None,
+    periods_per_year: int | None = None,
     pnl_mode: Literal["dollar", "return"] = "dollar",
     capital_base: float = 1.0,
-) -> Dict[str, float]:
+) -> dict[str, float]:
     pnl = pd.to_numeric(pnl_series, errors="coerce").dropna().values
     n = len(pnl)
     if n < block_size_bars or n == 0:
@@ -103,8 +103,8 @@ def simulate_parameter_perturbation(
     noise_std_dev: float = 0.05,
     n_iterations: int = 100,
     random_seed: int = _DEFAULT_RANDOM_SEED,
-    periods_per_year: Optional[int] = None,
-) -> Dict[str, float]:
+    periods_per_year: int | None = None,
+) -> dict[str, float]:
     pnl = pd.to_numeric(pnl_series, errors="coerce").dropna().values
     if len(pnl) == 0:
         return {}
@@ -155,8 +155,8 @@ def analyze_regime_segmentation(
     volatility_series: pd.Series,
     q_high: float = 0.75,
     q_low: float = 0.25,
-    periods_per_year: Optional[int] = None,
-) -> Dict[str, float]:
+    periods_per_year: int | None = None,
+) -> dict[str, float]:
     pnl = pd.to_numeric(pnl_series, errors="coerce")
     vol = pd.to_numeric(volatility_series, errors="coerce")
     df = pd.DataFrame({"pnl": pnl, "vol": vol}).dropna()
@@ -189,14 +189,14 @@ _DEFAULT_COST_STRESS_MULTIPLIERS: tuple[float, ...] = (1.0, 2.0, 5.0, 10.0)
 def evaluate_structural_robustness(
     base_pnl: pd.Series,
     *,
-    returns_raw: Optional[pd.Series] = None,
-    costs_bps: Optional[pd.Series] = None,
-    entry_delay_pnl: Optional[pd.Series] = None,
+    returns_raw: pd.Series | None = None,
+    costs_bps: pd.Series | None = None,
+    entry_delay_pnl: pd.Series | None = None,
     spread_widening_factor: float = 2.0,
     cost_multiplier: float = 2.0,
     cost_stress_multipliers: tuple[float, ...] = _DEFAULT_COST_STRESS_MULTIPLIERS,
-) -> Dict[str, Any]:
-    results: Dict[str, Any] = {}
+) -> dict[str, Any]:
+    results: dict[str, Any] = {}
     base_pnl = pd.to_numeric(base_pnl, errors="coerce").dropna()
     if base_pnl.empty:
         return {
@@ -283,7 +283,7 @@ def evaluate_structural_breaks(
     timestamps: pd.Series,
     *,
     min_samples: int = 50,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     if len(pnl_series) < min_samples * 2:
         return {"status": "insufficient_data", "pass": True}
 

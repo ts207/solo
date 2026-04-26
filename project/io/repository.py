@@ -3,7 +3,6 @@ from __future__ import annotations
 import logging
 from functools import lru_cache
 from pathlib import Path
-from typing import List, Optional
 
 import pandas as pd
 
@@ -24,7 +23,7 @@ class ProjectDataRepository:
     Handles run-scoped path resolution, partitioned reading, and LRU caching.
     """
 
-    def __init__(self, data_root: Path, run_id: Optional[str] = None):
+    def __init__(self, data_root: Path, run_id: str | None = None):
         self.data_root = data_root
         self.run_id = run_id
 
@@ -121,7 +120,7 @@ class ProjectDataRepository:
             candidates, f"market context for {symbol} {timeframe}"
         )
 
-    def _read_partitioned_candidates(self, candidates: List[Path], label: str) -> pd.DataFrame:
+    def _read_partitioned_candidates(self, candidates: list[Path], label: str) -> pd.DataFrame:
         path_dir = choose_partition_dir(candidates)
         if not path_dir:
             _LOG.warning(f"No data found for {label}")

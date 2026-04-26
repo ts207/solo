@@ -5,7 +5,7 @@ import json
 import logging
 import sys
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any
 
 import numpy as np
 import pandas as pd
@@ -130,7 +130,7 @@ def mark_failures_superseded(
     return failures
 
 
-def _write_json(path: Path, payload: Dict[str, Any]) -> None:
+def _write_json(path: Path, payload: dict[str, Any]) -> None:
     atomic_write_json(
         path,
         payload,
@@ -144,7 +144,7 @@ def _json_default(value: Any) -> Any:
     raise TypeError(f"Object of type {value.__class__.__name__} is not JSON serializable")
 
 
-def _scope_already_tested(tested_regions: pd.DataFrame, proposed_scope: Dict[str, Any]) -> bool:
+def _scope_already_tested(tested_regions: pd.DataFrame, proposed_scope: dict[str, Any]) -> bool:
     if tested_regions.empty:
         return False
 
@@ -194,11 +194,11 @@ def _build_belief_state(
     *,
     tested_regions: pd.DataFrame,
     failures: pd.DataFrame,
-    reflection: Dict[str, Any],
+    reflection: dict[str, Any],
     promising_top_k: int,
     avoid_top_k: int,
     repair_top_k: int,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     promising_regions = []
     recommended_next_action = str(reflection.get("recommended_next_action", "")).strip()
     statistical_outcome = str(reflection.get("statistical_outcome", "")).strip()
@@ -319,13 +319,13 @@ def _build_belief_state(
 
 def _build_next_actions(
     *,
-    reflection: Dict[str, Any],
+    reflection: dict[str, Any],
     tested_regions: pd.DataFrame,
     failures: pd.DataFrame,
     regime_conditional_candidates: pd.DataFrame,
     exploit_top_k: int,
     repair_top_k: int,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Build the next_actions queue from memory artefacts.
 
     Phase 4.2: regime_conditional_candidates are injected into explore_adjacent
@@ -411,7 +411,7 @@ def _build_next_actions(
     # Phase 4.2 — Regime-conditional explore_adjacent entries.
     # Each entry carries a proposed_scope with context pinned to the best-
     # performing regime so the controller generates context-conditioned runs.
-    explore_adjacent: list[Dict[str, Any]] = []
+    explore_adjacent: list[dict[str, Any]] = []
 
     if not regime_conditional_candidates.empty:
         ranked = regime_conditional_candidates.copy()
@@ -513,7 +513,7 @@ def _load_regime_conditional_candidates(*, run_id: str, data_root: Path) -> pd.D
     return pd.DataFrame()
 
 
-def _coerce_contexts(value: Any) -> Dict[str, list]:
+def _coerce_contexts(value: Any) -> dict[str, list]:
     """Coerce a context_json value (str or dict) to {family: [label]} dict."""
     payload = value
     if isinstance(payload, str):
@@ -526,7 +526,7 @@ def _coerce_contexts(value: Any) -> Dict[str, list]:
             return {}
     if not isinstance(payload, dict):
         return {}
-    out: Dict[str, list] = {}
+    out: dict[str, list] = {}
     for key, raw in payload.items():
         family = str(key).strip()
         label = str(raw).strip()
@@ -535,7 +535,7 @@ def _coerce_contexts(value: Any) -> Dict[str, list]:
     return out
 
 
-def _parse_best_regime_contexts(best_regime: Any) -> Dict[str, list]:
+def _parse_best_regime_contexts(best_regime: Any) -> dict[str, list]:
     """Convert a best_regime label string to a context conditioning dict.
 
     Maps token substrings from regime labels produced by regime_evaluator.py
@@ -555,7 +555,7 @@ def _parse_best_regime_contexts(best_regime: Any) -> Dict[str, list]:
         "tight":       ("ms_spread_state", "tight"),
         "wide":        ("ms_spread_state", "wide"),
     }
-    contexts: Dict[str, list] = {}
+    contexts: dict[str, list] = {}
     for token, (family, label) in token_map.items():
         if token in regime:
             contexts[family] = [label]
@@ -563,8 +563,8 @@ def _parse_best_regime_contexts(best_regime: Any) -> Dict[str, list]:
 
 
 def _merge_contexts(
-    base: Dict[str, list], override: Dict[str, list]
-) -> Dict[str, list]:
+    base: dict[str, list], override: dict[str, list]
+) -> dict[str, list]:
     """Merge two context dicts; override wins on key conflicts."""
     merged = dict(base)
     merged.update(override)
@@ -584,7 +584,7 @@ def update_campaign_memory(
     frontier_untested_top_k: int,
     frontier_repair_top_k: int,
     exhausted_failure_threshold: int,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     paths = ensure_memory_store(program_id, data_root=data_root)
 
     incoming_tested = build_tested_regions_snapshot(
@@ -711,8 +711,8 @@ def update_campaign_memory(
         data_root=data_root,
     )
     return {
-        "tested_regions_rows": int(len(incoming_tested)),
-        "failures_rows": int(len(incoming_failures)),
+        "tested_regions_rows": len(incoming_tested),
+        "failures_rows": len(incoming_failures),
         "reflection_written": True,
         "compatibility_summary_status": compatibility["summary"].get("status", "ok"),
         "memory_root": str(paths.root),

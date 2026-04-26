@@ -4,7 +4,7 @@ import hashlib
 import json
 import logging
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Set
+from typing import Any
 
 import pandas as pd
 import yaml
@@ -18,7 +18,7 @@ from project.spec_registry.search_space import DEFAULT_EVENT_PRIORITY_WEIGHT as 
 _LOG = logging.getLogger(__name__)
 
 
-def _as_str_list(values: Any) -> List[str]:
+def _as_str_list(values: Any) -> list[str]:
     if values is None:
         return []
     if isinstance(values, str):
@@ -47,7 +47,7 @@ def _memory_feature_predicate_key(feature: str, operator: str, threshold: Any) -
     return canonical_bridge_event_type("feature_predicate", f"pred:{feature}{operator}{threshold}")
 
 
-def _memory_sequence_key(events: List[str], gap: int) -> str:
+def _memory_sequence_key(events: list[str], gap: int) -> str:
     payload = "|".join(events) + f"|gap={gap}"
     seq_id = "SEQ_" + hashlib.sha256(payload.encode()).hexdigest()[:12].upper()
     return canonical_bridge_event_type("sequence", f"seq:{seq_id}")
@@ -77,13 +77,13 @@ def _parse_transition_event_type(event_type: str) -> tuple[str, str] | None:
 
 def build_proposal_from_memory_scope(
     ctrl: Any,
-    scope: Dict[str, Any],
+    scope: dict[str, Any],
     *,
     description: str,
     promotion_enabled: bool,
     date_scope: tuple[str, str],
-    default_horizons: List[int],
-) -> Optional[Dict[str, Any]]:
+    default_horizons: list[int],
+) -> dict[str, Any] | None:
     trigger_payload = {}
     raw_trigger_payload = scope.get("trigger_payload_json", scope.get("trigger_payload", "{}"))
     if isinstance(raw_trigger_payload, dict):
@@ -124,7 +124,7 @@ def build_proposal_from_memory_scope(
     except (TypeError, ValueError):
         entry_lags = None
 
-    kwargs: Dict[str, Any] = {
+    kwargs: dict[str, Any] = {
         "events": [],
         "templates": templates,
         "horizons": horizons,
@@ -203,7 +203,7 @@ def build_proposal_from_memory_scope(
     return ctrl._build_proposal(**kwargs)
 
 
-def step_scan_frontier(ctrl: Any, mem: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+def step_scan_frontier(ctrl: Any, mem: dict[str, Any]) -> dict[str, Any] | None:
     for trigger_type in ctrl.config.scan_trigger_types:
         result = ctrl._step_scan_for_type(trigger_type, mem)
         if result is not None:
@@ -213,8 +213,8 @@ def step_scan_frontier(ctrl: Any, mem: Dict[str, Any]) -> Optional[Dict[str, Any
 
 
 def step_scan_for_type(
-    ctrl: Any, trigger_type: str, mem: Dict[str, Any]
-) -> Optional[Dict[str, Any]]:
+    ctrl: Any, trigger_type: str, mem: dict[str, Any]
+) -> dict[str, Any] | None:
     t = trigger_type.upper()
     if t == "EVENT":
         return ctrl._step_scan_events(mem)
@@ -232,13 +232,13 @@ def step_scan_for_type(
     return None
 
 
-def step_scan_events(ctrl: Any, mem: Dict[str, Any]) -> Optional[Dict[str, Any]]:
-    avoid_events: Set[str] = set(mem.get("avoid_event_types", set()))
+def step_scan_events(ctrl: Any, mem: dict[str, Any]) -> dict[str, Any] | None:
+    avoid_events: set[str] = set(mem.get("avoid_event_types", set()))
     event_to_regime = ctrl._event_to_regime_map()
     regime_to_events = ctrl._executable_regime_event_fanout()
 
-    tested_events: Set[str] = set()
-    tested_regimes: Set[str] = set()
+    tested_events: set[str] = set()
+    tested_regimes: set[str] = set()
     try:
         tested_df = _read_memory_table(ctrl.config.program_id, "tested_regions", data_root=ctrl.data_root)
         if not tested_df.empty and "event_type" in tested_df.columns:
@@ -254,7 +254,7 @@ def step_scan_events(ctrl: Any, mem: Dict[str, Any]) -> Optional[Dict[str, Any]]
         try:
             ledger = pd.read_parquet(ctrl.ledger_path)
             if "trigger_payload" in ledger.columns:
-                def _eid(payload: object) -> Optional[str]:
+                def _eid(payload: object) -> str | None:
                     try:
                         parsed = json.loads(str(payload))
                         value = str(parsed.get("event_id", "")).strip()
@@ -271,7 +271,7 @@ def step_scan_events(ctrl: Any, mem: Dict[str, Any]) -> Optional[Dict[str, Any]]
         if regime:
             tested_regimes.add(regime)
 
-    regime_candidates: Dict[str, List[str]] = {}
+    regime_candidates: dict[str, list[str]] = {}
     for regime, event_ids in regime_to_events.items():
         if regime in tested_regimes:
             continue
@@ -320,13 +320,13 @@ def step_scan_events(ctrl: Any, mem: Dict[str, Any]) -> Optional[Dict[str, Any]]
     )
 
 
-def step_scan_states(ctrl: Any, mem: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+def step_scan_states(ctrl: Any, mem: dict[str, Any]) -> dict[str, Any] | None:
     del mem
     ss_states = ctrl._load_search_space_states()
     if not ss_states:
         return None
 
-    tested_states: Set[str] = set()
+    tested_states: set[str] = set()
     try:
         tested_df = _read_memory_table(ctrl.config.program_id, "tested_regions", data_root=ctrl.data_root)
         if not tested_df.empty and "event_type" in tested_df.columns and "trigger_type" in tested_df.columns:
@@ -359,13 +359,13 @@ def step_scan_states(ctrl: Any, mem: Dict[str, Any]) -> Optional[Dict[str, Any]]
     )
 
 
-def step_scan_transitions(ctrl: Any, mem: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+def step_scan_transitions(ctrl: Any, mem: dict[str, Any]) -> dict[str, Any] | None:
     del mem
     ss_transitions = ctrl._load_search_space_transitions()
     if not ss_transitions:
         return None
 
-    tested_keys: Set[str] = set()
+    tested_keys: set[str] = set()
     try:
         tested_df = _read_memory_table(ctrl.config.program_id, "tested_regions", data_root=ctrl.data_root)
         if not tested_df.empty and "trigger_type" in tested_df.columns:
@@ -401,16 +401,16 @@ def step_scan_transitions(ctrl: Any, mem: Dict[str, Any]) -> Optional[Dict[str, 
     )
 
 
-def step_scan_feature_predicates(ctrl: Any, mem: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+def step_scan_feature_predicates(ctrl: Any, mem: dict[str, Any]) -> dict[str, Any] | None:
     del mem
     static_preds = ctrl._load_search_space_predicates()
     mi_preds = ctrl._load_mi_candidate_predicates()
 
-    def _pred_key(pred: Dict[str, Any]) -> str:
+    def _pred_key(pred: dict[str, Any]) -> str:
         return f"{pred['feature']}|{pred['operator']}|{pred['threshold']}"
 
     seen_keys: set[str] = set()
-    merged: List[Dict[str, Any]] = []
+    merged: list[dict[str, Any]] = []
     for pred in static_preds:
         key = _pred_key(pred)
         if key not in seen_keys:
@@ -470,7 +470,7 @@ def step_scan_feature_predicates(ctrl: Any, mem: Dict[str, Any]) -> Optional[Dic
     )
 
 
-def step_scan_sequences(ctrl: Any, mem: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+def step_scan_sequences(ctrl: Any, mem: dict[str, Any]) -> dict[str, Any] | None:
     del mem
     pairs = ctrl._find_weak_signal_event_pairs()
     if not pairs:
@@ -487,7 +487,7 @@ def step_scan_sequences(ctrl: Any, mem: Dict[str, Any]) -> Optional[Dict[str, An
     except Exception:
         _LOG.warning("Failed to read superseded stages from memory", exc_info=True)
 
-    sequences: List[List[str]] = []
+    sequences: list[list[str]] = []
     for pair in pairs:
         sequence = list(pair)
         candidate_keys = {_memory_sequence_key(sequence, gap) for gap in [6, 12]}
@@ -515,14 +515,14 @@ def step_scan_sequences(ctrl: Any, mem: Dict[str, Any]) -> Optional[Dict[str, An
     )
 
 
-def step_scan_interactions(ctrl: Any, mem: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+def step_scan_interactions(ctrl: Any, mem: dict[str, Any]) -> dict[str, Any] | None:
     del mem
     motifs = ctrl._load_interaction_motifs()
     if not motifs:
         _LOG.info("STEP 4 SCAN [INTERACTION]: no motifs in interaction_registry.yaml.")
         return None
 
-    tested_keys: Set[str] = set()
+    tested_keys: set[str] = set()
     try:
         tested_df = _read_memory_table(ctrl.config.program_id, "tested_regions", data_root=ctrl.data_root)
         if not tested_df.empty and "trigger_type" in tested_df.columns:
@@ -532,7 +532,7 @@ def step_scan_interactions(ctrl: Any, mem: Dict[str, Any]) -> Optional[Dict[str,
     except Exception:
         _LOG.warning("Failed to read superseded stages from memory", exc_info=True)
 
-    def _motif_key(motif: Dict[str, Any]) -> str:
+    def _motif_key(motif: dict[str, Any]) -> str:
         return f"{motif['left']}|{motif['op']}|{motif['right']}"
 
     candidates = [
@@ -572,7 +572,7 @@ def step_scan_interactions(ctrl: Any, mem: Dict[str, Any]) -> Optional[Dict[str,
     )
 
 
-def load_interaction_motifs(ctrl: Any) -> List[Dict[str, Any]]:
+def load_interaction_motifs(ctrl: Any) -> list[dict[str, Any]]:
     try:
         candidates = [
             ctrl._search_space_path.parent / "grammar" / "interaction_registry.yaml",
@@ -593,7 +593,7 @@ def load_interaction_motifs(ctrl: Any) -> List[Dict[str, Any]]:
         return []
 
 
-def step_scan_frontier_cross_family(ctrl: Any, mem: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+def step_scan_frontier_cross_family(ctrl: Any, mem: dict[str, Any]) -> dict[str, Any] | None:
     enabled_events = [
         event_id
         for event_ids in ctrl._executable_regime_event_fanout().values()
@@ -601,7 +601,7 @@ def step_scan_frontier_cross_family(ctrl: Any, mem: Dict[str, Any]) -> Optional[
     ]
     event_to_regime = ctrl._event_to_regime_map()
 
-    tested_events: Set[str] = set()
+    tested_events: set[str] = set()
     try:
         tested_df = _read_memory_table(ctrl.config.program_id, "tested_regions", data_root=ctrl.data_root)
         if not tested_df.empty and "event_type" in tested_df.columns:
@@ -613,7 +613,7 @@ def step_scan_frontier_cross_family(ctrl: Any, mem: Dict[str, Any]) -> Optional[
         try:
             ledger = pd.read_parquet(ctrl.ledger_path)
             if "trigger_payload" in ledger.columns:
-                def _eid(payload: object) -> Optional[str]:
+                def _eid(payload: object) -> str | None:
                     try:
                         parsed = json.loads(str(payload))
                         value = str(parsed.get("event_id", "")).strip()
@@ -628,7 +628,7 @@ def step_scan_frontier_cross_family(ctrl: Any, mem: Dict[str, Any]) -> Optional[
                 exc_info=True,
             )
 
-    avoid_events: Set[str] = mem["avoid_event_types"]
+    avoid_events: set[str] = mem["avoid_event_types"]
     candidates = [
         event_id for event_id in enabled_events if event_id not in tested_events and event_id not in avoid_events
     ]
@@ -653,7 +653,7 @@ def step_scan_frontier_cross_family(ctrl: Any, mem: Dict[str, Any]) -> Optional[
     )
 
 
-def load_search_space_states(ctrl: Any) -> List[str]:
+def load_search_space_states(ctrl: Any) -> list[str]:
     try:
         if not ctrl._search_space_path.exists():
             return []
@@ -664,7 +664,7 @@ def load_search_space_states(ctrl: Any) -> List[str]:
         return []
 
 
-def load_search_space_transitions(ctrl: Any) -> List[Dict[str, str]]:
+def load_search_space_transitions(ctrl: Any) -> list[dict[str, str]]:
     try:
         if not ctrl._search_space_path.exists():
             return []
@@ -679,7 +679,7 @@ def load_search_space_transitions(ctrl: Any) -> List[Dict[str, str]]:
         return []
 
 
-def load_search_space_predicates(ctrl: Any) -> List[Dict[str, Any]]:
+def load_search_space_predicates(ctrl: Any) -> list[dict[str, Any]]:
     try:
         if not ctrl._search_space_path.exists():
             return []
@@ -691,7 +691,7 @@ def load_search_space_predicates(ctrl: Any) -> List[Dict[str, Any]]:
         return []
 
 
-def load_mi_candidate_predicates(ctrl: Any) -> List[Dict[str, Any]]:
+def load_mi_candidate_predicates(ctrl: Any) -> list[dict[str, Any]]:
     try:
         feature_mi_root = ctrl.data_root / "reports" / "feature_mi"
         if not feature_mi_root.exists():
@@ -719,7 +719,7 @@ def load_mi_candidate_predicates(ctrl: Any) -> List[Dict[str, Any]]:
         raise DataIntegrityError(f"Failed to load MI candidate predicates: {exc}") from exc
 
 
-def find_weak_signal_event_pairs(ctrl: Any) -> List[tuple]:
+def find_weak_signal_event_pairs(ctrl: Any) -> list[tuple]:
     try:
         tested_df = _read_memory_table(ctrl.config.program_id, "tested_regions", data_root=ctrl.data_root)
     except Exception:
@@ -758,39 +758,39 @@ def find_weak_signal_event_pairs(ctrl: Any) -> List[tuple]:
     return pairs[:5]
 
 
-def templates_for_event(ctrl: Any, event_id: str) -> List[str]:
+def templates_for_event(ctrl: Any, event_id: str) -> list[str]:
     events_registry = ctrl.registries.events.get("events", {})
     family = str(events_registry.get(event_id, {}).get("family", "")).strip()
     template_reg = ctrl.registries.templates.get("families", {})
-    templates: List[str] = template_reg.get(family, {}).get("allowed_templates", [])
+    templates: list[str] = template_reg.get(family, {}).get("allowed_templates", [])
     return templates or ["mean_reversion", "continuation"]
 
 
 def build_proposal(
     ctrl: Any,
     *,
-    events: List[str],
-    templates: List[str],
-    horizons: List[int],
-    directions: Optional[List[str]] = None,
-    entry_lags: Optional[List[int]] = None,
+    events: list[str],
+    templates: list[str],
+    horizons: list[int],
+    directions: list[str] | None = None,
+    entry_lags: list[int] | None = None,
     description: str,
     promotion_enabled: bool,
     date_scope: tuple[str, str],
     trigger_type: str = "EVENT",
-    states: Optional[List[str]] = None,
-    transitions: Optional[List[Dict[str, str]]] = None,
-    feature_predicates: Optional[List[Dict[str, Any]]] = None,
-    sequences: Optional[Dict[str, Any]] = None,
-    interactions: Optional[List[Dict[str, Any]]] = None,
-    contexts: Optional[Dict[str, List[str]]] = None,
-    canonical_regimes: Optional[List[str]] = None,
-    subtypes: Optional[List[str]] = None,
-    phases: Optional[List[str]] = None,
-    evidence_modes: Optional[List[str]] = None,
-) -> Dict[str, Any]:
+    states: list[str] | None = None,
+    transitions: list[dict[str, str]] | None = None,
+    feature_predicates: list[dict[str, Any]] | None = None,
+    sequences: dict[str, Any] | None = None,
+    interactions: list[dict[str, Any]] | None = None,
+    contexts: dict[str, list[str]] | None = None,
+    canonical_regimes: list[str] | None = None,
+    subtypes: list[str] | None = None,
+    phases: list[str] | None = None,
+    evidence_modes: list[str] | None = None,
+) -> dict[str, Any]:
     start, end = date_scope
-    trigger_space: Dict[str, Any] = {"allowed_trigger_types": [trigger_type]}
+    trigger_space: dict[str, Any] = {"allowed_trigger_types": [trigger_type]}
     if trigger_type == "EVENT":
         trigger_space["events"] = {"include": events}
         trigger_space["canonical_regimes"] = list(canonical_regimes or [])
@@ -836,13 +836,13 @@ def build_proposal(
     }
 
 
-def context_for_proposal(ctrl: Any) -> Dict[str, List[str]]:
+def context_for_proposal(ctrl: Any) -> dict[str, list[str]]:
     if not ctrl.config.enable_context_conditioning:
         return {}
     allowed_contexts = ctrl.registries.contexts.get("context_dimensions", {})
     registry = get_domain_registry()
     selected_dimensions = list(getattr(ctrl.config, "proposal_context_dimensions", []) or [])
-    out: Dict[str, List[str]] = {}
+    out: dict[str, list[str]] = {}
     for dimension in selected_dimensions:
         meta = allowed_contexts.get(str(dimension), {})
         values: list[str] = []

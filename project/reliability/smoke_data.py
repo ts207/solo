@@ -5,9 +5,9 @@ import json
 import os
 import sys
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any
 
 import numpy as np
 import pandas as pd
@@ -182,7 +182,7 @@ def build_smoke_dataset(
     )
 
 
-def run_engine_smoke(dataset: SmokeDatasetInfo) -> Dict[str, Any]:
+def run_engine_smoke(dataset: SmokeDatasetInfo) -> dict[str, Any]:
     from project.strategy.dsl.schema import (
         Blueprint,
         EntrySpec,
@@ -266,9 +266,9 @@ def run_engine_smoke(dataset: SmokeDatasetInfo) -> Dict[str, Any]:
     return result
 
 
-def run_research_smoke(dataset: SmokeDatasetInfo) -> Dict[str, Any]:
-    symbol_candidates: Dict[str, pd.DataFrame] = {}
-    frames: List[pd.DataFrame] = []
+def run_research_smoke(dataset: SmokeDatasetInfo) -> dict[str, Any]:
+    symbol_candidates: dict[str, pd.DataFrame] = {}
+    frames: list[pd.DataFrame] = []
     for symbol in dataset.symbols:
         events = build_smoke_events(symbol, seed=dataset.seed)
         features = build_smoke_bars(symbol, seed=dataset.seed)
@@ -307,7 +307,7 @@ def run_research_smoke(dataset: SmokeDatasetInfo) -> Dict[str, Any]:
         diagnostics={
             "run_id": dataset.run_id,
             "smoke_dataset_version": SMOKE_DATASET_VERSION,
-            "combined_candidate_rows": int(len(combined)),
+            "combined_candidate_rows": len(combined),
         },
     )
     return {
@@ -318,7 +318,7 @@ def run_research_smoke(dataset: SmokeDatasetInfo) -> Dict[str, Any]:
 
 
 def build_smoke_edge_candidates(
-    research_result: Dict[str, Any], dataset: SmokeDatasetInfo
+    research_result: dict[str, Any], dataset: SmokeDatasetInfo
 ) -> pd.DataFrame:
     combined = research_result["combined_candidates"].copy()
     rows = []
@@ -438,7 +438,7 @@ def build_smoke_edge_candidates(
 
 
 def materialize_smoke_promotion_inputs(
-    dataset: SmokeDatasetInfo, research_result: Dict[str, Any]
+    dataset: SmokeDatasetInfo, research_result: dict[str, Any]
 ) -> pd.DataFrame:
     candidates = build_smoke_edge_candidates(research_result, dataset)
     edge_dir = dataset.root / "reports" / "edge_candidates" / dataset.run_id
@@ -493,8 +493,8 @@ def materialize_smoke_validation_artifacts(
     val_dir = dataset.root / "reports" / "validation" / dataset.run_id
     ensure_dir(val_dir)
 
-    validated: List[ValidatedCandidateRecord] = []
-    rejected: List[ValidatedCandidateRecord] = []
+    validated: list[ValidatedCandidateRecord] = []
+    rejected: list[ValidatedCandidateRecord] = []
 
     for row in candidates.to_dict(orient="records"):
         candidate_id = str(row.get("candidate_id", "")).strip()
@@ -536,7 +536,7 @@ def materialize_smoke_validation_artifacts(
         else:
             rejected.append(record)
 
-    created_at = datetime.now(timezone.utc).isoformat()
+    created_at = datetime.now(UTC).isoformat()
     bundle = ValidationBundle(
         run_id=dataset.run_id,
         created_at=created_at,
@@ -561,8 +561,8 @@ def materialize_smoke_validation_artifacts(
 
 
 def run_promotion_smoke(
-    dataset: SmokeDatasetInfo, research_result: Dict[str, Any]
-) -> Dict[str, Any]:
+    dataset: SmokeDatasetInfo, research_result: dict[str, Any]
+) -> dict[str, Any]:
     materialize_smoke_promotion_inputs(dataset, research_result)
     result = run_promotion_cli(
         [
@@ -587,7 +587,7 @@ def run_promotion_smoke(
     return {"service_result": result, "output_dir": result.output_dir}
 
 
-def build_smoke_summary(*, dataset: SmokeDatasetInfo, storage_mode: str) -> Dict[str, Any]:
+def build_smoke_summary(*, dataset: SmokeDatasetInfo, storage_mode: str) -> dict[str, Any]:
     config_hash = hashlib.sha256(
         json.dumps(
             {"seed": dataset.seed, "storage_mode": storage_mode, "symbols": list(dataset.symbols)},

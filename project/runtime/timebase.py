@@ -1,7 +1,7 @@
 from __future__ import annotations
 
+from collections.abc import Iterable, Mapping
 from dataclasses import dataclass
-from typing import Dict, Iterable, Mapping
 
 from project.core.coercion import safe_int
 
@@ -25,7 +25,7 @@ class _SourceState:
 class WatermarkTracker:
     def __init__(self, cfg: WatermarkCfg) -> None:
         self.cfg = cfg
-        self._sources: Dict[str, _SourceState] = {}
+        self._sources: dict[str, _SourceState] = {}
 
     def observe(self, source_id: str, event_time_us: int, recv_time_us: int) -> None:
         current = self._sources.get(source_id)
@@ -70,8 +70,8 @@ class WatermarkTracker:
         return min(all_seen) if all_seen else NEG_INF_US
 
 
-def lane_cfg_map(lanes_spec: Mapping[str, object]) -> Dict[str, WatermarkCfg]:
-    out: Dict[str, WatermarkCfg] = {}
+def lane_cfg_map(lanes_spec: Mapping[str, object]) -> dict[str, WatermarkCfg]:
+    out: dict[str, WatermarkCfg] = {}
     lanes = lanes_spec.get("lanes")
     if not isinstance(lanes, list):
         lanes = []

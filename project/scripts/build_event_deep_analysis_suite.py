@@ -5,8 +5,9 @@ import argparse
 import json
 import sys
 from collections import Counter, defaultdict
+from collections.abc import Iterable, Mapping
 from pathlib import Path
-from typing import Any, Iterable, Mapping
+from typing import Any
 
 from project.domain.compiled_registry import get_domain_registry
 from project.events.contract_registry import (
@@ -224,7 +225,7 @@ def _build_tasks() -> list[dict[str, Any]]:
             "summary": {
                 "active_event_count": len(contracts),
                 "complete_event_count": int(len(contracts) - len(completeness_missing)),
-                "missing_event_count": int(len(completeness_missing)),
+                "missing_event_count": len(completeness_missing),
             },
             "details": {
                 "missing_fields": completeness_missing,
@@ -298,8 +299,8 @@ def _build_tasks() -> list[dict[str, Any]]:
             "summary": {
                 "threshold_method_counts": threshold_method_counts,
                 "calibration_method_counts": calibration_method_counts,
-                "generic_calibration_event_count": int(len(generic_calibration_events)),
-                "declared_threshold_event_count": int(len(declared_threshold_events)),
+                "generic_calibration_event_count": len(generic_calibration_events),
+                "declared_threshold_event_count": len(declared_threshold_events),
             },
             "details": {
                 "generic_calibration_events": generic_calibration_events,
@@ -321,8 +322,8 @@ def _build_tasks() -> list[dict[str, Any]]:
                 "avg_expected_overlap_entries": round(
                     sum(overlap_lengths) / max(1, len(overlap_lengths)), 3
                 ),
-                "direct_proxy_group_count": int(len(direct_proxy_groups)),
-                "ontology_collision_group_count": int(len(ontology_collisions)),
+                "direct_proxy_group_count": len(direct_proxy_groups),
+                "ontology_collision_group_count": len(ontology_collisions),
             },
             "details": {
                 "direct_proxy_groups": direct_proxy_groups,
@@ -338,8 +339,8 @@ def _build_tasks() -> list[dict[str, Any]]:
             "title": "Review regime restrictions",
             "status": _status(passed=bool(regime_report.get("is_valid", False))),
             "summary": {
-                "routed_regime_count": int(len(regime_report.get("routed_regimes", []))),
-                "missing_regime_count": int(len(regime_report.get("missing_regimes", []))),
+                "routed_regime_count": len(regime_report.get("routed_regimes", [])),
+                "missing_regime_count": len(regime_report.get("missing_regimes", [])),
                 "contracts_with_disabled_regimes": int(
                     sum(1 for count in disabled_regime_lengths if count > 0)
                 ),
@@ -365,9 +366,9 @@ def _build_tasks() -> list[dict[str, Any]]:
                 "events_with_required_features": int(
                     sum(1 for count in required_feature_lengths if count > 0)
                 ),
-                "unique_required_feature_count": int(len(required_feature_counter)),
-                "unique_required_column_count": int(len(required_column_counter)),
-                "events_missing_required_columns": int(len(empty_required_columns)),
+                "unique_required_feature_count": len(required_feature_counter),
+                "unique_required_column_count": len(required_column_counter),
+                "events_missing_required_columns": len(empty_required_columns),
             },
             "details": {
                 "top_required_features": dict(required_feature_counter.most_common(15)),
@@ -387,9 +388,9 @@ def _build_tasks() -> list[dict[str, Any]]:
                 and len(existing_workflow_paths) == len(workflow_paths)
             ),
             "summary": {
-                "configured_guard_path_count": int(len(existing_guard_paths)),
-                "expected_guard_path_count": int(len(guard_paths)),
-                "workflow_file_count": int(len(existing_workflow_paths)),
+                "configured_guard_path_count": len(existing_guard_paths),
+                "expected_guard_path_count": len(guard_paths),
+                "workflow_file_count": len(existing_workflow_paths),
             },
             "details": {
                 "guard_paths": existing_guard_paths,
@@ -419,8 +420,8 @@ def _build_tasks() -> list[dict[str, Any]]:
                 "event_count": len(declared_threshold_events),
             }
         )
-    proxy_count = int(len(proxy_evidence_event_ids))
-    proxy_planning_count = int(len(proxy_planning_event_ids))
+    proxy_count = len(proxy_evidence_event_ids)
+    proxy_planning_count = len(proxy_planning_event_ids)
     if proxy_planning_count:
         residual_priorities.append(
             {
@@ -478,7 +479,7 @@ def _build_tasks() -> list[dict[str, Any]]:
                         if task["id"] != "10_synthesis" and task["status"] != "passed"
                     )
                 ),
-                "residual_priority_count": int(len(residual_priorities)),
+                "residual_priority_count": len(residual_priorities),
             },
             "details": {
                 "proxy_evidence_event_count": proxy_count,

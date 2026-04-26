@@ -7,7 +7,7 @@ from __future__ import annotations
 import logging
 import threading
 from pathlib import Path
-from typing import Any, Dict, Optional, Tuple
+from typing import Any
 
 import numpy as np
 import pandas as pd
@@ -16,12 +16,12 @@ log = logging.getLogger(__name__)
 
 _SHRINKAGE_LOCK = threading.Lock()
 
-_TAU_BY_FAMILY_DAYS: Dict[str, float] = {}
-_VOL_REGIME_MULTIPLIER: Dict[str, float] = {}
-_LIQUIDITY_STATE_MULTIPLIER: Dict[str, float] = {}
-_DIRECTIONAL_ASYMMETRY_BY_FAMILY: Dict[str, Tuple[float, float]] = {}
+_TAU_BY_FAMILY_DAYS: dict[str, float] = {}
+_VOL_REGIME_MULTIPLIER: dict[str, float] = {}
+_LIQUIDITY_STATE_MULTIPLIER: dict[str, float] = {}
+_DIRECTIONAL_ASYMMETRY_BY_FAMILY: dict[str, tuple[float, float]] = {}
 
-_EVENT_DIRECTION_NUMERIC_COLS: Tuple[str, ...] = (
+_EVENT_DIRECTION_NUMERIC_COLS: tuple[str, ...] = (
     "evt_event_direction",
     "evt_direction",
     "evt_signal_direction",
@@ -38,7 +38,7 @@ _EVENT_DIRECTION_NUMERIC_COLS: Tuple[str, ...] = (
     "evt_basis_z",
 )
 
-_EVENT_DIRECTION_TEXT_COLS: Tuple[str, ...] = (
+_EVENT_DIRECTION_TEXT_COLS: tuple[str, ...] = (
     "evt_side",
     "evt_trade_side",
     "evt_signal_side",
@@ -46,7 +46,7 @@ _EVENT_DIRECTION_TEXT_COLS: Tuple[str, ...] = (
 )
 
 
-def update_shrinkage_parameters_from_spec(repo_root: Optional[Path] = None) -> None:
+def update_shrinkage_parameters_from_spec(repo_root: Path | None = None) -> None:
     """
     Load statistical parameters from spec/gates.yaml and update local constants.
     Ensures 'Spec is Truth' for statistical shrinkage logic.
@@ -114,7 +114,7 @@ def _ensure_shrinkage_parameters_loaded() -> None:
     update_shrinkage_parameters_from_spec()
 
 
-def _resolve_tau_days(canonical_family: str, override_days: Optional[float]) -> float:
+def _resolve_tau_days(canonical_family: str, override_days: float | None) -> float:
     _ensure_shrinkage_parameters_loaded()
     if override_days is not None and float(override_days) > 0.0:
         return float(override_days)
@@ -153,7 +153,7 @@ def _regime_conditioned_tau_days(
     canonical_family: str,
     vol_regime: Any,
     liquidity_state: Any,
-    base_tau_days_override: Optional[float],
+    base_tau_days_override: float | None,
 ) -> float:
     _ensure_shrinkage_parameters_loaded()
     tau = _resolve_tau_days(canonical_family, base_tau_days_override)
@@ -164,7 +164,7 @@ def _regime_conditioned_tau_days(
     return float(tau)
 
 
-def _direction_sign(value: Any) -> Optional[int]:
+def _direction_sign(value: Any) -> int | None:
     if value is None:
         return None
     try:
@@ -184,7 +184,7 @@ def _direction_sign(value: Any) -> Optional[int]:
     return None
 
 
-def _optional_token(value: Any) -> Optional[str]:
+def _optional_token(value: Any) -> str | None:
     if value is None:
         return None
     try:
@@ -236,7 +236,7 @@ def _asymmetric_tau_days(
     default_down_mult: float,
     min_ratio: float,
     max_ratio: float,
-) -> Tuple[float, float, float, float]:
+) -> tuple[float, float, float, float]:
     _ensure_shrinkage_parameters_loaded()
     family_key = str(canonical_family or "").strip().upper()
     up_mult, down_mult = _DIRECTIONAL_ASYMMETRY_BY_FAMILY.get(

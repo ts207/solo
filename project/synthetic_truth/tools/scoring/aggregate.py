@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Optional
 
 import numpy as np
 import pandas as pd
@@ -23,7 +22,7 @@ class DetectorWeight:
 class AggregatedSignal:
     timestamp: any
     aggregate_score: float
-    dominant_event: Optional[str] = None
+    dominant_event: str | None = None
     event_count: int = 0
     details: dict = field(default_factory=dict)
 
@@ -31,8 +30,8 @@ class AggregatedSignal:
 class SignalAggregator:
     def __init__(
         self,
-        weights: Optional[dict[str, float]] = None,
-        normalizer: Optional[SignalNormalizer] = None,
+        weights: dict[str, float] | None = None,
+        normalizer: SignalNormalizer | None = None,
     ):
         self.weights = weights or {}
         self.normalizer = normalizer or SignalNormalizer()

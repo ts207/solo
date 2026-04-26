@@ -1,5 +1,5 @@
 import logging
-from typing import Any, Dict
+from typing import Any
 
 import numpy as np
 import pandas as pd
@@ -20,7 +20,7 @@ def compute_discovery_prechecks(
     cost_bps: float,
     mean_bps: float,
     t_stat: float
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     Computes cheap additive precheck metrics to support Discovery v2 candidate scoring.
     Fails safely returning defaults.
@@ -100,7 +100,7 @@ def compute_discovery_prechecks(
         elif trigger_type == "state":
             event_id = f"STATE:{str(getattr(trigger, 'state_id', '')).upper()}"
         elif trigger_type == "transition":
-            event_id = f"TRANS:{str(getattr(trigger, 'from_state', ''))}_{str(getattr(trigger, 'to_state', ''))}".upper()
+            event_id = f"TRANS:{getattr(trigger, 'from_state', '')!s}_{getattr(trigger, 'to_state', '')!s}".upper()
         elif trigger_type in {"sequence", "interaction"}:
             event_id = str(getattr(trigger, "label", lambda: trigger_type)()).upper()
 

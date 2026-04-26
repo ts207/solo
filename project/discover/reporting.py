@@ -1,8 +1,9 @@
 from __future__ import annotations
 
 import json
+from collections.abc import Iterable
 from pathlib import Path
-from typing import Any, Iterable
+from typing import Any
 
 import numpy as np
 import pandas as pd
@@ -180,7 +181,7 @@ def _top_candidates(df: pd.DataFrame, *, limit: int = 10) -> dict[str, Any]:
         )
 
     return {
-        "count": int(len(selected)),
+        "count": len(selected),
         "score_column": score_col,
         "lower_is_better": bool(lower_is_better),
         "rows": out_rows,
@@ -249,8 +250,8 @@ def build_discover_summary(*, run_id: str, data_root: Path | None = None, top_k:
             "funnel": _relpath(root, funnel_path),
         },
         "counts": {
-            "candidates_total": int(len(candidates)),
-            "candidates_final": int(len(survivors)),
+            "candidates_total": len(candidates),
+            "candidates_final": len(survivors),
         },
         "diagnostics": {
             "hypotheses_generated": int(diagnostics.get("hypotheses_generated", 0) or 0),

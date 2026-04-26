@@ -7,7 +7,7 @@ from __future__ import annotations
 
 import json
 import re
-from typing import Any, Dict, List, Tuple
+from typing import Any
 
 import numpy as np
 import pandas as pd
@@ -75,7 +75,7 @@ def gate_redundancy_correlation(
     return df
 
 
-def parse_numeric_condition_expr(condition: str) -> Tuple[str, str, float] | None:
+def parse_numeric_condition_expr(condition: str) -> tuple[str, str, float] | None:
     match = NUMERIC_CONDITION_PATTERN.match(str(condition or "").strip())
     if not match:
         return None
@@ -104,11 +104,11 @@ def condition_mask_for_numeric_expr(
 
 
 def delay_robustness_fields(
-    delay_expectancies_adjusted: List[float],
+    delay_expectancies_adjusted: list[float],
     *,
     min_delay_positive_ratio: float,
     min_delay_robustness_score: float,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     if not delay_expectancies_adjusted:
         return {
             "delay_positive_ratio": 0.0,
@@ -133,7 +133,7 @@ def delay_robustness_fields(
     }
 
 
-def effective_sample_size(values: np.ndarray, max_lag: int) -> Tuple[float, int]:
+def effective_sample_size(values: np.ndarray, max_lag: int) -> tuple[float, int]:
     arr = np.asarray(values, dtype=float)
     arr = arr[np.isfinite(arr)]
     n = len(arr)

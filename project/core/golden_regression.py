@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any
 
 import yaml
 
@@ -18,7 +18,7 @@ from project.artifacts import (
 from project.core.coercion import safe_float, safe_int
 
 
-def collect_core_artifact_snapshot(*, data_root: Path, run_id: str) -> Dict[str, Any]:
+def collect_core_artifact_snapshot(*, data_root: Path, run_id: str) -> dict[str, Any]:
     run_manifest = load_json_dict(run_manifest_path(run_id, data_root))
     promotion_summary = load_json_dict(promotion_summary_path(run_id, data_root))
     blueprint_summary = load_json_dict(blueprint_summary_path(run_id, data_root))
@@ -108,7 +108,7 @@ def collect_core_artifact_snapshot(*, data_root: Path, run_id: str) -> Dict[str,
 @dataclass(frozen=True)
 class GoldenToleranceConfig:
     default_numeric_abs_tolerance: float
-    per_metric_abs_tolerance: Dict[str, float]
+    per_metric_abs_tolerance: dict[str, float]
 
     def tolerance_for(self, key: str) -> float:
         if key in self.per_metric_abs_tolerance:
@@ -135,7 +135,7 @@ def load_tolerance_config(path: Path) -> GoldenToleranceConfig:
     if default_tol is None:
         default_tol = 0.0
     per_metric = payload.get("metric_tolerances", {})
-    out: Dict[str, float] = {}
+    out: dict[str, float] = {}
     if isinstance(per_metric, dict):
         for key, value in per_metric.items():
             key_text = str(key).strip()
@@ -148,8 +148,8 @@ def load_tolerance_config(path: Path) -> GoldenToleranceConfig:
     )
 
 
-def _flatten_snapshot(payload: Dict[str, Any], prefix: str = "") -> Dict[str, Any]:
-    out: Dict[str, Any] = {}
+def _flatten_snapshot(payload: dict[str, Any], prefix: str = "") -> dict[str, Any]:
+    out: dict[str, Any] = {}
     for key, value in payload.items():
         path = f"{prefix}.{key}" if prefix else str(key)
         if isinstance(value, dict):
@@ -161,14 +161,14 @@ def _flatten_snapshot(payload: Dict[str, Any], prefix: str = "") -> Dict[str, An
 
 def compare_golden_snapshots(
     *,
-    baseline: Dict[str, Any],
-    candidate: Dict[str, Any],
+    baseline: dict[str, Any],
+    candidate: dict[str, Any],
     tolerance: GoldenToleranceConfig,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     baseline_flat = _flatten_snapshot(baseline)
     candidate_flat = _flatten_snapshot(candidate)
 
-    diffs: List[Dict[str, Any]] = []
+    diffs: list[dict[str, Any]] = []
     checked = 0
 
     for key, baseline_value in sorted(baseline_flat.items()):
@@ -228,6 +228,6 @@ def compare_golden_snapshots(
     return {
         "passed": len(diffs) == 0,
         "checked_metric_count": int(checked),
-        "diff_count": int(len(diffs)),
+        "diff_count": len(diffs),
         "diffs": diffs,
     }

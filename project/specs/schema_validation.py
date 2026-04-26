@@ -11,7 +11,7 @@ minimal, they can be extended over time as new spec fields are added.
 
 from __future__ import annotations
 
-from typing import Any, Dict, Optional
+from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field, ValidationError
 
@@ -21,29 +21,29 @@ __all__ = ["ObjectiveSpec", "validate_spec"]
 class ObjectiveHardGates(BaseModel):
     """Schema for the ``hard_gates`` section of an objective spec."""
 
-    min_trade_count: Optional[int] = Field(None, ge=0)
-    max_drawdown_pct: Optional[float] = Field(None, ge=0.0)
-    min_oos_sign_consistency: Optional[float] = Field(None, ge=0.0, le=1.0)
-    min_p95_cost_survival_bps: Optional[float] = Field(None)
-    max_capacity_utilization: Optional[float] = Field(None, ge=0.0, le=1.0)
+    min_trade_count: int | None = Field(None, ge=0)
+    max_drawdown_pct: float | None = Field(None, ge=0.0)
+    min_oos_sign_consistency: float | None = Field(None, ge=0.0, le=1.0)
+    min_p95_cost_survival_bps: float | None = Field(None)
+    max_capacity_utilization: float | None = Field(None, ge=0.0, le=1.0)
 
 
 class ObjectiveScoreWeights(BaseModel):
     """Schema for the ``score_weights`` section of an objective spec."""
 
-    net_return_after_cost: Optional[float] = None
-    max_drawdown: Optional[float] = None
-    turnover_penalty: Optional[float] = None
-    fragility_penalty: Optional[float] = None
-    complexity_penalty: Optional[float] = None
+    net_return_after_cost: float | None = None
+    max_drawdown: float | None = None
+    turnover_penalty: float | None = None
+    fragility_penalty: float | None = None
+    complexity_penalty: float | None = None
 
 
 class ObjectiveConstraints(BaseModel):
     """Schema for the ``constraints`` section of an objective spec."""
 
-    require_retail_viability: Optional[bool] = None
-    forbid_fallback_in_deploy_mode: Optional[bool] = None
-    require_low_capital_contract: Optional[bool] = None
+    require_retail_viability: bool | None = None
+    forbid_fallback_in_deploy_mode: bool | None = None
+    require_low_capital_contract: bool | None = None
 
 
 class ObjectiveSpec(BaseModel):
@@ -55,7 +55,7 @@ class ObjectiveSpec(BaseModel):
     """
 
     id: str
-    description: Optional[str] = None
+    description: str | None = None
     score_weights: ObjectiveScoreWeights = Field(default_factory=ObjectiveScoreWeights)
     hard_gates: ObjectiveHardGates = Field(default_factory=ObjectiveHardGates)
     constraints: ObjectiveConstraints = Field(default_factory=ObjectiveConstraints)
@@ -63,7 +63,7 @@ class ObjectiveSpec(BaseModel):
     model_config = ConfigDict(extra="allow")
 
 
-def validate_spec(spec: Dict[str, Any], model: type[BaseModel]) -> BaseModel:
+def validate_spec(spec: dict[str, Any], model: type[BaseModel]) -> BaseModel:
     """
     Validate a specification dictionary against a Pydantic model.
 

@@ -2,7 +2,8 @@ from __future__ import annotations
 
 import logging
 import re
-from typing import Any, Iterable, List, Literal
+from collections.abc import Iterable
+from typing import Any, Literal
 
 import pandas as pd
 
@@ -59,7 +60,7 @@ def build_validation_splits(
     embargo_bars: int = 0,
     purge_bars: int = 0,
     bar_duration_minutes: int = DEFAULT_BAR_DURATION_MINUTES,
-) -> List[ValidationSplit]:
+) -> list[ValidationSplit]:
     start_ts = normalize_timestamp(start)
     end_ts = normalize_timestamp(end)
     if start_ts > end_ts:
@@ -87,7 +88,7 @@ def build_validation_splits(
     test_start = validation_end_nominal + embargo_delta
     test_end = end_ts
 
-    windows: List[ValidationSplit] = []
+    windows: list[ValidationSplit] = []
     if train_end < train_start:
         raise ValueError("purge_bars trims train window below zero length")
     windows.append(
@@ -321,7 +322,7 @@ def build_repeated_walkforward_splits(
     purge_bars: int = 0,
     embargo_bars: int = 0,
     bar_duration_minutes: int = DEFAULT_BAR_DURATION_MINUTES,
-) -> List[Any]:
+) -> list[Any]:
     """Build a list of FoldDefinition objects for repeated walk-forward evaluation.
 
     Returns an empty list when fewer than *min_folds* valid folds can be
@@ -339,7 +340,7 @@ def build_repeated_walkforward_splits(
 
     from project.research.validation.schemas import FoldDefinition, ValidationSplit
 
-    folds: List[FoldDefinition] = []
+    folds: list[FoldDefinition] = []
 
     total_bars = len(ts)
     if total_bars == 0:

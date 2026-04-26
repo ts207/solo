@@ -6,9 +6,9 @@ import re
 import sys
 import tempfile
 import time
-from datetime import datetime, timedelta, timezone
+from collections.abc import Iterable
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
-from typing import Dict, Iterable, List, Tuple
 from xml.etree import ElementTree as ET
 from zipfile import ZipFile
 
@@ -29,15 +29,15 @@ _ARCHIVE_KEY_DATE_RE = re.compile(r"-metrics-(\d{4}-\d{2}-\d{2})\.zip$")
 
 
 def _parse_date(value: str) -> datetime:
-    return datetime.strptime(value, "%Y-%m-%d").replace(tzinfo=timezone.utc)
+    return datetime.strptime(value, "%Y-%m-%d").replace(tzinfo=UTC)
 
 
 def _month_start(ts: datetime) -> datetime:
-    return ts.astimezone(timezone.utc).replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+    return ts.astimezone(UTC).replace(day=1, hour=0, minute=0, second=0, microsecond=0)
 
 
 def _next_month(ts: datetime) -> datetime:
-    ts = ts.astimezone(timezone.utc)
+    ts = ts.astimezone(UTC)
     y, m = ts.year, ts.month
     if m == 12:
         y += 1
@@ -47,8 +47,8 @@ def _next_month(ts: datetime) -> datetime:
     return ts.replace(year=y, month=m, day=1, hour=0, minute=0, second=0, microsecond=0)
 
 
-def _iter_months(start: datetime, end: datetime) -> List[datetime]:
-    out: List[datetime] = []
+def _iter_months(start: datetime, end: datetime) -> list[datetime]:
+    out: list[datetime] = []
     cur = _month_start(start)
     while cur <= end:
         out.append(cur)
@@ -57,8 +57,8 @@ def _iter_months(start: datetime, end: datetime) -> List[datetime]:
 
 
 def _iter_days(start: datetime, end_exclusive: datetime) -> Iterable[datetime]:
-    cursor = start.astimezone(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0)
-    end_exclusive = end_exclusive.astimezone(timezone.utc).replace(
+    cursor = start.astimezone(UTC).replace(hour=0, minute=0, second=0, microsecond=0)
+    end_exclusive = end_exclusive.astimezone(UTC).replace(
         hour=0, minute=0, second=0, microsecond=0
     )
     while cursor < end_exclusive:
@@ -173,14 +173,14 @@ def _fetch_open_interest_archive_metrics(
     end_exclusive: datetime,
     max_retries: int,
     retry_backoff_sec: float,
-) -> Tuple[pd.DataFrame, Dict[str, int]]:
+) -> tuple[pd.DataFrame, dict[str, int]]:
     day_set = _list_available_metric_day_set(
         symbol=symbol, list_base=archive_list_base, session=session
     )
-    frames: List[pd.DataFrame] = []
+    frames: list[pd.DataFrame] = []
 
     stats = {
-        "available_days": int(len(day_set)),
+        "available_days": len(day_set),
         "requested_days": 0,
         "days_in_archive": 0,
         "downloads_attempted": 0,
@@ -254,11 +254,11 @@ def _fetch_open_interest_hist_api(
     max_retries: int,
     retry_backoff_sec: float,
     timeout_sec: int,
-) -> Tuple[pd.DataFrame, int]:
+) -> tuple[pd.DataFrame, int]:
     url = join_url(api_base, "futures", "data", "openInterestHist")
-    cursor = start.astimezone(timezone.utc)
-    end_exclusive = end_exclusive.astimezone(timezone.utc)
-    rows: List[dict[str, object]] = []
+    cursor = start.astimezone(UTC)
+    end_exclusive = end_exclusive.astimezone(UTC)
+    rows: list[dict[str, object]] = []
     api_calls = 0
 
     while cursor < end_exclusive:
@@ -284,7 +284,7 @@ def _fetch_open_interest_hist_api(
                     raise RuntimeError(f"API error {resp.status_code}: {resp.text}")
                 payload = resp.json()
                 break
-            except Exception as exc:  # noqa: BLE001
+            except Exception as exc:
                 last_error = str(exc)
                 if attempt >= max_retries:
                     break
@@ -305,7 +305,7 @@ def _fetch_open_interest_hist_api(
         if not ts_values:
             break
         last_ts = max(ts_values)
-        cursor = datetime.fromtimestamp(last_ts / 1000, tz=timezone.utc) + timedelta(milliseconds=1)
+        cursor = datetime.fromtimestamp(last_ts / 1000, tz=UTC) + timedelta(milliseconds=1)
         if sleep_sec > 0:
             time.sleep(sleep_sec)
 
@@ -361,7 +361,7 @@ def _fetch_open_interest_hist(
     end_exclusive: datetime,
     limit: int,
     sleep_sec: float,
-) -> Tuple[pd.DataFrame, int]:
+) -> tuple[pd.DataFrame, int]:
     """
     Backward-compatible wrapper retained for tests and older callers.
     """
@@ -392,7 +392,7 @@ def _partition_has_rows(path: Path) -> bool:
         df = read_parquet([target]) if target.suffix != ".csv" else pd.read_csv(target)
     except Exception:
         return False
-    return int(len(df)) > 0
+    return len(df) > 0
 
 
 def main() -> int:
@@ -454,13 +454,13 @@ def main() -> int:
         "force": int(args.force),
         "fail_if_no_data": int(args.fail_if_no_data),
     }
-    inputs: List[Dict[str, object]] = []
-    outputs: List[Dict[str, object]] = []
+    inputs: list[dict[str, object]] = []
+    outputs: list[dict[str, object]] = []
     manifest = start_manifest(
         "ingest_binance_um_open_interest_hist", run_id, params, inputs, outputs
     )
 
-    stats: Dict[str, object] = {
+    stats: dict[str, object] = {
         "symbols": {},
         "api_calls_total": 0,
         "ingest_mode": args.ingest_mode,
@@ -468,7 +468,7 @@ def main() -> int:
     try:
         session = requests.Session()
         end_exclusive = end + timedelta(days=1)
-        now_utc = datetime.now(timezone.utc)
+        now_utc = datetime.now(UTC)
         api_window_floor = now_utc - timedelta(days=max(1, int(args.api_history_days)))
 
         total_rows = 0
@@ -482,8 +482,8 @@ def main() -> int:
                 args.period,
             )
 
-            source_frames: List[pd.DataFrame] = []
-            symbol_stats: Dict[str, object] = {}
+            source_frames: list[pd.DataFrame] = []
+            symbol_stats: dict[str, object] = {}
 
             use_archive = args.ingest_mode in {"auto", "archive"}
             if use_archive and str(args.period) != "5m":
@@ -506,7 +506,7 @@ def main() -> int:
                     retry_backoff_sec=args.retry_backoff_sec,
                 )
                 symbol_stats.update({f"archive_{k}": int(v) for k, v in archive_stats.items()})
-                symbol_stats["archive_rows"] = int(len(archive_df))
+                symbol_stats["archive_rows"] = len(archive_df)
                 if not archive_df.empty:
                     source_frames.append(archive_df)
 
@@ -547,7 +547,7 @@ def main() -> int:
                     )
                 stats["api_calls_total"] = int(stats["api_calls_total"]) + int(api_calls)
                 symbol_stats["api_calls"] = int(api_calls)
-                symbol_stats["api_rows"] = int(len(api_df))
+                symbol_stats["api_rows"] = len(api_df)
                 if not api_df.empty:
                     source_frames.append(api_df)
 
@@ -609,23 +609,23 @@ def main() -> int:
                     continue
                 path_written, storage = write_parquet(part, out_path)
                 outputs.append(
-                    {"path": str(path_written), "rows": int(len(part)), "storage": storage}
+                    {"path": str(path_written), "rows": len(part), "storage": storage}
                 )
                 written_parts += 1
-                written_rows += int(len(part))
+                written_rows += len(part)
 
-            symbol_stats["rows"] = int(len(oi_df))
+            symbol_stats["rows"] = len(oi_df)
             symbol_stats["written_rows"] = int(written_rows)
             symbol_stats["written_partitions"] = int(written_parts)
             stats["symbols"][symbol] = symbol_stats
 
-            total_rows += int(len(oi_df))
+            total_rows += len(oi_df)
             total_written_parts += int(written_parts)
 
             logging.info(
                 "Open-interest ingest symbol=%s rows=%d written_rows=%d written_partitions=%d api_calls=%d",
                 symbol,
-                int(len(oi_df)),
+                len(oi_df),
                 int(written_rows),
                 int(written_parts),
                 int(api_calls),

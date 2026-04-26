@@ -1,7 +1,7 @@
 from __future__ import annotations
 
+from collections.abc import Sequence
 from dataclasses import dataclass
-from typing import Dict, Sequence
 
 from project.core.coercion import as_bool
 
@@ -44,11 +44,11 @@ class EventRegistrySpec:
         return self.research_family
 
 
-def _load_event_specs() -> Dict[str, EventRegistrySpec]:
+def _load_event_specs() -> dict[str, EventRegistrySpec]:
     from project.domain.compiled_registry import get_domain_registry
 
     registry = get_domain_registry()
-    specs: Dict[str, EventRegistrySpec] = {}
+    specs: dict[str, EventRegistrySpec] = {}
     for event_type in registry.event_ids:
         event_def = registry.get_event(event_type)
         if event_def is None or not event_def.enabled:
@@ -123,9 +123,9 @@ def assert_event_specs_available() -> None:
         )
 
 
-EVENT_REGISTRY_SPECS: Dict[str, EventRegistrySpec] = _load_event_specs()
+EVENT_REGISTRY_SPECS: dict[str, EventRegistrySpec] = _load_event_specs()
 
-SIGNAL_TO_EVENT_TYPE: Dict[str, str] = {
+SIGNAL_TO_EVENT_TYPE: dict[str, str] = {
     spec.signal_column: event_type for event_type, spec in EVENT_REGISTRY_SPECS.items()
 }
 REGISTRY_BACKED_SIGNALS = set(SIGNAL_TO_EVENT_TYPE.keys())
@@ -170,7 +170,7 @@ REGISTRY_EVENT_COLUMNS = [
     "is_tradable_next_bar",
 ]
 
-AGGREGATE_EVENT_TYPE_UNIONS: Dict[str, Sequence[str]] = {}
+AGGREGATE_EVENT_TYPE_UNIONS: dict[str, Sequence[str]] = {}
 
 
 def expected_event_types_for_spec(event_type: str) -> Sequence[str]:

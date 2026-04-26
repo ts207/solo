@@ -108,7 +108,7 @@ def build_historical_exchange_replay_baseline() -> dict[str, Any]:
                 "source_lineage": slice_spec.source_lineage,
                 "fixture_schema_version": FIXTURE_SCHEMA_VERSION,
                 "fixture_path": str(slice_spec.path.relative_to(Path(__file__).parents[4])),
-                "frame_rows": int(len(frame)),
+                "frame_rows": len(frame),
                 "frame_start": frame["timestamp"].iloc[0].isoformat(),
                 "frame_end": frame["timestamp"].iloc[-1].isoformat(),
                 "frame_digest": frame_digest(frame),

@@ -2,12 +2,12 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any
 
 from project.spec_registry import load_yaml_path
 
 
-def _deep_merge(base: Dict[str, Any], incoming: Dict[str, Any]) -> Dict[str, Any]:
+def _deep_merge(base: dict[str, Any], incoming: dict[str, Any]) -> dict[str, Any]:
     """Deeply merges 'incoming' dictionary into 'base' dictionary."""
     for key, value in incoming.items():
         if isinstance(value, dict) and isinstance(base.get(key), dict):
@@ -17,7 +17,7 @@ def _deep_merge(base: Dict[str, Any], incoming: Dict[str, Any]) -> Dict[str, Any
     return base
 
 
-def _set_nested_key(data: Dict[str, Any], path: str, value: str) -> None:
+def _set_nested_key(data: dict[str, Any], path: str, value: str) -> None:
     """Sets a value in a nested dictionary using a dot-separated path."""
     keys = path.split(".")
     curr = data
@@ -39,8 +39,8 @@ def _set_nested_key(data: Dict[str, Any], path: str, value: str) -> None:
 
 
 def resolve_experiment_config(
-    config_path: Path | str, overrides: List[str] = None
-) -> Dict[str, Any]:
+    config_path: Path | str, overrides: list[str] = None
+) -> dict[str, Any]:
     """
     Loads an experiment configuration from YAML, resolving inheritance and applying overrides.
 
@@ -62,7 +62,7 @@ def resolve_experiment_config(
         if isinstance(inherits, str):
             inherits = [inherits]
 
-        merged_base: Dict[str, Any] = {}
+        merged_base: dict[str, Any] = {}
         for base_path_str in inherits:
             base_path = Path(base_path_str)
             if not base_path.is_absolute():

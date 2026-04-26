@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import argparse
 from pathlib import Path
-from typing import Dict, Tuple
 
 from project.core.execution_costs import resolve_execution_costs
 from project.research.cost_calibration import ToBRegimeCostCalibrator
@@ -11,7 +10,7 @@ from project.research.cost_calibration import ToBRegimeCostCalibrator
 def _resolve_phase2_costs(
     args: argparse.Namespace,
     project_root: Path,
-) -> Tuple[float, dict]:
+) -> tuple[float, dict]:
     """
     Resolve execution costs from spec configs (fees.yaml / pipeline.yaml).
 
@@ -38,7 +37,7 @@ def _resolve_phase2_costs(
 def init_cost_calibrator(
     run_id: str,
     data_root: Path,
-    cost_coordinate: Dict[str, any],
+    cost_coordinate: dict[str, any],
     args: argparse.Namespace,
 ) -> ToBRegimeCostCalibrator:
     return ToBRegimeCostCalibrator(

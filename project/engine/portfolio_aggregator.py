@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Dict, Iterable
+from collections.abc import Iterable
 
 import numpy as np
 import pandas as pd
@@ -77,7 +77,7 @@ def _build_equity_curve(
 
 
 def aggregate_strategy_results(
-    strategy_frames: Dict[str, pd.DataFrame],
+    strategy_frames: dict[str, pd.DataFrame],
     *,
     initial_equity: float | None = None,
 ) -> pd.DataFrame:
@@ -147,7 +147,7 @@ def aggregate_strategy_results(
 
 
 def build_strategy_contributions(
-    strategy_frames: Dict[str, pd.DataFrame],
+    strategy_frames: dict[str, pd.DataFrame],
     portfolio: pd.DataFrame,
 ) -> pd.DataFrame:
     parts: list[pd.DataFrame] = []
@@ -197,7 +197,7 @@ def build_strategy_contributions(
 
 
 def build_symbol_contributions(
-    strategy_frames: Dict[str, pd.DataFrame],
+    strategy_frames: dict[str, pd.DataFrame],
     portfolio: pd.DataFrame,
 ) -> pd.DataFrame:
     if portfolio.empty:

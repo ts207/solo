@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Any, Literal, Optional
+from typing import Any, Literal
 
 import pandas as pd
 
@@ -57,7 +57,7 @@ class ScenarioFactory:
             self._generator = gen_cls()
         return self._generator
 
-    def create(self, seed: Optional[int] = None) -> tuple[pd.DataFrame, dict]:
+    def create(self, seed: int | None = None) -> tuple[pd.DataFrame, dict]:
         if seed is None:
             seed = self.spec.injection_params.get("seed", 42)
 
@@ -90,7 +90,7 @@ class ScenarioFactory:
         return df, ground_truth
 
     @classmethod
-    def for_event(cls, event_type: str, polarity: str) -> "ScenarioFactory":
+    def for_event(cls, event_type: str, polarity: str) -> ScenarioFactory:
         from project.tests.synthetic_truth.scenarios.registry import SCENARIO_REGISTRY
 
         key = f"{event_type}_{polarity}"

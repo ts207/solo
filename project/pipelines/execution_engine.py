@@ -8,9 +8,9 @@ import subprocess
 import sys
 import threading
 import time
+from collections.abc import Callable, Mapping, Sequence
 from json import JSONDecodeError
 from pathlib import Path
-from typing import Callable, Dict, List, Mapping, Optional, Sequence, Tuple, Union
 
 from project import PROJECT_ROOT
 from project.pipelines.execution_engine_support import (
@@ -28,14 +28,14 @@ from project.pipelines.execution_engine_support import (
 from project.pipelines.pipeline_defaults import DATA_ROOT
 from project.pipelines.planner import StageDefinition
 
-StageLaunch = Tuple[str, str, Path, List[str]]
-WorkerArgs = Tuple[str, str, Path, List[str], str]
-WorkerResult = Tuple[str, str, bool, float, Dict[str, object]]
-StageTiming = Tuple[str, str, float, Dict[str, object]]
+StageLaunch = tuple[str, str, Path, list[str]]
+WorkerArgs = tuple[str, str, Path, list[str], str]
+WorkerResult = tuple[str, str, bool, float, dict[str, object]]
+StageTiming = tuple[str, str, float, dict[str, object]]
 PartitionMapFn = Callable[[str, Sequence[object]], object]
-PartitionReduceFn = Callable[[List[object]], object]
+PartitionReduceFn = Callable[[list[object]], object]
 
-_RUNNING_STAGE_PROCS: Dict[Tuple[str, str], subprocess.Popen[str]] = {}
+_RUNNING_STAGE_PROCS: dict[tuple[str, str], subprocess.Popen[str]] = {}
 _RUNNING_STAGE_PROCS_LOCK = threading.Lock()
 _STAGE_OUTPUT_LOCK = threading.Lock()
 
@@ -118,7 +118,7 @@ def _read_log_delta(log_path: Path, start_offset: int) -> str:
 def run_stage(
     stage: str,
     script_path: Path,
-    base_args: List[str],
+    base_args: list[str],
     run_id: str,
     *,
     data_root: Path,
@@ -126,7 +126,7 @@ def run_stage(
     feature_schema_version: str,
     current_pipeline_session_id: str | None,
     current_stage_instance_id: str | None,
-    stage_cache_meta: Dict[str, Dict[str, object]],
+    stage_cache_meta: dict[str, dict[str, object]],
     max_attempts: int = 1,
     retry_backoff_sec: float = 0.0,
 ) -> bool:
@@ -233,7 +233,7 @@ def run_stage(
     result_returncode: int | None = None
     for attempt in range(1, attempts + 1):
         log_start_offset = log_path.stat().st_size if log_path.exists() else 0
-        popen_kwargs: Dict[str, object] = {
+        popen_kwargs: dict[str, object] = {
             "env": env,
             "stderr": subprocess.STDOUT,
         }
@@ -242,7 +242,7 @@ def run_stage(
             # every subprocess spawned by a stage worker.
             popen_kwargs["start_new_session"] = True
         elif os.name == "nt" and hasattr(subprocess, "CREATE_NEW_PROCESS_GROUP"):
-            popen_kwargs["creationflags"] = getattr(subprocess, "CREATE_NEW_PROCESS_GROUP")
+            popen_kwargs["creationflags"] = subprocess.CREATE_NEW_PROCESS_GROUP
         with log_path.open("ab") as stage_log:
             popen_kwargs["stdout"] = stage_log
             proc = subprocess.Popen(cmd, **popen_kwargs)  # type: ignore[arg-type]
@@ -322,7 +322,7 @@ def run_stage(
                         input_hash=input_hash,
                     )
                 return False
-            manifest_payload: Dict[str, object] | None = None
+            manifest_payload: dict[str, object] | None = None
             try:
                 payload = json.loads(manifest_path.read_text(encoding="utf-8"))
                 if isinstance(payload, dict):
@@ -412,12 +412,12 @@ def partition_items(
     items: Sequence[object],
     *,
     key_fn: Callable[[object], str],
-) -> Dict[str, List[object]]:
+) -> dict[str, list[object]]:
     """
     Deterministically partition items by key while preserving input order
     within each partition.
     """
-    out: Dict[str, List[object]] = {}
+    out: dict[str, list[object]] = {}
     for item in items:
         key = str(key_fn(item))
         out.setdefault(key, []).append(item)
@@ -425,20 +425,20 @@ def partition_items(
 
 
 def run_partition_map_reduce(
-    partitions: Dict[str, Sequence[object]],
+    partitions: dict[str, Sequence[object]],
     *,
     map_fn: PartitionMapFn,
     reduce_fn: PartitionReduceFn,
     max_workers: int = 1,
-) -> Tuple[object, Dict[str, object]]:
+) -> tuple[object, dict[str, object]]:
     """
     Execute a deterministic map-reduce over partitioned artifacts.
 
     - Map execution may run in parallel.
     - Reduce input order is stable (sorted by partition key).
     """
-    results: Dict[str, object] = {}
-    keys = sorted(str(key) for key in partitions.keys())
+    results: dict[str, object] = {}
+    keys = sorted(str(key) for key in partitions)
     workers = max(1, min(int(max_workers), max(1, len(keys))))
     if workers <= 1:
         for key in keys:
@@ -459,15 +459,15 @@ def run_stages_parallel(
     run_id: str,
     max_workers: int,
     *,
-    worker_fn: Optional[Callable[[WorkerArgs], WorkerResult]] = None,
+    worker_fn: Callable[[WorkerArgs], WorkerResult] | None = None,
     continue_on_failure: bool = False,
-) -> Tuple[bool, List[StageTiming]]:
+) -> tuple[bool, list[StageTiming]]:
     """Run a batch of independent stages in parallel using subprocess workers.
 
     Returns (all_ok, [(stage_instance, stage_name, elapsed_sec, cache_meta), ...])
     in completion order.
     """
-    timings: List[StageTiming] = []
+    timings: list[StageTiming] = []
     all_ok = True
     effective_workers = max(1, min(max_workers, len(stages)))
     if effective_workers <= 1:
@@ -523,25 +523,25 @@ def run_dag(
     run_id: str,
     max_workers: int,
     *,
-    worker_fn: Optional[Callable[[WorkerArgs], WorkerResult]] = None,
+    worker_fn: Callable[[WorkerArgs], WorkerResult] | None = None,
     completed_already: set[str] | None = None,
     continue_on_failure: bool = False,
-) -> Tuple[bool, List[StageTiming]]:
+) -> tuple[bool, list[StageTiming]]:
     """
     Execute a pipeline DAG in parallel.
 
     Returns (all_ok, timings)
     """
-    timings: List[StageTiming] = []
+    timings: list[StageTiming] = []
     completed = set(completed_already or [])
     failed: set[str] = set()
-    running: Dict[concurrent.futures.Future, str] = {}
+    running: dict[concurrent.futures.Future, str] = {}
 
     all_ok = True
 
     # Task execution router
     def _execute_task_or_subprocess(
-        stage_name: str, script: Union[str, Path], args: List[str], rid: str
+        stage_name: str, script: str | Path, args: list[str], rid: str
     ) -> bool:
         path_str = str(script)
         if ":" in path_str or (path_str.startswith("project.") and not path_str.endswith(".py")):

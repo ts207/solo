@@ -4,9 +4,8 @@ import argparse
 import json
 import re
 from collections import Counter, defaultdict
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
-from typing import Dict, List
 
 import pandas as pd
 
@@ -16,7 +15,7 @@ from project.specs.manifest import finalize_manifest, start_manifest
 
 
 def _utc_now_iso() -> str:
-    return datetime.now(timezone.utc).isoformat()
+    return datetime.now(UTC).isoformat()
 
 
 def _sanitize(value: str) -> str:
@@ -72,8 +71,8 @@ def _event_type_from_trigger_key(value: object) -> str:
     return token.strip().upper()
 
 
-def _phase2_event_roots(phase2_root: Path) -> Dict[str, list[Path]]:
-    event_roots: Dict[str, list[Path]] = defaultdict(list)
+def _phase2_event_roots(phase2_root: Path) -> dict[str, list[Path]]:
+    event_roots: dict[str, list[Path]] = defaultdict(list)
     if not phase2_root.exists():
         return event_roots
     for event_dir in sorted([p for p in phase2_root.iterdir() if p.is_dir()]):
@@ -102,7 +101,7 @@ def _phase2_event_roots(phase2_root: Path) -> Dict[str, list[Path]]:
     return event_roots
 
 
-def _load_json_object(path: Path) -> Dict[str, object]:
+def _load_json_object(path: Path) -> dict[str, object]:
     if not path.exists():
         return {}
     try:
@@ -114,7 +113,7 @@ def _load_json_object(path: Path) -> Dict[str, object]:
     return payload
 
 
-def _external_validation_summary_paths(run_id: str) -> List[Path]:
+def _external_validation_summary_paths(run_id: str) -> list[Path]:
     DATA_ROOT = get_data_root()
     return [
         DATA_ROOT / "reports" / "external_validation" / run_id / "external_validation_summary.json",
@@ -122,10 +121,10 @@ def _external_validation_summary_paths(run_id: str) -> List[Path]:
     ]
 
 
-def _load_jsonl_rows(path: Path) -> List[Dict[str, object]]:
+def _load_jsonl_rows(path: Path) -> list[dict[str, object]]:
     if not path.exists():
         return []
-    rows: List[Dict[str, object]] = []
+    rows: list[dict[str, object]] = []
     for line in path.read_text(encoding="utf-8").splitlines():
         if not line.strip():
             continue
@@ -138,8 +137,8 @@ def _load_jsonl_rows(path: Path) -> List[Dict[str, object]]:
     return rows
 
 
-def _split_fail_reasons(series: pd.Series) -> List[str]:
-    out: List[str] = []
+def _split_fail_reasons(series: pd.Series) -> list[str]:
+    out: list[str] = []
     for raw in series.fillna("").astype(str):
         for token in raw.split(","):
             reason = token.strip()
@@ -151,10 +150,10 @@ def _split_fail_reasons(series: pd.Series) -> List[str]:
 def _build_summary_from_flat_phase2_layout(
     *, run_id: str, phase2_root: Path, top_fail_reasons: int
 ) -> dict | None:
-    candidate_frames: Dict[str, List[pd.DataFrame]] = defaultdict(list)
-    evaluated_frames: Dict[str, List[pd.DataFrame]] = defaultdict(list)
-    failure_frames: Dict[str, List[pd.DataFrame]] = defaultdict(list)
-    source_files: Dict[str, str] = {}
+    candidate_frames: dict[str, list[pd.DataFrame]] = defaultdict(list)
+    evaluated_frames: dict[str, list[pd.DataFrame]] = defaultdict(list)
+    failure_frames: dict[str, list[pd.DataFrame]] = defaultdict(list)
+    source_files: dict[str, str] = {}
 
     flat_candidates = _load_candidates(phase2_root / "phase2_candidates.csv")
     if flat_candidates.empty:
@@ -200,8 +199,8 @@ def _build_summary_from_flat_phase2_layout(
     if not families:
         return None
 
-    by_primary_event_id: Dict[str, Dict[str, object]] = {}
-    family_fail_counter: Dict[str, Counter[str]] = defaultdict(Counter)
+    by_primary_event_id: dict[str, dict[str, object]] = {}
+    family_fail_counter: dict[str, Counter[str]] = defaultdict(Counter)
     global_fail_counter: Counter[str] = Counter()
 
     for family in sorted(families):
@@ -225,12 +224,12 @@ def _build_summary_from_flat_phase2_layout(
         if not candidate_frame.empty:
             summary = _event_summary(candidate_frame)
             family_row.update(summary)
-            family_row["phase2_candidates"] = int(len(candidate_frame))
+            family_row["phase2_candidates"] = len(candidate_frame)
             family_row["phase2_gate_all_pass"] = int(_gate_pass_series(candidate_frame).sum())
             _apply_bridge_metrics_from_frame(family_row, candidate_frame)
         else:
-            total = int(len(evaluated_frame))
-            fail_count = int(len(failure_frame))
+            total = len(evaluated_frame)
+            fail_count = len(failure_frame)
             pass_count = max(0, total - fail_count)
             family_row["total_candidates"] = total
             family_row["gate_pass_count"] = pass_count
@@ -313,7 +312,7 @@ def _is_pass_value(value: object) -> bool:
     return text in ("1", "true", "t", "yes", "y", "on", "pass")
 
 
-def _apply_bridge_metrics_from_frame(family_row: Dict[str, object], frame: pd.DataFrame) -> None:
+def _apply_bridge_metrics_from_frame(family_row: dict[str, object], frame: pd.DataFrame) -> None:
     if frame.empty:
         return
     if "bridge_eval_status" in frame.columns:
@@ -332,8 +331,8 @@ def _apply_bridge_metrics_from_frame(family_row: Dict[str, object], frame: pd.Da
         family_row["overlay_kill_by_missing_base_count"] = int(missing_base_mask.sum())
 
 
-def _event_summary(df: pd.DataFrame) -> Dict[str, float | int]:
-    total = int(len(df))
+def _event_summary(df: pd.DataFrame) -> dict[str, float | int]:
+    total = len(df)
     gate_pass = _gate_pass_series(df)
     pass_count = int(gate_pass.sum()) if total else 0
     pass_rate = float(pass_count / total) if total else 0.0
@@ -344,7 +343,7 @@ def _event_summary(df: pd.DataFrame) -> Dict[str, float | int]:
     }
 
 
-def _family_defaults() -> Dict[str, object]:
+def _family_defaults() -> dict[str, object]:
     return {
         "total_candidates": 0,
         "gate_pass_count": 0,
@@ -389,15 +388,15 @@ def build_summary(*, run_id: str, phase2_root: Path, top_fail_reasons: int) -> d
             "by_event_family": {},
         }
 
-    by_primary_event_id: Dict[str, Dict[str, object]] = {}
-    source_files: Dict[str, str] = {}
+    by_primary_event_id: dict[str, dict[str, object]] = {}
+    source_files: dict[str, str] = {}
     global_fail_counter: Counter[str] = Counter()
-    family_fail_counter: Dict[str, Counter[str]] = defaultdict(Counter)
+    family_fail_counter: dict[str, Counter[str]] = defaultdict(Counter)
 
     bridge_root = DATA_ROOT / "reports" / "bridge_eval" / run_id
     for family, roots in sorted(event_roots.items()):
         if family == "search_engine":
-            grouped_frames: Dict[str, List[pd.DataFrame]] = defaultdict(list)
+            grouped_frames: dict[str, list[pd.DataFrame]] = defaultdict(list)
             for root in roots:
                 frame = _load_candidates(root / "phase2_candidates.csv")
                 if frame.empty:
@@ -416,7 +415,7 @@ def build_summary(*, run_id: str, phase2_root: Path, top_fail_reasons: int) -> d
                 summary = _event_summary(frame)
                 family_row = _family_defaults()
                 family_row.update(summary)
-                family_row["phase2_candidates"] = int(len(frame))
+                family_row["phase2_candidates"] = len(frame)
                 family_row["phase2_gate_all_pass"] = int(_gate_pass_series(frame).sum())
                 _apply_bridge_metrics_from_frame(family_row, frame)
                 phase2_reasons = _split_fail_reasons(
@@ -432,8 +431,8 @@ def build_summary(*, run_id: str, phase2_root: Path, top_fail_reasons: int) -> d
                 by_primary_event_id[event_type] = family_row
             continue
 
-        frames: List[pd.DataFrame] = []
-        source_paths: List[str] = []
+        frames: list[pd.DataFrame] = []
+        source_paths: list[str] = []
         for root in roots:
             candidates_path = root / "phase2_candidates.csv"
             frame = _load_candidates(candidates_path)
@@ -464,7 +463,7 @@ def build_summary(*, run_id: str, phase2_root: Path, top_fail_reasons: int) -> d
         family_row = _family_defaults()
         family_row.update(summary)
 
-        family_row["phase2_candidates"] = int(len(frame))
+        family_row["phase2_candidates"] = len(frame)
         family_row["phase2_gate_all_pass"] = int(_gate_pass_series(frame).sum())
 
         phase2_reasons = _split_fail_reasons(frame.get("fail_reasons", pd.Series(dtype=str)))
@@ -474,7 +473,7 @@ def build_summary(*, run_id: str, phase2_root: Path, top_fail_reasons: int) -> d
         bridge_df = pd.DataFrame()
         bridge_family_root = bridge_root / family
         if bridge_family_root.exists():
-            bridge_frames: List[pd.DataFrame] = []
+            bridge_frames: list[pd.DataFrame] = []
             for bridge_path in sorted(bridge_family_root.rglob("bridge_candidate_metrics.csv")):
                 loaded = _load_candidates(bridge_path)
                 if not loaded.empty:
@@ -507,7 +506,7 @@ def build_summary(*, run_id: str, phase2_root: Path, top_fail_reasons: int) -> d
 
     blueprints_path = DATA_ROOT / "reports" / "strategy_blueprints" / run_id / "blueprints.jsonl"
     blueprints_rows = _load_jsonl_rows(blueprints_path)
-    strategy_to_family: Dict[str, str] = {}
+    strategy_to_family: dict[str, str] = {}
     for row in blueprints_rows:
         family = str(row.get("event_type", "")).strip()
         if not family:
@@ -611,13 +610,13 @@ def build_summary(*, run_id: str, phase2_root: Path, top_fail_reasons: int) -> d
 
 
 def _build_funnel_payload(
-    summary: Dict[str, object], *, top_fail_reasons: int
-) -> Dict[str, object]:
+    summary: dict[str, object], *, top_fail_reasons: int
+) -> dict[str, object]:
     by_primary_event_id = summary.get("by_primary_event_id", summary.get("by_event_family", {}))
     if not isinstance(by_primary_event_id, dict):
         by_primary_event_id = {}
 
-    families: Dict[str, Dict[str, object]] = {}
+    families: dict[str, dict[str, object]] = {}
     totals = {
         "phase2_candidates": 0,
         "phase2_gate_all_pass": 0,
@@ -732,8 +731,8 @@ def main() -> int:
             manifest,
             "success",
             stats={
-                "primary_event_id_count": int(len(payload.get("primary_event_ids", []))),
-                "event_family_count": int(len(payload.get("event_families", []))),
+                "primary_event_id_count": len(payload.get("primary_event_ids", [])),
+                "event_family_count": len(payload.get("event_families", [])),
                 "total_candidates": int(payload.get("total_candidates", 0) or 0),
                 "gate_pass_count": int(payload.get("gate_pass_count", 0) or 0),
             },

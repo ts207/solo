@@ -1,8 +1,8 @@
 from __future__ import annotations
 
-from typing import Any, Dict
+from typing import Any
 
-_DEFAULT_BLUEPRINT_POLICY: Dict[str, Any] = {
+_DEFAULT_BLUEPRINT_POLICY: dict[str, Any] = {
     "time_stop": {
         "min_bars": 4,
         "max_bars": 192,

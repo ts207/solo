@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-from typing import Any, Dict, Mapping
+from collections.abc import Mapping
+from typing import Any
 
 import pandas as pd
 
@@ -17,8 +18,8 @@ def _json_scalar(value: Any) -> Any:
     return str(value)
 
 
-def _jsonify_mapping(payload: Mapping[str, Any]) -> Dict[str, Any]:
-    out: Dict[str, Any] = {}
+def _jsonify_mapping(payload: Mapping[str, Any]) -> dict[str, Any]:
+    out: dict[str, Any] = {}
     for key, value in payload.items():
         if isinstance(value, Mapping):
             out[str(key)] = _jsonify_mapping(value)
@@ -29,7 +30,7 @@ def _jsonify_mapping(payload: Mapping[str, Any]) -> Dict[str, Any]:
     return out
 
 
-def split_counts(df: pd.DataFrame, split_col: str = "split_label") -> Dict[str, int]:
+def split_counts(df: pd.DataFrame, split_col: str = "split_label") -> dict[str, int]:
     if df.empty or split_col not in df.columns:
         return {"train": 0, "validation": 0, "test": 0}
     counts = df[split_col].astype(str).str.lower().value_counts(dropna=False).to_dict()
@@ -45,7 +46,7 @@ def attach_prepare_events_diagnostics(df: pd.DataFrame, payload: Mapping[str, An
     return df
 
 
-def get_prepare_events_diagnostics(df: pd.DataFrame) -> Dict[str, Any]:
+def get_prepare_events_diagnostics(df: pd.DataFrame) -> dict[str, Any]:
     payload = df.attrs.get(PREPARE_EVENTS_ATTR, {})
     if isinstance(payload, Mapping):
         return _jsonify_mapping(payload)
@@ -67,7 +68,7 @@ def build_prepare_events_diagnostics(
     min_validation_events: int,
     min_test_events: int,
     returned_rows: int,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     return _jsonify_mapping(
         {
             "run_id": run_id,
@@ -115,8 +116,8 @@ def build_search_engine_diagnostics(
     search_budget: int | None,
     use_context_quality: bool,
     gate_funnel: Mapping[str, Any] | None = None,
-) -> Dict[str, Any]:
-    payload: Dict[str, Any] = {
+) -> dict[str, Any]:
+    payload: dict[str, Any] = {
         "run_id": run_id,
         "discovery_profile": discovery_profile,
         "search_spec": search_spec,

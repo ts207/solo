@@ -4,9 +4,10 @@ import argparse
 import json
 import logging
 import sys
-from datetime import datetime, timezone
+from collections.abc import Iterable
+from datetime import UTC, datetime
 from pathlib import Path
-from typing import Any, Dict, Iterable, List, Tuple
+from typing import Any
 
 import numpy as np
 import pandas as pd
@@ -26,7 +27,7 @@ from project.specs.manifest import finalize_manifest, start_manifest
 from project.specs.ontology import load_run_manifest_hashes
 
 
-def _normalize_event_type(row: Dict[str, Any]) -> str:
+def _normalize_event_type(row: dict[str, Any]) -> str:
     token = str(
         row.get("canonical_event_type", row.get("event_type", row.get("event", "")))
     ).strip()
@@ -80,7 +81,7 @@ def _load_capital_footprint(path: Path) -> pd.DataFrame:
     return out
 
 
-def _effect_value(row: Dict[str, Any]) -> float:
+def _effect_value(row: dict[str, Any]) -> float:
     for key in (
         "effect_shrunk_state",
         "effect_shrunk_event",
@@ -94,7 +95,7 @@ def _effect_value(row: Dict[str, Any]) -> float:
     return np.nan
 
 
-def _template_id(row: Dict[str, Any]) -> str:
+def _template_id(row: dict[str, Any]) -> str:
     token = str(
         row.get(
             "template_id",
@@ -104,7 +105,7 @@ def _template_id(row: Dict[str, Any]) -> str:
     return token or "UNKNOWN_TEMPLATE"
 
 
-def _run_sort_value(value: str) -> Tuple[int, str]:
+def _run_sort_value(value: str) -> tuple[int, str]:
     token = str(value or "").strip()
     digits = "".join(ch for ch in token if ch.isdigit())
     if digits:
@@ -159,8 +160,8 @@ def _build_observations(
             suffixes=("", "_capital"),
         )
 
-    rows: List[Dict[str, Any]] = []
-    observed_at = datetime.now(timezone.utc).isoformat()
+    rows: list[dict[str, Any]] = []
+    observed_at = datetime.now(UTC).isoformat()
     for row in source_df.to_dict(orient="records"):
         record = dict(row)
         record["run_id"] = run_id
@@ -216,10 +217,10 @@ def _build_observations(
         if "schema" in c
         or "trace" in c
         or c == "audit_statuses"
-        or out[c].dtype == object
+        or (out[c].dtype == object
         and isinstance(
             out[c].dropna().iloc[0] if not out[c].dropna().empty else None, (list, dict, np.ndarray)
-        )
+        ))
     ]
     out = out.drop(columns=cols_to_drop, errors="ignore")
     out = out.drop_duplicates(subset=["run_id", "candidate_id", "event_type"], keep="last")
@@ -234,7 +235,7 @@ def _aggregate_registry(observations: pd.DataFrame) -> pd.DataFrame:
     work["is_promoted"] = work["promotion_decision"].astype(str).str.lower() == "promoted"
     work["run_sort"] = work["run_id"].map(_run_sort_value)
 
-    rows: List[Dict[str, Any]] = []
+    rows: list[dict[str, Any]] = []
     for edge_id, sub in work.groupby("edge_id", sort=False):
         ordered = sub.sort_values(by=["run_sort", "observed_at_utc", "candidate_id"], kind="stable")
         first = ordered.iloc[0]
@@ -283,7 +284,7 @@ def _aggregate_registry(observations: pd.DataFrame) -> pd.DataFrame:
                 "first_seen_run": str(first.get("run_id", "")).strip(),
                 "last_seen_run": str(last.get("run_id", "")).strip(),
                 "times_promoted": int(ordered["is_promoted"].sum()),
-                "times_tested": int(len(ordered)),
+                "times_tested": len(ordered),
                 "median_effect": nanmedian_or_nan(effect_series),
                 "effect_decay_rate": _effect_decay(effect_series.tolist()),
                 "stability_median": nanmedian_or_nan(stability_series),
@@ -357,7 +358,7 @@ def _empty_registry_frame() -> pd.DataFrame:
     )
 
 
-def main(argv: List[str] | None = None) -> int:
+def main(argv: list[str] | None = None) -> int:
     DATA_ROOT = get_data_root()
     parser = argparse.ArgumentParser(
         description="Append promoted-candidate lineage and aggregate edge registry."
@@ -534,10 +535,10 @@ def main(argv: List[str] | None = None) -> int:
         summary = {
             "run_id": args.run_id,
             "baseline_id": baseline_id,
-            "new_observations": int(len(observations_new)),
+            "new_observations": len(observations_new),
             "no_promotion_observations": bool(no_promotion_observations),
-            "history_observations_total": int(len(history_all)),
-            "edge_count_total": int(len(registry_df)),
+            "history_observations_total": len(history_all),
+            "edge_count_total": len(registry_df),
             "paths": {
                 "promoted_candidates_path": str(promoted_path),
                 "promotion_audit_path": str(audit_path),
@@ -561,11 +562,11 @@ def main(argv: List[str] | None = None) -> int:
             manifest,
             "success",
             stats={
-                "new_observations": int(len(observations_new)),
+                "new_observations": len(observations_new),
                 "no_promotion_observations": bool(no_promotion_observations),
-                "history_observations_total": int(len(history_all)),
-                "edge_count_total": int(len(registry_df)),
-                "capital_footprint_rows": int(len(capital_footprint_df)),
+                "history_observations_total": len(history_all),
+                "edge_count_total": len(registry_df),
+                "capital_footprint_rows": len(capital_footprint_df),
                 "baseline_id": baseline_id,
                 "baseline_observations_path": str(baseline_observations_path),
                 "baseline_registry_path": str(baseline_registry_path),

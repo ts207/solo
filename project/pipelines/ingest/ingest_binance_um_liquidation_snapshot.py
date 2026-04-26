@@ -6,9 +6,9 @@ import re
 import sys
 import tempfile
 import time
-from datetime import datetime, timedelta, timezone
+from collections.abc import Iterable
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
-from typing import Dict, Iterable, List, Set, Tuple
 from xml.etree import ElementTree as ET
 from zipfile import ZipFile
 
@@ -42,16 +42,16 @@ CM_SYMBOL_MAP = {
 
 
 def _parse_date(value: str) -> datetime:
-    return datetime.strptime(value, "%Y-%m-%d").replace(tzinfo=timezone.utc)
+    return datetime.strptime(value, "%Y-%m-%d").replace(tzinfo=UTC)
 
 
 def _month_start(ts: datetime) -> datetime:
-    ts = ts.astimezone(timezone.utc)
+    ts = ts.astimezone(UTC)
     return ts.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
 
 
 def _next_month(ts: datetime) -> datetime:
-    ts = ts.astimezone(timezone.utc)
+    ts = ts.astimezone(UTC)
     y, m = ts.year, ts.month
     if m == 12:
         y += 1
@@ -61,8 +61,8 @@ def _next_month(ts: datetime) -> datetime:
     return ts.replace(year=y, month=m, day=1, hour=0, minute=0, second=0, microsecond=0)
 
 
-def _iter_months(start: datetime, end: datetime) -> List[datetime]:
-    out: List[datetime] = []
+def _iter_months(start: datetime, end: datetime) -> list[datetime]:
+    out: list[datetime] = []
     cur = _month_start(start)
     while cur <= end:
         out.append(cur)
@@ -71,8 +71,8 @@ def _iter_months(start: datetime, end: datetime) -> List[datetime]:
 
 
 def _iter_days(start: datetime, end_exclusive: datetime) -> Iterable[datetime]:
-    cur = start.astimezone(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0)
-    end_exclusive = end_exclusive.astimezone(timezone.utc).replace(
+    cur = start.astimezone(UTC).replace(hour=0, minute=0, second=0, microsecond=0)
+    end_exclusive = end_exclusive.astimezone(UTC).replace(
         hour=0, minute=0, second=0, microsecond=0
     )
     while cur < end_exclusive:
@@ -103,7 +103,7 @@ def _to_cm_contract(symbol: str) -> str:
 _KNOWN_CM_CONTRACTS: frozenset = frozenset(CM_SYMBOL_MAP.values())
 
 
-def _assert_cm_mapping_complete(symbols: List[str]) -> None:
+def _assert_cm_mapping_complete(symbols: list[str]) -> None:
     """Raise ValueError if any symbol has no recognized CM perpetual contract mapping.
 
     Called before network I/O so an unmapped symbol (e.g. 'SOL') causes a clear,
@@ -122,7 +122,7 @@ def _assert_cm_mapping_complete(symbols: List[str]) -> None:
 
 
 def _assert_events_per_symbol(
-    events_per_symbol: Dict[str, int], *, fail_if_no_data: bool = True
+    events_per_symbol: dict[str, int], *, fail_if_no_data: bool = True
 ) -> None:
     """Raise ValueError if any symbol contributed 0 liquidation events after ingestion.
 
@@ -162,7 +162,7 @@ def _to_float(value: object) -> float | None:
     return float(out)
 
 
-def _pick_first_numeric(df: pd.DataFrame, keys: List[str]) -> pd.Series:
+def _pick_first_numeric(df: pd.DataFrame, keys: list[str]) -> pd.Series:
     out = pd.Series([pd.NA] * len(df), index=df.index, dtype="Float64")
     for key in keys:
         if key in df.columns:
@@ -328,16 +328,16 @@ def _list_available_day_set(
     timeout_sec: int,
     max_retries: int,
     retry_backoff_sec: float,
-) -> Set[str]:
+) -> set[str]:
     prefix = f"data/futures/cm/daily/liquidationSnapshot/{cm_contract}/{cm_contract}-liquidationSnapshot-"
     marker: str | None = None
-    out: Set[str] = set()
+    out: set[str] = set()
     key_re = re.compile(
         rf"{re.escape(cm_contract)}-liquidationSnapshot-(\d{{4}}-\d{{2}}-\d{{2}})\.zip$"
     )
 
     while True:
-        params: Dict[str, str] = {"prefix": prefix, "max-keys": "1000"}
+        params: dict[str, str] = {"prefix": prefix, "max-keys": "1000"}
         if marker:
             params["marker"] = marker
 
@@ -352,7 +352,7 @@ def _list_available_day_set(
                     raise RuntimeError(f"HTTP {resp.status_code}: {resp.text[:400]}")
                 payload_text = resp.text
                 break
-            except Exception as exc:  # noqa: BLE001
+            except Exception as exc:
                 last_error = str(exc)
                 if attempt >= max_retries:
                     raise RuntimeError(
@@ -406,10 +406,10 @@ def _fetch_symbol_binance_daily(
     timeout_sec: int,
     max_retries: int,
     retry_backoff_sec: float,
-) -> Tuple[pd.DataFrame, Dict[str, int], List[str]]:
+) -> tuple[pd.DataFrame, dict[str, int], list[str]]:
     end_exclusive = (end + timedelta(days=1)).replace(hour=0, minute=0, second=0, microsecond=0)
 
-    available_days: Set[str] = set()
+    available_days: set[str] = set()
     if int(prelist_available):
         available_days = _list_available_day_set(
             cm_contract=cm_contract,
@@ -420,11 +420,11 @@ def _fetch_symbol_binance_daily(
             retry_backoff_sec=retry_backoff_sec,
         )
 
-    frames: List[pd.DataFrame] = []
-    missing_files: List[str] = []
+    frames: list[pd.DataFrame] = []
+    missing_files: list[str] = []
     stats = {
         "requested_days": 0,
-        "listed_days": int(len(available_days)),
+        "listed_days": len(available_days),
         "days_considered": 0,
         "downloads_ok": 0,
         "downloads_not_found": 0,
@@ -458,7 +458,7 @@ def _fetch_symbol_binance_daily(
                 if not parsed.empty:
                     frames.append(parsed)
                 stats["downloads_ok"] += 1
-                stats["parsed_rows"] += int(len(parsed))
+                stats["parsed_rows"] += len(parsed)
             elif result.status == "not_found":
                 stats["downloads_not_found"] += 1
                 missing_files.append(url)
@@ -503,7 +503,7 @@ def _partition_has_rows(path: Path) -> bool:
         df = read_parquet([target]) if target.suffix != ".csv" else pd.read_csv(target)
     except Exception:
         return False
-    return int(len(df)) > 0
+    return len(df) > 0
 
 
 def main() -> int:
@@ -558,13 +558,13 @@ def main() -> int:
         "force": int(args.force),
         "fail_if_no_data": int(args.fail_if_no_data),
     }
-    inputs: List[Dict[str, object]] = []
-    outputs: List[Dict[str, object]] = []
+    inputs: list[dict[str, object]] = []
+    outputs: list[dict[str, object]] = []
     manifest = start_manifest(
         "ingest_binance_um_liquidation_snapshot", run_id, params, inputs, outputs
     )
 
-    stats: Dict[str, object] = {"provider": "binance_data_vision_cm", "symbols": {}}
+    stats: dict[str, object] = {"provider": "binance_data_vision_cm", "symbols": {}}
 
     try:
         # F-8: Fail fast before any network I/O if any symbol has no CM contract mapping.
@@ -636,18 +636,18 @@ def main() -> int:
                 outputs.append(
                     {
                         "path": str(path_written),
-                        "rows": int(len(part)),
+                        "rows": len(part),
                         "storage": storage,
                     }
                 )
-                written_rows += int(len(part))
+                written_rows += len(part)
                 written_parts += 1
 
             logging.info(
                 "Liquidation ingest symbol=%s cm_contract=%s provider=binance_data_vision_cm rows=%d written_rows=%d written_partitions=%d requested_days=%d considered_days=%d downloads_ok=%d not_found=%d parsed_rows=%d",
                 symbol,
                 cm_contract,
-                int(len(data)),
+                len(data),
                 int(written_rows),
                 int(written_parts),
                 int(fetch_stats.get("requested_days", 0)),
@@ -659,7 +659,7 @@ def main() -> int:
 
             stats["symbols"][symbol] = {
                 "cm_contract": cm_contract,
-                "rows": int(len(data)),
+                "rows": len(data),
                 "written_rows": int(written_rows),
                 "written_partitions": int(written_parts),
                 "requested_days": int(fetch_stats.get("requested_days", 0)),
@@ -671,7 +671,7 @@ def main() -> int:
                 "missing_archive_files": missing_files,
             }
 
-            total_rows += int(len(data))
+            total_rows += len(data)
             total_written_parts += int(written_parts)
 
         # F-8: Post-loop — every symbol must have contributed at least one event.

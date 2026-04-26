@@ -1,15 +1,15 @@
 from __future__ import annotations
 
 from dataclasses import asdict, dataclass
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any
 
 from project.io.utils import write_parquet
 
 
 def _utcnow() -> datetime:
-    return datetime.now(timezone.utc)
+    return datetime.now(UTC)
 
 
 @dataclass
@@ -21,7 +21,7 @@ class ExecutionAttributionRecord:
     overlap_group_id: str
     governance_tier: str
     operational_role: str
-    active_episode_ids: List[str]
+    active_episode_ids: list[str]
     volatility_regime: str
     microstructure_regime: str
     side: str
@@ -50,7 +50,7 @@ def build_execution_attribution_record(
     overlap_group_id: str = "",
     governance_tier: str = "",
     operational_role: str = "",
-    active_episode_ids: List[str] | None = None,
+    active_episode_ids: list[str] | None = None,
     volatility_regime: str,
     microstructure_regime: str,
     side: str,
@@ -107,7 +107,7 @@ def build_execution_attribution_record(
     )
 
 
-def summarize_execution_attribution(records: List[ExecutionAttributionRecord]) -> Dict[str, float]:
+def summarize_execution_attribution(records: list[ExecutionAttributionRecord]) -> dict[str, float]:
     if not records:
         return {
             "fills": 0.0,
@@ -150,13 +150,13 @@ def summarize_execution_attribution(records: List[ExecutionAttributionRecord]) -
 
 
 def summarize_live_quality_inputs(
-    records: List[ExecutionAttributionRecord],
+    records: list[ExecutionAttributionRecord],
     *,
     expected_slippage_bps: float = 0.0,
     submitted_orders: int | None = None,
     stale_data_events: int = 0,
     thesis_decay_rate: float = 0.0,
-) -> Dict[str, float]:
+) -> dict[str, float]:
     summary = summarize_execution_attribution(records)
     fills = int(summary.get("fills", 0.0))
     denominator = max(1, int(submitted_orders if submitted_orders is not None else fills))
@@ -174,9 +174,9 @@ def summarize_live_quality_inputs(
 
 
 def summarize_execution_attribution_by(
-    records: List[ExecutionAttributionRecord], key: str
-) -> Dict[str, Dict[str, float]]:
-    grouped: Dict[str, List[ExecutionAttributionRecord]] = {}
+    records: list[ExecutionAttributionRecord], key: str
+) -> dict[str, dict[str, float]]:
+    grouped: dict[str, list[ExecutionAttributionRecord]] = {}
     for record in records:
         group_value = str(getattr(record, key, "") or "")
         grouped.setdefault(group_value, []).append(record)
@@ -186,12 +186,12 @@ def summarize_execution_attribution_by(
     }
 
 
-def record_to_dict(record: ExecutionAttributionRecord) -> Dict[str, Any]:
+def record_to_dict(record: ExecutionAttributionRecord) -> dict[str, Any]:
     return asdict(record)
 
 
 def write_attribution_summary(
-    records: List[ExecutionAttributionRecord],
+    records: list[ExecutionAttributionRecord],
     output_path: str,
 ) -> None:
     """Write aggregated attribution summaries to parquet for research feedback loop."""

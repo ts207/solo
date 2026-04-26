@@ -3,27 +3,30 @@ from __future__ import annotations
 import argparse
 import sys
 from pathlib import Path
-from typing import List, Tuple
 
 from project.spec_validation.grammar import validate_grammar
 from project.spec_validation.loaders import SEARCH_DIR as DEFAULT_SEARCH_DIR
 from project.spec_validation.loaders import load_search_spec
 
 SEARCH_DIR = DEFAULT_SEARCH_DIR
-from project.spec_validation.governance import validate_governance_consistency
-from project.spec_validation.directionality import validate_event_directionality_contracts
-from project.spec_validation.ontology import validate_ontology
-from project.spec_validation.templates import validate_template_contracts, validate_event_template_matrix
 from project.spec_validation.contexts import validate_context_registry
+from project.spec_validation.directionality import validate_event_directionality_contracts
+from project.spec_validation.governance import validate_governance_consistency
+from project.spec_validation.ontology import validate_ontology
+from project.spec_validation.templates import (
+    validate_event_template_matrix,
+    validate_template_contracts,
+)
+
 
 def run_all_validations(*, root: Path | str = ".", verbose: bool = False) -> int:
     from project.spec_validation.discovery import validate_all_discovery_specs
     repo_root = Path(root).resolve()
-    
+
     search_dir = Path(SEARCH_DIR)
     if search_dir == Path(DEFAULT_SEARCH_DIR):
         search_dir = repo_root / "spec" / "search"
-    all_errors: List[Tuple[str, str]] = []
+    all_errors: list[tuple[str, str]] = []
 
     if verbose:
         print(f"Spec validation root: {repo_root}")

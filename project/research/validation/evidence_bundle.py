@@ -1,8 +1,9 @@
 from __future__ import annotations
 
 import json
+from collections.abc import Sequence
 from pathlib import Path
-from typing import Any, Dict, Sequence
+from typing import Any
 
 import numpy as np
 import pandas as pd
@@ -42,20 +43,20 @@ def _event_family(event_type: str) -> str:
     return spec.research_family or spec.canonical_family or spec.canonical_regime or spec.event_type
 
 
-def _bool_gate_value(row: Dict[str, Any], key: str, default: bool = True) -> bool:
+def _bool_gate_value(row: dict[str, Any], key: str, default: bool = True) -> bool:
     if key not in row:
         return bool(default)
     return bool(as_bool(row.get(key, default)))
 
 
-def _row_value(row: Dict[str, Any], *keys: str, default: Any = None) -> Any:
+def _row_value(row: dict[str, Any], *keys: str, default: Any = None) -> Any:
     for key in keys:
         if key in row:
             return row[key]
     return default
 
 
-def _normalize_bundle_row_aliases(row: Dict[str, Any]) -> Dict[str, Any]:
+def _normalize_bundle_row_aliases(row: dict[str, Any]) -> dict[str, Any]:
     normalized = dict(row)
     alias_map = {
         "gate_delay_robustness": ("delay_robustness_pass",),
@@ -73,7 +74,7 @@ def _normalize_bundle_row_aliases(row: Dict[str, Any]) -> Dict[str, Any]:
     return normalized
 
 
-def _looks_like_evidence_bundle(payload: Dict[str, Any]) -> bool:
+def _looks_like_evidence_bundle(payload: dict[str, Any]) -> bool:
     required = {
         "candidate_id",
         "event_type",
@@ -88,7 +89,7 @@ def _looks_like_evidence_bundle(payload: Dict[str, Any]) -> bool:
     return required.issubset(payload.keys())
 
 
-def _coerce_sparse_evidence_bundle(bundle: Dict[str, Any]) -> Dict[str, Any]:
+def _coerce_sparse_evidence_bundle(bundle: dict[str, Any]) -> dict[str, Any]:
     """Backfill reduced/legacy evidence bundles to the current schema.
 
     Some governance tests and older artifacts provide only the subset of fields
@@ -245,7 +246,7 @@ def _coerce_sparse_evidence_bundle(bundle: Dict[str, Any]) -> Dict[str, Any]:
     return normalized
 
 
-def _optional_bool_gate(row: Dict[str, Any], *keys: str) -> bool | None:
+def _optional_bool_gate(row: dict[str, Any], *keys: str) -> bool | None:
     value = _row_value(row, *keys, default=None)
     if value is None:
         return None
@@ -255,7 +256,7 @@ def _optional_bool_gate(row: Dict[str, Any], *keys: str) -> bool | None:
 
 
 def _set_optional_extra_bool(
-    target: BaseModel, row: Dict[str, Any], key: str, *aliases: str
+    target: BaseModel, row: dict[str, Any], key: str, *aliases: str
 ) -> None:
     """Set an optional boolean extra field on a Pydantic model.
 
@@ -288,14 +289,14 @@ def _normalize_returns_oos_combined(value: Any) -> list[float]:
 
 
 def build_evidence_bundle(
-    row: Dict[str, Any],
+    row: dict[str, Any],
     *,
     control_rate: float | None = None,
     max_negative_control_pass_rate: float = 0.01,
     allow_missing_negative_controls: bool = False,
     policy_version: str = "phase4_pr5_v1",
     bundle_version: str = "phase4_bundle_v1",
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     row = _normalize_bundle_row_aliases(row)
     candidate_id = (
         str(row.get("candidate_id", "")).strip()
@@ -534,7 +535,7 @@ def build_evidence_bundle(
     return bundle.to_dict()
 
 
-def validate_evidence_bundle(bundle: Dict[str, Any]) -> None:
+def validate_evidence_bundle(bundle: dict[str, Any]) -> None:
     from project.research.validation.schemas import EvidenceBundle as _EvidenceBundle
 
     try:
@@ -543,7 +544,7 @@ def validate_evidence_bundle(bundle: Dict[str, Any]) -> None:
         raise ValueError(f"Evidence bundle validation failed: {exc}") from exc
 
 
-def evaluate_promotion_bundle(bundle: Dict[str, Any], policy: PromotionPolicy) -> Dict[str, Any]:
+def evaluate_promotion_bundle(bundle: dict[str, Any], policy: PromotionPolicy) -> dict[str, Any]:
     if not _looks_like_evidence_bundle(bundle):
         bundle = build_evidence_bundle(
             bundle,
@@ -824,7 +825,7 @@ def evaluate_promotion_bundle(bundle: Dict[str, Any], policy: PromotionPolicy) -
     return decision.to_dict()
 
 
-def bundle_to_flat_record(bundle: Dict[str, Any]) -> Dict[str, Any]:
+def bundle_to_flat_record(bundle: dict[str, Any]) -> dict[str, Any]:
     stability = bundle.get("stability_tests", {})
     falsification = bundle.get("falsification_results", {})
     cost = bundle.get("cost_robustness", {})
@@ -903,7 +904,7 @@ def bundle_to_flat_record(bundle: Dict[str, Any]) -> Dict[str, Any]:
     }
 
 
-def serialize_evidence_bundles(bundles: Sequence[Dict[str, Any]], out_path: Path) -> None:
+def serialize_evidence_bundles(bundles: Sequence[dict[str, Any]], out_path: Path) -> None:
     out_path.parent.mkdir(parents=True, exist_ok=True)
     with out_path.open("w", encoding="utf-8") as fh:
         for bundle in bundles:

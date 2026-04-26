@@ -29,11 +29,11 @@ __all__ = [
     "BreakoutTriggerDetector",
     "RangeCompressionDetector",
     "VolClusterShiftDetector",
-    "VolSpikeDetector",
     "VolRelaxationStartDetectorV2",
     "VolShockDetectorV2",
+    "VolSpikeDetector",
     "VolSpikeDetectorV2",
     "VolatilityBase",
-    "detect_volatility_family",
     "analyze_volatility_family",
+    "detect_volatility_family",
 ]

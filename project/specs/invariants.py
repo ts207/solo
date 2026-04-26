@@ -2,8 +2,9 @@ from __future__ import annotations
 
 import hashlib
 import json
+from collections.abc import Mapping
 from pathlib import Path
-from typing import Any, Dict, List, Mapping, Optional
+from typing import Any
 
 from project.spec_registry import (
     RUNTIME_SPEC_RELATIVE_PATHS,
@@ -20,7 +21,7 @@ _REQUIRED_HASH_VERSION_FIELDS = {"schema_version", "config_version", "model_vers
 _SUPPORTED_HASH_ALGOS = {"blake2b_256"}
 
 
-def runtime_spec_paths(repo_root: Path) -> Dict[str, Path]:
+def runtime_spec_paths(repo_root: Path) -> dict[str, Path]:
     return dict(_registry_runtime_spec_paths(repo_root))
 
 
@@ -47,8 +48,8 @@ def _canonical_spec_bytes(path: Path) -> bytes:
         return path.read_bytes()
 
 
-def runtime_component_hashes(repo_root: Path) -> Dict[str, Optional[str]]:
-    out: Dict[str, Optional[str]] = {}
+def runtime_component_hashes(repo_root: Path) -> dict[str, str | None]:
+    out: dict[str, str | None] = {}
     for key, path in runtime_spec_paths(repo_root).items():
         if not path.exists():
             out[key] = None
@@ -58,8 +59,8 @@ def runtime_component_hashes(repo_root: Path) -> Dict[str, Optional[str]]:
 
 
 def runtime_component_hash_fields(
-    component_hashes: Mapping[str, Optional[str]],
-) -> Dict[str, Optional[str]]:
+    component_hashes: Mapping[str, str | None],
+) -> dict[str, str | None]:
     return {
         "runtime_lanes_hash": component_hashes.get("lanes"),
         "runtime_firewall_hash": component_hashes.get("firewall"),
@@ -78,7 +79,7 @@ def runtime_spec_hash(repo_root: Path) -> str:
     return "sha256:" + hasher.hexdigest()
 
 
-def _load_yaml_mapping(path: Path) -> Dict[str, Any]:
+def _load_yaml_mapping(path: Path) -> dict[str, Any]:
     if not path.exists():
         raise FileNotFoundError(f"Missing runtime invariants spec: {path}")
     payload = (
@@ -97,7 +98,7 @@ def _load_yaml_mapping(path: Path) -> Dict[str, Any]:
     return dict(payload)
 
 
-def load_runtime_invariants_specs(repo_root: Path) -> Dict[str, Dict[str, Any]]:
+def load_runtime_invariants_specs(repo_root: Path) -> dict[str, dict[str, Any]]:
     paths = runtime_spec_paths(repo_root)
     return {
         "lanes": _load_yaml_mapping(paths["lanes"]),
@@ -106,7 +107,7 @@ def load_runtime_invariants_specs(repo_root: Path) -> Dict[str, Dict[str, Any]]:
     }
 
 
-def _as_positive_int(value: Any) -> Optional[int]:
+def _as_positive_int(value: Any) -> int | None:
     try:
         ivalue = int(value)
     except Exception:
@@ -114,7 +115,7 @@ def _as_positive_int(value: Any) -> Optional[int]:
     return ivalue if ivalue > 0 else None
 
 
-def _as_non_negative_int(value: Any) -> Optional[int]:
+def _as_non_negative_int(value: Any) -> int | None:
     try:
         ivalue = int(value)
     except Exception:
@@ -122,7 +123,7 @@ def _as_non_negative_int(value: Any) -> Optional[int]:
     return ivalue if ivalue >= 0 else None
 
 
-def _as_str_list(value: Any) -> List[str]:
+def _as_str_list(value: Any) -> list[str]:
     if isinstance(value, list):
         return [str(x).strip() for x in value if str(x).strip()]
     if value is None:
@@ -131,8 +132,8 @@ def _as_str_list(value: Any) -> List[str]:
     return [token] if token else []
 
 
-def validate_runtime_invariants_specs(repo_root: Path) -> List[str]:
-    issues: List[str] = []
+def validate_runtime_invariants_specs(repo_root: Path) -> list[str]:
+    issues: list[str] = []
     paths = runtime_spec_paths(repo_root)
 
     for key, path in paths.items():
@@ -153,8 +154,8 @@ def validate_runtime_invariants_specs(repo_root: Path) -> List[str]:
     return issues
 
 
-def _validate_lanes_spec(spec: Mapping[str, Any]) -> List[str]:
-    issues: List[str] = []
+def _validate_lanes_spec(spec: Mapping[str, Any]) -> list[str]:
+    issues: list[str] = []
     schema_version = _as_positive_int(spec.get("schema_version"))
     if schema_version is None:
         issues.append("runtime lanes spec: schema_version must be a positive integer")
@@ -227,8 +228,8 @@ def _validate_lanes_spec(spec: Mapping[str, Any]) -> List[str]:
     return issues
 
 
-def _validate_firewall_spec(spec: Mapping[str, Any]) -> List[str]:
-    issues: List[str] = []
+def _validate_firewall_spec(spec: Mapping[str, Any]) -> list[str]:
+    issues: list[str] = []
     schema_version = _as_positive_int(spec.get("schema_version"))
     if schema_version is None:
         issues.append("runtime firewall spec: schema_version must be a positive integer")
@@ -278,8 +279,8 @@ def _validate_firewall_spec(spec: Mapping[str, Any]) -> List[str]:
     return issues
 
 
-def _validate_hashing_spec(spec: Mapping[str, Any]) -> List[str]:
-    issues: List[str] = []
+def _validate_hashing_spec(spec: Mapping[str, Any]) -> list[str]:
+    issues: list[str] = []
     schema_version = _as_positive_int(spec.get("schema_version"))
     if schema_version is None:
         issues.append("runtime hashing spec: schema_version must be a positive integer")

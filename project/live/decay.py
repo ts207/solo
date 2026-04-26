@@ -2,8 +2,8 @@ from __future__ import annotations
 
 import logging
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
-from typing import Any, Dict, List
+from datetime import UTC, datetime
+from typing import Any
 
 _LOG = logging.getLogger(__name__)
 
@@ -32,11 +32,11 @@ class ThesisHealthSnapshot:
     expected_edge_bps: float
     hit_rate: float
     sample_count: int
-    actions_taken: List[str] = field(default_factory=list)
-    reason_codes: List[str] = field(default_factory=list)
+    actions_taken: list[str] = field(default_factory=list)
+    reason_codes: list[str] = field(default_factory=list)
 
 
-def default_decay_rules() -> List[DecayRule]:
+def default_decay_rules() -> list[DecayRule]:
     """
     Conservative default decay rules applied when the operator provides none.
 
@@ -78,13 +78,13 @@ def default_decay_rules() -> List[DecayRule]:
 
 
 class DecayMonitor:
-    def __init__(self, rules: List[DecayRule]):
+    def __init__(self, rules: list[DecayRule]):
         self.rules = rules
-        self.health_history: List[ThesisHealthSnapshot] = []
-        self._trigger_streaks: Dict[tuple[str, str], int] = {}
+        self.health_history: list[ThesisHealthSnapshot] = []
+        self._trigger_streaks: dict[tuple[str, str], int] = {}
 
     @staticmethod
-    def _explicit_breach_samples(realized_metrics: Dict[str, Any], metric: str) -> int | None:
+    def _explicit_breach_samples(realized_metrics: dict[str, Any], metric: str) -> int | None:
         for key in (
             f"decay_{metric}_breach_samples",
             f"{metric}_breach_samples",
@@ -102,7 +102,7 @@ class DecayMonitor:
         *,
         thesis_id: str,
         rule: DecayRule,
-        realized_metrics: Dict[str, Any],
+        realized_metrics: dict[str, Any],
         triggered: bool,
     ) -> bool:
         key = (str(thesis_id), str(rule.rule_id))
@@ -124,8 +124,8 @@ class DecayMonitor:
     def assess_thesis_health(
         self,
         thesis_id: str,
-        realized_metrics: Dict[str, Any],
-        expected_metrics: Dict[str, Any],
+        realized_metrics: dict[str, Any],
+        expected_metrics: dict[str, Any],
     ) -> ThesisHealthSnapshot:
         """
         Assess health of a single thesis based on realized vs expected performance.
@@ -189,7 +189,7 @@ class DecayMonitor:
 
         snapshot = ThesisHealthSnapshot(
             thesis_id=thesis_id,
-            timestamp=datetime.now(timezone.utc).isoformat(),
+            timestamp=datetime.now(UTC).isoformat(),
             health_state=health_state,
             realized_edge_bps=realized_edge,
             expected_edge_bps=expected_edge,
@@ -207,7 +207,7 @@ class DecayMonitor:
         )
 
 
-def calculate_thesis_decay_rate(snapshots: List[ThesisHealthSnapshot]) -> float:
+def calculate_thesis_decay_rate(snapshots: list[ThesisHealthSnapshot]) -> float:
     if not snapshots:
         return 0.0
     degraded = sum(

@@ -5,8 +5,8 @@ import json
 import logging
 import subprocess
 import sys
+from collections.abc import Sequence
 from pathlib import Path
-from typing import Dict, List, Sequence
 
 import numpy as np
 import pandas as pd
@@ -65,9 +65,9 @@ def _normalize_direction_value(value: object) -> str:
     return text
 
 
-def _parse_symbols_csv(symbols_csv: str) -> List[str]:
+def _parse_symbols_csv(symbols_csv: str) -> list[str]:
     symbols = [s.strip().upper() for s in str(symbols_csv).split(",") if s.strip()]
-    ordered: List[str] = []
+    ordered: list[str] = []
     seen = set()
     for symbol in symbols:
         if symbol not in seen:
@@ -76,7 +76,7 @@ def _parse_symbols_csv(symbols_csv: str) -> List[str]:
     return ordered
 
 
-def _infer_symbol_tag(row: Dict[str, object], run_symbols: Sequence[str]) -> str:
+def _infer_symbol_tag(row: dict[str, object], run_symbols: Sequence[str]) -> str:
     symbol_value = str(row.get("symbol", "")).strip().upper()
     if symbol_value:
         return symbol_value
@@ -111,7 +111,7 @@ def _is_confirmatory_run_mode(run_mode: str) -> bool:
 
 def _load_latest_adjacent_survivorship_index(
     run_id: str,
-) -> tuple[Dict[tuple[str, str, str, str], Dict[str, object]], str | None]:
+) -> tuple[dict[tuple[str, str, str, str], dict[str, object]], str | None]:
     data_root = get_data_root()
     base = data_root / "reports" / "adjacent_survivorship"
     if not base.exists():
@@ -129,7 +129,7 @@ def _load_latest_adjacent_survivorship_index(
             continue
         if not isinstance(payload, dict):
             continue
-        index: Dict[tuple[str, str, str, str], Dict[str, object]] = {}
+        index: dict[tuple[str, str, str, str], dict[str, object]] = {}
         rows = payload.get("candidate_rows", [])
         if not isinstance(rows, list):
             continue
@@ -163,10 +163,10 @@ def _apply_adjacent_survivorship_annotations(
 
     adjacent_index, report_path = _load_latest_adjacent_survivorship_index(run_id)
     out = df.copy()
-    survived: List[object] = []
-    target_runs: List[object] = []
-    fail_reasons: List[object] = []
-    target_expectancy: List[object] = []
+    survived: list[object] = []
+    target_runs: list[object] = []
+    fail_reasons: list[object] = []
+    target_expectancy: list[object] = []
 
     report_target_run_id = None
     if report_path is not None:
@@ -335,12 +335,12 @@ def _normalize_edge_candidates_df(
 def _phase2_row_to_candidate(
     run_id: str,
     event: str,
-    row: Dict[str, object],
+    row: dict[str, object],
     idx: int,
     source_path: Path,
     default_status: str,
     run_symbols: Sequence[str],
-) -> Dict[str, object]:
+) -> dict[str, object]:
     # Lossless handoff: start with every field from the input row
     candidate = dict(row)
 
@@ -414,7 +414,7 @@ def _phase2_row_to_candidate(
     return candidate
 
 
-def _build_symbol_eval_lookup(event_dir: Path) -> Dict[str, Dict[str, object]]:
+def _build_symbol_eval_lookup(event_dir: Path) -> dict[str, dict[str, object]]:
     path = event_dir / "phase2_symbol_evaluation.csv"
     if not path.exists():
         return {}
@@ -425,7 +425,7 @@ def _build_symbol_eval_lookup(event_dir: Path) -> Dict[str, Dict[str, object]]:
     if df.empty:
         return {}
 
-    grouped: Dict[str, List[Dict[str, object]]] = {}
+    grouped: dict[str, list[dict[str, object]]] = {}
     for _, row in df.iterrows():
         cid = str(row.get("candidate_id", "")).strip()
         if not cid:
@@ -450,7 +450,7 @@ def _build_symbol_eval_lookup(event_dir: Path) -> Dict[str, Dict[str, object]]:
             }
         )
 
-    lookup: Dict[str, Dict[str, object]] = {}
+    lookup: dict[str, dict[str, object]] = {}
     for cid, items in grouped.items():
         if not items:
             continue
@@ -487,7 +487,7 @@ def _build_symbol_eval_lookup(event_dir: Path) -> Dict[str, Dict[str, object]]:
 
 def _build_bridge_eval_lookup(
     *, run_id: str, event_type: str, timeframe: str
-) -> Dict[str, Dict[str, object]]:
+) -> dict[str, dict[str, object]]:
     bridge_root = bridge_event_out_dir(
         data_root=get_data_root(),
         run_id=run_id,
@@ -497,7 +497,7 @@ def _build_bridge_eval_lookup(
     if not bridge_root.exists():
         return {}
 
-    lookup: Dict[str, Dict[str, object]] = {}
+    lookup: dict[str, dict[str, object]] = {}
     for symbol_dir in sorted(path for path in bridge_root.iterdir() if path.is_dir()):
         bridge_path = symbol_dir / "bridge_evaluation.parquet"
         if not bridge_path.exists():
@@ -598,9 +598,9 @@ def _run_research_chain(
                 logging.warning("Bridge stage failed (non-blocking): %s", event_type)
 
 
-def _collect_phase2_candidates(run_id: str, run_symbols: Sequence[str]) -> List[Dict[str, object]]:
+def _collect_phase2_candidates(run_id: str, run_symbols: Sequence[str]) -> list[dict[str, object]]:
     DATA_ROOT = get_data_root()
-    rows: List[Dict[str, object]] = []
+    rows: list[dict[str, object]] = []
     phase2_root = DATA_ROOT / "reports" / "phase2" / run_id
     if not phase2_root.exists():
         return rows
@@ -682,8 +682,8 @@ def _collect_phase2_candidates(run_id: str, run_symbols: Sequence[str]) -> List[
                 event_type=event_dir.name,
                 timeframe=timeframe,
             )
-            event_rows: List[Dict[str, object]] = []
-            phase2_lookup: Dict[str, Dict[str, object]] = {}
+            event_rows: list[dict[str, object]] = []
+            phase2_lookup: dict[str, dict[str, object]] = {}
             if candidate_csv.exists() or candidate_parquet.exists():
                 try:
                     phase2_df = (
@@ -838,8 +838,8 @@ def main() -> int:
         "hypothesis_datasets": str(args.hypothesis_datasets),
         "hypothesis_max_fused": int(args.hypothesis_max_fused),
     }
-    inputs: List[Dict[str, object]] = []
-    outputs: List[Dict[str, object]] = []
+    inputs: list[dict[str, object]] = []
+    outputs: list[dict[str, object]] = []
     manifest = start_manifest("export_edge_candidates", args.run_id, params, inputs, outputs)
 
     try:
@@ -897,16 +897,16 @@ def main() -> int:
         out_json.write_text(df.to_json(orient="records", indent=2), encoding="utf-8")
 
         outputs.append(
-            {"path": str(out_csv), "rows": int(len(df)), "start_ts": None, "end_ts": None}
+            {"path": str(out_csv), "rows": len(df), "start_ts": None, "end_ts": None}
         )
         outputs.append(
-            {"path": str(out_json), "rows": int(len(df)), "start_ts": None, "end_ts": None}
+            {"path": str(out_json), "rows": len(df), "start_ts": None, "end_ts": None}
         )
         finalize_manifest(
             manifest,
             "success",
             stats={
-                "candidate_count": int(len(df)),
+                "candidate_count": len(df),
                 "adjacent_survivorship_report_path": adjacent_report_path,
             },
         )

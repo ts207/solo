@@ -2,7 +2,6 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Dict, Optional
 
 import numpy as np
 import pandas as pd
@@ -51,7 +50,7 @@ class ToBRegimeCostCalibrator:
         self.mode = str(mode).strip().lower()
         self.min_tob_coverage = float(max(0.0, min(1.0, min_tob_coverage)))
         self.tob_tolerance = pd.Timedelta(minutes=max(1, int(tob_tolerance_minutes)))
-        self._symbol_cache: Dict[str, Optional[Dict[str, object]]] = {}
+        self._symbol_cache: dict[str, dict[str, object] | None] = {}
 
     def estimate(self, *, symbol: str, events_df: pd.DataFrame) -> CandidateCostEstimate:
         if self.mode not in {"auto", "tob_regime"}:
@@ -129,13 +128,13 @@ class ToBRegimeCostCalibrator:
         )
 
     @staticmethod
-    def _event_ts_col(events_df: pd.DataFrame) -> Optional[str]:
+    def _event_ts_col(events_df: pd.DataFrame) -> str | None:
         for col in ("enter_ts", "timestamp", "anchor_ts", "event_ts"):
             if col in events_df.columns:
                 return col
         return None
 
-    def _load_symbol_profile(self, *, symbol: str) -> Optional[Dict[str, object]]:
+    def _load_symbol_profile(self, *, symbol: str) -> dict[str, object] | None:
         key = str(symbol).strip().upper()
         if key in self._symbol_cache:
             return self._symbol_cache[key]

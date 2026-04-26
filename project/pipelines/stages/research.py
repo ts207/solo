@@ -1,7 +1,8 @@
 import json
 import logging
+from collections.abc import Mapping
 from pathlib import Path
-from typing import Any, Dict, List, Mapping, Tuple
+from typing import Any
 
 from project.events.config import ComposedEventConfig, compose_event_config
 from project.pipelines.stages.utils import script_supports_flag
@@ -47,7 +48,7 @@ _PROFILE_PROMOTION_DEFAULTS = {
 }
 
 
-def _upsert_cli_flag(base_args: List[str], flag: str, value: str) -> None:
+def _upsert_cli_flag(base_args: list[str], flag: str, value: str) -> None:
     try:
         idx = base_args.index(flag)
     except ValueError:
@@ -88,7 +89,7 @@ def _resolve_candidate_promotion_profile(args: Any) -> str:
     return "deploy" if mode in {"production", "certification"} else "research"
 
 
-def _resolve_candidate_promotion_thresholds(args: Any) -> Dict[str, float]:
+def _resolve_candidate_promotion_thresholds(args: Any) -> dict[str, float]:
     profile = _resolve_candidate_promotion_profile(args)
     profile_defaults = _PROFILE_PROMOTION_DEFAULTS[profile]
 
@@ -157,7 +158,7 @@ def _resolve_candidate_promotion_thresholds(args: Any) -> Dict[str, float]:
 
 def _apply_event_parameters_to_phase1_args(
     *,
-    phase1_args: List[str],
+    phase1_args: list[str],
     phase1_script: Path,
     event_type: str,
     args: Any,
@@ -186,8 +187,8 @@ def build_research_stages(
     research_gate_profile: str,
     project_root: Path,
     data_root: Path,
-    phase2_event_chain: List[Tuple[str, str, List[str]]],
-) -> List[Tuple[str, Path, List[str]]]:
+    phase2_event_chain: list[tuple[str, str, list[str]]],
+) -> list[tuple[str, Path, list[str]]]:
     # 1. Check for Experiment Config (New Two-Layer Model)
     experiment_plan = None
     if getattr(args, "experiment_config", None):
@@ -197,7 +198,7 @@ def build_research_stages(
         # Let's peek at the config just for the program_id.
         import yaml
 
-        with open(args.experiment_config, "r") as f:
+        with open(args.experiment_config) as f:
             cfg = yaml.safe_load(f)
             prog_id = cfg.get("program_id", "unknown_program")
 
@@ -224,7 +225,7 @@ def build_research_stages(
             horizons=getattr(args, "horizons", None),
         )
 
-    stages: List[Tuple[str, Path, List[str]]] = []
+    stages: list[tuple[str, Path, list[str]]] = []
     gate_profile_raw = (
         str(
             getattr(
@@ -276,7 +277,7 @@ def build_research_stages(
         elif concept_file:
             import yaml
 
-            with open(concept_file, "r") as f:
+            with open(concept_file) as f:
                 concept_spec = yaml.safe_load(f)
             c_event_type = concept_spec.get("event_definition", {}).get(
                 "event_type", "DYNAMIC_EVENT"

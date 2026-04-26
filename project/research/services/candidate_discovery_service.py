@@ -8,8 +8,9 @@ from __future__ import annotations
 
 import logging
 from dataclasses import dataclass, field
+from datetime import UTC
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 import pandas as pd
 
@@ -57,7 +58,7 @@ from project.research.validation import estimate_effect_from_frame
 from project.specs.manifest import finalize_manifest, start_manifest
 
 ResolvedCandidateCostEstimate = CandidateCostEstimate
-DEFAULT_SAMPLE_QUALITY_POLICY: Dict[str, Dict[str, int]] = {
+DEFAULT_SAMPLE_QUALITY_POLICY: dict[str, dict[str, int]] = {
     "standard": {
         # Raised from 2 to 10 (TICKET-005): two events provide near-zero statistical power.
         "min_validation_n_obs": 10,
@@ -81,7 +82,7 @@ class CandidateDiscoveryConfig:
     event_type: str
     timeframe: str
     horizon_bars: int
-    out_dir: Optional[Path]
+    out_dir: Path | None
     run_mode: str
     split_scheme_id: str
     embargo_bars: int
@@ -89,29 +90,29 @@ class CandidateDiscoveryConfig:
     train_only_lambda_used: float
     discovery_profile: str
     candidate_generation_method: str
-    concept_file: Optional[str]
+    concept_file: str | None
     entry_lag_bars: int
     shift_labels_k: int
-    fees_bps: Optional[float]
-    slippage_bps: Optional[float]
-    cost_bps: Optional[float]
+    fees_bps: float | None
+    slippage_bps: float | None
+    cost_bps: float | None
     cost_calibration_mode: str
     cost_min_tob_coverage: float
     cost_tob_tolerance_minutes: int
-    candidate_origin_run_id: Optional[str]
-    frozen_spec_hash: Optional[str]
-    templates: Optional[tuple[str, ...]] = None
-    horizons: Optional[tuple[str, ...]] = None
-    directions: Optional[tuple[str, ...]] = None
-    entry_lags: Optional[tuple[int, ...]] = None
-    program_id: Optional[str] = None
-    search_budget: Optional[int] = None
-    experiment_config: Optional[str] = None
-    registry_root: Optional[Path] = None
-    min_validation_n_obs: Optional[int] = None
-    min_test_n_obs: Optional[int] = None
-    min_total_n_obs: Optional[int] = None
-    gate_profile: Optional[str] = None
+    candidate_origin_run_id: str | None
+    frozen_spec_hash: str | None
+    templates: tuple[str, ...] | None = None
+    horizons: tuple[str, ...] | None = None
+    directions: tuple[str, ...] | None = None
+    entry_lags: tuple[int, ...] | None = None
+    program_id: str | None = None
+    search_budget: int | None = None
+    experiment_config: str | None = None
+    registry_root: Path | None = None
+    min_validation_n_obs: int | None = None
+    min_test_n_obs: int | None = None
+    min_total_n_obs: int | None = None
+    gate_profile: str | None = None
 
     def resolved_out_dir(self) -> Path:
         if self.out_dir is not None:
@@ -123,7 +124,7 @@ class CandidateDiscoveryConfig:
             timeframe=self.timeframe,
         )
 
-    def manifest_params(self) -> Dict[str, Any]:
+    def manifest_params(self) -> dict[str, Any]:
         return {
             "run_id": self.run_id,
             "symbols": ",".join(self.symbols),
@@ -172,11 +173,11 @@ class CandidateDiscoveryResult:
     exit_code: int
     output_dir: Path
     combined_candidates: pd.DataFrame = field(default_factory=pd.DataFrame)
-    symbol_candidates: Dict[str, pd.DataFrame] = field(default_factory=dict)
-    manifest: Dict[str, Any] = field(default_factory=dict)
+    symbol_candidates: dict[str, pd.DataFrame] = field(default_factory=dict)
+    manifest: dict[str, Any] = field(default_factory=dict)
 
 
-def _resolve_sample_quality_policy(config: CandidateDiscoveryConfig) -> Dict[str, Any]:
+def _resolve_sample_quality_policy(config: CandidateDiscoveryConfig) -> dict[str, Any]:
     profile = str(config.discovery_profile or "standard").strip().lower()
     defaults = DEFAULT_SAMPLE_QUALITY_POLICY.get(profile, DEFAULT_SAMPLE_QUALITY_POLICY["standard"])
     resolved = {
@@ -218,9 +219,9 @@ _apply_ledger_multiplicity_correction = candidate_scoring.apply_ledger_multiplic
 
 
 def _write_concept_ledger_records(
-    candidates: "pd.DataFrame",
+    candidates: pd.DataFrame,
     *,
-    data_root: "Path",
+    data_root: Path,
     run_id: str,
     program_id: str = "",
 ) -> None:
@@ -263,9 +264,9 @@ def execute_candidate_discovery(config: CandidateDiscoveryConfig) -> CandidateDi
         "phase2_search_engine", config.run_id, config.manifest_params(), [], []
     )
     hyp_registry = HypothesisRegistry()
-    symbol_candidates: Dict[str, pd.DataFrame] = {}
+    symbol_candidates: dict[str, pd.DataFrame] = {}
     combined = pd.DataFrame()
-    symbol_diagnostics: Dict[str, Dict[str, Any]] = {}
+    symbol_diagnostics: dict[str, dict[str, Any]] = {}
     sample_quality_policy = _resolve_sample_quality_policy(config)
 
     try:
@@ -304,7 +305,7 @@ def execute_candidate_discovery(config: CandidateDiscoveryConfig) -> CandidateDi
             min_tob_coverage=float(config.cost_min_tob_coverage),
             tob_tolerance_minutes=int(config.cost_tob_tolerance_minutes),
         )
-        event_frames: List[pd.DataFrame] = []
+        event_frames: list[pd.DataFrame] = []
         experiment_plan = None
         required_experiment_events: set[str] = set()
         if config.experiment_config:
@@ -331,7 +332,7 @@ def execute_candidate_discovery(config: CandidateDiscoveryConfig) -> CandidateDi
 
         for symbol in config.symbols:
             # If experiment is active, we might need multiple event types for sequences/interactions
-            load_event_type: str | List[str] = config.event_type
+            load_event_type: str | list[str] = config.event_type
             if required_experiment_events:
                 load_event_type = sorted(required_experiment_events)
 
@@ -354,8 +355,8 @@ def execute_candidate_discovery(config: CandidateDiscoveryConfig) -> CandidateDi
                     run_id=config.run_id,
                     event_type=config.event_type,
                     symbols_requested=[symbol],
-                    raw_event_count=int(len(events_df)),
-                    canonical_episode_count=int(len(events_df)),
+                    raw_event_count=len(events_df),
+                    canonical_episode_count=len(events_df),
                     split_counts_payload=phase2_split_counts(events_df),
                     loaded_from_fallback_file=False,
                     holdout_integrity_failed=False,
@@ -363,9 +364,9 @@ def execute_candidate_discovery(config: CandidateDiscoveryConfig) -> CandidateDi
                     returned_empty_due_to_holdout=False,
                     min_validation_events=1,
                     min_test_events=1,
-                    returned_rows=int(len(events_df)),
+                    returned_rows=len(events_df),
                 )
-            symbol_diag: Dict[str, Any] = {
+            symbol_diag: dict[str, Any] = {
                 "symbol": symbol,
                 "event_type": config.event_type,
                 "generated_candidate_rows": 0,
@@ -458,8 +459,8 @@ def execute_candidate_discovery(config: CandidateDiscoveryConfig) -> CandidateDi
                     symbol_diag["direction_policy"][
                         "skipped_non_directional_registry_generation"
                     ] = True
-            symbol_diag["generated_candidate_rows"] = int(len(candidates))
-            symbol_diag["loss_attribution"]["candidate_hypotheses_synthesized"] = int(len(candidates))
+            symbol_diag["generated_candidate_rows"] = len(candidates)
+            symbol_diag["loss_attribution"]["candidate_hypotheses_synthesized"] = len(candidates)
             if candidates.empty:
                 symbol_diagnostics[symbol] = symbol_diag
                 continue
@@ -499,7 +500,7 @@ def execute_candidate_discovery(config: CandidateDiscoveryConfig) -> CandidateDi
                     ),
                 },
             )
-            symbol_diag["post_split_candidate_rows"] = int(len(candidates))
+            symbol_diag["post_split_candidate_rows"] = len(candidates)
             if "validation_n_obs" in candidates.columns or "test_n_obs" in candidates.columns:
                 symbol_diag["rejected_by_min_sample"] = int(
                     (
@@ -629,7 +630,7 @@ def execute_candidate_discovery(config: CandidateDiscoveryConfig) -> CandidateDi
                 },
                 "symbols_requested": list(config.symbols),
                 "symbols_with_candidates": sorted(symbol_candidates),
-                "combined_candidate_rows": int(len(combined)),
+                "combined_candidate_rows": len(combined),
                 "sample_quality_gate_thresholds": {
                     "min_validation_n_obs": int(sample_quality_policy["min_validation_n_obs"]),
                     "min_test_n_obs": int(sample_quality_policy["min_test_n_obs"]),
@@ -676,14 +677,14 @@ def execute_candidate_discovery(config: CandidateDiscoveryConfig) -> CandidateDi
 
         # Sprint 7: Artifact manifest
         try:
-            from datetime import datetime, timezone
+            from datetime import datetime
 
             from project.research.validation.manifest import RunArtifactManifest
 
             artifact_manifest = RunArtifactManifest(
                 run_id=config.run_id,
                 stage="discover",
-                created_at=datetime.now(timezone.utc).isoformat(),
+                created_at=datetime.now(UTC).isoformat(),
                 upstream_run_ids=[],
                 artifacts={
                     "phase2_candidates": "phase2_candidates.parquet",

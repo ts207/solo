@@ -30,7 +30,7 @@ for yaml_file in glob.glob("spec/events/*.yaml"):
     if os.path.basename(yaml_file).startswith("_"):
         continue
 
-    with open(yaml_file, "r") as f:
+    with open(yaml_file) as f:
         content = f.read()
 
     try:

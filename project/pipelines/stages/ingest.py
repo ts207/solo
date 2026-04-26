@@ -1,5 +1,4 @@
 from pathlib import Path
-from typing import List, Tuple
 
 from project.core.timeframes import parse_timeframes
 
@@ -14,8 +13,8 @@ def build_ingest_stages(
     run_spot_pipeline: bool,
     project_root: Path,
     venue: str = "bybit",
-) -> List[Tuple[str, Path, List[str]]]:
-    stages: List[Tuple[str, Path, List[str]]] = []
+) -> list[tuple[str, Path, list[str]]]:
+    stages: list[tuple[str, Path, list[str]]] = []
     timeframes = parse_timeframes(getattr(args, "timeframes", "5m"))
     venue = str(getattr(args, "venue", venue) or venue).lower()
 

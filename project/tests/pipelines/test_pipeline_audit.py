@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import json
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
 from project.pipelines import pipeline_audit
@@ -22,7 +22,7 @@ def test_apply_run_terminal_audit_records_top_level_artifact_count_and_uses_fini
     report_file = report_dir / "report.json"
     report_file.write_text("{}\n", encoding="utf-8")
 
-    finished_at = datetime.now(timezone.utc)
+    finished_at = datetime.now(UTC)
     before_finish = finished_at - timedelta(seconds=5)
     after_finish = finished_at + timedelta(seconds=5)
     early_ts = before_finish.timestamp()

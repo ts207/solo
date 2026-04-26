@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-from typing import Dict, List
 
 import numpy as np
 import pandas as pd
@@ -15,7 +14,7 @@ from project.events.event_specs import (
 def generate_event_coverage_report(
     data_root: Path,
     run_id: str,
-    symbols: List[str],
+    symbols: list[str],
     fail_fast: bool = True,
 ) -> pd.DataFrame:
     from project.events.event_repository import load_registry_events
@@ -94,7 +93,7 @@ def calibrate_event_thresholds(
     target_percentile: float = 99.5,
     min_hits_per_year: int = 20,
     max_hits_per_year: int = 200,
-) -> Dict[str, object]:
+) -> dict[str, object]:
     if events.empty:
         return {
             "recommended_threshold": None,
@@ -164,7 +163,7 @@ def verify_index_alignment(
     events: pd.DataFrame,
     bar_timestamps: pd.DatetimeIndex,
     symbol: str,
-) -> Dict[str, object]:
+) -> dict[str, object]:
     if events.empty:
         return {
             "aligned_count": 0,

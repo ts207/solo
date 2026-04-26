@@ -5,7 +5,7 @@ import json
 import logging
 import shutil
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 import pandas as pd
 import yaml
@@ -25,7 +25,6 @@ from project.research.experiment_engine_schema import (
     TriggerSpace,
     ValidatedExperimentPlan,
 )
-from project.research.search.feasibility import FeasibilityError, FeasibilityReport
 from project.research.experiment_engine_validators import (
     _validate_campaign_status,
     _validate_contexts,
@@ -41,6 +40,7 @@ from project.research.experiment_engine_validators import (
     _validate_transition_trigger,
     expand_hypotheses,
 )
+from project.research.search.feasibility import FeasibilityError, FeasibilityReport
 
 _LOG = logging.getLogger(__name__)
 
@@ -148,9 +148,9 @@ def _validate_feasibility_threshold(
 
 
 def resolve_required_detectors(
-    hypotheses: List[HypothesisSpec],
+    hypotheses: list[HypothesisSpec],
     registries: RegistryBundle,
-) -> List[str]:
+) -> list[str]:
     detector_map = registries.detectors.get("detector_ownership", {})
     required = set()
     for hypothesis in hypotheses:
@@ -176,9 +176,9 @@ def resolve_required_detectors(
 
 
 def resolve_required_features(
-    hypotheses: List[HypothesisSpec],
+    hypotheses: list[HypothesisSpec],
     registries: RegistryBundle,
-) -> List[str]:
+) -> list[str]:
     required = set()
     event_meta = registries.events.get("events", {})
 
@@ -205,9 +205,9 @@ def resolve_required_features(
 
 
 def resolve_required_states(
-    hypotheses: List[HypothesisSpec],
+    hypotheses: list[HypothesisSpec],
     registries: RegistryBundle,
-) -> List[str]:
+) -> list[str]:
     required = set()
     state_registry = registries.states.get("states", {})
 
@@ -312,12 +312,12 @@ def export_experiment_artifacts(
 
 
 def validate_registry_consistency(registries: RegistryBundle) -> None:
-    template_families: Dict[str, Any] = registries.templates.get("families", {})
-    family_families: Dict[str, Any] = registries.events.get("event_families", {})
+    template_families: dict[str, Any] = registries.templates.get("families", {})
+    family_families: dict[str, Any] = registries.events.get("event_families", {})
     if not template_families or not family_families:
         return
 
-    mismatches: List[str] = []
+    mismatches: list[str] = []
     all_families = set(template_families) | set(family_families)
     for family_name in sorted(all_families):
         template_allowed = sorted(
@@ -358,8 +358,8 @@ def validate_registry_consistency(registries: RegistryBundle) -> None:
 def build_experiment_plan(
     config_path: Path,
     registry_root: Path,
-    out_dir: Optional[Path] = None,
-    data_root: Optional[Path] = None,
+    out_dir: Path | None = None,
+    data_root: Path | None = None,
 ) -> ValidatedExperimentPlan:
     registries = RegistryBundle(registry_root)
     validate_registry_consistency(registries)

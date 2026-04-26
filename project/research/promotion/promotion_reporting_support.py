@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import json
 import re
-from typing import Any, Dict, List, Tuple
+from typing import Any
 
 import numpy as np
 import pandas as pd
@@ -28,10 +28,10 @@ def _quiet_int(value: Any, default: int) -> int:
 
 
 def resolve_promotion_tier(
-    row: Dict[str, Any],
+    row: dict[str, Any],
     *,
     require_retail_viability: bool = True,
-    promotion_confirmatory_gates: Dict[str, Any] | None = None,
+    promotion_confirmatory_gates: dict[str, Any] | None = None,
 ) -> str:
     decision = str(row.get("promotion_decision", "")).strip().lower()
     if decision != "promoted":
@@ -101,7 +101,7 @@ def build_promotion_capital_footprint(
     *,
     promoted_df: pd.DataFrame,
     contract: Any,
-) -> Tuple[pd.DataFrame, Dict[str, Any]]:
+) -> tuple[pd.DataFrame, dict[str, Any]]:
     cols = [
         "candidate_id",
         "event_type",
@@ -139,7 +139,7 @@ def build_promotion_capital_footprint(
     max_concurrent_positions = _quiet_int(getattr(contract, "max_concurrent_positions", None), 0)
     turnover_cap = _quiet_float(getattr(contract, "max_daily_turnover_multiple", None), np.nan)
 
-    rows: List[Dict[str, Any]] = []
+    rows: list[dict[str, Any]] = []
     for row in promoted_df.to_dict(orient="records"):
         turnover_proxy_mean = _quiet_float(row.get("turnover_proxy_mean"), np.nan)
         capacity_proxy = _quiet_float(row.get("capacity_proxy"), np.nan)
@@ -228,7 +228,7 @@ def build_promotion_capital_footprint(
         out_df.get("estimated_position_notional_usd", pd.Series(dtype=float)), errors="coerce"
     )
     summary = {
-        "promoted_count": int(len(out_df)),
+        "promoted_count": len(out_df),
         "estimated_notional_count": int(est_notional_s.notna().sum()),
         "slot_pressure_over_limit_count": int(
             (pd.to_numeric(out_df["slot_pressure_fraction"], errors="coerce") > 1.0).sum()
@@ -243,7 +243,7 @@ def build_promotion_capital_footprint(
     return out_df, summary
 
 
-def behavior_key(row: Dict[str, Any]) -> Tuple[str, ...]:
+def behavior_key(row: dict[str, Any]) -> tuple[str, ...]:
     fields = (
         "event_type",
         "event",
@@ -259,7 +259,7 @@ def behavior_key(row: Dict[str, Any]) -> Tuple[str, ...]:
     return tuple(str(row.get(f, "")).strip().lower() for f in fields)
 
 
-def behavior_token_set(row: Dict[str, Any]) -> set[str]:
+def behavior_token_set(row: dict[str, Any]) -> set[str]:
     tokens: set[str] = set()
     fields = (
         "event_type",
@@ -287,7 +287,7 @@ def behavior_token_set(row: Dict[str, Any]) -> set[str]:
     return tokens
 
 
-def behavior_overlap_score(left: Dict[str, Any], right: Dict[str, Any]) -> float:
+def behavior_overlap_score(left: dict[str, Any], right: dict[str, Any]) -> float:
     if behavior_key(left) == behavior_key(right):
         return 1.0
     lt, rt = behavior_token_set(left), behavior_token_set(right)
@@ -299,7 +299,7 @@ def behavior_overlap_score(left: Dict[str, Any], right: Dict[str, Any]) -> float
     return float(len(lt & rt) / len(union))
 
 
-def delay_profile_map(row: Dict[str, Any]) -> Dict[int, float]:
+def delay_profile_map(row: dict[str, Any]) -> dict[int, float]:
     payload = row.get("delay_expectancy_map", {})
     if isinstance(payload, str):
         text = payload.strip()
@@ -309,7 +309,7 @@ def delay_profile_map(row: Dict[str, Any]) -> Dict[int, float]:
             payload = {}
     if not isinstance(payload, dict):
         return {}
-    out: Dict[int, float] = {}
+    out: dict[int, float] = {}
     for k, v in payload.items():
         try:
             d = int(float(k))
@@ -321,7 +321,7 @@ def delay_profile_map(row: Dict[str, Any]) -> Dict[int, float]:
     return out
 
 
-def delay_profile_correlation(left: Dict[str, Any], right: Dict[str, Any]) -> float:
+def delay_profile_correlation(left: dict[str, Any], right: dict[str, Any]) -> float:
     lm, rm = delay_profile_map(left), delay_profile_map(right)
     shared = sorted(set(lm.keys()) & set(rm.keys()))
     if len(shared) < 2:
@@ -338,7 +338,7 @@ def apply_portfolio_overlap_gate(
     *,
     promoted_df: pd.DataFrame,
     max_overlap_ratio: float,
-) -> Tuple[pd.DataFrame, pd.DataFrame]:
+) -> tuple[pd.DataFrame, pd.DataFrame]:
     if promoted_df.empty:
         return promoted_df.copy(), pd.DataFrame(
             columns=[
@@ -407,7 +407,7 @@ def portfolio_diversification_violations(
     max_profile_correlation: float,
     max_overlap_ratio: float,
     max_examples: int = 25,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     rows = promoted_df.to_dict(orient="records")
     pair_total, corr_eval, overlap_eval = 0, 0, 0
     corr_violations, overlap_violations = [], []
@@ -445,8 +445,8 @@ def portfolio_diversification_violations(
         "pair_count_total": int(pair_total),
         "correlation_pairs_evaluated": int(corr_eval),
         "overlap_pairs_evaluated": int(overlap_eval),
-        "correlation_violation_count": int(len(corr_violations)),
-        "overlap_violation_count": int(len(overlap_violations)),
+        "correlation_violation_count": len(corr_violations),
+        "overlap_violation_count": len(overlap_violations),
         "correlation_violations": corr_violations[:max_examples],
         "overlap_violations": overlap_violations[:max_examples],
     }
@@ -457,9 +457,9 @@ def assign_and_validate_promotion_tiers(
     audit_df: pd.DataFrame,
     promoted_df: pd.DataFrame,
     require_retail_viability: bool,
-    promotion_confirmatory_gates: Dict[str, Any] | None = None,
-) -> Tuple[pd.DataFrame, pd.DataFrame, Dict[str, int]]:
-    def _get_tier(row: Dict[str, Any]) -> str:
+    promotion_confirmatory_gates: dict[str, Any] | None = None,
+) -> tuple[pd.DataFrame, pd.DataFrame, dict[str, int]]:
+    def _get_tier(row: dict[str, Any]) -> str:
         return resolve_promotion_tier(
             row,
             require_retail_viability=require_retail_viability,

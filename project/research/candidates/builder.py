@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import json
 import logging
-from typing import Any, Dict, List, Tuple
+from typing import Any
 
 import numpy as np
 
@@ -21,10 +21,10 @@ _LOG = logging.getLogger(__name__)
 
 
 def build_promoted_strategy_candidate(
-    blueprint: Dict[str, Any],
-    promotion: Dict[str, Any],
-    symbols: List[str],
-) -> Dict[str, Any] | None:
+    blueprint: dict[str, Any],
+    promotion: dict[str, Any],
+    symbols: list[str],
+) -> dict[str, Any] | None:
     event = str(blueprint.get("event_type", "")).strip()
     blueprint_id = str(blueprint.get("id", "")).strip()
     candidate_id = str(blueprint.get("candidate_id", "")).strip() or blueprint_id or "promoted"
@@ -80,7 +80,7 @@ def build_promoted_strategy_candidate(
     executable_condition = bool(is_executable_condition(condition, run_symbols=run_symbols))
     executable_action = bool(is_executable_action(action))
     if not executable_condition or not executable_action:
-        reasons: List[str] = []
+        reasons: list[str] = []
         if not executable_condition:
             reasons.append(f"Non-executable condition per DSL contract: `{condition}`")
         if not executable_action:
@@ -150,10 +150,10 @@ def build_promoted_strategy_candidate(
 
 
 def build_compiled_blueprint_strategy_candidate(
-    blueprint: Dict[str, Any],
-    metrics: Dict[str, Any],
-    symbols: List[str],
-) -> Dict[str, Any] | None:
+    blueprint: dict[str, Any],
+    metrics: dict[str, Any],
+    symbols: list[str],
+) -> dict[str, Any] | None:
     if not metrics:
         return None
 
@@ -240,8 +240,8 @@ def build_compiled_blueprint_strategy_candidate(
 
 
 def _candidate_symbol_from_blueprint(
-    blueprint: Dict[str, Any], symbols: List[str]
-) -> Tuple[str, bool]:
+    blueprint: dict[str, Any], symbols: list[str]
+) -> tuple[str, bool]:
     scope = (
         blueprint.get("symbol_scope", {}) if isinstance(blueprint.get("symbol_scope"), dict) else {}
     )
@@ -267,10 +267,10 @@ def _candidate_symbol_from_blueprint(
 
 def _resolve_deployment_scope(
     candidate_symbol: str,
-    run_symbols: List[str],
-    symbol_scores: Dict[str, float],
+    run_symbols: list[str],
+    symbol_scores: dict[str, float],
     rollout_eligible: bool,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     normalized_run_symbols = [
         str(symbol).strip().upper() for symbol in run_symbols if str(symbol).strip()
     ]
@@ -329,10 +329,10 @@ def _resolve_deployment_scope(
 
 
 def build_edge_strategy_candidate(
-    row: Dict[str, Any],
-    detail: Dict[str, Any],
-    symbols: List[str],
-) -> Dict[str, Any]:
+    row: dict[str, Any],
+    detail: dict[str, Any],
+    symbols: list[str],
+) -> dict[str, Any]:
     event = str(row.get("event", "")).strip()
     candidate_id = str(row.get("candidate_id", "")).strip()
     edge_score = safe_float(row.get("edge_score"), 0.0)
@@ -397,7 +397,7 @@ def build_edge_strategy_candidate(
     )
     deployment_symbols = deployment_scope["deployment_symbols"]
 
-    allocation_policy: Dict[str, Any]
+    allocation_policy: dict[str, Any]
     raw_policy = str(row.get("allocation_policy_json", "")).strip()
     if raw_policy:
         try:
@@ -492,7 +492,7 @@ def build_edge_strategy_candidate(
     }
 
 
-def _parse_symbol_scores(value: Any) -> Dict[str, float]:
+def _parse_symbol_scores(value: Any) -> dict[str, float]:
     if isinstance(value, dict):
         parsed = value
     else:
@@ -503,7 +503,7 @@ def _parse_symbol_scores(value: Any) -> Dict[str, float]:
             parsed = json.loads(text)
         except Exception:
             return {}
-    out: Dict[str, float] = {}
+    out: dict[str, float] = {}
     for symbol, score in parsed.items():
         symbol_key = str(symbol).strip().upper()
         if not symbol_key:

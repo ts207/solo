@@ -15,14 +15,14 @@ from __future__ import annotations
 import json
 import math
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any
 
 import pytest
 
 FIXTURE_PATH = Path(__file__).parent / "fixtures" / "detector_thresholds.json"
 
 
-def _load_thresholds() -> Dict[str, Any]:
+def _load_thresholds() -> dict[str, Any]:
     if not FIXTURE_PATH.exists():
         return {}
     raw = FIXTURE_PATH.read_text(encoding="utf-8").strip()
@@ -45,7 +45,7 @@ def _test_params():
 
 @pytest.mark.slow
 @pytest.mark.parametrize("event_type,run_id,bounds", _test_params())
-def test_detector_precision_recall(event_type: str, run_id: str, bounds: Dict[str, float]) -> None:
+def test_detector_precision_recall(event_type: str, run_id: str, bounds: dict[str, float]) -> None:
     """
     Assert that a detector meets minimum precision and recall on a specific run_id.
 

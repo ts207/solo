@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import argparse
 from pathlib import Path
-from typing import List, Optional
 
 from project.core.config import get_data_root
 from project.core.timeframes import normalize_timeframe
@@ -108,17 +107,17 @@ def candidate_discovery_config_from_namespace(args: argparse.Namespace) -> Candi
     )
 
 
-def parse_candidate_discovery_argv(argv: Optional[List[str]] = None) -> CandidateDiscoveryConfig:
+def parse_candidate_discovery_argv(argv: list[str] | None = None) -> CandidateDiscoveryConfig:
     parser = build_candidate_discovery_parser()
     args, _unknown = parser.parse_known_args(argv)
     return candidate_discovery_config_from_namespace(args)
 
 
-def run_candidate_discovery_cli(argv: Optional[List[str]] = None) -> CandidateDiscoveryResult:
+def run_candidate_discovery_cli(argv: list[str] | None = None) -> CandidateDiscoveryResult:
     return execute_candidate_discovery(parse_candidate_discovery_argv(argv))
 
 
-def main(argv: Optional[List[str]] = None) -> int:
+def main(argv: list[str] | None = None) -> int:
     return int(run_candidate_discovery_cli(argv).exit_code)
 
 

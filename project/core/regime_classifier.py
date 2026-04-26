@@ -3,7 +3,7 @@ from __future__ import annotations
 import logging
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, Dict, Optional
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -24,15 +24,15 @@ class RegimeClassification:
     regime: RegimeName
     mode: ClassificationMode
     confidence: float
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    metadata: dict[str, Any] = field(default_factory=dict)
 
 def classify_regime(
     *,
     # Research Exact Inputs
-    rv_pct: Optional[float] = None,
-    ms_trend_state: Optional[float] = None,
+    rv_pct: float | None = None,
+    ms_trend_state: float | None = None,
     # Runtime Approx Inputs
-    move_bps: Optional[float] = None,
+    move_bps: float | None = None,
     # Context
     fallback_regime: RegimeName = RegimeName.LOW_VOL
 ) -> RegimeClassification:

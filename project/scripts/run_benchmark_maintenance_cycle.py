@@ -4,9 +4,8 @@ import logging
 import shutil
 import subprocess
 import sys
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
-from typing import List
 
 from project.core.config import get_data_root
 
@@ -32,12 +31,12 @@ def _update_latest(source_dir: Path):
 def _archive_to_history(source_dir: Path, matrix_id: str):
     """Copy outputs to history/{matrix_id}_{timestamp}/."""
     HISTORY_DIR.mkdir(parents=True, exist_ok=True)
-    stamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
+    stamp = datetime.now(UTC).strftime("%Y%m%d_%H%M%S")
     dest = HISTORY_DIR / f"{matrix_id}_{stamp}"
     shutil.copytree(source_dir, dest)
 
 
-def _re_certify_with_priors(latest_review_path: Path, priors: List[dict], out_dir: Path) -> dict:
+def _re_certify_with_priors(latest_review_path: Path, priors: list[dict], out_dir: Path) -> dict:
     """Re-run certification against historical priors if available."""
     from project.research.services.benchmark_governance_service import (
         certify_benchmark_review,
@@ -58,12 +57,12 @@ def _re_certify_with_priors(latest_review_path: Path, priors: List[dict], out_di
     return cert
 
 
-def _write_cycle_summary(matrix_id: str, execute: bool, run_dir: Path, priors: List[dict], cert: dict) -> Path:
+def _write_cycle_summary(matrix_id: str, execute: bool, run_dir: Path, priors: list[dict], cert: dict) -> Path:
     """Write the cycle summary bundle."""
     summary = {
         "schema_version": "benchmark_cycle_summary_v1",
         "matrix_id": matrix_id,
-        "executed_at": datetime.now(timezone.utc).isoformat(),
+        "executed_at": datetime.now(UTC).isoformat(),
         "execute": execute,
         "run_dir": str(run_dir),
         "historical_reviews_found": len(priors),

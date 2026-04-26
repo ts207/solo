@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import asdict, dataclass, field
-from typing import Any, Dict, Optional
+from typing import Any
 
 
 @dataclass(frozen=True)
@@ -30,13 +30,13 @@ class EventRecord:
     intensity: float
     severity: int
 
-    episode_id: Optional[str] = None
-    attribution_id: Optional[str] = None
+    episode_id: str | None = None
+    attribution_id: str | None = None
     detector_version: str = "v1"
     event_version: str = "v1"
-    meta: Dict[str, Any] = field(default_factory=dict)
+    meta: dict[str, Any] = field(default_factory=dict)
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return asdict(self)
 
 

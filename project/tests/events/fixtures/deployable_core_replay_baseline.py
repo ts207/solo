@@ -115,7 +115,7 @@ def summarize_detector_events(
         "event_version": str(getattr(detector, "event_version", "")),
         "symbol": str(params.get("symbol", "")),
         "timeframe": str(params.get("timeframe", "")),
-        "event_count": int(len(events)),
+        "event_count": len(events),
         "first_ts_start": _timestamp(starts.min()),
         "last_ts_start": _timestamp(starts.max()),
         "first_ts_end": _timestamp(ends.min()),

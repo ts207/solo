@@ -3,13 +3,13 @@ from __future__ import annotations
 import logging
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any
 
 import numpy as np
 import pandas as pd
 
-from project.engine.exchange_constraints import apply_constraints, load_symbol_constraints
 from project.core.execution_costs import estimate_transaction_cost_bps
+from project.engine.exchange_constraints import apply_constraints, load_symbol_constraints
 from project.engine.execution_model import (
     load_calibration_config,
 )
@@ -27,8 +27,8 @@ LOGGER = logging.getLogger(__name__)
 class StrategyResult:
     name: str
     data: pd.DataFrame
-    diagnostics: Dict[str, Any]
-    strategy_metadata: Dict[str, Any]
+    diagnostics: dict[str, Any]
+    strategy_metadata: dict[str, Any]
     trace: pd.DataFrame
 
 
@@ -37,7 +37,7 @@ def build_live_order_metadata(
     *,
     timestamp: pd.Timestamp | None = None,
     realized_fee_bps: float = 0.0,
-) -> Dict[str, float]:
+) -> dict[str, float]:
     frame = result.data
     if frame.empty:
         return {}
@@ -92,7 +92,7 @@ def _validate_positions(series: pd.Series, *, allow_continuous: bool = False) ->
         )
 
 
-def _is_carry_strategy(strategy_name: str, strategy_metadata: Dict[str, Any]) -> bool:
+def _is_carry_strategy(strategy_name: str, strategy_metadata: dict[str, Any]) -> bool:
     family = str(strategy_metadata.get("family", "")).strip().lower()
     if family == "carry":
         return True
@@ -100,7 +100,7 @@ def _is_carry_strategy(strategy_name: str, strategy_metadata: Dict[str, Any]) ->
     return "carry" in name or "funding_extreme_reversal" in name
 
 
-def _validated_executable_spec_provenance(params: Dict[str, Any]) -> Dict[str, Any]:
+def _validated_executable_spec_provenance(params: dict[str, Any]) -> dict[str, Any]:
     raw_spec = params.get("executable_strategy_spec")
     if raw_spec is None:
         return {}
@@ -159,13 +159,13 @@ def _classify_microstructure_regime(
 
 def _resolve_execution_aware_scale(
     *,
-    params: Dict[str, Any],
+    params: dict[str, Any],
     features_aligned: pd.DataFrame,
     bars_indexed: pd.DataFrame,
     close_aligned: pd.Series,
     symbol: str,
     requested_position_scale: float,
-) -> tuple[float, Dict[str, float]]:
+) -> tuple[float, dict[str, float]]:
     if not bool(int(params.get("execution_aware_sizing", 0) or 0)):
         return requested_position_scale, {}
 
@@ -251,11 +251,11 @@ def calculate_strategy_returns(
     bars: pd.DataFrame,
     features: pd.DataFrame,
     strategy_name: str,
-    params: Dict[str, Any],
+    params: dict[str, Any],
     cost_bps: float,
     data_root: Path,
     eligibility_mask: pd.Series | None = None,
-    calibration_dir: Optional[Path] = None,
+    calibration_dir: Path | None = None,
 ) -> StrategyResult:
     strategy = get_strategy(strategy_name)
 

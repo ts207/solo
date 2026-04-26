@@ -2,8 +2,8 @@ from __future__ import annotations
 
 import logging
 from dataclasses import dataclass, field
-from datetime import date, datetime, timezone
-from typing import Any, Dict, List, Optional, Set
+from datetime import UTC, date, datetime
+from typing import Any
 
 from project.portfolio.risk_budget import calculate_execution_quality_multiplier
 
@@ -35,9 +35,9 @@ class RuntimeRiskCaps:
     min_fill_rate: float = 0.0  # 0 disables execution-quality fill-rate scaling
     min_execution_quality_multiplier: float = 0.10
     # Per-family risk budgets
-    per_family_caps: Dict[str, float] = field(default_factory=dict)
+    per_family_caps: dict[str, float] = field(default_factory=dict)
     # Per-thesis overrides indexed by thesis_id
-    per_thesis: Dict[str, PerThesisCap] = field(default_factory=dict)
+    per_thesis: dict[str, PerThesisCap] = field(default_factory=dict)
 
 
 @dataclass(frozen=True)
@@ -64,12 +64,12 @@ class DailyLossLedger:
 
     _realized_loss: float = 0.0
     _unrealized_loss: float = 0.0
-    _date: date = field(default_factory=lambda: datetime.now(timezone.utc).date())
+    _date: date = field(default_factory=lambda: datetime.now(UTC).date())
     # Per-thesis realized loss today
-    _per_thesis: Dict[str, float] = field(default_factory=dict)
+    _per_thesis: dict[str, float] = field(default_factory=dict)
 
     def _maybe_roll(self) -> None:
-        today = datetime.now(timezone.utc).date()
+        today = datetime.now(UTC).date()
         if today != self._date:
             self._date = today
             self._realized_loss = 0.0
@@ -100,13 +100,13 @@ class DailyLossLedger:
         self._realized_loss = 0.0
         self._unrealized_loss = 0.0
         self._per_thesis.clear()
-        self._date = datetime.now(timezone.utc).date()
+        self._date = datetime.now(UTC).date()
 
 
 class RiskEnforcer:
     def __init__(self, caps: RuntimeRiskCaps):
         self.caps = caps
-        self.breach_history: List[CapBreachEvent] = []
+        self.breach_history: list[CapBreachEvent] = []
         self.daily_loss = DailyLossLedger()
 
     def _reject(
@@ -151,7 +151,7 @@ class RiskEnforcer:
         self.breach_history.append(ev)
         return ev
 
-    def _execution_quality_multiplier(self, portfolio_state: Dict[str, Any]) -> float:
+    def _execution_quality_multiplier(self, portfolio_state: dict[str, Any]) -> float:
         raw_quality = portfolio_state.get("execution_quality", {})
         quality = raw_quality if isinstance(raw_quality, dict) else {}
         explicit_quality = portfolio_state.get(
@@ -184,14 +184,14 @@ class RiskEnforcer:
         symbol: str,
         family: str,
         attempted_notional: float,
-        portfolio_state: Dict[str, Any],
-        active_thesis_ids: List[str],
+        portfolio_state: dict[str, Any],
+        active_thesis_ids: list[str],
         timestamp: str,
-        active_order_count_by_thesis: Optional[Dict[str, int]] = None,
-        active_position_count_by_thesis: Optional[Dict[str, int]] = None,
-        thesis_overlap_group: Optional[str] = None,
-        active_overlap_groups: Optional[Set[str]] = None,
-    ) -> tuple[float, Optional[CapBreachEvent]]:
+        active_order_count_by_thesis: dict[str, int] | None = None,
+        active_position_count_by_thesis: dict[str, int] | None = None,
+        thesis_overlap_group: str | None = None,
+        active_overlap_groups: set[str] | None = None,
+    ) -> tuple[float, CapBreachEvent | None]:
         """
         Enforce risk caps on a single trade intent.
         Returns (effective_notional, Optional breach event).
@@ -210,7 +210,7 @@ class RiskEnforcer:
           10. gross exposure cap
         """
         effective_notional = float(attempted_notional)
-        last_breach: Optional[CapBreachEvent] = None
+        last_breach: CapBreachEvent | None = None
         per = self.caps.per_thesis.get(thesis_id)
 
         # 1. Hard per-order ceiling (global)

@@ -5,7 +5,7 @@ import itertools
 import json
 import logging
 import sys
-from typing import Any, Dict, List, Tuple
+from typing import Any
 
 import networkx as nx
 import pandas as pd
@@ -24,7 +24,7 @@ from project.specs.ontology import MATERIALIZED_STATE_COLUMNS_BY_ID
 LOGGER = logging.getLogger(__name__)
 
 
-def get_equivalence_classes(edges: List[tuple], nodes: List[str]) -> List[Dict[str, Any]]:
+def get_equivalence_classes(edges: list[tuple], nodes: list[str]) -> list[dict[str, Any]]:
     G = nx.Graph()
     G.add_nodes_from(nodes)
     for u, v in edges:
@@ -42,7 +42,7 @@ def eval_entropy(
     max_modal_mass: float = 80.0,
     max_top_1_mass: float = 20.0,
     min_unique_codes: int = 12,
-) -> Tuple[Dict[str, Any], List[str]]:
+) -> tuple[dict[str, Any], list[str]]:
 
     issues = []
     report = {"digits": {}, "combined": {}, "dedup": {}}

@@ -1,7 +1,8 @@
 from __future__ import annotations
 
 import logging
-from typing import Any, Dict
+from typing import Any
+
 from project.portfolio.risk_budget import (
     calculate_cluster_risk_multiplier,
     calculate_portfolio_risk_multiplier,
@@ -17,7 +18,7 @@ def _to_decimal_return(value: float) -> float:
 _LOG = logging.getLogger(__name__)
 
 
-def _resolve_volatility_adjustment(vol_regime: float, portfolio_state: Dict[str, Any]) -> float:
+def _resolve_volatility_adjustment(vol_regime: float, portfolio_state: dict[str, Any]) -> float:
     """
     Convert a regime-vol input into a one-way sizing throttle.
 
@@ -48,7 +49,7 @@ def calculate_target_notional(
     expected_adverse_bps: float,
     vol_regime: float,
     liquidity_usd: float,
-    portfolio_state: Dict[str, Any],
+    portfolio_state: dict[str, Any],
     symbol: str,
     asset_bucket: str = "default",
     cluster_id: int | None = None,
@@ -56,7 +57,7 @@ def calculate_target_notional(
     *,
     concentration_cap_pct: float = 0.05,
     max_kelly_multiplier: float | None = None,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     Calculate target notional based on trade edge and portfolio constraints.
     """
@@ -147,13 +148,13 @@ def calculate_execution_aware_target_notional(
     expected_adverse_bps: float,
     vol_regime: float,
     liquidity_usd: float,
-    portfolio_state: Dict[str, Any],
+    portfolio_state: dict[str, Any],
     symbol: str,
-    market_data: Dict[str, Any],
-    execution_cost_config: Dict[str, Any] | None = None,
+    market_data: dict[str, Any],
+    execution_cost_config: dict[str, Any] | None = None,
     asset_bucket: str = "default",
     cluster_id: int | None = None,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     Size a trade using expected edge net of execution costs resolved from the
     shared execution model.
@@ -176,9 +177,9 @@ def calculate_execution_aware_target_notional(
     )
 
     turnover = float(abs(provisional["target_notional"]))
-    from project.core.execution_costs import estimate_transaction_cost_bps
-
     import pandas as pd
+
+    from project.core.execution_costs import estimate_transaction_cost_bps
 
     idx = pd.Index([0])
     frame = pd.DataFrame(

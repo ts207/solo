@@ -2,7 +2,8 @@ from __future__ import annotations
 
 import hashlib
 import json
-from typing import Any, Dict, Iterable
+from collections.abc import Iterable
+from typing import Any
 
 STATIC_ENTITY_COLUMNS = [
     "entity_id",
@@ -233,7 +234,7 @@ def relation_id(from_entity_id: str, relation_type: str, to_entity_id: str) -> s
     return stable_hash((from_entity_id, relation_type, to_entity_id))
 
 
-def region_key(payload: Dict[str, Any]) -> str:
+def region_key(payload: dict[str, Any]) -> str:
     return stable_hash(
         (
             payload.get("program_id", ""),

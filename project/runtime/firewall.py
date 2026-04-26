@@ -1,7 +1,7 @@
 from __future__ import annotations
 
+from collections.abc import Iterable, Mapping
 from dataclasses import dataclass
-from typing import Dict, Iterable, List, Mapping, Tuple
 
 
 @dataclass(frozen=True)
@@ -12,7 +12,7 @@ class AccessRequest:
     event_id: str
 
 
-def _str_list(value) -> List[str]:
+def _str_list(value) -> list[str]:
     if isinstance(value, list):
         return [str(x).strip().lower() for x in value if str(x).strip()]
     token = str(value).strip().lower()
@@ -23,7 +23,7 @@ def evaluate_access(
     request: AccessRequest,
     *,
     firewall_spec: Mapping[str, object],
-) -> Tuple[bool, str]:
+) -> tuple[bool, str]:
     roles = firewall_spec.get("roles")
     if not isinstance(roles, Mapping):
         return False, f"invalid firewall roles spec for event_id={request.event_id}"
@@ -62,14 +62,14 @@ def audit_access_requests(
     *,
     firewall_spec: Mapping[str, object],
     max_examples: int = 20,
-) -> Dict[str, object]:
-    counters: Dict[str, int] = {
+) -> dict[str, object]:
+    counters: dict[str, int] = {
         "unknown_role": 0,
         "provenance_forbidden": 0,
         "exec_state_forbidden": 0,
         "invalid_firewall_spec": 0,
     }
-    examples: List[str] = []
+    examples: list[str] = []
     total = 0
     for req in requests:
         total += 1

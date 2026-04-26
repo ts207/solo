@@ -3,9 +3,10 @@ from __future__ import annotations
 import argparse
 import json
 import os
+from collections.abc import Iterable
 from contextlib import contextmanager
 from pathlib import Path
-from typing import Any, Dict, Iterable, List
+from typing import Any
 
 import pandas as pd
 
@@ -37,8 +38,8 @@ def _document_row(
     title: str,
     content: str,
     source_path: str,
-    metadata: Dict[str, Any],
-) -> Dict[str, Any]:
+    metadata: dict[str, Any],
+) -> dict[str, Any]:
     eid = entity_id(entity_type, name)
     return {
         "document_id": f"doc::{eid}",
@@ -52,7 +53,7 @@ def _document_row(
 
 
 def _append_relation(
-    rows: List[Dict[str, Any]],
+    rows: list[dict[str, Any]],
     *,
     from_type: str,
     from_name: str,
@@ -60,7 +61,7 @@ def _append_relation(
     to_type: str,
     to_name: str,
     source_path: str,
-    attributes: Dict[str, Any] | None = None,
+    attributes: dict[str, Any] | None = None,
 ) -> None:
     from_id = entity_id(from_type, from_name)
     to_id = entity_id(to_type, to_name)
@@ -76,7 +77,7 @@ def _append_relation(
     )
 
 
-def _to_df(rows: List[Dict[str, Any]], columns: List[str]) -> pd.DataFrame:
+def _to_df(rows: list[dict[str, Any]], columns: list[str]) -> pd.DataFrame:
     if not rows:
         return pd.DataFrame(columns=columns)
     return pd.DataFrame(rows).reindex(columns=columns)
@@ -106,7 +107,7 @@ def build_static_knowledge(
     data_root: Path | None = None,
     registry_root: Path | None = None,
     domain_registry: Any | None = None,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     resolved_data_root = Path(data_root) if data_root is not None else get_data_root()
     resolved_registry_root = (
         Path(registry_root) if registry_root is not None else (Path("project/configs/registries"))
@@ -126,9 +127,9 @@ def build_static_knowledge(
     detectors_payload = load_yaml_path(_registry_path(resolved_registry_root, "detectors"))
     features_payload = load_yaml_path(_registry_path(resolved_registry_root, "features"))
 
-    entities: List[Dict[str, Any]] = []
-    relations: List[Dict[str, Any]] = []
-    documents: List[Dict[str, Any]] = []
+    entities: list[dict[str, Any]] = []
+    relations: list[dict[str, Any]] = []
+    documents: list[dict[str, Any]] = []
 
     event_rows = events_payload.get("events", {}) if isinstance(events_payload, dict) else {}
     detector_ownership = (
@@ -461,10 +462,10 @@ def build_static_knowledge(
     _write_knowledge_frame(_to_df(build_agent_knob_rows(), KNOB_COLUMNS), knobs_path)
 
     index_payload = {
-        "entity_count": int(len(entities_df)),
-        "relation_count": int(len(relations_df)),
-        "document_count": int(len(documents_df)),
-        "knob_count": int(len(build_agent_knob_rows())),
+        "entity_count": len(entities_df),
+        "relation_count": len(relations_df),
+        "document_count": len(documents_df),
+        "knob_count": len(build_agent_knob_rows()),
         "entity_types": sorted(entities_df["entity_type"].dropna().astype(str).unique().tolist()),
         "relation_types": sorted(
             relations_df["relation_type"].dropna().astype(str).unique().tolist()

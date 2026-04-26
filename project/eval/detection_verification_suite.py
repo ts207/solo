@@ -4,7 +4,7 @@ Event detection verification suite.
 
 from __future__ import annotations
 
-from typing import Any, Dict, List
+from typing import Any
 
 import numpy as np
 import pandas as pd
@@ -15,7 +15,7 @@ from project.events.families.volatility import VolSpikeDetector
 
 class DetectionVerificationSuite:
     def __init__(self):
-        self.results: List[Dict[str, Any]] = []
+        self.results: list[dict[str, Any]] = []
 
     def verify_vol_spike(self, df: pd.DataFrame, shock_idx: int):
         """Verify VolSpikeDetector triggers around shock_idx."""

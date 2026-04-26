@@ -2,7 +2,6 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from pathlib import Path
-from typing import List
 
 import numpy as np
 import pandas as pd
@@ -49,8 +48,8 @@ def _rolling_percentile(series: pd.Series, window: int = 96) -> pd.Series:
     return trailing_percentile_rank(series, window=window, lag=1) * 100.0
 
 
-def _contiguous_runs(mask: pd.Series) -> List[tuple[int, int]]:
-    runs: List[tuple[int, int]] = []
+def _contiguous_runs(mask: pd.Series) -> list[tuple[int, int]]:
+    runs: list[tuple[int, int]] = []
     start = None
     for idx, is_true in enumerate(mask.astype(bool).tolist()):
         if is_true and start is None:

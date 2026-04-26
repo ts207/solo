@@ -1,4 +1,4 @@
-from typing import Any, Dict, List
+from typing import Any
 
 import pandas as pd
 
@@ -13,7 +13,7 @@ except ImportError:
 
 
 def evaluate_candidates(
-    specs: List[StrategySpec], bundle: DataBundle, engine_cfg: Dict[str, Any]
+    specs: list[StrategySpec], bundle: DataBundle, engine_cfg: dict[str, Any]
 ) -> pd.DataFrame:
     metrics = []
 

@@ -4,10 +4,11 @@ import asyncio
 import json
 import logging
 import uuid
+from collections.abc import Awaitable, Callable, Mapping
 from dataclasses import replace
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
-from typing import Any, Awaitable, Callable, Dict, List, Mapping
+from typing import Any
 
 from project import PROJECT_ROOT
 from project.core.exceptions import (
@@ -48,7 +49,6 @@ from project.live.market_state_builder import (
     build_measured_market_state,
 )
 from project.live.memory import append_live_episode
-from project.live.portfolio_circuit import PortfolioCircuitBreaker, PortfolioCircuitConfig
 from project.live.oms import (
     OrderManager,
     OrderStatus,
@@ -58,6 +58,7 @@ from project.live.oms import (
 )
 from project.live.order_planner import build_order_plan
 from project.live.policy import build_live_decision_trace
+from project.live.portfolio_circuit import PortfolioCircuitBreaker, PortfolioCircuitConfig
 from project.live.risk import RiskEnforcer, RuntimeRiskCaps
 from project.live.signal_monitor import SignalMonitor
 from project.live.state import LiveStateStore
@@ -87,7 +88,7 @@ def _classify_canonical_regime(
     move_bps: float,
     rv_pct: float | None = None,
     ms_trend_state: float | None = None,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     from project.core.regime_classifier import classify_regime
 
     result = classify_regime(move_bps=move_bps, rv_pct=rv_pct, ms_trend_state=ms_trend_state)
@@ -102,7 +103,7 @@ def _classify_canonical_regime(
 class LiveEngineRunner:
     def __init__(
         self,
-        symbols: List[str],
+        symbols: list[str],
         *,
         exchange: str = "binance",
         api_key: str = "",
@@ -111,8 +112,8 @@ class LiveEngineRunner:
         microstructure_recovery_streak: int = 3,
         account_sync_interval_seconds: float = 30.0,
         account_sync_failure_threshold: int = 3,
-        account_snapshot_fetcher: Callable[[], Awaitable[Dict[str, Any]]] | None = None,
-        market_feature_fetcher: Callable[[str], Awaitable[Dict[str, Any]]] | None = None,
+        account_snapshot_fetcher: Callable[[], Awaitable[dict[str, Any]]] | None = None,
+        market_feature_fetcher: Callable[[str], Awaitable[dict[str, Any]]] | None = None,
         execution_quality_report_path: str | Path | None = None,
         runtime_metrics_snapshot_path: str | Path | None = None,
         execution_degradation_min_samples: int = 3,
@@ -125,9 +126,9 @@ class LiveEngineRunner:
         stale_threshold_sec: float = 10.0,
         reconcile_at_startup: bool = True,
         runtime_mode: str = "monitor_only",
-        strategy_runtime: Dict[str, Any] | None = None,
+        strategy_runtime: dict[str, Any] | None = None,
         risk_caps: RuntimeRiskCaps | None = None,
-        decay_rules: List[DecayRule] | None = None,
+        decay_rules: list[DecayRule] | None = None,
     ):
         self.exchange = exchange.lower()
 
@@ -231,18 +232,18 @@ class LiveEngineRunner:
         # Keep the default ledger under the canonical project live directory.
         self.incubation_ledger = IncubationLedger(PROJECT_ROOT / "live" / "incubation_ledger.json")
 
-        self._latest_book_ticker_by_symbol: Dict[str, Dict[str, Any]] = {}
-        self._latest_runtime_market_features_by_symbol: Dict[str, Dict[str, Any]] = {}
-        self._latest_final_kline_by_key: Dict[tuple[str, str], Dict[str, Any]] = {}
-        self._decision_outcomes: List[DecisionOutcome] = []
+        self._latest_book_ticker_by_symbol: dict[str, dict[str, Any]] = {}
+        self._latest_runtime_market_features_by_symbol: dict[str, dict[str, Any]] = {}
+        self._latest_final_kline_by_key: dict[tuple[str, str], dict[str, Any]] = {}
+        self._decision_outcomes: list[DecisionOutcome] = []
         self._auto_order_sequence = 0
-        self._configured_venue_rules_by_symbol: Dict[str, VenueSymbolRules] = (
+        self._configured_venue_rules_by_symbol: dict[str, VenueSymbolRules] = (
             load_configured_venue_rules(
                 [str(symbol).upper() for symbol in self.symbols],
                 self.strategy_runtime,
             )
         )
-        self._venue_rules_by_symbol: Dict[str, VenueSymbolRules] = dict(
+        self._venue_rules_by_symbol: dict[str, VenueSymbolRules] = dict(
             self._configured_venue_rules_by_symbol
         )
         self._venue_rules_hydrated = False
@@ -291,11 +292,11 @@ class LiveEngineRunner:
         self._session_id = str(uuid.uuid4())
 
         self._running = False
-        self._tasks: List[asyncio.Task] = []
+        self._tasks: list[asyncio.Task] = []
         self._kill_switch_task: asyncio.Task | None = None
 
     @property
-    def session_metadata(self) -> Dict[str, Any]:
+    def session_metadata(self) -> dict[str, Any]:
         return {
             "symbols": list(self.symbols),
             "live_state_snapshot_path": (
@@ -380,7 +381,7 @@ class LiveEngineRunner:
             return None
         return Path(memory_root)
 
-    def _resolve_execution_model_config(self) -> Dict[str, Any]:
+    def _resolve_execution_model_config(self) -> dict[str, Any]:
         configured = self.strategy_runtime.get("execution_model", {})
         config = dict(configured) if isinstance(configured, Mapping) else {}
         if bool(self.strategy_runtime.get("implemented", False)):
@@ -432,7 +433,7 @@ class LiveEngineRunner:
         thesis_id: str,
         action: str,
         risk_scale: float,
-        reason_codes: List[str],
+        reason_codes: list[str],
         metrics: Mapping[str, Any],
     ) -> None:
         if self._audit_log is None or action not in {"downscale", "disable"}:
@@ -452,7 +453,7 @@ class LiveEngineRunner:
             )
         )
 
-    def _serialize_recent_decision(self, outcome: DecisionOutcome) -> Dict[str, Any]:
+    def _serialize_recent_decision(self, outcome: DecisionOutcome) -> dict[str, Any]:
         top_match = outcome.ranked_matches[0] if outcome.ranked_matches else None
         thesis = top_match.thesis if top_match is not None else None
         thesis_regime = ""
@@ -496,7 +497,7 @@ class LiveEngineRunner:
             "support_score": float(outcome.trade_intent.support_score),
             "contradiction_penalty": float(outcome.trade_intent.contradiction_penalty),
             "confidence_band": str(outcome.trade_intent.confidence_band),
-            "match_count": int(len(outcome.ranked_matches)),
+            "match_count": len(outcome.ranked_matches),
             "top_thesis_net_expectancy_bps": float(
                 thesis.evidence.net_expectancy_bps if thesis is not None else 0.0
             ),
@@ -509,8 +510,8 @@ class LiveEngineRunner:
             "decision_trace": decision_trace,
         }
 
-    def _latest_market_state_by_symbol(self) -> Dict[str, Dict[str, Any]]:
-        payload: Dict[str, Dict[str, Any]] = {}
+    def _latest_market_state_by_symbol(self) -> dict[str, dict[str, Any]]:
+        payload: dict[str, dict[str, Any]] = {}
         for symbol in sorted({str(s).upper() for s in self.symbols}):
             ticker = dict(self._latest_book_ticker_by_symbol.get(symbol, {}))
             runtime = self._fresh_runtime_market_features_for_symbol(symbol)
@@ -529,10 +530,10 @@ class LiveEngineRunner:
             }
         return payload
 
-    def runtime_metrics_snapshot(self) -> Dict[str, Any]:
+    def runtime_metrics_snapshot(self) -> dict[str, Any]:
         recent_outcomes = list(self._decision_outcomes[-20:])
-        action_counts: Dict[str, int] = {}
-        symbol_counts: Dict[str, int] = {}
+        action_counts: dict[str, int] = {}
+        symbol_counts: dict[str, int] = {}
         for outcome in recent_outcomes:
             action = str(outcome.trade_intent.action)
             symbol = str(outcome.context.symbol)
@@ -553,7 +554,7 @@ class LiveEngineRunner:
         }
 
         return {
-            "generated_at": datetime.now(timezone.utc).isoformat(),
+            "generated_at": datetime.now(UTC).isoformat(),
             "runtime_mode": self.runtime_mode,
             "strategy_runtime_enabled": bool(self._strategy_runtime_enabled()),
             "thesis_runtime_loaded": bool(self._thesis_store is not None),
@@ -587,7 +588,7 @@ class LiveEngineRunner:
             "kill_switch": self.state_store.get_kill_switch_snapshot(),
             "portfolio_circuit": {
                 "enabled": bool(self.portfolio_circuit.config.enabled),
-                "history_count": int(len(self.portfolio_circuit.history)),
+                "history_count": len(self.portfolio_circuit.history),
                 "last_verdict": {
                     "triggered": bool(self.portfolio_circuit.last_verdict.triggered),
                     "reason": str(self.portfolio_circuit.last_verdict.reason),
@@ -601,14 +602,14 @@ class LiveEngineRunner:
                 "available_balance": float(account.available_balance),
                 "total_unrealized_pnl": float(account.total_unrealized_pnl),
                 "exchange_status": str(account.exchange_status),
-                "position_count": int(len(account.positions)),
+                "position_count": len(account.positions),
                 "update_time": account.update_time.isoformat(),
             },
             "health": health,
             "execution_quality_summary": self.execution_quality_summary(),
             "latest_market_state_by_symbol": self._latest_market_state_by_symbol(),
             "decision_counts": {
-                "recent_window": int(len(recent_outcomes)),
+                "recent_window": len(recent_outcomes),
                 "by_action": action_counts,
                 "by_symbol": symbol_counts,
             },
@@ -630,7 +631,7 @@ class LiveEngineRunner:
 
     def persist_deploy_run_summary(self, out_path: Path) -> Path:
         summary = {
-            "deploy_run_id": f"deploy_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}",
+            "deploy_run_id": f"deploy_{datetime.now(UTC).strftime('%Y%m%d_%H%M%S')}",
             "promoted_batch_id": self._thesis_store.run_id if self._thesis_store else "unknown",
             "runtime_mode": self.runtime_mode,
             "thesis_count_loaded": len(self._thesis_store.all()) if self._thesis_store else 0,
@@ -665,7 +666,7 @@ class LiveEngineRunner:
         if not self._thesis_store:
             return
         existing_rule_ids = {r.rule_id for r in self.decay_monitor.rules}
-        new_rules: List[DecayRule] = []
+        new_rules: list[DecayRule] = []
         for t in self._thesis_store.all():
             tid = t.thesis_id
             ev = t.evidence
@@ -809,7 +810,7 @@ class LiveEngineRunner:
                     {
                         "is_active": True,
                         "reason": "thesis_batch_reconciliation_failure",
-                        "triggered_at": datetime.now(timezone.utc).isoformat(),
+                        "triggered_at": datetime.now(UTC).isoformat(),
                         "message": (
                             f"Batch reconciliation blocked: {'; '.join(result.blocked_reasons)}"
                         ),
@@ -842,7 +843,7 @@ class LiveEngineRunner:
         snapshot = {
             "is_active": bool(self.strategy_runtime.get("implemented", False)),
             "reason": "thesis_batch_reconciliation_degraded",
-            "triggered_at": datetime.now(timezone.utc).isoformat(),
+            "triggered_at": datetime.now(UTC).isoformat(),
             "message": str(error),
         }
         self.state_store.update_from_exchange_snapshot({"exchange_status": "DEGRADED"})
@@ -878,7 +879,7 @@ class LiveEngineRunner:
         )
         self._venue_rules_hydrated = any(rule.is_actionable for rule in exchange_rules.values())
 
-    def latest_trade_intents(self) -> List[DecisionOutcome]:
+    def latest_trade_intents(self) -> list[DecisionOutcome]:
         return list(self._decision_outcomes)
 
     def _ensure_runtime_mode_known(self) -> None:
@@ -902,7 +903,7 @@ class LiveEngineRunner:
                 f"Order submission is disabled when runtime_mode='{self.runtime_mode}'."
             )
 
-    def _assess_execution_degradation(self, order: Any) -> Dict[str, float | str]:
+    def _assess_execution_degradation(self, order: Any) -> dict[str, float | str]:
         metadata = dict(getattr(order, "metadata", {}) or {})
         bucket_records = [
             item
@@ -949,11 +950,11 @@ class LiveEngineRunner:
         timestamp: Any | None = None,
         order_type: OrderType = OrderType.MARKET,
         realized_fee_bps: float = 0.0,
-        market_state: Dict[str, float] | None = None,
+        market_state: dict[str, float] | None = None,
         max_spread_bps: float = 5.0,
         min_depth_usd: float = 25_000.0,
         min_tob_coverage: float = 0.80,
-    ) -> Dict[str, Any] | None:
+    ) -> dict[str, Any] | None:
         self._ensure_trading_enabled()
         prepared = self._prepare_strategy_order(
             result,
@@ -989,11 +990,11 @@ class LiveEngineRunner:
         timestamp: Any | None = None,
         order_type: OrderType = OrderType.MARKET,
         realized_fee_bps: float = 0.0,
-        market_state: Dict[str, float] | None = None,
+        market_state: dict[str, float] | None = None,
         max_spread_bps: float = 5.0,
         min_depth_usd: float = 25_000.0,
         min_tob_coverage: float = 0.80,
-    ) -> Dict[str, Any] | None:
+    ) -> dict[str, Any] | None:
         self._ensure_trading_enabled()
         prepared = self._prepare_strategy_order(
             result,
@@ -1025,7 +1026,7 @@ class LiveEngineRunner:
         timestamp: Any | None,
         order_type: OrderType,
         realized_fee_bps: float,
-    ) -> tuple[Any, Dict[str, Any] | None] | None:
+    ) -> tuple[Any, dict[str, Any] | None] | None:
         order = build_live_order_from_strategy_result(
             result,
             client_order_id=client_order_id,
@@ -1127,16 +1128,16 @@ class LiveEngineRunner:
             )
         return order, None
 
-    def _get_portfolio_state_for_sizing(self) -> Dict[str, Any]:
+    def _get_portfolio_state_for_sizing(self) -> dict[str, Any]:
         """
         Produce a portfolio state snapshot suitable for the sizer,
         including active cluster counts for the 'Portfolio Matrix' gate.
         """
         with self.state_store._lock:
             acc = self.state_store.account
-            cluster_counts: Dict[int, int] = {}
-            symbol_exposures: Dict[str, float] = {}
-            family_exposures: Dict[str, float] = {}
+            cluster_counts: dict[int, int] = {}
+            symbol_exposures: dict[str, float] = {}
+            family_exposures: dict[str, float] = {}
 
             for pos in acc.positions.values():
                 notional = pos.quantity * pos.mark_price
@@ -1191,13 +1192,13 @@ class LiveEngineRunner:
         )
         return {"probe", "trade_small"}
 
-    def _build_execution_env_snapshot(self) -> Dict[str, Any]:
+    def _build_execution_env_snapshot(self) -> dict[str, Any]:
         return {
             "runtime_mode": self.runtime_mode,
             "exchange_status": str(self.state_store.account.exchange_status),
         }
 
-    def _supported_event_ids(self) -> List[str]:
+    def _supported_event_ids(self) -> list[str]:
         configured = self.strategy_runtime.get(
             "supported_event_ids",
             self.strategy_runtime.get("supported_event_families", ["VOL_SHOCK"]),
@@ -1207,7 +1208,7 @@ class LiveEngineRunner:
         values = [str(item).strip().upper() for item in configured if str(item).strip()]
         return values or ["VOL_SHOCK"]
 
-    def _supported_event_families(self) -> List[str]:
+    def _supported_event_families(self) -> list[str]:
         return self._supported_event_ids()
 
     def _requires_runtime_market_features(self) -> bool:
@@ -1225,11 +1226,11 @@ class LiveEngineRunner:
             return bool(supported.intersection(governed_runtime_inputs))
         return "LIQUIDATION_CASCADE" in supported
 
-    async def _fetch_runtime_market_features_from_rest(self, symbol: str) -> Dict[str, Any]:
+    async def _fetch_runtime_market_features_from_rest(self, symbol: str) -> dict[str, Any]:
         if self.rest_client is None:
             return {}
-        premium_payload: Dict[str, Any] | None = None
-        open_interest_payload: Dict[str, Any] | None = None
+        premium_payload: dict[str, Any] | None = None
+        open_interest_payload: dict[str, Any] | None = None
         premium_task = asyncio.create_task(self.rest_client.get_premium_index(symbol))
         open_interest_task = asyncio.create_task(self.rest_client.get_open_interest(symbol))
         premium_result, open_interest_result = await asyncio.gather(
@@ -1255,7 +1256,7 @@ class LiveEngineRunner:
         if premium_failed and open_interest_failed:
             raise RuntimeError(f"runtime market-feature REST fetch failed for {symbol}")
 
-        snapshot: Dict[str, Any] = {}
+        snapshot: dict[str, Any] = {}
         if premium_payload is not None:
             snapshot["funding_rate"] = float(premium_payload.get("lastFundingRate", 0.0) or 0.0)
             snapshot["mark_price"] = float(premium_payload.get("markPrice", 0.0) or 0.0)
@@ -1263,7 +1264,7 @@ class LiveEngineRunner:
             if premium_ts is not None:
                 try:
                     snapshot["funding_timestamp"] = datetime.fromtimestamp(
-                        float(premium_ts) / 1000.0, tz=timezone.utc
+                        float(premium_ts) / 1000.0, tz=UTC
                     ).isoformat()
                 except Exception:
                     snapshot["funding_timestamp"] = str(premium_ts)
@@ -1273,13 +1274,13 @@ class LiveEngineRunner:
             if oi_ts is not None:
                 try:
                     snapshot["open_interest_timestamp"] = datetime.fromtimestamp(
-                        float(oi_ts) / 1000.0, tz=timezone.utc
+                        float(oi_ts) / 1000.0, tz=UTC
                     ).isoformat()
                 except Exception:
                     snapshot["open_interest_timestamp"] = str(oi_ts)
         return snapshot
 
-    def _fresh_runtime_market_features_for_symbol(self, symbol: str) -> Dict[str, Any]:
+    def _fresh_runtime_market_features_for_symbol(self, symbol: str) -> dict[str, Any]:
         runtime = dict(self._latest_runtime_market_features_by_symbol.get(str(symbol).upper(), {}))
         if not runtime:
             return {}
@@ -1290,7 +1291,7 @@ class LiveEngineRunner:
             refreshed_ts = datetime.fromisoformat(refreshed_at)
         except ValueError:
             return {}
-        age_seconds = (datetime.now(timezone.utc) - refreshed_ts).total_seconds()
+        age_seconds = (datetime.now(UTC) - refreshed_ts).total_seconds()
         if age_seconds > self.runtime_market_feature_stale_after_seconds:
             return {}
         return runtime
@@ -1315,7 +1316,7 @@ class LiveEngineRunner:
                 continue
             previous = dict(self._latest_runtime_market_features_by_symbol.get(normalized, {}))
             merged = dict(raw)
-            merged["refreshed_at"] = datetime.now(timezone.utc).isoformat()
+            merged["refreshed_at"] = datetime.now(UTC).isoformat()
             open_interest = merged.get("open_interest")
             if open_interest is not None:
                 try:
@@ -1377,7 +1378,7 @@ class LiveEngineRunner:
         close: float,
         timestamp: str,
         move_bps: float,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         normalized_symbol = str(symbol).upper()
         ticker = self._latest_book_ticker_by_symbol.get(normalized_symbol, {})
         runtime_features = self._fresh_runtime_market_features_for_symbol(normalized_symbol)
@@ -1421,7 +1422,7 @@ class LiveEngineRunner:
         self,
         outcome: DecisionOutcome,
         *,
-        oms_result: Dict[str, Any] | None = None,
+        oms_result: dict[str, Any] | None = None,
     ) -> None:
         if self._thesis_memory_root is None:
             return
@@ -1433,7 +1434,7 @@ class LiveEngineRunner:
             trade_intent=outcome.trade_intent,
             top_score=outcome.top_score,
         )
-        oms_linkage: Dict[str, Any] = {}
+        oms_linkage: dict[str, Any] = {}
         if oms_result is not None:
             oms_linkage = {
                 "oms_accepted": bool(oms_result.get("accepted", False)),
@@ -1478,7 +1479,7 @@ class LiveEngineRunner:
                 return thesis
         return None
 
-    def _candidate_decision_outcomes(self, outcome: DecisionOutcome) -> List[DecisionOutcome]:
+    def _candidate_decision_outcomes(self, outcome: DecisionOutcome) -> list[DecisionOutcome]:
         if (
             self.runtime_mode != "trading"
             or not bool(self.strategy_runtime.get("auto_submit", False))
@@ -1663,9 +1664,9 @@ class LiveEngineRunner:
     async def _submit_trade_intent_batch_if_enabled(
         self,
         *,
-        outcomes: List[DecisionOutcome],
-        market_state: Dict[str, Any],
-    ) -> Dict[str, Dict[str, Any] | None]:
+        outcomes: list[DecisionOutcome],
+        market_state: dict[str, Any],
+    ) -> dict[str, dict[str, Any] | None]:
         if not outcomes:
             return {}
         if self.runtime_mode != "trading" or not bool(self.strategy_runtime.get("auto_submit", False)):
@@ -1677,7 +1678,7 @@ class LiveEngineRunner:
                 for outcome in outcomes
             }
 
-        portfolio_inputs: List[tuple[DecisionOutcome, Any]] = []
+        portfolio_inputs: list[tuple[DecisionOutcome, Any]] = []
         for outcome in outcomes:
             portfolio_intent = self._build_portfolio_thesis_intent(
                                 outcome=outcome,
@@ -1685,7 +1686,7 @@ class LiveEngineRunner:
             if portfolio_intent is not None:
                 portfolio_inputs.append((outcome, portfolio_intent))
 
-        portfolio_by_thesis: Dict[str, Any] = {}
+        portfolio_by_thesis: dict[str, Any] = {}
         if portfolio_inputs:
             portfolio_state = outcomes[0].context.portfolio_state
             decisions = self._portfolio_engine.decide(
@@ -1705,7 +1706,7 @@ class LiveEngineRunner:
                 str(decision.thesis_id): decision for decision in decisions
             }
 
-        results: Dict[str, Dict[str, Any] | None] = {}
+        results: dict[str, dict[str, Any] | None] = {}
         for outcome in outcomes:
             thesis_id = str(outcome.trade_intent.thesis_id)
             results[thesis_id] = await self._submit_trade_intent_if_enabled(
@@ -1762,9 +1763,9 @@ class LiveEngineRunner:
         self,
         *,
         outcome: DecisionOutcome,
-        market_state: Dict[str, Any],
+        market_state: dict[str, Any],
         portfolio_decision: Any | None = None,
-    ) -> Dict[str, Any] | None:
+    ) -> dict[str, Any] | None:
         if self.runtime_mode != "trading":
             return None
         if not bool(self.strategy_runtime.get("auto_submit", False)):
@@ -1851,7 +1852,7 @@ class LiveEngineRunner:
                 ),
                 "expected_adverse_bps": float(
                     abs(
-                        (thesis.expected_response.get("stop_value", 0.0) if thesis is not None else 0.0)
+                        thesis.expected_response.get("stop_value", 0.0) if thesis is not None else 0.0
                     )
                     * 10_000.0
                 ),
@@ -1968,7 +1969,7 @@ class LiveEngineRunner:
         )
         timestamp = self._event_value(event, "timestamp")
         if timestamp is None:
-            timestamp = datetime.now(timezone.utc).isoformat()
+            timestamp = datetime.now(UTC).isoformat()
         elif hasattr(timestamp, "isoformat"):
             timestamp = timestamp.isoformat()
 
@@ -2073,7 +2074,7 @@ class LiveEngineRunner:
 
         self.persist_runtime_metrics_snapshot()
 
-    def _get_realized_metrics_for_thesis(self, thesis_id: str) -> Dict[str, Any]:
+    def _get_realized_metrics_for_thesis(self, thesis_id: str) -> dict[str, Any]:
         # Implementation to extract rolling metrics from execution_attribution
         records = [
             r
@@ -2140,7 +2141,7 @@ class LiveEngineRunner:
         self.persist_execution_quality_report()
         self.persist_runtime_metrics_snapshot()
 
-    def execution_quality_summary(self) -> Dict[str, float]:
+    def execution_quality_summary(self) -> dict[str, float]:
         return self.order_manager.summarize_execution_quality()
 
     def persist_execution_quality_report(self) -> Path | None:

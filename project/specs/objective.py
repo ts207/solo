@@ -5,7 +5,7 @@ import json
 import os
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any
 
 from project.core.coercion import safe_float
 from project.spec_registry import load_objective_spec, load_retail_profile
@@ -65,31 +65,31 @@ class ObjectiveProfileContract:
     objective_id: str
     objective_spec_path: str
     objective_spec_hash: str
-    objective_hard_gates: Dict[str, Any]
-    objective_constraints: Dict[str, Any]
+    objective_hard_gates: dict[str, Any]
+    objective_constraints: dict[str, Any]
     retail_profile_name: str
     retail_profile_spec_path: str
     retail_profile_spec_hash: str
-    retail_profile_config: Dict[str, Any]
+    retail_profile_config: dict[str, Any]
     min_trade_count: int
     min_oos_sign_consistency: float
     min_tob_coverage: float
     min_net_expectancy_bps: float
-    max_fee_plus_slippage_bps: Optional[float]
-    max_daily_turnover_multiple: Optional[float]
-    max_concurrent_positions: Optional[int]
-    target_account_size_usd: Optional[float]
-    max_initial_margin_pct: Optional[float]
-    max_leverage: Optional[float]
-    max_position_notional_usd: Optional[float]
-    capital_budget_usd: Optional[float]
-    effective_per_position_notional_cap_usd: Optional[float]
+    max_fee_plus_slippage_bps: float | None
+    max_daily_turnover_multiple: float | None
+    max_concurrent_positions: int | None
+    target_account_size_usd: float | None
+    max_initial_margin_pct: float | None
+    max_leverage: float | None
+    max_position_notional_usd: float | None
+    capital_budget_usd: float | None
+    effective_per_position_notional_cap_usd: float | None
     require_retail_viability: bool
     forbid_fallback_in_deploy_mode: bool
     require_low_capital_contract: bool
-    low_capital_contract: Dict[str, Any]
+    low_capital_contract: dict[str, Any]
 
-    def as_dict(self) -> Dict[str, Any]:
+    def as_dict(self) -> dict[str, Any]:
         return {
             "objective_name": self.objective_name,
             "objective_id": self.objective_id,
@@ -125,14 +125,14 @@ def _sha256_text(text: str) -> str:
     return hashlib.sha256(text.encode("utf-8")).hexdigest()
 
 
-def _safe_positive_float(value: Any) -> Optional[float]:
+def _safe_positive_float(value: Any) -> float | None:
     out = safe_float(value)
     if out is None or out <= 0.0:
         return None
     return float(out)
 
 
-def _safe_positive_int(value: Any) -> Optional[int]:
+def _safe_positive_int(value: Any) -> int | None:
     out = safe_float(value)
     if out is None:
         return None
@@ -150,7 +150,7 @@ def _is_missing_scalar(value: Any) -> bool:
     return False
 
 
-def _extract_low_capital_contract(profile_cfg: Dict[str, Any]) -> Dict[str, Any]:
+def _extract_low_capital_contract(profile_cfg: dict[str, Any]) -> dict[str, Any]:
     if not isinstance(profile_cfg, dict):
         return {}
     out = {}
@@ -174,7 +174,7 @@ def assert_low_capital_contract(
     contract: ObjectiveProfileContract,
     *,
     stage_name: str,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     required = bool(getattr(contract, "require_low_capital_contract", False))
     profile_name = str(getattr(contract, "retail_profile_name", "unknown")).strip() or "unknown"
     if not required:
@@ -184,7 +184,7 @@ def assert_low_capital_contract(
     if not isinstance(raw_cfg, dict) or not raw_cfg:
         retail_cfg = getattr(contract, "retail_profile_config", {})
         raw_cfg = _extract_low_capital_contract(retail_cfg if isinstance(retail_cfg, dict) else {})
-    cfg: Dict[str, Any] = dict(raw_cfg or {})
+    cfg: dict[str, Any] = dict(raw_cfg or {})
 
     missing = [k for k in LOW_CAPITAL_REQUIRED_FIELDS if _is_missing_scalar(cfg.get(k))]
     if missing:
@@ -218,7 +218,7 @@ def assert_low_capital_contract(
     return cfg
 
 
-def _load_run_manifest(data_root: Path, run_id: str) -> Dict[str, Any]:
+def _load_run_manifest(data_root: Path, run_id: str) -> dict[str, Any]:
     path = data_root / "runs" / str(run_id) / "run_manifest.json"
     if not path.exists():
         return {}
@@ -259,7 +259,7 @@ def _resolve_source_path(
     return str(candidate)
 
 
-def _resolve_objective_name(*, explicit: str | None, run_manifest: Dict[str, Any]) -> str:
+def _resolve_objective_name(*, explicit: str | None, run_manifest: dict[str, Any]) -> str:
     name = str(explicit or "").strip()
     if name:
         return name
@@ -270,7 +270,7 @@ def _resolve_objective_name(*, explicit: str | None, run_manifest: Dict[str, Any
     return from_env or "retail_profitability"
 
 
-def _resolve_retail_profile_name(*, explicit: str | None, run_manifest: Dict[str, Any]) -> str:
+def _resolve_retail_profile_name(*, explicit: str | None, run_manifest: dict[str, Any]) -> str:
     name = str(explicit or "").strip()
     if name:
         return name
@@ -286,7 +286,7 @@ def _resolve_objective_spec_path(
     project_root: Path,
     objective_name: str,
     explicit: str | None,
-    run_manifest: Dict[str, Any],
+    run_manifest: dict[str, Any],
 ) -> str:
     repo_root = project_root.parent
     if explicit and str(explicit).strip():
@@ -325,7 +325,7 @@ def _resolve_retail_profiles_spec_path(
     *,
     project_root: Path,
     explicit: str | None,
-    run_manifest: Dict[str, Any],
+    run_manifest: dict[str, Any],
 ) -> str:
     repo_root = project_root.parent
     if explicit and str(explicit).strip():
@@ -435,7 +435,7 @@ def resolve_objective_profile_contract(
         retail_profile_config.get("max_position_notional_usd")
     )
 
-    capital_budget_usd: Optional[float] = None
+    capital_budget_usd: float | None = None
     if (
         target_account_size_usd is not None
         and max_initial_margin_pct is not None
@@ -443,7 +443,7 @@ def resolve_objective_profile_contract(
     ):
         capital_budget_usd = float(target_account_size_usd * max_initial_margin_pct * max_leverage)
 
-    effective_per_position_notional_cap_usd: Optional[float] = max_position_notional_usd
+    effective_per_position_notional_cap_usd: float | None = max_position_notional_usd
     if capital_budget_usd is not None and max_concurrent_positions:
         per_slot_budget = float(capital_budget_usd) / float(max_concurrent_positions)
         if effective_per_position_notional_cap_usd is None:

@@ -4,7 +4,7 @@ import hashlib
 import os
 import sys
 import time
-from typing import Any, Dict, List, Tuple
+from typing import Any
 
 from project import PROJECT_ROOT
 from project.events.event_specs import EVENT_REGISTRY_SPECS
@@ -94,7 +94,7 @@ def _data_fingerprint(symbols, run_id, **kwargs):
     return digest, lineage
 
 
-def _export_runtime_mode_env(run_manifest: Dict[str, Any]) -> None:
+def _export_runtime_mode_env(run_manifest: dict[str, Any]) -> None:
     os.environ["BACKTEST_STRICT_RUN_SCOPED_READS"] = (
         "1" if bool(run_manifest.get("strict_run_scoped_reads", False)) else "0"
     )
@@ -104,7 +104,7 @@ def _export_runtime_mode_env(run_manifest: Dict[str, Any]) -> None:
 
 
 
-def _run_all_impl(raw_argv: List[str] | None = None) -> int:
+def _run_all_impl(raw_argv: list[str] | None = None) -> int:
     # Synchronize environment with current DATA_ROOT for downstream helpers
     os.environ["BACKTEST_DATA_ROOT"] = str(DATA_ROOT)
     raw_argv = list(raw_argv if raw_argv is not None else sys.argv[1:])
@@ -118,7 +118,7 @@ def _run_all_impl(raw_argv: List[str] | None = None) -> int:
 
     parser = build_parser()
 
-    def write_run_manifest_internal(run_id: str, manifest: Dict[str, Any]) -> None:
+    def write_run_manifest_internal(run_id: str, manifest: dict[str, Any]) -> None:
         write_run_manifest(run_id, manifest)
 
     args, resolved_config, experiment_id, experiment_results_dir = resolve_experiment_context(
@@ -185,8 +185,8 @@ def _run_all_impl(raw_argv: List[str] | None = None) -> int:
         return 0
 
     # Initialize state
-    stage_timings: List[Tuple[str, float]] = []
-    stage_instance_timings: List[Tuple[str, float]] = []
+    stage_timings: list[tuple[str, float]] = []
+    stage_instance_timings: list[tuple[str, float]] = []
     pipeline_session_id = hashlib.sha256(f"{run_id}:{time.time_ns()}".encode()).hexdigest()
 
     try:
@@ -238,7 +238,7 @@ def _run_all_impl(raw_argv: List[str] | None = None) -> int:
         write_run_manifest=write_run_manifest_internal,
     )
 
-    runtime_spec_issues: List[str] = []
+    runtime_spec_issues: list[str] = []
     if runtime_invariants_mode != "off":
         runtime_spec_issues = list(validate_runtime_invariants_specs(PROJECT_ROOT.parent))
         if runtime_spec_issues:
@@ -418,7 +418,7 @@ def _run_all_impl(raw_argv: List[str] | None = None) -> int:
     return exit_code
 
 
-def main(argv: List[str] | None = None) -> int:
+def main(argv: list[str] | None = None) -> int:
     return _run_all_impl(list(argv if argv is not None else sys.argv[1:]))
 
 

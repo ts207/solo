@@ -17,7 +17,6 @@ import argparse
 import json
 import logging
 from pathlib import Path
-from typing import List
 
 import pandas as pd
 
@@ -198,7 +197,7 @@ def _write_evaluation_artifacts(
 
 def _write_regime_conditional_candidates_from_breakdown(
     metrics: pd.DataFrame,
-    regime_breakdown: "pd.DataFrame | None",
+    regime_breakdown: pd.DataFrame | None,
     out_dir: Path,
     *,
     weak_overall_threshold: float = 1.5,
@@ -299,7 +298,7 @@ def _write_regime_conditional_candidates_from_breakdown(
 
 
 def _load_all_features(
-    symbols: List[str],
+    symbols: list[str],
     run_id: str,
     timeframe: str,
     data_root: Path,
@@ -484,7 +483,7 @@ def main() -> int:
         "rejection_reason_counts": dict(generation_audit.get("rejection_reason_counts", {})),
         "primary_search_unit": "trigger_x_expression_template",
         "filter_overlay_hypotheses": filter_overlay_count,
-        "evaluated": int(len(metrics)) if not metrics.empty else 0,
+        "evaluated": len(metrics) if not metrics.empty else 0,
         "passing_filter": passing,
         "cluster_redundant": redundant_count,
         "use_context_quality": bool(int(args.use_context_quality)),

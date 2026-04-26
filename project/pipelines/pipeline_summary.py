@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 import os
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 from project.pipelines.pipeline_defaults import (
     DATA_ROOT,
@@ -16,7 +16,7 @@ def _data_root() -> Path:
     return Path(os.getenv("BACKTEST_DATA_ROOT", str(DATA_ROOT)))
 
 
-def load_kpi_source_frame(run_id: str) -> Tuple[Optional[Any], Optional[str], Optional[Path]]:
+def load_kpi_source_frame(run_id: str) -> tuple[Any | None, str | None, Path | None]:
     """Searches for a KPI source frame in data/reports."""
     report_dir = _data_root() / "reports"
     if not report_dir.exists():
@@ -49,7 +49,7 @@ def load_kpi_source_frame(run_id: str) -> Tuple[Optional[Any], Optional[str], Op
         (report_dir / f"edge_candidates_{run_id}.csv", "edge_candidates"),
     ]
 
-    empty_match: Tuple[Optional[Any], Optional[str], Optional[Path]] = (None, None, None)
+    empty_match: tuple[Any | None, str | None, Path | None] = (None, None, None)
     for path, name in candidate_paths:
         df = read_table_auto(path)
         if df is None:
@@ -62,7 +62,7 @@ def load_kpi_source_frame(run_id: str) -> Tuple[Optional[Any], Optional[str], Op
     return empty_match
 
 
-def numeric_metric(df: Any, columns: List[str], *, aggregation: str) -> Dict[str, Any]:
+def numeric_metric(df: Any, columns: list[str], *, aggregation: str) -> dict[str, Any]:
     """Calculates a numeric metric from a DataFrame using specified columns and aggregation."""
     col = next((c for c in columns if c in df.columns), None)
     if col is None:
@@ -101,7 +101,7 @@ def numeric_metric(df: Any, columns: List[str], *, aggregation: str) -> Dict[str
         }
 
 
-def bool_rate_metric(df: Any, columns: List[str]) -> Dict[str, Any]:
+def bool_rate_metric(df: Any, columns: list[str]) -> dict[str, Any]:
     """Calculates the mean rate of a boolean column."""
     col = next((c for c in columns if c in df.columns), None)
     if col is None:
@@ -128,7 +128,7 @@ def bool_rate_metric(df: Any, columns: List[str]) -> Dict[str, Any]:
         }
 
 
-def write_run_kpi_scorecard(run_id: str, run_manifest: Dict[str, Any] | None = None) -> None:
+def write_run_kpi_scorecard(run_id: str, run_manifest: dict[str, Any] | None = None) -> None:
     """Calculates and writes the KPI scorecard for a given run."""
     df, name, path = load_kpi_source_frame(run_id)
     if df is None:

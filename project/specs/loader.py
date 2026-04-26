@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import os
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any
 
 from project.spec_registry import load_yaml_path
 from project.specs.schema_validation import ObjectiveSpec, validate_spec
@@ -14,7 +14,7 @@ DEFAULT_RETAIL_PROFILES_SPEC_ENV_VAR = "BACKTEST_RETAIL_PROFILES_PATH"
 DEFAULT_RETAIL_PROFILE_NAME_ENV_VAR = "BACKTEST_RETAIL_PROFILE"
 
 
-def _safe_defaults(payload: object) -> Dict[str, Any]:
+def _safe_defaults(payload: object) -> dict[str, Any]:
     if not isinstance(payload, dict):
         return {}
     defaults = payload.get("defaults", {})
@@ -23,7 +23,7 @@ def _safe_defaults(payload: object) -> Dict[str, Any]:
     return dict(defaults)
 
 
-def _safe_objective(payload: object) -> Dict[str, Any]:
+def _safe_objective(payload: object) -> dict[str, Any]:
     if not isinstance(payload, dict):
         return {}
     raw = payload.get("objective", payload)
@@ -39,13 +39,13 @@ def _safe_objective(payload: object) -> Dict[str, Any]:
     return out
 
 
-def _safe_profiles(payload: object) -> Dict[str, Dict[str, Any]]:
+def _safe_profiles(payload: object) -> dict[str, dict[str, Any]]:
     if not isinstance(payload, dict):
         return {}
     raw_profiles = payload.get("profiles", payload)
     if not isinstance(raw_profiles, dict):
         return {}
-    out: Dict[str, Dict[str, Any]] = {}
+    out: dict[str, dict[str, Any]] = {}
     for name, cfg in raw_profiles.items():
         key = str(name).strip()
         if key and isinstance(cfg, dict):
@@ -59,7 +59,7 @@ def load_global_defaults(
     explicit_path: str | Path | None = None,
     env_var: str = DEFAULT_GLOBAL_DEFAULTS_ENV_VAR,
     required: bool = False,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     candidates: list[Path] = []
     if explicit_path:
         candidates.append(Path(explicit_path))
@@ -87,7 +87,7 @@ def load_objective_spec(
     explicit_path: str | Path | None = None,
     env_var: str = DEFAULT_OBJECTIVE_SPEC_ENV_VAR,
     required: bool = False,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     resolved_name = (
         str(objective_name).strip()
         or str(os.getenv(DEFAULT_OBJECTIVE_NAME_ENV_VAR, "")).strip()
@@ -130,7 +130,7 @@ def load_retail_profiles_spec(
     explicit_path: str | Path | None = None,
     env_var: str = DEFAULT_RETAIL_PROFILES_SPEC_ENV_VAR,
     required: bool = False,
-) -> Dict[str, Dict[str, Any]]:
+) -> dict[str, dict[str, Any]]:
     candidates: list[Path] = []
     if explicit_path:
         candidates.append(Path(explicit_path))
@@ -160,7 +160,7 @@ def load_retail_profile(
     explicit_path: str | Path | None = None,
     env_var: str = DEFAULT_RETAIL_PROFILES_SPEC_ENV_VAR,
     required: bool = False,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     resolved_name = (
         str(profile_name).strip()
         or str(os.getenv(DEFAULT_RETAIL_PROFILE_NAME_ENV_VAR, "")).strip()

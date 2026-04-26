@@ -4,10 +4,9 @@ import argparse
 import csv
 import json
 from collections import defaultdict
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from statistics import median
-from typing import Dict, List
 
 from project.core.config import get_data_root
 from project.core.exceptions import DataIntegrityError
@@ -15,7 +14,7 @@ from project.core.exceptions import DataIntegrityError
 DATA_ROOT = get_data_root()
 
 
-def _load_manifest(path: Path) -> Dict[str, object]:
+def _load_manifest(path: Path) -> dict[str, object]:
     try:
         payload = json.loads(path.read_text(encoding="utf-8"))
     except Exception as exc:
@@ -25,13 +24,13 @@ def _load_manifest(path: Path) -> Dict[str, object]:
     return payload if isinstance(payload, dict) else {}
 
 
-def _collect_run_ids(explicit: List[str]) -> List[str]:
+def _collect_run_ids(explicit: list[str]) -> list[str]:
     if explicit:
         return [str(r).strip() for r in explicit if str(r).strip()]
     runs_root = DATA_ROOT / "runs"
     if not runs_root.exists():
         return []
-    out: List[str] = []
+    out: list[str] = []
     for run_dir in sorted(p for p in runs_root.iterdir() if p.is_dir()):
         if (run_dir / "run_manifest.json").exists():
             out.append(run_dir.name)
@@ -57,7 +56,7 @@ def main() -> int:
         print("No run manifests found.")
         return 1
 
-    benchmark_id = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
+    benchmark_id = datetime.now(UTC).strftime("%Y%m%d_%H%M%S")
     out_dir = (
         Path(args.out_dir)
         if args.out_dir
@@ -65,9 +64,9 @@ def main() -> int:
     )
     out_dir.mkdir(parents=True, exist_ok=True)
 
-    stage_rows: List[Dict[str, object]] = []
-    per_stage: Dict[str, List[float]] = defaultdict(list)
-    run_summaries: List[Dict[str, object]] = []
+    stage_rows: list[dict[str, object]] = []
+    per_stage: dict[str, list[float]] = defaultdict(list)
+    run_summaries: list[dict[str, object]] = []
 
     for run_id in run_ids:
         manifest_path = DATA_ROOT / "runs" / run_id / "run_manifest.json"
@@ -122,7 +121,7 @@ def main() -> int:
 
     summary = {
         "benchmark_id": benchmark_id,
-        "created_at_utc": datetime.now(timezone.utc).isoformat(),
+        "created_at_utc": datetime.now(UTC).isoformat(),
         "data_root": str(DATA_ROOT),
         "run_count": len(run_summaries),
         "runs": run_summaries,

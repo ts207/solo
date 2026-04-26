@@ -8,9 +8,10 @@ sequences, and interactions.
 from __future__ import annotations
 
 import logging
+from collections.abc import Iterable
 from itertools import product
 from pathlib import Path
-from typing import Any, Dict, Iterable, List, Optional, Tuple
+from typing import Any
 
 from project.domain.compiled_registry import get_domain_registry
 from project.domain.hypotheses import HypothesisSpec, TriggerSpec, TriggerType
@@ -30,7 +31,7 @@ from project.spec_validation import (
 log = logging.getLogger(__name__)
 
 
-def _candidate_row(spec: HypothesisSpec, *, search_spec_name: str) -> Dict[str, Any]:
+def _candidate_row(spec: HypothesisSpec, *, search_spec_name: str) -> dict[str, Any]:
     return CandidateHypothesis(spec=spec, search_spec_name=search_spec_name).to_record()
 
 
@@ -51,7 +52,7 @@ def _accept_unique_spec(
     return True
 
 
-def _context_combinations(contexts: Dict[str, Any]) -> List[Optional[Dict[str, str]]]:
+def _context_combinations(contexts: dict[str, Any]) -> list[dict[str, str] | None]:
     """
     Expand contexts dict into a list of conditioning dicts.
     Supports '*' wildcard for expanding all labels in a family.
@@ -85,13 +86,13 @@ def _context_combinations(contexts: Dict[str, Any]) -> List[Optional[Dict[str, s
     if not values:
         return [None]
 
-    combos: List[Optional[Dict[str, str]]] = []
+    combos: list[dict[str, str] | None] = []
     for combo in product(*values):
         combos.append(dict(zip(active_keys, combo)))
     return combos
 
 
-def _edge_cell_contexts(contexts: Dict[str, Any]) -> List[Optional[Dict[str, str]]]:
+def _edge_cell_contexts(contexts: dict[str, Any]) -> list[dict[str, str] | None]:
     """
     Edge-cell discovery treats each context family independently (1D contexts),
     plus an unconditional baseline. It intentionally does not emit cartesian
@@ -101,7 +102,7 @@ def _edge_cell_contexts(contexts: Dict[str, Any]) -> List[Optional[Dict[str, str
         return [None]
 
     registry = get_domain_registry()
-    combos: List[Optional[Dict[str, str]]] = [None]
+    combos: list[dict[str, str] | None] = [None]
     for family, raw in contexts.items():
         if raw == "*":
             values = list(registry.context_labels_for_family(family))
@@ -118,12 +119,12 @@ def _edge_cell_contexts(contexts: Dict[str, Any]) -> List[Optional[Dict[str, str
 
 def _build_hypotheses(
     trigger_type: str,
-    ids_or_configs: List[Any],
-    horizons: List[str],
-    directions: List[str],
-    entry_lags: List[int],
-    contexts: List[Optional[Dict[str, str]]],
-    templates: List[str],
+    ids_or_configs: list[Any],
+    horizons: list[str],
+    directions: list[str],
+    entry_lags: list[int],
+    contexts: list[dict[str, str] | None],
+    templates: list[str],
 ) -> Iterable[HypothesisSpec]:
     for item in ids_or_configs:
         if trigger_type == TriggerType.EVENT:
@@ -177,8 +178,8 @@ def _event_default_templates(
     event_id: str,
     *,
     registry,
-    fallback_templates: List[str],
-) -> List[str]:
+    fallback_templates: list[str],
+) -> list[str]:
     event_def = registry.get_event(event_id)
     if event_def is None:
         return list(fallback_templates)
@@ -211,22 +212,22 @@ def _event_default_templates(
     return list(fallback_templates)
 
 
-def load_sequence_registry() -> List[Dict[str, Any]]:
+def load_sequence_registry() -> list[dict[str, Any]]:
     return get_domain_registry().sequence_rows()
 
 
-def load_interaction_registry() -> List[Dict[str, Any]]:
+def load_interaction_registry() -> list[dict[str, Any]]:
     return get_domain_registry().interaction_rows()
 
 
 def generate_hypotheses_with_audit(
     search_spec_name: str = "full",
     *,
-    max_hypotheses: Optional[int] = None,
+    max_hypotheses: int | None = None,
     skip_invalid: bool = True,
-    search_space_path: Optional[Path | str] = None,
+    search_space_path: Path | str | None = None,
     features=None,
-) -> Tuple[List[HypothesisSpec], Dict[str, Any]]:
+) -> tuple[list[HypothesisSpec], dict[str, Any]]:
     """
     Generate all hypothesis candidates from a phased search spec.
     """
@@ -244,7 +245,7 @@ def generate_hypotheses_with_audit(
     states = expanded.get("states", [])
     transitions = expanded.get("transitions", [])
     feature_predicates = expanded.get("feature_predicates", [])
-    event_family_map: Dict[str, str] = expanded.get("event_family_map", {})
+    event_family_map: dict[str, str] = expanded.get("event_family_map", {})
 
     # Resolve wildcards
     horizons = [str(h) for h in doc.get("horizons", ["15m"])]
@@ -266,10 +267,10 @@ def generate_hypotheses_with_audit(
     quotas = doc.get("quotas", {})
     template_budgets = doc.get("template_budgets", {})
 
-    type_counts: Dict[str, int] = {}
-    template_counts: Dict[str, int] = {}
+    type_counts: dict[str, int] = {}
+    template_counts: dict[str, int] = {}
 
-    hypotheses: List[HypothesisSpec] = []
+    hypotheses: list[HypothesisSpec] = []
     seen_ids: set = set()
     seen_branch_hashes: set = set()
     seen_branch_hashes: set = set()
@@ -278,16 +279,16 @@ def generate_hypotheses_with_audit(
     skipped_quota = 0
     skipped_budget = 0
     skipped_cap = 0
-    rejection_reason_counts: Dict[str, int] = {}
-    generated_rows: List[Dict[str, Any]] = []
-    rejected_rows: List[Dict[str, Any]] = []
-    feasible_rows: List[Dict[str, Any]] = []
+    rejection_reason_counts: dict[str, int] = {}
+    generated_rows: list[dict[str, Any]] = []
+    rejected_rows: list[dict[str, Any]] = []
+    feasible_rows: list[dict[str, Any]] = []
 
     def _add(spec: HypothesisSpec) -> None:
         nonlocal skipped_invalid, skipped_dup, skipped_quota, skipped_budget, skipped_cap
         generated_rows.append(_candidate_row(spec, search_spec_name=search_spec_name))
 
-        def _record_rejection(reason: str, details: Optional[Dict[str, Any]] = None) -> None:
+        def _record_rejection(reason: str, details: dict[str, Any] | None = None) -> None:
             rejection_reason_counts[reason] = rejection_reason_counts.get(reason, 0) + 1
             candidate = CandidateHypothesis(spec=spec, search_spec_name=search_spec_name)
             rejected_rows.append(
@@ -517,9 +518,9 @@ def generate_hypotheses_with_audit(
         "rejected_rows": rejected_rows,
         "feasible_rows": feasible_rows,
         "counts": {
-            "generated": int(len(generated_rows)),
-            "rejected": int(len(rejected_rows)),
-            "feasible": int(len(feasible_rows)),
+            "generated": len(generated_rows),
+            "rejected": len(rejected_rows),
+            "feasible": len(feasible_rows),
             "skipped_cap": int(skipped_cap),
             "skipped_quota": int(skipped_quota),
             "skipped_budget": int(skipped_budget),
@@ -534,10 +535,10 @@ def generate_hypotheses_with_audit(
 def generate_hypotheses(
     search_spec_name: str = "full",
     *,
-    max_hypotheses: Optional[int] = None,
+    max_hypotheses: int | None = None,
     skip_invalid: bool = True,
-    search_space_path: Optional[Path | str] = None,
-) -> List[HypothesisSpec]:
+    search_space_path: Path | str | None = None,
+) -> list[HypothesisSpec]:
     hypotheses, _ = generate_hypotheses_with_audit(
         search_spec_name,
         max_hypotheses=max_hypotheses,
@@ -563,9 +564,9 @@ def _first_n(items: list, n: int) -> list:
 def _canonical_templates_for_event(
     event_id: str,
     *,
-    fallback_templates: List[str],
+    fallback_templates: list[str],
     registry,
-) -> List[str]:
+) -> list[str]:
     """Return templates for an event, falling back to spec templates."""
     return _event_default_templates(
         event_id, registry=registry, fallback_templates=fallback_templates
@@ -573,12 +574,12 @@ def _canonical_templates_for_event(
 
 
 def generate_trigger_probe_candidates(
-    events: List[str],
+    events: list[str],
     search_spec_doc: dict,
     hierarchical_config: dict,
     *,
     features=None,
-) -> List[HypothesisSpec]:
+) -> list[HypothesisSpec]:
     """Stage A — Generate a minimal canonical probe set per trigger.
 
     Per event: one canonical template, one canonical horizon, one entry lag.
@@ -600,10 +601,10 @@ def generate_trigger_probe_candidates(
     probe_lags = _first_n(entry_lags_all, max_entry_lags)
     probe_directions = directions_all if allow_both else [directions_all[0]]
     # No context for Stage A
-    probe_contexts: List[Optional[Dict[str, Any]]] = [None]
+    probe_contexts: list[dict[str, Any] | None] = [None]
 
     registry = get_domain_registry()
-    hypotheses: List[HypothesisSpec] = []
+    hypotheses: list[HypothesisSpec] = []
     seen_ids: set = set()
     seen_branch_hashes: set = set()
 
@@ -647,12 +648,12 @@ def generate_trigger_probe_candidates(
 
 
 def generate_template_refinement_candidates(
-    surviving_trigger_events: List[str],
+    surviving_trigger_events: list[str],
     search_spec_doc: dict,
     hierarchical_config: dict,
     *,
     features=None,
-) -> List[HypothesisSpec]:
+) -> list[HypothesisSpec]:
     """Stage B — Expand templates for surviving triggers only.
 
     Uses canonical horizon and canonical lag (Stage A anchors).
@@ -673,10 +674,10 @@ def generate_template_refinement_candidates(
 
     probe_horizons = _first_n(horizons_all, max_horizons)
     probe_lags = _first_n(entry_lags_all, max_entry_lags)
-    probe_contexts: List[Optional[Dict[str, Any]]] = [None]
+    probe_contexts: list[dict[str, Any] | None] = [None]
 
     registry = get_domain_registry()
-    hypotheses: List[HypothesisSpec] = []
+    hypotheses: list[HypothesisSpec] = []
     seen_ids: set = set()
     seen_branch_hashes: set = set()
 
@@ -720,12 +721,12 @@ def generate_template_refinement_candidates(
 
 
 def generate_execution_refinement_candidates(
-    surviving_trigger_templates: List[Tuple[str, str]],
+    surviving_trigger_templates: list[tuple[str, str]],
     search_spec_doc: dict,
     hierarchical_config: dict,
     *,
     features=None,
-) -> List[HypothesisSpec]:
+) -> list[HypothesisSpec]:
     """Stage C — Refine execution shape (direction × lag) for surviving pairs.
 
     Input: list of (event_id, template_id) tuples.
@@ -745,9 +746,9 @@ def generate_execution_refinement_candidates(
 
     exec_horizons = _first_n(horizons_all, max_horizons)
     exec_lags = _first_n(entry_lags_all, max_entry_lags)
-    exec_contexts: List[Optional[Dict[str, Any]]] = [None]
+    exec_contexts: list[dict[str, Any] | None] = [None]
 
-    hypotheses: List[HypothesisSpec] = []
+    hypotheses: list[HypothesisSpec] = []
     seen_ids: set = set()
     seen_branch_hashes: set = set()
 
@@ -787,12 +788,12 @@ def generate_execution_refinement_candidates(
 
 
 def generate_context_refinement_candidates(
-    surviving_specs: List[HypothesisSpec],
+    surviving_specs: list[HypothesisSpec],
     search_spec_doc: dict,
     hierarchical_config: dict,
     *,
     features=None,
-) -> Tuple[List[HypothesisSpec], List[HypothesisSpec]]:
+) -> tuple[list[HypothesisSpec], list[HypothesisSpec]]:
     """Stage D — Sparse context refinement for surviving execution shapes.
 
     Returns (baseline_specs, context_specs) where baseline_specs are the
@@ -810,7 +811,7 @@ def generate_context_refinement_candidates(
 
     raw_contexts = search_spec_doc.get("contexts", {})
     # Expand only single-dimension context variants
-    all_1d_contexts: List[Dict[str, str]] = []
+    all_1d_contexts: list[dict[str, str]] = []
     registry = get_domain_registry()
     for family, value in raw_contexts.items():
         labels = []
@@ -832,8 +833,8 @@ def generate_context_refinement_candidates(
 
     seen_ids: set = set()
     seen_branch_hashes: set = set()
-    baseline_specs: List[HypothesisSpec] = []
-    context_specs: List[HypothesisSpec] = []
+    baseline_specs: list[HypothesisSpec] = []
+    context_specs: list[HypothesisSpec] = []
 
     for parent_spec in surviving_specs:
         # Baseline: same spec, no context

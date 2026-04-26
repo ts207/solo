@@ -1,9 +1,10 @@
 from __future__ import annotations
 
+from collections.abc import Mapping
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from math import isfinite
-from typing import Any, Mapping
+from typing import Any
 
 
 def finite_float(raw: Any) -> float | None:
@@ -44,8 +45,8 @@ def parse_timestamp(raw: Any) -> datetime | None:
         except ValueError:
             return None
     if parsed.tzinfo is None:
-        return parsed.replace(tzinfo=timezone.utc)
-    return parsed.astimezone(timezone.utc)
+        return parsed.replace(tzinfo=UTC)
+    return parsed.astimezone(UTC)
 
 
 def age_seconds(observed: datetime | None, reference: datetime | None) -> float | None:

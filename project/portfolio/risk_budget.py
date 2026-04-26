@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import logging
 import math
-from typing import Dict
 
 _LOG = logging.getLogger(__name__)
 
@@ -34,7 +33,7 @@ def calculate_portfolio_risk_multiplier(
 
 def get_asset_correlation_adjustment(
     asset_bucket: str,
-    bucket_exposures: Dict[str, float],
+    bucket_exposures: dict[str, float],
     correlation_limit: float = 0.5,
 ) -> float:
     """
@@ -48,7 +47,7 @@ def get_asset_correlation_adjustment(
 
 def calculate_cluster_risk_multiplier(
     cluster_id: int,
-    active_cluster_counts: Dict[int, int],
+    active_cluster_counts: dict[int, int],
     max_strategies_per_cluster: int = 3,
 ) -> float:
     """

@@ -1,14 +1,15 @@
 from __future__ import annotations
 
 import logging
+from collections.abc import Callable
 from pathlib import Path
-from typing import Any, Callable, Dict
+from typing import Any
 
 LOGGER = logging.getLogger(__name__)
 
 # Registry of feature loaders. This avoids direct module imports in cross-domain code.
 # The registry lives in core, but features modules register themselves into it.
-_FEATURE_LOADERS: Dict[str, Callable[[Path, str, str], Any]] = {}
+_FEATURE_LOADERS: dict[str, Callable[[Path, str, str], Any]] = {}
 
 
 def register_feature_loader(name: str, loader: Callable[[Path, str, str], Any]) -> None:

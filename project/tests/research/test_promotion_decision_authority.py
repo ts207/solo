@@ -5,7 +5,7 @@ authoritative source for final promotion outcome fields, not the row-level
 assembly logic.
 """
 
-from typing import Any, Dict
+from typing import Any
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -17,7 +17,7 @@ from project.research.promotion.promotion_decisions import (
 )
 
 # Minimal valid row for testing
-MINIMAL_VALID_ROW: Dict[str, Any] = {
+MINIMAL_VALID_ROW: dict[str, Any] = {
     "candidate_id": "test_cand_001",
     "event_type": "VOL_SPIKE",
     "run_id": "test_run_001",
@@ -69,7 +69,7 @@ MINIMAL_VALID_ROW: Dict[str, Any] = {
 
 
 # Stub bundle decision for rejection
-REJECTED_BUNDLE_DECISION: Dict[str, Any] = {
+REJECTED_BUNDLE_DECISION: dict[str, Any] = {
     "eligible": False,
     "promotion_status": "rejected",
     "promotion_track": "fallback_only",
@@ -84,7 +84,7 @@ REJECTED_BUNDLE_DECISION: Dict[str, Any] = {
 
 
 # Stub bundle decision for promotion
-PROMOTED_BUNDLE_DECISION: Dict[str, Any] = {
+PROMOTED_BUNDLE_DECISION: dict[str, Any] = {
     "eligible": True,
     "promotion_status": "promoted",
     "promotion_track": "standard",
@@ -365,7 +365,7 @@ class TestApplyAuthoritativeBundleDecision:
     def test_helper_overrides_contradictory_row_values(self) -> None:
         """Bundle decision fields must override contradictory row-level values."""
         # Row result with contradictory promoted status
-        row_result: Dict[str, Any] = {
+        row_result: dict[str, Any] = {
             "eligible": True,
             "promotion_status": "promoted",
             "promotion_decision": "promoted",
@@ -377,7 +377,7 @@ class TestApplyAuthoritativeBundleDecision:
         }
 
         # Bundle decision says rejected
-        bundle_decision: Dict[str, Any] = {
+        bundle_decision: dict[str, Any] = {
             "eligible": False,
             "promotion_status": "rejected",
             "promotion_track": "fallback_only",
@@ -404,7 +404,7 @@ class TestApplyAuthoritativeBundleDecision:
 
     def test_helper_preserves_non_conflict_fields(self) -> None:
         """Non-conflicting fields from row result should be preserved."""
-        row_result: Dict[str, Any] = {
+        row_result: dict[str, Any] = {
             "eligible": False,
             "promotion_status": "rejected",
             "promotion_track": "fallback_only",
@@ -414,7 +414,7 @@ class TestApplyAuthoritativeBundleDecision:
             "stability_score": 0.5,
         }
 
-        bundle_decision: Dict[str, Any] = {
+        bundle_decision: dict[str, Any] = {
             "eligible": False,
             "promotion_status": "rejected",
             "promotion_track": "fallback_only",

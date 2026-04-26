@@ -2,8 +2,9 @@ from __future__ import annotations
 
 import json
 import logging
+from collections.abc import Mapping
 from dataclasses import dataclass, field
-from typing import Dict, Literal, Mapping, Tuple
+from typing import Literal
 
 import numpy as np
 import pandas as pd
@@ -106,17 +107,17 @@ class AllocationPolicy:
     mode: str = "deterministic_optimizer"
     deterministic: bool = True
     turnover_penalty: float = 0.0
-    strategy_risk_budgets: Dict[str, float] = field(default_factory=dict)
-    family_risk_budgets: Dict[str, float] = field(default_factory=dict)
-    strategy_family_map: Dict[str, str] = field(default_factory=dict)
-    strategy_thesis_map: Dict[str, str] = field(default_factory=dict)
-    thesis_overlap_group_map: Dict[str, str] = field(default_factory=dict)
-    overlap_group_risk_budgets: Dict[str, float] = field(default_factory=dict)
-    thesis_evidence_multipliers: Dict[str, float] = field(default_factory=dict)
-    thesis_execution_quality_multipliers: Dict[str, float] = field(default_factory=dict)
+    strategy_risk_budgets: dict[str, float] = field(default_factory=dict)
+    family_risk_budgets: dict[str, float] = field(default_factory=dict)
+    strategy_family_map: dict[str, str] = field(default_factory=dict)
+    strategy_thesis_map: dict[str, str] = field(default_factory=dict)
+    thesis_overlap_group_map: dict[str, str] = field(default_factory=dict)
+    overlap_group_risk_budgets: dict[str, float] = field(default_factory=dict)
+    thesis_evidence_multipliers: dict[str, float] = field(default_factory=dict)
+    thesis_execution_quality_multipliers: dict[str, float] = field(default_factory=dict)
     # NEW: Parity with live runtime
     overlap_mode: str = "budgeted"  # "budgeted" | "exclusive"
-    thesis_ranking_data: Dict[str, Dict[str, float]] = field(default_factory=dict)
+    thesis_ranking_data: dict[str, dict[str, float]] = field(default_factory=dict)
 
     def __post_init__(self) -> None:
         if self.mode not in {"heuristic", "deterministic_optimizer"}:
@@ -139,7 +140,7 @@ class AllocationContract:
     schema_version: str = ALLOCATION_CONTRACT_SCHEMA_VERSION
     diagnostics_schema_version: str = ALLOCATION_DIAGNOSTICS_SCHEMA_VERSION
 
-    def to_manifest_payload(self) -> Dict[str, object]:
+    def to_manifest_payload(self) -> dict[str, object]:
         return {
             "schema_version": self.schema_version,
             "diagnostics_schema_version": self.diagnostics_schema_version,
@@ -197,19 +198,19 @@ class AllocationContract:
 
 @dataclass(frozen=True)
 class AllocationDetails:
-    allocated_positions_by_strategy: Dict[str, pd.Series]
-    scale_by_strategy: Dict[str, pd.Series]
+    allocated_positions_by_strategy: dict[str, pd.Series]
+    scale_by_strategy: dict[str, pd.Series]
     diagnostics: pd.DataFrame
-    summary: Dict[str, object]
+    summary: dict[str, object]
     contract: AllocationContract
-    policy_weights: Dict[str, float]
+    policy_weights: dict[str, float]
 
 
 def _as_float_series(series: pd.Series) -> pd.Series:
     return pd.to_numeric(series, errors="coerce").fillna(0.0).astype(float)
 
 
-def _coerce_budget_mapping(raw: object) -> Dict[str, float]:
+def _coerce_budget_mapping(raw: object) -> dict[str, float]:
     if raw is None:
         return {}
     parsed = raw
@@ -220,7 +221,7 @@ def _coerce_budget_mapping(raw: object) -> Dict[str, float]:
         parsed = json.loads(text)
     if not isinstance(parsed, Mapping):
         raise ValueError("risk budget mappings must be a mapping or JSON object string")
-    out: Dict[str, float] = {}
+    out: dict[str, float] = {}
     for key, value in parsed.items():
         numeric = float(value)
         if numeric < 0.0:
@@ -229,7 +230,7 @@ def _coerce_budget_mapping(raw: object) -> Dict[str, float]:
     return out
 
 
-def _coerce_string_mapping(raw: object) -> Dict[str, str]:
+def _coerce_string_mapping(raw: object) -> dict[str, str]:
     if raw is None:
         return {}
     parsed = raw
@@ -326,10 +327,10 @@ def _normalize_policy_weights(scores: pd.Series) -> pd.Series:
 
 
 def _resolve_policy_weights(
-    requested: Dict[str, pd.Series],
+    requested: dict[str, pd.Series],
     ordered: list[str],
     contract: AllocationContract,
-) -> Dict[str, float]:
+) -> dict[str, float]:
     if not requested:
         return {}
     if contract.policy.mode == "heuristic":
@@ -352,7 +353,7 @@ def _resolve_policy_weights(
 
 
 def _apply_thesis_evidence_scaling(
-    requested: Dict[str, pd.Series],
+    requested: dict[str, pd.Series],
     *,
     ordered: list[str],
     contract: AllocationContract,
@@ -368,12 +369,12 @@ def _apply_thesis_evidence_scaling(
 
 
 def _apply_thesis_optimizer_scaling(
-    requested: Dict[str, pd.Series],
+    requested: dict[str, pd.Series],
     *,
     ordered: list[str],
     contract: AllocationContract,
-) -> Dict[str, float]:
-    multipliers: Dict[str, float] = {}
+) -> dict[str, float]:
+    multipliers: dict[str, float] = {}
     for key in ordered:
         thesis_id = str(contract.policy.strategy_thesis_map.get(key, "")).strip()
         if not thesis_id:
@@ -410,15 +411,15 @@ def _apply_thesis_optimizer_scaling(
 
 
 def _apply_family_budget_caps(
-    allocated: Dict[str, pd.Series],
+    allocated: dict[str, pd.Series],
     *,
     ordered: list[str],
     aligned_index: pd.Index,
     contract: AllocationContract,
     flag: callable,
-) -> Dict[str, int]:
-    family_budget_hits: Dict[str, int] = {}
-    family_members: Dict[str, list[str]] = {}
+) -> dict[str, int]:
+    family_budget_hits: dict[str, int] = {}
+    family_members: dict[str, list[str]] = {}
     for key in ordered:
         family = str(contract.policy.strategy_family_map.get(key, key)).strip() or key
         family_members.setdefault(family, []).append(key)
@@ -452,16 +453,16 @@ def _apply_family_budget_caps(
 
 
 def _apply_thesis_overlap_budget_caps(
-    allocated: Dict[str, pd.Series],
+    allocated: dict[str, pd.Series],
     *,
     ordered: list[str],
     aligned_index: pd.Index,
     contract: AllocationContract,
     flag: callable,
-) -> Dict[str, int]:
-    overlap_hits: Dict[str, int] = {}
-    members_by_group: Dict[str, list[str]] = {}
-    strategy_to_thesis: Dict[str, str] = {}
+) -> dict[str, int]:
+    overlap_hits: dict[str, int] = {}
+    members_by_group: dict[str, list[str]] = {}
+    strategy_to_thesis: dict[str, str] = {}
 
     for key in ordered:
         thesis_id = str(contract.policy.strategy_thesis_map.get(key, "")).strip()
@@ -552,14 +553,14 @@ def _apply_thesis_overlap_budget_caps(
 
 
 def allocate_position_scales(
-    raw_positions_by_strategy: Dict[str, pd.Series],
-    requested_scale_by_strategy: Dict[str, pd.Series],
+    raw_positions_by_strategy: dict[str, pd.Series],
+    requested_scale_by_strategy: dict[str, pd.Series],
     limits: RiskLimits,
     contract: AllocationContract | None = None,
     portfolio_pnl_series: pd.Series | None = None,
     regime_series: pd.Series | None = None,
-    regime_scale_map: Dict[str, float] | None = None,
-) -> Tuple[Dict[str, pd.Series], Dict[str, object]]:
+    regime_scale_map: dict[str, float] | None = None,
+) -> tuple[dict[str, pd.Series], dict[str, object]]:
     details = allocate_position_details(
         raw_positions_by_strategy,
         requested_scale_by_strategy,
@@ -573,14 +574,14 @@ def allocate_position_scales(
 
 
 def allocate_position_details(
-    raw_positions_by_strategy: Dict[str, pd.Series],
-    requested_scale_by_strategy: Dict[str, pd.Series],
+    raw_positions_by_strategy: dict[str, pd.Series],
+    requested_scale_by_strategy: dict[str, pd.Series],
     limits: RiskLimits,
     contract: AllocationContract | None = None,
     portfolio_pnl_series: pd.Series | None = None,
     regime_series: pd.Series | None = None,
-    regime_scale_map: Dict[str, float] | None = None,
-    strategy_returns: Dict[str, pd.Series] | None = None,
+    regime_scale_map: dict[str, float] | None = None,
+    strategy_returns: dict[str, pd.Series] | None = None,
 ) -> AllocationDetails:
     resolved_contract = contract or AllocationContract(limits=limits)
     if not raw_positions_by_strategy:
@@ -615,7 +616,7 @@ def allocate_position_details(
     if aligned_index is None:
         raise ValueError("aligned_index must not be None")
 
-    requested: Dict[str, pd.Series] = {}
+    requested: dict[str, pd.Series] = {}
     for key in ordered:
         pos = _as_float_series(raw_positions_by_strategy[key]).reindex(aligned_index).fillna(0.0)
         scale = (
@@ -661,7 +662,7 @@ def allocate_position_details(
             flag=_flag,
         )
 
-    scale_by_strategy: Dict[str, pd.Series] = {}
+    scale_by_strategy: dict[str, pd.Series] = {}
     requested_gross = (
         pd.DataFrame(requested).abs().sum(axis=1)
         if requested

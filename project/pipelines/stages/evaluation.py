@@ -1,5 +1,4 @@
 from pathlib import Path
-from typing import List, Tuple
 
 
 def build_evaluation_stages(
@@ -11,7 +10,7 @@ def build_evaluation_stages(
     force_flag: str,
     project_root: Path,
     data_root: Path,
-) -> List[Tuple[str, Path, List[str]]]:
+) -> list[tuple[str, Path, list[str]]]:
     """
     Build strategy packaging stages.
     Primary Goal: Produce profitable strategy artifacts.
@@ -19,7 +18,7 @@ def build_evaluation_stages(
     if getattr(args, "experiment_config", None):
         return []
 
-    stages: List[Tuple[str, Path, List[str]]] = []
+    stages: list[tuple[str, Path, list[str]]] = []
 
     research_root = project_root / "research"
 

@@ -2,8 +2,9 @@ from __future__ import annotations
 
 import os
 import time
+from collections.abc import Callable, Mapping
 from pathlib import Path
-from typing import Any, Callable, Dict, List, Mapping, Optional, Tuple
+from typing import Any
 
 from project.pipelines.execution_engine import (
     run_dag,
@@ -23,7 +24,7 @@ from project.pipelines.pipeline_defaults import (
 )
 
 
-def run_stage(stage: str, script: Path, base_args: List[str], run_id: str, **kwargs) -> bool:
+def run_stage(stage: str, script: Path, base_args: list[str], run_id: str, **kwargs) -> bool:
     """Executes a single pipeline stage using the execution engine."""
     # Map kwargs to expected execution_engine.run_stage names
     engine_kwargs = {
@@ -43,11 +44,11 @@ def run_stage(stage: str, script: Path, base_args: List[str], run_id: str, **kwa
 
 
 def seed_run_manifest(
-    run_manifest: Dict[str, Any],
+    run_manifest: dict[str, Any],
     run_id: str,
-    existing_manifest: Dict[str, Any],
+    existing_manifest: dict[str, Any],
     resume_from_failed_stage: bool,
-    write_run_manifest: Callable[[str, Dict[str, Any]], None],
+    write_run_manifest: Callable[[str, dict[str, Any]], None],
 ) -> None:
     """Seeds the run manifest, potentially merging state from an existing one."""
     if resume_from_failed_stage and existing_manifest:
@@ -62,10 +63,10 @@ def seed_run_manifest(
 
 
 def finalize_run_manifest(
-    run_manifest: Dict[str, Any],
+    run_manifest: dict[str, Any],
     status: str,
-    stage_timings: List[Tuple[str, float]],
-    stage_instance_timings: List[Tuple[str, float]],
+    stage_timings: list[tuple[str, float]],
+    stage_instance_timings: list[tuple[str, float]],
     **kwargs,
 ) -> None:
     """Finalizes the run manifest with terminal status and timings."""
@@ -102,7 +103,7 @@ class ExecutionRunner:
         *,
         feature_schema_version: str,
         current_pipeline_session_id: str,
-        run_stage_fn: Optional[Callable] = None,
+        run_stage_fn: Callable | None = None,
     ) -> None:
         self.feature_schema_version = str(feature_schema_version)
         self.current_pipeline_session_id = str(current_pipeline_session_id)
@@ -115,18 +116,18 @@ class ExecutionRunner:
         args: Any,
         run_id: str,
         stages: Mapping[str, Any],
-        planned_stage_instances: List[str],
+        planned_stage_instances: list[str],
         resume_from_index: int,
         execution_requested: bool,
-        run_manifest: Dict[str, Any],
-        stage_timings: List[Tuple[str, float]],
-        stage_instance_timings: List[Tuple[str, float]],
+        run_manifest: dict[str, Any],
+        stage_timings: list[tuple[str, float]],
+        stage_instance_timings: list[tuple[str, float]],
         write_run_manifest: Callable[[str, dict], None],
         write_run_kpi_scorecard: Callable[[str, dict], None],
         apply_run_terminal_audit: Callable[[str, dict], None],
-        load_checklist_decision: Callable[[str], Optional[str]],
-        last_stage_cache_meta: Dict[str, Dict[str, object]],
-    ) -> Dict[str, Any]:
+        load_checklist_decision: Callable[[str], str | None],
+        last_stage_cache_meta: dict[str, dict[str, object]],
+    ) -> dict[str, Any]:
         if not execution_requested:
             print("Execution not requested. Planning complete.")
             return {"status": "ok"}
@@ -211,7 +212,7 @@ class ExecutionRunner:
         self,
         *,
         plan: ExecutionPlan,
-        run_manifest: Dict[str, Any],
+        run_manifest: dict[str, Any],
         data_root: Path | None = None,
         verified_at: str = "",
     ) -> ExecutionVerificationReport:
@@ -228,21 +229,21 @@ def execute_pipeline_stages(
     args: Any,
     run_id: str,
     stages: Mapping[str, Any],
-    planned_stage_instances: List[str],
+    planned_stage_instances: list[str],
     resume_from_index: int,
     execution_requested: bool,
-    run_manifest: Dict[str, Any],
-    stage_timings: List[Tuple[str, float]],
-    stage_instance_timings: List[Tuple[str, float]],
+    run_manifest: dict[str, Any],
+    stage_timings: list[tuple[str, float]],
+    stage_instance_timings: list[tuple[str, float]],
     write_run_manifest: Callable[[str, dict], None],
     write_run_kpi_scorecard: Callable[[str, dict], None],
     apply_run_terminal_audit: Callable[[str, dict], None],
-    load_checklist_decision: Callable[[str], Optional[str]],
-    last_stage_cache_meta: Dict[str, Dict[str, object]],
+    load_checklist_decision: Callable[[str], str | None],
+    last_stage_cache_meta: dict[str, dict[str, object]],
     feature_schema_version: str,
     current_pipeline_session_id: str,
-    run_stage_fn: Optional[Callable] = None,
-) -> Dict[str, Any]:
+    run_stage_fn: Callable | None = None,
+) -> dict[str, Any]:
     """Backward-compatible function wrapper around ExecutionRunner."""
     runner = ExecutionRunner(
         feature_schema_version=feature_schema_version,

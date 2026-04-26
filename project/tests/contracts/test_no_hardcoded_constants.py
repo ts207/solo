@@ -3,7 +3,6 @@ from __future__ import annotations
 import re
 from dataclasses import dataclass
 from pathlib import Path
-from typing import List, Optional
 
 import pytest
 
@@ -62,13 +61,13 @@ class Violation:
     line_number: int
     line_content: str
     violation_type: str
-    suggestion: Optional[str] = None
+    suggestion: str | None = None
 
 
 @dataclass
 class ScanResult:
     passed: bool
-    violations: List[Violation]
+    violations: list[Violation]
     scanned_files: int
     total_lines: int
 
@@ -95,8 +94,8 @@ def is_in_protected_context(line: str) -> bool:
     return PROTECTED_RE.search(line) is not None
 
 
-def check_line_for_hardcoded(line: str, file_path: str, line_number: int) -> List[Violation]:
-    violations: List[Violation] = []
+def check_line_for_hardcoded(line: str, file_path: str, line_number: int) -> list[Violation]:
+    violations: list[Violation] = []
 
     if is_in_protected_context(line):
         return violations
@@ -122,8 +121,8 @@ def check_line_for_hardcoded(line: str, file_path: str, line_number: int) -> Lis
     return violations
 
 
-def scan_file(file_path: Path) -> List[Violation]:
-    violations: List[Violation] = []
+def scan_file(file_path: Path) -> list[Violation]:
+    violations: list[Violation] = []
 
     if file_path.suffix not in (".py",):
         return violations
@@ -153,7 +152,7 @@ def scan_file(file_path: Path) -> List[Violation]:
 
 
 def scan_directory(directory: Path, recursive: bool = True) -> ScanResult:
-    violations: List[Violation] = []
+    violations: list[Violation] = []
     scanned_files = 0
     total_lines = 0
 

@@ -2,9 +2,10 @@ from __future__ import annotations
 
 import hashlib
 import json
+from collections.abc import Mapping
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Dict, Mapping
+from typing import Any
 
 import numpy as np
 import pandas as pd
@@ -171,7 +172,7 @@ def edge_id_from_row(row: Mapping[str, Any]) -> str:
 def write_research_integrity_report(
     run_id: str,
     data_root: Path,
-    stats: Dict[str, Any],
+    stats: dict[str, Any],
 ) -> Path:
     """
     N2: Add selection-bias accounting artifact.

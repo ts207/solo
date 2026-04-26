@@ -30,7 +30,7 @@ def enforce_event_pipeline_contract(
         return None
     try:
         validate_event_frame_columns(frame.columns)
-    except Exception as exc:  # noqa: BLE001
+    except Exception as exc:
         raise PipelineEnforcementError(str(exc)) from exc
     try:
         validate_event_frame_pit(frame)

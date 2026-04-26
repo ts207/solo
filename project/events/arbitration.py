@@ -14,7 +14,7 @@ from __future__ import annotations
 import warnings
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any
 
 import pandas as pd
 
@@ -25,7 +25,7 @@ from project.spec_registry import load_yaml_relative
 _SPEC_DIR = Path(__file__).resolve().parents[2] / "spec" / "events"
 
 
-def load_compatibility_spec() -> Dict[str, Any]:
+def load_compatibility_spec() -> dict[str, Any]:
     base = load_yaml_relative("spec/events/compatibility.yaml")
     suppression_rules = _merged_suppression_rules(base)
     return {
@@ -35,7 +35,7 @@ def load_compatibility_spec() -> Dict[str, Any]:
     }
 
 
-def load_precedence_spec() -> Dict[str, Any]:
+def load_precedence_spec() -> dict[str, Any]:
     base = load_yaml_relative("spec/events/precedence.yaml")
     return {
         **dict(base),
@@ -57,7 +57,7 @@ def _event_local_reason(active_type: str, target_type: str) -> str:
     )
 
 
-def _normalize_local_relation_entry(entry: Any) -> Dict[str, Any]:
+def _normalize_local_relation_entry(entry: Any) -> dict[str, Any]:
     if isinstance(entry, str):
         token = str(entry).strip().upper()
         return {"event_type": token} if token else {}
@@ -66,9 +66,9 @@ def _normalize_local_relation_entry(entry: Any) -> Dict[str, Any]:
     return {}
 
 
-def _local_suppression_pairs() -> Dict[tuple[str, str], Dict[str, Any]]:
+def _local_suppression_pairs() -> dict[tuple[str, str], dict[str, Any]]:
     registry = get_domain_registry()
-    pairs: Dict[tuple[str, str], Dict[str, Any]] = {}
+    pairs: dict[tuple[str, str], dict[str, Any]] = {}
     for event in registry.event_definitions.values():
         target_event = event.event_type
         for entry in event.suppressed_by:
@@ -98,8 +98,8 @@ def _local_suppression_pairs() -> Dict[tuple[str, str], Dict[str, Any]]:
     return pairs
 
 
-def _merged_suppression_rules(base: Dict[str, Any]) -> list[Dict[str, Any]]:
-    pair_map: Dict[tuple[str, str], Dict[str, Any]] = {}
+def _merged_suppression_rules(base: dict[str, Any]) -> list[dict[str, Any]]:
+    pair_map: dict[tuple[str, str], dict[str, Any]] = {}
     for rule in list(base.get("suppression_rules", []) or []):
         if not isinstance(rule, dict):
             continue
@@ -122,7 +122,7 @@ def _merged_suppression_rules(base: Dict[str, Any]) -> list[Dict[str, Any]]:
             }
     pair_map.update(_local_suppression_pairs())
 
-    grouped: Dict[tuple[str, float, bool, str], set[str]] = {}
+    grouped: dict[tuple[str, float, bool, str], set[str]] = {}
     for payload in pair_map.values():
         key = (
             str(payload["when_active"]).strip().upper(),
@@ -133,7 +133,7 @@ def _merged_suppression_rules(base: Dict[str, Any]) -> list[Dict[str, Any]]:
         grouped.setdefault(key, set()).update(
             str(item).strip().upper() for item in payload.get("suppress", []) if str(item).strip()
         )
-    rules: list[Dict[str, Any]] = []
+    rules: list[dict[str, Any]] = []
     for when_active, penalty, block, reason in sorted(grouped.keys()):
         rules.append(
             {
@@ -147,8 +147,8 @@ def _merged_suppression_rules(base: Dict[str, Any]) -> list[Dict[str, Any]]:
     return rules
 
 
-def _merged_precedence_overrides(base: Dict[str, Any]) -> list[Dict[str, Any]]:
-    override_map: Dict[str, Dict[str, Any]] = {}
+def _merged_precedence_overrides(base: dict[str, Any]) -> list[dict[str, Any]]:
+    override_map: dict[str, dict[str, Any]] = {}
     for row in list(base.get("event_overrides", []) or []):
         if not isinstance(row, dict):
             continue
@@ -188,8 +188,8 @@ def _events_overlap(df: pd.DataFrame, active_type: str, target_type: str, symbol
 
 def arbitrate_events(
     df: pd.DataFrame,
-    compat_spec: Dict[str, Any] | None = None,
-    prec_spec: Dict[str, Any] | None = None,
+    compat_spec: dict[str, Any] | None = None,
+    prec_spec: dict[str, Any] | None = None,
 ) -> ArbitrationResult:
     """
     Apply suppression rules and precedence ordering to an event frame.
@@ -224,7 +224,7 @@ def arbitrate_events(
             prec_spec = {"family_precedence": [], "event_overrides": []}
 
     out = df.copy()
-    suppressed_rows: List[pd.DataFrame] = []
+    suppressed_rows: list[pd.DataFrame] = []
     symbols = out["symbol"].unique() if "symbol" in out.columns else []
 
     for rule in compat_spec.get("suppression_rules", []):
@@ -273,7 +273,7 @@ def arbitrate_events(
         )
 
     # Implement composite event emission
-    composite_rows: List[Dict[str, Any]] = []
+    composite_rows: list[dict[str, Any]] = []
     for comp in compat_spec.get("composite_events", []):
         name = comp["name"]
         required = comp["required"]

@@ -20,7 +20,7 @@ from __future__ import annotations
 import logging
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 import pandas as pd
 
@@ -769,9 +769,9 @@ def run_hierarchical_search(
     min_t_stat: float = 1.5,
     use_context_quality: bool = True,
     folds=None,
-    bridge_gates: Optional[dict] = None,
-    data_root: Optional[Path] = None,
-    out_dir: Optional[Path] = None,
+    bridge_gates: dict | None = None,
+    data_root: Path | None = None,
+    out_dir: Path | None = None,
 ) -> HierarchicalSearchResult:
     """Orchestrate Stage A → B → C → D for one symbol.
 

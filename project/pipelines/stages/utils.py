@@ -1,6 +1,5 @@
-from functools import lru_cache
+from functools import cache
 from pathlib import Path
-from typing import List, Optional
 
 
 def script_supports_log_path(script_path: Path) -> bool:
@@ -10,7 +9,7 @@ def script_supports_log_path(script_path: Path) -> bool:
         return False
 
 
-@lru_cache(maxsize=None)
+@cache
 def _script_supports_log_path_cached(script_path: Path, mtime: float) -> bool:
     try:
         return "--log_path" in script_path.read_text(encoding="utf-8")
@@ -25,7 +24,7 @@ def script_supports_flag(script_path: Path, flag: str) -> bool:
         return False
 
 
-@lru_cache(maxsize=None)
+@cache
 def _script_supports_flag_cached(script_path: Path, flag: str, mtime: float) -> bool:
     try:
         return flag in script_path.read_text(encoding="utf-8")
@@ -33,7 +32,7 @@ def _script_supports_flag_cached(script_path: Path, flag: str, mtime: float) -> 
         return False
 
 
-def flag_value(args: List[str], flag: str) -> Optional[str]:
+def flag_value(args: list[str], flag: str) -> str | None:
     try:
         idx = args.index(flag)
     except ValueError:

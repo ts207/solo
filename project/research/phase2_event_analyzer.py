@@ -1,8 +1,8 @@
 from __future__ import annotations
 
 import logging
+from collections.abc import Callable
 from dataclasses import dataclass
-from typing import Callable, Dict, List, Tuple
 
 import numpy as np
 import pandas as pd
@@ -32,10 +32,10 @@ class ConditionSpec:
 class ActionSpec:
     name: str
     family: str
-    params: Dict[str, object]
+    params: dict[str, object]
 
 
-def _first_existing(df: pd.DataFrame, candidates: List[str]) -> str | None:
+def _first_existing(df: pd.DataFrame, candidates: list[str]) -> str | None:
     for name in candidates:
         if name in df.columns:
             return name
@@ -60,8 +60,8 @@ def _numeric_any(df: pd.DataFrame, col: str | None, n: int, default: float = np.
     return out
 
 
-def build_conditions(events: pd.DataFrame) -> List[ConditionSpec]:
-    conds: List[ConditionSpec] = [
+def build_conditions(events: pd.DataFrame) -> list[ConditionSpec]:
+    conds: list[ConditionSpec] = [
         ConditionSpec("all", "all events", lambda d: pd.Series(True, index=d.index))
     ]
 
@@ -228,7 +228,7 @@ def build_conditions(events: pd.DataFrame) -> List[ConditionSpec]:
     return out
 
 
-def build_actions() -> List[ActionSpec]:
+def build_actions() -> list[ActionSpec]:
     return [
         ActionSpec("no_action", "baseline", {}),
         ActionSpec("entry_gate_skip", "entry_gating", {"k": 0.0}),
@@ -263,7 +263,7 @@ def assign_candidate_types_and_overlay_bases(
     out["overlay_base_candidate_id"] = ""
 
     no_action_rows = out[action_series.astype(str) == "no_action"]
-    base_by_condition: Dict[str, str] = {}
+    base_by_condition: dict[str, str] = {}
     for _, row in no_action_rows.iterrows():
         cond = str(row.get("condition", "")).strip()
         candidate_id = str(row.get("candidate_id", "")).strip()
@@ -281,10 +281,10 @@ def attach_forward_opportunity(
     events: pd.DataFrame,
     controls: pd.DataFrame,
     run_id: str,
-    symbols: List[str],
+    symbols: list[str],
     timeframe: str,
     horizon_bars: int,
-) -> Tuple[pd.DataFrame, pd.DataFrame]:
+) -> tuple[pd.DataFrame, pd.DataFrame]:
     DATA_ROOT = get_data_root()
     if events.empty:
         return events, controls
@@ -427,7 +427,7 @@ def attach_forward_opportunity(
 def attach_event_market_features(
     events: pd.DataFrame,
     run_id: str,
-    symbols: List[str],
+    symbols: list[str],
     timeframe: str = "5m",
 ) -> pd.DataFrame:
     DATA_ROOT = get_data_root()
@@ -439,7 +439,7 @@ def attach_event_market_features(
     if out["enter_ts"].isna().all():
         return out
 
-    context_rows: List[pd.DataFrame] = []
+    context_rows: list[pd.DataFrame] = []
     for symbol in symbols:
         feature_dataset = feature_dataset_dir_name()
         features_candidates = [
@@ -725,7 +725,7 @@ def prepare_baseline(events: pd.DataFrame, controls: pd.DataFrame) -> pd.DataFra
 
 def apply_action_proxy(
     sub: pd.DataFrame, action: ActionSpec
-) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
+) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
     if "adverse_proxy_excess" in sub.columns:
         adverse = sub["adverse_proxy_excess"].fillna(0).astype(float).to_numpy()
     else:

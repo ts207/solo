@@ -1,12 +1,13 @@
 from __future__ import annotations
 
+from collections.abc import Iterable
 from pathlib import Path
-from typing import Any, Dict, Iterable, List
+from typing import Any
 
 import pandas as pd
 
 
-def summarize_phase2_event(event_path: Path) -> Dict[str, Any]:
+def summarize_phase2_event(event_path: Path) -> dict[str, Any]:
     if not event_path.exists():
         return {
             "rows": 0,
@@ -65,7 +66,7 @@ def summarize_phase2_event(event_path: Path) -> Dict[str, Any]:
         else {}
     )
     return {
-        "rows": int(len(df)),
+        "rows": len(df),
         "templates": templates,
         "actions": actions,
         "direction_rules": direction_rules,
@@ -74,8 +75,8 @@ def summarize_phase2_event(event_path: Path) -> Dict[str, Any]:
     }
 
 
-def build_run_summary(*, data_root: Path, run_id: str, events: Iterable[str]) -> Dict[str, Any]:
-    out: Dict[str, Any] = {"run_id": str(run_id), "events": {}}
+def build_run_summary(*, data_root: Path, run_id: str, events: Iterable[str]) -> dict[str, Any]:
+    out: dict[str, Any] = {"run_id": str(run_id), "events": {}}
     for event in events:
         et = str(event).strip().upper()
         if not et:
@@ -89,11 +90,11 @@ def build_run_summary(*, data_root: Path, run_id: str, events: Iterable[str]) ->
 
 def compare_summaries(
     *,
-    baseline: Dict[str, Any],
-    current: Dict[str, Any],
+    baseline: dict[str, Any],
+    current: dict[str, Any],
     keys: Iterable[str] = ("rows", "templates", "actions", "direction_rules"),
-) -> List[str]:
-    failures: List[str] = []
+) -> list[str]:
+    failures: list[str] = []
     baseline_events = baseline.get("events", {})
     current_events = current.get("events", {})
     all_events = sorted(set(baseline_events) | set(current_events))

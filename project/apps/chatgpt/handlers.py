@@ -128,7 +128,7 @@ def _proposal_records(program_id: str, data_root: Path, *, limit: int) -> tuple[
             "proposal_path",
         ]
     ].to_dict("records")
-    return int(len(proposals.index)), [_clean_value(row) for row in rows]
+    return len(proposals.index), [_clean_value(row) for row in rows]
 
 
 def _memory_snapshot(program_id: str, data_root: Path, *, limit: int) -> dict[str, Any]:
@@ -464,9 +464,9 @@ def _run_candidate_snapshot(run_summary: dict[str, Any], data_root: Path) -> dic
     promotion_summary = _read_table(paths["promotion_summary"])
     diagnostics = _read_json_dict(paths["phase2_diagnostics"])
 
-    phase2_count = int(len(phase2.index))
-    edge_count = int(len(edge.index))
-    promotion_summary_rows = int(len(promotion_summary.index))
+    phase2_count = len(phase2.index)
+    edge_count = len(edge.index)
+    promotion_summary_rows = len(promotion_summary.index)
     promoted_count = _safe_int(run_summary.get("promoted_count"))
     phase2_best = _best_candidate_row(phase2, source="phase2_candidates")
     edge_best = _best_candidate_row(edge, source="edge_candidates")

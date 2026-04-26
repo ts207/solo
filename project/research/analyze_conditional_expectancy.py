@@ -3,7 +3,7 @@ from __future__ import annotations
 import argparse
 import json
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any
 
 import pandas as pd
 
@@ -51,7 +51,7 @@ def _build_payload(
     symbols: list[str],
     retail_profile: str,
     top_k: int,
-) -> tuple[Dict[str, Any], pd.DataFrame]:
+) -> tuple[dict[str, Any], pd.DataFrame]:
     if registry_df.empty:
         payload = {
             "run_id": run_id,
@@ -116,10 +116,10 @@ def _build_payload(
         "expectancy_exists": bool(len(evidence) > 0),
         "registry_exists": bool(registry_exists),
         "skip_reason": "",
-        "edge_count": int(len(work)),
+        "edge_count": len(work),
         "source_registry_path": str(registry_path),
         "summary": {
-            "tested_edges": int(len(work)),
+            "tested_edges": len(work),
             "promoted_edges": int((_safe_numeric(work, "times_promoted") > 0).sum()),
             "avg_median_effect": float(work["median_effect"].dropna().mean())
             if work["median_effect"].notna().any()
@@ -189,7 +189,7 @@ def main(argv: list[str] | None = None) -> int:
                 "expectancy_exists": bool(payload["expectancy_exists"]),
                 "registry_exists": bool(payload["registry_exists"]),
                 "edge_count": int(payload["edge_count"]),
-                "evidence_count": int(len(payload["expectancy_evidence"])),
+                "evidence_count": len(payload["expectancy_evidence"]),
             },
         )
         print(

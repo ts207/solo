@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any
 
 import pandas as pd
 
@@ -20,7 +20,7 @@ def _read_parquet(path: Path) -> pd.DataFrame:
         return pd.DataFrame()
 
 
-def _read_json(path: Path) -> Dict[str, Any]:
+def _read_json(path: Path) -> dict[str, Any]:
     if not path.exists():
         return {}
     try:
@@ -42,7 +42,7 @@ def build_shadow_playbook_payload(
     run_id: str,
     confirmatory_report_path: Path | None = None,
     adjacent_survivorship_report_path: Path | None = None,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     edge_path = (
         data_root / "reports" / "edge_candidates" / run_id / "edge_candidates_normalized.parquet"
     )
@@ -88,7 +88,7 @@ def build_shadow_playbook_payload(
         merged.get("after_cost_expectancy_per_trade", 0.0), errors="coerce"
     ).fillna(0.0)
 
-    confirmatory_index: Dict[tuple[str, str, str, str], Dict[str, Any]] = {}
+    confirmatory_index: dict[tuple[str, str, str, str], dict[str, Any]] = {}
     for row in confirmatory.get("matched_candidates", []) if isinstance(confirmatory, dict) else []:
         if not isinstance(row, dict):
             continue
@@ -100,7 +100,7 @@ def build_shadow_playbook_payload(
         )
         confirmatory_index[key] = row
 
-    adjacent_index: Dict[tuple[str, str, str, str], Dict[str, Any]] = {}
+    adjacent_index: dict[tuple[str, str, str, str], dict[str, Any]] = {}
     for row in (
         adjacent_survivorship.get("candidate_rows", [])
         if isinstance(adjacent_survivorship, dict)
@@ -118,7 +118,7 @@ def build_shadow_playbook_payload(
         if existing is None or bool(existing.get("survived_adjacent_window", False)) is False:
             adjacent_index[key] = row
 
-    groups: List[Dict[str, Any]] = []
+    groups: list[dict[str, Any]] = []
     for key, group in merged.groupby(GROUP_KEY, dropna=False):
         ranked = group.sort_values(
             by=["strict_pass", "q_value_sort", "expectancy_sort", "rule_template"],
@@ -129,7 +129,7 @@ def build_shadow_playbook_payload(
         confirm_row = confirmatory_index.get(confirm_key, {})
         adjacent_row = adjacent_index.get(confirm_key, {})
 
-        deploy_blockers: List[str] = []
+        deploy_blockers: list[str] = []
         if not bool(rep.get("strict_pass", False)):
             deploy_blockers.append("multiplicity_not_strict")
         if not bool(rep.get("naive_positive", False)):
@@ -150,7 +150,7 @@ def build_shadow_playbook_payload(
                     "direction": str(rep["direction"]),
                     "horizon": str(rep["horizon"]),
                 },
-                "template_count": int(len(ranked)),
+                "template_count": len(ranked),
                 "representative": {
                     "candidate_id": rep.get("candidate_id"),
                     "rule_template": rep.get("rule_template"),
@@ -206,7 +206,7 @@ def build_shadow_playbook_payload(
     primary = groups[0] if groups else None
     return {
         "run_id": run_id,
-        "candidate_count": int(len(merged)),
+        "candidate_count": len(merged),
         "playbook_groups": groups,
         "primary_playbook": primary,
         "source_paths": {
@@ -224,7 +224,7 @@ def build_shadow_playbook_payload(
     }
 
 
-def render_shadow_playbook_summary(payload: Dict[str, Any]) -> str:
+def render_shadow_playbook_summary(payload: dict[str, Any]) -> str:
     lines = [f"# Shadow Playbook: {payload.get('run_id', 'unknown')}"]
     primary = payload.get("primary_playbook")
     if primary:
@@ -262,7 +262,7 @@ def write_shadow_playbook_report(
     confirmatory_report_path: Path | None = None,
     adjacent_survivorship_report_path: Path | None = None,
     out_dir: Path | None = None,
-) -> Dict[str, Path]:
+) -> dict[str, Path]:
     payload = build_shadow_playbook_payload(
         data_root=data_root,
         run_id=run_id,

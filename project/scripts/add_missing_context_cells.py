@@ -1,6 +1,7 @@
-import os
-import yaml
 from pathlib import Path
+
+import yaml
+
 
 def add_context_cells():
     new_cells = [
@@ -52,16 +53,16 @@ def add_context_cells():
             # Objective says "Update 5 key tier2 context_cells.yaml files"
             # I will just update the first 5 I find.
             break
-            
-        with open(p, "r") as f:
+
+        with open(p) as f:
             doc = yaml.safe_load(f)
-            
+
         if not isinstance(doc, dict):
             continue
-            
+
         existing_ids = {c.get("id") for c in doc.get("context_cells", [])}
         cells_to_add = [c for c in new_cells if c["id"] not in existing_ids]
-        
+
         if cells_to_add:
             doc.setdefault("context_cells", []).extend(cells_to_add)
             with open(p, "w") as f:

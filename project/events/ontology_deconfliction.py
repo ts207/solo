@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import json
-from typing import Dict
 
 import pandas as pd
 
@@ -21,9 +20,9 @@ _ONTOLOGY_COLUMNS = [
 ]
 
 
-def _event_bundle_map() -> Dict[str, Dict[str, object]]:
+def _event_bundle_map() -> dict[str, dict[str, object]]:
     registry = get_domain_registry()
-    out: Dict[str, Dict[str, object]] = {}
+    out: dict[str, dict[str, object]] = {}
     for event_type in registry.event_ids:
         spec = registry.get_event(event_type)
         if spec is None:

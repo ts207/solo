@@ -1,8 +1,9 @@
 from __future__ import annotations
 
 import math
+from collections.abc import Mapping
 from dataclasses import dataclass
-from typing import Any, Mapping
+from typing import Any
 
 
 @dataclass(frozen=True)
@@ -19,7 +20,7 @@ class VenueSymbolRules:
     source: str = "configured"
 
     @classmethod
-    def from_mapping(cls, symbol: str, payload: Mapping[str, Any]) -> "VenueSymbolRules":
+    def from_mapping(cls, symbol: str, payload: Mapping[str, Any]) -> VenueSymbolRules:
         def _optional_positive(*keys: str) -> float | None:
             for key in keys:
                 if key not in payload:

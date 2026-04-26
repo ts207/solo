@@ -1,14 +1,13 @@
 from __future__ import annotations
 
-import json
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
-from typing import Any, Mapping
+from typing import Any
 
 import pandas as pd
 
 from project.core.config import get_data_root
-from project.io.utils import ensure_dir, read_parquet, atomic_write_json
+from project.io.utils import atomic_write_json, ensure_dir, read_parquet
 
 
 def _parse_window(window: str) -> tuple[str, str]:
@@ -71,12 +70,12 @@ def build_forward_confirmation_payload(
     out_dir = root / "reports" / "validation" / str(run_id)
     return {
         "run_id": str(run_id),
-        "confirmed_at": datetime.now(timezone.utc).isoformat(),
+        "confirmed_at": datetime.now(UTC).isoformat(),
         "oos_window_start": start,
         "oos_window_end": end,
         "metrics": metrics,
         "evidence_bundle_path": str(out_dir / "forward_confirmation.json"),
-        "source_candidate_rows": int(len(candidates)),
+        "source_candidate_rows": len(candidates),
         "method": "phase2_candidate_metric_snapshot",
     }
 

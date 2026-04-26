@@ -1,4 +1,4 @@
-from typing import Any, Dict
+from typing import Any
 
 import numpy as np
 import pandas as pd
@@ -11,7 +11,7 @@ def train_local_symbolic_filter(
     labels_val: pd.Series,
     candidate_id: str,
     max_grid_points: int = 25,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     Discovers the optimal continuous filter for an event.
     Enforces deterministic optimization and train/val splitting to prevent overfitting.

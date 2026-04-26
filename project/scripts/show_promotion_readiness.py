@@ -3,7 +3,7 @@ from __future__ import annotations
 import argparse
 import json
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any
 
 from project.core.config import get_data_root
 from project.core.exceptions import DataIntegrityError
@@ -14,7 +14,7 @@ from project.research.services.promotion_readiness_service import (
 )
 
 
-def _load_json(path: Path) -> Dict[str, Any]:
+def _load_json(path: Path) -> dict[str, Any]:
     if not path.exists():
         return {}
     try:

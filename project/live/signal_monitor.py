@@ -3,8 +3,8 @@ from __future__ import annotations
 import logging
 from collections import deque
 from dataclasses import dataclass
-from datetime import datetime, timezone
-from typing import Any, Deque, Dict, List, Tuple
+from datetime import UTC, datetime
+from typing import Any
 
 _LOG = logging.getLogger(__name__)
 
@@ -38,12 +38,12 @@ class FillCalibrationStatus:
 @dataclass(frozen=True)
 class SignalMonitorReport:
     timestamp: str
-    silence_statuses: List[SilenceStatus]
-    fill_calibration_statuses: List[FillCalibrationStatus]
+    silence_statuses: list[SilenceStatus]
+    fill_calibration_statuses: list[FillCalibrationStatus]
     any_alert: bool
     any_warn: bool
 
-    def as_dict(self) -> Dict[str, Any]:
+    def as_dict(self) -> dict[str, Any]:
         return {
             "timestamp": self.timestamp,
             "any_alert": self.any_alert,
@@ -101,9 +101,9 @@ class SignalMonitor:
         self.fill_alert_ratio = float(fill_alert_ratio)
 
         # thesis_id → (event_family, last_fired_at)
-        self._last_fire: Dict[str, Tuple[str, datetime]] = {}
+        self._last_fire: dict[str, tuple[str, datetime]] = {}
         # thesis_id → deque of (predicted_fill_probability, was_filled)
-        self._fill_records: Dict[str, Deque[Tuple[float, bool]]] = {}
+        self._fill_records: dict[str, deque[tuple[float, bool]]] = {}
 
     def record_event_fired(
         self,
@@ -112,7 +112,7 @@ class SignalMonitor:
         timestamp: datetime | None = None,
     ) -> None:
         """Call when a non-reject trade intent is emitted for a thesis."""
-        ts = timestamp or datetime.now(timezone.utc)
+        ts = timestamp or datetime.now(UTC)
         self._last_fire[str(thesis_id)] = (str(event_family), ts)
 
     def record_fill_outcome(
@@ -129,7 +129,7 @@ class SignalMonitor:
         self._fill_records[tid].append((float(predicted_fill_probability), bool(was_filled)))
 
     def check(self, now: datetime | None = None) -> SignalMonitorReport:
-        ts = now or datetime.now(timezone.utc)
+        ts = now or datetime.now(UTC)
 
         silence_statuses: list[SilenceStatus] = []
         for tid, (family, last_ts) in self._last_fire.items():

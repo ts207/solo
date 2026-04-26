@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import json
-from typing import Any, Dict, List
+from typing import Any
 
 import pandas as pd
 
@@ -22,7 +22,7 @@ PROMOTION_SUMMARY_COLUMNS = [
 ]
 
 
-def _trace_payload(raw: Any) -> Dict[str, Any]:
+def _trace_payload(raw: Any) -> dict[str, Any]:
     if isinstance(raw, dict):
         return raw
     if isinstance(raw, str):
@@ -38,7 +38,7 @@ def _trace_payload(raw: Any) -> Dict[str, Any]:
 
 
 def normalize_promotion_trace_rows(audit_df: pd.DataFrame) -> pd.DataFrame:
-    rows: List[Dict[str, Any]] = []
+    rows: list[dict[str, Any]] = []
     if audit_df is None or audit_df.empty:
         return pd.DataFrame(columns=PROMOTION_SUMMARY_COLUMNS)
 

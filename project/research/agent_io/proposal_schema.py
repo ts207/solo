@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Dict, List, Tuple
+from typing import Any
 
 import yaml
 
@@ -30,7 +30,7 @@ LEGACY_AGENT_PROPOSAL_FIELDS = (
     "entry_lags",
 )
 
-def _as_str_list(values: Any, *, field_name: str) -> List[str]:
+def _as_str_list(values: Any, *, field_name: str) -> list[str]:
     if values is None:
         return []
     if isinstance(values, str):
@@ -42,20 +42,20 @@ def _as_str_list(values: Any, *, field_name: str) -> List[str]:
     return out
 
 
-def _as_int_list(values: Any, *, field_name: str) -> List[int]:
+def _as_int_list(values: Any, *, field_name: str) -> list[int]:
     if values is None:
         return []
     if isinstance(values, (int, float)) and not isinstance(values, bool):
         return [int(values)]
     if not isinstance(values, (list, tuple, set)):
         raise ValueError(f"{field_name} must be an integer or list of integers")
-    out: List[int] = []
+    out: list[int] = []
     for value in values:
         out.append(int(value))
     return out
 
 
-def _load_proposal_payload(path_or_payload: str | Path | Dict[str, Any]) -> Dict[str, Any]:
+def _load_proposal_payload(path_or_payload: str | Path | dict[str, Any]) -> dict[str, Any]:
     if isinstance(path_or_payload, dict):
         raw = dict(path_or_payload)
     else:
@@ -70,7 +70,7 @@ def _load_proposal_payload(path_or_payload: str | Path | Dict[str, Any]) -> Dict
     return raw
 
 
-def _as_mapping(values: Any, *, field_name: str) -> Dict[str, Any]:
+def _as_mapping(values: Any, *, field_name: str) -> dict[str, Any]:
     if values in (None, "", False):
         return {}
     if not isinstance(values, dict):
@@ -101,12 +101,12 @@ def _as_single_int(
     return normalized
 
 
-def _normalize_contexts(values: Any) -> Dict[str, List[str]]:
+def _normalize_contexts(values: Any) -> dict[str, list[str]]:
     if values is None:
         return {}
     if not isinstance(values, dict):
         raise ValueError("contexts must be a mapping of dimension -> allowed values")
-    raw_out: Dict[str, List[str]] = {}
+    raw_out: dict[str, list[str]] = {}
     for key, raw in sorted(values.items()):
         name = str(key).strip()
         if not name:
@@ -115,7 +115,7 @@ def _normalize_contexts(values: Any) -> Dict[str, List[str]]:
     return canonicalize_contexts(raw_out)
 
 
-def _normalize_trigger_space(values: Any) -> Dict[str, Any]:
+def _normalize_trigger_space(values: Any) -> dict[str, Any]:
     if not isinstance(values, dict):
         raise ValueError("trigger_space must be an object")
     payload = dict(values)
@@ -177,7 +177,7 @@ def _normalize_phase2_gate_profile(raw: Any) -> str:
     return value
 
 
-def _normalize_config_overlays(values: Any) -> List[str]:
+def _normalize_config_overlays(values: Any) -> list[str]:
     return _as_str_list(values, field_name="config_overlays")
 
 
@@ -189,7 +189,7 @@ class BoundedProposalSpec:
     change_reason: str = ""
     compare_to_baseline: bool = True
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "baseline_run_id": self.baseline_run_id,
             "experiment_type": self.experiment_type,
@@ -230,7 +230,7 @@ class TriggerSpec:
     feature: str = ""
     operator: str = ""
     threshold: Any = None
-    events: List[str] = field(default_factory=list)
+    events: list[str] = field(default_factory=list)
     max_gap_bars: int | None = None
     left: str = ""
     right: str = ""
@@ -239,8 +239,8 @@ class TriggerSpec:
     left_direction: str = ""
     right_direction: str = ""
 
-    def to_dict(self) -> Dict[str, Any]:
-        payload: Dict[str, Any] = {"type": self.type}
+    def to_dict(self) -> dict[str, Any]:
+        payload: dict[str, Any] = {"type": self.type}
         if self.event_id:
             payload["event_id"] = self.event_id
         if self.state_id:
@@ -282,7 +282,7 @@ class SingleHypothesisSpec:
     horizon_bars: int
     entry_lag_bars: int
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "trigger": self.trigger.to_dict(),
             "template": self.template,
@@ -297,26 +297,26 @@ class SingleHypothesisProposal:
     program_id: str
     start: str
     end: str
-    symbols: List[str]
+    symbols: list[str]
     hypothesis: SingleHypothesisSpec
     description: str = ""
     run_mode: str = "research"
     objective_name: str = "retail_profitability"
     promotion_profile: str = "research"
     timeframe: str = "5m"
-    instrument_classes: List[str] = field(default_factory=lambda: ["crypto"])
-    contexts: Dict[str, List[str]] = field(default_factory=dict)
-    avoid_region_keys: List[str] = field(default_factory=list)
-    search_control: Dict[str, Any] = field(default_factory=dict)
-    artifacts: Dict[str, Any] = field(default_factory=dict)
-    knobs: Dict[str, Any] = field(default_factory=dict)
+    instrument_classes: list[str] = field(default_factory=lambda: ["crypto"])
+    contexts: dict[str, list[str]] = field(default_factory=dict)
+    avoid_region_keys: list[str] = field(default_factory=list)
+    search_control: dict[str, Any] = field(default_factory=dict)
+    artifacts: dict[str, Any] = field(default_factory=dict)
+    knobs: dict[str, Any] = field(default_factory=dict)
     discovery_profile: str = "standard"
     phase2_gate_profile: str = "auto"
     search_spec: str = "spec/search_space.yaml"
-    config_overlays: List[str] = field(default_factory=list)
+    config_overlays: list[str] = field(default_factory=list)
     bounded: BoundedProposalSpec | None = None
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "program_id": self.program_id,
             "description": self.description,
@@ -355,30 +355,30 @@ class AgentProposal:
     program_id: str
     start: str
     end: str
-    symbols: List[str]
-    trigger_space: Dict[str, Any]
-    templates: List[str]
+    symbols: list[str]
+    trigger_space: dict[str, Any]
+    templates: list[str]
     description: str = ""
     run_mode: str = "research"
     objective_name: str = "retail_profitability"
     promotion_profile: str = "research"
     timeframe: str = "5m"
-    instrument_classes: List[str] = field(default_factory=lambda: ["crypto"])
-    horizons_bars: List[int] = field(default_factory=lambda: [12, 24])
-    directions: List[str] = field(default_factory=lambda: ["long", "short"])
-    entry_lags: List[int] = field(default_factory=lambda: [1])
-    contexts: Dict[str, List[str]] = field(default_factory=dict)
-    avoid_region_keys: List[str] = field(default_factory=list)
-    search_control: Dict[str, int] = field(default_factory=dict)
-    artifacts: Dict[str, bool] = field(default_factory=dict)
-    knobs: Dict[str, Any] = field(default_factory=dict)
+    instrument_classes: list[str] = field(default_factory=lambda: ["crypto"])
+    horizons_bars: list[int] = field(default_factory=lambda: [12, 24])
+    directions: list[str] = field(default_factory=lambda: ["long", "short"])
+    entry_lags: list[int] = field(default_factory=lambda: [1])
+    contexts: dict[str, list[str]] = field(default_factory=dict)
+    avoid_region_keys: list[str] = field(default_factory=list)
+    search_control: dict[str, int] = field(default_factory=dict)
+    artifacts: dict[str, bool] = field(default_factory=dict)
+    knobs: dict[str, Any] = field(default_factory=dict)
     discovery_profile: str = "standard"
     phase2_gate_profile: str = "auto"
     search_spec: str = "spec/search_space.yaml"
-    config_overlays: List[str] = field(default_factory=list)
+    config_overlays: list[str] = field(default_factory=list)
     bounded: BoundedProposalSpec | None = None
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "program_id": self.program_id,
             "start": self.start,
@@ -487,7 +487,7 @@ def _normalize_trigger_spec(raw: Any) -> TriggerSpec:
 
 
 def _load_single_hypothesis_proposal(
-    path_or_payload: str | Path | Dict[str, Any],
+    path_or_payload: str | Path | dict[str, Any],
 ) -> SingleHypothesisProposal:
     raw = _load_proposal_payload(path_or_payload)
     if "hypothesis" not in raw:
@@ -567,7 +567,7 @@ def _load_single_hypothesis_proposal(
     return proposal
 
 
-def load_agent_proposal(path_or_payload: str | Path | Dict[str, Any]) -> AgentProposal:
+def load_agent_proposal(path_or_payload: str | Path | dict[str, Any]) -> AgentProposal:
     raw = _load_proposal_payload(path_or_payload)
     objective_name = str(
         raw.get("objective_name", raw.get("objective", "retail_profitability"))
@@ -670,7 +670,7 @@ def validate_single_hypothesis_proposal(proposal: SingleHypothesisProposal) -> N
         )
 
 
-def _compile_trigger_spec_to_trigger_space(trigger: TriggerSpec) -> Dict[str, Any]:
+def _compile_trigger_spec_to_trigger_space(trigger: TriggerSpec) -> dict[str, Any]:
     if trigger.type == "event":
         return _normalize_trigger_space(
             {
@@ -712,7 +712,7 @@ def _compile_trigger_spec_to_trigger_space(trigger: TriggerSpec) -> Dict[str, An
             }
         )
     if trigger.type == "sequence":
-        sequences: Dict[str, Any] = {"include": [list(trigger.events)]}
+        sequences: dict[str, Any] = {"include": [list(trigger.events)]}
         if trigger.max_gap_bars is not None:
             sequences["max_gaps_bars"] = [int(trigger.max_gap_bars)]
         return _normalize_trigger_space(
@@ -722,7 +722,7 @@ def _compile_trigger_spec_to_trigger_space(trigger: TriggerSpec) -> Dict[str, An
             }
         )
     if trigger.type == "interaction":
-        interaction: Dict[str, Any] = {
+        interaction: dict[str, Any] = {
             "left": trigger.left,
             "right": trigger.right,
             "op": trigger.op.upper(),
@@ -781,7 +781,7 @@ def _log_legacy_usage(context: str):
     log_dir.mkdir(parents=True, exist_ok=True)
     log_path = log_dir / "legacy_usage.log"
     import datetime
-    timestamp = datetime.datetime.now(datetime.timezone.utc).isoformat()
+    timestamp = datetime.datetime.now(datetime.UTC).isoformat()
     try:
         with log_path.open("a", encoding="utf-8") as f:
             f.write(f"[{timestamp}] LEGACY USAGE: {context}\n")
@@ -790,7 +790,7 @@ def _log_legacy_usage(context: str):
 
 
 def load_operator_proposal(
-    path_or_payload: str | Path | Dict[str, Any],
+    path_or_payload: str | Path | dict[str, Any],
 ) -> AgentProposal:
     raw = _load_proposal_payload(path_or_payload)
     fmt = detect_operator_proposal_format(raw)
@@ -805,7 +805,7 @@ def load_operator_proposal(
     return compile_structured_proposal_to_agent_proposal(proposal)
 
 
-def detect_operator_proposal_format(path_or_payload: str | Path | Dict[str, Any]) -> str:
+def detect_operator_proposal_format(path_or_payload: str | Path | dict[str, Any]) -> str:
     raw = _load_proposal_payload(path_or_payload)
     if "hypothesis" in raw:
         hypo = raw.get("hypothesis")
@@ -816,15 +816,15 @@ def detect_operator_proposal_format(path_or_payload: str | Path | Dict[str, Any]
 
 
 def load_normalized_operator_proposal(
-    path_or_payload: str | Path | Dict[str, Any],
+    path_or_payload: str | Path | dict[str, Any],
 ) -> StructuredProposal:
     proposal, _ = normalize_operator_proposal_with_warnings(path_or_payload)
     return proposal
 
 
 def normalize_operator_proposal_with_warnings(
-    path_or_payload: str | Path | Dict[str, Any],
-) -> Tuple[StructuredProposal, List[NormalizationWarning]]:
+    path_or_payload: str | Path | dict[str, Any],
+) -> tuple[StructuredProposal, list[NormalizationWarning]]:
     raw = _load_proposal_payload(path_or_payload)
     fmt = detect_operator_proposal_format(raw)
 
@@ -841,8 +841,8 @@ def normalize_operator_proposal_with_warnings(
 
 def _translate_single_hypothesis_to_structured(
     single: SingleHypothesisProposal,
-) -> Tuple[StructuredProposal, List[NormalizationWarning]]:
-    warnings: List[NormalizationWarning] = []
+) -> tuple[StructuredProposal, list[NormalizationWarning]]:
+    warnings: list[NormalizationWarning] = []
 
     # Map TriggerSpec to AnchorSpec
     trigger = single.hypothesis.trigger
@@ -920,7 +920,7 @@ def _translate_single_hypothesis_to_structured(
 
 def _translate_legacy_to_structured(
     legacy: AgentProposal,
-) -> Tuple[StructuredProposal, List[NormalizationWarning]]:
+) -> tuple[StructuredProposal, list[NormalizationWarning]]:
     # Legacy can have multiple values. For normalization to structured,
     # we take the first item if it exists and is a single-hypothesis shape.
     if (
@@ -934,7 +934,7 @@ def _translate_legacy_to_structured(
             "Legacy proposal has multiple hypotheses and cannot be normalized to StructuredProposal"
         )
 
-    warnings: List[NormalizationWarning] = []
+    warnings: list[NormalizationWarning] = []
 
     # Infer anchor from trigger_space
     allowed = legacy.trigger_space.get("allowed_trigger_types", [])
@@ -942,7 +942,7 @@ def _translate_legacy_to_structured(
         raise ValueError("Legacy trigger_space has no allowed_trigger_types")
 
     main_type = allowed[0].lower()
-    anchor_params: Dict[str, Any] = {"type": main_type}
+    anchor_params: dict[str, Any] = {"type": main_type}
 
     if main_type == "event":
         events = legacy.trigger_space.get("events", {}).get("include", [])
@@ -1114,7 +1114,7 @@ def compile_structured_proposal_to_agent_proposal(
     return agent_proposal
 
 
-def _compile_anchor_to_trigger_space(anchor: AnchorSpec) -> Dict[str, Any]:
+def _compile_anchor_to_trigger_space(anchor: AnchorSpec) -> dict[str, Any]:
     if anchor.type == "event":
         return _normalize_trigger_space(
             {
@@ -1141,7 +1141,7 @@ def _compile_anchor_to_trigger_space(anchor: AnchorSpec) -> Dict[str, Any]:
             }
         )
     if anchor.type == "sequence":
-        sequences: Dict[str, Any] = {"include": [list(anchor.events or [])]}
+        sequences: dict[str, Any] = {"include": [list(anchor.events or [])]}
         if anchor.max_gap_bars is not None:
             sequences["max_gaps_bars"] = [int(anchor.max_gap_bars)]
         return _normalize_trigger_space(
@@ -1213,7 +1213,7 @@ def _load_proxy_event_types() -> set[str]:
 
 
 def validate_proposal_with_warnings(
-    path_or_payload: "str | Path | Dict[str, Any]",
+    path_or_payload: str | Path | dict[str, Any],
 ) -> list[str]:
     """Validate proposal and return a list of non-fatal advisory warnings.
 

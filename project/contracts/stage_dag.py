@@ -1,8 +1,8 @@
 from __future__ import annotations
 
+from collections.abc import Sequence
 from dataclasses import dataclass
 from pathlib import Path
-from typing import List, Sequence
 
 from project.contracts.pipeline_registry import (
     STAGE_FAMILY_REGISTRY,
@@ -34,8 +34,8 @@ def build_stage_specs() -> tuple[StageSpecContract, ...]:
     )
 
 
-def validate_stage_registry_definitions(project_root: Path) -> List[str]:
-    issues: List[str] = []
+def validate_stage_registry_definitions(project_root: Path) -> list[str]:
+    issues: list[str] = []
     seen_families: set[str] = set()
     for spec in build_stage_specs():
         if not spec.family:
@@ -62,5 +62,5 @@ def validate_stage_registry_definitions(project_root: Path) -> List[str]:
     return issues
 
 
-def validate_stage_plan_contract(stages: Sequence[StageSpec], project_root: Path) -> List[str]:
+def validate_stage_plan_contract(stages: Sequence[StageSpec], project_root: Path) -> list[str]:
     return _validate_stage_plan_contract(stages, project_root)

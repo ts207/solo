@@ -1,7 +1,7 @@
 from __future__ import annotations
 
+from collections.abc import Sequence
 from pathlib import Path
-from typing import List, Sequence
 
 import numpy as np
 import pandas as pd
@@ -310,7 +310,7 @@ def merge_event_flags_for_selected_event_types(
     selected = [
         str(event_type).strip() for event_type in selected_event_types if str(event_type).strip()
     ]
-    selected_signal_cols: List[str] = []
+    selected_signal_cols: list[str] = []
     for event_type in selected:
         spec = EVENT_REGISTRY_SPECS.get(event_type)
         if spec is None:

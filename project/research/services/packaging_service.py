@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Optional
 
 
 @dataclass
@@ -15,11 +14,11 @@ class PackagingConfig:
 class PackagingResult:
     run_id: str
     success: bool
-    error: Optional[str] = None
+    error: str | None = None
 
 
 class PackagingService:
     def prepare_package(
-        self, run_id: str, config: Optional[PackagingConfig] = None
+        self, run_id: str, config: PackagingConfig | None = None
     ) -> PackagingResult:
         return PackagingResult(run_id, True)

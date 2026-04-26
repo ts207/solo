@@ -2,10 +2,11 @@ from __future__ import annotations
 
 import json
 import os
+from collections.abc import Iterable
 from contextlib import contextmanager
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Dict, Iterable, List
+from typing import Any
 
 import pandas as pd
 
@@ -421,7 +422,7 @@ def _reflection_compat_view(df: pd.DataFrame) -> pd.DataFrame:
     return out
 
 
-def _parse_json_payload(raw: Any) -> Dict[str, Any]:
+def _parse_json_payload(raw: Any) -> dict[str, Any]:
     if isinstance(raw, dict):
         return raw
     text = str(raw or "").strip()
@@ -434,7 +435,7 @@ def _parse_json_payload(raw: Any) -> Dict[str, Any]:
     return payload if isinstance(payload, dict) else {}
 
 
-def _label_from_trigger_payload(trigger_payload: Dict[str, Any]) -> str:
+def _label_from_trigger_payload(trigger_payload: dict[str, Any]) -> str:
     trigger_type = str(trigger_payload.get("trigger_type", "")).strip().lower()
     if trigger_type == "event":
         event_id = str(trigger_payload.get("event_id", "")).strip().upper()
@@ -468,7 +469,7 @@ def _canonical_event_type_from_trigger(
     *,
     trigger_type: str,
     trigger_key: str,
-    trigger_payload: Dict[str, Any],
+    trigger_payload: dict[str, Any],
     existing_event_type: str,
 ) -> str:
     if existing_event_type:
@@ -601,7 +602,7 @@ def build_tested_regions_snapshot(
         if legacy_candidate.exists():
             expanded_hypotheses_path = legacy_candidate
 
-    trigger_payload_by_hypothesis: Dict[str, Dict[str, Any]] = {}
+    trigger_payload_by_hypothesis: dict[str, dict[str, Any]] = {}
     if expanded_hypotheses_path is not None and expanded_hypotheses_path.exists():
         try:
             expanded_hypotheses = pd.read_parquet(expanded_hypotheses_path)
@@ -617,7 +618,7 @@ def build_tested_regions_snapshot(
                 f"Failed to read expanded hypotheses from {expanded_hypotheses_path}: {exc}"
             ) from exc
 
-    records: List[Dict[str, Any]] = []
+    records: list[dict[str, Any]] = []
     for row in df.to_dict(orient="records"):
         hypothesis_id = str(row.get("hypothesis_id", row.get("plan_row_id", ""))).strip()
         trigger_payload = _parse_json_payload(row.get("trigger_payload"))
@@ -785,7 +786,7 @@ def build_failures_snapshot(
             manifest = {}
     else:
         manifest = load_run_manifest(run_id)
-    rows: List[Dict[str, Any]] = []
+    rows: list[dict[str, Any]] = []
     raw_failed_stage = manifest.get("failed_stage", "")
     failed_stage = str(raw_failed_stage).strip() if raw_failed_stage is not None else ""
     if failed_stage.lower() in {"none", "null"}:
@@ -893,7 +894,7 @@ def _recent_metric(group: pd.DataFrame, column: str, *, tail_count: int = 3) -> 
 
 
 def _stats_row(group: pd.DataFrame) -> dict[str, Any]:
-    times_evaluated = int(len(group))
+    times_evaluated = len(group)
     times_promoted = int((group.get("eval_status", pd.Series(dtype=object)).astype(str) == "promoted").sum())
     runs_tested = int(group.get("run_id", pd.Series(dtype=object)).nunique()) if "run_id" in group.columns else times_evaluated
     after_cost = pd.to_numeric(group.get("after_cost_expectancy", pd.Series(dtype=float)), errors="coerce")
@@ -925,7 +926,7 @@ def _stats_row(group: pd.DataFrame) -> dict[str, Any]:
 def _build_dimension_statistics(
     tested_regions: pd.DataFrame,
     group_columns: list[str],
-    output_columns: List[str],
+    output_columns: list[str],
 ) -> pd.DataFrame:
     if tested_regions.empty:
         return pd.DataFrame(columns=output_columns)
@@ -950,7 +951,7 @@ def compute_region_statistics(tested_regions: pd.DataFrame) -> pd.DataFrame:
 
 
 def _aggregate_dimension(
-    tested_regions: pd.DataFrame, column: str, output_columns: List[str]
+    tested_regions: pd.DataFrame, column: str, output_columns: list[str]
 ) -> pd.DataFrame:
     return _build_dimension_statistics(tested_regions, [column], output_columns)
 

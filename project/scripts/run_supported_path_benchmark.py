@@ -7,7 +7,7 @@ import json
 import subprocess
 import sys
 from dataclasses import asdict, dataclass
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
@@ -62,7 +62,7 @@ def _table_count(path: Path) -> int | None:
     try:
         import pandas as pd
 
-        return int(len(pd.read_parquet(path)))
+        return len(pd.read_parquet(path))
     except Exception:
         return None
 
@@ -132,7 +132,7 @@ def _thesis_metrics(data_root: Path, run_id: str) -> dict[str, Any]:
     if not isinstance(theses, list):
         theses = []
     return {
-        "thesis_export_count": int(len(theses)),
+        "thesis_export_count": len(theses),
         "active_thesis_count": int(payload.get("active_thesis_count") or 0),
         "pending_thesis_count": int(payload.get("pending_thesis_count") or 0),
         "path": str(thesis_path),
@@ -201,7 +201,7 @@ def _runtime_event_count(slice_spec: BenchmarkSlice, *, execute: bool, max_rows:
         return {"count": 0, "status": "empty_data", "reason": "bar_frame_empty"}
     timestamp_col = "timestamp" if "timestamp" in frame.columns else frame.columns[0]
     frame = frame.sort_values(timestamp_col).reset_index(drop=True)
-    scanned_rows = int(len(frame))
+    scanned_rows = len(frame)
     if max_rows > 0 and scanned_rows > max_rows:
         frame = frame.tail(max_rows).reset_index(drop=True)
     close_col = "close" if "close" in frame.columns else "c"
@@ -229,7 +229,7 @@ def _runtime_event_count(slice_spec: BenchmarkSlice, *, execute: bool, max_rows:
     return {
         "count": count,
         "status": "ok",
-        "rows_scanned": int(len(frame)),
+        "rows_scanned": len(frame),
         "rows_available": scanned_rows,
         "source_files": [str(path) for path in files[:8]],
     }
@@ -464,7 +464,7 @@ def main(argv: list[str] | None = None) -> int:
 
     execute = bool(args.execute)
     data_root = Path(args.data_root)
-    stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+    stamp = datetime.now(UTC).strftime("%Y%m%dT%H%M%SZ")
     run_prefix = f"supported_path_{stamp}"
     out_dir = Path(args.out_dir) / run_prefix
     out_dir.mkdir(parents=True, exist_ok=True)

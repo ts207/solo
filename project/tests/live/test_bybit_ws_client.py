@@ -47,10 +47,9 @@ def test_bybit_ws_subscription_rejection_exhausts_reconnects() -> None:
         with mock.patch(
             "project.live.ingest.bybit_ws_client.websockets.connect",
             side_effect=lambda *_args, **_kwargs: _RejectingConnect(),
-        ):
-            with mock.patch("asyncio.sleep", side_effect=_noop_sleep):
-                client._running = True
-                await client._listen()
+        ), mock.patch("asyncio.sleep", side_effect=_noop_sleep):
+            client._running = True
+            await client._listen()
 
     asyncio.run(_run())
     assert exhausted_calls == [True]

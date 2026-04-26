@@ -14,7 +14,7 @@ from __future__ import annotations
 import logging
 import math
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 import numpy as np
 import pandas as pd
@@ -148,10 +148,10 @@ def _context_cache_key(context: dict[str, Any], *, use_context_quality: bool) ->
 @dataclass
 class EvaluationContext:
     features: pd.DataFrame
-    time_decay_tau_days: Optional[float] = 60.0
+    time_decay_tau_days: float | None = 60.0
     fwd_cache: dict[int, pd.Series] = field(default_factory=dict)
     trigger_cache: dict[str, pd.Series] = field(default_factory=dict)
-    context_cache: dict[str, Optional[pd.Series]] = field(default_factory=dict)
+    context_cache: dict[str, pd.Series | None] = field(default_factory=dict)
     shifted_mask_cache: dict[tuple[str, int, str], pd.Series] = field(default_factory=dict)
     split_compat_cache: dict[tuple[int, int], pd.DataFrame] = field(default_factory=dict)
     weights: pd.Series = field(init=False)
@@ -318,7 +318,7 @@ def _weighted_newey_west_mean_std(
         return mean, 0.0, 0.0
     weighted_var = float((w * (x - mean) ** 2).sum() / denom)
     nw_var = weighted_var
-    n_samples = int(len(x))
+    n_samples = len(x)
     hbars = int(max(1, horizon_bars))
     if hbars > 1 and n_samples > hbars:
         x_demeaned = (x - mean).to_numpy()
@@ -354,7 +354,7 @@ def evaluated_records_from_metrics(metrics_df: pd.DataFrame) -> pd.DataFrame:
     return out
 
 
-def _null_row(spec: HypothesisSpec, n: int, reason: str = "unknown") -> Dict[str, Any]:
+def _null_row(spec: HypothesisSpec, n: int, reason: str = "unknown") -> dict[str, Any]:
     candidate = CandidateHypothesis(spec=spec, search_spec_name="evaluation")
     checked = FeasibilityCheckedHypothesis(
         candidate=candidate,
@@ -454,13 +454,13 @@ def _resolved_split_label_for_window(
 
 
 def evaluate_hypothesis_batch(
-    hypotheses: List[HypothesisSpec],
+    hypotheses: list[HypothesisSpec],
     features: pd.DataFrame,
     *,
     cost_bps: float = 2.0,
     min_sample_size: int = 20,
-    annualisation_factor: Optional[float] = None,
-    time_decay_tau_days: Optional[float] = 60.0,
+    annualisation_factor: float | None = None,
+    time_decay_tau_days: float | None = 60.0,
     use_context_quality: bool = True,
     folds: list[Any] | None = None,
 ) -> pd.DataFrame:
@@ -504,10 +504,10 @@ def evaluate_hypothesis_batch(
 
     eval_context = EvaluationContext(features, time_decay_tau_days=time_decay_tau_days)
 
-    rows: List[Dict[str, Any]] = []
-    regime_rows: List[Dict[str, Any]] = []  # Phase 4.2 — per-hypothesis regime breakdown
-    fold_detail_rows: List[Dict[str, Any]] = []
-    event_timestamp_rows: List[Dict[str, Any]] = []
+    rows: list[dict[str, Any]] = []
+    regime_rows: list[dict[str, Any]] = []  # Phase 4.2 — per-hypothesis regime breakdown
+    fold_detail_rows: list[dict[str, Any]] = []
+    event_timestamp_rows: list[dict[str, Any]] = []
 
     for spec in hypotheses:
         profiles_supported, profile_reason = _is_supported_profile(spec)

@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from pydantic import BaseModel, Field
 
@@ -19,7 +19,7 @@ class TemplateParameter(BaseModel):
 class TemplateSpec(BaseModel):
     name: str
     family: str
-    parameters: List[TemplateParameter] = Field(default_factory=list)
+    parameters: list[TemplateParameter] = Field(default_factory=list)
     condition_logic: str = "all"
     default_exit_bars: int = 48
     default_stop_bps: float = 50.0
@@ -32,10 +32,10 @@ class TemplateRegistry:
     Enables declarative strategy building from event concepts.
     """
 
-    _TEMPLATES: Dict[str, TemplateSpec] = {}
+    _TEMPLATES: dict[str, TemplateSpec] = {}
 
     @classmethod
-    def load_from_yaml(cls, path: Optional[Path] = None) -> None:
+    def load_from_yaml(cls, path: Path | None = None) -> None:
         del path
         try:
             registry = get_domain_registry()
@@ -55,13 +55,13 @@ class TemplateRegistry:
             raise ConfigurationError(f"Failed to load templates from registry: {e}") from e
 
     @classmethod
-    def get_template(cls, family: str, name: str) -> Optional[TemplateSpec]:
+    def get_template(cls, family: str, name: str) -> TemplateSpec | None:
         if not cls._TEMPLATES:
             cls.load_from_yaml()
         return cls._TEMPLATES.get(f"{family.lower()}_{name}")
 
     @classmethod
-    def list_templates(cls) -> List[str]:
+    def list_templates(cls) -> list[str]:
         if not cls._TEMPLATES:
             cls.load_from_yaml()
         return sorted(cls._TEMPLATES.keys())

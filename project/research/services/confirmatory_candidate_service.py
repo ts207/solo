@@ -4,7 +4,7 @@ import json
 import logging
 from datetime import date
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any
 
 import pandas as pd
 
@@ -52,7 +52,7 @@ def _read_parquet(path: Path) -> pd.DataFrame:
         return pd.DataFrame()
 
 
-def _read_json(path: Path) -> Dict[str, Any]:
+def _read_json(path: Path) -> dict[str, Any]:
     if not path.exists():
         return {}
     try:
@@ -93,7 +93,7 @@ def _normalize_key_value(value: Any) -> str:
     return "" if text.lower() in {"nan", "none", "null"} else text
 
 
-def _resolve_structural_key_columns(origin: pd.DataFrame, target: pd.DataFrame) -> List[str]:
+def _resolve_structural_key_columns(origin: pd.DataFrame, target: pd.DataFrame) -> list[str]:
     columns = list(BASE_STRUCTURAL_KEY_COLUMNS)
     for column in STRICT_OPTIONAL_STRUCTURAL_KEY_COLUMNS:
         if _column_has_signal(origin, column) or _column_has_signal(target, column):
@@ -120,7 +120,7 @@ def _search_engine_gate_pass(frame: pd.DataFrame) -> pd.Series:
     return mask
 
 
-def _normalize_origin_candidates(frame: pd.DataFrame, *, key_columns: List[str]) -> pd.DataFrame:
+def _normalize_origin_candidates(frame: pd.DataFrame, *, key_columns: list[str]) -> pd.DataFrame:
     if frame.empty:
         return frame
     out = frame.copy()
@@ -133,7 +133,7 @@ def _normalize_origin_candidates(frame: pd.DataFrame, *, key_columns: List[str])
     return out
 
 
-def _normalize_target_candidates(frame: pd.DataFrame, *, key_columns: List[str]) -> pd.DataFrame:
+def _normalize_target_candidates(frame: pd.DataFrame, *, key_columns: list[str]) -> pd.DataFrame:
     if frame.empty:
         return frame
     out = frame.copy()
@@ -179,8 +179,8 @@ def _normalize_target_candidates(frame: pd.DataFrame, *, key_columns: List[str])
     return out.drop(columns=["_q_sort"], errors="ignore")
 
 
-def _fail_reasons_from_row(row: Dict[str, Any]) -> List[str]:
-    reasons: List[str] = []
+def _fail_reasons_from_row(row: dict[str, Any]) -> list[str]:
+    reasons: list[str] = []
     if not row:
         return ["missing_in_target"]
     if not bool(row.get("confirmatory_gate_pass", False)):
@@ -199,7 +199,7 @@ def _fail_reasons_from_row(row: Dict[str, Any]) -> List[str]:
     return reasons or ["passed"]
 
 
-def _load_run_manifest(data_root: Path, run_id: str) -> Dict[str, Any]:
+def _load_run_manifest(data_root: Path, run_id: str) -> dict[str, Any]:
     return _read_json(data_root / "runs" / run_id / "run_manifest.json")
 
 
@@ -217,10 +217,10 @@ def _month_key(value: date) -> str:
     return f"{value.year:04d}-{value.month:02d}"
 
 
-def _iter_month_keys(start: date, end: date) -> List[str]:
+def _iter_month_keys(start: date, end: date) -> list[str]:
     cursor = date(start.year, start.month, 1)
     finish = date(end.year, end.month, 1)
-    out: List[str] = []
+    out: list[str] = []
     while cursor <= finish:
         out.append(_month_key(cursor))
         if cursor.month == 12:
@@ -236,7 +236,7 @@ def _next_month_key(value: date) -> str:
     return f"{value.year:04d}-{value.month + 1:02d}"
 
 
-def _list_symbol_funding_months(data_root: Path, symbol: str) -> List[str]:
+def _list_symbol_funding_months(data_root: Path, symbol: str) -> list[str]:
     months: set[str] = set()
     raw_root = data_root / "lake" / "raw"
     funding_roots = [
@@ -258,7 +258,7 @@ def _list_symbol_funding_months(data_root: Path, symbol: str) -> List[str]:
     return sorted(months)
 
 
-def _run_symbols(manifest: Dict[str, Any]) -> List[str]:
+def _run_symbols(manifest: dict[str, Any]) -> list[str]:
     symbols = manifest.get("normalized_symbols")
     if isinstance(symbols, list) and symbols:
         return [str(symbol) for symbol in symbols if str(symbol).strip()]
@@ -268,8 +268,8 @@ def _run_symbols(manifest: Dict[str, Any]) -> List[str]:
     return [token.strip() for token in raw.split(",") if token.strip()]
 
 
-def _candidate_target_run_ids(data_root: Path) -> List[str]:
-    out: List[str] = []
+def _candidate_target_run_ids(data_root: Path) -> list[str]:
+    out: list[str] = []
     reports_root = data_root / "reports" / "phase2"
     if not reports_root.exists():
         return out
@@ -280,7 +280,7 @@ def _candidate_target_run_ids(data_root: Path) -> List[str]:
     return out
 
 
-def _is_synthetic_like_manifest(manifest: Dict[str, Any], run_id: str) -> bool:
+def _is_synthetic_like_manifest(manifest: dict[str, Any], run_id: str) -> bool:
     run_name = str(run_id).strip().lower()
     if "synth" in run_name or "synthetic" in run_name:
         return True
@@ -293,7 +293,7 @@ def plan_confirmatory_window(
     *,
     data_root: Path,
     origin_run_id: str,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     manifest = _load_run_manifest(data_root, origin_run_id)
     origin_start = _parse_iso_date(manifest.get("start"))
     origin_end = _parse_iso_date(manifest.get("end"))
@@ -307,7 +307,7 @@ def plan_confirmatory_window(
         else []
     )
 
-    target_runs: List[Dict[str, Any]] = []
+    target_runs: list[dict[str, Any]] = []
     for run_id in _candidate_target_run_ids(data_root):
         if run_id == origin_run_id:
             continue
@@ -387,7 +387,7 @@ def compare_confirmatory_candidates(
     data_root: Path,
     origin_run_id: str,
     target_run_id: str,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     origin_path = (
         data_root
         / "reports"
@@ -424,13 +424,13 @@ def compare_confirmatory_candidates(
     )
 
     origin_summary = {
-        "candidate_count": int(len(origin)),
-        "structural_key_count": int(len(origin[key_columns].drop_duplicates()))
+        "candidate_count": len(origin),
+        "structural_key_count": len(origin[key_columns].drop_duplicates())
         if not origin.empty
         else 0,
     }
     target_summary = {
-        "candidate_count": int(len(target)),
+        "candidate_count": len(target),
         "cost_identity_complete_count": int(
             target.get("confirmatory_cost_identity_complete", pd.Series(dtype=bool)).sum()
         )
@@ -483,8 +483,8 @@ def compare_confirmatory_candidates(
     )
 
     matched_summary = {
-        "matched_structural_rows": int(len(merged)),
-        "matched_structural_keys": int(len(merged[key_columns].drop_duplicates()))
+        "matched_structural_rows": len(merged),
+        "matched_structural_keys": len(merged[key_columns].drop_duplicates())
         if not merged.empty
         else 0,
         "matched_cost_identity_complete_count": int(
@@ -509,7 +509,7 @@ def compare_confirmatory_candidates(
         else 0,
     }
 
-    matched_candidates: List[Dict[str, Any]] = []
+    matched_candidates: list[dict[str, Any]] = []
     if not merged.empty:
         for row in merged.to_dict(orient="records"):
             matched_candidates.append(
@@ -550,7 +550,7 @@ def build_adjacent_survivorship_payload(
     data_root: Path,
     origin_run_id: str,
     target_run_id: str,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     origin_path = (
         data_root
         / "reports"
@@ -569,13 +569,13 @@ def build_adjacent_survivorship_payload(
     )
     target = _normalize_target_candidates(target_raw, key_columns=key_columns).copy()
 
-    target_index: Dict[tuple[str, ...], Dict[str, Any]] = {}
+    target_index: dict[tuple[str, ...], dict[str, Any]] = {}
     if not target.empty:
         for row in target.to_dict(orient="records"):
             key = tuple(str(row.get(col, "")) for col in key_columns)
             target_index[key] = row
 
-    rows: List[Dict[str, Any]] = []
+    rows: list[dict[str, Any]] = []
     for row in origin.to_dict(orient="records"):
         key = tuple(str(row.get(col, "")) for col in key_columns)
         target_row = target_index.get(key, {})
@@ -604,12 +604,12 @@ def build_adjacent_survivorship_payload(
             }
         )
 
-    failure_reason_counts: Dict[str, int] = {}
+    failure_reason_counts: dict[str, int] = {}
     for row in rows:
         for reason in row["failure_reasons"]:
             failure_reason_counts[reason] = failure_reason_counts.get(reason, 0) + 1
 
-    families: Dict[str, Dict[str, Any]] = {}
+    families: dict[str, dict[str, Any]] = {}
     for row in rows:
         family = str(row.get("event_type", ""))
         bucket = families.setdefault(
@@ -628,7 +628,7 @@ def build_adjacent_survivorship_payload(
         "origin_run_id": origin_run_id,
         "target_run_id": target_run_id,
         "structural_key_columns": key_columns,
-        "origin_survivor_count": int(len(origin)),
+        "origin_survivor_count": len(origin),
         "adjacent_survivor_count": int(sum(1 for row in rows if row["survived_adjacent_window"])),
         "failure_reason_counts": failure_reason_counts,
         "primary_event_ids": list(families.keys()),
@@ -733,12 +733,12 @@ def build_confirmatory_workflow_payload(
     data_root: Path,
     origin_run_id: str,
     target_run_id: str | None = None,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     window_plan = plan_confirmatory_window(
         data_root=data_root,
         origin_run_id=origin_run_id,
     )
-    comparison: Dict[str, Any] = {}
+    comparison: dict[str, Any] = {}
     workflow_status = "planning_only"
     next_action = "inspect_confirmatory_plan"
     blocking_reason = ""

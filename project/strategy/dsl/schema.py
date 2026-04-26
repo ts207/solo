@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, Dict, List, Literal, Optional
+from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
@@ -8,7 +8,7 @@ from pydantic import BaseModel, ConfigDict, Field, field_validator
 class SymbolScopeSpec(BaseModel):
     model_config = ConfigDict(frozen=True)
     mode: Literal["single_symbol", "multi_symbol", "all"]
-    symbols: List[str] = Field(min_length=1)
+    symbols: list[str] = Field(min_length=1)
     candidate_symbol: str = Field(min_length=1)
 
     @field_validator("symbols")
@@ -29,26 +29,13 @@ class SymbolScopeSpec(BaseModel):
 
 class ConditionNodeSpec(BaseModel):
     model_config = ConfigDict(frozen=True)
-    feature: Optional[str] = None
-    operator: Optional[
-        Literal[
-            ">",
-            ">=",
-            "<",
-            "<=",
-            "==",
-            "crosses_above",
-            "crosses_below",
-            "in_range",
-            "zscore_gt",
-            "zscore_lt",
-        ]
-    ] = None
-    value: Optional[float] = None
+    feature: str | None = None
+    operator: Literal[">", ">=", "<", "<=", "==", "crosses_above", "crosses_below", "in_range", "zscore_gt", "zscore_lt"] | None = None
+    value: float | None = None
     value_high: float | None = None
     lookback_bars: int = Field(default=0, ge=0)
     window_bars: int = Field(default=0, ge=0)
-    expression: Optional[str] = Field(default=None, description="pandas.eval string")
+    expression: str | None = Field(default=None, description="pandas.eval string")
 
     @field_validator("feature")
     @classmethod
@@ -81,13 +68,13 @@ class ConditionNodeSpec(BaseModel):
 
 class EntrySpec(BaseModel):
     model_config = ConfigDict(frozen=True)
-    triggers: List[str] = Field(min_length=1)
-    conditions: List[str]
-    confirmations: List[str]
+    triggers: list[str] = Field(min_length=1)
+    conditions: list[str]
+    confirmations: list[str]
     delay_bars: int = Field(ge=0)
     cooldown_bars: int = Field(ge=0)
     condition_logic: Literal["all", "any"] = "all"
-    condition_nodes: List[ConditionNodeSpec] = Field(default_factory=list)
+    condition_nodes: list[ConditionNodeSpec] = Field(default_factory=list)
     arm_bars: int = Field(default=0, ge=0)
     reentry_lockout_bars: int = Field(default=0, ge=0)
 
@@ -95,7 +82,7 @@ class EntrySpec(BaseModel):
 class ExitSpec(BaseModel):
     model_config = ConfigDict(frozen=True)
     time_stop_bars: int = Field(ge=0)
-    invalidation: Dict[str, Any]
+    invalidation: dict[str, Any]
     stop_type: Literal["atr", "range_pct", "percent"]
     stop_value: float = Field(gt=0)
     target_type: Literal["atr", "range_pct", "percent"]
@@ -122,7 +109,7 @@ class SizingSpec(BaseModel):
     max_position_scale: float = Field(default=1.0, ge=0)
     portfolio_risk_budget: float = Field(default=1.0, ge=0)
     symbol_risk_budget: float = Field(default=1.0, ge=0)
-    signal_scaling: Dict[str, Any] = Field(default_factory=dict)
+    signal_scaling: dict[str, Any] = Field(default_factory=dict)
 
     @field_validator("risk_per_trade")
     @classmethod
@@ -146,7 +133,7 @@ class SizingSpec(BaseModel):
 class OverlaySpec(BaseModel):
     model_config = ConfigDict(frozen=True)
     name: str = Field(min_length=1)
-    params: Dict[str, Any]
+    params: dict[str, Any]
 
     @field_validator("name")
     @classmethod
@@ -159,8 +146,8 @@ class OverlaySpec(BaseModel):
 class EvaluationSpec(BaseModel):
     model_config = ConfigDict(frozen=True)
     min_trades: int = Field(ge=0)
-    cost_model: Dict[str, Any]
-    robustness_flags: Dict[str, bool]
+    cost_model: dict[str, Any]
+    robustness_flags: dict[str, bool]
 
     @field_validator("cost_model")
     @classmethod
@@ -211,7 +198,7 @@ class LineageSpec(BaseModel):
     operator_version: str = ""
     discovery_start: str = ""
     discovery_end: str = ""
-    constraints: Dict[str, Any] = Field(default_factory=dict)
+    constraints: dict[str, Any] = Field(default_factory=dict)
     ttl_days: int = 90
 
     @field_validator("source_path", "compiler_version", "generated_at_utc")
@@ -235,7 +222,7 @@ class ExecutionSpec(BaseModel):
     urgency: Literal["passive", "aggressive", "delayed_aggressive"] = "aggressive"
     max_slippage_bps: float = Field(default=100.0, ge=0)
     fill_profile: Literal["optimistic", "base", "stressed"] = "base"
-    retry_logic: Dict[str, Any] = Field(default_factory=dict)
+    retry_logic: dict[str, Any] = Field(default_factory=dict)
 
 
 class Blueprint(BaseModel):
@@ -250,7 +237,7 @@ class Blueprint(BaseModel):
     exit: ExitSpec
     execution: ExecutionSpec = Field(default_factory=lambda: ExecutionSpec())
     sizing: SizingSpec
-    overlays: List[OverlaySpec]
+    overlays: list[OverlaySpec]
     evaluation: EvaluationSpec
     lineage: LineageSpec
 
@@ -264,5 +251,5 @@ class Blueprint(BaseModel):
     def validate(self) -> None:
         pass
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return self.model_dump()

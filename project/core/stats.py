@@ -1,8 +1,8 @@
 from __future__ import annotations
 
 import math
+from collections.abc import Iterable
 from dataclasses import dataclass
-from typing import Iterable, Optional, Tuple
 
 import numpy as np
 import pandas as pd
@@ -323,7 +323,7 @@ def _kurtosis(values: Iterable[float], fisher: bool = True) -> float:
         return float(m4 / (m2 * m2))
 
 
-def _kendalltau(x: object, y: object) -> Tuple[float, float]:
+def _kendalltau(x: object, y: object) -> tuple[float, float]:
     xa = _to_array(x)
     ya = _to_array(y)
     mask = np.isfinite(xa) & np.isfinite(ya)
@@ -410,7 +410,7 @@ class _StatsCompat:
     t: _TCompat = _TCompat()
 
     @staticmethod
-    def kendalltau(x: object, y: object) -> Tuple[float, float]:
+    def kendalltau(x: object, y: object) -> tuple[float, float]:
         return _kendalltau(x, y)
 
     @staticmethod
@@ -436,10 +436,10 @@ def canonical_bh_group_key(
     canonical_event_type: str,
     template_verb: str,
     horizon: str,
-    state_id: Optional[str] = None,
-    symbol: Optional[str] = None,
+    state_id: str | None = None,
+    symbol: str | None = None,
     include_symbol: bool = False,
-    direction_bucket: Optional[str] = None,
+    direction_bucket: str | None = None,
 ) -> str:
     """Canonical BH-FDR grouping key.
 
@@ -473,7 +473,7 @@ def canonical_bh_group_key(
 
 def newey_west_t_stat_for_mean(
     values: object,
-    max_lag: Optional[int] = None,
+    max_lag: int | None = None,
     *,
     weights: object | None = None,
 ) -> NeweyWestMeanResult:

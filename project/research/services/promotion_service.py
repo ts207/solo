@@ -3,8 +3,9 @@ from __future__ import annotations
 import json
 import logging
 from dataclasses import dataclass, field
+from datetime import UTC
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any
 
 import pandas as pd
 
@@ -23,6 +24,10 @@ from project.events.registry import get_detector_contract
 from project.io.utils import (
     atomic_write_json,
     ensure_dir,
+)
+from project.promote.forward_confirmation import (
+    load_forward_confirmation,
+    validate_forward_confirmation,
 )
 from project.research.audit_historical_artifacts import build_run_historical_trust_summary
 from project.research.CANONICAL_PIPELINE import persist_canonical_pipeline_artifact
@@ -45,10 +50,6 @@ from project.research.services.reporting_service import (
     append_phase2_funnel_index,
     write_promotion_reports,
 )
-from project.promote.forward_confirmation import (
-    load_forward_confirmation,
-    validate_forward_confirmation,
-)
 from project.research.validation.evidence_bundle import (
     bundle_to_flat_record,
     serialize_evidence_bundles,
@@ -64,7 +65,7 @@ from project.specs.ontology import ontology_spec_hash
 class PromotionConfig:
     run_id: str
     symbols: str
-    out_dir: Optional[Path]
+    out_dir: Path | None
     max_q_value: float
     min_events: int
     min_stability_score: float
@@ -82,8 +83,8 @@ class PromotionConfig:
     program_id: str
     retail_profile: str
     objective_name: str
-    objective_spec: Optional[str]
-    retail_profiles_spec: Optional[str]
+    objective_spec: str | None
+    retail_profiles_spec: str | None
     promotion_profile: str = "auto"
     require_forward_confirmation: bool = False
 
@@ -95,7 +96,7 @@ class PromotionConfig:
             else data_root / "reports" / "promotions" / self.run_id
         )
 
-    def manifest_params(self) -> Dict[str, Any]:
+    def manifest_params(self) -> dict[str, Any]:
         return {
             "run_id": self.run_id,
             "symbols": self.symbols,
@@ -124,7 +125,7 @@ class PromotionConfig:
         }
 
 
-PROMOTION_CONFIG_DEFAULTS: Dict[str, Any] = {
+PROMOTION_CONFIG_DEFAULTS: dict[str, Any] = {
     "max_q_value": 0.05,           # align with gate_v1_phase2
     "min_events": 30,              # require meaningful sample even for paper
     "min_stability_score": 0.60,   # align with bridge gate lower bound
@@ -153,7 +154,7 @@ def build_promotion_config(
     *,
     run_id: str,
     symbols: str = "",
-    out_dir: Optional[Path] = None,
+    out_dir: Path | None = None,
     **overrides: Any,
 ) -> PromotionConfig:
     values = dict(PROMOTION_CONFIG_DEFAULTS)
@@ -172,10 +173,10 @@ def build_promotion_config(
 class ResolvedPromotionPolicy:
     promotion_profile: str
     base_min_events: int
-    dynamic_min_events: Dict[str, int]
+    dynamic_min_events: dict[str, int]
     min_net_expectancy_bps: float
-    max_fee_plus_slippage_bps: Optional[float]
-    max_daily_turnover_multiple: Optional[float]
+    max_fee_plus_slippage_bps: float | None
+    max_daily_turnover_multiple: float | None
     require_retail_viability: bool
     require_low_capital_viability: bool
     enforce_baseline_beats_complexity: bool
@@ -214,21 +215,21 @@ class PromotionServiceResult:
     output_dir: Path
     audit_df: pd.DataFrame = field(default_factory=pd.DataFrame)
     promoted_df: pd.DataFrame = field(default_factory=pd.DataFrame)
-    diagnostics: Dict[str, Any] = field(default_factory=dict)
+    diagnostics: dict[str, Any] = field(default_factory=dict)
 
 
 def _record_degraded_state(
-    diagnostics: Dict[str, Any],
+    diagnostics: dict[str, Any],
     *,
     code: str,
     message: str,
-    details: Dict[str, Any] | None = None,
+    details: dict[str, Any] | None = None,
 ) -> None:
     states = diagnostics.setdefault("degraded_states", [])
     if not isinstance(states, list):
         states = []
         diagnostics["degraded_states"] = states
-    payload: Dict[str, Any] = {
+    payload: dict[str, Any] = {
         "code": str(code).strip(),
         "status": "degraded",
         "message": str(message).strip(),
@@ -244,14 +245,14 @@ _EMPTY_BUNDLE_SUMMARY_COLUMNS = _promotion_artifacts._EMPTY_BUNDLE_SUMMARY_COLUM
 _EMPTY_PROMOTION_DECISION_COLUMNS = _promotion_artifacts._EMPTY_PROMOTION_DECISION_COLUMNS
 
 
-def _is_promoted_audit_row(row: Dict[str, Any]) -> bool:
+def _is_promoted_audit_row(row: dict[str, Any]) -> bool:
     for key in ("promotion_status", "promotion_decision"):
         if str(row.get(key, "")).strip().lower() == "promoted":
             return True
     return bool(row.get("eligible", False))
 
 
-def _parse_valid_evidence_bundle(raw: Any) -> Dict[str, Any] | None:
+def _parse_valid_evidence_bundle(raw: Any) -> dict[str, Any] | None:
     if raw is None:
         return None
     if isinstance(raw, dict):
@@ -292,8 +293,8 @@ def _load_hypothesis_index(
     *,
     run_id: str,
     data_root: Path,
-    diagnostics: Dict[str, Any] | None = None,
-) -> Dict[str, Dict[str, Any]]:
+    diagnostics: dict[str, Any] | None = None,
+) -> dict[str, dict[str, Any]]:
     return _promotion_inputs._load_hypothesis_index(
         run_id=run_id,
         data_root=data_root,
@@ -355,10 +356,10 @@ def _numeric_candidate_metric(df: pd.DataFrame, columns: tuple[str, ...], *, pre
     return None
 
 
-def _candidate_forward_metric_snapshot(candidates_df: pd.DataFrame) -> Dict[str, float]:
+def _candidate_forward_metric_snapshot(candidates_df: pd.DataFrame) -> dict[str, float]:
     if candidates_df.empty:
         return {}
-    metrics: Dict[str, float] = {}
+    metrics: dict[str, float] = {}
     t_stat_net = _numeric_candidate_metric(
         candidates_df,
         ("t_stat_net", "t_stat", "net_t_stat"),
@@ -480,7 +481,7 @@ def execute_promotion(config: PromotionConfig) -> PromotionServiceResult:
     manifest = start_manifest("promote_candidates", config.run_id, config.manifest_params(), [], [])
     audit_df = pd.DataFrame()
     promoted_df = pd.DataFrame()
-    diagnostics: Dict[str, Any] = {}
+    diagnostics: dict[str, Any] = {}
     promotion_input_mode = "canonical"
 
     try:
@@ -883,7 +884,7 @@ def execute_promotion(config: PromotionConfig) -> PromotionServiceResult:
             data_root=data_root,
             run_id=config.run_id,
             promotion_profile=resolved_policy.promotion_profile,
-            promoted_count=int(len(promoted_df)),
+            promoted_count=len(promoted_df),
         )
 
         evidence_bundles = []
@@ -980,8 +981,8 @@ def execute_promotion(config: PromotionConfig) -> PromotionServiceResult:
                         }
                     )
             summary_rows = pd.DataFrame(stage_rows)
-        diagnostics["evidence_bundle_count"] = int(len(evidence_bundles))
-        diagnostics["evidence_bundle_summary_rows"] = int(len(evidence_bundle_summary))
+        diagnostics["evidence_bundle_count"] = len(evidence_bundles)
+        diagnostics["evidence_bundle_summary_rows"] = len(evidence_bundle_summary)
         write_promotion_reports(
             out_dir=out_dir,
             audit_df=audit_df,
@@ -1063,14 +1064,14 @@ def execute_promotion(config: PromotionConfig) -> PromotionServiceResult:
 
         # Sprint 7: Artifact manifest
         try:
-            from datetime import datetime, timezone
+            from datetime import datetime
 
             from project.research.validation.manifest import RunArtifactManifest
 
             artifact_manifest = RunArtifactManifest(
                 run_id=config.run_id,
                 stage="promote",
-                created_at=datetime.now(timezone.utc).isoformat(),
+                created_at=datetime.now(UTC).isoformat(),
                 upstream_run_ids=[config.run_id],
                 artifacts={
                     "promotion_audit": "promotion_audit.parquet",

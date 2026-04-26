@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Any, Dict
+from typing import Any
 
 import pandas as pd
 
@@ -36,7 +36,7 @@ class PayloadSchemaContract:
         return self.name
 
 
-_SCHEMA_REGISTRY: Dict[str, DataFrameSchemaContract] = {
+_SCHEMA_REGISTRY: dict[str, DataFrameSchemaContract] = {
     "phase2_candidates": DataFrameSchemaContract(
         name="phase2_candidates",
         required_columns=("candidate_id", "hypothesis_id", "event_type", "symbol", "run_id"),
@@ -275,7 +275,7 @@ _SCHEMA_REGISTRY: Dict[str, DataFrameSchemaContract] = {
 }
 
 
-_PAYLOAD_SCHEMA_REGISTRY: Dict[str, PayloadSchemaContract] = {
+_PAYLOAD_SCHEMA_REGISTRY: dict[str, PayloadSchemaContract] = {
     "validation_bundle": PayloadSchemaContract(
         name="validation_bundle",
         required_fields=(
@@ -413,7 +413,7 @@ def validate_dataframe_for_schema(
 
 
 def validate_schema_at_producer(
-    df: "pd.DataFrame",
+    df: pd.DataFrame,
     schema_name: str,
     *,
     context: str = "",
@@ -463,9 +463,9 @@ def validate_schema_at_producer(
 
 
 def validate_payload_for_schema(
-    payload: Dict[str, Any],
+    payload: dict[str, Any],
     schema_name: str,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     schema = get_payload_schema_contract(schema_name)
     if not isinstance(payload, dict):
         raise ValueError(f"payload for schema '{schema_name}' must be a mapping")

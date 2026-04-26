@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import argparse
-from typing import Type, TypeVar
+from typing import TypeVar
 
 from project.events.config import compose_event_config
 
@@ -25,7 +25,7 @@ class EventSpecParams:
             self.config = None
             self.spec = {}
 
-    def get(self, name: str, default: T, type_func: Type[T] = str) -> T:
+    def get(self, name: str, default: T, type_func: type[T] = str) -> T:
         # 1. Check CLI args
         cli_val = getattr(self.args, name, None)
         if cli_val is not None:

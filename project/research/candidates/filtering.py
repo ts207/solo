@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-from typing import Dict, List, Tuple
 
 import pandas as pd
 
@@ -21,7 +20,7 @@ def checklist_decision(run_id: str, data_root: Path) -> str:
     return str(payload.get("decision", "missing")).strip().upper() or "missing"
 
 
-def load_candidate_detail(source_path: Path, candidate_id: str) -> Dict[str, object]:
+def load_candidate_detail(source_path: Path, candidate_id: str) -> dict[str, object]:
     if not source_path.exists():
         return {}
     normalized_candidate_id = str(candidate_id).strip()
@@ -80,10 +79,10 @@ def load_candidate_detail(source_path: Path, candidate_id: str) -> Dict[str, obj
 
 def load_promoted_blueprints(
     run_id: str, data_root: Path
-) -> Tuple[List[Dict[str, object]], Dict[str, Path]]:
+) -> tuple[list[dict[str, object]], dict[str, Path]]:
     promoted_path = promoted_blueprints_path(run_id, data_root)
     report_path = promotion_report_path(run_id, data_root)
-    blueprints: List[Dict[str, object]] = []
+    blueprints: list[dict[str, object]] = []
     if promoted_path.exists():
         for line in promoted_path.read_text(encoding="utf-8").splitlines():
             if not line.strip():
@@ -91,7 +90,7 @@ def load_promoted_blueprints(
             payload = json.loads(line)
             if isinstance(payload, dict):
                 blueprints.append(payload)
-    report_by_id: Dict[str, Dict[str, object]] = {}
+    report_by_id: dict[str, dict[str, object]] = {}
     if report_path.exists():
         report_payload = load_json_dict(report_path)
         tested = report_payload.get("tested", []) if isinstance(report_payload, dict) else []
@@ -103,7 +102,7 @@ def load_promoted_blueprints(
                 if blueprint_id:
                     report_by_id[blueprint_id] = row
 
-    rows: List[Dict[str, object]] = []
+    rows: list[dict[str, object]] = []
     for blueprint in blueprints:
         blueprint_id = str(blueprint.get("id", "")).strip()
         promotion = (

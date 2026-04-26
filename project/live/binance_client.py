@@ -5,7 +5,7 @@ import hashlib
 import hmac
 import logging
 import time
-from typing import Any, Dict, List, Optional
+from typing import Any
 from urllib.parse import urlencode
 
 import aiohttp
@@ -51,7 +51,7 @@ class BinanceFuturesClient:
         self.api_key = api_key
         self.api_secret = api_secret
         self.BASE_URL = str(base_url or self.BASE_URL).rstrip("/")
-        self._session: Optional[aiohttp.ClientSession] = None
+        self._session: aiohttp.ClientSession | None = None
         self._session_lock = asyncio.Lock()
         # Binance weights vary by endpoint; this conservative default keeps unwind bursts bounded.
         self._rate_limiter = _AsyncTokenBucket(capacity=20.0, refill_per_second=15.0)
@@ -61,7 +61,7 @@ class BinanceFuturesClient:
             await self._session.close()
             self._session = None
 
-    def _sign(self, params: Dict[str, Any]) -> str:
+    def _sign(self, params: dict[str, Any]) -> str:
         query_string = urlencode(params)
         return hmac.new(
             self.api_secret.encode("utf-8"), query_string.encode("utf-8"), hashlib.sha256
@@ -75,7 +75,7 @@ class BinanceFuturesClient:
             return self._session
 
     async def _request(
-        self, method: str, path: str, params: Dict[str, Any] = None, signed: bool = False
+        self, method: str, path: str, params: dict[str, Any] = None, signed: bool = False
     ) -> Any:
         raw_params = dict(params or {})
         params = dict(raw_params)
@@ -105,16 +105,16 @@ class BinanceFuturesClient:
                 resp.raise_for_status()
             return data
 
-    async def get_account_v2(self) -> Dict[str, Any]:
+    async def get_account_v2(self) -> dict[str, Any]:
         """GET /fapi/v2/account"""
         return await self._request("GET", "/fapi/v2/account", signed=True)
 
-    async def get_klines(self, symbol: str, interval: str, limit: int = 500) -> List[List[Any]]:
+    async def get_klines(self, symbol: str, interval: str, limit: int = 500) -> list[list[Any]]:
         """GET /fapi/v1/klines"""
         params = {"symbol": symbol.upper(), "interval": interval, "limit": limit}
         return await self._request("GET", "/fapi/v1/klines", params=params)
 
-    async def get_tickers(self, symbol: str | None = None) -> List[Dict[str, Any]]:
+    async def get_tickers(self, symbol: str | None = None) -> list[dict[str, Any]]:
         """GET /fapi/v1/ticker/bookTicker"""
         params = {}
         if symbol:
@@ -122,7 +122,7 @@ class BinanceFuturesClient:
         res = await self._request("GET", "/fapi/v1/ticker/bookTicker", params=params)
         return [res] if isinstance(res, dict) else res
 
-    async def get_exchange_info(self, symbol: str | None = None) -> Dict[str, Any]:
+    async def get_exchange_info(self, symbol: str | None = None) -> dict[str, Any]:
         """GET /fapi/v1/exchangeInfo"""
         params = {}
         if symbol:
@@ -131,14 +131,14 @@ class BinanceFuturesClient:
 
     async def get_premium_index(
         self, symbol: str | None = None
-    ) -> Dict[str, Any] | List[Dict[str, Any]]:
+    ) -> dict[str, Any] | list[dict[str, Any]]:
         """GET /fapi/v1/premiumIndex"""
         params = {}
         if symbol:
             params["symbol"] = symbol.upper()
         return await self._request("GET", "/fapi/v1/premiumIndex", params=params)
 
-    async def get_open_interest(self, symbol: str) -> Dict[str, Any]:
+    async def get_open_interest(self, symbol: str) -> dict[str, Any]:
         """GET /fapi/v1/openInterest"""
         return await self._request(
             "GET", "/fapi/v1/openInterest", params={"symbol": symbol.upper()}

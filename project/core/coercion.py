@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import logging
-from typing import Any, Optional
+from typing import Any
 
 import numpy as np
 
@@ -26,8 +26,8 @@ def _should_suppress_missing_value_warning(val: Any, default: Any, context: str 
 
 
 def safe_float(
-    val: Any, default: Optional[float] = None, *, context: str | None = None
-) -> Optional[float]:
+    val: Any, default: float | None = None, *, context: str | None = None
+) -> float | None:
     """
     Attempt to coerce ``val`` to a finite ``float``.
 
@@ -58,8 +58,8 @@ def safe_float(
 
 
 def safe_int(
-    val: Any, default: Optional[int] = None, *, context: str | None = None
-) -> Optional[int]:
+    val: Any, default: int | None = None, *, context: str | None = None
+) -> int | None:
     """
     Attempt to coerce ``val`` to an integer via float.
 

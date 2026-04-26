@@ -4,7 +4,7 @@ import argparse
 import json
 import logging
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any
 
 import pandas as pd
 
@@ -63,11 +63,11 @@ def _event_series_from_legacy_ledger(legacy_ledger: pd.DataFrame) -> pd.Series:
 
 def _build_dynamic_quality_weights(
     tested_regions: pd.DataFrame,
-    static_weights: Dict[str, float],
+    static_weights: dict[str, float],
     *,
     min_evaluations: int = 5,
     alpha: float = 0.4,  # blend factor: 0 = fully static, 1 = fully empirical
-) -> Dict[str, float]:
+) -> dict[str, float]:
     """Blend static YAML quality weights with empirical promotion rates.
 
     Only events with at least `min_evaluations` evaluations contribute an
@@ -85,7 +85,7 @@ def _build_dynamic_quality_weights(
         .reset_index()
     )
 
-    dynamic: Dict[str, float] = dict(static_weights)
+    dynamic: dict[str, float] = dict(static_weights)
     for row in grouped.to_dict(orient="records"):
         event = str(row["event_type"])
         n_eval = int(row["n_eval"])
@@ -101,32 +101,32 @@ def _build_dynamic_quality_weights(
     return dynamic
 
 
-def _build_summary(program_id: str, tested_regions: pd.DataFrame, *, top_k: int) -> Dict[str, Any]:
+def _build_summary(program_id: str, tested_regions: pd.DataFrame, *, top_k: int) -> dict[str, Any]:
     if tested_regions.empty:
         return {"program_id": program_id, "status": "no_data"}
 
     evaluated = tested_regions.copy()
     promoted = evaluated[evaluated["eval_status"].astype(str) == "promoted"]
-    summary: Dict[str, Any] = {
+    summary: dict[str, Any] = {
         "program_id": program_id,
         "metrics": {
             "total_runs": int(evaluated["run_id"].nunique()),
-            "total_regions": int(len(evaluated)),
+            "total_regions": len(evaluated),
             "status_counts": evaluated["eval_status"].astype(str).value_counts().to_dict(),
             "evaluated_share": 1.0,
             "promotion_rate": float(len(promoted) / max(len(evaluated), 1)),
         },
     }
 
-    def _group_stats(column: str) -> Dict[str, Any]:
+    def _group_stats(column: str) -> dict[str, Any]:
         if column not in evaluated.columns:
             return {}
         grouped = evaluated.groupby(column)
-        out: Dict[str, Any] = {}
+        out: dict[str, Any] = {}
         for key, sub in grouped:
             promoted_share = float((sub["eval_status"].astype(str) == "promoted").mean())
             out[str(key)] = {
-                "sample": int(len(sub)),
+                "sample": len(sub),
                 "promotion_rate": promoted_share,
                 "avg_after_cost_expectancy": float(
                     pd.to_numeric(sub["after_cost_expectancy"], errors="coerce").mean()
@@ -211,8 +211,8 @@ def _build_frontier(
     untested_top_k: int,
     repair_top_k: int,
     exhausted_failure_threshold: int,
-    quality_weights: Dict[str, float] | None = None,
-) -> Dict[str, Any]:
+    quality_weights: dict[str, float] | None = None,
+) -> dict[str, Any]:
     """Build the search frontier artefact for a campaign program.
 
     Phase 2.2: ``untested_registry_events`` is now sorted by descending
@@ -262,7 +262,7 @@ def _build_frontier(
         reverse=True,
     )
 
-    family_to_events: Dict[str, list[str]] = {}
+    family_to_events: dict[str, list[str]] = {}
     if isinstance(events, dict) and events:
         for event_id, cfg in events.items():
             event_name = str(event_id).strip()
@@ -274,7 +274,7 @@ def _build_frontier(
             if family:
                 family_to_events.setdefault(family, []).append(event_name)
 
-    partial_families: Dict[str, str] = {}
+    partial_families: dict[str, str] = {}
     if family_to_events:
         for family, family_events in family_to_events.items():
             tested_count = sum(1 for event_id in family_events if event_id in tested_events)
@@ -329,7 +329,7 @@ def _build_frontier(
         reverse=True,
     )
 
-    partial_regimes: Dict[str, str] = {}
+    partial_regimes: dict[str, str] = {}
     for regime, event_ids in regime_fanout.items():
         if not event_ids:
             continue
@@ -378,7 +378,7 @@ def update_search_intelligence(
     frontier_repair_top_k: int = 2,
     exhausted_failure_threshold: int = 3,
     search_space_path: Path | None = None,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Update campaign summary and search frontier artefacts.
 
     Phase 2.2: accepts an optional *search_space_path* so callers can pin a

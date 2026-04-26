@@ -3,7 +3,7 @@ from __future__ import annotations
 import hashlib
 import json
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any
 
 import pandas as pd
 
@@ -38,7 +38,7 @@ def _bool(value: Any) -> bool:
     return text in {"1", "true", "yes", "y", "t"}
 
 
-def _stable_id(row: Dict[str, Any]) -> str:
+def _stable_id(row: dict[str, Any]) -> str:
     parts = [
         _text(row.get("event_type") or row.get("canonical_event_type")),
         _text(row.get("symbol")),
@@ -51,11 +51,11 @@ def _stable_id(row: Dict[str, Any]) -> str:
     return f"trace_{digest}"
 
 
-def _candidate_id(row: Dict[str, Any]) -> str:
+def _candidate_id(row: dict[str, Any]) -> str:
     return _text(row.get("candidate_id")) or _text(row.get("hypothesis_id")) or _stable_id(row)
 
 
-def _hypothesis_id(row: Dict[str, Any]) -> str:
+def _hypothesis_id(row: dict[str, Any]) -> str:
     return _text(row.get("hypothesis_id")) or _candidate_id(row)
 
 
@@ -134,7 +134,7 @@ def build_promotion_trace_frame(
     promoted_df: pd.DataFrame,
     *,
     run_id: str,
-    diagnostics: Optional[Dict[str, Any]] = None,
+    diagnostics: dict[str, Any] | None = None,
 ) -> pd.DataFrame:
     if audit_df is None:
         audit_df = pd.DataFrame()
@@ -171,7 +171,7 @@ def build_promotion_trace_frame(
     return frame
 
 
-def _read_parquet_if_exists(path: Path) -> Optional[pd.DataFrame]:
+def _read_parquet_if_exists(path: Path) -> pd.DataFrame | None:
     if path.exists():
         try:
             return pd.read_parquet(path)
@@ -182,9 +182,9 @@ def _read_parquet_if_exists(path: Path) -> Optional[pd.DataFrame]:
 
 def merge_research_decision_trace(
     *,
-    discovery_trace: Optional[pd.DataFrame] = None,
-    validation_trace: Optional[pd.DataFrame] = None,
-    promotion_trace: Optional[pd.DataFrame] = None,
+    discovery_trace: pd.DataFrame | None = None,
+    validation_trace: pd.DataFrame | None = None,
+    promotion_trace: pd.DataFrame | None = None,
 ) -> pd.DataFrame:
     frames = [f for f in [discovery_trace, validation_trace, promotion_trace] if f is not None and not f.empty]
     if not frames:
@@ -221,13 +221,13 @@ def write_trace_frame(frame: pd.DataFrame, output_path: Path) -> Path:
     return Path(actual_path)
 
 
-def write_discovery_trace(candidates_df: pd.DataFrame, *, out_dir: Path, run_id: str) -> Dict[str, Any]:
+def write_discovery_trace(candidates_df: pd.DataFrame, *, out_dir: Path, run_id: str) -> dict[str, Any]:
     frame = build_discovery_trace_frame(candidates_df, run_id=run_id)
     path = write_trace_frame(frame, out_dir / _TRACE_FILENAMES["discover"])
     return {"frame": frame, "path": path}
 
 
-def write_validation_trace(bundle: ValidationBundle, *, out_dir: Path) -> Dict[str, Any]:
+def write_validation_trace(bundle: ValidationBundle, *, out_dir: Path) -> dict[str, Any]:
     frame = build_validation_trace_frame(bundle)
     path = write_trace_frame(frame, out_dir / _TRACE_FILENAMES["validate"])
     return {"frame": frame, "path": path}
@@ -239,8 +239,8 @@ def write_promotion_trace(
     *,
     out_dir: Path,
     run_id: str,
-    diagnostics: Optional[Dict[str, Any]] = None,
-) -> Dict[str, Any]:
+    diagnostics: dict[str, Any] | None = None,
+) -> dict[str, Any]:
     frame = build_promotion_trace_frame(audit_df, promoted_df, run_id=run_id, diagnostics=diagnostics)
     path = write_trace_frame(frame, out_dir / _TRACE_FILENAMES["promote"])
     return {"frame": frame, "path": path}
@@ -251,10 +251,10 @@ def write_merged_research_trace(
     out_dir: Path,
     data_root: Path,
     run_id: str,
-    discovery_trace: Optional[pd.DataFrame] = None,
-    validation_trace: Optional[pd.DataFrame] = None,
-    promotion_trace: Optional[pd.DataFrame] = None,
-) -> Optional[Path]:
+    discovery_trace: pd.DataFrame | None = None,
+    validation_trace: pd.DataFrame | None = None,
+    promotion_trace: pd.DataFrame | None = None,
+) -> Path | None:
     if discovery_trace is None:
         discovery_trace = _read_parquet_if_exists(data_root / "reports" / "phase2" / run_id / _TRACE_FILENAMES["discover"])
     if validation_trace is None:

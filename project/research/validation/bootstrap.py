@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-from typing import Optional, Tuple
-
 import numpy as np
 import pandas as pd
 
@@ -9,11 +7,11 @@ import pandas as pd
 def bootstrap_mean_ci(
     values: pd.Series,
     *,
-    clusters: Optional[pd.Series] = None,
+    clusters: pd.Series | None = None,
     n_boot: int = 1000,
     ci: float = 0.95,
     random_state: int = 0,
-) -> Tuple[float, float]:
+) -> tuple[float, float]:
     vals = pd.to_numeric(values, errors="coerce")
     mask = vals.notna()
     vals = vals.loc[mask]

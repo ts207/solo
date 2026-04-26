@@ -1,8 +1,11 @@
 from __future__ import annotations
 
-from typing import Any, List, Mapping, Tuple
+from collections.abc import Mapping
 from pathlib import Path
+from typing import Any
+
 import yaml
+
 
 def _mapping(value: Any) -> Mapping[str, Any]:
     return value if isinstance(value, Mapping) else {}
@@ -11,7 +14,7 @@ def _load_yaml_at(root: Path, relative_path: str) -> dict[str, Any]:
     path = root / relative_path
     if not path.exists():
         return {}
-    with open(path, "r", encoding="utf-8") as f:
+    with open(path, encoding="utf-8") as f:
         return yaml.safe_load(f) or {}
 
 _EXPECTED_FUNDING_VARIANTS = {
@@ -32,13 +35,13 @@ _EXPECTED_OI_QUADRANTS = {
     "PRICE_DOWN_OI_DOWN": "price_down_oi_down",
 }
 
-def validate_event_directionality_contracts(root: Path = Path(".")) -> List[Tuple[str, str]]:
+def validate_event_directionality_contracts(root: Path = Path(".")) -> list[tuple[str, str]]:
     contract = _load_yaml_at(root, "spec/events/event_directionality_contract.yaml")
     funding_variants = _mapping(contract.get("funding_phase_events"))
     quadrant_events = _mapping(contract.get("quadrant_events"))
     legacy_mappings = _mapping(contract.get("legacy_event_mappings"))
 
-    errors: List[Tuple[str, str]] = []
+    errors: list[tuple[str, str]] = []
     missing_funding = _EXPECTED_FUNDING_VARIANTS - set(map(str, funding_variants))
     if missing_funding:
         errors.append(

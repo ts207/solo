@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import logging
-from typing import Any, List
+from typing import Any
 
 import numpy as np
 import pandas as pd
@@ -15,7 +15,7 @@ from project.research.trigger_discovery.registry_comparison import compute_regis
 log = logging.getLogger(__name__)
 
 def score_trigger_candidates(
-    proposals: List[TriggerProposal],
+    proposals: list[TriggerProposal],
     features: pd.DataFrame,
     folds: list[Any] = None,
     cost_bps: float = 2.0

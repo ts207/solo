@@ -6,8 +6,9 @@ import logging
 import os
 import re
 import sys
+from collections.abc import Mapping
 from pathlib import Path
-from typing import Any, Dict, List, Mapping, Tuple
+from typing import Any
 
 import numpy as np
 import pandas as pd
@@ -130,9 +131,9 @@ def _select_bridge_candidates(
 def _build_policy_variant_specs(
     *,
     low_capital_contract: Mapping[str, Any] | None = None,
-    cooldown_bars: List[int] | None = None,
+    cooldown_bars: list[int] | None = None,
     include_one_trade_per_episode: bool = False,
-) -> List[Dict[str, Any]]:
+) -> list[dict[str, Any]]:
     contract = dict(low_capital_contract or {})
     delays = {
         max(0, safe_int(contract.get("entry_delay_bars_default"), 1)),
@@ -140,7 +141,7 @@ def _build_policy_variant_specs(
     }
     cooldown_values = sorted({max(0, safe_int(value, 0)) for value in (cooldown_bars or [])})
 
-    specs: List[Dict[str, Any]] = []
+    specs: list[dict[str, Any]] = []
     seen: set[str] = set()
     for delay in sorted(delays):
         base_flags = [False, True] if include_one_trade_per_episode else [False]
@@ -172,10 +173,10 @@ def _build_bridge_symbol_calibrations(
     metrics_df: pd.DataFrame,
     base_fee_bps: float,
     min_tob_coverage: float,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     if metrics_df.empty:
         return {}
-    out: Dict[str, Any] = {}
+    out: dict[str, Any] = {}
     for symbol, group in metrics_df.groupby("symbol"):
         symbol_name = str(symbol).strip().upper()
         if not symbol_name:
@@ -205,7 +206,7 @@ def _bridge_summary_count_fields(
     n_candidates_tradable: int,
     n_candidates_tradable_without_microstructure: int,
     top_5_bridge_fail_reasons: Mapping[str, int] | None,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     candidates_in = int(n_candidates_in)
     tradable = int(n_candidates_tradable)
     tradable_wo_micro = int(n_candidates_tradable_without_microstructure)
@@ -220,7 +221,7 @@ def _bridge_summary_count_fields(
     }
 
 
-def _build_bridge_summary_payload(df_out: pd.DataFrame) -> Dict[str, Any]:
+def _build_bridge_summary_payload(df_out: pd.DataFrame) -> dict[str, Any]:
     if df_out.empty:
         summary = _bridge_summary_count_fields(
             n_candidates_in=0,
@@ -239,7 +240,7 @@ def _build_bridge_summary_payload(df_out: pd.DataFrame) -> Dict[str, Any]:
         )
         return summary
 
-    fail_reason_counts: Dict[str, int] = {}
+    fail_reason_counts: dict[str, int] = {}
     for reasons in df_out.get("bridge_fail_reasons", pd.Series("", index=df_out.index)).fillna(""):
         for reason in str(reasons).split(","):
             reason_name = reason.strip()
@@ -265,7 +266,7 @@ def _build_bridge_summary_payload(df_out: pd.DataFrame) -> Dict[str, Any]:
     )
     tradable = int(_bool_series(df_out, "gate_bridge_tradable", default=False).sum())
     summary = _bridge_summary_count_fields(
-        n_candidates_in=int(len(df_out)),
+        n_candidates_in=len(df_out),
         n_candidates_tradable=tradable,
         n_candidates_tradable_without_microstructure=tradable_wo_micro,
         top_5_bridge_fail_reasons=dict(
@@ -305,7 +306,7 @@ def _build_bridge_summary_payload(df_out: pd.DataFrame) -> Dict[str, Any]:
     return summary
 
 
-def _evaluate_policy_variants_for_candidate(row: pd.Series, **kwargs) -> List[Dict[str, Any]]:
+def _evaluate_policy_variants_for_candidate(row: pd.Series, **kwargs) -> list[dict[str, Any]]:
     bridge_result = dict(kwargs.get("bridge_result") or {})
     policy_variants = list(kwargs.get("policy_variants") or [])
     min_validation_trades = safe_int(kwargs.get("min_validation_trades"), 0)
@@ -329,7 +330,7 @@ def _evaluate_policy_variants_for_candidate(row: pd.Series, **kwargs) -> List[Di
         safe_float(bridge_result.get("bridge_effective_cost_bps_per_trade"), 0.0),
     )
 
-    results: List[Dict[str, Any]] = []
+    results: list[dict[str, Any]] = []
     for spec in policy_variants:
         variant = dict(spec)
         delay = safe_int(variant.get("variant_delay_bars"), baseline_delay)
@@ -446,7 +447,7 @@ def _evaluate_bridge_row(
     micro_min_feature_coverage: float,
     low_capital_contract: Mapping[str, Any] | None = None,
     enforce_low_capital_viability: bool = False,
-) -> Tuple[Dict[str, Any], Dict[str, Any] | None]:
+) -> tuple[dict[str, Any], dict[str, Any] | None]:
     metrics_rows, overlay_rows = evaluate_bridge_performance(
         pd.DataFrame([row]),
         event_type=event_type,
@@ -481,7 +482,7 @@ def _evaluate_bridge_row(
     return result, overlay
 
 
-def _policy_variant_flip_summary(df: pd.DataFrame) -> Dict[str, Any]:
+def _policy_variant_flip_summary(df: pd.DataFrame) -> dict[str, Any]:
     if df.empty:
         return {
             "baseline_pass_policy_count": 0,
@@ -522,7 +523,7 @@ def _policy_variant_flip_summary(df: pd.DataFrame) -> Dict[str, Any]:
         ),
         "pass_to_fail_policy_count": pass_to_fail,
         "fail_to_pass_policy_count": fail_to_pass,
-        "policy_variant_count": int(len(working)),
+        "policy_variant_count": len(working),
     }
 
 
@@ -548,11 +549,11 @@ def _load_symbol_calibrated_cost_bps(symbol: str, calibration_dir: Path) -> floa
 
 def _write_bridge_symbol_calibrations(
     *,
-    calibrations: Dict[str, Any],
+    calibrations: dict[str, Any],
     calibration_dir: Path,
-) -> List[Path]:
+) -> list[Path]:
     ensure_dir(Path(calibration_dir))
-    written: List[Path] = []
+    written: list[Path] = []
     for symbol, payload in sorted(calibrations.items()):
         symbol_name = re.sub(r"[^A-Za-z0-9_\\-]+", "", str(symbol).strip().upper())
         if not symbol_name:
@@ -592,7 +593,7 @@ def _make_parser() -> argparse.ArgumentParser:
     return parser
 
 
-def _resolve_bridge_policy(args: argparse.Namespace, data_root: Path) -> Dict[str, Any]:
+def _resolve_bridge_policy(args: argparse.Namespace, data_root: Path) -> dict[str, Any]:
     project_root = Path(__file__).resolve().parents[3]
     contract = resolve_objective_profile_contract(
         project_root=project_root,

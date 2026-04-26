@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any
 
 import yaml
 
@@ -14,17 +14,17 @@ from project.spec_registry import (
 )
 
 
-def _state_registry_payload() -> Dict[str, Any]:
+def _state_registry_payload() -> dict[str, Any]:
     payload = load_state_registry()
     return payload if isinstance(payload, dict) else {}
 
 
-def _state_rows(payload: Dict[str, Any]) -> list[Dict[str, Any]]:
+def _state_rows(payload: dict[str, Any]) -> list[dict[str, Any]]:
     rows = payload.get("states", [])
     return [dict(row) for row in rows if isinstance(row, dict)] if isinstance(rows, list) else []
 
 
-def _runtime_defaults(payload: Dict[str, Any]) -> Dict[str, Any]:
+def _runtime_defaults(payload: dict[str, Any]) -> dict[str, Any]:
     defaults = payload.get("defaults", {})
     if not isinstance(defaults, dict):
         return {}
@@ -32,10 +32,10 @@ def _runtime_defaults(payload: Dict[str, Any]) -> Dict[str, Any]:
     return dict(runtime) if isinstance(runtime, dict) else {}
 
 
-def build_runtime_state_registry_payload() -> Dict[str, Any]:
+def build_runtime_state_registry_payload() -> dict[str, Any]:
     payload = _state_registry_payload()
     runtime_defaults = _runtime_defaults(payload)
-    states: Dict[str, Dict[str, Any]] = {}
+    states: dict[str, dict[str, Any]] = {}
     for row in _state_rows(payload):
         state_id = str(row.get("state_id", "")).strip().upper()
         if not state_id:
@@ -45,7 +45,7 @@ def build_runtime_state_registry_payload() -> Dict[str, Any]:
             runtime = {}
         merged = dict(runtime_defaults)
         merged.update(runtime)
-        record: Dict[str, Any] = {
+        record: dict[str, Any] = {
             "enabled": bool(merged.get("enabled", True)),
             "instrument_classes": [
                 str(item).strip()
@@ -80,13 +80,13 @@ def build_runtime_state_registry_payload() -> Dict[str, Any]:
     }
 
 
-def build_state_grammar_payload() -> Dict[str, Any]:
+def build_state_grammar_payload() -> dict[str, Any]:
     payload = _state_registry_payload()
     context_dimensions = payload.get("context_dimensions", {})
     if not isinstance(context_dimensions, dict):
         context_dimensions = {}
-    regimes: Dict[str, list[str]] = {}
-    context_state_map: Dict[str, Dict[str, str]] = {}
+    regimes: dict[str, list[str]] = {}
+    context_state_map: dict[str, dict[str, str]] = {}
     for family, cfg in sorted(context_dimensions.items()):
         if not isinstance(cfg, dict):
             continue
@@ -118,12 +118,12 @@ def build_state_grammar_payload() -> Dict[str, Any]:
     }
 
 
-def build_context_registry_payload() -> Dict[str, Any]:
+def build_context_registry_payload() -> dict[str, Any]:
     payload = _state_registry_payload()
     context_dimensions = payload.get("context_dimensions", {})
     if not isinstance(context_dimensions, dict):
         context_dimensions = {}
-    normalized: Dict[str, Dict[str, Any]] = {}
+    normalized: dict[str, dict[str, Any]] = {}
     for family, cfg in sorted(context_dimensions.items()):
         if not isinstance(cfg, dict):
             continue
@@ -134,7 +134,7 @@ def build_context_registry_payload() -> Dict[str, Any]:
         ]
         if not allowed_values:
             continue
-        row: Dict[str, Any] = {"allowed_values": allowed_values}
+        row: dict[str, Any] = {"allowed_values": allowed_values}
         mapping = cfg.get("mapping", {})
         if isinstance(mapping, dict) and mapping:
             row["mapping"] = {
@@ -149,7 +149,7 @@ def build_context_registry_payload() -> Dict[str, Any]:
     legacy_aliases = {}
     if dim_registry_path.exists():
         try:
-            with open(dim_registry_path, "r") as f:
+            with open(dim_registry_path) as f:
                 dim_doc = yaml.safe_load(f)
             legacy_aliases = dim_doc.get("legacy_context_aliases", {})
         except Exception:
@@ -171,19 +171,19 @@ def build_context_registry_payload() -> Dict[str, Any]:
     }
 
 
-def build_state_ontology_specs() -> Dict[str, Dict[str, Any]]:
+def build_state_ontology_specs() -> dict[str, dict[str, Any]]:
     payload = _state_registry_payload()
     defaults = payload.get("defaults", {})
     if not isinstance(defaults, dict):
         defaults = {}
     default_scope = str(defaults.get("state_scope", "source_only")).strip() or "source_only"
     default_min_events = int(defaults.get("min_events", 200) or 200)
-    out: Dict[str, Dict[str, Any]] = {}
+    out: dict[str, dict[str, Any]] = {}
     for row in _state_rows(payload):
         state_id = str(row.get("state_id", "")).strip().upper()
         if not state_id:
             continue
-        ontology_row: Dict[str, Any] = {
+        ontology_row: dict[str, Any] = {
             "version": 1,
             "kind": "state_ontology_spec",
             "metadata": {
@@ -225,12 +225,12 @@ def build_state_ontology_specs() -> Dict[str, Dict[str, Any]]:
     return out
 
 
-def _write_yaml(path: Path, payload: Dict[str, Any]) -> None:
+def _write_yaml(path: Path, payload: dict[str, Any]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(yaml.safe_dump(payload, sort_keys=False), encoding="utf-8")
 
 
-def _write_ontology_specs(ontology_specs: Dict[str, Dict[str, Any]]) -> None:
+def _write_ontology_specs(ontology_specs: dict[str, dict[str, Any]]) -> None:
     out_dir = resolve_relative_spec_path("spec/ontology/states", repo_root=PROJECT_ROOT.parent)
     out_dir.mkdir(parents=True, exist_ok=True)
     for state_id, payload in sorted(ontology_specs.items()):

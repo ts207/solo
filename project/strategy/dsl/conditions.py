@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import re
 from abc import ABC, abstractmethod
-from typing import List, Optional
 
 from project.strategy.dsl.schema import ConditionNodeSpec
 
@@ -16,7 +15,7 @@ class BaseConditionHandler(ABC):
         pass
 
     @abstractmethod
-    def normalize(self, condition: str) -> List[ConditionNodeSpec]:
+    def normalize(self, condition: str) -> list[ConditionNodeSpec]:
         """Convert the condition string into executable runtime nodes."""
         pass
 
@@ -24,14 +23,14 @@ class BaseConditionHandler(ABC):
 class ConditionRegistry:
     """Registry for DSL condition handlers."""
 
-    _HANDLERS: List[BaseConditionHandler] = []
+    _HANDLERS: list[BaseConditionHandler] = []
 
     @classmethod
     def register(cls, handler: BaseConditionHandler) -> None:
         cls._HANDLERS.append(handler)
 
     @classmethod
-    def resolve(cls, condition: str) -> Optional[List[ConditionNodeSpec]]:
+    def resolve(cls, condition: str) -> list[ConditionNodeSpec] | None:
         for handler in cls._HANDLERS:
             if handler.handles(condition):
                 return handler.normalize(condition)

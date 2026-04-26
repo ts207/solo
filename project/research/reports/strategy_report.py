@@ -2,16 +2,16 @@ from __future__ import annotations
 
 import json
 import logging
-from typing import Any, Dict
+from typing import Any
 
 _LOG = logging.getLogger(__name__)
 
 
 def generate_strategy_summary(
-    blueprint: Dict[str, Any],
-    backtest_metrics: Dict[str, Any],
-    stability_metrics: Dict[str, Any],
-    walkforward_results: Dict[str, Any],
+    blueprint: dict[str, Any],
+    backtest_metrics: dict[str, Any],
+    stability_metrics: dict[str, Any],
+    walkforward_results: dict[str, Any],
 ) -> str:
     """
     Generate a human-readable strategy report.
@@ -57,8 +57,8 @@ def generate_strategy_summary(
 
 
 def write_promotion_rationale(
-    blueprint: Dict[str, Any],
-    metrics: Dict[str, Any],
+    blueprint: dict[str, Any],
+    metrics: dict[str, Any],
     out_path: str,
 ):
     """

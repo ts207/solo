@@ -3,7 +3,6 @@ from __future__ import annotations
 import argparse
 import json
 from pathlib import Path
-from typing import Dict, List, Optional
 
 import numpy as np
 import pandas as pd
@@ -14,7 +13,7 @@ from project.io.utils import ensure_dir, read_parquet, write_parquet
 from project.specs.manifest import finalize_manifest, start_manifest
 
 
-def _stable_symbol_sort(symbols: List[str]) -> List[str]:
+def _stable_symbol_sort(symbols: list[str]) -> list[str]:
     # Deterministic ordering. If you maintain a canonical ID mapping, apply it here.
     return sorted(symbols)
 
@@ -71,8 +70,8 @@ def main() -> int:
 
     # Load bars for each symbol and build included_flags per ts_event.
     # This produces a PIT-consistent membership snapshot at each bar timestamp.
-    panels: Dict[str, pd.DataFrame] = {}
-    all_ts: Optional[pd.DatetimeIndex] = None
+    panels: dict[str, pd.DataFrame] = {}
+    all_ts: pd.DatetimeIndex | None = None
     for sym in symbols_sorted:
         bdir = cleaned_root / "perp" / sym / f"bars_{args.bar_interval}"
         files = sorted(list(bdir.glob("**/*.parquet"))) if bdir.exists() else []
@@ -167,7 +166,7 @@ def main() -> int:
     finalize_manifest(
         manifest,
         status="success",
-        stats={"rows": int(len(df)), "out": str(out_path), "symbols": len(symbols_sorted)},
+        stats={"rows": len(df), "out": str(out_path), "symbols": len(symbols_sorted)},
     )
     return 0
 

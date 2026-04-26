@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any
 
 from project import PROJECT_ROOT
 from project.domain.registry_loader import compile_domain_registry_from_sources
@@ -24,11 +24,11 @@ def _repo_relative(path: str | Path) -> str:
 def build_canonical_semantic_registry_views(
     *,
     domain_registry: Any | None = None,
-) -> Dict[str, Dict[str, Any]]:
+) -> dict[str, dict[str, Any]]:
     domain = domain_registry or compile_domain_registry_from_sources()
     template_registry = load_template_registry()
 
-    event_rows: Dict[str, Dict[str, Any]] = {}
+    event_rows: dict[str, dict[str, Any]] = {}
     for event_id, spec in sorted(domain.event_definitions.items()):
         family_name = str(spec.research_family or spec.canonical_family or spec.canonical_regime).strip().upper()
         event_rows[event_id] = {
@@ -48,7 +48,7 @@ def build_canonical_semantic_registry_views(
             "source_path": _repo_relative(spec.spec_path),
         }
 
-    state_rows: Dict[str, Dict[str, Any]] = {}
+    state_rows: dict[str, dict[str, Any]] = {}
     for state_id, spec in sorted(domain.state_definitions.items()):
         state_rows[state_id] = {
             "enabled": bool(spec.enabled),
@@ -65,7 +65,7 @@ def build_canonical_semantic_registry_views(
     operators = template_registry.get("operators", {})
     if not isinstance(operators, dict):
         operators = {}
-    template_rows: Dict[str, Dict[str, Any]] = {}
+    template_rows: dict[str, dict[str, Any]] = {}
     for template_id, row in sorted(operators.items()):
         if not isinstance(row, dict):
             continue
@@ -94,7 +94,7 @@ def build_canonical_semantic_registry_views(
     families = template_registry.get("families", {})
     if not isinstance(families, dict):
         families = {}
-    family_rows: Dict[str, Dict[str, Any]] = {}
+    family_rows: dict[str, dict[str, Any]] = {}
     for family_name, row in sorted(families.items()):
         if not isinstance(row, dict):
             continue
@@ -114,7 +114,7 @@ def build_canonical_semantic_registry_views(
     }
 
 
-def canonical_semantic_source_paths() -> Dict[str, list[Path]]:
+def canonical_semantic_source_paths() -> dict[str, list[Path]]:
     event_dir = resolve_relative_spec_path("spec/events", repo_root=REPO_ROOT)
     event_paths = [
         path
@@ -142,7 +142,7 @@ def canonical_semantic_source_paths() -> Dict[str, list[Path]]:
     }
 
 
-def runtime_config_source_paths(registry_root: Path) -> Dict[str, list[Path]]:
+def runtime_config_source_paths(registry_root: Path) -> dict[str, list[Path]]:
     root = Path(registry_root)
     return {
         "contexts": [root / "contexts.yaml"],

@@ -2,10 +2,11 @@ from __future__ import annotations
 
 import math
 from collections import defaultdict
+from collections.abc import Iterable, Mapping
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
-from typing import Any, Dict, Iterable, List, Mapping, Optional
+from typing import Any
 
 import pandas as pd
 
@@ -21,10 +22,10 @@ class WatermarkViolation:
 
 
 def _now_iso() -> str:
-    return datetime.now(timezone.utc).isoformat()
+    return datetime.now(UTC).isoformat()
 
 
-def _to_us(value: object) -> Optional[int]:
+def _to_us(value: object) -> int | None:
     if value is None:
         return None
     if isinstance(value, str):
@@ -44,13 +45,13 @@ def _to_us(value: object) -> Optional[int]:
         try:
             dt = value.to_pydatetime()
             if dt.tzinfo is None:
-                dt = dt.replace(tzinfo=timezone.utc)
+                dt = dt.replace(tzinfo=UTC)
             return int(dt.timestamp() * 1_000_000)
         except Exception:
             return None
 
     if isinstance(value, datetime):
-        dt = value if value.tzinfo is not None else value.replace(tzinfo=timezone.utc)
+        dt = value if value.tzinfo is not None else value.replace(tzinfo=UTC)
         return int(dt.timestamp() * 1_000_000)
 
     if isinstance(value, float):
@@ -84,7 +85,7 @@ def _row_get(row: Any, field: str) -> Any:
     return getattr(row, field, None)
 
 
-def _first_timestamp_us(row: Any, fields: Iterable[str]) -> Optional[int]:
+def _first_timestamp_us(row: Any, fields: Iterable[str]) -> int | None:
     for field in fields:
         if not _row_has_field(row, field):
             continue
@@ -94,7 +95,7 @@ def _first_timestamp_us(row: Any, fields: Iterable[str]) -> Optional[int]:
     return None
 
 
-def _event_time_us(row: Any) -> Optional[int]:
+def _event_time_us(row: Any) -> int | None:
     # Detector rows often carry both eval-time and next-bar entry time.
     # For causality auditing, the event becomes observable at eval-bar close.
     return _first_timestamp_us(row, ["eval_bar_ts", "enter_ts", "timestamp", "event_time"])
@@ -105,10 +106,10 @@ def run_watermark_audit(
     *,
     max_lateness_us: int,
     max_violations: int = 100,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     watermark_us = -1
-    violation_counts: Dict[str, int] = defaultdict(int)
-    examples: List[str] = []
+    violation_counts: dict[str, int] = defaultdict(int)
+    examples: list[str] = []
 
     max_observed_lag_us = 0
 
@@ -165,7 +166,7 @@ def run_runtime_postflight_audit(
     *,
     events_df: pd.DataFrame | None = None,
     source_path: str | None = None,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     Runs the runtime postflight audit.
     Supports both Path-based and DataFrame-based inputs for compatibility.
@@ -184,7 +185,7 @@ def run_runtime_postflight_audit(
             except Exception:
                 pass
 
-    payload: Dict[str, Any] = {
+    payload: dict[str, Any] = {
         "generated_at": _now_iso(),
         "run_id": str(run_id or "unknown"),
         "status": "not_run",

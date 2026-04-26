@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any
 
 import yaml
 
@@ -15,17 +15,17 @@ GRAMMAR_DIR = SPEC_DIR / "grammar"
 SEARCH_DIR = SPEC_DIR / "search"
 
 
-def load_yaml(path: Path) -> Dict[str, Any]:
+def load_yaml(path: Path) -> dict[str, Any]:
     if not path.exists():
         return {}
     with open(path, encoding="utf-8") as f:
         return yaml.safe_load(f) or {}
 
 
-def load_ontology_events() -> Dict[str, Dict[str, Any]]:
+def load_ontology_events() -> dict[str, dict[str, Any]]:
     from project.events.contract_registry import load_active_event_contracts
 
-    events: Dict[str, Dict[str, Any]] = {}
+    events: dict[str, dict[str, Any]] = {}
     for event_type, contract in load_active_event_contracts().items():
         raw = dict(contract.get("raw", {}))
         raw.setdefault("event_type", event_type)
@@ -39,7 +39,7 @@ def load_ontology_events() -> Dict[str, Dict[str, Any]]:
     return events
 
 
-def load_ontology_states() -> Dict[str, Dict[str, Any]]:
+def load_ontology_states() -> dict[str, dict[str, Any]]:
     states = {}
     canonical_registry = load_state_registry()
     for row in normalize_state_registry_records(canonical_registry):
@@ -49,17 +49,17 @@ def load_ontology_states() -> Dict[str, Dict[str, Any]]:
     return states
 
 
-def load_family_registry(root: Path | None = None) -> Dict[str, Any]:
+def load_family_registry(root: Path | None = None) -> dict[str, Any]:
     base = root if root else REPO_ROOT
     return load_yaml(base / "spec" / "grammar" / "family_registry.yaml")
 
 
-def load_template_registry(root: Path | None = None) -> Dict[str, Any]:
+def load_template_registry(root: Path | None = None) -> dict[str, Any]:
     base = root if root else REPO_ROOT
     return load_yaml(base / "spec" / "templates" / "registry.yaml")
 
 
-def load_search_spec(name: str, repo_root: Path | None = None) -> Dict[str, Any]:
+def load_search_spec(name: str, repo_root: Path | None = None) -> dict[str, Any]:
     # e.g. name="phase1" -> spec/search/search_phase1.yaml
     base = repo_root if repo_root else REPO_ROOT
     path = base / "spec" / "search" / f"search_{name}.yaml"
@@ -68,7 +68,7 @@ def load_search_spec(name: str, repo_root: Path | None = None) -> Dict[str, Any]
         path = Path(name)
         if repo_root and not path.is_absolute():
             path = repo_root / name
-            
+
     doc = load_yaml(path)
     from project.spec_validation.search import validate_search_spec_doc
 

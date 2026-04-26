@@ -1,9 +1,10 @@
 from __future__ import annotations
 
 import json
+from collections.abc import Mapping
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Mapping
+from typing import Any
 
 from project.core.config import get_data_root
 
@@ -18,7 +19,7 @@ class ForwardConfirmation:
     evidence_bundle_path: str = ""
 
     @classmethod
-    def from_mapping(cls, payload: Mapping[str, Any]) -> "ForwardConfirmation":
+    def from_mapping(cls, payload: Mapping[str, Any]) -> ForwardConfirmation:
         raw_metrics = payload.get("metrics", {})
         metrics: dict[str, float] = {}
         if isinstance(raw_metrics, Mapping):

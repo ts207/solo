@@ -4,7 +4,7 @@ from __future__ import annotations
 import argparse
 import difflib
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any
 
 import yaml
 
@@ -12,17 +12,17 @@ from project import PROJECT_ROOT
 from project.spec_registry import load_template_registry, resolve_relative_spec_path
 
 
-def _canonical_template_registry() -> Dict[str, Any]:
+def _canonical_template_registry() -> dict[str, Any]:
     payload = load_template_registry()
     return payload if isinstance(payload, dict) else {}
 
 
-def build_template_registry_compat_payload() -> Dict[str, Any]:
+def build_template_registry_compat_payload() -> dict[str, Any]:
     canonical = _canonical_template_registry()
     payload = dict(canonical)
     events = canonical.get("events", {})
     if isinstance(events, dict):
-        compat_events: Dict[str, Dict[str, Any]] = {}
+        compat_events: dict[str, dict[str, Any]] = {}
         for event_id, row in events.items():
             if not isinstance(row, dict):
                 continue
@@ -43,12 +43,12 @@ def build_template_registry_compat_payload() -> Dict[str, Any]:
     return payload
 
 
-def build_runtime_template_registry_payload() -> Dict[str, Any]:
+def build_runtime_template_registry_payload() -> dict[str, Any]:
     canonical = _canonical_template_registry()
     operators = canonical.get("operators", {})
     if not isinstance(operators, dict):
         operators = {}
-    templates: Dict[str, Dict[str, Any]] = {}
+    templates: dict[str, dict[str, Any]] = {}
     for template_id, row in sorted(operators.items()):
         if not isinstance(row, dict):
             continue
@@ -78,7 +78,7 @@ def build_runtime_template_registry_payload() -> Dict[str, Any]:
     }
 
 
-def build_ontology_template_registry_payload() -> Dict[str, Any]:
+def build_ontology_template_registry_payload() -> dict[str, Any]:
     canonical = _canonical_template_registry()
     defaults = canonical.get("defaults", {})
     if not isinstance(defaults, dict):
@@ -90,11 +90,11 @@ def build_ontology_template_registry_payload() -> Dict[str, Any]:
     if not isinstance(filter_templates, dict):
         filter_templates = {}
 
-    out_families: Dict[str, Dict[str, Any]] = {}
+    out_families: dict[str, dict[str, Any]] = {}
     for family, row in sorted(families.items()):
         if not isinstance(row, dict):
             continue
-        out_row: Dict[str, Any] = {
+        out_row: dict[str, Any] = {
             "allowed_templates": [
                 str(item).strip()
                 for item in row.get("templates", row.get("allowed_templates", []))
@@ -137,16 +137,16 @@ def build_ontology_template_registry_payload() -> Dict[str, Any]:
     }
 
 
-def _write_yaml(path: Path, payload: Dict[str, Any]) -> None:
+def _write_yaml(path: Path, payload: dict[str, Any]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(yaml.safe_dump(payload, sort_keys=False), encoding="utf-8")
 
 
-def _render_yaml(payload: Dict[str, Any]) -> str:
+def _render_yaml(payload: dict[str, Any]) -> str:
     return yaml.safe_dump(payload, sort_keys=False)
 
 
-def _check_or_write(path: Path, payload: Dict[str, Any], *, check: bool) -> bool:
+def _check_or_write(path: Path, payload: dict[str, Any], *, check: bool) -> bool:
     rendered = _render_yaml(payload)
     if check:
         current = path.read_text(encoding="utf-8") if path.exists() else ""

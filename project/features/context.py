@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Mapping
+from collections.abc import Mapping
 
 
 def is_fp_active(row: Mapping[str, object]) -> bool:

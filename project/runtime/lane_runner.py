@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-from typing import Any, Dict, Iterable, List, Mapping
+from collections.abc import Iterable, Mapping
+from typing import Any
 
 from project.runtime.firewall import AccessRequest, evaluate_access
 from project.runtime.hashing import hash_record, hash_records
@@ -27,11 +28,11 @@ def run_causal_lane_ticks(
     lanes_spec: Mapping[str, Any],
     firewall_spec: Mapping[str, Any],
     hashing_spec: Mapping[str, Any],
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     lane_cfgs = lane_cfg_map(lanes_spec)
     trackers = {lane_id: WatermarkTracker(cfg) for lane_id, cfg in lane_cfgs.items()}
-    sources_seen: Dict[str, set[str]] = {lane_id: set() for lane_id in lane_cfgs}
-    prev_wm_by_lane: Dict[str, int] = {lane_id: NEG_INF_US for lane_id in lane_cfgs}
+    sources_seen: dict[str, set[str]] = {lane_id: set() for lane_id in lane_cfgs}
+    prev_wm_by_lane: dict[str, int] = {lane_id: NEG_INF_US for lane_id in lane_cfgs}
 
     watermark_counters = {
         "future_event_time": 0,
@@ -39,17 +40,17 @@ def run_causal_lane_ticks(
         "watermark_monotonicity": 0,
         "unknown_lane": 0,
     }
-    watermark_examples: List[str] = []
+    watermark_examples: list[str] = []
     firewall_counters = {
         "unknown_role": 0,
         "provenance_forbidden": 0,
         "exec_state_forbidden": 0,
         "invalid_firewall_spec": 0,
     }
-    firewall_examples: List[str] = []
+    firewall_examples: list[str] = []
     max_observed_lag_us = 0
 
-    ticks: List[Dict[str, Any]] = []
+    ticks: list[dict[str, Any]] = []
 
     for idx, event in enumerate(events):
         lane_id = event.lane_id if event.lane_id in trackers else DEFAULT_LANE_ID
@@ -131,8 +132,8 @@ def run_causal_lane_ticks(
     status = "pass" if (watermark_violation_count + firewall_violation_count) == 0 else "failed"
     return {
         "status": status,
-        "event_count": int(len(ticks)),
-        "tick_count": int(len(ticks)),
+        "event_count": len(ticks),
+        "tick_count": len(ticks),
         "watermark_violation_count": int(watermark_violation_count),
         "watermark_violations_by_type": watermark_counters,
         "watermark_violation_examples": watermark_examples,
@@ -145,5 +146,5 @@ def run_causal_lane_ticks(
     }
 
 
-def events_to_tick_records(events: Iterable[NormalizedEvent]) -> List[Dict[str, Any]]:
+def events_to_tick_records(events: Iterable[NormalizedEvent]) -> list[dict[str, Any]]:
     return [event_to_record(event) for event in events]

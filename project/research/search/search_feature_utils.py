@@ -1,8 +1,8 @@
 from __future__ import annotations
 
 import logging
+from collections.abc import Iterable
 from pathlib import Path
-from typing import Iterable, Optional
 
 import pandas as pd
 
@@ -204,7 +204,7 @@ def prepare_search_features_for_symbol(
     end: str | None = None,
     expected_event_ids: Iterable[str] | None = None,
     load_features_fn=_load_features_wrapper,
-    event_registry_override: Optional[str] = None,
+    event_registry_override: str | None = None,
 ) -> pd.DataFrame:
     features = load_features_fn(
         run_id=run_id,
@@ -309,7 +309,7 @@ def load_search_feature_frame(
     timeframe: str,
     data_root: Path,
     expected_event_ids: Iterable[str] | None = None,
-    event_registry_override: Optional[str] = None,
+    event_registry_override: str | None = None,
 ) -> pd.DataFrame:
     parts: list[pd.DataFrame] = []
     for raw_symbol in symbols:

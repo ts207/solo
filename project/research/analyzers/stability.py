@@ -26,13 +26,13 @@ class StabilityAnalyzer(BaseEventAnalyzer):
         if return_col is None:
             return AnalyzerResult(
                 name=self.name,
-                summary={"n_events": int(len(frame)), "return_col": None},
+                summary={"n_events": len(frame), "return_col": None},
                 tables={"stability_events": frame},
             )
 
         returns = pd.to_numeric(frame[return_col], errors="coerce")
         summary: dict[str, Any] = {
-            "n_events": int(len(frame)),
+            "n_events": len(frame),
             "return_col": str(return_col),
             "overall_mean_bps": float(returns.mean()) if returns.notna().any() else None,
             "sign_consistency": float((returns > 0).mean()) if returns.notna().any() else None,

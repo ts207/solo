@@ -21,7 +21,7 @@ from __future__ import annotations
 
 import json
 import math
-from typing import Any, Dict
+from typing import Any
 from unittest.mock import MagicMock
 
 import numpy as np
@@ -720,7 +720,7 @@ class TestContextComplexityPenalty:
 
 class TestStabilityScoreWithPenalty:
 
-    def _base_row(self, ctx: Any = None) -> Dict[str, Any]:
+    def _base_row(self, ctx: Any = None) -> dict[str, Any]:
         return {
             "effect_shrunk_state": 0.5,
             "std_return": 0.2,
@@ -895,7 +895,7 @@ class TestBuildAllocationSpecWithAuditRow:
         bp.symbol_scope.model_dump.return_value = {"symbols": ["BTCUSDT"]}
         return bp
 
-    def _kwargs(self) -> Dict[str, Any]:
+    def _kwargs(self) -> dict[str, Any]:
         return dict(
             run_id="r1", retail_profile="standard", low_capital_contract={},
             effective_max_concurrent_positions=5,

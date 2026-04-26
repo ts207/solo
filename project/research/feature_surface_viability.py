@@ -1,8 +1,9 @@
 from __future__ import annotations
 
+from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Mapping, Sequence
+from typing import Any
 
 import pandas as pd
 
@@ -130,9 +131,9 @@ def _load_funding_for_viability(
 
 
 def _series_status(series: pd.Series, *, column_name: str, min_non_null_fraction: float, min_strict_rows: int) -> dict[str, Any]:
-    total = int(len(series))
+    total = len(series)
     non_null = series.dropna()
-    non_null_count = int(len(non_null))
+    non_null_count = len(non_null)
     coverage_ratio = float(non_null_count / total) if total > 0 else 0.0
     if non_null_count == 0:
         status = "warmup_limited" if total < int(min_strict_rows) and column_name in _WARMUP_SENSITIVE_COLUMNS else "no_coverage"
@@ -264,7 +265,7 @@ def analyze_feature_surface_viability(
                 "error": f"feature_build_failed: {exc}",
                 "detectors": {},
                 "bars_source": source,
-                "bar_count": int(len(bars)),
+                "bar_count": len(bars),
             }
             issues.append(f"{symbol}: feature viability build failed: {exc}")
             for event in requested_events:
@@ -294,7 +295,7 @@ def analyze_feature_surface_viability(
                         "status": "missing",
                         "coverage_ratio": 0.0,
                         "unique_non_null": 0,
-                        "sample_size": int(len(features)),
+                        "sample_size": len(features),
                     }
                     continue
                 column_status[column] = _series_status(
@@ -320,8 +321,8 @@ def analyze_feature_surface_viability(
         per_symbol[symbol] = {
             "status": symbol_status,
             "bars_source": source,
-            "bar_count": int(len(bars)),
-            "feature_row_count": int(len(features)),
+            "bar_count": len(bars),
+            "feature_row_count": len(features),
             "detectors": detectors,
         }
 

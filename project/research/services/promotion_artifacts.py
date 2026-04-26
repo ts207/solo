@@ -1,7 +1,8 @@
 from __future__ import annotations
 
+from collections.abc import Mapping
 from pathlib import Path
-from typing import Any, Mapping
+from typing import Any
 
 import pandas as pd
 
@@ -143,10 +144,10 @@ def _write_promotion_lineage_audit(
         f"- run_id: `{run_id}`",
         f"- evidence_bundle_count: `{len(evidence_bundles)}`",
         f"- live_exported_count: `{sum(1 for row in rows if row['live_exported'])}`",
-        f"- live_thesis_store: `{str((live_export_diagnostics or {}).get('output_path', ''))}`",
-        f"- live_contract_json: `{str((live_export_diagnostics or {}).get('contract_json_path', ''))}`",
-        f"- live_contract_md: `{str((live_export_diagnostics or {}).get('contract_md_path', ''))}`",
-        f"- historical_trust_status: `{str((historical_trust or {}).get('historical_trust_status', ''))}`",
+        f"- live_thesis_store: `{(live_export_diagnostics or {}).get('output_path', '')!s}`",
+        f"- live_contract_json: `{(live_export_diagnostics or {}).get('contract_json_path', '')!s}`",
+        f"- live_contract_md: `{(live_export_diagnostics or {}).get('contract_md_path', '')!s}`",
+        f"- historical_trust_status: `{(historical_trust or {}).get('historical_trust_status', '')!s}`",
         f"- canonical_reuse_allowed: `{bool((historical_trust or {}).get('canonical_reuse_allowed', False))}`",
         f"- compat_reuse_allowed: `{bool((historical_trust or {}).get('compat_reuse_allowed', False))}`",
         "",

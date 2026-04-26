@@ -128,7 +128,6 @@ OPERATIONAL_KEYWORDS = {
     "reversion",
     "momentum",
     "carry",
-    "basis",
     "forward return",
     "fwd_ret",
     "horizon",
@@ -353,7 +352,7 @@ def main():
 
     if ATLAS_PATH.exists():
         print(f"Loading atlas from {ATLAS_PATH} ...")
-        with open(ATLAS_PATH, "r", encoding="utf-8") as f:
+        with open(ATLAS_PATH, encoding="utf-8") as f:
             atlas = json.load(f)
 
         claims = atlas.get("claims", [])

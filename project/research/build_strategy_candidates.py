@@ -5,7 +5,7 @@ import json
 import logging
 import sys
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any
 
 import numpy as np
 import pandas as pd
@@ -35,8 +35,8 @@ _build_edge_strategy_candidate = build_edge_strategy_candidate
 
 
 def _synthesize_fractional_allocation_policy(
-    profile: Dict[str, Any], retail_profile_cfg: Dict[str, Any]
-) -> Dict[str, Any]:
+    profile: dict[str, Any], retail_profile_cfg: dict[str, Any]
+) -> dict[str, Any]:
     turnover = float(profile.get("turnover_proxy_mean", 0.0))
     cost = float(profile.get("effective_cost_bps", 0.0))
     net_exp = float(profile.get("net_expectancy_bps", 0.0))
@@ -81,10 +81,10 @@ def _load_edge_candidates_df(*, data_root: Path, run_id: str) -> pd.DataFrame:
     return pd.DataFrame()
 
 
-def _load_compiled_blueprints(path: Path) -> List[Dict[str, Any]]:
+def _load_compiled_blueprints(path: Path) -> list[dict[str, Any]]:
     if not path.exists():
         return []
-    rows: List[Dict[str, Any]] = []
+    rows: list[dict[str, Any]] = []
     for line in path.read_text(encoding="utf-8").splitlines():
         if not line.strip():
             continue
@@ -96,7 +96,7 @@ def _load_compiled_blueprints(path: Path) -> List[Dict[str, Any]]:
 
 def _load_promoted_candidate_metrics(
     *, data_root: Path, run_id: str
-) -> Dict[tuple[str, str], Dict[str, Any]]:
+) -> dict[tuple[str, str], dict[str, Any]]:
     base = data_root / "reports" / "promotions" / run_id
     df = pd.DataFrame()
     for path in (
@@ -109,7 +109,7 @@ def _load_promoted_candidate_metrics(
             break
     if df.empty:
         return {}
-    out: Dict[tuple[str, str], Dict[str, Any]] = {}
+    out: dict[tuple[str, str], dict[str, Any]] = {}
     for row in df.to_dict("records"):
         candidate_id = str(row.get("candidate_id", "")).strip()
         event_type = str(row.get("event_type", row.get("event", ""))).strip()
@@ -118,7 +118,7 @@ def _load_promoted_candidate_metrics(
     return out
 
 
-def _fallback_edge_detail(row: Dict[str, Any]) -> Dict[str, Any]:
+def _fallback_edge_detail(row: dict[str, Any]) -> dict[str, Any]:
     action = str(row.get("action", "")).strip()
     if not action:
         direction = pd.to_numeric(row.get("direction", row.get("direction_sign")), errors="coerce")
@@ -132,7 +132,7 @@ def _fallback_edge_detail(row: Dict[str, Any]) -> Dict[str, Any]:
     return {"condition": condition, "action": action}
 
 
-def _net_expectancy_bps_from_row(row: Dict[str, Any]) -> float:
+def _net_expectancy_bps_from_row(row: dict[str, Any]) -> float:
     for key in (
         "net_expectancy_bps",
         "bridge_validation_after_cost_bps",
@@ -151,10 +151,10 @@ def _net_expectancy_bps_from_row(row: Dict[str, Any]) -> float:
 
 def _apply_fractional_allocation(
     *,
-    row: Dict[str, Any],
+    row: dict[str, Any],
     enabled: bool,
-    retail_profile_cfg: Dict[str, Any],
-) -> Dict[str, Any]:
+    retail_profile_cfg: dict[str, Any],
+) -> dict[str, Any]:
     normalized = dict(row)
     if not enabled:
         normalized["allocation_policy_json"] = json.dumps(
@@ -208,8 +208,8 @@ def _apply_fractional_allocation(
 
 
 def _build_alpha_bundle_candidates(
-    *, run_id: str, data_root: Path, symbols: List[str]
-) -> List[Dict[str, Any]]:
+    *, run_id: str, data_root: Path, symbols: list[str]
+) -> list[dict[str, Any]]:
     scores_path = (
         data_root / "feature_store" / "alpha_bundle" / run_id / "alpha_bundle_scores.parquet"
     )
@@ -223,7 +223,7 @@ def _build_alpha_bundle_candidates(
     if filtered.empty:
         return []
 
-    rows: List[Dict[str, Any]] = []
+    rows: list[dict[str, Any]] = []
     grouped = filtered.groupby(filtered["symbol"].astype(str).str.upper(), sort=True)
     for symbol, frame in grouped:
         scores = pd.to_numeric(frame["score"], errors="coerce").fillna(0.0)
@@ -243,7 +243,7 @@ def _build_alpha_bundle_candidates(
                 "executable_condition": True,
                 "executable_action": True,
                 "status": "CANDIDATE",
-                "n_events": int(len(frame)),
+                "n_events": len(frame),
                 "edge_score": mean_abs_score,
                 "expectancy_per_trade": mean_score,
                 "expectancy_after_multiplicity": mean_score,
@@ -291,11 +291,11 @@ def _build_alpha_bundle_candidates(
     return rows
 
 
-def _limit_rows_per_event(rows: List[Dict[str, Any]], *, limit: int) -> List[Dict[str, Any]]:
+def _limit_rows_per_event(rows: list[dict[str, Any]], *, limit: int) -> list[dict[str, Any]]:
     if limit <= 0:
         return list(rows)
-    out: List[Dict[str, Any]] = []
-    event_counts: Dict[str, int] = {}
+    out: list[dict[str, Any]] = []
+    event_counts: dict[str, int] = {}
     for row in rows:
         event = str(row.get("event", "unknown")).lower()
         if event != "alpha_bundle" and event_counts.get(event, 0) >= limit:
@@ -305,7 +305,7 @@ def _limit_rows_per_event(rows: List[Dict[str, Any]], *, limit: int) -> List[Dic
     return out
 
 
-def _render_summary_md(run_id: str, candidates: List[Dict[str, Any]]) -> str:
+def _render_summary_md(run_id: str, candidates: list[dict[str, Any]]) -> str:
     lines = [
         "# Strategy Candidate Selection",
         "",
@@ -325,12 +325,12 @@ def _render_summary_md(run_id: str, candidates: List[Dict[str, Any]]) -> str:
     return "\n".join(lines) + "\n"
 
 
-def _tabularize_rows(rows: List[Dict[str, Any]]) -> pd.DataFrame:
+def _tabularize_rows(rows: list[dict[str, Any]]) -> pd.DataFrame:
     if not rows:
         return pd.DataFrame()
-    flattened: List[Dict[str, Any]] = []
+    flattened: list[dict[str, Any]] = []
     for row in rows:
-        flat: Dict[str, Any] = {}
+        flat: dict[str, Any] = {}
         for key, value in row.items():
             if isinstance(value, (dict, list)):
                 flat[key] = json.dumps(value, sort_keys=True)
@@ -383,7 +383,7 @@ def main() -> int:
         if not int(args.ignore_checklist):
             decision = checklist_decision(run_id=args.run_id, data_root=data_root)
             if decision != "PROMOTE":
-                empty_rows: List[Dict[str, Any]] = []
+                empty_rows: list[dict[str, Any]] = []
                 (out_dir / "strategy_candidates.json").write_text("[]", encoding="utf-8")
                 _tabularize_rows(empty_rows).to_csv(
                     out_dir / "strategy_candidates.csv", index=False
@@ -421,7 +421,7 @@ def main() -> int:
                     .isin(["PROMOTED", "PROMOTED_RESEARCH"])
                 ].copy()
 
-        strategy_rows: List[Dict[str, Any]] = []
+        strategy_rows: list[dict[str, Any]] = []
         if compiled_blueprints:
             for blueprint in compiled_blueprints:
                 event_type = str(blueprint.get("event_type", blueprint.get("event", ""))).strip()
@@ -475,7 +475,7 @@ def main() -> int:
 
         strategy_rows = sorted(strategy_rows, key=candidate_rank_key)
 
-        deduped_rows: List[Dict[str, Any]] = []
+        deduped_rows: list[dict[str, Any]] = []
         seen_keys = set()
         for row in strategy_rows:
             key = behavior_equivalence_key(row)

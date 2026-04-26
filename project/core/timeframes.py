@@ -1,7 +1,7 @@
 from __future__ import annotations
 
+from collections.abc import Iterable
 from dataclasses import dataclass
-from typing import Iterable, List
 
 from project.core.exceptions import ContractViolationError
 
@@ -57,12 +57,12 @@ def normalize_timeframe(tf: str) -> str:
     return raw
 
 
-def parse_timeframes(timeframes_str: str | Iterable[str]) -> List[str]:
+def parse_timeframes(timeframes_str: str | Iterable[str]) -> list[str]:
     if isinstance(timeframes_str, str):
         raw_values = timeframes_str.split(",")
     else:
         raw_values = list(timeframes_str)
-    out: List[str] = []
+    out: list[str] = []
     seen: set[str] = set()
     for raw in raw_values:
         token = str(raw or "").strip()

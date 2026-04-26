@@ -5,7 +5,7 @@ import importlib
 import json
 import tempfile
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any
 
 import yaml
 
@@ -33,7 +33,7 @@ def _normalize_entry_lags(values: Any, *, field_name: str) -> list[int]:
     return normalized
 
 
-def _load_search_limit_defaults(registry_root: Path) -> Dict[str, Any]:
+def _load_search_limit_defaults(registry_root: Path) -> dict[str, Any]:
     payload = load_yaml_path(registry_root / "search_limits.yaml")
     if not isinstance(payload, dict):
         return {}
@@ -55,7 +55,7 @@ def proposal_to_experiment_config(
     proposal: AgentProposal,
     *,
     registry_root: Path,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     defaults = _load_search_limit_defaults(registry_root)
     search_control = {
         "max_hypotheses_total": int(
@@ -115,8 +115,8 @@ def proposal_to_experiment_config(
     }
 
 
-def build_run_all_overrides(proposal: AgentProposal) -> Dict[str, Any]:
-    overrides: Dict[str, Any] = {
+def build_run_all_overrides(proposal: AgentProposal) -> dict[str, Any]:
+    overrides: dict[str, Any] = {
         "program_id": proposal.program_id,
         "mode": proposal.run_mode,
         "objective_name": proposal.objective_name,
@@ -138,12 +138,12 @@ def build_run_all_overrides(proposal: AgentProposal) -> Dict[str, Any]:
 
 
 def translate_and_validate_proposal(
-    proposal_or_path: AgentProposal | str | Path | Dict[str, Any],
+    proposal_or_path: AgentProposal | str | Path | dict[str, Any],
     *,
     registry_root: Path,
     out_dir: Path | None = None,
     config_path: Path | None = None,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     proposal = (
         proposal_or_path
         if isinstance(proposal_or_path, AgentProposal)

@@ -8,9 +8,9 @@ import re
 import subprocess
 import sys
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
-from typing import Any, Dict, List, Literal, Optional, Set
+from typing import Any, Literal
 
 import pandas as pd
 import yaml
@@ -35,14 +35,14 @@ from project.spec_registry.search_space import (
 
 _LOG = logging.getLogger(__name__)
 
-_QUALITY_SCORES: Dict[str, float] = _QUALITY_SCORES_MAP
-_CANONICAL_REPAIR_STAGE_ALIASES: Dict[str, str] = {
+_QUALITY_SCORES: dict[str, float] = _QUALITY_SCORES_MAP
+_CANONICAL_REPAIR_STAGE_ALIASES: dict[str, str] = {
     "phase2_candidate_discovery": "phase2_search_engine",
     "phase2_conditional_hypotheses": "phase2_search_engine",
     "bridge_evaluate_phase2": "phase2_search_engine",
 }
 
-_REPAIR_STAGE_DEFAULT_EVENTS: Dict[str, str] = {
+_REPAIR_STAGE_DEFAULT_EVENTS: dict[str, str] = {
     "build_event_registry": "VOL_SHOCK",
     "analyze_events": "VOL_SHOCK",
     "phase2_search_engine": "VOL_SHOCK",
@@ -62,7 +62,7 @@ def _merge_proposal_rows(existing: pd.DataFrame, incoming: pd.DataFrame) -> pd.D
     return out.drop_duplicates(subset=["proposal_id"], keep="last").reset_index(drop=True)
 
 
-def _load_event_quality_weights(search_space_path: Path) -> Dict[str, float]:
+def _load_event_quality_weights(search_space_path: Path) -> dict[str, float]:
     """Backward-compatible shim for quality weight loading."""
     return load_event_priority_weights(search_space_path)
 
@@ -83,13 +83,13 @@ class CampaignConfig:
     # Phase 3.1: trigger types to activate in sequence.
     # ["EVENT"] → after event frontier exhausted → adds STATE → then TRANSITION.
     # ["EVENT", "STATE", "TRANSITION", "FEATURE_PREDICATE"] activates all four on init.
-    scan_trigger_types: List[str] = None  # type: ignore[assignment]
+    scan_trigger_types: list[str] = None  # type: ignore[assignment]
     # Phase 3.2: enable vol_regime context conditioning on proposals.
     # False  — unconditional (default, safe for initial event scan).
     # True   — adds vol_regime: [low, high] to every Step 4 proposal, tripling
     #           the regime-conditional hypothesis count per run.
     enable_context_conditioning: bool = True
-    proposal_context_dimensions: List[str] = None  # type: ignore[assignment]
+    proposal_context_dimensions: list[str] = None  # type: ignore[assignment]
 
     # Phase 4.4: optional live portfolio snapshot consumed by downstream
     # blueprint/allocation compilation for portfolio-aware sizing.
@@ -138,13 +138,13 @@ class CampaignSummary:
     total_insufficient_sample: int = 0
     total_unsupported: int = 0
     total_skipped: int = 0
-    top_hypotheses: List[Dict[str, Any]] = field(default_factory=list)
+    top_hypotheses: list[dict[str, Any]] = field(default_factory=list)
 
     def to_json(self) -> str:
         return json.dumps(self.__dict__, indent=2)
 
 
-def _event_from_failure_detail(failure_detail: Any, enabled_events: List[str]) -> str:
+def _event_from_failure_detail(failure_detail: Any, enabled_events: list[str]) -> str:
     detail = str(failure_detail or "").upper()
     if not detail:
         return ""
@@ -163,13 +163,13 @@ def _normalize_repair_stage_name(stage: str) -> str:
     return _CANONICAL_REPAIR_STAGE_ALIASES.get(base, base)
 
 
-def _preferred_default_repair_event(enabled_events: List[str]) -> str:
+def _preferred_default_repair_event(enabled_events: list[str]) -> str:
     if "VOL_SHOCK" in enabled_events:
         return "VOL_SHOCK"
     return sorted(enabled_events)[0] if enabled_events else ""
 
 
-def _repair_event_for_stage(stage: str, enabled_events: List[str]) -> str:
+def _repair_event_for_stage(stage: str, enabled_events: list[str]) -> str:
     candidate = _REPAIR_STAGE_DEFAULT_EVENTS.get(_normalize_repair_stage_name(stage), "")
     if candidate and candidate in enabled_events:
         return candidate
@@ -205,7 +205,7 @@ class CampaignController:
         self._search_space_path: Path = next(
             (p for p in _candidates if p.exists()), Path("spec/search_space.yaml")
         )
-        self._quality_weights: Dict[str, float] = load_event_priority_weights(
+        self._quality_weights: dict[str, float] = load_event_priority_weights(
             self._search_space_path
         )
 
@@ -300,7 +300,7 @@ class CampaignController:
             "proposal_id": f"proposal::{run_id}",
             "program_id": self.config.program_id,
             "run_id": run_id,
-            "issued_at": datetime.now(timezone.utc).isoformat(),
+            "issued_at": datetime.now(UTC).isoformat(),
             "proposal_path": str(proposal_path),
             "experiment_config_path": str(config_path),
             "run_all_overrides_path": "",
@@ -430,7 +430,7 @@ class CampaignController:
     # Phase 2.3 — research_mode routes Step 4 to appropriate scan variant
     # ------------------------------------------------------------------
 
-    def _propose_next_request(self) -> Optional[Dict[str, Any]]:
+    def _propose_next_request(self) -> dict[str, Any] | None:
         """Select the next experiment by reading the memory system first.
 
         Priority order:
@@ -502,10 +502,10 @@ class CampaignController:
     # Memory reader — loads all relevant artefacts once per cycle
     # ------------------------------------------------------------------
 
-    def _read_memory(self) -> Dict[str, Any]:
+    def _read_memory(self) -> dict[str, Any]:
         """Read the full memory state for this program into a single dict."""
         paths = memory_paths(self.config.program_id, data_root=self.data_root)
-        integrity_errors: List[str] = []
+        integrity_errors: list[str] = []
 
         def _record_memory_error(path: Path, message: str, *, exc_info: bool = False) -> None:
             detail = f"{path}: {message}"
@@ -514,7 +514,7 @@ class CampaignController:
                 "Campaign memory integrity failure at %s: %s", path, message, exc_info=exc_info
             )
 
-        def _json(path: Path) -> Dict[str, Any]:
+        def _json(path: Path) -> dict[str, Any]:
             if path.exists():
                 try:
                     payload = json.loads(path.read_text(encoding="utf-8"))
@@ -544,7 +544,7 @@ class CampaignController:
         reflections = _parquet(paths.reflections)
 
         # Latest reflection row as a dict (empty dict if none yet)
-        latest_reflection: Dict[str, Any] = {}
+        latest_reflection: dict[str, Any] = {}
         if not reflections.empty:
             if "created_at" not in reflections.columns:
                 _record_memory_error(
@@ -557,13 +557,13 @@ class CampaignController:
                 )
 
         # Avoid regions from belief_state: list of dicts with region metadata
-        avoid_region_keys: Set[str] = {
+        avoid_region_keys: set[str] = {
             str(r.get("region_key", ""))
             for r in belief_state.get("avoid_regions", [])
             if r.get("region_key")
         }
         # Also collect avoided event_types for Step 4 frontier filtering
-        avoid_event_types: Set[str] = {
+        avoid_event_types: set[str] = {
             str(r.get("event_type", ""))
             for r in belief_state.get("avoid_regions", [])
             if r.get("event_type")
@@ -571,7 +571,7 @@ class CampaignController:
 
         # Phase 2.4 — collect stages whose failures have already been superseded
         # so _step_repair can skip re-queuing them.
-        superseded_stages: Set[str] = set()
+        superseded_stages: set[str] = set()
         try:
             failures_df = read_memory_table(
                 self.config.program_id, "failures", data_root=self.data_root
@@ -610,7 +610,7 @@ class CampaignController:
     # Step 1 — Repair
     # ------------------------------------------------------------------
 
-    def _step_repair(self, mem: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+    def _step_repair(self, mem: dict[str, Any]) -> dict[str, Any] | None:
         """If there are open mechanical failures, propose a targeted diagnostic run.
 
         A repair run uses a minimal 1-event, 1-template scope so attribution
@@ -621,12 +621,12 @@ class CampaignController:
         (superseded_by_run_id is populated in the failures table) are skipped so
         the controller does not re-propose repairs for stages that have recovered.
         """
-        repair_queue: List[Dict[str, Any]] = mem["next_actions"].get("repair", [])
+        repair_queue: list[dict[str, Any]] = mem["next_actions"].get("repair", [])
         if not repair_queue:
             return None
 
         # Phase 2.4 — filter superseded repairs from the queue before acting
-        superseded_stages: Set[str] = mem.get("superseded_stages", set())
+        superseded_stages: set[str] = mem.get("superseded_stages", set())
         open_repairs = [
             r
             for r in repair_queue
@@ -658,9 +658,9 @@ class CampaignController:
             date_scope=self.config.repair_date_scope,
         )
 
-    def _step_exploit_queue(self, mem: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+    def _step_exploit_queue(self, mem: dict[str, Any]) -> dict[str, Any] | None:
         """Consume the explicit exploit queue generated by economics-aware memory policy."""
-        exploit_queue: List[Dict[str, Any]] = mem["next_actions"].get("exploit", [])
+        exploit_queue: list[dict[str, Any]] = mem["next_actions"].get("exploit", [])
         for entry in exploit_queue:
             scope = entry.get("proposed_scope", {})
             if isinstance(scope, str):
@@ -691,7 +691,7 @@ class CampaignController:
     # Step 2a — Exploit from reflection (scan/explore modes)
     # ------------------------------------------------------------------
 
-    def _step_exploit_from_reflection(self, mem: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+    def _step_exploit_from_reflection(self, mem: dict[str, Any]) -> dict[str, Any] | None:
         """If the latest reflection recommends exploiting a region, do it.
 
         Constructs a confirmatory run with promotion enabled, broader date scope,
@@ -729,7 +729,7 @@ class CampaignController:
     # Step 2b — Exploit from promising_regions (exploit mode only)
     # ------------------------------------------------------------------
 
-    def _step_exploit_from_promising(self, mem: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+    def _step_exploit_from_promising(self, mem: dict[str, Any]) -> dict[str, Any] | None:
         """Propose from the top promising region in belief_state.
 
         Used when research_mode == "exploit".
@@ -762,9 +762,9 @@ class CampaignController:
                 return proposal
         return None
 
-    def _step_retest_queue(self, mem: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+    def _step_retest_queue(self, mem: dict[str, Any]) -> dict[str, Any] | None:
         """Consume the explicit retest queue for structurally viable unstable regions."""
-        retest_queue: List[Dict[str, Any]] = mem["next_actions"].get("retest", [])
+        retest_queue: list[dict[str, Any]] = mem["next_actions"].get("retest", [])
         for entry in retest_queue:
             scope = entry.get("proposed_scope", {})
             if isinstance(scope, str):
@@ -795,13 +795,13 @@ class CampaignController:
     # Step 3 — Explore adjacent
     # ------------------------------------------------------------------
 
-    def _step_explore_adjacent(self, mem: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+    def _step_explore_adjacent(self, mem: dict[str, Any]) -> dict[str, Any] | None:
         """Vary one dimension of a near-miss region from the explore_adjacent queue.
 
         Tries a broader horizon set and an adjacent template to identify
         the dimension that was limiting the prior result.
         """
-        explore_queue: List[Dict[str, Any]] = mem["next_actions"].get("explore_adjacent", [])
+        explore_queue: list[dict[str, Any]] = mem["next_actions"].get("explore_adjacent", [])
         if not explore_queue:
             return None
         tested_regions = read_memory_table(
@@ -863,77 +863,77 @@ class CampaignController:
     # Step 4 — Quality-weighted frontier scan
     # ------------------------------------------------------------------
 
-    def _step_scan_frontier(self, mem: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+    def _step_scan_frontier(self, mem: dict[str, Any]) -> dict[str, Any] | None:
         return _scan_support.step_scan_frontier(self, mem)
 
     def _step_scan_for_type(
-        self, trigger_type: str, mem: Dict[str, Any]
-    ) -> Optional[Dict[str, Any]]:
+        self, trigger_type: str, mem: dict[str, Any]
+    ) -> dict[str, Any] | None:
         return _scan_support.step_scan_for_type(self, trigger_type, mem)
 
     # ---- EVENT scan (Phase 3.1 + single-family constraint from Phase 2.3) ----
 
-    def _step_scan_events(self, mem: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+    def _step_scan_events(self, mem: dict[str, Any]) -> dict[str, Any] | None:
         return _scan_support.step_scan_events(self, mem)
 
     # ---- STATE scan (Phase 3.1) ----
 
-    def _step_scan_states(self, mem: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+    def _step_scan_states(self, mem: dict[str, Any]) -> dict[str, Any] | None:
         return _scan_support.step_scan_states(self, mem)
 
     # ---- TRANSITION scan (Phase 3.1) ----
 
-    def _step_scan_transitions(self, mem: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+    def _step_scan_transitions(self, mem: dict[str, Any]) -> dict[str, Any] | None:
         return _scan_support.step_scan_transitions(self, mem)
 
     # ---- FEATURE_PREDICATE scan (Phase 3.5) ----
 
-    def _step_scan_feature_predicates(self, mem: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+    def _step_scan_feature_predicates(self, mem: dict[str, Any]) -> dict[str, Any] | None:
         return _scan_support.step_scan_feature_predicates(self, mem)
 
     # ---- SEQUENCE scan (Phase 3.4) ----
 
-    def _step_scan_sequences(self, mem: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+    def _step_scan_sequences(self, mem: dict[str, Any]) -> dict[str, Any] | None:
         return _scan_support.step_scan_sequences(self, mem)
 
     # ---- INTERACTION scan (sixth trigger type — cross-dimensional motifs) ----
 
-    def _step_scan_interactions(self, mem: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+    def _step_scan_interactions(self, mem: dict[str, Any]) -> dict[str, Any] | None:
         return _scan_support.step_scan_interactions(self, mem)
 
-    def _load_interaction_motifs(self) -> List[Dict[str, Any]]:
+    def _load_interaction_motifs(self) -> list[dict[str, Any]]:
         return _scan_support.load_interaction_motifs(self)
 
     # ---- Cross-family explore (Phase 2.3, updated for trigger types) ----
 
-    def _step_scan_frontier_cross_family(self, mem: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+    def _step_scan_frontier_cross_family(self, mem: dict[str, Any]) -> dict[str, Any] | None:
         return _scan_support.step_scan_frontier_cross_family(self, mem)
 
     # ---- Search-space YAML helpers (Phase 3.1/3.4/3.5) ----
 
-    def _load_search_space_states(self) -> List[str]:
+    def _load_search_space_states(self) -> list[str]:
         return _scan_support.load_search_space_states(self)
 
-    def _load_search_space_transitions(self) -> List[Dict[str, str]]:
+    def _load_search_space_transitions(self) -> list[dict[str, str]]:
         return _scan_support.load_search_space_transitions(self)
 
-    def _load_search_space_predicates(self) -> List[Dict[str, Any]]:
+    def _load_search_space_predicates(self) -> list[dict[str, Any]]:
         return _scan_support.load_search_space_predicates(self)
 
-    def _load_mi_candidate_predicates(self) -> List[Dict[str, Any]]:
+    def _load_mi_candidate_predicates(self) -> list[dict[str, Any]]:
         return _scan_support.load_mi_candidate_predicates(self)
 
-    def _find_weak_signal_event_pairs(self) -> List[tuple]:
+    def _find_weak_signal_event_pairs(self) -> list[tuple]:
         return _scan_support.find_weak_signal_event_pairs(self)
 
     # ------------------------------------------------------------------
     # Helpers
     # ------------------------------------------------------------------
 
-    def _templates_for_event(self, event_id: str) -> List[str]:
+    def _templates_for_event(self, event_id: str) -> list[str]:
         return _scan_support.templates_for_event(self, event_id)
 
-    def _executable_regime_event_fanout(self) -> Dict[str, List[str]]:
+    def _executable_regime_event_fanout(self) -> dict[str, list[str]]:
         registry = get_domain_registry()
         return {
             regime: list(registry.get_event_ids_for_regime(regime, executable_only=True))
@@ -941,8 +941,8 @@ class CampaignController:
             if registry.get_event_ids_for_regime(regime, executable_only=True)
         }
 
-    def _event_to_regime_map(self) -> Dict[str, str]:
-        out: Dict[str, str] = {}
+    def _event_to_regime_map(self) -> dict[str, str]:
+        out: dict[str, str] = {}
         for regime, event_ids in self._executable_regime_event_fanout().items():
             for event_id in event_ids:
                 out[event_id] = regime
@@ -951,29 +951,29 @@ class CampaignController:
     def _build_proposal(
         self,
         *,
-        events: List[str],
-        templates: List[str],
-        horizons: List[int],
-        directions: Optional[List[str]] = None,
-        entry_lags: Optional[List[int]] = None,
+        events: list[str],
+        templates: list[str],
+        horizons: list[int],
+        directions: list[str] | None = None,
+        entry_lags: list[int] | None = None,
         description: str,
         promotion_enabled: bool,
         date_scope: tuple[str, str],
         # Phase 3.1 — trigger type (default EVENT for backward compat)
         trigger_type: str = "EVENT",
         # Phase 3.1 — non-event trigger payload (states/transitions/predicates)
-        states: Optional[List[str]] = None,
-        transitions: Optional[List[Dict[str, str]]] = None,
-        feature_predicates: Optional[List[Dict[str, Any]]] = None,
-        sequences: Optional[Dict[str, Any]] = None,
-        interactions: Optional[List[Dict[str, Any]]] = None,
+        states: list[str] | None = None,
+        transitions: list[dict[str, str]] | None = None,
+        feature_predicates: list[dict[str, Any]] | None = None,
+        sequences: dict[str, Any] | None = None,
+        interactions: list[dict[str, Any]] | None = None,
         # Phase 3.2 — context conditioning
-        contexts: Optional[Dict[str, List[str]]] = None,
-        canonical_regimes: Optional[List[str]] = None,
-        subtypes: Optional[List[str]] = None,
-        phases: Optional[List[str]] = None,
-        evidence_modes: Optional[List[str]] = None,
-    ) -> Dict[str, Any]:
+        contexts: dict[str, list[str]] | None = None,
+        canonical_regimes: list[str] | None = None,
+        subtypes: list[str] | None = None,
+        phases: list[str] | None = None,
+        evidence_modes: list[str] | None = None,
+    ) -> dict[str, Any]:
         return _scan_support.build_proposal(
             self,
             events=events,
@@ -997,7 +997,7 @@ class CampaignController:
             evidence_modes=evidence_modes,
         )
 
-    def _context_for_proposal(self) -> Dict[str, List[str]]:
+    def _context_for_proposal(self) -> dict[str, list[str]]:
         return _scan_support.context_for_proposal(self)
 
     # ------------------------------------------------------------------
@@ -1123,7 +1123,7 @@ class CampaignController:
         return summary
 
     def _write_frontier_compat_from_ledger(self, df: pd.DataFrame) -> None:
-        frontier: Dict[str, Any] = {}
+        frontier: dict[str, Any] = {}
         if self.frontier_path.exists():
             try:
                 frontier = json.loads(self.frontier_path.read_text(encoding="utf-8"))
@@ -1134,14 +1134,14 @@ class CampaignController:
         enabled_events = sorted(
             eid for eid, meta in events_registry.items() if bool(meta.get("enabled", True))
         )
-        tested_events: Set[str] = set()
+        tested_events: set[str] = set()
 
         if "event_type" in df.columns:
             tested_events |= set(df["event_type"].dropna().astype(str))
 
         if "trigger_payload" in df.columns:
 
-            def _payload_event_id(payload: object) -> Optional[str]:
+            def _payload_event_id(payload: object) -> str | None:
                 try:
                     parsed = json.loads(str(payload))
                 except Exception:
@@ -1154,8 +1154,8 @@ class CampaignController:
             )
 
         untested_events = [eid for eid in enabled_events if eid not in tested_events]
-        partially_explored_families: List[str] = []
-        family_to_events: Dict[str, List[str]] = {}
+        partially_explored_families: list[str] = []
+        family_to_events: dict[str, list[str]] = {}
         for eid in enabled_events:
             family = str(events_registry.get(eid, {}).get("family", "")).strip()
             if family:

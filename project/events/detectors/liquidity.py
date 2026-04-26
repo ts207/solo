@@ -619,11 +619,11 @@ LIQUIDITY_FAMILY_DETECTORS = {
 
 
 __all__ = [
+    "LIQUIDITY_FAMILY_DETECTORS",
     "AbsorptionDetector",
     "BaseLiquidityStressDetector",
     "DepthCollapseDetector",
     "DirectLiquidityStressDetector",
-    "LIQUIDITY_FAMILY_DETECTORS",
     "LiquidityGapDetector",
     "LiquidityStressDetector",
     "LiquidityVacuumDetector",

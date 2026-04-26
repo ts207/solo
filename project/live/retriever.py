@@ -2,7 +2,6 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from datetime import date
-from typing import Dict, List
 
 from project.domain.models import ThesisDefinition
 from project.live.contracts import PromotedThesis
@@ -415,7 +414,7 @@ def retrieve_ranked_theses(
     context: LiveTradeContext,
     include_pending: bool = True,
     limit: int = 5,
-) -> List[ThesisMatch]:
+) -> list[ThesisMatch]:
     candidates = thesis_store.filter(symbol=context.symbol, timeframe=context.timeframe)
     context_events = _context_events(context)
     context_event_families = _context_event_families(context)
@@ -682,7 +681,7 @@ def retrieve_ranked_theses(
     winner_ids = {w["thesis_id"] for w in winners}
 
     # Identify winners per group for reason reporting
-    group_winners: Dict[str, str] = {
+    group_winners: dict[str, str] = {
         w["overlap_group_id"]: w["thesis_id"] for w in winners if w["overlap_group_id"]
     }
 

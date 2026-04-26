@@ -14,7 +14,7 @@ Detects:
 import glob
 import json
 import warnings
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 import pandas as pd
@@ -157,7 +157,7 @@ def detect_regime_breaks(df: pd.DataFrame) -> list[dict]:
 
 
 def generate_auto_section(df: pd.DataFrame) -> str:
-    now = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
+    now = datetime.now(UTC).strftime("%Y-%m-%d %H:%M UTC")
     lines = [
         AUTO_MARKER,
         "",

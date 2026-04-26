@@ -11,9 +11,9 @@ from project.research.reports.strategy_report import (
 )
 
 __all__ = [
-    "generate_strategy_summary",
-    "write_promotion_rationale",
     "build_operator_summary",
-    "write_operator_summary",
+    "generate_strategy_summary",
     "write_operator_outputs_for_run",
+    "write_operator_summary",
+    "write_promotion_rationale",
 ]

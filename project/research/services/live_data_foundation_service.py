@@ -2,14 +2,14 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any
 
 import yaml
 
 from project.core.feature_schema import normalize_feature_schema_version
 
 
-def _read_json(path: Path) -> Dict[str, Any]:
+def _read_json(path: Path) -> dict[str, Any]:
     if not path.exists():
         return {}
     try:
@@ -19,7 +19,7 @@ def _read_json(path: Path) -> Dict[str, Any]:
     return payload if isinstance(payload, dict) else {}
 
 
-def load_foundation_config(path: Path) -> Dict[str, Any]:
+def load_foundation_config(path: Path) -> dict[str, Any]:
     if not path.exists():
         raise FileNotFoundError(f"Foundation config not found: {path}")
     payload = yaml.safe_load(path.read_text(encoding="utf-8"))
@@ -36,7 +36,7 @@ def _default_report_paths(
     symbol: str,
     timeframe: str,
     feature_schema_version: str = "v2",
-) -> Dict[str, Path]:
+) -> dict[str, Path]:
     schema_version = normalize_feature_schema_version(feature_schema_version)
     return {
         "cleaned_quality": data_root
@@ -86,8 +86,8 @@ def build_live_data_foundation_payload(
     timeframe: str,
     market: str = "perp",
     feature_schema_version: str = "v2",
-    config: Dict[str, Any] | None = None,
-) -> Dict[str, Any]:
+    config: dict[str, Any] | None = None,
+) -> dict[str, Any]:
     cfg = dict(config or {})
     paths = _default_report_paths(
         data_root=data_root,

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import pandas as pd
 
-from project.research.template_regression import (  # noqa: E402
+from project.research.template_regression import (
     build_run_summary,
     compare_summaries,
     summarize_phase2_event,

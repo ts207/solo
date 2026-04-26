@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 import math
-from typing import Any, Dict, List
+from typing import Any
 
 import pandas as pd
 
@@ -77,8 +77,8 @@ def _gate_rank(val: Any) -> int:
     return 0
 
 
-def event_economics_signals(event_statistics: pd.DataFrame) -> Dict[str, dict[str, Any]]:
-    signals: Dict[str, dict[str, Any]] = {}
+def event_economics_signals(event_statistics: pd.DataFrame) -> dict[str, dict[str, Any]]:
+    signals: dict[str, dict[str, Any]] = {}
     if event_statistics.empty or "event_type" not in event_statistics.columns:
         return signals
     for row in event_statistics.to_dict(orient="records"):
@@ -152,8 +152,8 @@ def event_economics_signals(event_statistics: pd.DataFrame) -> Dict[str, dict[st
     return signals
 
 
-def _scope_from_row(row: Dict[str, Any]) -> Dict[str, Any]:
-    scope: Dict[str, Any] = {}
+def _scope_from_row(row: dict[str, Any]) -> dict[str, Any]:
+    scope: dict[str, Any] = {}
     for key in _POLICY_SCOPE_FIELDS:
         value = row.get(key)
         if value is None:
@@ -168,7 +168,7 @@ def _scope_from_row(row: Dict[str, Any]) -> Dict[str, Any]:
     return scope
 
 
-def _policy_evidence(event_signal: Dict[str, Any], row: Dict[str, Any]) -> Dict[str, Any]:
+def _policy_evidence(event_signal: dict[str, Any], row: dict[str, Any]) -> dict[str, Any]:
     return {
         "event_score": float(event_signal.get("score", 0.0) or 0.0),
         "event_status": str(event_signal.get("status", "unknown") or "unknown"),
@@ -203,7 +203,7 @@ def build_action_policy_queues(
     exploit_top_k: int = 3,
     retest_top_k: int | None = None,
     hold_top_k: int | None = None,
-) -> Dict[str, List[Dict[str, Any]]]:
+) -> dict[str, list[dict[str, Any]]]:
     if tested_regions.empty:
         return {"exploit": [], "retest": [], "hold": []}
 
@@ -211,9 +211,9 @@ def build_action_policy_queues(
     hold_top_k = int(hold_top_k if hold_top_k is not None else exploit_top_k)
     signals = event_economics_signals(compute_event_statistics(tested_regions))
     ranked = _ranked_rows(tested_regions)
-    exploit: List[Dict[str, Any]] = []
-    retest: List[Dict[str, Any]] = []
-    hold: List[Dict[str, Any]] = []
+    exploit: list[dict[str, Any]] = []
+    retest: list[dict[str, Any]] = []
+    hold: list[dict[str, Any]] = []
     seen_exploit: set[str] = set()
     seen_retest: set[str] = set()
     seen_hold: set[str] = set()

@@ -13,8 +13,9 @@ import argparse
 import json
 import logging
 import sys
+from collections.abc import Mapping
 from pathlib import Path
-from typing import Any, Mapping, Optional
+from typing import Any
 
 import numpy as np
 import pandas as pd
@@ -51,7 +52,10 @@ from project.research.services.pathing import (
     phase2_run_dir,
 )
 from project.research.services.phase2_diagnostics import build_search_engine_diagnostics
-from project.research.services.reporting_service import append_phase2_funnel_index, write_json_report
+from project.research.services.reporting_service import (
+    append_phase2_funnel_index,
+    write_json_report,
+)
 from project.spec_registry import load_yaml_path
 from project.spec_validation import validate_search_spec_doc
 from project.specs.gates import load_gates_spec, select_bridge_gate_spec, select_phase2_gate_spec
@@ -359,7 +363,7 @@ def _classify_metrics_counts(
     rejected_by_min_n = int(((~valid_mask) & invalid_reason.eq("min_sample_size")).sum())
     rejected_invalid_metrics = max(
         0,
-        int(len(metrics)) - valid_metrics_rows - rejected_by_min_n,
+        len(metrics) - valid_metrics_rows - rejected_by_min_n,
     )
     return valid_metrics_rows, rejected_invalid_metrics, rejected_by_min_n
 
@@ -451,7 +455,7 @@ def _build_funnel_payload(
         "promoted_deploy": 0,
         "drops_by_reason": drops_by_reason,
         "examples_dropped": _funnel_examples(candidate_universe),
-        "phase2_candidates_written": int(len(written_candidates)),
+        "phase2_candidates_written": len(written_candidates),
     }
 
 
@@ -731,14 +735,14 @@ def _build_gate_funnel(
     funnel: dict[str, int] = {
         "generated": int(hypotheses_generated),
         "feasible": int(feasible_hypotheses),
-        "metrics_emitted": int(len(metrics)),
+        "metrics_emitted": len(metrics),
         "valid_metrics": int(valid_mask.sum()),
         "pass_min_sample_size": int(pass_min_n.sum()),
         "t_gross_passed": int(pass_t_gross.sum()),
         "t_net_passed": int(pass_t_net.sum()),
         "mean_net_passed": int(pass_mean_net.sum()),
-        "bridge_candidate_universe": int(len(candidate_universe)),
-        "phase2_candidates_written": int(len(written_candidates)),
+        "bridge_candidate_universe": len(candidate_universe),
+        "phase2_candidates_written": len(written_candidates),
     }
 
     stage_mask = pd.Series(True, index=written_candidates.index, dtype=bool)
@@ -1160,7 +1164,7 @@ def _apply_hierarchical_profile_overrides(
 
 
 def _write_hierarchical_stage_artifacts(
-    stage_artifacts: dict[str, "pd.DataFrame"],
+    stage_artifacts: dict[str, pd.DataFrame],
     out_dir: Path,
     symbol: str,
 ) -> None:
@@ -1281,13 +1285,13 @@ def run(
     chunk_size: int = 500,
     min_t_stat: float | None = None,
     min_n: int = 30,
-    search_budget: Optional[int] = None,
-    experiment_config: Optional[str] = None,
+    search_budget: int | None = None,
+    experiment_config: str | None = None,
     registry_root: str | Path = "project/configs/registries",
     use_context_quality: bool = True,
     enable_discovery_v2_scoring: bool = True,
     phase2_event_type: str = "",
-    event_registry_override: Optional[str] = None,
+    event_registry_override: str | None = None,
     discovery_mode: str = "search",
     lineage_path: str | Path | None = None,
 ) -> int:
@@ -1469,7 +1473,7 @@ def run(
                 generation_audit["edge_cell_authorization"] = {
                     "authorized_hypotheses": len(hypotheses),
                     "unauthorized_hypotheses_filtered": before_filter - len(hypotheses),
-                    "lineage_hypothesis_count": int(len(edge_cell_lineage)),
+                    "lineage_hypothesis_count": len(edge_cell_lineage),
                 }
                 generation_audit.setdefault("counts", {})
                 generation_audit["counts"]["feasible"] = len(hypotheses)
@@ -1502,17 +1506,17 @@ def run(
             len(features),
             len(features.columns),
         )
-        max_feature_columns = max(max_feature_columns, int(len(features.columns)))
+        max_feature_columns = max(max_feature_columns, len(features.columns))
         sym_flags = features[
             [c for c in features.columns if c.endswith(("_event", "_active", "_signal"))]
         ].copy()
         if not sym_flags.empty:
             max_event_flag_columns_merged = max(
-                max_event_flag_columns_merged, int(len(sym_flags.columns))
+                max_event_flag_columns_merged, len(sym_flags.columns)
             )
 
-        total_feature_rows += int(len(features))
-        total_event_flag_rows += int(len(features)) if not sym_flags.empty else 0
+        total_feature_rows += len(features)
+        total_event_flag_rows += len(features) if not sym_flags.empty else 0
 
         total_hypotheses_generated += int(
             generation_audit.get("counts", {}).get("generated", len(hypotheses))
@@ -1541,10 +1545,10 @@ def run(
                     timeframe=timeframe,
                     symbols_requested=symbols_requested,
                     primary_symbol=symbol,
-                    feature_rows=int(len(features)),
-                    feature_columns=int(len(features.columns)),
-                    event_flag_rows=int(len(sym_flags)),
-                    event_flag_columns_merged=int(len(sym_flags.columns)),
+                    feature_rows=len(features),
+                    feature_columns=len(features.columns),
+                    event_flag_rows=len(sym_flags),
+                    event_flag_columns_merged=len(sym_flags.columns),
                     hypotheses_generated=int(
                         generation_audit.get("counts", {}).get("generated", len(hypotheses))
                     ),
@@ -1639,7 +1643,7 @@ def run(
             h_metrics_for_funnel = h_candidate_universe.copy()
             if not h_metrics_for_funnel.empty and "valid" not in h_metrics_for_funnel.columns:
                 h_metrics_for_funnel["valid"] = True
-            h_valid_metrics_rows = int(len(h_metrics_for_funnel))
+            h_valid_metrics_rows = len(h_metrics_for_funnel)
             h_rejected_by_min_t_stat = 0
             if (
                 not h_candidate_universe.empty
@@ -1700,10 +1704,10 @@ def run(
                     timeframe=timeframe,
                     symbols_requested=symbols_requested,
                     primary_symbol=symbol,
-                    feature_rows=int(len(features)),
-                    feature_columns=int(len(features.columns)),
-                    event_flag_rows=int(len(sym_flags)),
-                    event_flag_columns_merged=int(len(sym_flags.columns)),
+                    feature_rows=len(features),
+                    feature_columns=len(features.columns),
+                    event_flag_rows=len(sym_flags),
+                    event_flag_columns_merged=len(sym_flags.columns),
                     hypotheses_generated=h_result.candidates_evaluated_total,
                     feasible_hypotheses=h_result.candidates_evaluated_total,
                     rejected_hypotheses=0,
@@ -1763,10 +1767,10 @@ def run(
                     timeframe=timeframe,
                     symbols_requested=symbols_requested,
                     primary_symbol=symbol,
-                    feature_rows=int(len(features)),
-                    feature_columns=int(len(features.columns)),
-                    event_flag_rows=int(len(sym_flags)),
-                    event_flag_columns_merged=int(len(sym_flags.columns)),
+                    feature_rows=len(features),
+                    feature_columns=len(features.columns),
+                    event_flag_rows=len(sym_flags),
+                    event_flag_columns_merged=len(sym_flags.columns),
                     hypotheses_generated=int(
                         generation_audit.get("counts", {}).get("generated", len(hypotheses))
                     ),
@@ -1919,12 +1923,12 @@ def run(
             if "candidate_id" in candidates.columns:
                 candidates["candidate_id"] = symbol + "::" + candidates["candidate_id"].astype(str)
             all_candidates.append(candidates)
-        total_metrics_rows += int(len(metrics))
+        total_metrics_rows += len(metrics)
         total_valid_metrics_rows += valid_metrics_rows
         total_rejected_invalid_metrics += rejected_invalid_metrics
         total_rejected_by_min_n += rejected_by_min_n
         total_rejected_by_min_t_stat += rejected_by_min_t_stat
-        total_bridge_candidates_rows += int(len(candidates))
+        total_bridge_candidates_rows += len(candidates)
 
         symbol_diagnostics.append(
             build_search_engine_diagnostics(
@@ -1934,10 +1938,10 @@ def run(
                 timeframe=timeframe,
                 symbols_requested=symbols_requested,
                 primary_symbol=symbol,
-                feature_rows=int(len(features)),
-                feature_columns=int(len(features.columns)),
-                event_flag_rows=int(len(sym_flags)),
-                event_flag_columns_merged=int(len(sym_flags.columns)),
+                feature_rows=len(features),
+                feature_columns=len(features.columns),
+                event_flag_rows=len(sym_flags),
+                event_flag_columns_merged=len(sym_flags.columns),
                 hypotheses_generated=int(
                     generation_audit.get("counts", {}).get("generated", len(hypotheses))
                 ),
@@ -1948,12 +1952,12 @@ def run(
                     generation_rejected_hypotheses + post_eval_rejected_hypotheses
                 ),
                 rejection_reason_counts=symbol_rejection_reason_counts,
-                metrics_rows=int(len(metrics)),
+                metrics_rows=len(metrics),
                 valid_metrics_rows=valid_metrics_rows,
                 rejected_invalid_metrics=rejected_invalid_metrics,
                 rejected_by_min_n=rejected_by_min_n,
                 rejected_by_min_t_stat=rejected_by_min_t_stat,
-                bridge_candidates_rows=int(len(candidates)),
+                bridge_candidates_rows=len(candidates),
                 multiplicity_discoveries=0,  # Computed globally
                 min_t_stat=resolved_min_t_stat,
                 min_n=resolved_min_n,
@@ -2418,14 +2422,12 @@ def main(argv=None) -> int:
                 log.warning("Could not read diagnostics for manifest stats: %s", exc)
         if candidate_path.exists():
             try:
-                stats["candidate_rows"] = int(len(read_parquet(candidate_path)))
+                stats["candidate_rows"] = len(read_parquet(candidate_path))
             except Exception as exc:
                 log.warning("Could not read candidate parquet for manifest stats: %s", exc)
         if regime_candidates_path.exists():
             try:
-                stats["regime_conditional_candidate_rows"] = int(
-                    len(read_parquet(regime_candidates_path))
-                )
+                stats["regime_conditional_candidate_rows"] = len(read_parquet(regime_candidates_path))
             except Exception as exc:
                 log.warning("Could not read regime candidates for manifest stats: %s", exc)
         finalize_manifest(manifest, "success" if rc == 0 else "failed", stats=stats)

@@ -105,8 +105,8 @@ def test_audit_handles_read_error_gracefully():
 
 
 def test_required_multiplicity_columns_constant():
-    assert REQUIRED_MULTIPLICITY_COLS == {
+    assert {
         "num_tests_family",
         "num_tests_campaign",
         "num_tests_effective",
-    }
+    } == REQUIRED_MULTIPLICITY_COLS

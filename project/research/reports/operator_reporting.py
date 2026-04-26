@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import json
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
@@ -365,7 +365,7 @@ def update_evidence_ledger(*, run_id: str, program_id: str, data_root: Path | No
     resolved = Path(data_root) if data_root is not None else get_data_root()
     payload = dict(summary) if summary is not None else write_operator_summary(run_id=run_id, program_id=program_id, data_root=resolved)
     existing = read_memory_table(program_id, "evidence_ledger", data_root=resolved)
-    now = datetime.now(timezone.utc).isoformat()
+    now = datetime.now(UTC).isoformat()
     row = {
         "ledger_id": f"ledger::{run_id}",
         "program_id": program_id,

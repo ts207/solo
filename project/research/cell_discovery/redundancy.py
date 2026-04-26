@@ -274,8 +274,8 @@ def build_redundancy_clusters(
     write_parquet(representatives, paths.cluster_representatives_path)
     return {
         "run_id": run_id,
-        "cluster_rows": int(len(clusters)),
-        "representative_rows": int(len(representatives)),
+        "cluster_rows": len(clusters),
+        "representative_rows": len(representatives),
         "edge_clusters": str(paths.clusters_path),
         "edge_cluster_representatives": str(paths.cluster_representatives_path),
     }

@@ -28,7 +28,7 @@ def get_active_event_specs():
         if yaml_file.name == "canonical_event_registry.yaml":
             continue
 
-        with open(yaml_file, "r") as f:
+        with open(yaml_file) as f:
             try:
                 data = yaml.safe_load(f)
                 if not data:

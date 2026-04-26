@@ -5,12 +5,11 @@ import logging
 import subprocess
 import sys
 from pathlib import Path
-from typing import List
 
 from project import PROJECT_ROOT
 
 
-def run_script(script_path: Path, args: List[str]):
+def run_script(script_path: Path, args: list[str]):
     cmd = [sys.executable, str(script_path)] + args
     logging.info("Running: %s", " ".join(cmd))
     result = subprocess.run(cmd, capture_output=False)
@@ -19,7 +18,7 @@ def run_script(script_path: Path, args: List[str]):
         sys.exit(result.returncode)
 
 
-def run_parallel(scripts: List[tuple[Path, List[str]]]):
+def run_parallel(scripts: list[tuple[Path, list[str]]]):
     processes: list[tuple[Path, subprocess.Popen]] = []
     for script_path, args in scripts:
         cmd = [sys.executable, str(script_path)] + args

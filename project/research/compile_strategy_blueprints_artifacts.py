@@ -1,32 +1,33 @@
 from __future__ import annotations
 
 import json
+from collections.abc import Callable
 from pathlib import Path
-from typing import Any, Callable, Dict, List
+from typing import Any
 from unittest.mock import MagicMock
 
 
 def write_strategy_contract_artifacts(
     *,
-    blueprints: List[Any],
+    blueprints: list[Any],
     out_dir: Path,
     run_id: str,
     retail_profile: str,
-    low_capital_contract: Dict[str, Any],
+    low_capital_contract: dict[str, Any],
     require_low_capital_contract: bool,
     effective_max_concurrent_positions: int,
     effective_per_position_notional_cap_usd: float,
     default_fee_tier: str,
     fees_bps_per_side: float,
     slippage_bps_per_fill: float,
-    audit_rows: Dict[str, Dict[str, Any]] | None = None,
+    audit_rows: dict[str, dict[str, Any]] | None = None,
     portfolio_state_path: str | None = None,
     build_executable_strategy_spec_fn: Callable[..., Any],
     build_allocation_spec_fn: Callable[..., Any],
     validate_strategy_contract_fn: Callable[..., None],
     ensure_dir_fn: Callable[[Path], None],
     logger: Any,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     executable_dir = out_dir / "executable_strategy_specs"
     allocation_dir = out_dir / "allocation_specs"
     ensure_dir_fn(executable_dir)
@@ -36,7 +37,7 @@ def write_strategy_contract_artifacts(
     allocation_entries = []
     executor_lines = []
 
-    live_portfolio_state: Dict[str, Any] = {}
+    live_portfolio_state: dict[str, Any] = {}
     if portfolio_state_path:
         try:
             ps_path = Path(portfolio_state_path)
@@ -63,7 +64,7 @@ def write_strategy_contract_artifacts(
         except Exception:
             pass
 
-    marginal_contribution_log: list[Dict[str, Any]] = []
+    marginal_contribution_log: list[dict[str, Any]] = []
 
     for bp in blueprints:
         passes_mc, max_corr = _check_marginal_contribution(bp, promoted_blueprints)

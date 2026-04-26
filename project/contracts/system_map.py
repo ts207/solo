@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import json
 from dataclasses import asdict, dataclass
-from typing import Any, Dict, List
+from typing import Any
 
 from project import PROJECT_ROOT
 from project.contracts.artifacts import build_artifact_specs, list_artifact_contracts
@@ -77,8 +77,8 @@ def _surface_exists(module: str) -> bool:
     return package_path.is_dir() and (package_path / "__init__.py").exists()
 
 
-def validate_system_map_surfaces() -> List[str]:
-    issues: List[str] = []
+def validate_system_map_surfaces() -> list[str]:
+    issues: list[str] = []
     stage_specs = build_stage_specs()
     for spec in stage_specs:
         if not str(spec.owner_service).strip():
@@ -98,7 +98,7 @@ def validate_system_map_surfaces() -> List[str]:
     return issues
 
 
-def build_system_map_payload() -> Dict[str, Any]:
+def build_system_map_payload() -> dict[str, Any]:
     def _json_ready(value: Any) -> Any:
         if isinstance(value, dict):
             return {str(k): _json_ready(v) for k, v in value.items()}
@@ -132,8 +132,8 @@ def build_system_map_payload() -> Dict[str, Any]:
     return payload
 
 
-def render_system_map_markdown(payload: Dict[str, Any]) -> str:
-    lines: List[str] = [
+def render_system_map_markdown(payload: dict[str, Any]) -> str:
+    lines: list[str] = [
         "# System Map",
         "",
         "Generated from stage and artifact contract registries.",
@@ -205,5 +205,5 @@ def render_system_map_markdown(payload: Dict[str, Any]) -> str:
     return "\n".join(lines).strip() + "\n"
 
 
-def render_system_map_json(payload: Dict[str, Any]) -> str:
+def render_system_map_json(payload: dict[str, Any]) -> str:
     return json.dumps(payload, indent=2, sort_keys=True) + "\n"

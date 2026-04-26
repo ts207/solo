@@ -1,7 +1,8 @@
 from __future__ import annotations
 
+from collections.abc import Mapping
 from functools import lru_cache
-from typing import Any, Mapping
+from typing import Any
 
 from project.domain.hypotheses import HypothesisSpec, TriggerType
 from project.spec_registry.loaders import load_yaml_relative

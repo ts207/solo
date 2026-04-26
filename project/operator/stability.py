@@ -1,9 +1,10 @@
 from __future__ import annotations
 
 import json
+from collections.abc import Iterable
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Iterable
+from typing import Any
 
 import pandas as pd
 
@@ -247,7 +248,7 @@ def build_negative_result_diagnostics(*, run_id: str, program_id: str | None = N
     else:
         if not candidates.empty:
             row = dict(candidates.iloc[0])
-            sample_size = row.get("train_n_obs", row.get("n_obs", None))
+            sample_size = row.get("train_n_obs", row.get("n_obs"))
             try:
                 if sample_size is not None and int(sample_size) < 30:
                     diagnosis = "low_sample_power"

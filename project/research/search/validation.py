@@ -4,8 +4,6 @@ Validation for HypothesisSpec and TriggerSpec objects.
 
 from __future__ import annotations
 
-from typing import List
-
 from project.core.constants import parse_horizon_bars
 from project.domain.hypotheses import HypothesisSpec, TriggerType
 from project.research.context_labels import canonicalize_context_label
@@ -22,12 +20,12 @@ VALID_HORIZONS = CANONICAL_HORIZON_LABELS
 VALID_OPERATORS = {">=", "<=", ">", "<", "=="}
 
 
-def validate_hypothesis_spec(spec: HypothesisSpec) -> List[str]:
+def validate_hypothesis_spec(spec: HypothesisSpec) -> list[str]:
     """
     Validate a HypothesisSpec. Returns a list of error strings.
     Empty list means the spec is valid.
     """
-    errors: List[str] = []
+    errors: list[str] = []
 
     if spec.direction not in VALID_DIRECTIONS:
         errors.append(

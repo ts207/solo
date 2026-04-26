@@ -1,12 +1,12 @@
 from __future__ import annotations
 
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 from project.live.signal_monitor import SignalMonitor
 
 
 def _ts(offset_hours: float = 0.0) -> datetime:
-    return datetime(2026, 1, 1, 12, 0, 0, tzinfo=timezone.utc) + timedelta(hours=offset_hours)
+    return datetime(2026, 1, 1, 12, 0, 0, tzinfo=UTC) + timedelta(hours=offset_hours)
 
 
 class TestSignalSilence:

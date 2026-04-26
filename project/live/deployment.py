@@ -19,7 +19,6 @@ from __future__ import annotations
 
 import logging
 from dataclasses import dataclass
-from typing import List
 
 from project.live.contracts.promoted_thesis import (
     ALL_DEPLOYMENT_STATES,
@@ -35,20 +34,20 @@ _LOG = logging.getLogger(__name__)
 class GateRejection:
     thesis_id: str
     deployment_state: str
-    reasons: List[str]
+    reasons: list[str]
 
     def __str__(self) -> str:
         joined = "; ".join(self.reasons)
         return f"[{self.thesis_id} / {self.deployment_state}] {joined}"
 
 
-def check_thesis(thesis: PromotedThesis) -> List[str]:
+def check_thesis(thesis: PromotedThesis) -> list[str]:
     """
     Return a list of violation strings for *one* thesis.
     Empty list means the thesis passes the gate for its declared deployment_state.
     """
     state = str(thesis.deployment_state or "").strip().lower()
-    violations: List[str] = []
+    violations: list[str] = []
 
     if state not in ALL_DEPLOYMENT_STATES:
         return [f"unrecognized deployment_state: {state}"]
@@ -111,11 +110,11 @@ class DeploymentGate:
     def __init__(self, *, strict: bool = True) -> None:
         self.strict = strict
 
-    def check_thesis(self, thesis: PromotedThesis) -> List[str]:
+    def check_thesis(self, thesis: PromotedThesis) -> list[str]:
         return check_thesis(thesis)
 
-    def check_batch(self, theses: List[PromotedThesis]) -> List[GateRejection]:
-        rejections: List[GateRejection] = []
+    def check_batch(self, theses: list[PromotedThesis]) -> list[GateRejection]:
+        rejections: list[GateRejection] = []
         for thesis in theses:
             reasons = check_thesis(thesis)
             if reasons:
@@ -128,7 +127,7 @@ class DeploymentGate:
                 )
         return rejections
 
-    def validate_batch(self, theses: List[PromotedThesis]) -> None:
+    def validate_batch(self, theses: list[PromotedThesis]) -> None:
         """Raise RuntimeError on the first gate violation (if strict)."""
         rejections = self.check_batch(theses)
         if not rejections:
@@ -141,13 +140,13 @@ class DeploymentGate:
                 f" from loading into live runtime. First: {rejections[0]}"
             )
 
-    def filter_tradeable(self, theses: List[PromotedThesis]) -> List[PromotedThesis]:
+    def filter_tradeable(self, theses: list[PromotedThesis]) -> list[PromotedThesis]:
         """
         Return only theses that are in LIVE_TRADEABLE_STATES AND pass the gate.
         Non-live theses are excluded silently.
         """
         live = [t for t in theses if t.deployment_state in LIVE_TRADEABLE_STATES]
-        clean: List[PromotedThesis] = []
+        clean: list[PromotedThesis] = []
         for thesis in live:
             reasons = check_thesis(thesis)
             if reasons:

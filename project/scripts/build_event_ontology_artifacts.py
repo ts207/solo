@@ -4,8 +4,9 @@ from __future__ import annotations
 import argparse
 import json
 import sys
+from collections.abc import Iterable, Mapping
 from pathlib import Path
-from typing import Any, Dict, Iterable, Mapping
+from typing import Any
 
 from project.domain.compiled_registry import get_domain_registry
 
@@ -23,9 +24,9 @@ def _write_or_check(path: Path, content: str, *, check: bool) -> bool:
     return True
 
 
-def _rows() -> list[Dict[str, Any]]:
+def _rows() -> list[dict[str, Any]]:
     registry = get_domain_registry()
-    rows: list[Dict[str, Any]] = []
+    rows: list[dict[str, Any]] = []
     for event_type in registry.event_ids:
         spec = registry.get_event(event_type)
         if spec is None:
@@ -53,12 +54,12 @@ def _rows() -> list[Dict[str, Any]]:
     return rows
 
 
-def _catalog(rows: Iterable[Mapping[str, Any]], *, flag: str) -> list[Dict[str, Any]]:
+def _catalog(rows: Iterable[Mapping[str, Any]], *, flag: str) -> list[dict[str, Any]]:
     return [dict(row) for row in rows if bool(row.get(flag, False))]
 
 
-def _canonical_map(rows: Iterable[Mapping[str, Any]]) -> Dict[str, Dict[str, Any]]:
-    grouped: Dict[str, Dict[str, Any]] = {}
+def _canonical_map(rows: Iterable[Mapping[str, Any]]) -> dict[str, dict[str, Any]]:
+    grouped: dict[str, dict[str, Any]] = {}
     for row in rows:
         regime = str(row.get("canonical_regime", "")).strip()
         if not regime:
@@ -133,7 +134,7 @@ def _render_canonical_map_markdown(payload: Mapping[str, Mapping[str, Any]]) -> 
     return "\n".join(lines).rstrip() + "\n"
 
 
-def build_outputs(base_dir: str = "docs/generated") -> Dict[Path, str]:
+def build_outputs(base_dir: str = "docs/generated") -> dict[Path, str]:
     rows = _rows()
     mapping_payload = {"rows": rows}
     canonical_payload = _canonical_map(rows)

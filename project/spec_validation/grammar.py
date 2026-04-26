@@ -1,11 +1,9 @@
 from pathlib import Path
-from typing import List, Tuple
 
 from project.domain.compiled_registry import get_domain_registry
-from project.spec_validation.loaders import load_family_registry
 
 
-def validate_grammar(root: Path = Path(".")) -> List[Tuple[str, str]]:
+def validate_grammar(root: Path = Path(".")) -> list[tuple[str, str]]:
     errors = []
     from project.spec_validation.loaders import load_yaml
     family_registry = load_yaml(root / "spec" / "grammar" / "family_registry.yaml")

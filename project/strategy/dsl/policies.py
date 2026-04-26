@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-from typing import Dict, List
-
 from project.events.contracts import get_event_spec
 
 DEFAULT_POLICY = {
@@ -13,7 +11,7 @@ DEFAULT_POLICY = {
     "overlays": ["liquidity_guard"],
 }
 
-EVENT_POLICIES: Dict[str, Dict[str, object]] = {
+EVENT_POLICIES: dict[str, dict[str, object]] = {
     "vol_shock": {
         "direction": "conditional",
         "triggers": ["vol_shock_relaxation_event"],
@@ -105,7 +103,7 @@ EVENT_POLICIES: Dict[str, Dict[str, object]] = {
 }
 
 
-def event_policy(event_type: str) -> Dict[str, object]:
+def event_policy(event_type: str) -> dict[str, object]:
     raw = str(event_type).strip()
     if not raw:
         return DEFAULT_POLICY
@@ -126,7 +124,7 @@ def event_policy(event_type: str) -> Dict[str, object]:
     }
 
 
-def overlay_defaults(names: List[str], robustness_score: float) -> List[dict]:
+def overlay_defaults(names: list[str], robustness_score: float) -> list[dict]:
     overlays = []
     for name in names:
         if name == "liquidity_guard":

@@ -6,7 +6,7 @@ Refactored to improve testability and separate concerns.
 from __future__ import annotations
 
 import logging
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 import numpy as np
 import pandas as pd
@@ -17,7 +17,7 @@ except ModuleNotFoundError:
     from project.core.stats import stats
 
 from project.core.constants import parse_horizon_bars
-from project.core.stats import bh_adjust, newey_west_t_stat_for_mean
+from project.core.stats import newey_west_t_stat_for_mean
 from project.core.validation import ts_ns_utc
 from project.research.direction_semantics import resolve_effect_sign
 from project.research.helpers.shrinkage import (
@@ -34,7 +34,7 @@ log = logging.getLogger(__name__)
 _VALID_SPLIT_LABELS = {"train", "validation", "test"}
 
 
-def _normalized_split_label(row: Dict[str, Any]) -> str:
+def _normalized_split_label(row: dict[str, Any]) -> str:
     if "evt_split_label" in row:
         raw = row.get("evt_split_label")
     elif "split_label" in row:
@@ -45,7 +45,7 @@ def _normalized_split_label(row: Dict[str, Any]) -> str:
     return label if label in _VALID_SPLIT_LABELS else "unknown"
 
 
-def distribution_stats(returns: np.ndarray) -> Dict[str, float]:
+def distribution_stats(returns: np.ndarray) -> dict[str, float]:
     """Compute mean, std, HAC t-stat, p-value for a return distribution."""
     clean = np.asarray(returns, dtype=float)
     clean = clean[np.isfinite(clean)]
@@ -180,7 +180,7 @@ def join_events_to_features(
     return merged
 
 
-def empty_expectancy_stats() -> Dict[str, Any]:
+def empty_expectancy_stats() -> dict[str, Any]:
     return {
         "mean_return": 0.0,
         "p_value": 1.0,
@@ -219,13 +219,13 @@ def _extract_event_returns(
     side_policy: str,
     label_target: str,
     canonical_family: str,
-) -> Dict[str, List[Any]]:
-    event_returns: List[float] = []
-    event_ts_list: List[pd.Timestamp] = []
-    event_vol_list: List[Any] = []
-    event_liq_list: List[Any] = []
-    event_dir_list: List[int] = []
-    event_split_list: List[str] = []
+) -> dict[str, list[Any]]:
+    event_returns: list[float] = []
+    event_ts_list: list[pd.Timestamp] = []
+    event_vol_list: list[Any] = []
+    event_liq_list: list[Any] = []
+    event_dir_list: list[int] = []
+    event_split_list: list[str] = []
 
     for row in merged.to_dict("records"):
         feature_pos = row.get("_feature_pos")
@@ -295,12 +295,12 @@ def _extract_event_returns(
 
 def _threshold_from_bps_or_atr(
     *,
-    bps: Optional[float],
-    atr_multiplier: Optional[float],
+    bps: float | None,
+    atr_multiplier: float | None,
     atr_value: object,
     entry_price: float,
-) -> Optional[float]:
-    candidates: List[float] = []
+) -> float | None:
+    candidates: list[float] = []
     if bps is not None and np.isfinite(float(bps)) and float(bps) > 0.0:
         candidates.append(float(bps) / 10_000.0)
     atr_numeric = pd.to_numeric(pd.Series([atr_value]), errors="coerce").iloc[0]
@@ -321,10 +321,10 @@ def _realized_signed_return_from_path(
     *,
     price_path: np.ndarray,
     direction_sign: float,
-    stop_loss_bps: Optional[float] = None,
-    take_profit_bps: Optional[float] = None,
-    stop_loss_atr_multipliers: Optional[float] = None,
-    take_profit_atr_multipliers: Optional[float] = None,
+    stop_loss_bps: float | None = None,
+    take_profit_bps: float | None = None,
+    stop_loss_atr_multipliers: float | None = None,
+    take_profit_atr_multipliers: float | None = None,
     atr_value: object = None,
 ) -> float:
     if price_path.size < 2:
@@ -370,13 +370,13 @@ def build_event_return_frame(
     canonical_family: str = "",
     shift_labels_k: int = 0,
     entry_lag_bars: int = 1,
-    horizon_bars_override: Optional[int] = None,
-    stop_loss_bps: Optional[float] = None,
-    take_profit_bps: Optional[float] = None,
-    stop_loss_atr_multipliers: Optional[float] = None,
-    take_profit_atr_multipliers: Optional[float] = None,
+    horizon_bars_override: int | None = None,
+    stop_loss_bps: float | None = None,
+    take_profit_bps: float | None = None,
+    stop_loss_atr_multipliers: float | None = None,
+    take_profit_atr_multipliers: float | None = None,
     cost_bps: float = 0.0,
-    direction_override: Optional[float] = None,
+    direction_override: float | None = None,
 ) -> pd.DataFrame:
     if sym_events.empty or features_df.empty:
         return pd.DataFrame()
@@ -423,13 +423,13 @@ def _build_event_return_frame_from_joined(
     canonical_family: str = "",
     shift_labels_k: int = 0,
     entry_lag_bars: int = 1,
-    horizon_bars_override: Optional[int] = None,
-    stop_loss_bps: Optional[float] = None,
-    take_profit_bps: Optional[float] = None,
-    stop_loss_atr_multipliers: Optional[float] = None,
-    take_profit_atr_multipliers: Optional[float] = None,
+    horizon_bars_override: int | None = None,
+    stop_loss_bps: float | None = None,
+    take_profit_bps: float | None = None,
+    stop_loss_atr_multipliers: float | None = None,
+    take_profit_atr_multipliers: float | None = None,
     cost_bps: float = 0.0,
-    direction_override: Optional[float] = None,
+    direction_override: float | None = None,
 ) -> pd.DataFrame:
     if merged.empty:
         return pd.DataFrame()
@@ -444,10 +444,10 @@ def _build_event_return_frame_from_joined(
     horizon_bars = max(1, int(horizon_bars))
     if feat_close.size == 0 or "close" not in merged.columns:
         return pd.DataFrame()
-    records: List[Dict[str, Any]] = []
+    records: list[dict[str, Any]] = []
     per_trade_cost = max(0.0, float(cost_bps)) / 10_000.0
 
-    def _funding_carry_return(row: Dict[str, Any], direction_sign: float) -> tuple[float, bool]:
+    def _funding_carry_return(row: dict[str, Any], direction_sign: float) -> tuple[float, bool]:
         for key in ("funding_rate_realized", "funding_rate_scaled", "funding_rate"):
             value = row.get(key)
             if value is None:
@@ -549,11 +549,11 @@ def _build_event_return_frame_from_joined(
 
 def _calculate_weights(
     ts_series: pd.Series,
-    event_vol_list: List[Any],
-    event_liq_list: List[Any],
-    event_dir_list: List[int],
+    event_vol_list: list[Any],
+    event_liq_list: list[Any],
+    event_dir_list: list[int],
     canonical_family: str,
-    time_decay_tau_seconds: Optional[float],
+    time_decay_tau_seconds: float | None,
     time_decay_floor_weight: float,
     regime_conditioned_decay: bool,
     directional_asymmetry_decay: bool,
@@ -570,8 +570,8 @@ def _calculate_weights(
     tau_seconds_default = float(time_decay_tau_seconds or (86400.0 * 60.0))
 
     if bool(regime_conditioned_decay) or bool(directional_asymmetry_decay):
-        tau_days_list: List[float] = []
-        prev_tau_days: Optional[float] = None
+        tau_days_list: list[float] = []
+        prev_tau_days: float | None = None
         alpha = max(
             0.0,
             min(
@@ -638,11 +638,11 @@ def _calculate_weights(
 
 
 def _calculate_tau_diagnostics(
-    event_vol_list: List[Any],
-    event_liq_list: List[Any],
-    event_dir_list: List[int],
+    event_vol_list: list[Any],
+    event_liq_list: list[Any],
+    event_dir_list: list[int],
     canonical_family: str,
-    time_decay_tau_seconds: Optional[float],
+    time_decay_tau_seconds: float | None,
     regime_conditioned_decay: bool,
     directional_asymmetry_decay: bool,
     regime_tau_smoothing_alpha: float,
@@ -653,14 +653,14 @@ def _calculate_tau_diagnostics(
     directional_tau_default_down_mult: float,
     directional_tau_min_ratio: float,
     directional_tau_max_ratio: float,
-) -> Dict[str, float]:
+) -> dict[str, float]:
     tau_seconds_default = float(time_decay_tau_seconds or (86400.0 * 60.0))
     tau_days_default = tau_seconds_default / 86400.0
-    tau_days_list: List[float] = []
-    tau_up_list: List[float] = []
-    tau_down_list: List[float] = []
-    ratio_list: List[float] = []
-    prev_tau_days: Optional[float] = None
+    tau_days_list: list[float] = []
+    tau_up_list: list[float] = []
+    tau_down_list: list[float] = []
+    ratio_list: list[float] = []
+    prev_tau_days: float | None = None
     alpha = max(
         0.0,
         min(
@@ -749,7 +749,7 @@ def calculate_expectancy_stats(
     entry_lag_bars: int = 1,
     min_samples: int = 30,
     time_decay_enabled: bool = False,
-    time_decay_tau_seconds: Optional[float] = None,
+    time_decay_tau_seconds: float | None = None,
     time_decay_floor_weight: float = 0.02,
     regime_conditioned_decay: bool = False,
     regime_tau_smoothing_alpha: float = 0.15,
@@ -761,8 +761,8 @@ def calculate_expectancy_stats(
     directional_tau_max_ratio: float = 3.0,
     directional_tau_default_up_mult: float = 1.25,
     directional_tau_default_down_mult: float = 0.65,
-    horizon_bars_override: Optional[int] = None,
-) -> Dict[str, Any]:
+    horizon_bars_override: int | None = None,
+) -> dict[str, Any]:
     """
     Real PIT expectancy calculation.
     """
@@ -901,7 +901,7 @@ def calculate_expectancy_stats(
     else:
         gate_returns = returns_series
         gate_weights = weights
-    n_gate = int(len(gate_returns))
+    n_gate = len(gate_returns)
 
     # Per-split t-statistics for audit and OOS reporting.
     # These are always unweighted (raw t-test) so they are consistent regardless
@@ -994,7 +994,7 @@ def calculate_expectancy(
     shift_labels_k: int = 0,
     entry_lag_bars: int = 1,
     min_samples: int = 30,
-) -> Tuple[float, float, float, bool]:
+) -> tuple[float, float, float, bool]:
     stats_dict = calculate_expectancy_stats(
         sym_events,
         features_df,
@@ -1012,7 +1012,7 @@ def calculate_expectancy(
     )
 
 
-def max_drawdown_gate(returns: List[float], *, max_dd_ratio: float = 3.0) -> dict:
+def max_drawdown_gate(returns: list[float], *, max_dd_ratio: float = 3.0) -> dict:
     arr = np.asarray(returns, dtype="float64")
     arr = arr[np.isfinite(arr)]
     if arr.size < 2:

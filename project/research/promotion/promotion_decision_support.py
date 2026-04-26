@@ -1,27 +1,21 @@
 from __future__ import annotations
 
 import json
-from typing import Any, Dict
+from typing import Any
 
 import numpy as np
 
 from project.research.promotion.promotion_gate_evaluators import (
-    _evaluate_continuation_quality,
-    _evaluate_control_audit_and_dsr,
-    _evaluate_deploy_oos_and_low_capital,
-    _evaluate_market_execution_and_stability,
     _quiet_float,
-    _quiet_int,
-    evaluate_sensitivity_gate,
 )
 from project.research.utils.decision_safety import bool_gate
 
 
 def _apply_bundle_policy_result(
-    base_result: Dict[str, Any],
-    bundle: Dict[str, Any],
-    bundle_decision: Dict[str, Any],
-) -> Dict[str, Any]:
+    base_result: dict[str, Any],
+    bundle: dict[str, Any],
+    bundle_decision: dict[str, Any],
+) -> dict[str, Any]:
     merged = dict(base_result)
     pre_bundle_decision = str(base_result.get("promotion_decision", "rejected"))
     pre_bundle_track = str(base_result.get("promotion_track", "fallback_only"))
@@ -134,7 +128,7 @@ _BOOLEAN_COMPAT_GATES = {
 }
 
 
-def _restore_boolean_compat_gates(result: Dict[str, Any]) -> Dict[str, Any]:
+def _restore_boolean_compat_gates(result: dict[str, Any]) -> dict[str, Any]:
     restored = dict(result)
     for key in _BOOLEAN_COMPAT_GATES:
         if key in restored:

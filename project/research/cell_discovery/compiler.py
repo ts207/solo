@@ -272,7 +272,7 @@ def compile_cells(
         cell_feasibility,
         symbols=symbols,
     )
-    estimated_count = int(len(lineage))
+    estimated_count = len(lineage)
     if estimated_count > registry.ranking_policy.max_search_hypotheses:
         raise ValueError(
             "Generated edge-cell search surface exceeds max_search_hypotheses: "
@@ -322,7 +322,7 @@ def compile_cells(
         lineage_path=paths.lineage_path,
         skipped_cells_path=paths.skipped_cells_path,
         estimated_hypothesis_count=estimated_count,
-        cell_count=int(len(compiled_cells)),
+        cell_count=len(compiled_cells),
         family_counts=family_counts,
         skipped_cell_count=len(skipped_cells),
     )

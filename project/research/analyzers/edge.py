@@ -24,7 +24,7 @@ class EdgeAnalyzer(BaseEventAnalyzer):
         frame = self.validate_events(events)
         market = self.validate_market(market)
         if frame.empty or market is None or market.empty:
-            return AnalyzerResult(name=self.name, summary={"n_events": int(len(frame))}, tables={})
+            return AnalyzerResult(name=self.name, summary={"n_events": len(frame)}, tables={})
 
         horizons = list(kwargs.get("horizons", [1, 3, 5]))
         cost_bps = float(kwargs.get("cost_bps", 0.0))
@@ -90,7 +90,7 @@ class EdgeAnalyzer(BaseEventAnalyzer):
             )
         horizon_table = pd.DataFrame(rows)
         summary = {
-            "n_events": int(len(joined)),
+            "n_events": len(joined),
             "cost_bps": cost_bps,
             "best_horizon_bars": int(
                 horizon_table.sort_values("net_mean_bps", ascending=False).iloc[0]["horizon_bars"]

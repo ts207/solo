@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, Dict
+from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
@@ -28,7 +28,7 @@ class SizingPolicySpec(BaseModel):
     max_gross_leverage: float
     portfolio_risk_budget: float = 1.0
     symbol_risk_budget: float = 1.0
-    signal_scaling: Dict[str, Any] = Field(default_factory=dict)
+    signal_scaling: dict[str, Any] = Field(default_factory=dict)
     # Phase 4.4: sizing inputs populated from promotion audit data.
     # expected_return_bps — mean return from the promotion audit row (mean_return_bps).
     # expected_adverse_bps — stressed adverse scenario derived from
@@ -54,18 +54,18 @@ class SizingPolicySpec(BaseModel):
 class RiskControlSpec(BaseModel):
     model_config = ConfigDict(frozen=True)
 
-    low_capital_contract: Dict[str, Any] = Field(default_factory=dict)
+    low_capital_contract: dict[str, Any] = Field(default_factory=dict)
     max_concurrent_positions: int
     per_position_notional_cap_usd: float
     fee_tier: str
-    cost_model: Dict[str, Any] = Field(default_factory=dict)
+    cost_model: dict[str, Any] = Field(default_factory=dict)
 
 
 class AllocationPolicySpec(BaseModel):
     model_config = ConfigDict(frozen=True)
 
-    symbol_scope: Dict[str, Any]
-    constraints: Dict[str, Any] = Field(default_factory=dict)
+    symbol_scope: dict[str, Any]
+    constraints: dict[str, Any] = Field(default_factory=dict)
 
 
 class AllocationSpec(BaseModel):
@@ -76,7 +76,7 @@ class AllocationSpec(BaseModel):
     risk_controls: RiskControlSpec
     allocation_policy: AllocationPolicySpec
 
-    def to_allocator_params(self) -> Dict[str, Any]:
+    def to_allocator_params(self) -> dict[str, Any]:
         constraints = dict(self.allocation_policy.constraints)
         strategy_family_map = dict(constraints.get("strategy_family_map", {}))
         family_risk_budgets = dict(constraints.get("family_risk_budgets", {}))
@@ -123,7 +123,7 @@ class AllocationSpec(BaseModel):
         blueprint: Blueprint,
         run_id: str,
         retail_profile: str,
-        low_capital_contract: Dict[str, Any],
+        low_capital_contract: dict[str, Any],
         effective_max_concurrent_positions: int,
         effective_per_position_notional_cap_usd: float,
         default_fee_tier: str,
@@ -134,7 +134,7 @@ class AllocationSpec(BaseModel):
         # enabling the live runner to use calibrated Kelly-adjusted sizing.
         expected_return_bps: float | None = None,
         expected_adverse_bps: float | None = None,
-    ) -> "AllocationSpec":
+    ) -> AllocationSpec:
         constraints = dict(blueprint.lineage.constraints or {})
         # Fallback: read sizing inputs from blueprint constraints if not explicitly provided.
         # This covers blueprints compiled via blueprint_compilation.py which embeds

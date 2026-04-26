@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Any, Dict
+from typing import Any
 
 RELIABILITY_SCHEMA_VERSION = "phase6_reliability_v1"
 SMOKE_DATASET_VERSION = "smoke_dataset_v1"
@@ -16,7 +16,7 @@ class ArtifactSchemaSpec:
     non_null_columns: tuple[str, ...] = ()
     monotonic_by: tuple[str, ...] = ()
     unique_by: tuple[str, ...] = ()
-    enum_columns: Dict[str, tuple[Any, ...]] = field(default_factory=dict)
+    enum_columns: dict[str, tuple[Any, ...]] = field(default_factory=dict)
 
 
 @dataclass(frozen=True)

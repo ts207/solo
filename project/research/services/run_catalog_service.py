@@ -2,14 +2,14 @@ from __future__ import annotations
 
 import logging
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from project.core.config import get_data_root
 from project.research.validation.manifest import load_manifest
 
 _LOG = logging.getLogger(__name__)
 
-def list_runs(stage: Optional[str] = None, data_root: Optional[Path] = None) -> List[Dict[str, Any]]:
+def list_runs(stage: str | None = None, data_root: Path | None = None) -> list[dict[str, Any]]:
     root = data_root or get_data_root()
     runs = []
 
@@ -46,7 +46,7 @@ def list_runs(stage: Optional[str] = None, data_root: Optional[Path] = None) -> 
                         runs.append(invalid_row)
     return sorted(runs, key=lambda x: x["created_at"], reverse=True)
 
-def compare_manifests(run_id_a: str, run_id_b: str, stage: str, data_root: Optional[Path] = None) -> Dict[str, Any]:
+def compare_manifests(run_id_a: str, run_id_b: str, stage: str, data_root: Path | None = None) -> dict[str, Any]:
     root = data_root or get_data_root()
     # Find directories
     path_map = {

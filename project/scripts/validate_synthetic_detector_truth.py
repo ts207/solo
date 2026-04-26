@@ -4,7 +4,7 @@ import argparse
 import json
 from collections.abc import Iterable, Mapping
 from pathlib import Path
-from typing import Any, Dict, List, Union
+from typing import Any
 
 import pandas as pd
 
@@ -40,7 +40,7 @@ def _resolve_default_truth_map_and_data_root(
     return data_root, default_truth_map
 
 
-def load_truth_map(path: Path) -> List[Dict[str, Any]]:
+def load_truth_map(path: Path) -> list[dict[str, Any]]:
     payload = json.loads(path.read_text(encoding="utf-8"))
     if isinstance(payload, dict) and isinstance(payload.get("segments"), list):
         return [dict(item) for item in payload["segments"] if isinstance(item, Mapping)]
@@ -141,8 +141,8 @@ def _truth_windows(
     symbol: str,
     event_type: str,
     tolerance: pd.Timedelta,
-) -> List[tuple[pd.Timestamp, pd.Timestamp]]:
-    windows: List[tuple[pd.Timestamp, pd.Timestamp]] = []
+) -> list[tuple[pd.Timestamp, pd.Timestamp]]:
+    windows: list[tuple[pd.Timestamp, pd.Timestamp]] = []
     for segment in segments:
         if str(segment.get("symbol", "")).upper() != str(symbol).upper():
             continue
@@ -161,7 +161,7 @@ def _truth_windows(
 
 
 def _count_hits(
-    times: pd.Series, windows: List[tuple[pd.Timestamp, pd.Timestamp]]
+    times: pd.Series, windows: list[tuple[pd.Timestamp, pd.Timestamp]]
 ) -> tuple[int, int]:
     if times.empty or not windows:
         return 0, 0
@@ -207,7 +207,7 @@ def _build_event_reports(
     detector_thresholds: Mapping[str, Mapping[str, Mapping[str, float]]] | None = None,
     run_has_calibrated_thresholds: bool = False,
 ) -> list[dict[str, Any]]:
-    event_reports: List[Dict[str, Any]] = []
+    event_reports: list[dict[str, Any]] = []
     detector_thresholds = detector_thresholds or {}
     for event_type in event_types:
         spec = EVENT_REGISTRY_SPECS.get(event_type)
@@ -221,7 +221,7 @@ def _build_event_reports(
         frame = load_event_frame(data_root=data_root, run_id=run_id, event_type=event_type)
         times = _event_time_series(frame)
         total_events = int(times.notna().sum())
-        per_symbol: List[Dict[str, Any]] = []
+        per_symbol: list[dict[str, Any]] = []
         relevant_segments = [
             segment for segment in segments if event_type in segment.get(field_name, [])
         ]
@@ -303,12 +303,12 @@ def validate_detector_truth(
     data_root: Path,
     run_id: str,
     truth_map_path: Path,
-    tolerance_minutes: Union[int, Dict[str, int]] = 30,
+    tolerance_minutes: int | dict[str, int] = 30,
     max_off_regime_rate: float = 0.35,
     min_precision_fraction: float | None = 0.5,
     event_types: Iterable[str] | None = None,
     include_supporting_events: bool = False,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     segments = load_truth_map(truth_map_path)
 
     # Enforce profile/manifest freeze integrity

@@ -2,10 +2,10 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 
-def _load_json(path: Path) -> Dict[str, Any]:
+def _load_json(path: Path) -> dict[str, Any]:
     if not path.exists():
         return {}
     try:
@@ -16,11 +16,11 @@ def _load_json(path: Path) -> Dict[str, Any]:
 
 def build_promotion_readiness_report(
     *,
-    benchmark_review: Dict[str, Any],
-    benchmark_certification: Dict[str, Any],
-    confirmatory_plan: Optional[Dict[str, Any]] = None,
-    promotion_audit: Optional[List[Dict[str, Any]]] = None,
-) -> Dict[str, Any]:
+    benchmark_review: dict[str, Any],
+    benchmark_certification: dict[str, Any],
+    confirmatory_plan: dict[str, Any] | None = None,
+    promotion_audit: list[dict[str, Any]] | None = None,
+) -> dict[str, Any]:
     """
     Combine multiple governance artifacts into one compact readiness report.
     """
@@ -94,7 +94,7 @@ def build_promotion_readiness_report(
     }
 
 
-def render_promotion_readiness_terminal(report: Dict[str, Any]) -> str:
+def render_promotion_readiness_terminal(report: dict[str, Any]) -> str:
     lines = []
     lines.append("=" * 80)
     lines.append(f"PROMOTION READINESS: {report.get('matrix_id')}")
@@ -128,7 +128,7 @@ def render_promotion_readiness_terminal(report: Dict[str, Any]) -> str:
     return "\n".join(lines)
 
 
-def render_promotion_readiness_markdown(report: Dict[str, Any]) -> str:
+def render_promotion_readiness_markdown(report: dict[str, Any]) -> str:
     lines = [
         "# Promotion Readiness Report",
         "",
@@ -164,7 +164,7 @@ def render_promotion_readiness_markdown(report: Dict[str, Any]) -> str:
     return "\n".join(lines)
 
 
-def write_promotion_readiness_report(*, out_dir: Path, report: Dict[str, Any]) -> Dict[str, Path]:
+def write_promotion_readiness_report(*, out_dir: Path, report: dict[str, Any]) -> dict[str, Path]:
     out_dir.mkdir(parents=True, exist_ok=True)
     json_path = out_dir / "promotion_readiness.json"
     md_path = out_dir / "promotion_readiness.md"

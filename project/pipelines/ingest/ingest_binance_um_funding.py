@@ -5,9 +5,8 @@ import logging
 import sys
 import tempfile
 import time
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
-from typing import Dict, List, Tuple
 from zipfile import ZipFile
 
 import pandas as pd
@@ -22,23 +21,23 @@ from project.specs.manifest import finalize_manifest, start_manifest
 
 ARCHIVE_BASE = "https://data.binance.vision/data/futures/um"
 DEFAULT_API_BASE = "https://fapi.binance.com"
-EARLIEST_UM_FUTURES = datetime(2019, 9, 1, tzinfo=timezone.utc)
+EARLIEST_UM_FUTURES = datetime(2019, 9, 1, tzinfo=UTC)
 
 FUNDING_HOURS = (0, 8, 16)
 FUNDING_STEP = timedelta(hours=8)
 
 
 def _parse_date(value: str) -> datetime:
-    return datetime.strptime(value, "%Y-%m-%d").replace(tzinfo=timezone.utc)
+    return datetime.strptime(value, "%Y-%m-%d").replace(tzinfo=UTC)
 
 
 def _month_start(ts: datetime) -> datetime:
-    ts = ts.astimezone(timezone.utc)
+    ts = ts.astimezone(UTC)
     return ts.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
 
 
 def _next_month(ts: datetime) -> datetime:
-    ts = ts.astimezone(timezone.utc)
+    ts = ts.astimezone(UTC)
     y, m = ts.year, ts.month
     if m == 12:
         y += 1
@@ -48,8 +47,8 @@ def _next_month(ts: datetime) -> datetime:
     return ts.replace(year=y, month=m, day=1, hour=0, minute=0, second=0, microsecond=0)
 
 
-def _iter_months(start: datetime, end: datetime) -> List[datetime]:
-    months: List[datetime] = []
+def _iter_months(start: datetime, end: datetime) -> list[datetime]:
+    months: list[datetime] = []
     cursor = _month_start(start)
     while cursor <= end:
         months.append(cursor)
@@ -57,9 +56,9 @@ def _iter_months(start: datetime, end: datetime) -> List[datetime]:
     return months
 
 
-def _iter_days(start: datetime, end: datetime) -> List[datetime]:
-    days: List[datetime] = []
-    cursor = start.astimezone(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0)
+def _iter_days(start: datetime, end: datetime) -> list[datetime]:
+    days: list[datetime] = []
+    cursor = start.astimezone(UTC).replace(hour=0, minute=0, second=0, microsecond=0)
     while cursor <= end:
         days.append(cursor)
         cursor += timedelta(days=1)
@@ -67,9 +66,9 @@ def _iter_days(start: datetime, end: datetime) -> List[datetime]:
 
 
 def _ceil_to_next_funding(ts: datetime) -> datetime:
-    ts = ts.astimezone(timezone.utc)
+    ts = ts.astimezone(UTC)
     base = ts.replace(minute=0, second=0, microsecond=0)
-    candidates: List[datetime] = []
+    candidates: list[datetime] = []
     for h in FUNDING_HOURS:
         cand = base.replace(hour=h)
         if cand < ts:
@@ -78,11 +77,11 @@ def _ceil_to_next_funding(ts: datetime) -> datetime:
     return min(candidates)
 
 
-def _expected_funding_timestamps(start: datetime, end_exclusive: datetime) -> List[pd.Timestamp]:
-    start = start.astimezone(timezone.utc)
-    end_exclusive = end_exclusive.astimezone(timezone.utc)
+def _expected_funding_timestamps(start: datetime, end_exclusive: datetime) -> list[pd.Timestamp]:
+    start = start.astimezone(UTC)
+    end_exclusive = end_exclusive.astimezone(UTC)
     cur = _ceil_to_next_funding(start)
-    out: List[pd.Timestamp] = []
+    out: list[pd.Timestamp] = []
     while cur < end_exclusive:
         out.append(pd.Timestamp(cur))
         cur += FUNDING_STEP
@@ -176,10 +175,10 @@ def _fetch_funding_api(
     end_exclusive: datetime,
     limit: int,
     sleep_sec: float,
-) -> Tuple[pd.DataFrame, int]:
-    rows: List[Dict[str, object]] = []
-    cursor = start.astimezone(timezone.utc)
-    end_exclusive = end_exclusive.astimezone(timezone.utc)
+) -> tuple[pd.DataFrame, int]:
+    rows: list[dict[str, object]] = []
+    cursor = start.astimezone(UTC)
+    end_exclusive = end_exclusive.astimezone(UTC)
     api_calls = 0
 
     while cursor < end_exclusive:
@@ -201,7 +200,7 @@ def _fetch_funding_api(
 
         rows.extend(payload)
         last_time_ms = int(payload[-1]["fundingTime"])
-        cursor = datetime.fromtimestamp(last_time_ms / 1000, tz=timezone.utc) + timedelta(
+        cursor = datetime.fromtimestamp(last_time_ms / 1000, tz=UTC) + timedelta(
             milliseconds=1
         )
 
@@ -227,7 +226,7 @@ def _fetch_funding_api(
     return df, api_calls
 
 
-def _partition_complete(path: Path, expected_ts: List[pd.Timestamp]) -> bool:
+def _partition_complete(path: Path, expected_ts: list[pd.Timestamp]) -> bool:
     if not path.exists():
         csv_path = path.with_suffix(".csv")
         if csv_path.exists():
@@ -251,8 +250,8 @@ def _partition_complete(path: Path, expected_ts: List[pd.Timestamp]) -> bool:
 
 
 def _missing_expected_timestamps(
-    df: pd.DataFrame, expected_ts: List[pd.Timestamp]
-) -> List[pd.Timestamp]:
+    df: pd.DataFrame, expected_ts: list[pd.Timestamp]
+) -> list[pd.Timestamp]:
     if df is None or df.empty:
         return expected_ts
     got = set(pd.to_datetime(df["timestamp"], utc=True))
@@ -262,8 +261,8 @@ def _missing_expected_timestamps(
 def _funding_coverage_failure_message(
     *,
     symbol: str,
-    expected_ts: List[pd.Timestamp],
-    missing_ts: List[pd.Timestamp],
+    expected_ts: list[pd.Timestamp],
+    missing_ts: list[pd.Timestamp],
 ) -> str | None:
     if not expected_ts:
         return None
@@ -275,12 +274,12 @@ def _funding_coverage_failure_message(
     )
 
 
-def _missing_timestamp_ranges(missing_ts: List[pd.Timestamp]) -> List[Tuple[datetime, datetime]]:
+def _missing_timestamp_ranges(missing_ts: list[pd.Timestamp]) -> list[tuple[datetime, datetime]]:
     if not missing_ts:
         return []
     ordered = sorted(pd.to_datetime(missing_ts, utc=True))
     step = pd.Timedelta(hours=8)
-    ranges: List[Tuple[datetime, datetime]] = []
+    ranges: list[tuple[datetime, datetime]] = []
     range_start = ordered[0]
     prev = ordered[0]
     for ts in ordered[1:]:
@@ -327,8 +326,8 @@ def main() -> int:
         level=logging.INFO, handlers=log_handlers, format="%(asctime)s %(levelname)s %(message)s"
     )
 
-    inputs: List[Dict[str, object]] = []
-    outputs: List[Dict[str, object]] = []
+    inputs: list[dict[str, object]] = []
+    outputs: list[dict[str, object]] = []
     params = {
         "symbols": symbols,
         "requested_start": args.start,
@@ -346,22 +345,22 @@ def main() -> int:
     }
     manifest = start_manifest("ingest_binance_um_funding", run_id, params, inputs, outputs)
 
-    stats: Dict[str, object] = {"symbols": {}}
-    failures: List[str] = []
+    stats: dict[str, object] = {"symbols": {}}
+    failures: list[str] = []
 
     try:
         out_root = Path(args.out_root)
         session = requests.Session()
 
         for symbol in symbols:
-            missing_archives: List[str] = []
-            partitions_written: List[str] = []
-            partitions_skipped: List[str] = []
-            archive_files_downloaded: List[str] = []
+            missing_archives: list[str] = []
+            partitions_written: list[str] = []
+            partitions_skipped: list[str] = []
+            archive_files_downloaded: list[str] = []
             api_calls = 0
 
-            month_frames: List[pd.DataFrame] = []
-            month_specs: List[Dict[str, object]] = []
+            month_frames: list[pd.DataFrame] = []
+            month_specs: list[dict[str, object]] = []
 
             # ---------- archive ingest per month ----------
             for month_start in _iter_months(effective_start, effective_end):
@@ -410,7 +409,7 @@ def main() -> int:
                     outputs.append(
                         {
                             "path": str(out_path),
-                            "rows": int(len(df_month)),
+                            "rows": len(df_month),
                             "start_ts": (
                                 df_month["timestamp"].min().isoformat()
                                 if not df_month.empty
@@ -435,7 +434,7 @@ def main() -> int:
                 )
                 logging.info("Downloading monthly archive %s", monthly_url)
 
-                frames: List[pd.DataFrame] = []
+                frames: list[pd.DataFrame] = []
                 with tempfile.TemporaryDirectory() as tmpdir:
                     tmpdir = str(tmpdir)
                     temp_zip = Path(tmpdir) / "funding.zip"
@@ -527,7 +526,7 @@ def main() -> int:
             api_coverage_end = None
 
             if int(args.use_api_fallback) and len(missing_from_archive) > 0:
-                api_frames: List[pd.DataFrame] = []
+                api_frames: list[pd.DataFrame] = []
                 for api_start, api_end_exclusive in _missing_timestamp_ranges(missing_from_archive):
                     frame, calls = _fetch_funding_api(
                         session,
@@ -588,7 +587,7 @@ def main() -> int:
                 outputs.append(
                     {
                         "path": str(written_path),
-                        "rows": int(len(month_data)),
+                        "rows": len(month_data),
                         "start_ts": month_data["timestamp"].min().isoformat(),
                         "end_ts": month_data["timestamp"].max().isoformat(),
                         "storage": storage,
@@ -616,7 +615,7 @@ def main() -> int:
                 "coverage_start": coverage_start,
                 "coverage_end": coverage_end,
                 "expected_count": len(expected_ts_all),
-                "got_count": int(len(combined)) if not combined.empty else 0,
+                "got_count": len(combined) if not combined.empty else 0,
                 "missing_count": len(missing_after_all),
                 "missing_timestamps_preview": [t.isoformat() for t in missing_after_all[:200]],
                 "archive_files_downloaded": archive_files_downloaded,

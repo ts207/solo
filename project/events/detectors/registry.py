@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-from typing import Any, Dict, Iterable, List, Optional
+from collections.abc import Iterable
+from typing import Any
 
 from project.events.detector_contract import (
     DetectorLogicContract,
@@ -10,8 +11,8 @@ from project.events.detector_contract import (
 from project.events.detectors.base import BaseEventDetector
 from project.events.detectors.catalog import load_detector_family_modules
 
-_DETECTORS: Dict[str, type[Any]] = {}
-_METADATA_ADAPTERS: Dict[tuple[str, type[Any], object], type[Any]] = {}
+_DETECTORS: dict[str, type[Any]] = {}
+_METADATA_ADAPTERS: dict[tuple[str, type[Any], object], type[Any]] = {}
 
 
 def register_detector(event_type: str, detector_cls: type[Any]) -> None:
@@ -42,7 +43,7 @@ def _candidate_detector_classes(event_type: str) -> list[type[Any]]:
     return candidates
 
 
-def get_detector_class(event_type: str) -> Optional[type[Any]]:
+def get_detector_class(event_type: str) -> type[Any] | None:
     load_all_detectors()
     token = str(event_type).strip().upper()
     candidates = _candidate_detector_classes(token)
@@ -58,7 +59,7 @@ def get_detector_class(event_type: str) -> Optional[type[Any]]:
     return _DETECTORS.get(token)
 
 
-def get_detector(event_type: str) -> Optional[Any]:
+def get_detector(event_type: str) -> Any | None:
     cls = get_detector_class(event_type)
     return cls() if cls else None
 
@@ -132,7 +133,7 @@ def _resolve_detector_band(
 
 def get_detector_metadata_adapter_class(
     event_type: str, governance_row: dict[str, Any] | None = None
-) -> Optional[type[Any]]:
+) -> type[Any] | None:
     detector_cls = get_detector_class(event_type)
     if detector_cls is None:
         return None
@@ -226,7 +227,7 @@ def get_detector_metadata_adapter_class(
 
 def get_detector_metadata(
     event_type: str, governance_row: dict[str, Any] | None = None
-) -> tuple[Optional[type[Any]], Optional[NormalizedDetectorMetadata]]:
+) -> tuple[type[Any] | None, NormalizedDetectorMetadata | None]:
     detector_cls = get_detector_metadata_adapter_class(event_type, governance_row)
     if detector_cls is None:
         return None, None
@@ -238,7 +239,7 @@ def get_detector_metadata(
     return detector_cls, metadata
 
 
-def list_registered_event_types() -> List[str]:
+def list_registered_event_types() -> list[str]:
     load_all_detectors()
     return sorted(_DETECTORS.keys())
 
@@ -249,6 +250,6 @@ def load_all_detectors() -> None:
 
 
 # --- Auto-registration helpers ---
-def register_family_detectors(detectors: Dict[str, type[Any]]) -> None:
+def register_family_detectors(detectors: dict[str, type[Any]]) -> None:
     for et, cls in detectors.items():
         register_detector(et, cls)

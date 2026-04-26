@@ -4,7 +4,6 @@ from __future__ import annotations
 import json
 import logging
 from pathlib import Path
-from typing import Dict, List, Optional
 
 from project.domain.compiled_registry import get_domain_registry
 from project.domain.hypotheses import HypothesisSpec, TriggerSpec
@@ -16,7 +15,9 @@ from project.research.experiment_engine_schema import (
     AgentExperimentRequest,
     RegistryBundle,
 )
-from project.research.search.feasibility import check_hypothesis_feasibility, filter_hypotheses_with_report
+from project.research.search.feasibility import (
+    filter_hypotheses_with_report,
+)
 
 log = logging.getLogger(__name__)
 
@@ -370,7 +371,7 @@ def _validate_interaction_trigger(
 def expand_hypotheses(
     request: AgentExperimentRequest,
     registries: RegistryBundle,
-) -> List[HypothesisSpec]:
+) -> list[HypothesisSpec]:
     hypotheses = []
 
     # Resolve context slices (Cartesian product of selected values)
@@ -430,7 +431,7 @@ def expand_hypotheses(
 def _resolve_requested_event_ids(
     request: AgentExperimentRequest,
     registries: RegistryBundle,
-) -> List[str]:
+) -> list[str]:
     allowed_events = registries.events.get("events", {})
     explicit_events = []
     for raw_event in request.trigger_space.events.get("include", []):
@@ -610,8 +611,8 @@ def _resolve_requested_event_ids(
 def _expand_event_triggers(
     request: AgentExperimentRequest,
     registries: RegistryBundle,
-    context_slices: List[Optional[Dict[str, str]]],
-) -> List[HypothesisSpec]:
+    context_slices: list[dict[str, str] | None],
+) -> list[HypothesisSpec]:
     hyps = []
     explicit_event_specs: list[tuple[str, str | None]] = []
     for raw_event in request.trigger_space.events.get("include", []):
@@ -631,7 +632,7 @@ def _expand_event_triggers(
         requested_events = [(event_id, None) for event_id in _resolve_requested_event_ids(request, registries)]
     # Translate first feature predicate into a feature_condition for evaluation-time filtering.
     feature_predicates_include = request.trigger_space.feature_predicates.get("include", [])
-    feature_condition: Optional[TriggerSpec] = None
+    feature_condition: TriggerSpec | None = None
     if feature_predicates_include:
         if len(feature_predicates_include) > 1:
             log.warning(
@@ -669,8 +670,8 @@ def _expand_event_triggers(
 
 
 def _expand_state_triggers(
-    request: AgentExperimentRequest, context_slices: List[Optional[Dict[str, str]]]
-) -> List[HypothesisSpec]:
+    request: AgentExperimentRequest, context_slices: list[dict[str, str] | None]
+) -> list[HypothesisSpec]:
     hyps = []
     requested_states = request.trigger_space.states.get("include", [])
     for state_id in requested_states:
@@ -694,8 +695,8 @@ def _expand_state_triggers(
 
 
 def _expand_transition_triggers(
-    request: AgentExperimentRequest, context_slices: List[Optional[Dict[str, str]]]
-) -> List[HypothesisSpec]:
+    request: AgentExperimentRequest, context_slices: list[dict[str, str] | None]
+) -> list[HypothesisSpec]:
     hyps = []
     requested_transitions = request.trigger_space.transitions.get("include", [])
     for trans in requested_transitions:
@@ -721,8 +722,8 @@ def _expand_transition_triggers(
 
 
 def _expand_sequence_triggers(
-    request: AgentExperimentRequest, context_slices: List[Optional[Dict[str, str]]]
-) -> List[HypothesisSpec]:
+    request: AgentExperimentRequest, context_slices: list[dict[str, str] | None]
+) -> list[HypothesisSpec]:
     hyps = []
     seq_config = request.trigger_space.sequences
     requested_sequences = seq_config.get("include", [])
@@ -759,8 +760,8 @@ def _expand_sequence_triggers(
 
 
 def _expand_feature_predicate_triggers(
-    request: AgentExperimentRequest, context_slices: List[Optional[Dict[str, str]]]
-) -> List[HypothesisSpec]:
+    request: AgentExperimentRequest, context_slices: list[dict[str, str] | None]
+) -> list[HypothesisSpec]:
     hyps = []
     requested_preds = request.trigger_space.feature_predicates.get("include", [])
     for pred in requested_preds:
@@ -787,8 +788,8 @@ def _expand_feature_predicate_triggers(
 
 
 def _expand_interaction_triggers(
-    request: AgentExperimentRequest, context_slices: List[Optional[Dict[str, str]]]
-) -> List[HypothesisSpec]:
+    request: AgentExperimentRequest, context_slices: list[dict[str, str] | None]
+) -> list[HypothesisSpec]:
     hyps = []
     requested_inters = request.trigger_space.interactions.get("include", [])
     for inter in requested_inters:

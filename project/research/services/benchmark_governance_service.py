@@ -2,13 +2,13 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 import pandas as pd
 import yaml
 
 
-def _load_json(path: Path) -> Dict[str, Any]:
+def _load_json(path: Path) -> dict[str, Any]:
     if not path.exists():
         return {}
     try:
@@ -17,7 +17,7 @@ def _load_json(path: Path) -> Dict[str, Any]:
         return {}
 
 
-def load_acceptance_thresholds(path: Path) -> Dict[str, Any]:
+def load_acceptance_thresholds(path: Path) -> dict[str, Any]:
     if not path.exists():
         return {}
     try:
@@ -29,11 +29,11 @@ def load_acceptance_thresholds(path: Path) -> Dict[str, Any]:
 
 def certify_benchmark_review(
     *,
-    current_review: Dict[str, Any],
-    prior_review: Optional[Dict[str, Any] | List[Dict[str, Any]]] = None,
-    acceptance_thresholds: Optional[Dict[str, Any]] = None,
-    execution_manifest: Optional[Dict[str, Any]] = None,
-) -> Dict[str, Any]:
+    current_review: dict[str, Any],
+    prior_review: dict[str, Any] | list[dict[str, Any]] | None = None,
+    acceptance_thresholds: dict[str, Any] | None = None,
+    execution_manifest: dict[str, Any] | None = None,
+) -> dict[str, Any]:
     """
     Certify a new benchmark review against absolute thresholds and one or more prior baselines.
     """
@@ -45,7 +45,7 @@ def certify_benchmark_review(
         s["benchmark_id"]: s for s in current_review.get("slices", []) if s.get("benchmark_id")
     }
 
-    priors: List[Dict[str, Any]] = []
+    priors: list[dict[str, Any]] = []
     if isinstance(prior_review, list):
         priors = prior_review
     elif isinstance(prior_review, dict):
@@ -70,7 +70,7 @@ def certify_benchmark_review(
     manifest_failures = int(manifest.get("failures", 0) or 0)
     manifest_results = manifest.get("results", [])
     if manifest_failures > 0:
-        failed_runs: List[str] = []
+        failed_runs: list[str] = []
         if isinstance(manifest_results, list):
             for row in manifest_results:
                 if not isinstance(row, dict):
@@ -225,7 +225,7 @@ def certify_benchmark_review(
     }
 
 
-def render_certification_report_markdown(cert: Dict[str, Any]) -> str:
+def render_certification_report_markdown(cert: dict[str, Any]) -> str:
     lines = [
         "# Benchmark Certification Report",
         "",
@@ -265,7 +265,7 @@ def render_certification_report_markdown(cert: Dict[str, Any]) -> str:
     return "\n".join(lines)
 
 
-def write_certification_report(*, out_dir: Path, cert: Dict[str, Any]) -> Dict[str, Path]:
+def write_certification_report(*, out_dir: Path, cert: dict[str, Any]) -> dict[str, Path]:
     out_dir.mkdir(parents=True, exist_ok=True)
     json_path = out_dir / "benchmark_certification.json"
     md_path = out_dir / "benchmark_certification.md"
@@ -277,9 +277,9 @@ def write_certification_report(*, out_dir: Path, cert: Dict[str, Any]) -> Dict[s
 def get_benchmark_certification_for_family(
     *,
     family: str,
-    certification_path: Optional[Path] = None,
-    review_path: Optional[Path] = None,
-) -> Dict[str, Any]:
+    certification_path: Path | None = None,
+    review_path: Path | None = None,
+) -> dict[str, Any]:
     """
     Resolve the benchmark certification status for a specific family.
     """

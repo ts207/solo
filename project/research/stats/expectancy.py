@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-from typing import Dict, List
-
 import numpy as np
 import pandas as pd
 
@@ -11,9 +9,9 @@ from project.core.stats import (
 )
 
 
-def distribution_stats(returns: pd.Series) -> Dict[str, float]:
+def distribution_stats(returns: pd.Series) -> dict[str, float]:
     clean = returns.dropna().astype(float)
-    n = int(len(clean))
+    n = len(clean)
     if n == 0:
         return {
             "samples": 0,
@@ -47,7 +45,7 @@ def circular_block_bootstrap_pvalue(
     values: pd.Series, *, block_size: int, n_boot: int, seed: int
 ) -> float:
     clean = pd.to_numeric(values, errors="coerce").dropna().astype(float).to_numpy()
-    n = int(len(clean))
+    n = len(clean)
     if n < 2 or n_boot <= 0:
         return 1.0
     observed = float(clean.mean())
@@ -79,7 +77,7 @@ def oos_diagnostics(
     oos_min_samples: int,
     require_oos_positive: int,
     require_oos_sign_consistency: int,
-) -> Dict[str, object]:
+) -> dict[str, object]:
     if event_frame.empty or ret_col not in event_frame.columns:
         return {
             "oos_samples": 0,
@@ -119,7 +117,7 @@ def oos_diagnostics(
         and (not int(require_oos_sign_consistency) or oos_sign_consistent)
     )
     return {
-        "oos_samples": int(len(oos_vals)),
+        "oos_samples": len(oos_vals),
         "train_mean": train_mean,
         "validation_mean": val_mean,
         "test_mean": test_mean,
@@ -201,7 +199,7 @@ def apply_robust_survivor_gates(
     return out
 
 
-def tail_report(returns: pd.Series) -> Dict[str, float]:
+def tail_report(returns: pd.Series) -> dict[str, float]:
     clean = returns.dropna().astype(float)
     if clean.empty:
         return {
@@ -229,8 +227,8 @@ def tail_report(returns: pd.Series) -> Dict[str, float]:
 
 
 def capacity_diagnostics(
-    events_df: pd.DataFrame, symbols: List[str], min_events_per_day: float
-) -> Dict[str, object]:
+    events_df: pd.DataFrame, symbols: list[str], min_events_per_day: float
+) -> dict[str, object]:
     if events_df.empty:
         return {"pass": False, "estimated_events_per_day": 0.0, "symbol_details": []}
     frame = events_df.copy()

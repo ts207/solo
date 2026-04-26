@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 import logging
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any
 
 from project.engine.fills import ExecutionProfile, OrderUrgency, calculate_fill_probability
 from project.engine.slippage import calculate_fill_price, calculate_slippage_bps
@@ -15,10 +15,10 @@ def get_comprehensive_execution_estimate(
     order_size: float,
     base_price: float,
     is_buy: bool,
-    market_data: Dict[str, Any],
+    market_data: dict[str, Any],
     urgency: str = "aggressive",
     profile: str = "base",
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     Get detailed execution estimate including fill prob and expected price.
     """

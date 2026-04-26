@@ -5,7 +5,7 @@ Generates reports on the correctness of computed features.
 
 from __future__ import annotations
 
-from typing import Any, Dict, List
+from typing import Any
 
 import numpy as np
 import pandas as pd
@@ -22,7 +22,7 @@ from project.pipelines.features.build_features import _safe_logret_1
 class FeatureVerificationSuite:
     def __init__(self, tolerance: float = 1e-6):
         self.harness = VerificationHarness(tolerance=tolerance)
-        self.results: List[Dict[str, Any]] = []
+        self.results: list[dict[str, Any]] = []
 
     def verify_logret(self, data: pd.Series):
         """Verify log returns."""

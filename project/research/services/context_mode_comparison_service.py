@@ -1,8 +1,9 @@
 from __future__ import annotations
 
 import json
+from collections.abc import Sequence
 from pathlib import Path
-from typing import Any, Dict, Sequence
+from typing import Any
 
 import pandas as pd
 import yaml
@@ -13,14 +14,14 @@ from project.research.search.generator import generate_hypotheses_with_audit
 from project.research.search.search_feature_utils import load_search_feature_frame
 
 
-def _load_search_space_doc(search_space_path: Path | None) -> Dict[str, Any]:
+def _load_search_space_doc(search_space_path: Path | None) -> dict[str, Any]:
     if search_space_path is None or not Path(search_space_path).exists():
         return {}
     payload = yaml.safe_load(Path(search_space_path).read_text(encoding="utf-8"))
     return payload if isinstance(payload, dict) else {}
 
 
-def _expected_event_ids_from_search_space_doc(search_space_doc: Dict[str, Any]) -> list[str]:
+def _expected_event_ids_from_search_space_doc(search_space_doc: dict[str, Any]) -> list[str]:
     from project.spec_validation import expand_triggers
 
     expanded = expand_triggers(dict(search_space_doc or {}))
@@ -34,7 +35,7 @@ def _expected_event_ids_from_search_space_doc(search_space_doc: Dict[str, Any]) 
     return expected
 
 
-def _first_valid_row(metrics: pd.DataFrame) -> Dict[str, Any]:
+def _first_valid_row(metrics: pd.DataFrame) -> dict[str, Any]:
     if metrics.empty:
         return {}
     valid = metrics[
@@ -49,7 +50,7 @@ def compare_context_modes(
     hypotheses: Sequence[Any],
     features: pd.DataFrame,
     min_sample_size: int = 30,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     if not hypotheses or features.empty or "close" not in features.columns:
         return {
             "schema_version": "context_mode_comparison_v1",
@@ -88,7 +89,7 @@ def compare_context_modes(
     hard_row = _first_valid_row(hard_metrics)
     quality_row = _first_valid_row(quality_metrics)
 
-    def _get(row: Dict[str, Any], key: str, default: float = 0.0) -> float:
+    def _get(row: dict[str, Any], key: str, default: float = 0.0) -> float:
         try:
             return float(row.get(key, default))
         except (TypeError, ValueError):
@@ -102,11 +103,11 @@ def compare_context_modes(
     return {
         "schema_version": "context_mode_comparison_v1",
         "hard_label": {
-            "evaluated_rows": int(len(hard_metrics)),
+            "evaluated_rows": len(hard_metrics),
             "selected": hard_row,
         },
         "confidence_aware": {
-            "evaluated_rows": int(len(quality_metrics)),
+            "evaluated_rows": len(quality_metrics),
             "selected": quality_row,
         },
         "delta": {
@@ -140,7 +141,7 @@ def build_context_mode_comparison_payload(
     min_sample_size: int = 30,
     search_space_path: Path | None = None,
     event_registry_override: str | None = None,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     normalized_symbols = [str(symbol).strip().upper() for symbol in symbols if str(symbol).strip()]
     search_space_doc = _load_search_space_doc(search_space_path)
     expected_event_ids = _expected_event_ids_from_search_space_doc(search_space_doc)
@@ -174,7 +175,7 @@ def build_context_mode_comparison_payload(
 def write_context_mode_comparison_report(
     *,
     out_path: Path,
-    comparison: Dict[str, Any],
+    comparison: dict[str, Any],
 ) -> Path:
     out_path.parent.mkdir(parents=True, exist_ok=True)
     out_path.write_text(json.dumps(comparison, indent=2, sort_keys=True), encoding="utf-8")

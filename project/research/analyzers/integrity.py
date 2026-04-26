@@ -60,7 +60,7 @@ class IntegrityAnalyzer(BaseEventAnalyzer):
         )
 
         summary = {
-            "n_events": int(len(frame)),
+            "n_events": len(frame),
             "cluster_rate": cluster_rate,
             "avg_inter_event_seconds": float(np.nanmean(deltas_sec.to_numpy(dtype=float)))
             if len(frame) > 1

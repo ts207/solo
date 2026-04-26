@@ -1,8 +1,9 @@
 from __future__ import annotations
 
 import math
+from collections.abc import Iterable
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Any, Iterable, Optional
+from typing import TYPE_CHECKING, Any
 
 from project.live.contradiction_model import assess_contradictions
 from project.live.regime_reliability import evaluate_regime_reliability
@@ -41,7 +42,7 @@ def rank_match_by_expected_value(
     *,
     match: Any,
     context: Any,
-    edge_model: Optional["EdgeModel"] = None,
+    edge_model: EdgeModel | None = None,
 ) -> RankedDecision:
     thesis = match.thesis
     evidence = thesis.evidence
@@ -121,7 +122,7 @@ def rank_decisions_by_expected_value(
     *,
     matches: Iterable[Any],
     context: Any,
-    edge_model: Optional["EdgeModel"] = None,
+    edge_model: EdgeModel | None = None,
 ) -> list[RankedDecision]:
     ranked = [
         rank_match_by_expected_value(match=match, context=context, edge_model=edge_model)

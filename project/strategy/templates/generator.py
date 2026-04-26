@@ -1,17 +1,17 @@
 import random
 from itertools import product
-from typing import Any, Dict, List
+from typing import Any
 
 from project.schemas.control_spec import ControlSpec
 from project.strategy.templates.spec import StrategySpec
 
 
-def generate_from_concept(concept: ControlSpec) -> List[StrategySpec]:
+def generate_from_concept(concept: ControlSpec) -> list[StrategySpec]:
     """Generate strategy specs directly from a Unified ControlSpec."""
     candidates = []
 
     # Extract grids
-    grids: Dict[str, List[Any]] = {}
+    grids: dict[str, list[Any]] = {}
 
     if concept.parameters.risk.stop_loss_bps:
         grids["stop_loss_bps"] = concept.parameters.risk.stop_loss_bps
@@ -62,8 +62,8 @@ def generate_from_concept(concept: ControlSpec) -> List[StrategySpec]:
 
 
 def generate_candidates(
-    event_family: str, priors: Dict[str, Any], grids: Dict[str, List[float]], n: int, seed: int
-) -> List[StrategySpec]:
+    event_family: str, priors: dict[str, Any], grids: dict[str, list[float]], n: int, seed: int
+) -> list[StrategySpec]:
     random.seed(seed)
     # Restrict to <= 6 free parameters by design
     if len(grids) > 6:

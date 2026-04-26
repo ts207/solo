@@ -27,9 +27,9 @@ __all__ = [
     "FUNDING_EVENT_TYPES",
     "FundingDetector",
     "FundingExtremeOnsetDetectorV2",
-    "FundingPersistenceDetectorV2",
-    "FundingNormalizationDetectorV2",
     "FundingFlipDetectorV2",
-    "detect_funding_family",
+    "FundingNormalizationDetectorV2",
+    "FundingPersistenceDetectorV2",
     "analyze_funding_family",
+    "detect_funding_family",
 ]

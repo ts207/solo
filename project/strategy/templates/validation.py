@@ -1,9 +1,8 @@
-from typing import Set
 
 import pandas as pd
 
 # Hardcoded list of inherently PIT-safe columns (price/vol)
-CORE_PIT_SAFE_COLUMNS: Set[str] = {
+CORE_PIT_SAFE_COLUMNS: set[str] = {
     "timestamp",
     "open",
     "high",

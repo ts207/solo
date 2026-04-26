@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 import sqlite3
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any
 
 
 def _db_path(data_root: Path) -> Path:
@@ -57,7 +57,7 @@ def ensure_schema(data_root: Path) -> None:
         conn.close()
 
 
-def upsert_run_manifest(data_root: Path, run_id: str, payload: Dict[str, Any]) -> None:
+def upsert_run_manifest(data_root: Path, run_id: str, payload: dict[str, Any]) -> None:
     ensure_schema(data_root)
     conn = _connect(data_root)
     try:
@@ -106,7 +106,7 @@ def upsert_stage_manifest(
     run_id: str,
     stage_instance_id: str,
     manifest_path: Path,
-    payload: Dict[str, Any],
+    payload: dict[str, Any],
 ) -> None:
     ensure_schema(data_root)
     conn = _connect(data_root)

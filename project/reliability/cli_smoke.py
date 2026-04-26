@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any
 
 from project.core.config import get_data_root
 from project.io.utils import read_parquet
@@ -50,11 +50,11 @@ def _read_first_matching_any(root: Path, stems: tuple[str, ...]) -> Path:
 
 def run_smoke_cli(
     mode: str, *, root: Path, seed: int = 20260101, storage_mode: str = "auto"
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     dataset = None
     if mode != "validate-artifacts":
         dataset = build_smoke_dataset(root, seed=seed, storage_mode=storage_mode)
-        summary: Dict[str, Any] = {
+        summary: dict[str, Any] = {
             "mode": mode,
             "root": str(root),
             "run_id": dataset.run_id,
@@ -86,7 +86,7 @@ def run_smoke_cli(
         )
         validate_candidate_table(candidate_path)
         summary["research"] = {
-            "candidate_rows": int(len(research_result["combined_candidates"])),
+            "candidate_rows": len(research_result["combined_candidates"]),
             "output_dir": str(research_result["output_dir"]),
         }
 
@@ -110,7 +110,7 @@ def run_smoke_cli(
     if mode == "validate-artifacts":
         if not root.exists():
             raise FileNotFoundError(root)
-        result: Dict[str, Any] = {"root": str(root)}
+        result: dict[str, Any] = {"root": str(root)}
         registry_issues = stage_registry.validate_stage_registry_definitions(Path.cwd() / "project")
         if registry_issues:
             raise AssertionError(

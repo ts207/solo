@@ -189,7 +189,7 @@ def build_known_episode_replay_baseline() -> dict[str, Any]:
                 "generator_version": GENERATOR_VERSION,
                 "symbol": "BTCUSDT",
                 "timeframe": "5m",
-                "frame_rows": int(len(fixture.frame)),
+                "frame_rows": len(fixture.frame),
                 "frame_start": fixture.frame["timestamp"].iloc[0].isoformat(),
                 "frame_end": fixture.frame["timestamp"].iloc[-1].isoformat(),
                 "frame_digest": _frame_digest(fixture.frame),

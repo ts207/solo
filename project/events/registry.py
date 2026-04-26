@@ -51,32 +51,22 @@ from project.events.event_specs import (
 from project.events.policy import DEPLOYABLE_CORE_EVENT_TYPES
 
 __all__ = [
-    "DetectorContract",
-    "get_detector_contract",
-    "list_trigger_detectors",
-    "list_context_detectors",
-    "list_planning_eligible_detectors",
-    "list_runtime_eligible_detectors",
-    "list_promotion_eligible_detectors",
-    "list_governed_detectors",
-    "list_legacy_detectors",
-    "list_v2_detectors",
-    "build_detector_eligibility_matrix_rows",
-    "build_detector_migration_ledger_rows",
-    "build_detector_version_inventory_rows",
-    "resolve_event_alias",
     "AGGREGATE_EVENT_TYPE_UNIONS",
     "EVENT_REGISTRY_SPECS",
     "REGISTRY_BACKED_SIGNALS",
     "REGISTRY_EVENT_COLUMNS",
     "SIGNAL_TO_EVENT_TYPE",
     "VALID_DIRECTIONS",
+    "DetectorContract",
     "EventRegistrySpec",
     "_active_signal_column",
     "_load_event_specs",
     "_load_symbol_timestamps",
     "_signal_ts_column",
     "assert_event_specs_available",
+    "build_detector_eligibility_matrix_rows",
+    "build_detector_migration_ledger_rows",
+    "build_detector_version_inventory_rows",
     "build_event_feature_frame",
     "build_event_flags",
     "calibrate_event_thresholds",
@@ -85,8 +75,17 @@ __all__ = [
     "expected_event_types_for_spec",
     "filter_phase1_rows_for_event_type",
     "generate_event_coverage_report",
+    "get_detector_contract",
     "get_event_definition",
+    "list_context_detectors",
     "list_events_by_family",
+    "list_governed_detectors",
+    "list_legacy_detectors",
+    "list_planning_eligible_detectors",
+    "list_promotion_eligible_detectors",
+    "list_runtime_eligible_detectors",
+    "list_trigger_detectors",
+    "list_v2_detectors",
     "load_milestone_event_registry",
     "load_registry_episode_anchors",
     "load_registry_events",
@@ -96,6 +95,7 @@ __all__ = [
     "normalize_phase1_events",
     "normalize_registry_events_frame",
     "registry_contract_check",
+    "resolve_event_alias",
     "verify_index_alignment",
     "write_event_registry_artifacts",
     "write_registry_file",
@@ -116,7 +116,7 @@ def build_event_flags(*, events, symbols, data_root, run_id, timeframe="5m"):
 
 
 def _load_symbol_timestamps(
-    data_root: "Path | None" = None, run_id: str = "", symbol: str = "", timeframe: str = "5m"
+    data_root: Path | None = None, run_id: str = "", symbol: str = "", timeframe: str = "5m"
 ) -> pd.Series:
     from project.io.utils import read_parquet
 

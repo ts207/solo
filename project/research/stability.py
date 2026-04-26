@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import logging
-from typing import Any, Dict, List
+from typing import Any
 
 import pandas as pd
 
@@ -11,7 +11,7 @@ _LOG = logging.getLogger(__name__)
 def evaluate_regime_stability(
     returns: pd.Series,
     regimes: pd.Series,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     Evaluate performance stability across different regimes.
     Regimes can be vol, trend, or liquidity states.
@@ -48,9 +48,9 @@ def evaluate_regime_stability(
 
 
 def analyze_parameter_ruggedness(
-    parameter_grid: Dict[str, List[float]],
+    parameter_grid: dict[str, list[float]],
     performance_matrix: pd.DataFrame,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     Check if performance is sensitive to small parameter changes.
     ruggedness = mean(gradient)

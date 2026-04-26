@@ -3,7 +3,6 @@ from __future__ import annotations
 import argparse
 import json
 import sys
-from typing import Dict, List
 
 import pandas as pd
 
@@ -31,10 +30,10 @@ def main() -> int:
     audit_path = runtime_dir / "causal_ticks_audit.json"
 
     params = {"run_id": str(args.run_id)}
-    inputs: List[Dict[str, object]] = [
+    inputs: list[dict[str, object]] = [
         {"path": str(normalized_path), "rows": None, "start_ts": None, "end_ts": None}
     ]
-    outputs: List[Dict[str, object]] = [
+    outputs: list[dict[str, object]] = [
         {"path": str(ticks_path), "rows": None, "start_ts": None, "end_ts": None},
         {"path": str(audit_path), "rows": 1, "start_ts": None, "end_ts": None},
     ]
@@ -70,7 +69,7 @@ def main() -> int:
             "firewall_violation_examples": list(out.get("firewall_violation_examples", [])),
             "max_observed_lag_us": int(out.get("max_observed_lag_us", 0)),
             "replay_digest": str(out.get("replay_digest", "")),
-            "normalized_event_count": int(len(normalized_events)),
+            "normalized_event_count": len(normalized_events),
             "causal_ticks_path": str(ticks_path),
         }
         audit_path.write_text(json.dumps(audit, indent=2, sort_keys=True), encoding="utf-8")

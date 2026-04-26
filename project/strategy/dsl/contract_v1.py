@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import re
-from typing import Iterable, List, Optional, Tuple
+from collections.abc import Iterable
 
 from project.strategy.dsl.schema import ConditionNodeSpec, OverlaySpec
 
@@ -33,7 +33,7 @@ def derive_action_delay(action: str, robustness: float, time_stop_bars: int) -> 
     return 0
 
 
-def action_to_overlays(action: str) -> List[OverlaySpec]:
+def action_to_overlays(action: str) -> list[OverlaySpec]:
     """Maps action name to a list of OverlaySpec objects."""
     normalized = str(action or "").strip().lower()
     if normalized == "entry_gate_skip":
@@ -168,8 +168,8 @@ def normalize_entry_condition(
     *,
     event_type: str,
     candidate_id: str,
-    run_symbols: Optional[Iterable[str]] = None,
-) -> Tuple[str, List[ConditionNodeSpec], Optional[str]]:
+    run_symbols: Iterable[str] | None = None,
+) -> tuple[str, list[ConditionNodeSpec], str | None]:
     """Return (canonical_condition_str, condition_nodes, symbol_override)."""
 
     raw = str(condition if condition is not None else "all")
@@ -236,7 +236,7 @@ def normalize_entry_condition(
 def is_executable_condition(
     condition: object,
     *,
-    run_symbols: Optional[Iterable[str]] = None,
+    run_symbols: Iterable[str] | None = None,
 ) -> bool:
     lowered = str(condition if condition is not None else "").strip().lower()
     # Research-only buckets are allowed to route to "all", but they are not

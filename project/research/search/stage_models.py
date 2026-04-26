@@ -1,13 +1,14 @@
 from __future__ import annotations
 
+from collections.abc import Mapping
 from dataclasses import dataclass, field
-from typing import Any, Dict, Mapping, Optional
+from typing import Any
 
 from project.domain.hypotheses import HypothesisSpec
 from project.research.search.feasibility import FeasibilityResult
 
 
-def _jsonify_mapping(payload: Mapping[str, Any] | None) -> Dict[str, Any]:
+def _jsonify_mapping(payload: Mapping[str, Any] | None) -> dict[str, Any]:
     if not payload:
         return {}
     return {str(k): v for k, v in payload.items()}
@@ -27,7 +28,7 @@ class CandidateHypothesis:
     def branch_hash(self) -> str:
         return self.spec.semantic_branch_hash()
 
-    def to_record(self) -> Dict[str, Any]:
+    def to_record(self) -> dict[str, Any]:
         return {
             "hypothesis_id": self.spec.hypothesis_id(),
             "branch_hash": self.spec.semantic_branch_hash(),
@@ -56,7 +57,7 @@ class FeasibilityCheckedHypothesis:
     def valid(self) -> bool:
         return bool(self.feasibility.valid)
 
-    def to_record(self) -> Dict[str, Any]:
+    def to_record(self) -> dict[str, Any]:
         row = self.candidate.to_record()
         row.update(
             {
@@ -74,15 +75,15 @@ class FeasibilityCheckedHypothesis:
 @dataclass(frozen=True)
 class EvaluatedHypothesis:
     checked: FeasibilityCheckedHypothesis
-    metrics: Dict[str, Any] = field(default_factory=dict)
+    metrics: dict[str, Any] = field(default_factory=dict)
     valid: bool = False
-    invalid_reason: Optional[str] = None
+    invalid_reason: str | None = None
 
     @property
     def spec(self) -> HypothesisSpec:
         return self.checked.candidate.spec
 
-    def to_record(self) -> Dict[str, Any]:
+    def to_record(self) -> dict[str, Any]:
         row = self.checked.to_record()
         row.update(
             {

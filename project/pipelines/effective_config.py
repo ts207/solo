@@ -3,8 +3,9 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+from collections.abc import Iterable
 from pathlib import Path
-from typing import Any, Dict, Iterable, List, Tuple
+from typing import Any
 
 from project.experiments.config_loader import (
     _deep_merge,
@@ -22,8 +23,8 @@ def _argv_has_option(raw_argv: Iterable[str], option: str) -> bool:
 
 
 def detect_explicit_cli_destinations(
-    parser: argparse.ArgumentParser, raw_argv: List[str]
-) -> List[str]:
+    parser: argparse.ArgumentParser, raw_argv: list[str]
+) -> list[str]:
     explicit: set[str] = set()
     for action in parser._actions:
         option_strings = list(getattr(action, "option_strings", []) or [])
@@ -34,19 +35,19 @@ def detect_explicit_cli_destinations(
     return sorted(explicit)
 
 
-def _load_overlay_config(path: str) -> Dict[str, Any]:
+def _load_overlay_config(path: str) -> dict[str, Any]:
     payload = load_yaml_path(Path(path)) or {}
     if not isinstance(payload, dict):
         raise ValueError(f"Overlay config must be a mapping: {path}")
     return dict(payload)
 
 
-def _parser_defaults(parser: argparse.ArgumentParser) -> Dict[str, Any]:
+def _parser_defaults(parser: argparse.ArgumentParser) -> dict[str, Any]:
     namespace = parser.parse_args([])
     return vars(namespace)
 
 
-def _filtered_args(parser: argparse.ArgumentParser, payload: Dict[str, Any]) -> argparse.Namespace:
+def _filtered_args(parser: argparse.ArgumentParser, payload: dict[str, Any]) -> argparse.Namespace:
     allowed = {str(action.dest) for action in parser._actions if getattr(action, "dest", None)}
     namespace = argparse.Namespace()
     for key, value in payload.items():
@@ -70,22 +71,22 @@ def _normalize_jsonable(value: Any) -> Any:
 
 def resolve_effective_args(
     parser: argparse.ArgumentParser,
-    raw_argv: List[str],
-) -> Tuple[argparse.Namespace, Dict[str, Any]]:
+    raw_argv: list[str],
+) -> tuple[argparse.Namespace, dict[str, Any]]:
     parsed_args = parser.parse_args(raw_argv)
     defaults = _parser_defaults(parser)
-    effective: Dict[str, Any] = dict(defaults)
+    effective: dict[str, Any] = dict(defaults)
 
     experiment_config_path = (
         str(getattr(parsed_args, "experiment_config", "") or "").strip() or None
     )
-    experiment_config: Dict[str, Any] = {}
+    experiment_config: dict[str, Any] = {}
     if experiment_config_path:
         experiment_config = resolve_experiment_config(experiment_config_path, overrides=[])
         _deep_merge(effective, experiment_config)
 
     config_overlay_paths = [str(path) for path in getattr(parsed_args, "config", []) or []]
-    config_overlays: List[Dict[str, Any]] = []
+    config_overlays: list[dict[str, Any]] = []
     for path in config_overlay_paths:
         overlay = _load_overlay_config(path)
         config_overlays.append({"path": path, "values": overlay})
@@ -131,9 +132,9 @@ def resolve_effective_args(
 def build_effective_config_payload(
     *,
     run_id: str,
-    resolution: Dict[str, Any],
-    preflight: Dict[str, Any],
-) -> Dict[str, Any]:
+    resolution: dict[str, Any],
+    preflight: dict[str, Any],
+) -> dict[str, Any]:
     payload = {
         "schema_version": EFFECTIVE_CONFIG_SCHEMA_VERSION,
         "run_id": run_id,
@@ -174,8 +175,8 @@ def write_effective_config(
     *,
     data_root: Path,
     run_id: str,
-    payload: Dict[str, Any],
-) -> Tuple[Path, str]:
+    payload: dict[str, Any],
+) -> tuple[Path, str]:
     path = Path(data_root) / "runs" / run_id / "effective_config.json"
     path.parent.mkdir(parents=True, exist_ok=True)
     serialized = json.dumps(payload, indent=2, sort_keys=True) + "\n"

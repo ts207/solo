@@ -1,22 +1,22 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any
 
 from project.spec_registry import load_family_spec as _registry_load_family_spec
 from project.spec_registry import load_family_specs as _registry_load_family_specs
 from project.spec_registry import load_gates_spec as _registry_load_gates_spec
 
 
-def load_gates_spec(repo_root: Path) -> Dict[str, Any]:
+def load_gates_spec(repo_root: Path) -> dict[str, Any]:
     return dict(_registry_load_gates_spec())
 
 
-def load_all_families_spec(repo_root: Path) -> Dict[str, Any]:
+def load_all_families_spec(repo_root: Path) -> dict[str, Any]:
     return dict(_registry_load_family_specs())
 
 
-def load_family_spec(family_id: str, repo_root: Path) -> Dict[str, Any]:
+def load_family_spec(family_id: str, repo_root: Path) -> dict[str, Any]:
     """
     Load a specific family's spec from families.yaml.
     """
@@ -24,11 +24,11 @@ def load_family_spec(family_id: str, repo_root: Path) -> Dict[str, Any]:
 
 
 def select_phase2_gate_spec(
-    gates_spec: Dict[str, Any],
+    gates_spec: dict[str, Any],
     *,
     mode: str,
     gate_profile: str,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     base_cfg = gates_spec.get("gate_v1_phase2", {}) if isinstance(gates_spec, dict) else {}
     if not isinstance(base_cfg, dict):
         base_cfg = {}
@@ -68,9 +68,9 @@ def select_phase2_gate_spec(
 
 
 def resolve_phase2_gate_params(
-    gate_v1_phase2: Dict[str, Any],
+    gate_v1_phase2: dict[str, Any],
     event_type: str,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     event_overrides = (
         gate_v1_phase2.get("event_overrides", {}) if isinstance(gate_v1_phase2, dict) else {}
     )
@@ -144,7 +144,7 @@ def resolve_phase2_gate_params(
     }
 
 
-def select_fallback_gate_spec(gates_spec: Dict[str, Any]) -> Dict[str, Any]:
+def select_fallback_gate_spec(gates_spec: dict[str, Any]) -> dict[str, Any]:
     fallback_cfg = gates_spec.get("gate_v1_fallback", {}) if isinstance(gates_spec, dict) else {}
     if not isinstance(fallback_cfg, dict):
         fallback_cfg = {}
@@ -161,7 +161,7 @@ def select_fallback_gate_spec(gates_spec: Dict[str, Any]) -> Dict[str, Any]:
     }
 
 
-def select_bridge_gate_spec(gates_spec: Dict[str, Any]) -> Dict[str, Any]:
+def select_bridge_gate_spec(gates_spec: dict[str, Any]) -> dict[str, Any]:
     bridge_cfg = gates_spec.get("gate_v1_bridge", {}) if isinstance(gates_spec, dict) else {}
     if not isinstance(bridge_cfg, dict):
         bridge_cfg = {}
@@ -191,7 +191,7 @@ def select_bridge_gate_spec(gates_spec: Dict[str, Any]) -> Dict[str, Any]:
 
 
 def resolve_promotion_base_min_events(
-    gates_spec: Dict[str, Any],
+    gates_spec: dict[str, Any],
     *,
     cli_min_events: int,
     contract_min_trade_count: int,

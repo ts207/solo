@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-from typing import Optional
-
 import numpy as np
 import pandas as pd
 
@@ -17,7 +15,7 @@ from project.research.validation.schemas import EffectEstimate
 def estimate_effect(
     values: pd.Series,
     *,
-    clusters: Optional[pd.Series] = None,
+    clusters: pd.Series | None = None,
     alpha: float = 0.05,
     use_bootstrap_ci: bool = True,
     n_boot: int = 1000,
@@ -80,7 +78,7 @@ def estimate_effect(
         ci_low=float(ci_low),
         ci_high=float(ci_high),
         p_value_raw=float(np.clip(p_val, 0.0, 1.0)),
-        n_obs=int(len(vals)),
+        n_obs=len(vals),
         n_clusters=int(n_clusters),
         method=method,
         cluster_col=None if aligned_clusters is None else str(aligned_clusters.name or "cluster"),
@@ -91,7 +89,7 @@ def estimate_effect_from_frame(
     df: pd.DataFrame,
     *,
     value_col: str,
-    cluster_col: Optional[str] = None,
+    cluster_col: str | None = None,
     alpha: float = 0.05,
     use_bootstrap_ci: bool = True,
     n_boot: int = 1000,

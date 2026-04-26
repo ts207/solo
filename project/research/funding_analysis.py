@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-from typing import Dict, List
-
 import numpy as np
 import pandas as pd
 
@@ -16,7 +14,7 @@ def extract_funding_event_indices(
     normalization_pct: float,
     normalization_lookback: int,
     min_event_spacing: int,
-) -> Dict[str, List[int]]:
+) -> dict[str, list[int]]:
     """
     Core logic for identifying funding-related events from feature data.
     """

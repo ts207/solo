@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-from typing import Any, Mapping
+from collections.abc import Mapping
+from typing import Any
 
 from project.events.event_aliases import resolve_event_alias
 from project.events.registry import get_event_definition

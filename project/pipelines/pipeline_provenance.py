@@ -4,10 +4,11 @@ import hashlib
 import json
 import os
 import subprocess
+from collections.abc import Iterable
 from dataclasses import asdict
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
-from typing import Any, Dict, Iterable, List, Tuple
+from typing import Any
 
 from project import PROJECT_ROOT
 from project.contracts.schemas import validate_payload_for_schema
@@ -26,12 +27,12 @@ def _sha256_text(payload: str) -> str:
     return _sha256_bytes(payload.encode("utf-8"))
 
 
-def _iter_hashable_files(root: Path, *, suffixes: Iterable[str] | None = None) -> List[Path]:
+def _iter_hashable_files(root: Path, *, suffixes: Iterable[str] | None = None) -> list[Path]:
     root = Path(root)
     if not root.exists():
         return []
     allowed = {str(s).lower() for s in (suffixes or [])}
-    files: List[Path] = []
+    files: list[Path] = []
     for path in root.rglob("*"):
         if not path.is_file():
             continue
@@ -48,8 +49,8 @@ def _hash_file(path: Path) -> str:
         return "sha256:unreadable"
 
 
-def _digest_path_listing(path: Path, *, suffixes: Iterable[str] | None = None) -> Dict[str, str]:
-    out: Dict[str, str] = {}
+def _digest_path_listing(path: Path, *, suffixes: Iterable[str] | None = None) -> dict[str, str]:
+    out: dict[str, str] = {}
     base = Path(path)
     for file_path in _iter_hashable_files(base, suffixes=suffixes):
         try:
@@ -60,16 +61,16 @@ def _digest_path_listing(path: Path, *, suffixes: Iterable[str] | None = None) -
     return dict(sorted(out.items()))
 
 
-def _lake_fingerprint(symbols: List[str], data_root: Path) -> Dict[str, object]:
+def _lake_fingerprint(symbols: list[str], data_root: Path) -> dict[str, object]:
     lake_root = Path(data_root) / "lake" / "raw" / "binance"
-    symbol_entries: Dict[str, Dict[str, List[str]]] = {}
+    symbol_entries: dict[str, dict[str, list[str]]] = {}
     for symbol in sorted({str(s).strip().upper() for s in symbols if str(s).strip()}):
-        market_digests: Dict[str, List[str]] = {}
+        market_digests: dict[str, list[str]] = {}
         for market in ("perp", "spot"):
             market_root = lake_root / market / symbol
             if not market_root.exists():
                 continue
-            digests: List[str] = []
+            digests: list[str] = []
             for file_path in _iter_hashable_files(market_root, suffixes=(".csv", ".parquet")):
                 digests.append(_hash_file(file_path))
             market_digests[market] = sorted(digests)
@@ -84,12 +85,12 @@ def _lake_fingerprint(symbols: List[str], data_root: Path) -> Dict[str, object]:
     }
 
 
-def _feature_schema_metadata_payload() -> Dict[str, str]:
+def _feature_schema_metadata_payload() -> dict[str, str]:
     version, registry_hash = feature_schema_metadata()
     return {"version": str(version), "registry_hash": str(registry_hash)}
 
 
-def _spec_component_digests(project_root: Path) -> Dict[str, object]:
+def _spec_component_digests(project_root: Path) -> dict[str, object]:
     repo_root = Path(project_root).parent
     spec_root = repo_root / "spec"
     project_cfg_root = Path(project_root) / "configs"
@@ -125,15 +126,15 @@ def _spec_component_digests(project_root: Path) -> Dict[str, object]:
 
 
 def data_fingerprint(
-    symbols: List[str],
+    symbols: list[str],
     run_id: str,
     *,
     project_root: Path | None = None,
     data_root: Path | None = None,
-    runtime_invariants: Dict[str, object] | None = None,
-    objective_profile: Dict[str, object] | None = None,
+    runtime_invariants: dict[str, object] | None = None,
+    objective_profile: dict[str, object] | None = None,
     effective_config_hash: str | None = None,
-) -> Tuple[str, Dict[str, object]]:
+) -> tuple[str, dict[str, object]]:
     """Generate a reproducibility digest over data, specs, and runtime invariants."""
     project_root = Path(project_root or PROJECT_ROOT)
     data_root = Path(data_root or _get_data_root())
@@ -156,7 +157,7 @@ def data_fingerprint(
     return manifest_hash, {
         "manifest_path": "in_memory",
         "manifest_hash": manifest_hash,
-        "generated_at_utc": datetime.now(timezone.utc).isoformat(),
+        "generated_at_utc": datetime.now(UTC).isoformat(),
         "lake": lake,
         "feature_schema": feature_payload,
         "spec_component_hashes": spec_payload["component_hashes"],
@@ -167,7 +168,7 @@ def data_fingerprint(
     }
 
 
-def feature_schema_metadata() -> Tuple[str, str]:
+def feature_schema_metadata() -> tuple[str, str]:
     """Retrieves feature schema version and its registry hash."""
     # Importing from project.specs.manifest to reuse existing logic
     try:
@@ -198,7 +199,7 @@ def _get_data_root() -> Path:
 
 def write_run_manifest(
     run_id: str,
-    manifest: Dict[str, object],
+    manifest: dict[str, object],
     *,
     data_root: Path | None = None,
 ) -> None:
@@ -284,7 +285,7 @@ def write_execution_reports(
     plan: ExecutionPlan,
     verification_report: ExecutionVerificationReport,
     data_root: Path | None = None,
-) -> Dict[str, str]:
+) -> dict[str, str]:
     out_dir = execution_report_dir(run_id, data_root=data_root)
     explain_plan_json = out_dir / "explain_plan.json"
     explain_plan_md = out_dir / "explain_plan.md"
@@ -308,7 +309,7 @@ def read_run_manifest(
     run_id: str,
     *,
     data_root: Path | None = None,
-) -> Dict[str, object]:
+) -> dict[str, object]:
     """Reads the run manifest from disk."""
     root = Path(data_root or _get_data_root())
     path = root / "runs" / run_id / "run_manifest.json"
@@ -328,7 +329,7 @@ def reconcile_run_manifest_from_stage_manifests(
     run_id: str,
     *,
     data_root: Path | None = None,
-) -> Dict[str, object]:
+) -> dict[str, object]:
     root = Path(data_root or _get_data_root())
     manifest_path = root / "runs" / run_id / "run_manifest.json"
     if manifest_path.exists():
@@ -357,7 +358,7 @@ def reconcile_run_manifest_from_stage_manifests(
 
     stage_timings_sec = dict(run_manifest.get("stage_timings_sec", {}))
     stage_instance_timings_sec = dict(run_manifest.get("stage_instance_timings_sec", {}))
-    stage_finished_times: List[str] = []
+    stage_finished_times: list[str] = []
     all_completed = True
     checklist_path = root / "runs" / run_id / "research_checklist" / "checklist.json"
 
@@ -424,7 +425,7 @@ def reconcile_run_manifest_from_stage_manifests(
     return run_manifest
 
 
-def maybe_emit_run_hash(manifest: Dict[str, object]) -> None:
+def maybe_emit_run_hash(manifest: dict[str, object]) -> None:
     """Emits a run hash for tracking if requested."""
     if manifest.get("emit_run_hash"):
         run_id = str(manifest.get("run_id", ""))
@@ -432,7 +433,7 @@ def maybe_emit_run_hash(manifest: Dict[str, object]) -> None:
         print(f"Run Hash [{run_id}]: {run_hash}")
 
 
-def refresh_runtime_lineage_fields(manifest: Dict[str, object], **kwargs) -> None:
+def refresh_runtime_lineage_fields(manifest: dict[str, object], **kwargs) -> None:
     """Updates manifest with runtime lineage information."""
     manifest["runtime_lineage_refreshed_at"] = utc_now_iso()
     if (
@@ -447,7 +448,7 @@ def refresh_runtime_lineage_fields(manifest: Dict[str, object], **kwargs) -> Non
         manifest["oms_replay_status"] = "requested"
 
 
-def config_digest(configs: List[str]) -> str:
+def config_digest(configs: list[str]) -> str:
     """Generates a digest for a set of configuration files."""
     hasher = hashlib.sha256()
     for config_path in sorted(configs):
@@ -473,7 +474,7 @@ def claim_map_hash(project_root: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
-def build_initial_run_manifest(**fields) -> Dict[str, object]:
+def build_initial_run_manifest(**fields) -> dict[str, object]:
     """Constructs the initial run manifest dictionary."""
     return dict(fields)
 
@@ -508,7 +509,7 @@ def _validate_manifest_path_within_root(
 
 
 def _validate_resume_manifest_provenance(
-    existing_manifest: Dict[str, object],
+    existing_manifest: dict[str, object],
     *,
     existing_manifest_path: Path,
 ) -> None:
@@ -544,12 +545,12 @@ def resolve_existing_manifest_state(
     ontology_hash: str,
     effective_config_hash: str,
     allow_ontology_hash_mismatch: bool,
-    planned_stage_instances: List[str],
+    planned_stage_instances: list[str],
     resume_from_failed_stage: bool,
-) -> Tuple[Dict[str, object], str, int]:
+) -> tuple[dict[str, object], str, int]:
     """Resolves state from an existing manifest for resumes."""
     existing_ontology_hash = ""
-    existing_manifest: Dict[str, object] = {}
+    existing_manifest: dict[str, object] = {}
     if existing_manifest_path.exists():
         try:
             with existing_manifest_path.open("r", encoding="utf-8") as f:
@@ -596,7 +597,7 @@ def resolve_objective_name(name: str) -> str:
 
 def objective_spec_metadata(
     objective_name: str, explicit_path: str | None
-) -> Tuple[Dict[str, Any], str, str]:
+) -> tuple[dict[str, Any], str, str]:
     """Retrieves metadata and hash for an objective specification."""
     if explicit_path:
         path = Path(explicit_path)
@@ -626,7 +627,7 @@ def resolve_retail_profile_name(name: str) -> str:
 
 def retail_profile_metadata(
     profile_name: str, explicit_path: str | None
-) -> Tuple[Dict[str, Any], str, str]:
+) -> tuple[dict[str, Any], str, str]:
     """Retrieves metadata and hash for a retail profile."""
     if explicit_path:
         path = Path(explicit_path)

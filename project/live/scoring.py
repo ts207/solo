@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import math
 from dataclasses import dataclass
-from typing import List
 
 from project.live.contracts.live_trade_context import LiveTradeContext
 from project.live.decision_ranker import rank_match_by_expected_value
@@ -23,8 +22,8 @@ class DecisionScore:
     fill_probability: float
     regime_reliability: float
     utility_score: float
-    reasons_for: List[str]
-    reasons_against: List[str]
+    reasons_for: list[str]
+    reasons_against: list[str]
 
 
 def _finite_metric(value: object, default: float) -> float:

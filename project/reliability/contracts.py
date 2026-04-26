@@ -1,8 +1,9 @@
 from __future__ import annotations
 
 import json
+from collections.abc import Sequence
 from pathlib import Path
-from typing import Any, Dict, Sequence
+from typing import Any
 
 import pandas as pd
 
@@ -101,7 +102,7 @@ def validate_promotion_decisions(df_or_path: pd.DataFrame | Path | str) -> pd.Da
     return _validate_dataframe(_load_df(df_or_path), PROMOTION_DECISION_SCHEMA)
 
 
-def validate_manifest(manifest_or_path: Dict[str, Any] | Path | str) -> Dict[str, Any]:
+def validate_manifest(manifest_or_path: dict[str, Any] | Path | str) -> dict[str, Any]:
     return validate_manifest_artifacts_exist(manifest_or_path)
 
 
@@ -160,7 +161,7 @@ def reconcile_promoted_candidates(
     missing = sorted(set(promoted["candidate_id"].astype(str)) - candidate_ids)
     if missing:
         raise ValueError(f"promoted candidates missing from candidate table: {missing}")
-    return {"candidate_rows": int(len(candidates)), "promoted_rows": int(len(promoted))}
+    return {"candidate_rows": len(candidates), "promoted_rows": len(promoted)}
 
 
 def validate_promotion_artifacts(root: Path | str) -> dict[str, Any]:
@@ -192,9 +193,9 @@ def validate_promotion_artifacts(root: Path | str) -> dict[str, Any]:
     if missing:
         raise ValueError(f"promoted candidates missing from promotion audit: {missing}")
     return {
-        "audit_rows": int(len(audit)),
-        "promoted_rows": int(len(promoted)),
+        "audit_rows": len(audit),
+        "promoted_rows": len(promoted),
         "bundle_rows": bundle_info["bundle_count"],
-        "decision_rows": int(len(decisions)),
-        "promoted_in_audit": int(len(promoted_ids)),
+        "decision_rows": len(decisions),
+        "promoted_in_audit": len(promoted_ids),
     }

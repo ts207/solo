@@ -7,8 +7,8 @@ import math
 import re
 import shutil
 import sys
+from collections.abc import Sequence
 from pathlib import Path
-from typing import Optional, Sequence
 
 import numpy as np
 import pandas as pd
@@ -716,7 +716,7 @@ def build_features(
     funding: pd.DataFrame,
     symbol: str,
     run_id: str = "",
-    data_root: Optional[Path] = None,
+    data_root: Path | None = None,
     market: str = "perp",
     timeframe: str = "5m",
 ) -> pd.DataFrame:
@@ -1086,7 +1086,7 @@ def main() -> int:
                     outputs.append(
                         {
                             "path": str(actual_path),
-                            "rows": int(len(group)),
+                            "rows": len(group),
                             "start_ts": group["timestamp"].min().isoformat(),
                             "end_ts": group["timestamp"].max().isoformat(),
                         }
@@ -1122,7 +1122,7 @@ def main() -> int:
                 _write_feature_quality_report(report_path, quality_payload)
                 outputs.append({"path": str(report_path), "rows": 1})
                 stats["symbols"][symbol] = {
-                    "rows": int(len(out)),
+                    "rows": len(out),
                     "feature_quality_report_path": str(report_path),
                     "feature_quality_summary": quality_payload["quality"],
                 }

@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, Dict
+from typing import Any
 
 import pandas as pd
 
@@ -16,7 +16,7 @@ def assert_holdout_split_integrity(
     *,
     time_col: str = "enter_ts",
     split_col: str = "split_label",
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     if events.empty:
         return {
             "status": "empty",
@@ -48,10 +48,10 @@ def assert_holdout_split_integrity(
     if frame.empty:
         raise ValueError("Holdout integrity sentinel failed: all holdout timestamps are null.")
 
-    counts: Dict[str, int] = {
+    counts: dict[str, int] = {
         split: int((frame["_split"] == split).sum()) for split in ("train", "validation", "test")
     }
-    ranges: Dict[str, Dict[str, str]] = {}
+    ranges: dict[str, dict[str, str]] = {}
     for split in ("train", "validation", "test"):
         subset = frame[frame["_split"] == split]
         if subset.empty:

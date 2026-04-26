@@ -8,7 +8,6 @@ This helps reviewers analyze representative candidates rather than 20k+ individu
 from __future__ import annotations
 
 import logging
-from typing import Dict
 
 import numpy as np
 import pandas as pd
@@ -68,7 +67,7 @@ def cluster_hypotheses(
                 union(i, j)
 
     # Map roots to cluster IDs
-    clusters: Dict[int, str] = {}
+    clusters: dict[int, str] = {}
     cluster_list = []
     for i in range(n):
         root = find(i)

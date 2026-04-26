@@ -2,9 +2,9 @@ from __future__ import annotations
 
 import json
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import UTC, datetime
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 import pandas as pd
 
@@ -39,7 +39,7 @@ _DETECTOR_LINEAGE_COLUMNS = {
 }
 
 
-def extract_detector_lineage(row: pd.Series | Dict[str, Any]) -> Dict[str, Any]:
+def extract_detector_lineage(row: pd.Series | dict[str, Any]) -> dict[str, Any]:
     payload = dict(row) if isinstance(row, dict) else row.to_dict()
     event_name = str(payload.get("source_event_name") or payload.get("event_type") or payload.get("anchor_event") or "").strip()
     evidence_mode = str(payload.get("source_evidence_mode") or payload.get("evidence_mode") or "").strip()
@@ -57,9 +57,9 @@ def extract_detector_lineage(row: pd.Series | Dict[str, Any]) -> Dict[str, Any]:
 @dataclass
 class EvaluationSummaryConfig:
     run_id: str
-    phase2_root: Optional[Path] = None
-    out_path: Optional[Path] = None
-    funnel_out_path: Optional[Path] = None
+    phase2_root: Path | None = None
+    out_path: Path | None = None
+    funnel_out_path: Path | None = None
     top_fail_reasons: int = 10
 
 
@@ -68,24 +68,24 @@ class EvaluationSummaryResult:
     run_id: str
     generated_at: str
     phase2_root: str
-    source_files: Dict[str, str]
-    primary_event_ids: List[str]
-    event_families: List[str]
+    source_files: dict[str, str]
+    primary_event_ids: list[str]
+    event_families: list[str]
     total_candidates: int
     gate_pass_count: int
     gate_pass_rate: float
-    top_fail_reasons: List[Dict[str, Any]]
-    by_primary_event_id: Dict[str, Dict[str, Any]]
-    by_event_family: Dict[str, Dict[str, Any]]
-    funnel_payload: Dict[str, Any] = field(default_factory=dict)
+    top_fail_reasons: list[dict[str, Any]]
+    by_primary_event_id: dict[str, dict[str, Any]]
+    by_event_family: dict[str, dict[str, Any]]
+    funnel_payload: dict[str, Any] = field(default_factory=dict)
 
 
 class EvaluationSummaryService:
-    def __init__(self, data_root: Optional[Path] = None):
+    def __init__(self, data_root: Path | None = None):
         self.data_root = data_root or get_data_root()
 
     def summarize_run(
-        self, run_id: str, config: Optional[EvaluationSummaryConfig] = None
+        self, run_id: str, config: EvaluationSummaryConfig | None = None
     ) -> EvaluationSummaryResult:
         resolved = config or EvaluationSummaryConfig(run_id=run_id)
         phase2_root = resolved.phase2_root or self.data_root / "reports" / "phase2" / run_id
@@ -108,11 +108,11 @@ class EvaluationSummaryService:
             candidates_df, "family", "event_family", "research_family"
         )
 
-        total_candidates = int(len(candidates_df))
+        total_candidates = len(candidates_df)
         gate_pass_count = (
-            int(len(promotion_ready_df))
+            len(promotion_ready_df)
             if not promotion_ready_df.empty
-            else int(len(getattr(validation_bundle, "validated_candidates", [])))
+            else len(getattr(validation_bundle, "validated_candidates", []))
         )
         gate_pass_rate = float(gate_pass_count / total_candidates) if total_candidates else 0.0
 
@@ -185,7 +185,7 @@ class EvaluationSummaryService:
                 return column
         return None
 
-    def _sorted_unique_values(self, frame: pd.DataFrame, column: str | None) -> List[str]:
+    def _sorted_unique_values(self, frame: pd.DataFrame, column: str | None) -> list[str]:
         if column is None or frame.empty:
             return []
         values = (
@@ -196,7 +196,7 @@ class EvaluationSummaryService:
         )
         return sorted(value for value in values.unique().tolist() if value)
 
-    def _top_fail_reasons(self, rejection_df: pd.DataFrame, *, limit: int) -> List[Dict[str, Any]]:
+    def _top_fail_reasons(self, rejection_df: pd.DataFrame, *, limit: int) -> list[dict[str, Any]]:
         if rejection_df.empty:
             return []
         counts: dict[str, int] = {}
@@ -221,7 +221,7 @@ class EvaluationSummaryService:
         promotion_ready_df: pd.DataFrame,
         *,
         key_col: str | None,
-    ) -> Dict[str, Dict[str, Any]]:
+    ) -> dict[str, dict[str, Any]]:
         if key_col is None or candidates_df.empty:
             return {}
         promoted_ids = set(
@@ -230,15 +230,15 @@ class EvaluationSummaryService:
             .astype(str)
             .tolist()
         )
-        grouped: Dict[str, Dict[str, Any]] = {}
+        grouped: dict[str, dict[str, Any]] = {}
         for key, group in candidates_df.groupby(key_col):
             label = str(key).strip()
             if not label:
                 continue
             candidate_ids = set(group.get("candidate_id", pd.Series(dtype="object")).astype(str).tolist())
             grouped[label] = {
-                "candidate_count": int(len(group)),
-                "gate_pass_count": int(len(candidate_ids & promoted_ids)),
+                "candidate_count": len(group),
+                "gate_pass_count": len(candidate_ids & promoted_ids),
             }
         return grouped
 
@@ -249,14 +249,14 @@ class EvaluationSummaryService:
         promotion_ready_df: pd.DataFrame,
         rejection_df: pd.DataFrame,
         validation_bundle: Any,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         if validation_bundle is not None and hasattr(validation_bundle, "summary_stats"):
             payload = dict(getattr(validation_bundle, "summary_stats", {}) or {})
         else:
             payload = {}
         payload.setdefault("total", int(total_candidates))
-        payload.setdefault("validated", int(len(promotion_ready_df)))
-        payload.setdefault("rejected", int(len(rejection_df)))
+        payload.setdefault("validated", len(promotion_ready_df))
+        payload.setdefault("rejected", len(rejection_df))
         payload.setdefault("inconclusive", 0)
         return payload
 
@@ -277,7 +277,7 @@ def select_stage_candidate_table(
 
 
 class ValidationService:
-    def __init__(self, data_root: Optional[Path] = None):
+    def __init__(self, data_root: Path | None = None):
         self.data_root = data_root or get_data_root()
 
     def load_candidate_tables(self, run_id: str) -> dict[str, pd.DataFrame]:
@@ -300,7 +300,7 @@ class ValidationService:
         self,
         run_id: str,
         candidates_df: pd.DataFrame,
-        program_id: Optional[str] = None
+        program_id: str | None = None
     ) -> ValidationBundle:
         validated = []
         rejected = []
@@ -345,9 +345,9 @@ class ValidationService:
 
     def _map_row_to_validated_record(
         self,
-        row: pd.Series | Dict[str, Any],
+        row: pd.Series | dict[str, Any],
         run_id: str,
-        program_id: Optional[str] = None
+        program_id: str | None = None
     ) -> ValidatedCandidateRecord:
         candidate_id = str(row.get("candidate_id", ""))
 
@@ -417,7 +417,7 @@ class ValidationService:
         self,
         run_id: str,
         candidates_df: pd.DataFrame,
-        program_id: Optional[str] = None
+        program_id: str | None = None
     ) -> ValidationBundle:
         bundle = self.create_validation_bundle(run_id, candidates_df, program_id)
         # Sprint 4: Use canonical names via result_writer
@@ -440,7 +440,7 @@ class ValidationService:
             )
 
         # Sprint 7: Artifact manifest
-        from datetime import datetime, timezone
+        from datetime import datetime
 
         from project.research.validation.manifest import RunArtifactManifest
 
@@ -462,7 +462,7 @@ class ValidationService:
         manifest = RunArtifactManifest(
             run_id=run_id,
             stage="validate",
-            created_at=datetime.now(timezone.utc).isoformat(),
+            created_at=datetime.now(UTC).isoformat(),
             upstream_run_ids=[run_id], # Discovery run_id is usually same as validation run_id for now
             artifacts={
                 "validation_bundle": "validation_bundle.json",

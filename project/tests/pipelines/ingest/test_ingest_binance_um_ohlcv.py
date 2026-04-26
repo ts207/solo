@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import asyncio
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from project import PROJECT_ROOT
 from project.pipelines.ingest import ingest_binance_um_ohlcv as ohlcv
@@ -69,7 +69,7 @@ def test_async_main_fails_when_all_required_month_fetches_fail(monkeypatch, tmp_
     monkeypatch.setattr(
         ohlcv,
         "_iter_months",
-        lambda _start, _end: [datetime(2026, 1, 1, tzinfo=timezone.utc)],
+        lambda _start, _end: [datetime(2026, 1, 1, tzinfo=UTC)],
     )
 
     async def fake_process_month(*_args, **_kwargs):

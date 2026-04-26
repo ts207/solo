@@ -30,7 +30,7 @@ import logging
 import os
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any
 
 import pandas as pd
 
@@ -44,7 +44,7 @@ REQUIRED_MULTIPLICITY_COLS = {
     "num_tests_effective",
 }
 
-def audit_parquet_artifact(path: Path) -> List[Dict[str, Any]]:
+def audit_parquet_artifact(path: Path) -> list[dict[str, Any]]:
     try:
         df = pd.read_parquet(path)
     except Exception as e:

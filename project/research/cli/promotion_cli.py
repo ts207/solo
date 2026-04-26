@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import argparse
 from pathlib import Path
-from typing import List, Optional
 
 from project.research.services.promotion_service import (
     PROMOTION_CONFIG_DEFAULTS,
@@ -79,17 +78,17 @@ def promotion_config_from_namespace(args: argparse.Namespace) -> PromotionConfig
     )
 
 
-def parse_promotion_argv(argv: Optional[List[str]] = None) -> PromotionConfig:
+def parse_promotion_argv(argv: list[str] | None = None) -> PromotionConfig:
     parser = build_promotion_parser()
     args = parser.parse_args(argv)
     return promotion_config_from_namespace(args)
 
 
-def run_promotion_cli(argv: Optional[List[str]] = None) -> PromotionServiceResult:
+def run_promotion_cli(argv: list[str] | None = None) -> PromotionServiceResult:
     return execute_promotion(parse_promotion_argv(argv))
 
 
-def main(argv: Optional[List[str]] = None) -> int:
+def main(argv: list[str] | None = None) -> int:
     return int(run_promotion_cli(argv).exit_code)
 
 

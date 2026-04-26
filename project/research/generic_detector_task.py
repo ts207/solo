@@ -3,7 +3,7 @@ from __future__ import annotations
 import argparse
 import logging
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from project.io.utils import ensure_dir
 
@@ -13,10 +13,10 @@ _LOG = logging.getLogger(__name__)
 def run_generic_detector_task(
     run_id: str,
     event_type: str,
-    symbols: List[str],
+    symbols: list[str],
     timeframe: str = "5m",
-    params: Optional[Dict[str, Any]] = None,
-    out_dir: Optional[Path] = None,
+    params: dict[str, Any] | None = None,
+    out_dir: Path | None = None,
 ) -> int:
     """Thin argument adapter around the canonical analyze_events entrypoint."""
     from project.core.config import get_data_root
@@ -51,7 +51,7 @@ def run_generic_detector_task(
     return int(analyze_events_main(argv))
 
 
-def run_task(run_id: str, args_list: List[str]) -> int:
+def run_task(run_id: str, args_list: list[str]) -> int:
     """Entry point for in-process DAG execution."""
     parser = argparse.ArgumentParser()
     parser.add_argument("--event_type", required=True)
@@ -62,7 +62,7 @@ def run_task(run_id: str, args_list: List[str]) -> int:
 
     symbols = [s.strip().upper() for s in args.symbols.split(",") if s.strip()]
 
-    params: Dict[str, Any] = {}
+    params: dict[str, Any] = {}
     idx = 0
     while idx < len(unknown):
         token = str(unknown[idx]).strip()

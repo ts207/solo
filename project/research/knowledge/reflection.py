@@ -1,9 +1,9 @@
 from __future__ import annotations
 
 import json
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any
 
 import pandas as pd
 
@@ -15,7 +15,7 @@ from project.specs.manifest import load_run_manifest
 REFLECTION_VERSION = "v2"
 
 
-def _read_json(path: Path) -> Dict[str, Any]:
+def _read_json(path: Path) -> dict[str, Any]:
     if not path.exists():
         return {}
     try:
@@ -34,7 +34,7 @@ def _read_optional_table(path: Path) -> pd.DataFrame:
     return pd.DataFrame()
 
 
-def _load_run_manifest_local(run_id: str, *, data_root: Path) -> Dict[str, Any]:
+def _load_run_manifest_local(run_id: str, *, data_root: Path) -> dict[str, Any]:
     local_path = data_root / "runs" / run_id / "run_manifest.json"
     local_payload = _read_json(local_path)
     if local_payload:
@@ -43,8 +43,8 @@ def _load_run_manifest_local(run_id: str, *, data_root: Path) -> Dict[str, Any]:
     return payload if isinstance(payload, dict) else {}
 
 
-def _load_stage_manifests(run_dir: Path) -> List[Dict[str, Any]]:
-    rows: List[Dict[str, Any]] = []
+def _load_stage_manifests(run_dir: Path) -> list[dict[str, Any]]:
+    rows: list[dict[str, Any]] = []
     if not run_dir.exists():
         return rows
     for path in sorted(run_dir.glob("*.json")):
@@ -87,14 +87,14 @@ def _dominant_value(series: pd.Series) -> str:
     return str(cleaned.value_counts().idxmax())
 
 
-def _expected_artifacts(manifest: Dict[str, Any], *, data_root: Path) -> List[tuple[str, Path]]:
+def _expected_artifacts(manifest: dict[str, Any], *, data_root: Path) -> list[tuple[str, Path]]:
     run_id = str(manifest.get("run_id", "")).strip()
     planned = {
         str(stage).strip()
         for stage in manifest.get("planned_stages", []) or []
         if str(stage).strip()
     }
-    expected: List[tuple[str, Path]] = []
+    expected: list[tuple[str, Path]] = []
     if "phase2_search_engine" in planned or "summarize_discovery_quality" in planned:
         expected.append(
             (
@@ -129,11 +129,11 @@ def _expected_artifacts(manifest: Dict[str, Any], *, data_root: Path) -> List[tu
 
 def _classify_mechanical_outcome(
     *,
-    manifest: Dict[str, Any],
-    stage_manifests: List[Dict[str, Any]],
-    feature_warnings: List[Dict[str, Any]],
-    missing_artifacts: List[str],
-) -> Dict[str, Any]:
+    manifest: dict[str, Any],
+    stage_manifests: list[dict[str, Any]],
+    feature_warnings: list[dict[str, Any]],
+    missing_artifacts: list[str],
+) -> dict[str, Any]:
     run_status = str(manifest.get("status", "")).strip().lower()
     raw_failed_stage = manifest.get("failed_stage")
     failed_stage = str(raw_failed_stage).strip() if raw_failed_stage else ""
@@ -180,15 +180,15 @@ def _classify_statistical_outcome(
     promotion_audit: pd.DataFrame,
     edge_candidates: pd.DataFrame,
     phase2_candidates: pd.DataFrame,
-    discovery_summary: Dict[str, Any],
-) -> Dict[str, Any]:
+    discovery_summary: dict[str, Any],
+) -> dict[str, Any]:
     candidate_count = 0
     promoted_count = 0
     primary_fail_gate = ""
     top_event = ""
     sample_floor = 0
     if not promotion_audit.empty:
-        candidate_count = int(len(promotion_audit))
+        candidate_count = len(promotion_audit)
         if "promotion_decision" in promotion_audit.columns:
             promoted_count = int(
                 (promotion_audit["promotion_decision"].astype(str) == "promoted").sum()
@@ -208,7 +208,7 @@ def _classify_statistical_outcome(
                 if not series.empty:
                     sample_floor = max(sample_floor, int(series.max()))
     elif not edge_candidates.empty:
-        candidate_count = int(len(edge_candidates))
+        candidate_count = len(edge_candidates)
         if "primary_fail_gate" in edge_candidates.columns:
             primary_fail_gate = _dominant_value(edge_candidates["primary_fail_gate"])
         if "event_type" in edge_candidates.columns:
@@ -219,7 +219,7 @@ def _classify_statistical_outcome(
                 if not series.empty:
                     sample_floor = max(sample_floor, int(series.max()))
     elif not phase2_candidates.empty:
-        candidate_count = int(len(phase2_candidates))
+        candidate_count = len(phase2_candidates)
         if "event_type" in phase2_candidates.columns:
             top_event = _dominant_value(phase2_candidates["event_type"])
         if "primary_fail_gate" in phase2_candidates.columns:
@@ -263,14 +263,14 @@ def _classify_statistical_outcome(
 
 def _detect_anomalies(
     *,
-    manifest: Dict[str, Any],
-    stage_manifests: List[Dict[str, Any]],
+    manifest: dict[str, Any],
+    stage_manifests: list[dict[str, Any]],
     promotion_audit: pd.DataFrame,
     edge_candidates: pd.DataFrame,
-    feature_warnings: List[Dict[str, Any]],
-    missing_artifacts: List[str],
-) -> List[Dict[str, Any]]:
-    anomalies: List[Dict[str, Any]] = []
+    feature_warnings: list[dict[str, Any]],
+    missing_artifacts: list[str],
+) -> list[dict[str, Any]]:
+    anomalies: list[dict[str, Any]] = []
     raw_failed_stage = manifest.get("failed_stage")
     failed_stage = str(raw_failed_stage).strip() if raw_failed_stage else ""
     if failed_stage.lower() in ("none", "null"):
@@ -339,7 +339,7 @@ def _detect_anomalies(
 
 def _build_market_findings(
     *,
-    statistical: Dict[str, Any],
+    statistical: dict[str, Any],
     promotion_audit: pd.DataFrame,
     edge_candidates: pd.DataFrame,
 ) -> str:
@@ -373,9 +373,9 @@ def _build_market_findings(
 
 def _build_system_findings(
     *,
-    mechanical: Dict[str, Any],
-    missing_artifacts: List[str],
-    anomalies: List[Dict[str, Any]],
+    mechanical: dict[str, Any],
+    missing_artifacts: list[str],
+    anomalies: list[dict[str, Any]],
 ) -> str:
     payload = {
         "run_status": mechanical["run_status"],
@@ -440,8 +440,8 @@ def _recommend_next_action(
 
 def _recommend_next_experiment(
     *,
-    manifest: Dict[str, Any],
-    statistical: Dict[str, Any],
+    manifest: dict[str, Any],
+    statistical: dict[str, Any],
     recommended_next_action: str,
 ) -> str:
     payload = {
@@ -459,7 +459,7 @@ def _recommend_next_experiment(
 def _confidence(
     *,
     mechanical_outcome: str,
-    anomalies: List[Dict[str, Any]],
+    anomalies: list[dict[str, Any]],
     candidate_count: int,
 ) -> float:
     score = 0.8
@@ -480,7 +480,7 @@ def build_run_reflection(
     run_id: str,
     program_id: str = "",
     data_root: Path | None = None,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     resolved_data_root = Path(data_root) if data_root is not None else get_data_root()
     run_dir = resolved_data_root / "runs" / run_id
     reports_root = resolved_data_root / "reports"
@@ -588,9 +588,9 @@ def build_run_reflection(
             candidate_count=int(statistical["candidate_count"]),
         ),
         "reflection_version": REFLECTION_VERSION,
-        "created_at": datetime.now(timezone.utc).isoformat(),
+        "created_at": datetime.now(UTC).isoformat(),
     }
     return {column: reflection.get(column) for column in REFLECTION_COLUMNS}
 
 
-__all__ = ["build_run_reflection", "REFLECTION_VERSION"]
+__all__ = ["REFLECTION_VERSION", "build_run_reflection"]

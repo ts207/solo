@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, Dict, List, Literal
+from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, computed_field, field_validator, model_validator
 
@@ -57,8 +57,8 @@ class LiveApproval(BaseModel):
     paper_run_min_days_required: int = Field(default=0, ge=0)
     paper_run_observed_days: int = Field(default=0, ge=0)
     paper_run_quality_status: Literal["sufficient", "insufficient", "pending", ""] = ""
-    venue_allowlist: List[str] = Field(default_factory=list)
-    symbol_allowlist: List[str] = Field(default_factory=list)
+    venue_allowlist: list[str] = Field(default_factory=list)
+    symbol_allowlist: list[str] = Field(default_factory=list)
 
     @property
     def is_approved(self) -> bool:
@@ -124,8 +124,8 @@ class ThesisLineage(BaseModel):
     proposal_id: str = ""
     validation_run_id: str = ""
     validation_status: str = ""
-    validation_reason_codes: List[str] = Field(default_factory=list)
-    validation_artifact_paths: Dict[str, str] = Field(default_factory=dict)
+    validation_reason_codes: list[str] = Field(default_factory=list)
+    validation_artifact_paths: dict[str, str] = Field(default_factory=dict)
 
     # Batch Identity Fields
     export_batch_id: str = ""
@@ -163,12 +163,12 @@ class ThesisGovernance(BaseModel):
 class ThesisRequirements(BaseModel):
     model_config = ConfigDict(frozen=True)
 
-    trigger_events: List[str] = Field(default_factory=list)
-    confirmation_events: List[str] = Field(default_factory=list)
-    required_episodes: List[str] = Field(default_factory=list)
-    disallowed_regimes: List[str] = Field(default_factory=list)
-    required_states: List[str] = Field(default_factory=list)
-    supportive_states: List[str] = Field(default_factory=list)
+    trigger_events: list[str] = Field(default_factory=list)
+    confirmation_events: list[str] = Field(default_factory=list)
+    required_episodes: list[str] = Field(default_factory=list)
+    disallowed_regimes: list[str] = Field(default_factory=list)
+    required_states: list[str] = Field(default_factory=list)
+    supportive_states: list[str] = Field(default_factory=list)
     deployment_gate: str = ""
     sequence_mode: str = ""
     minimum_episode_confidence: float = 0.0
@@ -181,8 +181,8 @@ class ThesisSource(BaseModel):
     source_campaign_id: str = ""
     source_run_mode: str = ""
     objective_name: str = ""
-    event_contract_ids: List[str] = Field(default_factory=list)
-    episode_contract_ids: List[str] = Field(default_factory=list)
+    event_contract_ids: list[str] = Field(default_factory=list)
+    episode_contract_ids: list[str] = Field(default_factory=list)
 
 
 class PromotedThesis(BaseModel):
@@ -200,12 +200,12 @@ class PromotedThesis(BaseModel):
     live_approval: LiveApproval = Field(default_factory=LiveApproval)
     # Per-thesis risk cap profile — must be configured for live_enabled theses
     cap_profile: ThesisCapProfile = Field(default_factory=ThesisCapProfile)
-    evidence_gaps: List[str] = Field(default_factory=list)
+    evidence_gaps: list[str] = Field(default_factory=list)
     status: Literal["pending_blueprint", "active", "paused", "retired"] = "pending_blueprint"
     evidence_freshness_date: str = ""
     review_due_date: str = ""
     staleness_class: Literal["fresh", "watch", "stale", "unknown"] = "unknown"
-    symbol_scope: Dict[str, Any] = Field(default_factory=dict)
+    symbol_scope: dict[str, Any] = Field(default_factory=dict)
     timeframe: str = Field(min_length=1)
     primary_event_id: str = Field(min_length=1)
     # Legacy compatibility metadata only. Runtime matching should prefer
@@ -213,14 +213,14 @@ class PromotedThesis(BaseModel):
     event_family: str = ""
     canonical_regime: str = ""
     event_side: Literal["long", "short", "both", "conditional", "unknown"] = "unknown"
-    required_context: Dict[str, Any] = Field(default_factory=dict)
-    supportive_context: Dict[str, Any] = Field(default_factory=dict)
-    required_state_ids: List[str] = Field(default_factory=list)
-    supportive_state_ids: List[str] = Field(default_factory=list)
-    expected_response: Dict[str, Any] = Field(default_factory=dict)
-    invalidation: Dict[str, Any] = Field(default_factory=dict)
-    freshness_policy: Dict[str, Any] = Field(default_factory=dict)
-    risk_notes: List[str] = Field(default_factory=list)
+    required_context: dict[str, Any] = Field(default_factory=dict)
+    supportive_context: dict[str, Any] = Field(default_factory=dict)
+    required_state_ids: list[str] = Field(default_factory=list)
+    supportive_state_ids: list[str] = Field(default_factory=list)
+    expected_response: dict[str, Any] = Field(default_factory=dict)
+    invalidation: dict[str, Any] = Field(default_factory=dict)
+    freshness_policy: dict[str, Any] = Field(default_factory=dict)
+    risk_notes: list[str] = Field(default_factory=list)
     evidence: ThesisEvidence
     lineage: ThesisLineage
     governance: ThesisGovernance = Field(default_factory=ThesisGovernance)
@@ -292,22 +292,22 @@ class PromotedThesis(BaseModel):
 
     @computed_field(return_type=dict)
     @property
-    def trigger_clause(self) -> Dict[str, Any]:
+    def trigger_clause(self) -> dict[str, Any]:
         return {"events": list(self.requirements.trigger_events)}
 
     @computed_field(return_type=dict)
     @property
-    def confirmation_clause(self) -> Dict[str, Any]:
+    def confirmation_clause(self) -> dict[str, Any]:
         return {"events": list(self.requirements.confirmation_events)}
 
     @computed_field(return_type=dict)
     @property
-    def invalidation_clause(self) -> Dict[str, Any]:
+    def invalidation_clause(self) -> dict[str, Any]:
         return dict(self.invalidation)
 
     @computed_field(return_type=dict)
     @property
-    def context_clause(self) -> Dict[str, Any]:
+    def context_clause(self) -> dict[str, Any]:
         return dict(self.required_context)
 
     @computed_field(return_type=str)

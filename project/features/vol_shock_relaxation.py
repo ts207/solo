@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Dict, List, Optional, Tuple
 
 import numpy as np
 import pandas as pd
@@ -87,7 +86,7 @@ def detect_vol_shock_relaxation_events(
     frame: pd.DataFrame,
     symbol: str,
     config: VolShockRelaxationConfig = DEFAULT_VSR_CONFIG,
-) -> Tuple[pd.DataFrame, pd.DataFrame, Dict[str, float]]:
+) -> tuple[pd.DataFrame, pd.DataFrame, dict[str, float]]:
     required = {"timestamp", "close", "high", "low"}
     missing = sorted(required - set(frame.columns))
     if missing:
@@ -103,7 +102,7 @@ def detect_vol_shock_relaxation_events(
         return pd.DataFrame(), df, {"t_shock": np.nan, "t_relax": config.relax_threshold}
     t_shock_ref = float(threshold_valid.median())
 
-    event_rows: List[Dict[str, object]] = []
+    event_rows: list[dict[str, object]] = []
     n = len(df)
     i = 1
     cooldown_until = -1
@@ -138,7 +137,7 @@ def detect_vol_shock_relaxation_events(
 
         enter = i
         relax_run = 0
-        exit_idx: Optional[int] = None
+        exit_idx: int | None = None
         j = i
         while j < n:
             sr = float(df["shock_ratio"].iat[j]) if pd.notna(df["shock_ratio"].iat[j]) else np.nan

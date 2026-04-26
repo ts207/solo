@@ -3,7 +3,6 @@ from __future__ import annotations
 from dataclasses import dataclass
 from fnmatch import fnmatch
 from pathlib import Path
-from typing import List
 
 from project.contracts.pipeline_registry import (
     STAGE_ARTIFACT_REGISTRY,
@@ -152,8 +151,8 @@ def resolve_artifact_contract_for_path(path: str | Path) -> ArtifactContract | N
     return None
 
 
-def validate_artifact_registry_definitions() -> List[str]:
-    issues: List[str] = []
+def validate_artifact_registry_definitions() -> list[str]:
+    issues: list[str] = []
     seen: set[tuple[str, ...]] = set()
     for spec in build_artifact_specs():
         if not spec.stage_patterns:

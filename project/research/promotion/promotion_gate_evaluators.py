@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 import logging
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any
 
 import numpy as np
 import pandas as pd
@@ -54,16 +54,16 @@ def _parse_returns_oos(values: Any) -> pd.Series:
 
 
 def _confirmatory_shadow_gates(
-    promotion_confirmatory_gates: Dict[str, Any] | None,
-) -> Dict[str, Any]:
+    promotion_confirmatory_gates: dict[str, Any] | None,
+) -> dict[str, Any]:
     gates = promotion_confirmatory_gates or {}
     shadow = gates.get("shadow", {})
     return shadow if isinstance(shadow, dict) else {}
 
 
 def _confirmatory_deployable_gates(
-    promotion_confirmatory_gates: Dict[str, Any] | None,
-) -> Dict[str, Any]:
+    promotion_confirmatory_gates: dict[str, Any] | None,
+) -> dict[str, Any]:
     gates = promotion_confirmatory_gates or {}
     deployable = gates.get("deployable", {})
     return deployable if isinstance(deployable, dict) else {}
@@ -78,20 +78,20 @@ _CONTINUATION_TEMPLATE_VERBS = {
 }
 
 
-def _is_continuation_template_family(row: Dict[str, Any]) -> bool:
+def _is_continuation_template_family(row: dict[str, Any]) -> bool:
     template_verb = str(row.get("template_verb", "")).strip().lower()
     return template_verb in _CONTINUATION_TEMPLATE_VERBS
 
 
 def _evaluate_continuation_quality(
     *,
-    row: Dict[str, Any],
+    row: dict[str, Any],
     stability_pass: bool,
     oos_pass: bool | None,
     microstructure_pass: bool,
     dsr_pass: bool,
     reasons: _ReasonRecorder,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     is_continuation_template_family = _is_continuation_template_family(row)
     bridge_tradable = bool_gate(row.get("gate_bridge_tradable"))
     continuation_quality_pass = True
@@ -129,7 +129,7 @@ def _evaluate_continuation_quality(
 
 def _evaluate_market_execution_and_stability(
     *,
-    row: Dict[str, Any],
+    row: dict[str, Any],
     min_tob_coverage: float,
     min_net_expectancy_bps: float,
     max_fee_plus_slippage_bps: float | None,
@@ -142,7 +142,7 @@ def _evaluate_market_execution_and_stability(
     enforce_placebo_controls: bool,
     enforce_timeframe_consensus: bool,
     reasons: _ReasonRecorder,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     retail_eval = evaluate_retail_constraints(
         row,
         min_tob_coverage=float(min_tob_coverage),
@@ -315,18 +315,18 @@ def _evaluate_market_execution_and_stability(
 
 def _evaluate_control_audit_and_dsr(
     *,
-    row: Dict[str, Any],
+    row: dict[str, Any],
     event_type: str,
     plan_row_id: str,
-    hypothesis_index: Dict[str, Dict[str, Any]],
-    negative_control_summary: Dict[str, Any],
+    hypothesis_index: dict[str, dict[str, Any]],
+    negative_control_summary: dict[str, Any],
     max_negative_control_pass_rate: float,
     allow_missing_negative_controls: bool,
     require_multiplicity_diagnostics: bool,
     require_hypothesis_audit: bool,
     min_dsr: float,
     reasons: _ReasonRecorder,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     control_details = control_rate_details_for_event(
         row=row, event_type=event_type, summary=negative_control_summary
     )
@@ -363,7 +363,7 @@ def _evaluate_control_audit_and_dsr(
         )
 
     audit_pass = True
-    audit_statuses: List[str] = []
+    audit_statuses: list[str] = []
     if plan_row_id:
         audit_info = hypothesis_index.get(plan_row_id)
         if audit_info:
@@ -459,7 +459,7 @@ def _evaluate_control_audit_and_dsr(
 
 
 def evaluate_sensitivity_gate(
-    candidate: Dict[str, Any],
+    candidate: dict[str, Any],
     *,
     run_id: str,
     data_root: Path,
@@ -493,12 +493,12 @@ def evaluate_sensitivity_gate(
 
 def _evaluate_deploy_oos_and_low_capital(
     *,
-    row: Dict[str, Any],
+    row: dict[str, Any],
     max_q_value: float,
-    promotion_confirmatory_gates: Dict[str, Any] | None,
+    promotion_confirmatory_gates: dict[str, Any] | None,
     require_low_capital_viability: bool,
     reasons: _ReasonRecorder,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     q_value_family = _quiet_float(row.get("q_value_family"), np.nan)
     q_value_cluster = _quiet_float(row.get("q_value_cluster"), np.nan)
     q_value_by = _quiet_float(row.get("q_value_by"), np.nan)

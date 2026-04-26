@@ -1,14 +1,12 @@
 from __future__ import annotations
 
-from typing import Dict, List
-
 import numpy as np
 import pandas as pd
 
 from project.eval.robustness import simulate_parameter_perturbation
 
 
-def calculate_stressed_pnl(frame: pd.DataFrame) -> Dict[str, float]:
+def calculate_stressed_pnl(frame: pd.DataFrame) -> dict[str, float]:
     if frame.empty:
         return {"train": 0.0, "validation": 0.0, "test": 0.0}
     gross = pd.to_numeric(frame.get("gross_pnl"), errors="coerce").fillna(
@@ -25,7 +23,7 @@ def calculate_stressed_pnl(frame: pd.DataFrame) -> Dict[str, float]:
     return out
 
 
-def calculate_realized_cost_ratio(frame: pd.DataFrame) -> Dict[str, Dict[str, float]]:
+def calculate_realized_cost_ratio(frame: pd.DataFrame) -> dict[str, dict[str, float]]:
     splits = ("train", "validation", "test")
     if frame.empty:
         return {s: {"realized_cost_ratio": 0.0} for s in splits}
@@ -44,9 +42,9 @@ def calculate_realized_cost_ratio(frame: pd.DataFrame) -> Dict[str, Dict[str, fl
     return out
 
 
-def get_loss_cluster_lengths(pnl_series: pd.Series) -> List[int]:
+def get_loss_cluster_lengths(pnl_series: pd.Series) -> list[int]:
     values = pd.to_numeric(pnl_series, errors="coerce").fillna(0.0).to_numpy(dtype=float)
-    runs: List[int] = []
+    runs: list[int] = []
     run_len = 0
     for value in values:
         if value < 0.0:
@@ -59,7 +57,7 @@ def get_loss_cluster_lengths(pnl_series: pd.Series) -> List[int]:
     return runs
 
 
-def calculate_drawdown_metrics(frame: pd.DataFrame, split_label: str) -> Dict[str, float]:
+def calculate_drawdown_metrics(frame: pd.DataFrame, split_label: str) -> dict[str, float]:
     sub = frame[frame["split_label"] == split_label].copy()
     if sub.empty:
         return {

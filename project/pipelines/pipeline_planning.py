@@ -3,8 +3,9 @@ from __future__ import annotations
 import argparse
 import json
 import sys
+from collections.abc import Mapping
 from pathlib import Path
-from typing import Any, Dict, List, Mapping, Tuple
+from typing import Any
 
 import yaml
 
@@ -49,7 +50,7 @@ _SPOT_PIPELINE_REGIME_HINTS = {
 }
 
 
-def _json_object(value: str) -> Dict[str, Any]:
+def _json_object(value: str) -> dict[str, Any]:
     try:
         loaded = json.loads(value)
     except json.JSONDecodeError as exc:
@@ -395,8 +396,8 @@ def build_parser() -> argparse.ArgumentParser:
 
 
 def resolve_experiment_context(
-    parser: argparse.ArgumentParser, raw_argv: List[str], **kwargs
-) -> Tuple[argparse.Namespace, Dict, str, Path]:
+    parser: argparse.ArgumentParser, raw_argv: list[str], **kwargs
+) -> tuple[argparse.Namespace, dict, str, Path]:
     """Resolves effective configuration and experiment context."""
     experiment_id = "default"
     experiment_results_dir = kwargs.get("data_root", Path("/tmp")) / "experiments" / experiment_id
@@ -404,9 +405,9 @@ def resolve_experiment_context(
     return args, resolved_config, experiment_id, experiment_results_dir
 
 
-def parse_symbols_csv(symbols_csv: str) -> List[str]:
+def parse_symbols_csv(symbols_csv: str) -> list[str]:
     """Parses a comma-separated string of symbols into a list of unique symbols."""
-    out: List[str] = []
+    out: list[str] = []
     seen = set()
     for raw in str(symbols_csv).split(","):
         symbol = raw.strip().upper()
@@ -416,9 +417,9 @@ def parse_symbols_csv(symbols_csv: str) -> List[str]:
     return out
 
 
-def parse_timeframes_csv(timeframes_csv: str) -> List[str]:
+def parse_timeframes_csv(timeframes_csv: str) -> list[str]:
     """Parse comma-separated timeframe input to canonical, unique values."""
-    out: List[str] = []
+    out: list[str] = []
     seen = set()
     for raw in str(timeframes_csv or "").split(","):
         token = str(raw).strip()
@@ -512,10 +513,10 @@ def _requires_cross_venue_spot_pipeline(args: argparse.Namespace) -> bool:
 
 def resolve_pipeline_artifact_contracts(
     stages: Mapping[str, Any],
-) -> tuple[Dict[str, ResolvedStageArtifactContract], List[str]]:
+) -> tuple[dict[str, ResolvedStageArtifactContract], list[str]]:
     """Resolve artifact contracts for each planned stage."""
-    resolved: Dict[str, ResolvedStageArtifactContract] = {}
-    issues: List[str] = []
+    resolved: dict[str, ResolvedStageArtifactContract] = {}
+    issues: list[str] = []
     for stage_name, stage_def in stages.items():
         contract, contract_issues = resolve_stage_artifact_contract(
             stage_name,
@@ -535,7 +536,7 @@ def build_contract_backed_execution_plan(
     stages: Mapping[str, Any],
     artifact_contracts: Mapping[str, ResolvedStageArtifactContract],
     planned_at: str | None = None,
-    skipped_stage_specs: List[Mapping[str, str]] | None = None,
+    skipped_stage_specs: list[Mapping[str, str]] | None = None,
 ) -> ExecutionPlan:
     selected_stage_families: dict[str, list[str]] = {"run_orchestration": ["run_manifest"]}
     plan_stages: list[PlannedStage] = []
@@ -655,7 +656,7 @@ def _validate_negative_control_contract(
     run_id: str,
     stages: Mapping[str, Any],
     data_root: Path,
-) -> List[str]:
+) -> list[str]:
     if not _strict_promotion_requires_negative_controls(args):
         return []
 
@@ -675,13 +676,13 @@ def _validate_negative_control_contract(
 
 
 def compute_stage_instance_ids(
-    stages: List[Tuple[str, Path, List[str]]] | Mapping[str, Any],
-) -> List[str]:
+    stages: list[tuple[str, Path, list[str]]] | Mapping[str, Any],
+) -> list[str]:
     """Computes unique instance IDs for stages, handling multiple occurrences of the same stage."""
     from project.pipelines.execution_engine import stage_instance_base
 
-    counts: Dict[str, int] = {}
-    out: List[str] = []
+    counts: dict[str, int] = {}
+    out: list[str] = []
 
     if isinstance(stages, Mapping):
         # For DAG, stage names are already unique keys
@@ -695,7 +696,7 @@ def compute_stage_instance_ids(
     return out
 
 
-def load_historical_universe(project_root: Path) -> List[str]:
+def load_historical_universe(project_root: Path) -> list[str]:
     """Loads symbols from spec/historical_universe.csv."""
     path = project_root / "spec" / "historical_universe.csv"
     if not path.exists():
@@ -720,7 +721,7 @@ def collect_startup_non_production_overrides(
     allow_ontology_hash_mismatch: bool,
     existing_ontology_hash: str,
     ontology_hash: str,
-) -> List[str]:
+) -> list[str]:
     """Collects overrides that are considered non-production."""
     overrides = []
     if (
@@ -760,15 +761,15 @@ def _discover_local_cleaned_coverage(
     *,
     args: argparse.Namespace,
     data_root: Path,
-    parsed_symbols: List[str],
-) -> Dict[str, object]:
+    parsed_symbols: list[str],
+) -> dict[str, object]:
     timeframes = parse_timeframes_csv(getattr(args, "timeframes", "5m"))
     explicit_offline = bool(int(getattr(args, "offline_mode", 0) or 0))
     external_root = discover_external_cleaned_root(
         data_root,
         explicit_root=str(getattr(args, "offline_cleaned_root", "") or "").strip() or None,
     )
-    result: Dict[str, object] = {
+    result: dict[str, object] = {
         "external_root": str(external_root) if external_root is not None else "",
         "covered_perp_timeframes": [],
         "coverage_gaps": [],
@@ -784,9 +785,9 @@ def _discover_local_cleaned_coverage(
             ]
         return result
 
-    covered_perp: List[str] = []
-    coverage_gaps: List[str] = []
-    materialized: List[str] = []
+    covered_perp: list[str] = []
+    coverage_gaps: list[str] = []
+    materialized: list[str] = []
     for tf in timeframes:
         timeframe_ok = True
         for symbol in parsed_symbols:
@@ -841,7 +842,7 @@ def _apply_local_cleaned_stage_shortcuts(
     stages: Mapping[str, Any],
     args: argparse.Namespace,
     local_cleaned: Mapping[str, object],
-) -> tuple[Dict[str, Any], List[dict[str, str]]]:
+) -> tuple[dict[str, Any], list[dict[str, str]]]:
     covered_perp = {str(tf) for tf in local_cleaned.get("covered_perp_timeframes", [])}
     if not covered_perp:
         return dict(stages), []
@@ -852,8 +853,8 @@ def _apply_local_cleaned_stage_shortcuts(
         + (f" (source={external_root})" if external_root else "")
     )
 
-    pruned: Dict[str, Any] = dict(stages)
-    skipped: List[dict[str, str]] = []
+    pruned: dict[str, Any] = dict(stages)
+    skipped: list[dict[str, str]] = []
 
     def _pop(name: str, *, reason: str = notes) -> None:
         stage_def = pruned.pop(name, None)
@@ -907,7 +908,7 @@ def prepare_run_preflight(
     cli_flag_present: Any,
     run_id_default: Any,
     script_supports_flag: Any,
-) -> Dict[str, object]:
+) -> dict[str, object]:
     """Performs preflight checks and plans the pipeline execution."""
     run_id = args.run_id or run_id_default()
 

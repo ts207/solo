@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, Dict
+from typing import Any
 
 import pandas as pd
 
@@ -65,11 +65,11 @@ def emit_event(
     sign: int = 0,
     intensity: float = 1.0,
     severity: str = "moderate",
-    metadata: Dict[str, Any] | None = None,
+    metadata: dict[str, Any] | None = None,
     causal: bool | None = None,
     shift_bars: int = 0,
     timeframe_minutes: int = 5,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     Standardize event emission under the milestone-2 PIT policy.
 

@@ -4,8 +4,9 @@ import argparse
 import json
 import logging
 import sys
+from collections.abc import Sequence
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Sequence
+from typing import Any
 
 import numpy as np
 import pandas as pd
@@ -17,7 +18,7 @@ from project.core.feature_schema import feature_dataset_dir_name
 from project.specs.gates import load_gates_spec as _shared_load_gates_spec
 
 
-def _load_gates_spec() -> Dict[str, Any]:
+def _load_gates_spec() -> dict[str, Any]:
     return _shared_load_gates_spec(PROJECT_ROOT.parent)
 
 
@@ -72,10 +73,10 @@ def _load_features(run_id: str, symbol: str) -> pd.DataFrame:
 def _compute_join_rate(
     events_df: pd.DataFrame,
     features_df: pd.DataFrame,
-    horizons_bars: List[int],
+    horizons_bars: list[int],
     *,
-    max_feature_staleness: Optional[pd.Timedelta] = pd.Timedelta("1h"),
-) -> Dict[str, float]:
+    max_feature_staleness: pd.Timedelta | None = pd.Timedelta("1h"),
+) -> dict[str, float]:
     """
     Join-rate computation using merge_asof(direction="backward").
 
@@ -94,7 +95,7 @@ def _compute_join_rate(
     than re-searching by timestamp, which avoids the off-by-one that
     searchsorted(side="left") introduces for unaligned timestamps.
     """
-    null_result: Dict[str, float] = {"features": 0.0, **{f"label_{h}b": 0.0 for h in horizons_bars}}
+    null_result: dict[str, float] = {"features": 0.0, **{f"label_{h}b": 0.0 for h in horizons_bars}}
 
     if events_df.empty or features_df.empty:
         return null_result
@@ -140,7 +141,7 @@ def _compute_join_rate(
     close_arr = feat["close"].to_numpy(dtype=float) if has_close else None
     n_feat = len(feat)
 
-    label_rates: Dict[str, float] = {}
+    label_rates: dict[str, float] = {}
     for h in horizons_bars:
         if not has_close or close_arr is None:
             label_rates[f"label_{h}b"] = 0.0
@@ -160,9 +161,9 @@ def _compute_join_rate(
 
 def _compute_sensitivity(
     events_df: pd.DataFrame,
-    severity_cols: List[str],
+    severity_cols: list[str],
     pct_delta: float = 0.10,
-) -> Dict[str, float]:
+) -> dict[str, float]:
     """
     Real sensitivity sweep: vary the effective event threshold by ±pct_delta
     and measure how prevalence changes.  Uses severity/magnitude columns in
@@ -181,7 +182,7 @@ def _compute_sensitivity(
     n_base = len(events_df)
 
     # Find a numeric severity column to use as a proxy for the event threshold
-    severity_col: Optional[str] = None
+    severity_col: str | None = None
     for col in severity_cols:
         if col in events_df.columns:
             arr = pd.to_numeric(events_df[col], errors="coerce").dropna()
@@ -265,9 +266,9 @@ def _event_sign_series(events_df: pd.DataFrame) -> pd.Series:
 
 
 def _compute_rerun_proxy_metrics(
-    events_df: pd.DataFrame, severity_cols: List[str], pct_delta: float = 0.10
-) -> Dict[str, Any]:
-    base_count = int(len(events_df))
+    events_df: pd.DataFrame, severity_cols: list[str], pct_delta: float = 0.10
+) -> dict[str, Any]:
+    base_count = len(events_df)
     if base_count == 0:
         return {
             "base_prevalence": 0,
@@ -340,7 +341,7 @@ def _compute_rerun_proxy_metrics(
 
 def _compare_event_runs(
     base_events: pd.DataFrame, rerun_events: pd.DataFrame, severity_cols: Sequence[str]
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     base_ids = (
         set(_event_identity_columns(base_events).tolist()) if not base_events.empty else set()
     )
@@ -376,7 +377,7 @@ def _compare_event_runs(
         )
 
     prevalence_elasticity = abs((rerun_n - base_n) / max(1, base_n))
-    metrics: Dict[str, Any] = {
+    metrics: dict[str, Any] = {
         "base_prevalence": int(base_n),
         "rerun_prevalence": int(rerun_n),
         "prevalence_elasticity": float(prevalence_elasticity),
@@ -402,7 +403,7 @@ def _compare_event_runs(
 
 
 def _load_rerun_events(out_dir: Path, event_type: str, symbol: str) -> pd.DataFrame:
-    candidates: List[Path] = []
+    candidates: list[Path] = []
     preferred = [
         out_dir / str(event_type).strip().upper() / "events.parquet",
         out_dir / str(event_type).strip().upper() / "events.csv",
@@ -417,7 +418,7 @@ def _load_rerun_events(out_dir: Path, event_type: str, symbol: str) -> pd.DataFr
     if not candidates:
         candidates.extend(sorted(out_dir.rglob("*.parquet")))
         candidates.extend(sorted(out_dir.rglob("*.csv")))
-    frames: List[pd.DataFrame] = []
+    frames: list[pd.DataFrame] = []
     for path in candidates:
         try:
             df = pd.read_parquet(path) if path.suffix == ".parquet" else pd.read_csv(path)
@@ -451,7 +452,7 @@ def _load_rerun_events(out_dir: Path, event_type: str, symbol: str) -> pd.DataFr
 
 
 # Known severity columns per event type (in priority order)
-_SEVERITY_COLS: Dict[str, List[str]] = {
+_SEVERITY_COLS: dict[str, list[str]] = {
     "VOL_SHOCK": ["rv_shock_magnitude", "shock_severity", "range_pct"],
     "LIQUIDITY_VACUUM": ["depth_drop_pct", "stress_score", "spread_bps"],
     "FORCED_FLOW_EXHAUSTION": ["exhaustion_score", "range_pct"],
@@ -472,7 +473,7 @@ def _compute_rerun_sensitivity(
     symbol: str,
     base_events: pd.DataFrame,
     timeframe: str = "5m",
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Best-effort true rerun of the mapped detector and comparison to the base event set."""
     import subprocess
     import tempfile
@@ -480,7 +481,7 @@ def _compute_rerun_sensitivity(
     from project.research.export_edge_candidates import PHASE2_EVENT_CHAIN
 
     detector_script = None
-    detector_args: List[str] = []
+    detector_args: list[str] = []
     for etype, script, args in PHASE2_EVENT_CHAIN:
         if etype == event_type:
             detector_script = script
@@ -546,10 +547,10 @@ def validate_event_quality(
     symbol: str,
     run_id: str,
     timeframe: str = "5m",
-    horizons_bars: Optional[List[int]] = None,
-    max_join_staleness_minutes: Optional[int] = None,
+    horizons_bars: list[int] | None = None,
+    max_join_staleness_minutes: int | None = None,
     run_rerun_sensitivity: bool = False,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     if horizons_bars is None:
         horizons_bars = list(DEFAULT_EVENT_HORIZON_BARS)
 

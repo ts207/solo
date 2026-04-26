@@ -3,8 +3,9 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+from collections.abc import Iterable
 from pathlib import Path
-from typing import Any, Dict, Iterable
+from typing import Any
 
 import pandas as pd
 
@@ -27,7 +28,7 @@ def _default_config_path() -> Path:
     return PROJECT_ROOT / "configs" / "golden_certification.yaml"
 
 
-def load_certification_config(path: Path) -> Dict[str, Any]:
+def load_certification_config(path: Path) -> dict[str, Any]:
     payload = load_yaml_path(path) or {}
     if not isinstance(payload, dict):
         raise ValueError(f"Certification workflow config must be a mapping: {path}")
@@ -68,8 +69,8 @@ def _materialize_runtime_events(*, root: Path, run_id: str) -> Path:
 def _build_health_report(
     *,
     stale_threshold_sec: float,
-    streams: Iterable[Dict[str, Any]],
-) -> Dict[str, Any]:
+    streams: Iterable[dict[str, Any]],
+) -> dict[str, Any]:
     monitor = DataHealthMonitor(stale_threshold_sec=stale_threshold_sec)
     for item in streams:
         symbol = str(item.get("symbol", "")).strip()
@@ -86,7 +87,7 @@ def _fallback_replay_digest(path: Path) -> str:
     return f"sha256:{digest}"
 
 
-def _materialize_live_state_snapshot(*, root: Path, config: Dict[str, Any]) -> Path:
+def _materialize_live_state_snapshot(*, root: Path, config: dict[str, Any]) -> Path:
     relpath = Path(str(config.get("live_state_snapshot_path", "reliability/live_state.json")))
     snapshot_path = relpath if relpath.is_absolute() else root / relpath
     store = LiveStateStore(snapshot_path=snapshot_path)
@@ -104,8 +105,8 @@ def _certify_promotion_export_boundary(
     *,
     root: Path,
     run_id: str,
-    golden_summary: Dict[str, Any],
-) -> Dict[str, Any]:
+    golden_summary: dict[str, Any],
+) -> dict[str, Any]:
     promotion_summary = golden_summary.get("promotion", {})
     promoted_rows = int(promotion_summary.get("promoted_rows", 0) or 0)
 
@@ -143,7 +144,7 @@ def _certify_promotion_export_boundary(
     }
 
 
-def run_certification_workflow(*, root: Path, config_path: Path) -> Dict[str, Any]:
+def run_certification_workflow(*, root: Path, config_path: Path) -> dict[str, Any]:
     config = load_certification_config(config_path)
     workflow_config = Path(
         str(

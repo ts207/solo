@@ -4,8 +4,9 @@ import hashlib
 import json
 import os
 import tempfile
+from collections.abc import Callable, Iterable, Sequence
 from pathlib import Path
-from typing import Any, Callable, Iterable, List, Sequence, Tuple
+from typing import Any
 
 import pandas as pd
 
@@ -389,7 +390,7 @@ def raw_dataset_dir_candidates(
     run_id: str | None = None,
     venue: str = "bybit",
     aliases: Sequence[str] = (),
-) -> List[Path]:
+) -> list[Path]:
     """
     Build ordered raw-data candidate directories.
 
@@ -445,7 +446,7 @@ def resolve_raw_dataset_dir(
     )
 
 
-def list_parquet_files(path: Path) -> List[Path]:
+def list_parquet_files(path: Path) -> list[Path]:
     """
     Recursively list all parquet files under a directory.
     If parquet exists in some partitions, include parquet files plus CSV-only
@@ -464,7 +465,7 @@ def list_parquet_files(path: Path) -> List[Path]:
 
 
 def read_parquet(
-    files: Iterable[Path] | Path | str, columns: List[str] | None = None
+    files: Iterable[Path] | Path | str, columns: list[str] | None = None
 ) -> pd.DataFrame:
     """
     Read multiple logical parquet artifacts into a single DataFrame.
@@ -529,7 +530,7 @@ def read_parquet(
     return pd.concat(frames, ignore_index=True)
 
 
-def read_table_auto(path: Path | str, columns: List[str] | None = None) -> pd.DataFrame:
+def read_table_auto(path: Path | str, columns: list[str] | None = None) -> pd.DataFrame:
     """
     Read a single CSV/parquet path through the canonical project IO surface.
 
@@ -557,7 +558,7 @@ def read_table_auto(path: Path | str, columns: List[str] | None = None) -> pd.Da
     return pd.DataFrame()
 
 
-def write_parquet(df: pd.DataFrame, path: Path, skip_lock: bool = False) -> Tuple[Path, str]:
+def write_parquet(df: pd.DataFrame, path: Path, skip_lock: bool = False) -> tuple[Path, str]:
     """
     Write a DataFrame to a logical parquet artifact.
 
@@ -588,7 +589,7 @@ def write_parquet(df: pd.DataFrame, path: Path, skip_lock: bool = False) -> Tupl
                 pass
 
 
-def _write_parquet_impl(df: pd.DataFrame, path: Path) -> Tuple[Path, str]:
+def _write_parquet_impl(df: pd.DataFrame, path: Path) -> tuple[Path, str]:
     if HAS_PYARROW and not _force_parquet_fallback_enabled():
         temp_path = path.with_suffix(path.suffix + ".tmp")
         table = pa.Table.from_pandas(df)

@@ -2,9 +2,9 @@ from __future__ import annotations
 
 import os
 import sys
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
-from typing import Any, Dict, List, Tuple
+from typing import Any
 
 from project import PROJECT_ROOT
 from project.io.utils import read_table_auto as read_table_auto_compat
@@ -27,12 +27,12 @@ DEFAULT_HASH_SCHEMA_VERSION = "v1"
 
 def utc_now_iso() -> str:
     """Returns the current UTC time in ISO 8601 format."""
-    return datetime.now(timezone.utc).isoformat()
+    return datetime.now(UTC).isoformat()
 
 
 def run_id_default() -> str:
     """Generates a default run ID based on the current timestamp."""
-    return f"run_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}"
+    return f"run_{datetime.now(UTC).strftime('%Y%m%d_%H%M%S')}"
 
 
 def cli_flag_present(flag: str) -> bool:
@@ -55,9 +55,9 @@ def read_table_auto(path: Path) -> Any:
     return read_table_auto_compat(path)
 
 
-def build_timing_map(timings: List[Tuple[str, float]]) -> Dict[str, float]:
+def build_timing_map(timings: list[tuple[str, float]]) -> dict[str, float]:
     """Builds a map of stage names to total duration."""
-    out: Dict[str, float] = {}
+    out: dict[str, float] = {}
     for name, duration in timings:
         out[name] = round(float(out.get(name, 0.0) + float(duration)), 3)
     return out

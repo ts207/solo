@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 from collections import Counter
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any
 
 import yaml
 
@@ -19,7 +19,7 @@ OPTIONAL_METADATA_KEYS = (
 )
 
 
-def load_benchmark_matrix(path: Path) -> Dict[str, Any]:
+def load_benchmark_matrix(path: Path) -> dict[str, Any]:
     if not path.exists():
         raise FileNotFoundError(f"Benchmark matrix not found: {path}")
     payload = yaml.safe_load(path.read_text(encoding="utf-8"))
@@ -38,8 +38,8 @@ def load_benchmark_matrix(path: Path) -> Dict[str, Any]:
     return payload
 
 
-def _slice_row(run: Dict[str, Any], result: Dict[str, Any]) -> Dict[str, Any]:
-    row: Dict[str, Any] = {
+def _slice_row(run: dict[str, Any], result: dict[str, Any]) -> dict[str, Any]:
+    row: dict[str, Any] = {
         "run_id": str(run.get("run_id", "")),
         "symbols": str(run.get("symbols", "")),
         "start": str(run.get("start", "")),
@@ -55,14 +55,14 @@ def _slice_row(run: Dict[str, Any], result: Dict[str, Any]) -> Dict[str, Any]:
     return row
 
 
-def build_benchmark_summary(*, matrix: Dict[str, Any], manifest: Dict[str, Any]) -> Dict[str, Any]:
+def build_benchmark_summary(*, matrix: dict[str, Any], manifest: dict[str, Any]) -> dict[str, Any]:
     runs = matrix.get("runs", [])
     results_by_run_id = {
         str(row.get("run_id", "")).strip(): dict(row)
         for row in manifest.get("results", [])
         if str(row.get("run_id", "")).strip()
     }
-    slice_rows: List[Dict[str, Any]] = []
+    slice_rows: list[dict[str, Any]] = []
     status_counter: Counter[str] = Counter()
     family_counter: Counter[str] = Counter()
     template_counter: Counter[str] = Counter()
@@ -87,8 +87,8 @@ def build_benchmark_summary(*, matrix: Dict[str, Any], manifest: Dict[str, Any])
     return {
         "matrix_id": str(matrix.get("matrix_id", "matrix")).strip() or "matrix",
         "description": str(matrix.get("description", "")).strip(),
-        "planned_runs": int(len(runs)),
-        "completed_rows": int(len(manifest.get("results", []))),
+        "planned_runs": len(runs),
+        "completed_rows": len(manifest.get("results", [])),
         "status_counts": dict(sorted(status_counter.items())),
         "families": dict(sorted(family_counter.items())),
         "templates": dict(sorted(template_counter.items())),
@@ -97,7 +97,7 @@ def build_benchmark_summary(*, matrix: Dict[str, Any], manifest: Dict[str, Any])
     }
 
 
-def render_benchmark_summary_markdown(summary: Dict[str, Any]) -> str:
+def render_benchmark_summary_markdown(summary: dict[str, Any]) -> str:
     lines = [
         "# Benchmark Matrix Summary",
         "",
@@ -128,7 +128,7 @@ def render_benchmark_summary_markdown(summary: Dict[str, Any]) -> str:
     return "\n".join(lines)
 
 
-def write_benchmark_summary(*, out_dir: Path, summary: Dict[str, Any]) -> Dict[str, Path]:
+def write_benchmark_summary(*, out_dir: Path, summary: dict[str, Any]) -> dict[str, Path]:
     out_dir.mkdir(parents=True, exist_ok=True)
     json_path = out_dir / "benchmark_summary.json"
     md_path = out_dir / "benchmark_summary.md"

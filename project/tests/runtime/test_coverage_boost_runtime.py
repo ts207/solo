@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import json
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 import pandas as pd
@@ -130,7 +130,7 @@ def test_replay_check_covers_empty_pass_and_failed_variants():
 
 
 def test_to_us_normalization_and_event_row_conversion():
-    dt = datetime(2026, 3, 25, 12, 0, tzinfo=timezone.utc)
+    dt = datetime(2026, 3, 25, 12, 0, tzinfo=UTC)
     assert to_us("2026-03-25T12:00:00Z") == int(dt.timestamp() * 1_000_000)
     assert to_us(dt) == int(dt.timestamp() * 1_000_000)
     assert to_us(1_700_000_000) == 1_700_000_000_000_000

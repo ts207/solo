@@ -55,8 +55,8 @@ import argparse
 import inspect
 import json
 import sys
+from collections.abc import Callable, Iterable
 from pathlib import Path
-from typing import Callable, Iterable
 
 import numpy as np
 import pandas as pd
@@ -185,7 +185,7 @@ def run_family_analyzer(
     summary = {
         "run_id": str(args.run_id),
         "event_type": event_type,
-        "rows": int(len(new_df[new_df["event_type"].astype(str) == event_type]))
+        "rows": len(new_df[new_df["event_type"].astype(str) == event_type])
         if not new_df.empty
         else 0,
         "events_file": str(out_path),

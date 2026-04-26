@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 import logging
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any
 
 import pandas as pd
 
@@ -12,7 +12,7 @@ from project.research.trigger_discovery.adoption_store import register_proposals
 
 log = logging.getLogger(__name__)
 
-def generate_suggested_registry_payload(row: pd.Series) -> Dict[str, Any]:
+def generate_suggested_registry_payload(row: pd.Series) -> dict[str, Any]:
     """Generates a pseudo-registry YAML dictionary payload for the proposal."""
     name = row.get("suggested_trigger_name", "UNKNOWN_TRIGGER")
     family = row.get("detector_family", "unknown")

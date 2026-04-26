@@ -3,10 +3,11 @@ from __future__ import annotations
 import hashlib
 import json
 import logging
+from collections.abc import Mapping, Sequence
 from dataclasses import dataclass, field
-from functools import lru_cache
+from functools import cache, lru_cache
 from pathlib import Path
-from typing import Any, Dict, Mapping, Sequence
+from typing import Any
 
 from project import PROJECT_ROOT
 from project.domain.compiled_registry import get_domain_registry
@@ -66,7 +67,7 @@ class ComposedConfig:
     reports_dir: str
     events_file: str
     signal_column: str
-    parameters: Dict[str, Any]
+    parameters: dict[str, Any]
     subtype: str = ""
     phase: str = ""
     evidence_mode: str = ""
@@ -92,7 +93,7 @@ class ComposedConfig:
     # Metadata
     config_hash: str = ""
     normalized_json: str = ""
-    source_layers: Dict[str, str] = field(default_factory=dict)
+    source_layers: dict[str, str] = field(default_factory=dict)
 
     @property
     def canonical_family(self) -> str:
@@ -127,7 +128,7 @@ def _coalesce_text(value: Any, default: str) -> str:
 
 
 @lru_cache(maxsize=1)
-def _unified_registry() -> Dict[str, Any]:
+def _unified_registry() -> dict[str, Any]:
     payload = get_domain_registry().unified_payload
     if not payload:
         return {}
@@ -141,7 +142,7 @@ _registry = _unified_registry
 
 
 @lru_cache(maxsize=1)
-def _family_by_event() -> Dict[str, str]:
+def _family_by_event() -> dict[str, str]:
     registry = get_domain_registry()
     return {
         event_type: spec.research_family or spec.canonical_family or spec.canonical_regime
@@ -151,13 +152,13 @@ def _family_by_event() -> Dict[str, str]:
 
 
 @lru_cache(maxsize=1)
-def _operator_registry() -> Dict[str, Dict[str, Any]]:
+def _operator_registry() -> dict[str, dict[str, Any]]:
     registry = get_domain_registry()
     return registry.operator_rows()
 
 
-@lru_cache(maxsize=None)
-def _detector_default_parameters(event_type: str) -> Dict[str, Any]:
+@cache
+def _detector_default_parameters(event_type: str) -> dict[str, Any]:
     from project.events.detectors.registry import get_detector, load_all_detectors
 
     normalized = str(event_type).strip().upper()
@@ -255,7 +256,7 @@ def compose_config(
     overrides = dict(runtime_overrides or {})
     normalized_state = str(state_id).strip().upper() if state_id else ""
 
-    state_defaults: Dict[str, Any] = {}
+    state_defaults: dict[str, Any] = {}
     if normalized_state:
         # State overrides from event level
         event_state_overrides = row.get("state_overrides", {})

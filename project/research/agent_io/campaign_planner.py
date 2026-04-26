@@ -5,10 +5,11 @@ import json
 import logging
 import math
 from collections import Counter, defaultdict
+from collections.abc import Sequence
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
-from typing import Any, Dict, List, Sequence
+from typing import Any
 
 import pandas as pd
 import yaml
@@ -34,7 +35,7 @@ from project.spec_registry.search_space import (
 )
 
 _LOG = logging.getLogger(__name__)
-_DEFAULT_TARGET_CONTEXT_LABELS: Dict[str, tuple[str, ...]] = {
+_DEFAULT_TARGET_CONTEXT_LABELS: dict[str, tuple[str, ...]] = {
     "vol_regime": ("low", "high"),
 }
 
@@ -43,7 +44,7 @@ def _normalize_key(value: Any) -> str:
     return str(value or "").strip()
 
 
-def _load_json_object(value: Any, *, source: str = "context_json") -> Dict[str, Any]:
+def _load_json_object(value: Any, *, source: str = "context_json") -> dict[str, Any]:
     if isinstance(value, dict):
         return dict(value)
     if value is None:
@@ -73,9 +74,9 @@ def _load_json_object(value: Any, *, source: str = "context_json") -> Dict[str, 
     )
 
 
-def _load_contexts(value: Any, *, source: str = "context_json") -> Dict[str, List[str]]:
+def _load_contexts(value: Any, *, source: str = "context_json") -> dict[str, list[str]]:
     payload = _load_json_object(value, source=source)
-    out: Dict[str, List[str]] = {}
+    out: dict[str, list[str]] = {}
     for key, raw in payload.items():
         family = _normalize_key(key)
         if not family:
@@ -89,7 +90,7 @@ def _load_contexts(value: Any, *, source: str = "context_json") -> Dict[str, Lis
     return out
 
 
-def _family_from_event_type(event_type: str, registry_events: Dict[str, Any]) -> str:
+def _family_from_event_type(event_type: str, registry_events: dict[str, Any]) -> str:
     meta = registry_events.get(event_type, {})
     family = str(meta.get("family", "")).strip()
     if family:
@@ -100,7 +101,7 @@ def _family_from_event_type(event_type: str, registry_events: Dict[str, Any]) ->
     return ""
 
 
-def _allowed_templates_for_family(family: str, registry_templates: Dict[str, Any]) -> List[str]:
+def _allowed_templates_for_family(family: str, registry_templates: dict[str, Any]) -> list[str]:
     families = (
         registry_templates.get("families", {}) if isinstance(registry_templates, dict) else {}
     )
@@ -139,8 +140,8 @@ def _tested_region_columns(df: pd.DataFrame) -> pd.DataFrame:
     return out
 
 
-def _count_contexts_by_event(tested_regions: pd.DataFrame) -> Dict[str, Dict[str, Counter]]:
-    counts: Dict[str, Dict[str, Counter]] = defaultdict(lambda: defaultdict(Counter))
+def _count_contexts_by_event(tested_regions: pd.DataFrame) -> dict[str, dict[str, Counter]]:
+    counts: dict[str, dict[str, Counter]] = defaultdict(lambda: defaultdict(Counter))
     if (
         tested_regions.empty
         or "event_type" not in tested_regions.columns
@@ -167,16 +168,16 @@ def _regime_gap_for_event(
     *,
     event_type: str,
     event_count: int,
-    event_context_counts: Dict[str, Dict[str, Counter]],
+    event_context_counts: dict[str, dict[str, Counter]],
     target_contexts: Sequence[str],
     threshold: int,
-) -> tuple[float, Dict[str, list[str]], Dict[str, Any]]:
+) -> tuple[float, dict[str, list[str]], dict[str, Any]]:
     if event_count <= 0:
         return 0.0, {}, {"event_type": event_type, "undercovered_contexts": {}}
 
     score = 0.0
-    context_payload: Dict[str, list[str]] = {}
-    undercovered: Dict[str, Any] = {}
+    context_payload: dict[str, list[str]] = {}
+    undercovered: dict[str, Any] = {}
     per_event_counts = event_context_counts.get(event_type, {})
     resolved_threshold = max(int(threshold), 0)
 
@@ -223,7 +224,7 @@ def _regime_gap_for_event(
     )
 
 
-def _family_counts(tested_regions: pd.DataFrame, event_to_family: Dict[str, str]) -> Counter:
+def _family_counts(tested_regions: pd.DataFrame, event_to_family: dict[str, str]) -> Counter:
     counts: Counter = Counter()
     if tested_regions.empty or "event_type" not in tested_regions.columns:
         return counts
@@ -299,8 +300,8 @@ def _empty_failure_penalty() -> dict[str, float]:
     }
 
 
-def _failure_penalty_components(tested_regions: pd.DataFrame) -> Dict[str, dict[str, float]]:
-    penalties: Dict[str, dict[str, float]] = {}
+def _failure_penalty_components(tested_regions: pd.DataFrame) -> dict[str, dict[str, float]]:
+    penalties: dict[str, dict[str, float]] = {}
     if tested_regions.empty or "failure_cause_class" not in tested_regions.columns:
         return penalties
     for event_type, frame in tested_regions.groupby("event_type", dropna=False):
@@ -411,8 +412,8 @@ def _bounded_rate(value: Any, default: float = 0.0) -> float:
     return float(min(max(numeric, 0.0), 1.0))
 
 
-def _event_economics_signals(event_statistics: pd.DataFrame) -> Dict[str, dict[str, Any]]:
-    signals: Dict[str, dict[str, Any]] = {}
+def _event_economics_signals(event_statistics: pd.DataFrame) -> dict[str, dict[str, Any]]:
+    signals: dict[str, dict[str, Any]] = {}
     if event_statistics.empty or "event_type" not in event_statistics.columns:
         return signals
     for row in event_statistics.to_dict(orient="records"):
@@ -560,7 +561,7 @@ def _proposal_scope_keys(
     directions: Sequence[str],
     horizons: Sequence[int],
     entry_lags: Sequence[int],
-    contexts: Dict[str, list[str]],
+    contexts: dict[str, list[str]],
 ) -> set[tuple[str, str, str, str, str, str]]:
     context_json = canonical_json(contexts)
     return {
@@ -608,7 +609,7 @@ def _region_keys_for_scope_keys(
 
 
 def _dominant_score_factors(
-    components: Dict[str, float],
+    components: dict[str, float],
     *,
     positive: bool,
     limit: int = 3,
@@ -616,9 +617,7 @@ def _dominant_score_factors(
     rows: list[tuple[str, float]] = []
     for key, raw_value in components.items():
         value = float(raw_value or 0.0)
-        if positive and value > 0:
-            rows.append((key, value))
-        elif not positive and value < 0:
+        if (positive and value > 0) or (not positive and value < 0):
             rows.append((key, value))
     rows.sort(key=lambda item: abs(item[1]), reverse=True)
     return [{"factor": key, "contribution": value} for key, value in rows[:limit]]
@@ -658,7 +657,7 @@ def _build_selection_rationale(
 
 
 def _default_date_scope(lookback_days: int) -> tuple[str, str]:
-    end = datetime.now(timezone.utc).date()
+    end = datetime.now(UTC).date()
     start = end - timedelta(days=int(lookback_days))
     return start.isoformat(), end.isoformat()
 
@@ -694,8 +693,8 @@ class PlannedCampaignProposal:
     score: float
     event_type: str
     family: str
-    rationale: Dict[str, Any]
-    proposal: Dict[str, Any]
+    rationale: dict[str, Any]
+    proposal: dict[str, Any]
 
 
 @dataclass
@@ -703,9 +702,9 @@ class CampaignPlanResult:
     program_id: str
     ranked_proposals: list[PlannedCampaignProposal] = field(default_factory=list)
     excluded_region_keys: list[str] = field(default_factory=list)
-    summary: Dict[str, Any] = field(default_factory=dict)
+    summary: dict[str, Any] = field(default_factory=dict)
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "program_id": self.program_id,
             "ranked_proposals": [
@@ -741,7 +740,7 @@ class CampaignPlanner:
         self._last_duplicate_exclusion_details: list[dict[str, Any]] = []
         self._last_surface_viability_summary: dict[str, Any] = {}
 
-    def _load_yaml(self, path: Path) -> Dict[str, Any]:
+    def _load_yaml(self, path: Path) -> dict[str, Any]:
         if not path.exists():
             return {}
         try:
@@ -751,7 +750,7 @@ class CampaignPlanner:
             _LOG.warning("Failed to load YAML from %s", path, exc_info=True)
             return {}
 
-    def _event_priority_weights(self, search_space_path: Path | None) -> Dict[str, float]:
+    def _event_priority_weights(self, search_space_path: Path | None) -> dict[str, float]:
         try:
             return load_event_priority_weights(search_space_path)
         except Exception:
@@ -781,7 +780,7 @@ class CampaignPlanner:
                 "issues": ["feature_surface_viability_failed"],
             }
 
-    def _memory(self) -> Dict[str, pd.DataFrame]:
+    def _memory(self) -> dict[str, pd.DataFrame]:
         return {
             "tested_regions": _tested_region_columns(
                 read_memory_table(
@@ -963,7 +962,7 @@ class CampaignPlanner:
         event_type: str,
         family: str,
         templates: Sequence[str],
-        contexts: Dict[str, list[str]],
+        contexts: dict[str, list[str]],
         score: float,
         weight: float,
         event_count: int,
@@ -973,14 +972,14 @@ class CampaignPlanner:
         family_gap_score: float,
         event_gap_score: float,
         history_penalty: float,
-        failure_penalty: Dict[str, float],
-        economics_signal: Dict[str, Any],
-        score_components: Dict[str, float],
-        regime_gap: Dict[str, Any],
-        governance: Dict[str, Any],
+        failure_penalty: dict[str, float],
+        economics_signal: dict[str, Any],
+        score_components: dict[str, float],
+        regime_gap: dict[str, Any],
+        governance: dict[str, Any],
         excluded_region_keys: set[str] | None = None,
-        viability: Dict[str, Any] | None = None,
-    ) -> Dict[str, Any] | None:
+        viability: dict[str, Any] | None = None,
+    ) -> dict[str, Any] | None:
         if score <= -10.0:
             return None
         start, end = _default_date_scope(self.config.lookback_days)
@@ -1100,8 +1099,8 @@ class CampaignPlanner:
             for row in candidate_rows[: self.config.max_proposals]
         ]
         summary = {
-            "tested_regions": int(len(tested_regions)),
-            "candidate_pool": int(len(candidate_rows)),
+            "tested_regions": len(tested_regions),
+            "candidate_pool": len(candidate_rows),
             "surface_blocked_events": list(self._last_surface_viability_summary.get("blocked_events", [])),
             "surface_warn_events": list(self._last_surface_viability_summary.get("warn_events", [])),
             "top_event_type": ranked[0].event_type if ranked else "",
@@ -1132,7 +1131,7 @@ class CampaignPlanner:
             return set()
         return set(tested_regions.loc[mask, "region_key"].astype(str).tolist())
 
-    def top_proposal(self) -> Dict[str, Any] | None:
+    def top_proposal(self) -> dict[str, Any] | None:
         plan = self.plan()
         if not plan.ranked_proposals:
             return None
@@ -1151,7 +1150,7 @@ def run_campaign_planner_cycle(
     check: bool = False,
     lookback_days: int = 90,
     max_proposals: int = 10,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     planner = CampaignPlanner(
         CampaignPlannerConfig(
             program_id=program_id,

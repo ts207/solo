@@ -1,8 +1,8 @@
 from __future__ import annotations
 
+from collections.abc import Sequence
 from dataclasses import dataclass
 from datetime import timedelta
-from typing import List, Sequence
 
 import pandas as pd
 
@@ -70,7 +70,7 @@ def build_time_splits(
     train_frac: float = 0.6,
     validation_frac: float = 0.2,
     embargo_days: int = 5,
-) -> List[SplitWindow]:
+) -> list[SplitWindow]:
     """
     Deterministic walk-forward windows with optional embargo between split boundaries.
     """
@@ -101,7 +101,7 @@ def build_time_splits(
     test_start = validation_end + embargo
     test_end = end_ts
 
-    windows: List[SplitWindow] = []
+    windows: list[SplitWindow] = []
     if train_start <= train_end:
         windows.append(SplitWindow("train", train_start, train_end))
     if validation_start <= validation_end:
@@ -126,7 +126,7 @@ def build_time_splits_with_purge(
     embargo_days: int = 5,
     purge_bars: int = 0,
     bar_duration_minutes: int = 5,
-) -> List[SplitWindow]:
+) -> list[SplitWindow]:
     """
     Like build_time_splits but trims the tail of each non-test window by purge_bars.
     Purge removes positions whose exit could overlap the embargo/next-split zone.
@@ -145,7 +145,7 @@ def build_time_splits_with_purge(
         return windows
 
     purge_delta = timedelta(minutes=int(purge_bars) * int(bar_duration_minutes))
-    result: List[SplitWindow] = []
+    result: list[SplitWindow] = []
     for w in windows:
         if w.label == "test":
             result.append(w)
@@ -207,7 +207,7 @@ def build_repeated_walk_forward_folds(
     embargo_days: int = 5,
     purge_bars: int = 0,
     bar_duration_minutes: int = 5,
-) -> List[List[SplitWindow]]:
+) -> list[list[SplitWindow]]:
     """
     R2: Create repeated temporal folds.
     Generates a list of walk-forward split sets by shifting the start time.

@@ -2,8 +2,9 @@ from __future__ import annotations
 
 import hashlib
 import json
+from collections.abc import Iterable
 from pathlib import Path
-from typing import Any, Dict, Iterable, List, Tuple
+from typing import Any
 
 import yaml
 
@@ -52,20 +53,20 @@ def _norm_upper(value: Any) -> str:
     return _norm(value).upper()
 
 
-def _load_yaml(path: Path) -> Dict[str, Any]:
+def _load_yaml(path: Path) -> dict[str, Any]:
     if not path.exists():
         return {}
     payload = yaml.safe_load(path.read_text(encoding="utf-8"))
     return payload if isinstance(payload, dict) else {}
 
 
-def load_active_hypothesis_specs(repo_root: Path) -> List[Dict[str, Any]]:
+def load_active_hypothesis_specs(repo_root: Path) -> list[dict[str, Any]]:
     repo_root = Path(repo_root)
     spec_dir = repo_root / "spec" / "hypotheses"
     if not spec_dir.exists():
         return []
 
-    out: List[Dict[str, Any]] = []
+    out: list[dict[str, Any]] = []
     for path in sorted(spec_dir.glob("*.yaml")):
         if path.name == "template_verb_lexicon.yaml":
             continue
@@ -109,8 +110,8 @@ def load_active_hypothesis_specs(repo_root: Path) -> List[Dict[str, Any]]:
     return out
 
 
-def load_template_side_policy(repo_root: Path) -> Dict[str, str]:
-    out: Dict[str, str] = {}
+def load_template_side_policy(repo_root: Path) -> dict[str, str]:
+    out: dict[str, str] = {}
     for template_verb, op in get_domain_registry().operator_rows().items():
         side_policy = _norm(op.get("side_policy", "both")).lower()
         out[_norm(template_verb)] = side_policy or "both"
@@ -121,27 +122,27 @@ def _horizon_bars(horizon: str) -> int:
     return parse_horizon_bars(_norm(horizon), default=12)
 
 
-def _condition_signature(conditioning: Dict[str, Any]) -> str:
+def _condition_signature(conditioning: dict[str, Any]) -> str:
     if not conditioning:
         return "all"
-    parts: List[str] = []
+    parts: list[str] = []
     for key in sorted(conditioning.keys()):
         value = conditioning.get(key)
         parts.append(f"{_norm(key)}={_norm(value)}")
     return "&".join(parts) if parts else "all"
 
 
-def _condition_dsl(conditioning: Dict[str, Any]) -> str:
+def _condition_dsl(conditioning: dict[str, Any]) -> str:
     if not conditioning:
         return "all"
-    clauses: List[str] = []
+    clauses: list[str] = []
     for key in sorted(conditioning.keys()):
         value = _norm(conditioning.get(key))
         clauses.append(f'{_norm(key)} == "{value}"')
     return " AND ".join(clauses) if clauses else "all"
 
 
-def _candidate_hash(payload: Dict[str, Any]) -> str:
+def _candidate_hash(payload: dict[str, Any]) -> str:
     encoded = json.dumps(payload, sort_keys=True, separators=(",", ":"))
     return "cand_" + hashlib.sha256(encoded.encode("utf-8")).hexdigest()[:24]
 
@@ -162,7 +163,7 @@ def _candidate_hash_inputs(
     hypothesis_spec_hash: str,
     symbol: str,
     state_id: str,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     payload = {
         "event_type": _norm_upper(event_type),
         "template_id": _norm(template_id),
@@ -184,15 +185,15 @@ def _candidate_hash_inputs(
 
 def translate_candidate_hypotheses(
     *,
-    base_candidate: Dict[str, Any],
-    hypothesis_specs: List[Dict[str, Any]],
+    base_candidate: dict[str, Any],
+    hypothesis_specs: list[dict[str, Any]],
     available_condition_keys: Iterable[str],
-    template_side_policy: Dict[str, str],
+    template_side_policy: dict[str, str],
     strict: bool,
     implemented_event_types: Iterable[str] | None = None,
-) -> Tuple[List[Dict[str, Any]], List[Dict[str, Any]]]:
-    rows: List[Dict[str, Any]] = []
-    audit: List[Dict[str, Any]] = []
+) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
+    rows: list[dict[str, Any]] = []
+    audit: list[dict[str, Any]] = []
     available_raw = {_norm(k) for k in available_condition_keys if _norm(k)}
     available = normalize_condition_keys(available_raw)
     conditioning = dict(base_candidate.get("conditioning", {}) or {})
@@ -245,7 +246,7 @@ def translate_candidate_hypotheses(
                 )
             continue
 
-        condition_keys = [_norm(k) for k in conditioning.keys() if _norm(k)]
+        condition_keys = [_norm(k) for k in conditioning if _norm(k)]
         missing_cond_keys = sorted(missing_condition_keys(condition_keys, available))
         if missing_cond_keys:
             detail = {

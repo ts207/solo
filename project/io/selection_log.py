@@ -1,21 +1,20 @@
 from __future__ import annotations
 
 import json
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
-from typing import Dict
 
 from project.io.utils import ensure_dir
 
 
 def append_selection_log(
-    data_root: Path, run_id: str, stage: str, details: Dict[str, object]
+    data_root: Path, run_id: str, stage: str, details: dict[str, object]
 ) -> Path:
     out_dir = Path(data_root) / "reports" / "eval" / str(run_id)
     ensure_dir(out_dir)
     path = out_dir / "selection_log.json"
 
-    payload: Dict[str, object] = {"run_id": str(run_id), "entries": []}
+    payload: dict[str, object] = {"run_id": str(run_id), "entries": []}
     if path.exists():
         try:
             raw = json.loads(path.read_text(encoding="utf-8"))
@@ -29,7 +28,7 @@ def append_selection_log(
         entries = []
     entries.append(
         {
-            "logged_at_utc": datetime.now(timezone.utc).isoformat(),
+            "logged_at_utc": datetime.now(UTC).isoformat(),
             "stage": str(stage),
             **dict(details),
         }

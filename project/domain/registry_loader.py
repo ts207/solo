@@ -1,8 +1,8 @@
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any
 
 from project import PROJECT_ROOT
 from project.domain.models import (
@@ -80,10 +80,10 @@ def _inflate_graph_path(value: Any) -> str:
 
 
 def _generated_at_utc() -> str:
-    return datetime.now(timezone.utc).replace(microsecond=0).isoformat().replace('+00:00', 'Z')
+    return datetime.now(UTC).replace(microsecond=0).isoformat().replace('+00:00', 'Z')
 
 
-def _detector_ownership() -> Dict[str, str]:
+def _detector_ownership() -> dict[str, str]:
     payload = load_yaml_relative("project/configs/registries/detectors.yaml")
     raw = payload.get("detector_ownership", {}) if isinstance(payload, dict) else {}
     if not isinstance(raw, dict):
@@ -95,12 +95,12 @@ def _detector_ownership() -> Dict[str, str]:
     }
 
 
-def _merge_event_rows(unified: Dict[str, Any]) -> Dict[str, EventDefinition]:
+def _merge_event_rows(unified: dict[str, Any]) -> dict[str, EventDefinition]:
     defaults = unified.get("defaults", {})
     families = unified.get("families", {})
     unified_events = unified.get("events", {})
     detector_ownership = _detector_ownership()
-    out: Dict[str, EventDefinition] = {}
+    out: dict[str, EventDefinition] = {}
 
     event_types = set()
     if isinstance(unified_events, dict):
@@ -108,7 +108,7 @@ def _merge_event_rows(unified: Dict[str, Any]) -> Dict[str, EventDefinition]:
 
     for event_type in sorted(event_types):
         unified_row = unified_events.get(event_type, {}) if isinstance(unified_events, dict) else {}
-        row: Dict[str, Any] = {}
+        row: dict[str, Any] = {}
         if isinstance(defaults, dict):
             row.update(defaults)
         research_family = str(
@@ -203,9 +203,9 @@ def _merge_event_rows(unified: Dict[str, Any]) -> Dict[str, EventDefinition]:
     return out
 
 
-def _load_states() -> Dict[str, StateDefinition]:
+def _load_states() -> dict[str, StateDefinition]:
     payload = load_state_registry()
-    out: Dict[str, StateDefinition] = {}
+    out: dict[str, StateDefinition] = {}
     defaults = payload.get("defaults", {}) if isinstance(payload, dict) else {}
     if not isinstance(defaults, dict):
         defaults = {}
@@ -276,14 +276,14 @@ def _load_states() -> Dict[str, StateDefinition]:
     return out
 
 
-def _state_context_dimensions() -> Dict[str, Dict[str, Any]]:
+def _state_context_dimensions() -> dict[str, dict[str, Any]]:
     payload = load_state_registry()
     raw = payload.get("context_dimensions", {}) if isinstance(payload, dict) else {}
     return dict(raw) if isinstance(raw, dict) else {}
 
 
-def _load_context_state_map() -> Dict[tuple[str, str], str]:
-    out: Dict[tuple[str, str], str] = {}
+def _load_context_state_map() -> dict[tuple[str, str], str]:
+    out: dict[tuple[str, str], str] = {}
     for family, cfg in _state_context_dimensions().items():
         if not isinstance(cfg, dict):
             continue
@@ -339,8 +339,8 @@ def _load_searchable_families() -> tuple[tuple[str, ...], tuple[str, ...]]:
 
 
 def _load_family_registry_payload(
-    template_registry_payload: Dict[str, Any] | None = None,
-) -> Dict[str, Any]:
+    template_registry_payload: dict[str, Any] | None = None,
+) -> dict[str, Any]:
     canonical = (
         dict(template_registry_payload)
         if isinstance(template_registry_payload, dict)
@@ -351,7 +351,7 @@ def _load_family_registry_payload(
     state_families = authored.get("state_families", {}) if isinstance(authored, dict) else {}
     template_families = canonical.get("families", {}) if isinstance(canonical, dict) else {}
 
-    merged_event_families: Dict[str, Dict[str, Any]] = {}
+    merged_event_families: dict[str, dict[str, Any]] = {}
     all_event_family_names = {
         str(name).strip().upper()
         for name in (
@@ -371,7 +371,7 @@ def _load_family_registry_payload(
             if isinstance(template_families, dict)
             else {}
         )
-        merged_row: Dict[str, Any] = {}
+        merged_row: dict[str, Any] = {}
         if isinstance(authored_row, dict):
             merged_row.update(dict(authored_row))
         if isinstance(canonical_row, dict):
@@ -391,12 +391,12 @@ def _load_family_registry_payload(
     }
 
 
-def _load_stress_scenarios() -> tuple[Dict[str, Any], ...]:
+def _load_stress_scenarios() -> tuple[dict[str, Any], ...]:
     payload = load_yaml_relative("spec/grammar/stress_scenarios.yaml")
     rows = payload.get("scenarios", []) if isinstance(payload, dict) else []
     if not isinstance(rows, list):
         return ()
-    out: list[Dict[str, Any]] = []
+    out: list[dict[str, Any]] = []
     for row in rows:
         if not isinstance(row, dict):
             continue
@@ -417,12 +417,12 @@ def _load_kill_switch_candidate_features() -> tuple[str, ...]:
     return tuple(str(value).strip() for value in rows if str(value).strip())
 
 
-def _load_sequence_definitions() -> tuple[Dict[str, Any], ...]:
+def _load_sequence_definitions() -> tuple[dict[str, Any], ...]:
     payload = load_yaml_relative("spec/grammar/sequence_registry.yaml")
     rows = payload.get("sequences", []) if isinstance(payload, dict) else []
     if not isinstance(rows, list):
         return ()
-    out: list[Dict[str, Any]] = []
+    out: list[dict[str, Any]] = []
     for row in rows:
         if not isinstance(row, dict):
             continue
@@ -434,12 +434,12 @@ def _load_sequence_definitions() -> tuple[Dict[str, Any], ...]:
     return tuple(out)
 
 
-def _load_interaction_definitions() -> tuple[Dict[str, Any], ...]:
+def _load_interaction_definitions() -> tuple[dict[str, Any], ...]:
     payload = load_yaml_relative("spec/grammar/interaction_registry.yaml")
     rows = payload.get("motifs", []) if isinstance(payload, dict) else []
     if not isinstance(rows, list):
         return ()
-    out: list[Dict[str, Any]] = []
+    out: list[dict[str, Any]] = []
     for row in rows:
         if not isinstance(row, dict):
             continue
@@ -453,10 +453,10 @@ def _load_interaction_definitions() -> tuple[Dict[str, Any], ...]:
     return tuple(out)
 
 
-def _load_operators() -> Dict[str, TemplateOperatorDefinition]:
+def _load_operators() -> dict[str, TemplateOperatorDefinition]:
     template_registry = load_template_registry()
     operators = template_registry.get("operators", {})
-    out: Dict[str, TemplateOperatorDefinition] = {}
+    out: dict[str, TemplateOperatorDefinition] = {}
     if not isinstance(operators, dict):
         return out
     for template_id, row in operators.items():
@@ -473,7 +473,7 @@ def _load_operators() -> Dict[str, TemplateOperatorDefinition]:
     return out
 
 
-def _load_regimes() -> Dict[str, RegimeDefinition]:
+def _load_regimes() -> dict[str, RegimeDefinition]:
     payload = load_regime_registry()
     metadata = payload.get("metadata", {}) if isinstance(payload, dict) else {}
     regimes = payload.get("regimes", {}) if isinstance(payload, dict) else {}
@@ -485,7 +485,7 @@ def _load_regimes() -> Dict[str, RegimeDefinition]:
     scorecard_version = str(metadata.get("scorecard_version", "")).strip()
     scorecard_source_run = str(metadata.get("scorecard_source_run", "")).strip()
     spec_path = _graph_spec_path("spec/regimes/registry.yaml")
-    out: Dict[str, RegimeDefinition] = {}
+    out: dict[str, RegimeDefinition] = {}
     for canonical_regime, row in sorted(regimes.items()):
         if not isinstance(row, dict):
             continue
@@ -540,7 +540,7 @@ def _normalize_tokens(values: Any, *, uppercase: bool = True) -> tuple[str, ...]
     return tuple(out)
 
 
-def _load_theses() -> Dict[str, ThesisDefinition]:
+def _load_theses() -> dict[str, ThesisDefinition]:
     payload = load_thesis_registry()
     defaults = payload.get("defaults", {}) if isinstance(payload, dict) else {}
     rows = payload.get("theses", {}) if isinstance(payload, dict) else {}
@@ -549,7 +549,7 @@ def _load_theses() -> Dict[str, ThesisDefinition]:
     if not isinstance(rows, dict):
         return {}
 
-    out: Dict[str, ThesisDefinition] = {}
+    out: dict[str, ThesisDefinition] = {}
     spec_path = _graph_spec_path("spec/theses/thesis_registry.yaml")
     default_required_context = defaults.get("required_context", {})
     default_supportive_context = defaults.get("supportive_context", {})
@@ -630,21 +630,21 @@ def _load_theses() -> Dict[str, ThesisDefinition]:
     return out
 
 
-def _merge_mapping(base: Any, override: Any) -> Dict[str, Any]:
-    out: Dict[str, Any] = dict(base) if isinstance(base, dict) else {}
+def _merge_mapping(base: Any, override: Any) -> dict[str, Any]:
+    out: dict[str, Any] = dict(base) if isinstance(base, dict) else {}
     if isinstance(override, dict):
         out.update(override)
     return out
 
 
-def _slim_mapping(value: Any) -> Dict[str, Any]:
+def _slim_mapping(value: Any) -> dict[str, Any]:
     return dict(value) if isinstance(value, dict) else {}
 
 
-def _slim_event_raw(raw: Any) -> Dict[str, Any]:
+def _slim_event_raw(raw: Any) -> dict[str, Any]:
     if not isinstance(raw, dict):
         return {}
-    out: Dict[str, Any] = {}
+    out: dict[str, Any] = {}
     for key in _EVENT_RUNTIME_RAW_KEYS:
         value = raw.get(key)
         if value in (None, "", [], {}, ()):
@@ -658,10 +658,10 @@ def _slim_event_raw(raw: Any) -> Dict[str, Any]:
     return out
 
 
-def _slim_operator_raw(raw: Any) -> Dict[str, Any]:
+def _slim_operator_raw(raw: Any) -> dict[str, Any]:
     if not isinstance(raw, dict):
         return {}
-    out: Dict[str, Any] = {}
+    out: dict[str, Any] = {}
     for key in _OPERATOR_RUNTIME_RAW_KEYS:
         value = raw.get(key)
         if value in (None, "", [], {}, ()):
@@ -713,7 +713,7 @@ def _build_domain_registry_from_sources() -> DomainRegistry:
     )
 
 
-def _event_definition_payload(spec: EventDefinition) -> Dict[str, Any]:
+def _event_definition_payload(spec: EventDefinition) -> dict[str, Any]:
     return {
         "event_type": spec.event_type,
         "research_family": spec.research_family,
@@ -768,7 +768,7 @@ def _event_definition_payload(spec: EventDefinition) -> Dict[str, Any]:
     }
 
 
-def _state_definition_payload(spec: StateDefinition) -> Dict[str, Any]:
+def _state_definition_payload(spec: StateDefinition) -> dict[str, Any]:
     return {
         "state_id": spec.state_id,
         "family": spec.family,
@@ -791,7 +791,7 @@ def _state_definition_payload(spec: StateDefinition) -> Dict[str, Any]:
     }
 
 
-def _operator_definition_payload(spec: TemplateOperatorDefinition) -> Dict[str, Any]:
+def _operator_definition_payload(spec: TemplateOperatorDefinition) -> dict[str, Any]:
     raw = _slim_operator_raw(spec.raw)
     return {
         "template_id": spec.template_id,
@@ -808,7 +808,7 @@ def _operator_definition_payload(spec: TemplateOperatorDefinition) -> Dict[str, 
     }
 
 
-def _regime_definition_payload(spec: RegimeDefinition) -> Dict[str, Any]:
+def _regime_definition_payload(spec: RegimeDefinition) -> dict[str, Any]:
     return {
         "canonical_regime": spec.canonical_regime,
         "bucket": spec.bucket,
@@ -827,7 +827,7 @@ def _regime_definition_payload(spec: RegimeDefinition) -> Dict[str, Any]:
     }
 
 
-def _thesis_definition_payload(spec: ThesisDefinition) -> Dict[str, Any]:
+def _thesis_definition_payload(spec: ThesisDefinition) -> dict[str, Any]:
     return {
         "thesis_id": spec.thesis_id,
         "thesis_kind": spec.thesis_kind,
@@ -857,7 +857,7 @@ def _thesis_definition_payload(spec: ThesisDefinition) -> Dict[str, Any]:
     }
 
 
-def _event_runtime_view(registry: DomainRegistry) -> Dict[str, Any]:
+def _event_runtime_view(registry: DomainRegistry) -> dict[str, Any]:
     payload = registry.unified_payload if isinstance(registry.unified_payload, dict) else {}
     families = payload.get("families", {})
     defaults = payload.get("defaults", {})
@@ -873,7 +873,7 @@ def _event_runtime_view(registry: DomainRegistry) -> Dict[str, Any]:
     }
 
 
-def _template_runtime_view(registry: DomainRegistry) -> Dict[str, Any]:
+def _template_runtime_view(registry: DomainRegistry) -> dict[str, Any]:
     payload = registry.template_registry_payload if isinstance(registry.template_registry_payload, dict) else {}
     defaults = payload.get("defaults", {})
     families = payload.get("families", {})
@@ -886,7 +886,7 @@ def _template_runtime_view(registry: DomainRegistry) -> Dict[str, Any]:
     }
 
 
-def _runtime_payload(registry: DomainRegistry) -> Dict[str, Any]:
+def _runtime_payload(registry: DomainRegistry) -> dict[str, Any]:
     return {
         "event_registry": _event_runtime_view(registry),
         "template_registry": _template_runtime_view(registry),
@@ -903,7 +903,7 @@ def _runtime_payload(registry: DomainRegistry) -> Dict[str, Any]:
     }
 
 
-def _domain_registry_payload(registry: DomainRegistry) -> Dict[str, Any]:
+def _domain_registry_payload(registry: DomainRegistry) -> dict[str, Any]:
     return {
         "version": 2,
         "kind": "domain_graph",
@@ -939,7 +939,7 @@ def _domain_registry_payload(registry: DomainRegistry) -> Dict[str, Any]:
     }
 
 
-def build_domain_graph_payload() -> Dict[str, Any]:
+def build_domain_graph_payload() -> dict[str, Any]:
     return _domain_registry_payload(_build_domain_registry_from_sources())
 
 
@@ -947,7 +947,7 @@ def compile_domain_registry_from_sources() -> DomainRegistry:
     return _build_domain_registry_from_sources()
 
 
-def _event_definition_from_payload(row: Dict[str, Any]) -> EventDefinition:
+def _event_definition_from_payload(row: dict[str, Any]) -> EventDefinition:
     return EventDefinition(
         event_type=str(row.get("event_type", "")).strip().upper(),
         research_family=str(row.get("research_family", row.get("canonical_family", ""))).strip().upper(),
@@ -1003,7 +1003,7 @@ def _event_definition_from_payload(row: Dict[str, Any]) -> EventDefinition:
     )
 
 
-def _state_definition_from_payload(row: Dict[str, Any]) -> StateDefinition:
+def _state_definition_from_payload(row: dict[str, Any]) -> StateDefinition:
     return StateDefinition(
         state_id=str(row.get("state_id", "")).strip().upper(),
         family=str(row.get("family", "")).strip().upper(),
@@ -1036,7 +1036,7 @@ def _state_definition_from_payload(row: Dict[str, Any]) -> StateDefinition:
     )
 
 
-def _operator_definition_from_payload(row: Dict[str, Any]) -> TemplateOperatorDefinition:
+def _operator_definition_from_payload(row: dict[str, Any]) -> TemplateOperatorDefinition:
     raw = {
         "template_kind": str(row.get("template_kind", "")).strip().lower(),
         "side_policy": str(row.get("side_policy", "both")).strip().lower() or "both",
@@ -1059,7 +1059,7 @@ def _operator_definition_from_payload(row: Dict[str, Any]) -> TemplateOperatorDe
     )
 
 
-def _thesis_definition_from_payload(row: Dict[str, Any]) -> ThesisDefinition:
+def _thesis_definition_from_payload(row: dict[str, Any]) -> ThesisDefinition:
     return ThesisDefinition(
         thesis_id=str(row.get("thesis_id", "")).strip().upper(),
         thesis_kind=str(row.get("thesis_kind", "standalone_event")).strip().lower() or "standalone_event",
@@ -1098,7 +1098,7 @@ def _thesis_definition_from_payload(row: Dict[str, Any]) -> ThesisDefinition:
     )
 
 
-def _regime_definition_from_payload(row: Dict[str, Any]) -> RegimeDefinition:
+def _regime_definition_from_payload(row: dict[str, Any]) -> RegimeDefinition:
     return RegimeDefinition(
         canonical_regime=str(row.get("canonical_regime", "")).strip().upper(),
         bucket=str(row.get("bucket", "")).strip(),
@@ -1123,8 +1123,8 @@ def _regime_definition_from_payload(row: Dict[str, Any]) -> RegimeDefinition:
     )
 
 
-def _context_state_map_from_payload(rows: Any) -> Dict[tuple[str, str], str]:
-    out: Dict[tuple[str, str], str] = {}
+def _context_state_map_from_payload(rows: Any) -> dict[tuple[str, str], str]:
+    out: dict[tuple[str, str], str] = {}
     if not isinstance(rows, list):
         return out
     for row in rows:

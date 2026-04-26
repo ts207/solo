@@ -1,7 +1,7 @@
 from __future__ import annotations
 
+from collections.abc import Iterable
 from pathlib import Path
-from typing import Dict, Iterable, Set
 
 from project.core.feature_schema import feature_dataset_dir_name
 from project.io.utils import (
@@ -45,8 +45,8 @@ def _norm(value: object) -> str:
     return str(value or "").strip()
 
 
-def _collect_columns_from_partition_candidates(paths: Iterable[Path]) -> Set[str]:
-    out: Set[str] = set()
+def _collect_columns_from_partition_candidates(paths: Iterable[Path]) -> set[str]:
+    out: set[str] = set()
     src = choose_partition_dir(list(paths))
     files = list_parquet_files(src) if src else []
     if not files:
@@ -58,8 +58,8 @@ def _collect_columns_from_partition_candidates(paths: Iterable[Path]) -> Set[str
     return out
 
 
-def _collect_columns_from_file_candidates(paths: Iterable[Path]) -> Set[str]:
-    out: Set[str] = set()
+def _collect_columns_from_file_candidates(paths: Iterable[Path]) -> set[str]:
+    out: set[str] = set()
     for path in paths:
         if not Path(path).exists():
             continue
@@ -77,8 +77,8 @@ def load_symbol_joined_condition_contract(
     run_id: str,
     symbol: str,
     timeframe: str = "5m",
-) -> Dict[str, Set[str]]:
-    keys: Set[str] = set()
+) -> dict[str, set[str]]:
+    keys: set[str] = set()
     sym = _norm(symbol).upper()
     rid = _norm(run_id)
     tf = _norm(timeframe) or "5m"
@@ -124,7 +124,7 @@ def load_symbol_joined_condition_keys(
     symbol: str,
     timeframe: str = "5m",
     include_soft_defaults: bool = False,
-) -> Set[str]:
+) -> set[str]:
     contract = load_symbol_joined_condition_contract(
         data_root=data_root,
         run_id=run_id,
@@ -137,8 +137,8 @@ def load_symbol_joined_condition_keys(
     return keys
 
 
-def normalize_condition_keys(keys: Iterable[str]) -> Set[str]:
-    out: Set[str] = set()
+def normalize_condition_keys(keys: Iterable[str]) -> set[str]:
+    out: set[str] = set()
     for key in keys:
         token = _norm(key)
         if not token:
@@ -156,9 +156,9 @@ def normalize_condition_keys(keys: Iterable[str]) -> Set[str]:
     return out
 
 
-def missing_condition_keys(required_keys: Iterable[str], available_keys: Iterable[str]) -> Set[str]:
+def missing_condition_keys(required_keys: Iterable[str], available_keys: Iterable[str]) -> set[str]:
     available_norm = normalize_condition_keys(available_keys)
-    missing: Set[str] = set()
+    missing: set[str] = set()
     for key in required_keys:
         token = _norm(key)
         if not token:

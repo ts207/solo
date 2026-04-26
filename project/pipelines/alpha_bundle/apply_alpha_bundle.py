@@ -81,7 +81,7 @@ def main() -> int:
     tcol = "ts_event" if "ts_event" in sig.columns else "timestamp"
     sig[tcol] = ensure_utc_timestamp(sig[tcol], tcol)
 
-    with open(args.ridge_model_path, "r", encoding="utf-8") as f:
+    with open(args.ridge_model_path, encoding="utf-8") as f:
         model = json.load(f)
 
     if "symbol" not in sig.columns:
@@ -135,7 +135,7 @@ def main() -> int:
     out_path = out_dir / "alpha_bundle_scores.parquet"
     write_parquet(out, out_path)
 
-    result = {"run_id": run_id, "rows": int(len(out)), "out": str(out_path)}
+    result = {"run_id": run_id, "rows": len(out), "out": str(out_path)}
     finalize_manifest(manifest, status="success", stats=result)
     print(json.dumps(result, indent=2))
     return 0

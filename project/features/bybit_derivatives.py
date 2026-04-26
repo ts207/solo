@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-from typing import Optional
-
 import numpy as np
 import pandas as pd
 
@@ -114,7 +112,7 @@ def build_bybit_derivatives_feature_set(
     index_price_5m: pd.DataFrame,
     funding_df: pd.DataFrame,
     oi_df: pd.DataFrame,
-    ticker_df: Optional[pd.DataFrame] = None,
+    ticker_df: pd.DataFrame | None = None,
 ) -> pd.DataFrame:
     """
     Joins all Bybit derivatives data into a canonical 5m feature frame.

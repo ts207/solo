@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any
 
 from project.core.config import get_data_root
 from project.core.exceptions import DataIntegrityError
@@ -109,7 +109,7 @@ def phase2_diagnostics_path(
     return canonical
 
 
-def load_json_dict(path: Path) -> Dict[str, Any]:
+def load_json_dict(path: Path) -> dict[str, Any]:
     if not Path(path).exists():
         return {}
     try:

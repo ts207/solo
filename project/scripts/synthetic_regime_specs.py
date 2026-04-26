@@ -1,4 +1,4 @@
-from typing import Any, Dict, List, Tuple
+from typing import Any
 
 REGIME_SEQUENCE = (
     "basis_desync",
@@ -10,7 +10,7 @@ REGIME_SEQUENCE = (
     "post_deleveraging_rebound",
 )
 
-REGIME_EXPECTATIONS: Dict[str, Dict[str, Any]] = {
+REGIME_EXPECTATIONS: dict[str, dict[str, Any]] = {
     "basis_desync": {
         "intended_effect_direction": "desync_signaled",
         "expected_event_types": [
@@ -111,7 +111,7 @@ REGIME_EXPECTATIONS: Dict[str, Dict[str, Any]] = {
     },
 }
 
-PROFILE_SETTINGS: Dict[str, Dict[str, Any]] = {
+PROFILE_SETTINGS: dict[str, dict[str, Any]] = {
     "default": {
         "noise_mult": 1.0,
         "drift_mult": 1.0,
@@ -170,7 +170,7 @@ PROFILE_SETTINGS: Dict[str, Dict[str, Any]] = {
 }
 
 
-def resolve_regime_offsets(symbol: str) -> Dict[str, List[Tuple[int, int, int, float]]]:
+def resolve_regime_offsets(symbol: str) -> dict[str, list[tuple[int, int, int, float]]]:
     if symbol.upper() == "BTCUSDT":
         return {
             "basis_desync": [

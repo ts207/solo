@@ -1,4 +1,5 @@
-from typing import Any, Callable, Dict
+from collections.abc import Callable
+from typing import Any
 
 import numpy as np
 import pandas as pd
@@ -9,7 +10,7 @@ def verify_pit_compliance(
     df: pd.DataFrame,
     *args,
     **kwargs,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     Audit a feature generation function for look-ahead bias.
 

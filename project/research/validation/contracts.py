@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import asdict, dataclass, field
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 
 @dataclass(frozen=True)
@@ -9,8 +9,8 @@ class ValidationDecision:
     status: str  # validated, rejected, inconclusive
     candidate_id: str
     run_id: str
-    program_id: Optional[str] = None
-    reason_codes: List[str] = field(default_factory=list)
+    program_id: str | None = None
+    reason_codes: list[str] = field(default_factory=list)
     summary: str = ""
 
     def __post_init__(self):
@@ -18,28 +18,28 @@ class ValidationDecision:
         if self.status not in allowed:
             raise ValueError(f"status must be one of {allowed}, got {self.status}")
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return asdict(self)
 
 
 @dataclass(frozen=True)
 class ValidationMetrics:
-    sample_count: Optional[int] = None
-    effective_sample_size: Optional[float] = None
-    expectancy: Optional[float] = None
-    net_expectancy: Optional[float] = None
-    hit_rate: Optional[float] = None
-    p_value: Optional[float] = None
-    q_value: Optional[float] = None
-    stability_score: Optional[float] = None
-    cost_sensitivity: Optional[float] = None
-    turnover: Optional[float] = None
-    regime_support_score: Optional[float] = None
-    time_slice_support_score: Optional[float] = None
-    negative_control_score: Optional[float] = None
-    max_drawdown: Optional[float] = None
+    sample_count: int | None = None
+    effective_sample_size: float | None = None
+    expectancy: float | None = None
+    net_expectancy: float | None = None
+    hit_rate: float | None = None
+    p_value: float | None = None
+    q_value: float | None = None
+    stability_score: float | None = None
+    cost_sensitivity: float | None = None
+    turnover: float | None = None
+    regime_support_score: float | None = None
+    time_slice_support_score: float | None = None
+    negative_control_score: float | None = None
+    max_drawdown: float | None = None
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return asdict(self)
 
 
@@ -49,7 +49,7 @@ class ValidationArtifactRef:
     path: str
     description: str = ""
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return asdict(self)
 
 
@@ -62,11 +62,11 @@ class ValidatedCandidateRecord:
     template_id: str = ""
     direction: str = ""
     horizon_bars: int = 0
-    artifact_refs: List[ValidationArtifactRef] = field(default_factory=list)
-    detector_lineage: Dict[str, Any] = field(default_factory=dict)
+    artifact_refs: list[ValidationArtifactRef] = field(default_factory=list)
+    detector_lineage: dict[str, Any] = field(default_factory=dict)
     validation_stage_version: str = "v1"
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "candidate_id": self.candidate_id,
             "decision": self.decision.to_dict(),
@@ -85,14 +85,14 @@ class ValidatedCandidateRecord:
 class ValidationBundle:
     run_id: str
     created_at: str
-    validated_candidates: List[ValidatedCandidateRecord] = field(default_factory=list)
-    rejected_candidates: List[ValidatedCandidateRecord] = field(default_factory=list)
-    inconclusive_candidates: List[ValidatedCandidateRecord] = field(default_factory=list)
-    program_id: Optional[str] = None
-    summary_stats: Dict[str, Any] = field(default_factory=dict)
-    effect_stability_report: Dict[str, Any] = field(default_factory=dict)
+    validated_candidates: list[ValidatedCandidateRecord] = field(default_factory=list)
+    rejected_candidates: list[ValidatedCandidateRecord] = field(default_factory=list)
+    inconclusive_candidates: list[ValidatedCandidateRecord] = field(default_factory=list)
+    program_id: str | None = None
+    summary_stats: dict[str, Any] = field(default_factory=dict)
+    effect_stability_report: dict[str, Any] = field(default_factory=dict)
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "run_id": self.run_id,
             "program_id": self.program_id,

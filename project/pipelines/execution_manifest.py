@@ -2,22 +2,22 @@ from __future__ import annotations
 
 import json
 import os
-from datetime import datetime, timezone
+from collections.abc import Mapping
+from datetime import UTC, datetime
 from json import JSONDecodeError
 from pathlib import Path
-from typing import Dict, List, Mapping
 
 from project.core.exceptions import DataIntegrityError
 from project.specs.manifest import validate_stage_manifest_contract
 
 
 def _utc_now_iso() -> str:
-    return datetime.now(timezone.utc).isoformat()
+    return datetime.now(UTC).isoformat()
 
 
-def _base_args_to_parameters(base_args: List[str]) -> Dict[str, object]:
+def _base_args_to_parameters(base_args: list[str]) -> dict[str, object]:
     """Best-effort CLI arg decoding for synthesized stage manifests."""
-    params: Dict[str, object] = {}
+    params: dict[str, object] = {}
     idx = 0
     while idx < len(base_args):
         token = str(base_args[idx])
@@ -61,7 +61,7 @@ def synthesize_stage_manifest_if_missing(
     stage_instance_id: str,
     run_id: str,
     script_path: Path,
-    base_args: List[str],
+    base_args: list[str],
     log_path: Path,
     status: str,
     error: str | None = None,
@@ -69,7 +69,7 @@ def synthesize_stage_manifest_if_missing(
 ) -> None:
     if manifest_path.exists():
         return
-    payload: Dict[str, object] = {
+    payload: dict[str, object] = {
         "run_id": run_id,
         "stage": stage,
         "stage_name": stage,

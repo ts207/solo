@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, Dict, List, Literal, Optional
+from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -14,7 +14,7 @@ class EventDetectionLogic(BaseModel):
     lookback: int
     threshold: float
     dynamic_regime_adjustment: bool = False
-    extra_params: Dict[str, Any] = Field(default_factory=dict)
+    extra_params: dict[str, Any] = Field(default_factory=dict)
 
 
 class EventDefinitionSpec(BaseModel):
@@ -33,23 +33,23 @@ class CustomFilterSpec(BaseModel):
 
 class MarketStateSpec(BaseModel):
     model_config = ConfigDict(frozen=True)
-    required_regimes: List[str] = Field(default_factory=list)
-    disallowed_states: List[str] = Field(default_factory=list)
-    custom_filters: List[CustomFilterSpec] = Field(default_factory=list)
+    required_regimes: list[str] = Field(default_factory=list)
+    disallowed_states: list[str] = Field(default_factory=list)
+    custom_filters: list[CustomFilterSpec] = Field(default_factory=list)
 
 
 class TemplateConfigSpec(BaseModel):
     model_config = ConfigDict(frozen=True)
     base: str
-    overlays: List[str] = Field(default_factory=list)
+    overlays: list[str] = Field(default_factory=list)
 
 
 class RiskParamsSpec(BaseModel):
     model_config = ConfigDict(frozen=True)
-    stop_loss_bps: Optional[List[float]] = None
-    take_profit_bps: Optional[List[float]] = None
-    stop_loss_atr_multipliers: Optional[List[float]] = None
-    take_profit_atr_multipliers: Optional[List[float]] = None
+    stop_loss_bps: list[float] | None = None
+    take_profit_bps: list[float] | None = None
+    stop_loss_atr_multipliers: list[float] | None = None
+    take_profit_atr_multipliers: list[float] | None = None
 
 
 class ExecutionParamsSpec(BaseModel):
@@ -60,10 +60,10 @@ class ExecutionParamsSpec(BaseModel):
 
 class ParameterGridSpec(BaseModel):
     model_config = ConfigDict(frozen=True)
-    horizons_bars: List[int]
+    horizons_bars: list[int]
     risk: RiskParamsSpec
     execution: ExecutionParamsSpec = Field(default_factory=ExecutionParamsSpec)
-    extra_grid: Dict[str, List[Any]] = Field(default_factory=dict)
+    extra_grid: dict[str, list[Any]] = Field(default_factory=dict)
 
 
 class ControlSpec(BaseModel):

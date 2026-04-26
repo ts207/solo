@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 
 @dataclass(frozen=True)
@@ -10,7 +10,7 @@ class NormalizationWarning:
     field_path: str
     message: str
 
-    def to_dict(self) -> Dict[str, str]:
+    def to_dict(self) -> dict[str, str]:
         return {
             "code": self.code,
             "field_path": self.field_path,
@@ -34,7 +34,7 @@ class FeaturePredicateSpec:
     operator: str
     threshold: Any
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "feature": self.feature,
             "operator": self.operator,
@@ -45,18 +45,18 @@ class FeaturePredicateSpec:
 @dataclass(frozen=True)
 class AnchorSpec:
     type: str
-    event_id: Optional[str] = None
-    state_id: Optional[str] = None
-    from_state: Optional[str] = None
-    to_state: Optional[str] = None
-    events: Optional[List[str]] = None
-    max_gap_bars: Optional[int] = None
-    feature: Optional[str] = None
-    operator: Optional[str] = None
-    threshold: Optional[Any] = None
+    event_id: str | None = None
+    state_id: str | None = None
+    from_state: str | None = None
+    to_state: str | None = None
+    events: list[str] | None = None
+    max_gap_bars: int | None = None
+    feature: str | None = None
+    operator: str | None = None
+    threshold: Any | None = None
 
-    def to_dict(self) -> Dict[str, Any]:
-        out: Dict[str, Any] = {"type": self.type}
+    def to_dict(self) -> dict[str, Any]:
+        out: dict[str, Any] = {"type": self.type}
         if self.event_id is not None:
             out["event_id"] = self.event_id
         if self.state_id is not None:
@@ -80,12 +80,12 @@ class AnchorSpec:
 
 @dataclass(frozen=True)
 class FilterSpec:
-    states: List[str] = field(default_factory=list)
-    regimes: List[str] = field(default_factory=list)
-    feature_predicates: List[FeaturePredicateSpec] = field(default_factory=list)
-    contexts: Dict[str, Any] = field(default_factory=dict)
+    states: list[str] = field(default_factory=list)
+    regimes: list[str] = field(default_factory=list)
+    feature_predicates: list[FeaturePredicateSpec] = field(default_factory=list)
+    contexts: dict[str, Any] = field(default_factory=dict)
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "states": list(self.states),
             "regimes": list(self.regimes),
@@ -99,10 +99,10 @@ class SamplingPolicySpec:
     mode: str = "episodic"
     entry_lag_bars: int = 1
     overlap_policy: str = "suppress"
-    every_n_bars: Optional[int] = None
+    every_n_bars: int | None = None
 
-    def to_dict(self) -> Dict[str, Any]:
-        out: Dict[str, Any] = {
+    def to_dict(self) -> dict[str, Any]:
+        out: dict[str, Any] = {
             "mode": self.mode,
             "entry_lag_bars": self.entry_lag_bars,
             "overlap_policy": self.overlap_policy,
@@ -115,9 +115,9 @@ class SamplingPolicySpec:
 @dataclass(frozen=True)
 class TemplateSpec:
     id: str
-    params: Dict[str, Any] = field(default_factory=dict)
+    params: dict[str, Any] = field(default_factory=dict)
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "id": self.id,
             "params": dict(self.params),
@@ -133,7 +133,7 @@ class StructuredHypothesisSpec:
     direction: str
     horizon_bars: int
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "anchor": self.anchor.to_dict(),
             "filters": self.filters.to_dict(),
@@ -149,21 +149,21 @@ class StructuredProposal:
     program_id: str
     start: str
     end: str
-    symbols: List[str]
+    symbols: list[str]
     timeframe: str
     hypothesis: StructuredHypothesisSpec
     run_mode: str = "research"
-    instrument_classes: List[str] = field(default_factory=list)
+    instrument_classes: list[str] = field(default_factory=list)
     objective_name: str = "default"
     promotion_profile: str = "research"
-    search_spec: Dict[str, Any] = field(default_factory=dict)
-    avoid_region_keys: List[str] = field(default_factory=list)
-    bounded: Optional[Any] = None
-    knobs: List[Dict[str, Any]] = field(default_factory=list)
-    artifacts: Dict[str, Any] = field(default_factory=dict)
+    search_spec: dict[str, Any] = field(default_factory=dict)
+    avoid_region_keys: list[str] = field(default_factory=list)
+    bounded: Any | None = None
+    knobs: list[dict[str, Any]] = field(default_factory=list)
+    artifacts: dict[str, Any] = field(default_factory=dict)
 
-    def to_dict(self) -> Dict[str, Any]:
-        out: Dict[str, Any] = {
+    def to_dict(self) -> dict[str, Any]:
+        out: dict[str, Any] = {
             "program_id": self.program_id,
             "start": self.start,
             "end": self.end,
@@ -187,16 +187,16 @@ class StructuredProposal:
         return out
 
 
-def load_structured_proposal_payload(payload: Dict[str, Any]) -> StructuredProposal:
+def load_structured_proposal_payload(payload: dict[str, Any]) -> StructuredProposal:
     proposal, warnings = normalize_structured_proposal(payload)
     # For this function, we don't return warnings, but we could log them if needed.
     return proposal
 
 
 def normalize_structured_proposal(
-    raw: Dict[str, Any],
-) -> Tuple[StructuredProposal, List[NormalizationWarning]]:
-    warnings: List[NormalizationWarning] = []
+    raw: dict[str, Any],
+) -> tuple[StructuredProposal, list[NormalizationWarning]]:
+    warnings: list[NormalizationWarning] = []
 
     program_id = str(raw.get("program_id", "")).strip()
     if not program_id:
@@ -299,12 +299,12 @@ def sampling_policy_requires_non_legacy_execution(policy: SamplingPolicySpec) ->
 
 def validate_structured_hypothesis_for_execution(
     hypothesis: StructuredHypothesisSpec,
-) -> List[NormalizationWarning]:
+) -> list[NormalizationWarning]:
     """Perform strict validation for execution eligibility.
     
     Returns a list of warnings or raises ValueError for fatal execution mismatches.
     """
-    warnings: List[NormalizationWarning] = []
+    warnings: list[NormalizationWarning] = []
 
     # Sampling policy enforcement
     if not is_sampling_policy_executable(hypothesis.sampling_policy):
@@ -343,9 +343,9 @@ def validate_structured_hypothesis_for_execution(
 
 
 def normalize_structured_hypothesis(
-    raw: Dict[str, Any],
-) -> Tuple[StructuredHypothesisSpec, List[NormalizationWarning]]:
-    warnings: List[NormalizationWarning] = []
+    raw: dict[str, Any],
+) -> tuple[StructuredHypothesisSpec, list[NormalizationWarning]]:
+    warnings: list[NormalizationWarning] = []
 
     # Anchor
     anchor_raw = raw.get("anchor")
@@ -402,12 +402,12 @@ def normalize_structured_hypothesis(
     return spec, warnings
 
 
-def structured_proposal_to_dict(proposal: StructuredProposal) -> Dict[str, Any]:
+def structured_proposal_to_dict(proposal: StructuredProposal) -> dict[str, Any]:
     return proposal.to_dict()
 
 
-def _normalize_anchor(raw: Dict[str, Any]) -> Tuple[AnchorSpec, List[NormalizationWarning]]:
-    warnings: List[NormalizationWarning] = []
+def _normalize_anchor(raw: dict[str, Any]) -> tuple[AnchorSpec, list[NormalizationWarning]]:
+    warnings: list[NormalizationWarning] = []
     anchor_type = str(raw.get("type", "")).strip().lower()
     if not anchor_type:
         raise ValueError("anchor.type is required")
@@ -473,12 +473,12 @@ def _normalize_anchor(raw: Dict[str, Any]) -> Tuple[AnchorSpec, List[Normalizati
     return spec, warnings
 
 
-def _normalize_filters(raw: Dict[str, Any]) -> FilterSpec:
+def _normalize_filters(raw: dict[str, Any]) -> FilterSpec:
     states = [s.upper() for s in _as_str_list(raw.get("states"), "filters.states")]
     regimes = [r.upper() for r in _as_str_list(raw.get("regimes"), "filters.regimes")]
 
     feature_predicates_raw = raw.get("feature_predicates")
-    feature_predicates: List[FeaturePredicateSpec] = []
+    feature_predicates: list[FeaturePredicateSpec] = []
     if feature_predicates_raw:
         if not isinstance(feature_predicates_raw, list):
             raise ValueError("filters.feature_predicates must be a list")
@@ -514,7 +514,7 @@ def _normalize_filters(raw: Dict[str, Any]) -> FilterSpec:
     )
 
 
-def _normalize_sampling_policy(raw: Dict[str, Any]) -> SamplingPolicySpec:
+def _normalize_sampling_policy(raw: dict[str, Any]) -> SamplingPolicySpec:
     mode = str(raw.get("mode", "episodic")).strip().lower()
     allowed_modes = {"episodic", "onset_only", "once_per_episode", "every_n_bars", "continuous"}
     if mode not in allowed_modes:
@@ -552,7 +552,7 @@ def _normalize_sampling_policy(raw: Dict[str, Any]) -> SamplingPolicySpec:
     )
 
 
-def _normalize_template(raw: Dict[str, Any]) -> TemplateSpec:
+def _normalize_template(raw: dict[str, Any]) -> TemplateSpec:
     template_id = raw.get("id")
     if not template_id:
         raise ValueError("template.id is required")
@@ -569,7 +569,7 @@ def _normalize_template(raw: Dict[str, Any]) -> TemplateSpec:
     )
 
 
-def _as_str_list(values: Any, field_name: str) -> List[str]:
+def _as_str_list(values: Any, field_name: str) -> list[str]:
     if values is None:
         return []
     if isinstance(values, str):

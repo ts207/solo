@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-from typing import Dict, List
-
 import numpy as np
 import pandas as pd
 
@@ -34,11 +32,11 @@ def prepare_frame(bars: pd.DataFrame, features: pd.DataFrame) -> pd.DataFrame:
 
 def finalize_positions(
     merged: pd.DataFrame,
-    positions: List[int],
-    signal_events: List[Dict[str, object]],
+    positions: list[int],
+    signal_events: list[dict[str, object]],
     strategy_id: str,
     family: str,
-    params: Dict[str, object],
+    params: dict[str, object],
 ) -> pd.Series:
     out = pd.Series(positions, index=merged["timestamp"], name="position").astype(int)
     out.attrs["signal_events"] = signal_events

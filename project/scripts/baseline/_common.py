@@ -237,8 +237,8 @@ def compare_snapshot_dirs(baseline_dir: Path, candidate_dir: Path) -> dict[str, 
         bdf = _safe_read_table(b)
         cdf = _safe_read_table(c)
         report["event_counts"][name] = {
-            "baseline": int(len(bdf)),
-            "candidate": int(len(cdf)),
+            "baseline": len(bdf),
+            "candidate": len(cdf),
             "delta": int(len(cdf) - len(bdf)),
         }
     return report

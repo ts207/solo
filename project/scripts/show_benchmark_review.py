@@ -92,7 +92,7 @@ def main():
         print(f"No summary found at {summary_path}")
         return 1
 
-    with open(summary_path, "r", encoding="utf-8") as f:
+    with open(summary_path, encoding="utf-8") as f:
         summary_data = json.load(f)
 
     print(f"=== Benchmark Review: {run_dir.name} ===")

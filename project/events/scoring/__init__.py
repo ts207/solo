@@ -15,7 +15,7 @@ if TYPE_CHECKING:
         train_event_confidence_model,
     )
 
-EventScoreColumns: List[str] = [
+EventScoreColumns: list[str] = [
     "severity_score",
     "cleanliness_score",
     "crowding_score",

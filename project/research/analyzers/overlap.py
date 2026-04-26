@@ -32,7 +32,7 @@ class OverlapAnalyzer(BaseEventAnalyzer):
         if frame.empty or ref.empty:
             return AnalyzerResult(
                 name=self.name,
-                summary={"n_events": int(len(frame)), "reference_events": int(len(ref))},
+                summary={"n_events": len(frame), "reference_events": len(ref)},
                 tables={},
             )
 
@@ -48,9 +48,9 @@ class OverlapAnalyzer(BaseEventAnalyzer):
         union = lhs | rhs
         jaccard = float(len(intersection) / len(union)) if union else 0.0
         summary = {
-            "n_events": int(len(frame)),
-            "reference_events": int(len(ref)),
-            "exact_overlap_count": int(len(intersection)),
+            "n_events": len(frame),
+            "reference_events": len(ref),
+            "exact_overlap_count": len(intersection),
             "jaccard_overlap": jaccard,
             "lhs_overlap_rate": float(len(intersection) / len(lhs)) if lhs else 0.0,
             "rhs_overlap_rate": float(len(intersection) / len(rhs)) if rhs else 0.0,

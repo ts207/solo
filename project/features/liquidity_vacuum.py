@@ -41,8 +41,9 @@ module and adjust thresholds or logic accordingly.
 
 from __future__ import annotations
 
+from collections.abc import Sequence
 from dataclasses import dataclass
-from typing import Dict, List, Literal, Optional, Sequence, Tuple
+from typing import Literal
 
 import numpy as np
 import pandas as pd
@@ -202,7 +203,7 @@ def _detect_events_with_threshold(
     if not np.isfinite(t_shock):
         return pd.DataFrame()
 
-    event_rows: List[Dict[str, object]] = []
+    event_rows: list[dict[str, object]] = []
     n = len(df)
     # Start from second bar (index 1) because return uses previous bar
     i = 1
@@ -240,7 +241,7 @@ def _detect_events_with_threshold(
         # Scan for consecutive vacuum bars immediately after the impulse
         start_idx = i + 1
         vac_len = 0
-        end_idx: Optional[int] = None
+        end_idx: int | None = None
         j = start_idx
         while j < n and vac_len < config.max_vacuum_bars:
             vol_ratio = (
@@ -362,7 +363,7 @@ def calibrate_shock_threshold(
     cfg: LiquidityVacuumConfig = DEFAULT_LV_CONFIG,
     quantiles: Sequence[float] = (0.95, 0.97, 0.98, 0.99, 0.995),
     min_events: int = 10,
-) -> Tuple[pd.DataFrame, Dict[str, object]]:
+) -> tuple[pd.DataFrame, dict[str, object]]:
     """
     Sweep a range of quantiles to select a shock threshold with sufficient events.
 
@@ -391,7 +392,7 @@ def calibrate_shock_threshold(
         (table of thresholds, selected row dict)
     """
     core = _compute_core_series(df, cfg)
-    rows: List[Dict[str, object]] = []
+    rows: list[dict[str, object]] = []
 
     # In calibration, we sweep quantiles. Since we don't have t_shock_dynamic
     # for EVERY quantile pre-computed in _compute_core_series (only for cfg.shock_quantile),
@@ -414,7 +415,7 @@ def calibrate_shock_threshold(
                 "symbol": symbol,
                 "shock_quantile": q,
                 "t_shock": avg_t,
-                "event_count": int(len(events)),
+                "event_count": len(events),
                 "min_events": int(min_events),
                 "meets_min_events": bool(len(events) >= min_events),
             }
@@ -452,7 +453,7 @@ def detect_liquidity_vacuum_events(
     df: pd.DataFrame,
     symbol: str,
     cfg: LiquidityVacuumConfig = DEFAULT_LV_CONFIG,
-    t_shock: Optional[float] = None,
+    t_shock: float | None = None,
 ) -> pd.DataFrame:
     """
     High‑level wrapper to detect liquidity vacuum events on a bar series.

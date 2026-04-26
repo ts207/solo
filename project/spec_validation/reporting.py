@@ -1,18 +1,17 @@
 import json
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
-from typing import Dict, List
 
 
 @dataclass
 class SearchCoverageReport:
     search_spec_name: str
-    event_families: List[str] = field(default_factory=list)
-    state_families: List[str] = field(default_factory=list)
+    event_families: list[str] = field(default_factory=list)
+    state_families: list[str] = field(default_factory=list)
     num_events: int = 0
     num_states: int = 0
     num_hypotheses: int = 0
-    context_cardinalities: Dict[str, int] = field(default_factory=dict)
+    context_cardinalities: dict[str, int] = field(default_factory=dict)
 
 
 class CoverageReporter:

@@ -24,10 +24,10 @@ __all__ = [
     "LiveTradeContext",
     "PromotedThesis",
     "ThesisCapProfile",
-    "TradeIntent",
     "ThesisEvidence",
     "ThesisGovernance",
     "ThesisLineage",
     "ThesisRequirements",
     "ThesisSource",
+    "TradeIntent",
 ]

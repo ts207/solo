@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, Dict, List, Set
+from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field, computed_field, field_validator, model_validator
 
@@ -24,21 +24,21 @@ class LiveTradeContext(BaseModel):
     threshold_version: str = "1.0"
     event_evidence_mode: str = ""
     event_role: str = "trigger"
-    threshold_snapshot: Dict[str, Any] = Field(default_factory=dict)
-    detector_input_status: Dict[str, Any] = Field(default_factory=dict)
-    live_features: Dict[str, Any] = Field(default_factory=dict)
-    regime_snapshot: Dict[str, Any] = Field(default_factory=dict)
-    execution_env: Dict[str, Any] = Field(default_factory=dict)
-    portfolio_state: Dict[str, Any] = Field(default_factory=dict)
-    active_event_families: List[str] = Field(default_factory=list)
-    active_event_ids: List[str] = Field(default_factory=list)
-    active_episode_ids: List[str] = Field(default_factory=list)
-    active_state_ids: List[str] = Field(default_factory=list)
-    active_groups: Set[str] = Field(default_factory=set)
-    family_budgets: Dict[str, float] = Field(default_factory=dict)
-    contradiction_event_families: List[str] = Field(default_factory=list)
-    contradiction_event_ids: List[str] = Field(default_factory=list)
-    episode_snapshot: Dict[str, Any] = Field(default_factory=dict)
+    threshold_snapshot: dict[str, Any] = Field(default_factory=dict)
+    detector_input_status: dict[str, Any] = Field(default_factory=dict)
+    live_features: dict[str, Any] = Field(default_factory=dict)
+    regime_snapshot: dict[str, Any] = Field(default_factory=dict)
+    execution_env: dict[str, Any] = Field(default_factory=dict)
+    portfolio_state: dict[str, Any] = Field(default_factory=dict)
+    active_event_families: list[str] = Field(default_factory=list)
+    active_event_ids: list[str] = Field(default_factory=list)
+    active_episode_ids: list[str] = Field(default_factory=list)
+    active_state_ids: list[str] = Field(default_factory=list)
+    active_groups: set[str] = Field(default_factory=set)
+    family_budgets: dict[str, float] = Field(default_factory=dict)
+    contradiction_event_families: list[str] = Field(default_factory=list)
+    contradiction_event_ids: list[str] = Field(default_factory=list)
+    episode_snapshot: dict[str, Any] = Field(default_factory=dict)
 
     @model_validator(mode="before")
     @classmethod
@@ -70,7 +70,7 @@ class LiveTradeContext(BaseModel):
 
     @computed_field(return_type=dict)
     @property
-    def context_clause(self) -> Dict[str, Any]:
+    def context_clause(self) -> dict[str, Any]:
         return {
             "symbol": self.symbol,
             "timeframe": self.timeframe,

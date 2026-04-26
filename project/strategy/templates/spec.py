@@ -1,7 +1,6 @@
 import hashlib
 import json
 from dataclasses import dataclass, field
-from typing import Dict, Optional
 
 
 @dataclass
@@ -11,11 +10,11 @@ class StrategySpec:
     exit_signal: str
     position_cap: float = 1.0
     cooldown_bars: int = 12
-    stop_loss_bps: Optional[float] = None
-    take_profit_bps: Optional[float] = None
-    stop_loss_atr_multipliers: Optional[float] = None
-    take_profit_atr_multipliers: Optional[float] = None
-    params: Dict[str, float] = field(default_factory=dict)
+    stop_loss_bps: float | None = None
+    take_profit_bps: float | None = None
+    stop_loss_atr_multipliers: float | None = None
+    take_profit_atr_multipliers: float | None = None
+    params: dict[str, float] = field(default_factory=dict)
 
     @property
     def primary_event_id(self) -> str:
@@ -29,7 +28,7 @@ class StrategySpec:
     def strategy_id(self) -> str:
         return hashlib.sha256(json.dumps(self.normalize(), sort_keys=True).encode()).hexdigest()
 
-    def normalize(self) -> Dict[str, object]:
+    def normalize(self) -> dict[str, object]:
         return {
             "primary_event_id": self.primary_event_id,
             "compat_event_family": self.compat_event_family,

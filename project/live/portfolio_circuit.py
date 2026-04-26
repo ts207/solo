@@ -8,10 +8,11 @@ synthetic account snapshots and then wired into the live account-sync loop.
 from __future__ import annotations
 
 import math
+from collections.abc import Mapping, Sequence
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
-from typing import Any, Mapping, Sequence
+from typing import Any
 
 try:  # pragma: no cover - dependency availability varies by install profile
     import yaml
@@ -20,7 +21,7 @@ except Exception:  # pragma: no cover
 
 
 def _utcnow() -> str:
-    return datetime.now(timezone.utc).isoformat()
+    return datetime.now(UTC).isoformat()
 
 
 @dataclass(frozen=True)
@@ -36,7 +37,7 @@ class PortfolioCircuitConfig:
     concentration_breach_multiplier: float = 1.5
 
     @classmethod
-    def from_mapping(cls, raw: Mapping[str, Any] | None) -> "PortfolioCircuitConfig":
+    def from_mapping(cls, raw: Mapping[str, Any] | None) -> PortfolioCircuitConfig:
         values = dict(raw or {})
         return cls(
             enabled=bool(values.get("enabled", True)),

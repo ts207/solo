@@ -285,7 +285,7 @@ def test_domain_init_exposes_compiled_registry_api():
 
 def test_event_row_governance_fields_are_not_overridden_by_raw_blank_values():
     """event_row() must emit computed governance values, not raw blank/None from the YAML."""
-    from project.domain.models import EventDefinition, DomainRegistry
+    from project.domain.models import DomainRegistry, EventDefinition
 
     # Build a synthetic EventDefinition with well-known governance values and a raw
     # dict that contains blank/None for those same fields (simulating stale YAML rows).

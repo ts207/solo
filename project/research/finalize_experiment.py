@@ -156,9 +156,7 @@ def finalize_experiment(
             elif current_format:
                 # Handle unsupported/missing
                 t_type = row.get("trigger_type")
-                if t_type == "transition":
-                    r_data["eval_status"] = "unsupported_trigger_evaluator"
-                elif (
+                if t_type == "transition" or (
                     t_type == "sequence"
                     and len(json.loads(row.get("trigger_payload", "{}")).get("events", [])) > 2
                 ):

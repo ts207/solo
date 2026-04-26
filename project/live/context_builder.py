@@ -1,7 +1,8 @@
 from __future__ import annotations
 
+from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Any, Dict, Mapping, Sequence
+from typing import TYPE_CHECKING, Any
 
 import numpy as np
 import pandas as pd
@@ -17,8 +18,8 @@ if TYPE_CHECKING:
 
 @dataclass(frozen=True)
 class LiveRuntimeCoreDetectorInputSurface:
-    row: Dict[str, Any]
-    detector_input_status: Dict[str, Any]
+    row: dict[str, Any]
+    detector_input_status: dict[str, Any]
 
 
 _RUNTIME_CORE_EVENT_INPUT_BINDINGS: dict[str, dict[str, dict[str, Any]]] = {
@@ -441,9 +442,7 @@ def _build_detector_input_status(
             is_missing = False
             is_approx = False
             if mode == "direct":
-                if source in {"missing", "configured_default", "current_close_fallback"}:
-                    is_missing = True
-                elif accepted_sources and source not in accepted_sources:
+                if source in {"missing", "configured_default", "current_close_fallback"} or (accepted_sources and source not in accepted_sources):
                     is_missing = True
             elif mode == "derived":
                 if any(
@@ -490,11 +489,11 @@ def build_live_trade_context(
     portfolio_state: Mapping[str, Any],
     execution_env: Mapping[str, Any],
     active_groups: set[str] | None = None,
-    family_budgets: Dict[str, float] | None = None,
+    family_budgets: dict[str, float] | None = None,
 ) -> LiveTradeContext:
     move_bps = float(detected_event.features.get("move_bps", 0.0) or 0.0)
     detected_regime = str(detected_event.canonical_regime or "").strip().upper()
-    regime_snapshot: Dict[str, Any] = {
+    regime_snapshot: dict[str, Any] = {
         "canonical_regime": detected_regime or _canonical_regime_from_move(move_bps),
         "move_bps": move_bps,
     }

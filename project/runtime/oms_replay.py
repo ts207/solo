@@ -1,7 +1,8 @@
 from __future__ import annotations
 
+from collections.abc import Iterable, Mapping
 from dataclasses import asdict, dataclass
-from typing import Any, Dict, Iterable, List, Mapping
+from typing import Any
 
 from project.runtime.hashing import hash_records
 from project.runtime.normalized_event import NormalizedEvent
@@ -46,8 +47,8 @@ def _action_from_event_type(event_type: str) -> str:
 
 
 def _push_issue(
-    counters: Dict[str, int],
-    examples: List[str],
+    counters: dict[str, int],
+    examples: list[str],
     *,
     key: str,
     message: str,
@@ -63,8 +64,8 @@ def audit_oms_replay(
     *,
     hashing_spec: Mapping[str, Any],
     max_examples: int = _MAX_ISSUE_EXAMPLES,
-) -> Dict[str, Any]:
-    counters: Dict[str, int] = {
+) -> dict[str, Any]:
+    counters: dict[str, int] = {
         "missing_order_id": 0,
         "order_source_seq_regression": 0,
         "ack_without_submit": 0,
@@ -73,9 +74,9 @@ def audit_oms_replay(
         "event_after_terminal": 0,
         "invalid_transition": 0,
     }
-    examples: List[str] = []
-    order_state: Dict[str, _OrderState] = {}
-    replay_rows: List[Dict[str, Any]] = []
+    examples: list[str] = []
+    order_state: dict[str, _OrderState] = {}
+    replay_rows: list[dict[str, Any]] = []
     execution_events_seen = 0
 
     for event in events:
@@ -212,7 +213,7 @@ def audit_oms_replay(
     return {
         "status": status,
         "execution_event_count": int(execution_events_seen),
-        "order_count": int(len(order_states)),
+        "order_count": len(order_states),
         "violation_count": int(violation_count),
         "violations_by_type": counters,
         "violation_examples": examples[: int(max_examples)],

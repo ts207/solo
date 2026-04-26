@@ -2,8 +2,8 @@ from __future__ import annotations
 
 import json
 import logging
+from collections.abc import Callable
 from pathlib import Path
-from typing import Callable, Optional
 
 import numpy as np
 import pandas as pd
@@ -122,7 +122,7 @@ def _regime_labels(frame: pd.DataFrame) -> pd.Series:
 
 
 def _random_entry_events(
-    events_df: pd.DataFrame, features_df: Optional[pd.DataFrame]
+    events_df: pd.DataFrame, features_df: pd.DataFrame | None
 ) -> pd.DataFrame:
     if (
         events_df.empty
@@ -358,11 +358,11 @@ def split_and_score_candidates(
     purge_bars: int,
     embargo_bars: int,
     bar_duration_minutes: int,
-    features_df: Optional[pd.DataFrame] = None,
+    features_df: pd.DataFrame | None = None,
     entry_lag_bars: int = 1,
     shift_labels_k: int = 0,
-    cost_estimate: Optional[object] = None,
-    cost_coordinate: Optional[dict[str, object]] = None,
+    cost_estimate: object | None = None,
+    cost_coordinate: dict[str, object] | None = None,
     alpha: float = 0.05,
     build_event_return_frame_fn: Callable[..., pd.DataFrame] = build_event_return_frame,
     estimate_effect_from_frame_fn: Callable[..., object] = estimate_effect_from_frame,
@@ -965,7 +965,7 @@ def apply_historical_frontier_multiple_testing(
         )
         q_pool = bh_adjust(pool.fillna(1.0).to_numpy())
         q_current = q_pool[len(hist_vals) :]
-        out.loc[current_idx, "historical_frontier_test_count"] = int(len(pool))
+        out.loc[current_idx, "historical_frontier_test_count"] = len(pool)
         out.loc[current_vals.index, "q_value_historical_frontier"] = q_current
         out.loc[current_vals.index, "gate_multiplicity_frontier"] = q_current <= 0.10
 

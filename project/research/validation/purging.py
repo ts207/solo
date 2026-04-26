@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-from typing import Optional
-
 import pandas as pd
 
 from project.research.validation.splits import bars_to_timedelta
@@ -11,8 +9,8 @@ def compute_event_windows(
     events: pd.DataFrame,
     *,
     time_col: str = "enter_ts",
-    horizon_bars: Optional[int] = None,
-    horizon_col: Optional[str] = None,
+    horizon_bars: int | None = None,
+    horizon_col: str | None = None,
     entry_lag_bars: int = 0,
     bar_duration_minutes: int = 5,
 ) -> pd.DataFrame:

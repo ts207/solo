@@ -32,7 +32,6 @@ from __future__ import annotations
 import logging
 import re
 from pathlib import Path
-from typing import Dict, Optional, Tuple
 
 from project.spec_registry.loaders import REPO_ROOT
 
@@ -42,7 +41,7 @@ LOGGER = logging.getLogger(__name__)
 # Public constants — imported by campaign_controller and search_intelligence
 # ---------------------------------------------------------------------------
 
-QUALITY_SCORES: Dict[str, float] = {
+QUALITY_SCORES: dict[str, float] = {
     "HIGH": 3.0,
     "MODERATE": 2.0,
     "LOW": 1.0,
@@ -77,7 +76,7 @@ _IG_RE = re.compile(
 _DEFAULT_SEARCH_SPACE_PATH = REPO_ROOT / "spec" / "search_space.yaml"
 
 
-def _resolve_path(path: Optional[Path]) -> Path:
+def _resolve_path(path: Path | None) -> Path:
     """Return *path* if provided, else fall back to the repo-canonical location."""
     if path is not None:
         return path
@@ -97,7 +96,7 @@ def _resolve_path(path: Optional[Path]) -> Path:
 # ---------------------------------------------------------------------------
 
 
-def _parse_annotation_line(line: str) -> Optional[Tuple[str, float]]:
+def _parse_annotation_line(line: str) -> tuple[str, float] | None:
     """Parse one YAML list line and return ``(event_id, weight)`` or ``None``.
 
     Returns ``None`` for:
@@ -168,8 +167,8 @@ def _parse_annotation_line(line: str) -> Optional[Tuple[str, float]]:
 
 
 def load_event_priority_weights(
-    search_space_path: Optional[Path] = None,
-) -> Dict[str, float]:
+    search_space_path: Path | None = None,
+) -> dict[str, float]:
     """Parse QUALITY and IG annotations from *search_space.yaml*.
 
     Parameters
@@ -202,7 +201,7 @@ def load_event_priority_weights(
         return {}
 
     text = resolved.read_text(encoding="utf-8")
-    weights: Dict[str, float] = {}
+    weights: dict[str, float] = {}
 
     for line in text.splitlines():
         result = _parse_annotation_line(line)

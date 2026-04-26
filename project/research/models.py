@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Any, Dict, Tuple
+from typing import Any
 
 
 @dataclass(frozen=True)
@@ -16,9 +16,9 @@ class HypothesisRecord:
     symbol: str
     run_id: str
     search_spec_name: str = ""
-    context: Dict[str, str] = field(default_factory=dict)
+    context: dict[str, str] = field(default_factory=dict)
     trigger_type: str = "event"
-    raw: Dict[str, Any] = field(default_factory=dict)
+    raw: dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass(frozen=True)
@@ -38,7 +38,7 @@ class CandidateRecord:
     template_id: str
     canonical_regime: str = ""
     promotion_eligible: bool = False
-    raw: Dict[str, Any] = field(default_factory=dict)
+    raw: dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass(frozen=True)
@@ -50,11 +50,11 @@ class ValidationRecord:
     symbol: str
     run_id: str
     passed: bool
-    rejection_reasons: Tuple[str, ...] = ()
+    rejection_reasons: tuple[str, ...] = ()
     q_value: float = float("nan")
     effective_q_value: float = float("nan")
     num_tests_scope: int = 0
-    raw: Dict[str, Any] = field(default_factory=dict)
+    raw: dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass(frozen=True)
@@ -71,7 +71,7 @@ class PromotionRecord:
     is_reduced_evidence: bool = False
     promotion_class: str = ""
     readiness_status: str = ""
-    raw: Dict[str, Any] = field(default_factory=dict)
+    raw: dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass(frozen=True)

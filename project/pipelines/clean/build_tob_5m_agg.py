@@ -4,7 +4,6 @@ import argparse
 import logging
 import sys
 from pathlib import Path
-from typing import Dict, List
 
 import pandas as pd
 
@@ -41,10 +40,10 @@ def main() -> int:
         "symbols": symbols,
         "agg_interval": "5m",
     }
-    inputs: List[Dict[str, object]] = []
-    outputs: List[Dict[str, object]] = []
+    inputs: list[dict[str, object]] = []
+    outputs: list[dict[str, object]] = []
     manifest = start_manifest("build_tob_5m_agg", args.run_id, params, inputs, outputs)
-    stats: Dict[str, object] = {"symbols": {}}
+    stats: dict[str, object] = {"symbols": {}}
 
     try:
         for symbol in symbols:
@@ -68,7 +67,7 @@ def main() -> int:
                 inputs.append(
                     {
                         "path": str(file_path),
-                        "rows": int(len(data)),
+                        "rows": len(data),
                     }
                 )
 
@@ -120,7 +119,7 @@ def main() -> int:
                 outputs.append(
                     {
                         "path": str(written),
-                        "rows": int(len(agg)),
+                        "rows": len(agg),
                         "start_ts": agg["timestamp"].min().isoformat(),
                         "end_ts": agg["timestamp"].max().isoformat(),
                         "storage": storage,
@@ -128,7 +127,7 @@ def main() -> int:
                 )
 
                 stats["symbols"].setdefault(symbol, {})[month_key] = {
-                    "agg_rows": int(len(agg)),
+                    "agg_rows": len(agg),
                 }
 
         manifest["outputs"] = outputs

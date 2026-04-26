@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any
 
 import pandas as pd
 
@@ -34,7 +34,7 @@ def build_campaign_memory_rollup(
     data_root: Path,
     repeated_fail_threshold: int = 2,
     top_k: int = 5,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     ensure_memory_store(program_id, data_root=data_root)
     tested_regions = read_memory_table(program_id, "tested_regions", data_root=data_root)
     failures = read_memory_table(program_id, "failures", data_root=data_root)
@@ -90,9 +90,9 @@ def build_campaign_memory_rollup(
         "program_id": program_id,
         "latest_run_id": latest_run_id,
         "totals": {
-            "tested_region_rows": int(len(tested_regions)),
-            "reflection_rows": int(len(reflections)),
-            "failure_rows": int(len(failures)),
+            "tested_region_rows": len(tested_regions),
+            "reflection_rows": len(reflections),
+            "failure_rows": len(failures),
             "unique_region_count": int(tested_regions["region_key"].nunique())
             if "region_key" in tested_regions.columns and not tested_regions.empty
             else 0,

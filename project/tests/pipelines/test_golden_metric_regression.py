@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any
 
 from project.core.golden_regression import (
     GoldenToleranceConfig,
@@ -18,7 +18,7 @@ _TOLERANCE_YAML = Path(__file__).parent.parent / "fixtures" / "golden_tolerance_
 _RUN_ID = "test-run-001"
 
 
-def _write_json(path: Path, data: Dict[str, Any]) -> None:
+def _write_json(path: Path, data: dict[str, Any]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(data), encoding="utf-8")
 

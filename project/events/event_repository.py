@@ -2,8 +2,8 @@ from __future__ import annotations
 
 import logging
 import warnings
+from collections.abc import Iterable, Sequence
 from pathlib import Path
-from typing import Dict, Iterable, List, Sequence
 
 _LOG = logging.getLogger(__name__)
 
@@ -41,7 +41,7 @@ def _read_phase1_events(data_root: Path, run_id: str, spec: EventRegistrySpec) -
         Path(data_root) / "data" / "reports" / spec.reports_dir / str(run_id) / spec.events_file,
     ]
 
-    candidates: List[Path] = []
+    candidates: list[Path] = []
     for p in primary_candidates:
         _LOG.debug("checking candidate path: %s", p)
         candidates.append(p)
@@ -72,7 +72,7 @@ def collect_registry_events(
     data_root: Path, run_id: str, event_types: Iterable[str] | None = None
 ) -> pd.DataFrame:
     selected = list(event_types) if event_types is not None else sorted(EVENT_REGISTRY_SPECS.keys())
-    rows: List[pd.DataFrame] = []
+    rows: list[pd.DataFrame] = []
     for event_type in selected:
         spec = EVENT_REGISTRY_SPECS.get(str(event_type))
         if spec is None:
@@ -127,7 +127,7 @@ def merge_registry_events(
 
 def write_event_registry_artifacts(
     data_root: Path, run_id: str, events: pd.DataFrame, event_flags: pd.DataFrame
-) -> Dict[str, str]:
+) -> dict[str, str]:
     root = _registry_root(data_root=data_root, run_id=run_id)
     ensure_dir(root)
 

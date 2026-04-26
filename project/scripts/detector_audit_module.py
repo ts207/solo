@@ -14,7 +14,7 @@ import json
 import math
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Union
+from typing import Any
 
 import numpy as np
 import pandas as pd
@@ -28,7 +28,7 @@ from project.events.detectors.base import BaseEventDetector
 MIN_PRECISION: float = 0.50
 MIN_RECALL: float = 0.30
 
-AUDIT_RUN_IDS: Dict[str, str] = {
+AUDIT_RUN_IDS: dict[str, str] = {
     "2021_bull": "synthetic_2021_bull",
     "default": "synthetic_2025_full_year",
     "stress_crash": "synthetic_2025_stress_crash",
@@ -60,9 +60,9 @@ class DetectorMetrics:
     precision: float
     recall: float  # float("nan") when expected_windows == 0
     classification: str  # stable | noisy | silent | broken | uncovered | error
-    error: Optional[str] = None
+    error: str | None = None
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         d = {k: v for k, v in self.__dict__.items()}
         if math.isnan(d.get("recall", 0)):
             d["recall"] = None  # JSON-serializable
@@ -97,13 +97,13 @@ def _classify(precision: float, recall: float, expected_windows: int) -> str:
 # ---------------------------------------------------------------------------
 
 
-def load_manifest(data_root: Path, run_id: str) -> Dict[str, Any]:
+def load_manifest(data_root: Path, run_id: str) -> dict[str, Any]:
     """Load synthetic_generation_manifest.json for a run_id."""
     path = data_root / "synthetic" / run_id / "synthetic_generation_manifest.json"
     return json.loads(path.read_text(encoding="utf-8"))
 
 
-def load_truth_segments(data_root: Path, run_id: str) -> List[Dict[str, Any]]:
+def load_truth_segments(data_root: Path, run_id: str) -> list[dict[str, Any]]:
     """Load synthetic_regime_segments.json for a run_id."""
     path = data_root / "synthetic" / run_id / "synthetic_regime_segments.json"
     payload = json.loads(path.read_text(encoding="utf-8"))
@@ -112,7 +112,7 @@ def load_truth_segments(data_root: Path, run_id: str) -> List[Dict[str, Any]]:
     return list(payload)
 
 
-def build_symbol_df(symbol_entry: Dict[str, Any]) -> pd.DataFrame:
+def build_symbol_df(symbol_entry: dict[str, Any]) -> pd.DataFrame:
     """
     Build a rich merged DataFrame for one symbol using manifest paths.
 
@@ -175,7 +175,7 @@ def build_symbol_df(symbol_entry: Dict[str, Any]) -> pd.DataFrame:
 
 
 def _get_tolerance_td(
-    event_type: str, tolerance_minutes: Union[int, Dict[str, int]]
+    event_type: str, tolerance_minutes: int | dict[str, int]
 ) -> pd.Timedelta:
     if isinstance(tolerance_minutes, dict):
         minutes = tolerance_minutes.get(event_type, 30)
@@ -185,11 +185,11 @@ def _get_tolerance_td(
 
 
 def _build_truth_windows(
-    segments: List[Dict[str, Any]],
+    segments: list[dict[str, Any]],
     event_type: str,
     symbol: str,
     tolerance: pd.Timedelta,
-) -> List[tuple]:
+) -> list[tuple]:
     windows = []
     for seg in segments:
         if seg.get("symbol", "").upper() != symbol.upper():
@@ -204,7 +204,7 @@ def _build_truth_windows(
 
 def _count_hits(
     event_times: pd.Series,
-    windows: List[tuple],
+    windows: list[tuple],
 ) -> tuple:
     """Returns (in_window_count, windows_hit_count)."""
     if event_times.empty or not windows:
@@ -283,9 +283,9 @@ def measure_detector(
     detector: BaseEventDetector,
     df: pd.DataFrame,
     symbol: str,
-    segments: List[Dict[str, Any]],
+    segments: list[dict[str, Any]],
     run_id: str,
-    tolerance_minutes: Union[int, Dict[str, int]] = 30,
+    tolerance_minutes: int | dict[str, int] = 30,
 ) -> DetectorMetrics:
     """
     Run a detector against a prepared DataFrame and compute precision/recall.

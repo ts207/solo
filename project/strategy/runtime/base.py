@@ -1,13 +1,13 @@
 from __future__ import annotations
 
-from typing import List, Protocol
+from typing import Protocol
 
 import pandas as pd
 
 
 class Strategy(Protocol):
     name: str
-    required_features: List[str]
+    required_features: list[str]
 
     def generate_positions(
         self,

@@ -2,7 +2,6 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Optional
 
 
 class ChainState(Enum):
@@ -16,8 +15,8 @@ class ChainState(Enum):
 @dataclass
 class ChainStep:
     event_type: str
-    min_bar: Optional[int] = None
-    max_bar: Optional[int] = None
+    min_bar: int | None = None
+    max_bar: int | None = None
     required: bool = True
 
 
@@ -28,9 +27,9 @@ class ChainProgress:
     current_step: int = 0
     triggered_events: list[str] = field(default_factory=list)
     triggered_bars: list[int] = field(default_factory=list)
-    started_at: Optional[int] = None
-    completed_at: Optional[int] = None
-    failure_reason: Optional[str] = None
+    started_at: int | None = None
+    completed_at: int | None = None
+    failure_reason: str | None = None
 
     @property
     def is_complete(self) -> bool:
@@ -71,7 +70,7 @@ class EventChainEngine:
         self,
         event_type: str,
         bar_index: int,
-        chain_ids: Optional[list[str]] = None,
+        chain_ids: list[str] | None = None,
     ) -> list[ChainProgress]:
         updates = []
 
@@ -97,7 +96,7 @@ class EventChainEngine:
         progress_list: list[ChainProgress],
         event_type: str,
         bar_index: int,
-    ) -> Optional[ChainProgress]:
+    ) -> ChainProgress | None:
         if not progress_list:
             progress = ChainProgress(
                 chain_id=chain.chain_id,

@@ -1,6 +1,6 @@
 import hashlib
 import json
-from typing import Any, Dict
+from typing import Any
 
 from project.strategy.dsl.schema import Blueprint
 
@@ -38,7 +38,7 @@ def compute_ontology_invariant_hash(blueprint: Blueprint) -> str:
     # 3. Hash the string
     return f"sha256:{hashlib.sha256(stable_json.encode('utf-8')).hexdigest()}"
 
-def is_blueprint_burned(blueprint: Blueprint, burn_ledger: Dict[str, Any]) -> bool:
+def is_blueprint_burned(blueprint: Blueprint, burn_ledger: dict[str, Any]) -> bool:
     """Checks if a blueprint's invariant hash is in the burned_strategies list."""
     bp_hash = compute_ontology_invariant_hash(blueprint)
     return bp_hash in burn_ledger.get("burned_strategies", [])

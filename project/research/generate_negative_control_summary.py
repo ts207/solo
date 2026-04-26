@@ -4,7 +4,7 @@ import argparse
 import json
 import sys
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any
 
 import numpy as np
 import pandas as pd
@@ -93,13 +93,13 @@ def _event_column(df: pd.DataFrame) -> str | None:
     return None
 
 
-def _build_summary(df: pd.DataFrame, *, run_id: str) -> Dict[str, Any]:
+def _build_summary(df: pd.DataFrame, *, run_id: str) -> dict[str, Any]:
     event_col = _event_column(df)
-    by_event: Dict[str, Any] = {}
+    by_event: dict[str, Any] = {}
 
     rate, source = _placebo_failure_rate(df)
-    global_summary: Dict[str, Any] = {
-        "candidate_count": int(len(df)),
+    global_summary: dict[str, Any] = {
+        "candidate_count": len(df),
         "has_control_evidence": bool(rate is not None),
         "control_rate_source": source,
     }
@@ -110,8 +110,8 @@ def _build_summary(df: pd.DataFrame, *, run_id: str) -> Dict[str, Any]:
     if event_col is not None and not df.empty:
         for event_type, sub in df.groupby(event_col, sort=True):
             event_rate, event_source = _placebo_failure_rate(sub)
-            row: Dict[str, Any] = {
-                "candidate_count": int(len(sub)),
+            row: dict[str, Any] = {
+                "candidate_count": len(sub),
                 "has_control_evidence": bool(event_rate is not None),
                 "control_rate_source": event_source,
             }
@@ -123,13 +123,13 @@ def _build_summary(df: pd.DataFrame, *, run_id: str) -> Dict[str, Any]:
     return {
         "schema_version": "negative_control_summary_v1",
         "run_id": str(run_id),
-        "candidate_count": int(len(df)),
+        "candidate_count": len(df),
         "global": global_summary,
         "by_event": by_event,
     }
 
 
-def main(argv: List[str] | None = None) -> int:
+def main(argv: list[str] | None = None) -> int:
     parser = _make_parser()
     args = parser.parse_args(argv)
 

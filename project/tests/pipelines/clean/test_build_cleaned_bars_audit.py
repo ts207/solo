@@ -1,4 +1,4 @@
-from datetime import timezone
+from datetime import UTC
 
 import numpy as np
 import pandas as pd
@@ -42,7 +42,7 @@ def test_align_funding_basic():
     assert aligned["funding_rate_realized"].iloc[0] == pytest.approx(0.0001)
     assert aligned["funding_rate_realized"].iloc[1] == pytest.approx(0.0)
     assert aligned["funding_event_ts"].iloc[0] == pd.Timestamp(
-        "2026-01-01 00:00:00", tz=timezone.utc
+        "2026-01-01 00:00:00", tz=UTC
     )
 
 
@@ -57,12 +57,12 @@ def test_align_funding_missing():
 
 def test_full_index_generation_residue():
     # 5m bar builder should use a 5m exclusive end residue.
-    start_ts = pd.Timestamp("2026-01-01 00:00:00", tz=timezone.utc)
-    end_ts = pd.Timestamp("2026-01-01 23:55:00", tz=timezone.utc)
+    start_ts = pd.Timestamp("2026-01-01 00:00:00", tz=UTC)
+    end_ts = pd.Timestamp("2026-01-01 23:55:00", tz=UTC)
 
     end_exclusive = end_ts + pd.Timedelta(minutes=5)
     full_index = pd.date_range(
-        start=start_ts, end=end_exclusive - pd.Timedelta(minutes=5), freq="5min", tz=timezone.utc
+        start=start_ts, end=end_exclusive - pd.Timedelta(minutes=5), freq="5min", tz=UTC
     )
 
     assert full_index[-1] == end_ts
@@ -92,4 +92,4 @@ def test_align_funding_marks_stale_rows_missing():
     assert missing_pct == 1.0
     assert aligned["funding_missing"].all()
     assert aligned["funding_rate_feature"].isna().all()
-    assert FUNDING_MAX_STALENESS == pd.Timedelta("8h")
+    assert pd.Timedelta("8h") == FUNDING_MAX_STALENESS

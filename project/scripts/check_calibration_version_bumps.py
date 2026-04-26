@@ -5,8 +5,9 @@ import argparse
 import json
 import subprocess
 import sys
+from collections.abc import Mapping, Sequence
 from pathlib import Path
-from typing import Any, Mapping, Sequence
+from typing import Any
 
 VERSION_FIELDS = ("event_version", "threshold_version")
 VERSIONED_CALIBRATION_FIELDS = (

@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import json
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 from project.live.deploy_status import deployment_status, inspect_deployment
@@ -116,7 +116,7 @@ def test_deployment_status_returns_heartbeat_feed_positions_and_kill_switch(
     run_id = "unit_run"
     data_root = tmp_path / "data"
     _write_thesis_bundle(data_root, run_id)
-    now = datetime.now(timezone.utc).isoformat()
+    now = datetime.now(UTC).isoformat()
     snapshot_path = tmp_path / "live_state.json"
     snapshot_path.write_text(
         json.dumps(

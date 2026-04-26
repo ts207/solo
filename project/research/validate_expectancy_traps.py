@@ -4,7 +4,6 @@ import argparse
 import json
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Dict, List, Tuple
 
 import numpy as np
 import pandas as pd
@@ -76,7 +75,7 @@ EVENT_ROW_COLUMNS = [
     "event_directional_return",
 ]
 
-ROBUST_GATE_PROFILES: Dict[str, Dict[str, float | int]] = {
+ROBUST_GATE_PROFILES: dict[str, dict[str, float | int]] = {
     "discovery": {
         "min_samples": 60,
         "tstat_threshold": 1.64,
@@ -134,7 +133,7 @@ def _apply_gate_profile_defaults(args: argparse.Namespace) -> argparse.Namespace
     return args
 
 
-def _newey_west_t_stat(series: pd.Series, max_lag: int) -> Tuple[float, float, int]:
+def _newey_west_t_stat(series: pd.Series, max_lag: int) -> tuple[float, float, int]:
     """Compute HAC t-stat and one-sided p-value for a directional series.
 
     E-MISC-002: the previous formula used a two-sided normal approximation
@@ -190,7 +189,7 @@ def _robust_row_fields(
     oos_min_samples: int,
     require_oos_positive: int,
     require_oos_sign_consistency: int,
-) -> Dict[str, object]:
+) -> dict[str, object]:
     series = (
         pd.to_numeric(event_frame[ret_col], errors="coerce")
         if ret_col in event_frame.columns
@@ -282,7 +281,7 @@ def _build_features(
     return out
 
 
-def _leakage_check(df: pd.DataFrame, htf_window: int, htf_lookback: int) -> Dict[str, object]:
+def _leakage_check(df: pd.DataFrame, htf_window: int, htf_lookback: int) -> dict[str, object]:
     close = df["close"].astype(float)
     full_ma = close.rolling(window=htf_window, min_periods=htf_window).mean()
     full_delta = full_ma - full_ma.shift(htf_lookback)
@@ -304,13 +303,13 @@ def _leakage_check(df: pd.DataFrame, htf_window: int, htf_lookback: int) -> Dict
         trend_i = int(np.sign(delta.iloc[-1])) if pd.notna(delta.iloc[-1]) else 0
         if trend_i != int(full_trend.iloc[i]):
             mismatches += 1
-    return {"pass": mismatches == 0, "checked": int(len(sample)), "mismatches": int(mismatches)}
+    return {"pass": mismatches == 0, "checked": len(sample), "mismatches": int(mismatches)}
 
 
 def _extract_compression_events(
     df: pd.DataFrame, symbol: str, max_duration: int
-) -> List[CompressionEvent]:
-    events: List[CompressionEvent] = []
+) -> list[CompressionEvent]:
+    events: list[CompressionEvent] = []
     n = len(df)
     i = 1
     while i < n:
@@ -360,7 +359,7 @@ def _extract_compression_events(
     return events
 
 
-def _first_expansion_after(df: pd.DataFrame, idx: int, lookahead: int) -> Tuple[int | None, int]:
+def _first_expansion_after(df: pd.DataFrame, idx: int, lookahead: int) -> tuple[int | None, int]:
     n = len(df)
     end = min(n - 1, idx + lookahead)
     for j in range(idx + 1, end + 1):
@@ -373,12 +372,12 @@ def _first_expansion_after(df: pd.DataFrame, idx: int, lookahead: int) -> Tuple[
 
 def _event_rows(
     df: pd.DataFrame,
-    events: List[CompressionEvent],
-    horizons: List[int],
+    events: list[CompressionEvent],
+    horizons: list[int],
     expansion_lookahead: int,
     mfe_horizon: int,
-) -> List[Dict[str, object]]:
-    rows: List[Dict[str, object]] = []
+) -> list[dict[str, object]]:
+    rows: list[dict[str, object]] = []
     close = df["close"].to_numpy(dtype=float)
     high = df["high"].to_numpy(dtype=float)
     low = df["low"].to_numpy(dtype=float)
@@ -443,7 +442,7 @@ def _event_rows(
     return rows
 
 
-def _split_sign_report(events: pd.DataFrame, col: str, ret_col: str) -> Dict[str, object]:
+def _split_sign_report(events: pd.DataFrame, col: str, ret_col: str) -> dict[str, object]:
     if events.empty:
         return {"stable_sign": False, "groups": {}}
     grouped = events.groupby(col, dropna=False)[ret_col].mean().dropna()
@@ -455,7 +454,7 @@ def _split_sign_report(events: pd.DataFrame, col: str, ret_col: str) -> Dict[str
     return {"stable_sign": stable_sign, "groups": groups}
 
 
-def _bar_condition_stats(df: pd.DataFrame, condition: str, horizon: int) -> Dict[str, float]:
+def _bar_condition_stats(df: pd.DataFrame, condition: str, horizon: int) -> dict[str, float]:
     close = df["close"].astype(float)
     fwd = close.shift(-horizon) / close - 1.0
 
@@ -476,7 +475,7 @@ def _bar_condition_stats(df: pd.DataFrame, condition: str, horizon: int) -> Dict
 
 def _event_condition_frame(
     events_df: pd.DataFrame, condition: str, horizon: int
-) -> Tuple[pd.DataFrame, str]:
+) -> tuple[pd.DataFrame, str]:
     ret_col = (
         "event_directional_return" if condition == "compression_plus_htf_trend" else "event_return"
     )
@@ -497,17 +496,17 @@ def _event_condition_frame(
     return frame, ret_col
 
 
-def _split_overlap_diagnostics(events_df: pd.DataFrame, embargo_bars: int) -> Dict[str, object]:
+def _split_overlap_diagnostics(events_df: pd.DataFrame, embargo_bars: int) -> dict[str, object]:
     if events_df.empty:
         return {"pass": False, "embargo_bars": int(embargo_bars), "details": []}
 
     unique_events = events_df.drop_duplicates(subset=["symbol", "event_start_idx"]).copy()
-    details: List[Dict[str, object]] = []
+    details: list[dict[str, object]] = []
     global_pass = True
 
     for symbol, group in unique_events.groupby("symbol", dropna=False):
         g = group.sort_values("event_start_idx").reset_index(drop=True)
-        boundary_gaps: Dict[str, int] = {}
+        boundary_gaps: dict[str, int] = {}
         for left, right in [("train", "validation"), ("validation", "test")]:
             left_idx = g.index[g["split_label"] == left]
             right_idx = g.index[g["split_label"] == right]
@@ -532,7 +531,7 @@ def _parameter_stability_diagnostics(
     base_tstat_threshold: float,
     sample_delta: int,
     tstat_delta: float,
-) -> Dict[str, object]:
+) -> dict[str, object]:
     if trap_df.empty:
         return {
             "pass": False,
@@ -575,7 +574,7 @@ def _parameter_stability_diagnostics(
     base_set = _survivor_set(base_sub)
     rows = []
     overlap_scores = []
-    scenario_perf: Dict[str, float] = {}
+    scenario_perf: dict[str, float] = {}
     for sc in scenarios:
         sub = _survivor_frame(int(sc["min_samples"]), float(sc["tstat"]))
         sset = _survivor_set(sub)
@@ -620,7 +619,7 @@ def _parameter_stability_diagnostics(
     }
 
 
-def main(argv: List[str] | None = None) -> int:
+def main(argv: list[str] | None = None) -> int:
     DATA_ROOT = get_data_root()
     parser = argparse.ArgumentParser(description="Validate conditional expectancy.")
     parser.add_argument("--run_id", required=True)
@@ -694,8 +693,8 @@ def main(argv: List[str] | None = None) -> int:
 
         leakage = {}
         all_bar_df = []
-        all_event_rows: List[Dict[str, object]] = []
-        event_summary_rows: List[Dict[str, object]] = []
+        all_event_rows: list[dict[str, object]] = []
+        event_summary_rows: list[dict[str, object]] = []
 
         for symbol in symbols:
             df = _load_symbol_features(symbol, run_id=args.run_id)
@@ -850,7 +849,7 @@ def main(argv: List[str] | None = None) -> int:
             expansion_rows.append(
                 {
                     "condition": condition,
-                    "events": int(len(cond_all)),
+                    "events": len(cond_all),
                     "time_to_expansion_median": float(cond_all["time_to_expansion_bars"].median())
                     if not cond_all.empty
                     else np.nan,
@@ -914,10 +913,10 @@ def main(argv: List[str] | None = None) -> int:
             "success",
             stats={
                 "skipped": False,
-                "split_overlap_rows": int(len(split_overlap)),
-                "event_rows": int(len(events_df)),
-                "trap_rows": int(len(trap_df)),
-                "survivor_count": int(len(payload["survivors"])),
+                "split_overlap_rows": len(split_overlap),
+                "event_rows": len(events_df),
+                "trap_rows": len(trap_df),
+                "survivor_count": len(payload["survivors"]),
             },
         )
         return 0

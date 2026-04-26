@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-from typing import Any, Dict, Iterable, List, Tuple, cast
+from collections.abc import Iterable
+from typing import Any, cast
 
 import numpy as np
 import pandas as pd
@@ -86,7 +87,7 @@ def assert_ohlcv_geometry(df: pd.DataFrame) -> None:
 
 def filter_ohlcv_geometry_violations(
     df: pd.DataFrame, label: str = ""
-) -> Tuple[pd.DataFrame, int]:
+) -> tuple[pd.DataFrame, int]:
     """
     Drop rows that violate OHLCV geometric constraints or have non-positive prices.
     Returns (clean_df, dropped_count). Intended for ingest-time soft filtering.
@@ -136,7 +137,7 @@ def infer_and_apply_funding_scale(
     col: str = "funding_rate",
     source_col: str = "source",
     explicit_scale: float | None = None,
-) -> Tuple[pd.DataFrame, float, float]:
+) -> tuple[pd.DataFrame, float, float]:
     """
     Infer funding rate scale and add funding_rate_scaled column.
     Returns (scaled_frame, scale_multiplier, confidence).
@@ -242,7 +243,7 @@ def is_constant_series(series: pd.Series) -> bool:
     return bool(np.isclose(std, 0.0))
 
 
-def coerce_timestamps_to_hour(df: pd.DataFrame, col: str = "timestamp") -> Tuple[pd.DataFrame, int]:
+def coerce_timestamps_to_hour(df: pd.DataFrame, col: str = "timestamp") -> tuple[pd.DataFrame, int]:
     """
     Round timestamps to the nearest hour and return adjusted row count.
     """
@@ -328,14 +329,14 @@ def strategy_family_allowed_keys(family: str) -> set[str]:
     return set(_STRATEGY_FAMILY_KEYS.get(family, set()))
 
 
-def validate_strategy_family_params(config: Dict[str, Any]) -> Dict[str, Dict[str, Any]]:
+def validate_strategy_family_params(config: dict[str, Any]) -> dict[str, dict[str, Any]]:
     raw = config.get("strategy_family_params", {})
     if raw is None:
         return {}
     if not isinstance(raw, dict):
         raise ValueError("strategy_family_params must be a mapping of family -> params")
 
-    out: Dict[str, Dict[str, Any]] = {}
+    out: dict[str, dict[str, Any]] = {}
     for family in ["Carry", "MeanReversion", "Spread"]:
         params = raw.get(family, {})
         if params is None:

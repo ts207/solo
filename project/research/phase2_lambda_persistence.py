@@ -8,9 +8,9 @@ from __future__ import annotations
 
 import json
 import logging
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 import pandas as pd
 
@@ -22,7 +22,7 @@ def _load_previous_lambda_maps(
     data_root: Path,
     event_type: str,
     current_run_id: str,
-) -> Tuple[Dict[str, Dict[Tuple[Any, ...], float]], Optional[Path]]:
+) -> tuple[dict[str, dict[tuple[Any, ...], float]], Path | None]:
     phase2_root = data_root / "reports" / "phase2"
     pattern = f"*/{event_type}/phase2_lambda_snapshot.parquet"
     candidates = []
@@ -44,7 +44,7 @@ def _load_previous_lambda_maps(
     except Exception:
         return {}, None
 
-    out: Dict[str, Dict[Tuple[Any, ...], float]] = {"family": {}, "event": {}, "state": {}}
+    out: dict[str, dict[tuple[Any, ...], float]] = {"family": {}, "event": {}, "state": {}}
     if df.empty or "level" not in df.columns or "lambda_value" not in df.columns:
         return out, source
 
@@ -104,7 +104,7 @@ def _build_lambda_snapshot(fdr_df: pd.DataFrame) -> pd.DataFrame:
         )
 
     # Vectorized: build each level as a DataFrame slice then pd.concat
-    level_frames: List[pd.DataFrame] = []
+    level_frames: list[pd.DataFrame] = []
 
     fam_cols = ["template_verb", "horizon", "lambda_family", "lambda_family_status"]
     _fam = fdr_df[[c for c in fam_cols if c in fdr_df.columns]].drop_duplicates().copy()
@@ -226,12 +226,12 @@ def save_lambda_state_json(
     for easier human inspection and cross-format auditing.
     """
     snapshot_df = _build_lambda_snapshot(fdr_df)
-    state: Dict[str, Any] = {
+    state: dict[str, Any] = {
         "_meta": {
             "run_id": str(run_id),
             "event_type": str(event_type),
-            "timestamp": datetime.now(timezone.utc).isoformat(),
-            "total_rows": int(len(snapshot_df)),
+            "timestamp": datetime.now(UTC).isoformat(),
+            "total_rows": len(snapshot_df),
         },
         "family": [],
         "event": [],
@@ -243,7 +243,7 @@ def save_lambda_state_json(
         if sub.empty:
             continue
         for _, row in sub.iterrows():
-            entry: Dict[str, Any] = {
+            entry: dict[str, Any] = {
                 "template_verb": str(row.get("template_verb", "")),
                 "horizon": str(row.get("horizon", "")),
                 "lambda_value": float(row.get("lambda_value", 0.0)),

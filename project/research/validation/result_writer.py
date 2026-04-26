@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any
 
 import pandas as pd
 
@@ -100,7 +100,7 @@ def _validate_validation_bundle_payload(payload: Any) -> None:
         raise SchemaMismatchError("validation_bundle.json created_at must be non-empty")
 
 
-def write_validation_bundle(bundle: ValidationBundle, base_dir: Optional[Path] = None) -> Path:
+def write_validation_bundle(bundle: ValidationBundle, base_dir: Path | None = None) -> Path:
     if base_dir is None:
         base_dir = get_data_root() / "reports" / "validation" / bundle.run_id
 
@@ -136,7 +136,7 @@ def write_validation_bundle(bundle: ValidationBundle, base_dir: Optional[Path] =
     return bundle_path
 
 
-def write_validated_candidate_tables(bundle: ValidationBundle, base_dir: Optional[Path] = None) -> Dict[str, Path]:
+def write_validated_candidate_tables(bundle: ValidationBundle, base_dir: Path | None = None) -> dict[str, Path]:
     if base_dir is None:
         base_dir = get_data_root() / "reports" / "validation" / bundle.run_id
 
@@ -195,7 +195,7 @@ def write_validated_candidate_tables(bundle: ValidationBundle, base_dir: Optiona
     return paths
 
 
-def write_promotion_ready_candidates(bundle: ValidationBundle, base_dir: Optional[Path] = None) -> Optional[Path]:
+def write_promotion_ready_candidates(bundle: ValidationBundle, base_dir: Path | None = None) -> Path | None:
     if base_dir is None:
         base_dir = get_data_root() / "reports" / "validation" / bundle.run_id
 
@@ -269,11 +269,11 @@ def write_promotion_ready_candidates(bundle: ValidationBundle, base_dir: Optiona
 
 def load_validation_bundle(
     run_id: str,
-    base_dir: Optional[Path] = None,
+    base_dir: Path | None = None,
     *,
     strict: bool = False,
     compatibility_mode: bool = False,
-) -> Optional[ValidationBundle]:
+) -> ValidationBundle | None:
     if base_dir is None:
         resolved_dir = get_data_root() / "reports" / "validation" / run_id
     else:
@@ -311,7 +311,7 @@ def load_validation_bundle(
                 f"Validation artifact {bundle_path} requires revalidation before reuse on the canonical path"
             )
 
-    def _parse_candidate(c_data: Dict[str, Any]) -> ValidatedCandidateRecord:
+    def _parse_candidate(c_data: dict[str, Any]) -> ValidatedCandidateRecord:
         decision = ValidationDecision(**c_data["decision"])
         metrics = ValidationMetrics(**c_data["metrics"])
         artifacts = [ValidationArtifactRef(**a) for a in c_data.get("artifact_refs", [])]

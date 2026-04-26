@@ -2,14 +2,13 @@ from __future__ import annotations
 
 import math
 from dataclasses import dataclass
-from typing import Optional
 
 
 @dataclass(frozen=True)
 class SymbolConstraints:
-    tick_size: Optional[float]  # minimum price increment
-    step_size: Optional[float]  # minimum quantity increment (lot size)
-    min_notional: Optional[float]  # minimum order value in quote currency
+    tick_size: float | None  # minimum price increment
+    step_size: float | None  # minimum quantity increment (lot size)
+    min_notional: float | None  # minimum order value in quote currency
 
     def round_qty(self, qty: float) -> float:
         if self.step_size is None or self.step_size <= 0.0:

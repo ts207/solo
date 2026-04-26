@@ -4,10 +4,11 @@ import argparse
 import json
 import logging
 import time
+from collections.abc import Iterable, Mapping
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
-from typing import Any, Dict, Iterable, List, Mapping
+from typing import Any
 
 from project.spec_registry import load_yaml_path
 
@@ -20,9 +21,9 @@ class RuntimeAlert:
     category: str
     severity: str
     message: str
-    payload: Dict[str, Any]
+    payload: dict[str, Any]
 
-    def as_dict(self, *, status: str) -> Dict[str, Any]:
+    def as_dict(self, *, status: str) -> dict[str, Any]:
         return {
             "key": self.key,
             "category": self.category,
@@ -34,7 +35,7 @@ class RuntimeAlert:
 
 
 def _utc_now() -> datetime:
-    return datetime.now(timezone.utc)
+    return datetime.now(UTC)
 
 
 def _parse_timestamp(value: Any) -> datetime | None:
@@ -50,11 +51,11 @@ def _parse_timestamp(value: Any) -> datetime | None:
     except ValueError:
         return None
     if parsed.tzinfo is None:
-        parsed = parsed.replace(tzinfo=timezone.utc)
-    return parsed.astimezone(timezone.utc)
+        parsed = parsed.replace(tzinfo=UTC)
+    return parsed.astimezone(UTC)
 
 
-def load_runtime_alert_settings(config_path: Path) -> Dict[str, Any]:
+def load_runtime_alert_settings(config_path: Path) -> dict[str, Any]:
     payload = load_yaml_path(config_path) or {}
     if not isinstance(payload, dict):
         raise ValueError(f"Live engine config must be a mapping: {config_path}")
@@ -86,7 +87,7 @@ def load_runtime_alert_settings(config_path: Path) -> Dict[str, Any]:
     }
 
 
-def load_runtime_metrics_snapshot(path: Path) -> Dict[str, Any]:
+def load_runtime_metrics_snapshot(path: Path) -> dict[str, Any]:
     return json.loads(path.read_text(encoding="utf-8"))
 
 
@@ -141,9 +142,9 @@ def evaluate_runtime_alerts(
     ratio_min_total: int = 8,
     trade_small_probe_ratio_baseline: float = 1.0,
     trade_small_probe_ratio_tolerance_fraction: float = 0.5,
-) -> List[RuntimeAlert]:
+) -> list[RuntimeAlert]:
     now = now or _utc_now()
-    alerts: List[RuntimeAlert] = []
+    alerts: list[RuntimeAlert] = []
 
     generated_at = _parse_timestamp(snapshot.get("generated_at"))
     if generated_at is None:
@@ -324,11 +325,11 @@ def evaluate_runtime_alerts(
 def _emit_alert_events(
     alerts: Iterable[RuntimeAlert],
     *,
-    active_alerts: Dict[str, RuntimeAlert],
+    active_alerts: dict[str, RuntimeAlert],
     alert_log_path: Path | None,
-) -> Dict[str, RuntimeAlert]:
+) -> dict[str, RuntimeAlert]:
     current = {alert.key: alert for alert in alerts}
-    emitted: List[Dict[str, Any]] = []
+    emitted: list[dict[str, Any]] = []
 
     for key, alert in current.items():
         if key not in active_alerts:
@@ -368,7 +369,7 @@ def build_arg_parser() -> argparse.ArgumentParser:
     return parser
 
 
-def _resolve_settings(args: argparse.Namespace) -> Dict[str, Any]:
+def _resolve_settings(args: argparse.Namespace) -> dict[str, Any]:
     settings = load_runtime_alert_settings(args.config)
     if args.metrics_path is not None:
         settings["metrics_path"] = str(args.metrics_path)
@@ -379,7 +380,7 @@ def _resolve_settings(args: argparse.Namespace) -> Dict[str, Any]:
     return settings
 
 
-def main(argv: List[str] | None = None) -> int:
+def main(argv: list[str] | None = None) -> int:
     parser = build_arg_parser()
     args = parser.parse_args(argv)
     logging.basicConfig(level=getattr(logging, str(args.log_level).upper(), logging.INFO))
@@ -388,8 +389,8 @@ def main(argv: List[str] | None = None) -> int:
     alert_log_path = Path(settings["alert_log_path"]) if settings.get("alert_log_path") else None
     poll_interval = max(1.0, float(settings["poll_interval_seconds"]))
 
-    active_alerts: Dict[str, RuntimeAlert] = {}
-    previous_snapshot: Dict[str, Any] | None = None
+    active_alerts: dict[str, RuntimeAlert] = {}
+    previous_snapshot: dict[str, Any] | None = None
 
     while True:
         snapshot = load_runtime_metrics_snapshot(metrics_path)

@@ -36,6 +36,6 @@ __all__ = [
     "OrderflowImbalanceDetector",
     "ProxyLiquidityStressDetectorV2",
     "SpreadBlowoutDetector",
-    "detect_liquidity_family",
     "analyze_liquidity_family",
+    "detect_liquidity_family",
 ]

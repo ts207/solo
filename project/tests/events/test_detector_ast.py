@@ -39,7 +39,7 @@ def test_no_unshifted_rolling_quantiles():
         for file in files:
             if file.endswith(".py"):
                 filepath = Path(root) / file
-                with open(filepath, "r", encoding="utf-8") as f:
+                with open(filepath, encoding="utf-8") as f:
                     tree = ast.parse(f.read(), filename=str(filepath))
 
                 # We need to check if the quantile call is nested inside a shift() call

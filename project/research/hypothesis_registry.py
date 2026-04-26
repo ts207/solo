@@ -4,7 +4,7 @@ import hashlib
 from dataclasses import asdict, dataclass
 from functools import lru_cache
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any
 
 import pandas as pd
 
@@ -36,7 +36,7 @@ class Hypothesis:
     def compat_event_family(self) -> str:
         return str(self.event_family).strip().upper()
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         payload = asdict(self)
         payload["primary_event_id"] = self.primary_event_id
         payload["compat_event_family"] = self.compat_event_family
@@ -63,12 +63,12 @@ class Hypothesis:
 
 
 @lru_cache(maxsize=1)
-def _event_registry_payload() -> Dict[str, Any]:
+def _event_registry_payload() -> dict[str, Any]:
     payload = load_unified_event_registry()
     return payload if isinstance(payload, dict) else {}
 
 
-def _event_spec(event_type: str) -> Dict[str, Any]:
+def _event_spec(event_type: str) -> dict[str, Any]:
     payload = _event_registry_payload()
     events = payload.get("events", {}) if isinstance(payload, dict) else {}
     if not isinstance(events, dict):
@@ -87,7 +87,7 @@ def _canonical_family(event_type: str) -> str:
     return "UNKNOWN_FAMILY"
 
 
-def _spec_templates(event_type: str) -> List[str]:
+def _spec_templates(event_type: str) -> list[str]:
     spec = _event_spec(event_type)
     templates = spec.get("templates", []) if isinstance(spec, dict) else []
     if isinstance(templates, (list, tuple)):
@@ -97,7 +97,7 @@ def _spec_templates(event_type: str) -> List[str]:
     return ["unconditional"]
 
 
-def _spec_horizons(event_type: str, requested: List[str]) -> List[str]:
+def _spec_horizons(event_type: str, requested: list[str]) -> list[str]:
     spec = _event_spec(event_type)
     horizons = spec.get("horizons", []) if isinstance(spec, dict) else []
     normalized_requested = [str(h).strip() for h in requested if str(h).strip()]
@@ -143,7 +143,7 @@ class HypothesisRegistry:
     """Registry for managing the searched hypothesis set."""
 
     def __init__(self):
-        self.hypotheses: Dict[str, Hypothesis] = {}
+        self.hypotheses: dict[str, Hypothesis] = {}
 
     def register(self, hyp: Hypothesis) -> str:
         hyp_id = hyp.hypothesis_id()
@@ -191,9 +191,9 @@ class HypothesisRegistry:
 
 
 def generate_discovery_registry(
-    event_types: List[str],
-    symbols: List[str],
-    horizons: List[str],
+    event_types: list[str],
+    symbols: list[str],
+    horizons: list[str],
 ) -> HypothesisRegistry:
     """Pre-populate a discovery registry from declared event-spec templates.
 

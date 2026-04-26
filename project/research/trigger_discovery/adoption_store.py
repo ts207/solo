@@ -1,15 +1,15 @@
 import json
 import logging
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 log = logging.getLogger(__name__)
 
 def _get_store_path(out_dir: Path) -> Path:
     return out_dir / "adoption_state.json"
 
-def _load_store(store_path: Path) -> Dict[str, Any]:
+def _load_store(store_path: Path) -> dict[str, Any]:
     if store_path.exists():
         try:
             with store_path.open("r", encoding="utf-8") as f:
@@ -19,17 +19,17 @@ def _load_store(store_path: Path) -> Dict[str, Any]:
             return {}
     return {}
 
-def _save_store(store_path: Path, data: Dict[str, Any]) -> None:
+def _save_store(store_path: Path, data: dict[str, Any]) -> None:
     store_path.parent.mkdir(parents=True, exist_ok=True)
     with store_path.open("w", encoding="utf-8") as f:
         json.dump(data, f, indent=2)
 
-def register_proposals(proposals: List[Dict[str, Any]], out_dir: Path, source_lane: str) -> None:
+def register_proposals(proposals: list[dict[str, Any]], out_dir: Path, source_lane: str) -> None:
     """Registers newly generated proposals with 'proposed' status."""
     store_path = _get_store_path(out_dir)
     store = _load_store(store_path)
 
-    timestamp = datetime.now(timezone.utc).isoformat()
+    timestamp = datetime.now(UTC).isoformat()
 
     for p in proposals:
         cid = p.get("candidate_trigger_id")
@@ -49,12 +49,12 @@ def register_proposals(proposals: List[Dict[str, Any]], out_dir: Path, source_la
 
     _save_store(store_path, store)
 
-def get_proposal(candidate_id: str, out_dir: Path) -> Optional[Dict[str, Any]]:
+def get_proposal(candidate_id: str, out_dir: Path) -> dict[str, Any] | None:
     store_path = _get_store_path(out_dir)
     store = _load_store(store_path)
     return store.get(candidate_id)
 
-def list_proposals(out_dir: Path) -> List[Dict[str, Any]]:
+def list_proposals(out_dir: Path) -> list[dict[str, Any]]:
     store_path = _get_store_path(out_dir)
     store = _load_store(store_path)
     return list(store.values())
@@ -64,7 +64,7 @@ def transition_state(
     new_status: str,
     out_dir: Path,
     reviewer: str = "system",
-    reason: Optional[str] = None
+    reason: str | None = None
 ) -> bool:
     """Transitions a proposal's status, enforcing state machine rules."""
     store_path = _get_store_path(out_dir)
@@ -90,7 +90,7 @@ def transition_state(
         log.error(f"Invalid transition from {old_status} to {new_status} for {candidate_id}.")
         return False
 
-    timestamp = datetime.now(timezone.utc).isoformat()
+    timestamp = datetime.now(UTC).isoformat()
 
     # Record history
     current.setdefault("history", []).append({

@@ -5,7 +5,7 @@ import json
 import logging
 import os
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any
 
 import pandas as pd
 
@@ -47,8 +47,8 @@ def _coerce_override_value(raw: str) -> Any:
         return token
 
 
-def _parse_detector_overrides(tokens: List[str]) -> Dict[str, Any]:
-    overrides: Dict[str, Any] = {}
+def _parse_detector_overrides(tokens: list[str]) -> dict[str, Any]:
+    overrides: dict[str, Any] = {}
     idx = 0
     while idx < len(tokens):
         token = str(tokens[idx]).strip()
@@ -79,8 +79,8 @@ def _symbol_market_frame(features: pd.DataFrame) -> pd.DataFrame | None:
 
 def _combine_analyzer_results(
     *,
-    per_symbol_events: Dict[str, pd.DataFrame],
-    market_by_symbol: Dict[str, pd.DataFrame],
+    per_symbol_events: dict[str, pd.DataFrame],
+    market_by_symbol: dict[str, pd.DataFrame],
 ) -> dict[str, AnalyzerResult]:
     aggregated: dict[str, dict[str, Any]] = {}
     for symbol, events_df in per_symbol_events.items():
@@ -189,9 +189,7 @@ def _load_detector_input(
                 detector._ensure_detectors()
                 anchor = getattr(detector, "_anchor_detector", None)
                 trigger = getattr(detector, "_trigger_detector", None)
-                if anchor and any(col in getattr(anchor, "required_columns", ()) for col in basis_cols):
-                    needs_basis = True
-                elif trigger and any(col in getattr(trigger, "required_columns", ()) for col in basis_cols):
+                if (anchor and any(col in getattr(anchor, "required_columns", ()) for col in basis_cols)) or (trigger and any(col in getattr(trigger, "required_columns", ()) for col in basis_cols)):
                     needs_basis = True
             except Exception as exc:
                 _LOG.warning(
@@ -205,7 +203,7 @@ def _load_detector_input(
     return load_features(run_id=run_id, symbol=symbol, timeframe=timeframe, data_root=data_root)
 
 
-def main(argv: List[str] | None = None) -> int:
+def main(argv: list[str] | None = None) -> int:
     DATA_ROOT = get_data_root()
     parser = argparse.ArgumentParser(description="Universal parameterized event analyzer")
     parser.add_argument("--run_id", required=True)
@@ -254,8 +252,8 @@ def main(argv: List[str] | None = None) -> int:
 
     try:
         events_parts = []
-        per_symbol_events: Dict[str, pd.DataFrame] = {}
-        market_by_symbol: Dict[str, pd.DataFrame] = {}
+        per_symbol_events: dict[str, pd.DataFrame] = {}
+        market_by_symbol: dict[str, pd.DataFrame] = {}
         symbols = [s.strip().upper() for s in str(args.symbols).split(",") if s.strip()]
         detector_params = dict(cfg.parameters)
         detector_params.update(_parse_detector_overrides(unknown))
@@ -311,7 +309,7 @@ def main(argv: List[str] | None = None) -> int:
         final_df = merge_event_csv(out_path, event_type=event_type, new_df=new_df)
 
         row_count = (
-            int(len(final_df[final_df["event_type"].astype(str) == event_type]))
+            len(final_df[final_df["event_type"].astype(str) == event_type])
             if not final_df.empty and "event_type" in final_df.columns
             else 0
         )

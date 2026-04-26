@@ -1,5 +1,5 @@
 import sys
-from typing import Any, Dict
+from typing import Any
 
 import pandas as pd
 
@@ -20,7 +20,7 @@ from project.features.microstructure import (
 from project.io.utils import list_parquet_files, read_parquet
 
 
-def get_test_threshold(spec: Dict[str, Any], test_id: str) -> float:
+def get_test_threshold(spec: dict[str, Any], test_id: str) -> float:
     for test in spec.get("tests", []):
         if test["id"] == test_id:
             return float(test.get("threshold", 0.0))

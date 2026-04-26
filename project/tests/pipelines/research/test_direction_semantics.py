@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import pytest
 
-from project.research.direction_semantics import (  # noqa: E402
+from project.research.direction_semantics import (
     normalize_side_policy,
     resolve_candidate_action,
     resolve_effect_sign,

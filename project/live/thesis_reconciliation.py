@@ -3,9 +3,8 @@ from __future__ import annotations
 import json
 import logging
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
-from typing import Dict, List
 
 from project.core.exceptions import (
     DataIntegrityError,
@@ -33,11 +32,11 @@ RECONCILIATION_DEGRADED_EXCEPTIONS = (
 
 @dataclass
 class ThesisBatchDiff:
-    added: List[str] = field(default_factory=list)
-    unchanged: List[str] = field(default_factory=list)
-    removed: List[str] = field(default_factory=list)
-    superseded: List[str] = field(default_factory=list)
-    downgraded: List[Dict[str, str]] = field(default_factory=list)
+    added: list[str] = field(default_factory=list)
+    unchanged: list[str] = field(default_factory=list)
+    removed: list[str] = field(default_factory=list)
+    superseded: list[str] = field(default_factory=list)
+    downgraded: list[dict[str, str]] = field(default_factory=list)
 
 
 @dataclass
@@ -45,8 +44,8 @@ class ReconciliationResult:
     previous_batch_id: str
     current_batch_id: str
     diff: ThesisBatchDiff
-    blocked_reasons: List[str] = field(default_factory=list)
-    logged_at: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+    blocked_reasons: list[str] = field(default_factory=list)
+    logged_at: str = field(default_factory=lambda: datetime.now(UTC).isoformat())
     safe_to_proceed: bool = False
 
 
@@ -64,7 +63,7 @@ DEPLOYMENT_STATE_PRECEDENCE = {
 }
 
 
-def _load_previous_batch_metadata(persist_dir: Path) -> Dict[str, str]:
+def _load_previous_batch_metadata(persist_dir: Path) -> dict[str, str]:
     meta_path = persist_dir / "thesis_batch_metadata.json"
     if not meta_path.exists():
         return {}
@@ -89,7 +88,7 @@ def _save_current_batch_metadata(persist_dir: Path, store: ThesisStore) -> None:
         "schema_version": store.schema_version,
         "generated_at_utc": store.generated_at_utc,
         "thesis_ids": sorted([t.thesis_id for t in store.all()]),
-        "saved_at": datetime.now(timezone.utc).isoformat(),
+        "saved_at": datetime.now(UTC).isoformat(),
     }
     atomic_write_json(meta_path, payload)
 
@@ -168,9 +167,9 @@ def check_reconciliation_safety(
     diff: ThesisBatchDiff,
     previous_store: ThesisStore | None,
     current_store: ThesisStore,
-    thesis_manager_state: Dict[str, str],
-) -> List[str]:
-    reasons: List[str] = []
+    thesis_manager_state: dict[str, str],
+) -> list[str]:
+    reasons: list[str] = []
 
     if previous_store is None:
         return reasons
@@ -203,7 +202,7 @@ def check_reconciliation_safety(
 def reconcile_thesis_batch(
     current_store: ThesisStore,
     persist_dir: Path,
-    thesis_manager_state: Dict[str, str],
+    thesis_manager_state: dict[str, str],
     audit_log_path: Path | None = None,
     data_root: Path | None = None,
 ) -> ReconciliationResult:

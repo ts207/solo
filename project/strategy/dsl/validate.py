@@ -1,19 +1,17 @@
 from __future__ import annotations
 
-from typing import Dict, List
-
 import pandas as pd
 
 from project.strategy.dsl.references import REGISTRY_SIGNAL_COLUMNS
 from project.strategy.dsl.schema import OverlaySpec
 
 
-def validate_signal_columns(merged: pd.DataFrame, signals: List[str], blueprint_id: str) -> None:
+def validate_signal_columns(merged: pd.DataFrame, signals: list[str], blueprint_id: str) -> None:
     """
     Validates that the merged frame has all required columns for the entry signals.
     """
     cols = set(merged.columns)
-    missing_by_signal: Dict[str, List[str]] = {}
+    missing_by_signal: dict[str, list[str]] = {}
 
     def _has_numeric_values(column: str) -> bool:
         if column not in cols:
@@ -22,7 +20,7 @@ def validate_signal_columns(merged: pd.DataFrame, signals: List[str], blueprint_
         return bool(series.notna().any())
 
     for signal in signals:
-        missing: List[str] = []
+        missing: list[str] = []
         if signal in REGISTRY_SIGNAL_COLUMNS:
             if signal not in cols:
                 missing.append(signal)
@@ -82,7 +80,7 @@ def validate_signal_columns(merged: pd.DataFrame, signals: List[str], blueprint_
 
 
 def validate_overlay_columns(
-    frame: pd.DataFrame, overlays: List[OverlaySpec], blueprint_id: str
+    frame: pd.DataFrame, overlays: list[OverlaySpec], blueprint_id: str
 ) -> None:
     """
     Validates that the frame has all required columns for the overlays.
@@ -95,9 +93,9 @@ def validate_overlay_columns(
         series = pd.to_numeric(frame[column], errors="coerce")
         return bool(series.notna().any())
 
-    missing: Dict[str, List[str]] = {}
+    missing: dict[str, list[str]] = {}
     for overlay in overlays:
-        required: List[str] = []
+        required: list[str] = []
         if overlay.name == "liquidity_guard":
             required = ["quote_volume"]
         elif overlay.name == "spread_guard":

@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import json
-from typing import Dict, List, Tuple
 
 import numpy as np
 import pandas as pd
@@ -16,7 +15,7 @@ SOURCE_PRIORITY = {
 }
 
 
-def behavior_equivalence_key(row: Dict[str, object]) -> str:
+def behavior_equivalence_key(row: dict[str, object]) -> str:
     payload = {
         "base_strategy": str(row.get("base_strategy", "")),
         "event": str(row.get("event", "")),
@@ -29,8 +28,8 @@ def behavior_equivalence_key(row: Dict[str, object]) -> str:
     return json.dumps(payload, sort_keys=True)
 
 
-def count_by_source(rows: List[Dict[str, object]]) -> Dict[str, int]:
-    counts: Dict[str, int] = {}
+def count_by_source(rows: list[dict[str, object]]) -> dict[str, int]:
+    counts: dict[str, int] = {}
     for row in rows:
         source = str(row.get("source_type", "unknown")).strip() or "unknown"
         counts[source] = counts.get(source, 0) + 1
@@ -42,7 +41,7 @@ def _sort_metric_desc(value: object) -> float:
     return float("inf") if not pd.notna(v) else -float(v)
 
 
-def candidate_rank_key(row: Dict[str, object]) -> Tuple[float, float, float, float, int, str]:
+def candidate_rank_key(row: dict[str, object]) -> tuple[float, float, float, float, int, str]:
     quality_score = safe_float(
         row.get("selection_score_executed"),
         safe_float(row.get("quality_score"), safe_float(row.get("selection_score"), np.nan)),

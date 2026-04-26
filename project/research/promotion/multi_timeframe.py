@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import logging
-from typing import Any, Dict, List
+from typing import Any
 
 import numpy as np
 
@@ -19,11 +19,11 @@ def _quiet_float(value: Any, default: float) -> float:
 
 def evaluate_timeframe_consensus(
     base_timeframe: str,
-    alternate_timeframes: List[str],
-    row: Dict[str, Any],
+    alternate_timeframes: list[str],
+    row: dict[str, Any],
     min_consensus_ratio: float = 0.5,
     min_sharpe_retention: float = 0.5,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     Evaluates whether the edge observed on the base timeframe holds up on alternate timeframes.
     A candidate passes if its expectancy on alternate timeframes remains same-sign

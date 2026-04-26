@@ -5,7 +5,6 @@ import json
 import logging
 import sys
 from pathlib import Path
-from typing import Dict, List
 
 import numpy as np
 import pandas as pd
@@ -68,7 +67,7 @@ def _write_report(path: Path, payload: dict) -> None:
     path.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8")
 
 
-def _summarize_drift_flags(symbol: str, drift_flags: List[Dict[str, float]]) -> None:
+def _summarize_drift_flags(symbol: str, drift_flags: list[dict[str, float]]) -> None:
     if not drift_flags:
         return
     preview = ", ".join(flag["feature"] for flag in drift_flags[:5])
@@ -159,7 +158,7 @@ def check_nans(
     threshold: float = 0.05,
     *,
     ignored_columns: set[str] | None = None,
-) -> List[str]:
+) -> list[str]:
     ignored = ignored_columns or set()
     nan_pcts = df.isna().mean()
     if ignored:
@@ -175,7 +174,7 @@ def check_constant_values(
     df: pd.DataFrame,
     *,
     ignored_columns: set[str] | None = None,
-) -> List[str]:
+) -> list[str]:
     ignored = ignored_columns or set()
     num_df = df.select_dtypes(include=[np.number])
     if num_df.empty:
@@ -187,7 +186,7 @@ def check_constant_values(
     return [f"Column '{col}' is constant." for col in constant_cols]
 
 
-def check_outliers(df: pd.DataFrame, z_threshold: float = 10.0) -> List[str]:
+def check_outliers(df: pd.DataFrame, z_threshold: float = 10.0) -> list[str]:
     cols_to_check = [
         c
         for c in df.select_dtypes(include=[np.number]).columns
@@ -225,7 +224,7 @@ def validate_symbol(
     nan_threshold: float = 0.05,
     z_threshold: float = 10.0,
     reference_distributions_path: str = "train_distributions.json",
-) -> Dict[str, List[str]]:
+) -> dict[str, list[str]]:
     symbol_issues = {}
     feature_quality_summary = None
 

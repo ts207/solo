@@ -1,4 +1,3 @@
-from typing import Dict, List
 
 import pandas as pd
 from sklearn.cluster import DBSCAN
@@ -10,7 +9,7 @@ def cluster_hypotheses(
     min_samples: int = 1,
     metric: str = "correlation",
     trigger_df: pd.DataFrame | None = None,
-) -> Dict[int, List[str]]:
+) -> dict[int, list[str]]:
     """
     Group redundant hypotheses using DBSCAN.
 
@@ -55,8 +54,8 @@ def cluster_hypotheses(
 
 
 def select_cluster_representatives(
-    clusters: Dict[int, List[str]], sharpe_ratios: Dict[str, float]
-) -> List[str]:
+    clusters: dict[int, list[str]], sharpe_ratios: dict[str, float]
+) -> list[str]:
     """
     Select the best hypothesis from each cluster based on Sharpe ratio.
     """

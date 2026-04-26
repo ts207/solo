@@ -296,7 +296,7 @@ def main() -> int:
         json.dump(model, f, indent=2, sort_keys=True)
 
     finalize_manifest(
-        manifest, status="success", stats={"rows": int(len(df)), "out": str(out_path)}
+        manifest, status="success", stats={"rows": len(df), "out": str(out_path)}
     )
     return 0
 

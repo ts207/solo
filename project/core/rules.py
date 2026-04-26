@@ -1,14 +1,14 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import Any, Dict, Optional, Type
+from typing import Any
 
 
 class BaseRuleHandler(ABC):
     """Abstract base for custom logic rules."""
 
     @abstractmethod
-    def evaluate(self, context: Dict[str, Any]) -> bool:
+    def evaluate(self, context: dict[str, Any]) -> bool:
         """Return True if the rule passes based on the given context."""
         pass
 
@@ -16,14 +16,14 @@ class BaseRuleHandler(ABC):
 class RuleRegistry:
     """Registry for domain-specific logic rules."""
 
-    _RULES: Dict[str, Type[BaseRuleHandler]] = {}
+    _RULES: dict[str, type[BaseRuleHandler]] = {}
 
     @classmethod
-    def register(cls, name: str, rule_cls: Type[BaseRuleHandler]) -> None:
+    def register(cls, name: str, rule_cls: type[BaseRuleHandler]) -> None:
         cls._RULES[name.lower()] = rule_cls
 
     @classmethod
-    def get_rule(cls, name: str) -> Optional[BaseRuleHandler]:
+    def get_rule(cls, name: str) -> BaseRuleHandler | None:
         cls_type = cls._RULES.get(name.lower())
         return cls_type() if cls_type else None
 

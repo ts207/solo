@@ -4,8 +4,9 @@ import asyncio
 import json
 import logging
 import time
+from collections.abc import Callable
 from types import SimpleNamespace
-from typing import Any, Callable, List, Optional
+from typing import Any
 
 try:
     import websockets  # type: ignore[import-not-found]
@@ -34,9 +35,9 @@ class BybitWebSocketClient:
 
     def __init__(
         self,
-        streams: List[str],
+        streams: list[str],
         on_message: Callable[[dict], None],
-        on_reconnect_exhausted: Optional[Callable[[], None]] = None,
+        on_reconnect_exhausted: Callable[[], None] | None = None,
     ):
         self.streams = streams
         self.on_message = on_message

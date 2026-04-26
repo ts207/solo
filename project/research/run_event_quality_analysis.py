@@ -23,7 +23,7 @@ import json
 import logging
 import sys
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any
 
 import pandas as pd
 
@@ -48,7 +48,7 @@ def run_event_quality_analysis(
     ig_horizon_bars: int = 12,
     lead_lag_horizons: list[int] | None = None,
     lead_lag_max_lag: int = 24,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     Run all event quality analyses on features DataFrame.
 
@@ -117,7 +117,7 @@ def run_event_quality_analysis(
         top_ig = valid_ig.head(10)[["event_id", "ig_bits", "n_fires"]].to_dict("records")
         bottom_ig = valid_ig.tail(10)[["event_id", "ig_bits", "n_fires"]].to_dict("records")
 
-    summary: Dict[str, Any] = {
+    summary: dict[str, Any] = {
         "n_events_analyzed": len(firing) if not firing.empty else 0,
         "n_bars": len(features),
         "below_min_n_events": below_min_n,

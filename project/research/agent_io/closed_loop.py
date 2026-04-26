@@ -18,10 +18,11 @@ import argparse
 import json
 import logging
 import time
+from collections.abc import Sequence
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Sequence
+from typing import Any
 
 import pandas as pd
 
@@ -72,15 +73,15 @@ class CycleResult:
     cycle_id: str
     timestamp: str
     proposals_planned: int
-    execution_run_id: Optional[str]
+    execution_run_id: str | None
     execution_status: str
-    reflection: Optional[Dict[str, Any]]
+    reflection: dict[str, Any] | None
     next_action: str
     belief_state_updated: bool
-    summary: Dict[str, Any] = field(default_factory=dict)
-    errors: List[str] = field(default_factory=list)
+    summary: dict[str, Any] = field(default_factory=dict)
+    errors: list[str] = field(default_factory=list)
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "program_id": self.program_id,
             "cycle_id": self.cycle_id,
@@ -107,10 +108,10 @@ class CampaignCycleRunner:
         self.cycle_id = self._generate_cycle_id()
 
     def _generate_cycle_id(self) -> str:
-        stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+        stamp = datetime.now(UTC).strftime("%Y%m%dT%H%M%SZ")
         return f"{self.config.program_id}_cycle_{stamp}"
 
-    def _load_belief_state(self) -> Dict[str, Any]:
+    def _load_belief_state(self) -> dict[str, Any]:
         path = self.paths.belief_state
         if path.exists():
             try:
@@ -125,13 +126,13 @@ class CampaignCycleRunner:
             "last_reflection_run_id": "",
         }
 
-    def _save_belief_state(self, belief_state: Dict[str, Any]) -> None:
+    def _save_belief_state(self, belief_state: dict[str, Any]) -> None:
         atomic_write_json(
             self.paths.belief_state,
             belief_state,
         )
 
-    def _load_next_actions(self) -> Dict[str, List[str]]:
+    def _load_next_actions(self) -> dict[str, list[str]]:
         path = self.paths.next_actions
         if path.exists():
             try:
@@ -140,13 +141,13 @@ class CampaignCycleRunner:
                 raise DataIntegrityError(f"Failed to load next actions {path}: {e}") from e
         return {"repair": [], "exploit": [], "retest": [], "explore_adjacent": [], "hold": []}
 
-    def _save_next_actions(self, next_actions: Dict[str, List[str]]) -> None:
+    def _save_next_actions(self, next_actions: dict[str, list[str]]) -> None:
         atomic_write_json(
             self.paths.next_actions,
             next_actions,
         )
 
-    def _build_reflection(self, run_id: str) -> Optional[Dict[str, Any]]:
+    def _build_reflection(self, run_id: str) -> dict[str, Any] | None:
         try:
             return build_run_reflection(
                 run_id=run_id,
@@ -201,9 +202,9 @@ class CampaignCycleRunner:
 
     def _update_belief_state(
         self,
-        belief_state: Dict[str, Any],
-        reflection: Dict[str, Any],
-    ) -> Dict[str, Any]:
+        belief_state: dict[str, Any],
+        reflection: dict[str, Any],
+    ) -> dict[str, Any]:
         """Update belief state based on reflection findings."""
         next_action = reflection.get("recommended_next_action", "hold")
         statistical_outcome = reflection.get("statistical_outcome", "")
@@ -233,9 +234,9 @@ class CampaignCycleRunner:
 
     def _update_next_actions(
         self,
-        next_actions: Dict[str, List[str]],
-        reflection: Dict[str, Any],
-    ) -> Dict[str, List[str]]:
+        next_actions: dict[str, list[str]],
+        reflection: dict[str, Any],
+    ) -> dict[str, list[str]]:
         """Rebuild next actions from current memory using the shared action policy."""
         tested_regions = read_memory_table(
             self.config.program_id, "tested_regions", data_root=self.data_root
@@ -255,7 +256,7 @@ class CampaignCycleRunner:
             rebuilt[key] = list(rebuilt.get(key, []))[:50]
         return rebuilt
 
-    def _record_reflection(self, reflection: Dict[str, Any]) -> None:
+    def _record_reflection(self, reflection: dict[str, Any]) -> None:
         """Record reflection to memory."""
         if not reflection:
             return
@@ -299,10 +300,10 @@ class CampaignCycleRunner:
 
     def run(self) -> CycleResult:
         """Execute a complete research cycle."""
-        errors: List[str] = []
-        execution_run_id: Optional[str] = None
+        errors: list[str] = []
+        execution_run_id: str | None = None
         execution_status = "skipped"
-        reflection: Optional[Dict[str, Any]] = None
+        reflection: dict[str, Any] | None = None
 
         try:
             planner_config = CampaignPlannerConfig(
@@ -321,7 +322,7 @@ class CampaignCycleRunner:
                 return CycleResult(
                     program_id=self.config.program_id,
                     cycle_id=self.cycle_id,
-                    timestamp=datetime.now(timezone.utc).isoformat(),
+                    timestamp=datetime.now(UTC).isoformat(),
                     proposals_planned=0,
                     execution_run_id=None,
                     execution_status=execution_status,
@@ -339,7 +340,7 @@ class CampaignCycleRunner:
                 return CycleResult(
                     program_id=self.config.program_id,
                     cycle_id=self.cycle_id,
-                    timestamp=datetime.now(timezone.utc).isoformat(),
+                    timestamp=datetime.now(UTC).isoformat(),
                     proposals_planned=len(plan.ranked_proposals),
                     execution_run_id=None,
                     execution_status=execution_status,
@@ -358,7 +359,7 @@ class CampaignCycleRunner:
                 return CycleResult(
                     program_id=self.config.program_id,
                     cycle_id=self.cycle_id,
-                    timestamp=datetime.now(timezone.utc).isoformat(),
+                    timestamp=datetime.now(UTC).isoformat(),
                     proposals_planned=len(plan.ranked_proposals),
                     execution_run_id=None,
                     execution_status=execution_status,
@@ -394,7 +395,7 @@ class CampaignCycleRunner:
                 return CycleResult(
                     program_id=self.config.program_id,
                     cycle_id=self.cycle_id,
-                    timestamp=datetime.now(timezone.utc).isoformat(),
+                    timestamp=datetime.now(UTC).isoformat(),
                     proposals_planned=len(plan.ranked_proposals),
                     execution_run_id=execution_run_id,
                     execution_status=execution_status,
@@ -434,7 +435,7 @@ class CampaignCycleRunner:
         return CycleResult(
             program_id=self.config.program_id,
             cycle_id=self.cycle_id,
-            timestamp=datetime.now(timezone.utc).isoformat(),
+            timestamp=datetime.now(UTC).isoformat(),
             proposals_planned=0,
             execution_run_id=execution_run_id,
             execution_status=execution_status,

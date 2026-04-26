@@ -1,7 +1,7 @@
 from __future__ import annotations
 
+from collections.abc import Iterable
 from dataclasses import dataclass
-from typing import Iterable, List
 
 from project.live.contracts.live_trade_context import LiveTradeContext
 from project.live.contracts.trade_intent import TradeIntent
@@ -13,7 +13,7 @@ from project.live.thesis_store import ThesisStore
 class ReplayResult:
     contexts_evaluated: int
     action_counts: dict[str, int]
-    intents: List[TradeIntent]
+    intents: list[TradeIntent]
 
 
 def replay_contexts(

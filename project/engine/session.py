@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import json
 import logging
-from typing import Any, Dict
+from typing import Any
 
 import pandas as pd
 
@@ -27,11 +27,11 @@ class BacktestSession:
         ensure_dir(self.engine_dir)
 
         # Results
-        self.strategy_results: Dict[str, pd.DataFrame] = {}
+        self.strategy_results: dict[str, pd.DataFrame] = {}
         self.portfolio_results: pd.DataFrame = pd.DataFrame()
-        self.metrics: Dict[str, Any] = {"strategies": {}, "portfolio": {}}
+        self.metrics: dict[str, Any] = {"strategies": {}, "portfolio": {}}
 
-    def record_strategy_result(self, strategy_name: str, df: pd.DataFrame, metrics: Dict[str, Any]):
+    def record_strategy_result(self, strategy_name: str, df: pd.DataFrame, metrics: dict[str, Any]):
         """Store strategy returns and metrics."""
         self.strategy_results[strategy_name] = df
         self.metrics["strategies"][strategy_name] = metrics

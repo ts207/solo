@@ -15,10 +15,11 @@ from __future__ import annotations
 
 import json
 import logging
+from collections.abc import Sequence
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
-from typing import Any, Dict, List, Sequence
+from typing import Any
 
 import numpy as np
 import pandas as pd
@@ -73,19 +74,19 @@ class FamilyDiscoveryResult:
     events_significant: int
     events_with_family_effect: int
     events_with_specific_effect: int
-    attributions: List[EventAttribution]
+    attributions: list[EventAttribution]
     family_level_q_value: float
     is_family_level_effect: bool
-    summary: Dict[str, Any]
-    errors: List[str] = field(default_factory=list)
+    summary: dict[str, Any]
+    errors: list[str] = field(default_factory=list)
 
 
 def _load_family_events(
     family: str,
     registry_root: Path,
-    event_weights: Dict[str, float],
-    tested_counts: Dict[str, int],
-) -> List[FamilyEventConfig]:
+    event_weights: dict[str, float],
+    tested_counts: dict[str, int],
+) -> list[FamilyEventConfig]:
     """Load all events in a family with their configurations."""
     from project.events.governance import get_event_governance_metadata
 
@@ -120,7 +121,7 @@ def _load_family_events(
     return configs
 
 
-def _load_event_weights(registry_root: Path) -> Dict[str, float]:
+def _load_event_weights(registry_root: Path) -> dict[str, float]:
     """Load event priority weights from search space."""
     try:
         from project.spec_registry.search_space import load_event_priority_weights
@@ -133,13 +134,13 @@ def _load_event_weights(registry_root: Path) -> Dict[str, float]:
     return {}
 
 
-def _load_tested_counts(program_id: str, data_root: Path) -> Dict[str, int]:
+def _load_tested_counts(program_id: str, data_root: Path) -> dict[str, int]:
     """Load tested counts per event from memory."""
     try:
         tested = read_memory_table(program_id, "tested_regions", data_root=data_root)
         if tested.empty:
             return {}
-        counts: Dict[str, int] = {}
+        counts: dict[str, int] = {}
         for event_type, count in tested["event_type"].value_counts().items():
             counts[str(event_type)] = int(count)
         return counts
@@ -157,7 +158,7 @@ def _load_avoid_region_keys(
     directions: Sequence[str],
     horizon_bars: Sequence[int],
     entry_lags: Sequence[int],
-) -> List[str]:
+) -> list[str]:
     try:
         tested = read_memory_table(program_id, "tested_regions", data_root=data_root)
     except Exception:
@@ -217,7 +218,7 @@ def _load_avoid_region_keys(
     )
 
 
-def _benjamini_hochberg(p_values: List[float]) -> List[float]:
+def _benjamini_hochberg(p_values: list[float]) -> list[float]:
     """
     Apply Benjamini-Hochberg FDR correction.
 
@@ -247,8 +248,8 @@ def _benjamini_hochberg(p_values: List[float]) -> List[float]:
 
 
 def _detect_effect_type(
-    event_q_values: Dict[str, float],
-    event_expectancies: Dict[str, float],
+    event_q_values: dict[str, float],
+    event_expectancies: dict[str, float],
     threshold: float = 0.10,
 ) -> tuple[bool, float]:
     """
@@ -309,9 +310,9 @@ def _compute_attribution_confidence(
 
 def _build_broad_proposal(
     family: str,
-    events: List[FamilyEventConfig],
-    config: "BroadDiscoveryConfig",
-) -> Dict[str, Any]:
+    events: list[FamilyEventConfig],
+    config: BroadDiscoveryConfig,
+) -> dict[str, Any]:
     """Build a proposal that tests all events in a family."""
     start, end = _default_date_scope(config.lookback_days)
     event_types = [e.event_type for e in events[: config.max_events_per_family]]
@@ -382,7 +383,7 @@ def _build_broad_proposal(
 def _default_date_scope(lookback_days: int) -> tuple[str, str]:
     from datetime import timedelta
 
-    end = datetime.now(timezone.utc).date()
+    end = datetime.now(UTC).date()
     start = end - timedelta(days=int(lookback_days))
     return start.isoformat(), end.isoformat()
 
@@ -392,12 +393,12 @@ def _parse_results_for_attribution(
     program_id: str,
     data_root: Path,
     family: str,
-    events_tested: List[str],
-) -> List[EventAttribution]:
+    events_tested: list[str],
+) -> list[EventAttribution]:
     """Parse run results and build per-event attribution."""
     from project.research.knowledge.memory import _read_best_available
 
-    results: List[EventAttribution] = []
+    results: list[EventAttribution] = []
     data_root = Path(data_root)
 
     promotion_path = (
@@ -411,8 +412,8 @@ def _parse_results_for_attribution(
     if df.empty:
         return results
 
-    event_q_values: Dict[str, List[float]] = {}
-    event_stats: Dict[str, Dict[str, Any]] = {}
+    event_q_values: dict[str, list[float]] = {}
+    event_stats: dict[str, dict[str, Any]] = {}
 
     for _, row in df.iterrows():
         event_type = str(row.get("event_type", "")).strip()
@@ -456,8 +457,8 @@ def _parse_results_for_attribution(
 
     adjusted_q_values = _benjamini_hochberg(q_values_for_fdr)
 
-    event_q_dict: Dict[str, float] = {}
-    event_exp_dict: Dict[str, float] = {}
+    event_q_dict: dict[str, float] = {}
+    event_exp_dict: dict[str, float] = {}
     for i, event_type in enumerate(events_tested):
         event_q_dict[event_type] = adjusted_q_values[i]
         if event_type in event_stats:
@@ -590,7 +591,7 @@ class BroadDiscoveryRunner:
 
     def discover(self) -> FamilyDiscoveryResult:
         """Execute a broad discovery run for the family."""
-        errors: List[str] = []
+        errors: list[str] = []
 
         events = _load_family_events(
             self.config.family,
@@ -603,7 +604,7 @@ class BroadDiscoveryRunner:
             return FamilyDiscoveryResult(
                 family=self.config.family,
                 run_id="",
-                timestamp=datetime.now(timezone.utc).isoformat(),
+                timestamp=datetime.now(UTC).isoformat(),
                 events_tested=0,
                 events_significant=0,
                 events_with_family_effect=0,
@@ -643,7 +644,7 @@ class BroadDiscoveryRunner:
             return FamilyDiscoveryResult(
                 family=self.config.family,
                 run_id="",
-                timestamp=datetime.now(timezone.utc).isoformat(),
+                timestamp=datetime.now(UTC).isoformat(),
                 events_tested=0,
                 events_significant=0,
                 events_with_family_effect=0,
@@ -665,7 +666,7 @@ class BroadDiscoveryRunner:
             return FamilyDiscoveryResult(
                 family=self.config.family,
                 run_id="",
-                timestamp=datetime.now(timezone.utc).isoformat(),
+                timestamp=datetime.now(UTC).isoformat(),
                 events_tested=len(events),
                 events_significant=0,
                 events_with_family_effect=0,
@@ -685,7 +686,7 @@ class BroadDiscoveryRunner:
             return FamilyDiscoveryResult(
                 family=self.config.family,
                 run_id="",
-                timestamp=datetime.now(timezone.utc).isoformat(),
+                timestamp=datetime.now(UTC).isoformat(),
                 events_tested=len(events),
                 events_significant=0,
                 events_with_family_effect=0,
@@ -726,7 +727,7 @@ class BroadDiscoveryRunner:
             return FamilyDiscoveryResult(
                 family=self.config.family,
                 run_id=run_id,
-                timestamp=datetime.now(timezone.utc).isoformat(),
+                timestamp=datetime.now(UTC).isoformat(),
                 events_tested=len(events),
                 events_significant=0,
                 events_with_family_effect=0,
@@ -754,7 +755,7 @@ class BroadDiscoveryRunner:
         result_obj = FamilyDiscoveryResult(
             family=self.config.family,
             run_id=run_id,
-            timestamp=datetime.now(timezone.utc).isoformat(),
+            timestamp=datetime.now(UTC).isoformat(),
             events_tested=len(events),
             events_significant=events_significant,
             events_with_family_effect=events_family_effect,

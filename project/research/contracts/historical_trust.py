@@ -1,7 +1,7 @@
 from __future__ import annotations
 
+from collections.abc import Iterable
 from dataclasses import dataclass
-from typing import Iterable
 
 HISTORICAL_TRUST_TRUSTED = "trusted_under_current_rules"
 HISTORICAL_TRUST_LEGACY = "legacy_but_interpretable"

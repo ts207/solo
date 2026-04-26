@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 
 @dataclass
@@ -12,12 +12,12 @@ class RunArtifactManifest:
     stage: str  # discover, validate, promote, deploy
     created_at: str
     schema_version: str = "v1"
-    upstream_run_ids: List[str] = field(default_factory=list)
-    artifacts: Dict[str, str] = field(default_factory=dict) # name -> path
-    config_hash: Optional[str] = None
-    git_sha: Optional[str] = None
+    upstream_run_ids: list[str] = field(default_factory=list)
+    artifacts: dict[str, str] = field(default_factory=dict) # name -> path
+    config_hash: str | None = None
+    git_sha: str | None = None
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return asdict(self)
 
     def persist(self, base_dir: Path):

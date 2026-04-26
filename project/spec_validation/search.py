@@ -1,28 +1,30 @@
 from __future__ import annotations
 
-from typing import Any, Dict, List, Optional, Sequence
 from pathlib import Path
+from typing import Any
+
 import yaml
 
 from project.domain.compiled_registry import get_domain_registry
 from project.spec_validation.ontology import get_event_ids_for_family, get_event_ids_for_regime
 
-def _load_yaml_at(root: Path, relative_path: str) -> Dict[str, Any]:
+
+def _load_yaml_at(root: Path, relative_path: str) -> dict[str, Any]:
     path = root / relative_path
     if not path.exists():
         return {}
-    with open(path, "r", encoding="utf-8") as f:
+    with open(path, encoding="utf-8") as f:
         return yaml.safe_load(f) or {}
 
-def validate_search_spec_doc(search_cfg: Dict[str, Any], source: str = "unknown", root: Path = Path(".")) -> None:
+def validate_search_spec_doc(search_cfg: dict[str, Any], source: str = "unknown", root: Path = Path(".")) -> None:
     if search_cfg.get("kind") not in ("search_spec", "search_space"):
         return
 
     # This still uses get_domain_registry() which is global
     registry = get_domain_registry()
-    
+
     resolve_templates(search_cfg)
-    
+
     if "entry_lag" in search_cfg:
         val = search_cfg["entry_lag"]
         if isinstance(val, (int, str)) and str(val) != "*":
@@ -47,7 +49,7 @@ def validate_search_spec_doc(search_cfg: Dict[str, Any], source: str = "unknown"
             if unsupported:
                 raise ValueError(f"Unsupported cost_profiles entries: {', '.join(unsupported)}")
 
-def resolve_templates(search_cfg: Dict[str, Any]) -> List[str]:
+def resolve_templates(search_cfg: dict[str, Any]) -> list[str]:
     registry = get_domain_registry()
     templates = search_cfg.get("expression_templates", search_cfg.get("templates", []))
     if templates == "*":
@@ -64,11 +66,11 @@ def resolve_templates(search_cfg: Dict[str, Any]) -> List[str]:
     }
 
     resolved = [templates] if isinstance(templates, str) else list(templates)
-    normalized: List[str] = []
+    normalized: list[str] = []
     seen: set[str] = set()
-    invalid_filter_templates: List[str] = []
-    invalid_execution_templates: List[str] = []
-    invalid_abstract_templates: List[str] = []
+    invalid_filter_templates: list[str] = []
+    invalid_execution_templates: list[str] = []
+    invalid_abstract_templates: list[str] = []
 
     for raw in resolved:
         token = str(raw).strip()
@@ -120,7 +122,7 @@ def resolve_templates(search_cfg: Dict[str, Any]) -> List[str]:
         )
     return normalized
 
-def resolve_entry_lags(search_cfg: Dict[str, Any]) -> List[int]:
+def resolve_entry_lags(search_cfg: dict[str, Any]) -> list[int]:
     lags = search_cfg.get("entry_lags", [search_cfg.get("entry_lag", 1)])
     if lags == "*":
          # Fallback to default
@@ -140,7 +142,7 @@ def resolve_entry_lags(search_cfg: Dict[str, Any]) -> List[int]:
             seen.add(lag)
     return normalized if normalized else [1]
 
-def expand_triggers(triggers: Dict[str, Any]) -> Dict[str, Any]:
+def expand_triggers(triggers: dict[str, Any]) -> dict[str, Any]:
     # Support being passed either the triggers dict or the whole spec
     actual_triggers = triggers.get("triggers", triggers) if "triggers" in triggers else triggers
 
@@ -162,7 +164,7 @@ def expand_triggers(triggers: Dict[str, Any]) -> Dict[str, Any]:
 
     # Build event_family_map so the generator can look up filter templates per event
     registry = get_domain_registry()
-    event_family_map: Dict[str, str] = {}
+    event_family_map: dict[str, str] = {}
     for eid in event_ids:
         spec = registry.get_event(eid)
         if spec is not None:
@@ -172,7 +174,7 @@ def expand_triggers(triggers: Dict[str, Any]) -> Dict[str, Any]:
 
     return {"events": sorted(list(event_ids)), "event_family_map": event_family_map}
 
-def resolve_filter_template_names(search_cfg: Dict[str, Any]) -> List[str]:
+def resolve_filter_template_names(search_cfg: dict[str, Any]) -> list[str]:
     raw = search_cfg.get("filter_templates", [])
     if raw == "*":
         registry = get_domain_registry()
@@ -181,16 +183,16 @@ def resolve_filter_template_names(search_cfg: Dict[str, Any]) -> List[str]:
         return []
     return [str(t).strip() for t in raw if str(t).strip()]
 
-def resolve_execution_template_names(search_cfg: Dict[str, Any]) -> List[str]:
+def resolve_execution_template_names(search_cfg: dict[str, Any]) -> list[str]:
     raw = search_cfg.get("execution_templates", [])
     if not isinstance(raw, list):
         return []
     return [str(t).strip() for t in raw if str(t).strip()]
 
-def resolve_filter_templates(family_name: str) -> List[Dict[str, Any]]:
+def resolve_filter_templates(family_name: str) -> list[dict[str, Any]]:
     """Return filter template dicts for a given event family name."""
     registry = get_domain_registry()
     return list(registry.family_filter_templates(family_name))
 
-def resolve_execution_templates(search_cfg: Dict[str, Any]) -> List[str]:
+def resolve_execution_templates(search_cfg: dict[str, Any]) -> list[str]:
     return resolve_execution_template_names(search_cfg)

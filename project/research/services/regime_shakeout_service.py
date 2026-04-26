@@ -5,10 +5,11 @@ import math
 import os
 import subprocess
 import time
+from collections.abc import Iterable, Mapping
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
-from typing import Any, Dict, Iterable, Mapping
+from typing import Any
 
 import pandas as pd
 import yaml
@@ -40,7 +41,7 @@ NEW_REGIME_FIELDS = (
     "regime_bucket",
     "routing_profile_id",
 )
-DEFAULT_AUDIT_THRESHOLDS: Dict[str, float] = {
+DEFAULT_AUDIT_THRESHOLDS: dict[str, float] = {
     "min_metadata_field_coverage": 0.99,
     "max_unknown_regime_rate": 0.01,
     "max_routing_profile_candidate_share": 0.90,
@@ -66,11 +67,11 @@ class ShakeoutSlice:
     subtypes: tuple[str, ...]
     phases: tuple[str, ...]
     evidence_modes: tuple[str, ...]
-    contexts: Dict[str, list[str]]
+    contexts: dict[str, list[str]]
 
 
 def _utc_now_iso() -> str:
-    return datetime.now(timezone.utc).isoformat()
+    return datetime.now(UTC).isoformat()
 
 
 def _slug(text: Any) -> str:
@@ -97,12 +98,12 @@ def _as_str_list(values: Any) -> list[str]:
     return out
 
 
-def _normalize_contexts(raw: Any) -> Dict[str, list[str]]:
+def _normalize_contexts(raw: Any) -> dict[str, list[str]]:
     if raw is None:
         return {}
     if not isinstance(raw, Mapping):
         raise ValueError("contexts must be a mapping of dimension -> allowed values")
-    out: Dict[str, list[str]] = {}
+    out: dict[str, list[str]] = {}
     for key, value in raw.items():
         name = str(key).strip()
         if not name:
@@ -111,11 +112,11 @@ def _normalize_contexts(raw: Any) -> Dict[str, list[str]]:
     return out
 
 
-def _split_knobs(raw: Any) -> tuple[Dict[str, Any], Dict[str, Any]]:
+def _split_knobs(raw: Any) -> tuple[dict[str, Any], dict[str, Any]]:
     if not isinstance(raw, Mapping):
         return {}, {}
-    proposal_knobs: Dict[str, Any] = {}
-    runtime_overrides: Dict[str, Any] = {}
+    proposal_knobs: dict[str, Any] = {}
+    runtime_overrides: dict[str, Any] = {}
     for key, value in raw.items():
         name = str(key).strip()
         if not name:
@@ -127,7 +128,7 @@ def _split_knobs(raw: Any) -> tuple[Dict[str, Any], Dict[str, Any]]:
     return proposal_knobs, runtime_overrides
 
 
-def load_regime_shakeout_matrix(path: Path) -> Dict[str, Any]:
+def load_regime_shakeout_matrix(path: Path) -> dict[str, Any]:
     if not path.exists():
         raise FileNotFoundError(f"Regime shakeout matrix not found: {path}")
     payload = yaml.safe_load(path.read_text(encoding="utf-8"))
@@ -323,7 +324,7 @@ def build_shakeout_proposal_payload(
     *,
     matrix: Mapping[str, Any],
     slice_def: ShakeoutSlice,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     defaults = dict(matrix.get("defaults", {}))
     proposal_knobs, _runtime_overrides = _split_knobs(defaults.get("knobs", {}))
     base_program_id = str(
@@ -341,7 +342,7 @@ def build_shakeout_proposal_payload(
         promotion_profile=promotion_profile,
         run_mode=run_mode,
     )
-    payload: Dict[str, Any] = {
+    payload: dict[str, Any] = {
         "program_id": program_id,
         "objective_name": str(defaults.get("objective_name", "retail_profitability")).strip()
         or "retail_profitability",
@@ -400,7 +401,7 @@ def _merged_run_all_overrides(
     *,
     matrix: Mapping[str, Any],
     translation: Mapping[str, Any],
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     defaults = dict(matrix.get("defaults", {}))
     _proposal_knobs, runtime_from_knobs = _split_knobs(defaults.get("knobs", {}))
     explicit_runtime = defaults.get("run_all_overrides", {})
@@ -411,7 +412,7 @@ def _merged_run_all_overrides(
     return merged
 
 
-def _run_env(*, data_root: Path) -> Dict[str, str]:
+def _run_env(*, data_root: Path) -> dict[str, str]:
     env = os.environ.copy()
     repo_root = str(PROJECT_ROOT.parent)
     existing_pythonpath = str(env.get("PYTHONPATH", "")).strip()
@@ -436,7 +437,7 @@ def _execute_command(
     )
 
 
-def _safe_read_json(path: Path) -> Dict[str, Any]:
+def _safe_read_json(path: Path) -> dict[str, Any]:
     if not path.exists():
         return {}
     try:
@@ -479,7 +480,7 @@ def _promotion_decisions_path(data_root: Path, run_id: str) -> Path:
 
 
 def _entropy(values: Iterable[str]) -> float:
-    counts: Dict[str, int] = {}
+    counts: dict[str, int] = {}
     total = 0
     for raw in values:
         token = str(raw).strip()
@@ -495,7 +496,7 @@ def _entropy(values: Iterable[str]) -> float:
     return float(entropy / max_entropy) if max_entropy > 0.0 else 0.0
 
 
-def _distribution(series: pd.Series) -> Dict[str, int]:
+def _distribution(series: pd.Series) -> dict[str, int]:
     if series.empty:
         return {}
     counts = series.astype(str).str.strip()
@@ -513,10 +514,10 @@ def _max_share(series: pd.Series) -> float:
     return float(counts.iloc[0] / max(int(counts.sum()), 1))
 
 
-def _field_non_null_rates(frame: pd.DataFrame) -> Dict[str, float]:
+def _field_non_null_rates(frame: pd.DataFrame) -> dict[str, float]:
     if frame.empty:
         return {field: 0.0 for field in NEW_REGIME_FIELDS}
-    rates: Dict[str, float] = {}
+    rates: dict[str, float] = {}
     for field in NEW_REGIME_FIELDS:
         if field not in frame.columns:
             rates[field] = 0.0
@@ -548,7 +549,7 @@ def summarize_shakeout_run(
     data_root: Path,
     run_id: str,
     thresholds: Mapping[str, Any] | None = None,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     phase2, candidate_surface = _candidate_surface_frame(data_root, run_id)
     promoted = _safe_read_parquet(_promoted_path(data_root, run_id))
     promotion_decisions = _safe_read_parquet(_promotion_decisions_path(data_root, run_id))
@@ -557,8 +558,8 @@ def summarize_shakeout_run(
     )
     candidate_rates = _field_non_null_rates(phase2)
     promoted_rates = _field_non_null_rates(promoted)
-    candidate_count = int(len(phase2))
-    promoted_count = int(len(promoted))
+    candidate_count = len(phase2)
+    promoted_count = len(promoted)
     represented_regimes = (
         phase2.get("canonical_regime", pd.Series(dtype="object")).astype(str).str.strip()
     )
@@ -634,7 +635,7 @@ def summarize_shakeout_run(
         "topk_promoted_after_cost_expectancy_mean": _topk_after_cost_mean(promoted, k=10),
         "regime_effectiveness_status": str(regime_summary.get("status", "")).strip(),
         "regime_effectiveness_rows": int(regime_summary.get("scorecard_rows", 0) or 0),
-        "promotion_decision_rows": int(len(promotion_decisions)),
+        "promotion_decision_rows": len(promotion_decisions),
     }
     resolved_thresholds = dict(DEFAULT_AUDIT_THRESHOLDS)
     if isinstance(thresholds, Mapping):
@@ -682,13 +683,13 @@ def summarize_shakeout_run_group(
     data_root: Path,
     run_ids: Iterable[str],
     thresholds: Mapping[str, Any] | None = None,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     run_id_list = [str(run_id).strip() for run_id in run_ids if str(run_id).strip()]
     candidate_frames: list[pd.DataFrame] = []
     candidate_surfaces: list[str] = []
     promoted_frames: list[pd.DataFrame] = []
     promotion_frames: list[pd.DataFrame] = []
-    regime_summaries: list[Dict[str, Any]] = []
+    regime_summaries: list[dict[str, Any]] = []
     for run_id in run_id_list:
         frame, surface = _candidate_surface_frame(data_root, run_id)
         candidate_frames.append(frame)
@@ -720,8 +721,8 @@ def summarize_shakeout_run_group(
     representative_summary = next((summary for summary in regime_summaries if summary), {})
     candidate_rates = _field_non_null_rates(phase2)
     promoted_rates = _field_non_null_rates(promoted)
-    candidate_count = int(len(phase2))
-    promoted_count = int(len(promoted))
+    candidate_count = len(phase2)
+    promoted_count = len(promoted)
     represented_regimes = (
         phase2.get("canonical_regime", pd.Series(dtype="object")).astype(str).str.strip()
     )
@@ -797,7 +798,7 @@ def summarize_shakeout_run_group(
         "topk_promoted_after_cost_expectancy_mean": _topk_after_cost_mean(promoted, k=10),
         "regime_effectiveness_status": str(representative_summary.get("status", "")).strip(),
         "regime_effectiveness_rows": int(scorecard_rows),
-        "promotion_decision_rows": int(len(promotion_decisions)),
+        "promotion_decision_rows": len(promotion_decisions),
         "grouped_run_ids": run_id_list,
     }
     resolved_thresholds = dict(DEFAULT_AUDIT_THRESHOLDS)
@@ -846,10 +847,10 @@ def build_shakeout_audit(
     matrix: Mapping[str, Any],
     slices: Iterable[ShakeoutSlice],
     data_root: Path,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     thresholds = dict(matrix.get("defaults", {})).get("audit_thresholds", {})
     slices_by_run = {slice_def.run_id: slice_def for slice_def in slices}
-    run_summaries: Dict[str, Any] = {}
+    run_summaries: dict[str, Any] = {}
     for run_id in sorted(slices_by_run):
         edge_path = _edge_candidates_path(data_root, run_id)
         phase2_path = _phase2_path(data_root, run_id)
@@ -862,7 +863,7 @@ def build_shakeout_audit(
         )
 
     pair_reports: list[dict[str, Any]] = []
-    grouped: Dict[str, Dict[str, Any]] = {}
+    grouped: dict[str, dict[str, Any]] = {}
     for slice_def in slices:
         bucket = grouped.setdefault(slice_def.pair_id, {"regime_first": "", "raw_control": []})
         if slice_def.slice_type == "regime_first":
@@ -979,7 +980,7 @@ def render_shakeout_audit_markdown(audit: Mapping[str, Any]) -> str:
     return "\n".join(lines)
 
 
-def write_shakeout_audit(*, out_dir: Path, audit: Mapping[str, Any]) -> Dict[str, Path]:
+def write_shakeout_audit(*, out_dir: Path, audit: Mapping[str, Any]) -> dict[str, Path]:
     ensure_dir(out_dir)
     json_path = out_dir / "regime_shakeout_audit.json"
     md_path = out_dir / "regime_shakeout_audit.md"
@@ -988,7 +989,7 @@ def write_shakeout_audit(*, out_dir: Path, audit: Mapping[str, Any]) -> Dict[str
     return {"json": json_path, "markdown": md_path}
 
 
-def _load_existing_manifest_results(out_dir: Path) -> Dict[str, Dict[str, Any]]:
+def _load_existing_manifest_results(out_dir: Path) -> dict[str, dict[str, Any]]:
     manifest_path = out_dir / "regime_shakeout_manifest.json"
     if not manifest_path.exists():
         return {}
@@ -999,7 +1000,7 @@ def _load_existing_manifest_results(out_dir: Path) -> Dict[str, Dict[str, Any]]:
     rows = payload.get("results", []) if isinstance(payload, dict) else []
     if not isinstance(rows, list):
         return {}
-    out: Dict[str, Dict[str, Any]] = {}
+    out: dict[str, dict[str, Any]] = {}
     for row in rows:
         if not isinstance(row, dict):
             continue
@@ -1056,7 +1057,7 @@ def run_regime_shakeout_matrix(
     plan_only: bool,
     dry_run: bool,
     check: bool,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     matrix = load_regime_shakeout_matrix(matrix_path)
     slices = materialize_regime_shakeout_slices(matrix)
     ensure_dir(out_dir)
@@ -1092,7 +1093,7 @@ def run_regime_shakeout_matrix(
             plan_only=bool(plan_only),
             dry_run=bool(dry_run),
         )
-        row: Dict[str, Any] = {
+        row: dict[str, Any] = {
             "pair_id": slice_def.pair_id,
             "run_id": slice_def.run_id,
             "slice_type": slice_def.slice_type,
@@ -1145,7 +1146,7 @@ def run_regime_shakeout_matrix(
             results=manifest_rows,
         )
 
-    audit_paths: Dict[str, str] = {}
+    audit_paths: dict[str, str] = {}
     if execute and not plan_only and not dry_run:
         audit = build_shakeout_audit(matrix=matrix, slices=slices, data_root=data_root)
         written = write_shakeout_audit(out_dir=out_dir, audit=audit)
@@ -1177,5 +1178,5 @@ def run_regime_shakeout_matrix(
 
 def default_shakeout_out_dir(*, matrix_id: str, data_root: Path | None = None) -> Path:
     root = Path(data_root) if data_root is not None else get_data_root()
-    stamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
+    stamp = datetime.now(UTC).strftime("%Y%m%d_%H%M%S")
     return root / "reports" / "regime_shakeout" / f"{_slug(matrix_id)}_{stamp}"

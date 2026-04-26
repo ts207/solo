@@ -3,15 +3,16 @@ from __future__ import annotations
 import hashlib
 import json
 import math
+from collections.abc import Iterable, Mapping
 from pathlib import Path
-from typing import Any, Dict, Iterable, List, Mapping
+from typing import Any
 
 from project.specs.invariants import load_runtime_invariants_specs
 
 DEFAULT_HASH_SCHEMA_VERSION = "runtime_hash_v1"
 
 
-def load_hashing_spec(repo_root: Path) -> Dict[str, Any]:
+def load_hashing_spec(repo_root: Path) -> dict[str, Any]:
     specs = load_runtime_invariants_specs(Path(repo_root))
     raw = specs.get("hashing", {})
     if not isinstance(raw, dict):
@@ -77,7 +78,7 @@ def hash_records(
     hashing_spec: Mapping[str, Any],
 ) -> str:
     sort_keys = hashing_spec.get("record_sort_keys")
-    ordered: List[Mapping[str, Any]]
+    ordered: list[Mapping[str, Any]]
     records_list = list(records)
     if isinstance(sort_keys, list) and sort_keys:
         ordered = sorted(records_list, key=lambda rec: _record_sort_key(rec, sort_keys))
@@ -97,8 +98,8 @@ def hash_file_sha256(path: Path) -> str:
     return "sha256:" + hasher.hexdigest()
 
 
-def compute_artifact_hashes(paths: Iterable[Path]) -> Dict[str, str]:
-    out: Dict[str, str] = {}
+def compute_artifact_hashes(paths: Iterable[Path]) -> dict[str, str]:
+    out: dict[str, str] = {}
     for path in paths:
         p = Path(path)
         if not p.exists() or not p.is_file():

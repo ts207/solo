@@ -3,7 +3,7 @@ from __future__ import annotations
 import hashlib
 import json
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from project.domain.compiled_registry import get_domain_registry
 
@@ -20,25 +20,25 @@ class TriggerType:
 @dataclass(frozen=True)
 class TriggerSpec:
     trigger_type: str
-    event_id: Optional[str] = None
-    event_direction: Optional[str] = None
-    state_id: Optional[str] = None
+    event_id: str | None = None
+    event_direction: str | None = None
+    state_id: str | None = None
     state_active: bool = True
-    from_state: Optional[str] = None
-    to_state: Optional[str] = None
-    feature: Optional[str] = None
-    operator: Optional[str] = None
-    threshold: Optional[float] = None
-    sequence_id: Optional[str] = None
-    events: Optional[List[str]] = None
-    max_gap: Optional[List[int]] = None
-    interaction_id: Optional[str] = None
-    left: Optional[str] = None
-    right: Optional[str] = None
-    left_direction: Optional[str] = None
-    right_direction: Optional[str] = None
-    op: Optional[str] = None
-    lag: Optional[int] = None
+    from_state: str | None = None
+    to_state: str | None = None
+    feature: str | None = None
+    operator: str | None = None
+    threshold: float | None = None
+    sequence_id: str | None = None
+    events: list[str] | None = None
+    max_gap: list[int] | None = None
+    interaction_id: str | None = None
+    left: str | None = None
+    right: str | None = None
+    left_direction: str | None = None
+    right_direction: str | None = None
+    op: str | None = None
+    lag: int | None = None
     _enable_validation: bool = field(default=True, init=False, repr=False)
 
     def validate(self) -> None:
@@ -123,9 +123,9 @@ class TriggerSpec:
         else:
             raise ValueError(f"Unknown trigger_type: {self.trigger_type!r}")
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         t = self.trigger_type
-        d: Dict[str, Any] = {"trigger_type": t}
+        d: dict[str, Any] = {"trigger_type": t}
         if t == TriggerType.EVENT:
             d["event_id"] = self.event_id
             if self.event_direction:
@@ -174,7 +174,7 @@ class TriggerSpec:
         return f"unknown:{t}"
 
     @classmethod
-    def event(cls, event_id: str, *, event_direction: str | None = None) -> "TriggerSpec":
+    def event(cls, event_id: str, *, event_direction: str | None = None) -> TriggerSpec:
         return cls(
             trigger_type=TriggerType.EVENT,
             event_id=event_id.upper().strip(),
@@ -182,13 +182,13 @@ class TriggerSpec:
         )
 
     @classmethod
-    def state(cls, state_id: str, active: bool = True) -> "TriggerSpec":
+    def state(cls, state_id: str, active: bool = True) -> TriggerSpec:
         return cls(
             trigger_type=TriggerType.STATE, state_id=state_id.upper().strip(), state_active=active
         )
 
     @classmethod
-    def transition(cls, from_state: str, to_state: str) -> "TriggerSpec":
+    def transition(cls, from_state: str, to_state: str) -> TriggerSpec:
         return cls(
             trigger_type=TriggerType.TRANSITION,
             from_state=from_state.upper().strip(),
@@ -196,7 +196,7 @@ class TriggerSpec:
         )
 
     @classmethod
-    def feature_predicate(cls, feature: str, operator: str, threshold: float) -> "TriggerSpec":
+    def feature_predicate(cls, feature: str, operator: str, threshold: float) -> TriggerSpec:
         return cls(
             trigger_type=TriggerType.FEATURE_PREDICATE,
             feature=feature.strip(),
@@ -206,8 +206,8 @@ class TriggerSpec:
 
     @classmethod
     def sequence(
-        cls, sequence_id: str, events: List[str], max_gap: Optional[List[int]] = None
-    ) -> "TriggerSpec":
+        cls, sequence_id: str, events: list[str], max_gap: list[int] | None = None
+    ) -> TriggerSpec:
         return cls(
             trigger_type=TriggerType.SEQUENCE,
             sequence_id=sequence_id.upper().strip(),
@@ -226,7 +226,7 @@ class TriggerSpec:
         *,
         left_direction: str | None = None,
         right_direction: str | None = None,
-    ) -> "TriggerSpec":
+    ) -> TriggerSpec:
         return cls(
             trigger_type=TriggerType.INTERACTION,
             interaction_id=interaction_id.upper().strip(),
@@ -239,7 +239,7 @@ class TriggerSpec:
         )
 
     @classmethod
-    def from_dict(cls, d: Dict[str, Any]) -> "TriggerSpec":
+    def from_dict(cls, d: dict[str, Any]) -> TriggerSpec:
         return cls(**{k: v for k, v in d.items() if k in cls.__dataclass_fields__})
 
     def __post_init__(self):
@@ -288,14 +288,14 @@ class HypothesisSpec:
     direction: str
     horizon: str
     template_id: str
-    context: Optional[Dict[str, str]] = field(default=None)
-    feature_condition: Optional[TriggerSpec] = field(default=None)
-    filter_template_id: Optional[str] = field(default=None)
+    context: dict[str, str] | None = field(default=None)
+    feature_condition: TriggerSpec | None = field(default=None)
+    filter_template_id: str | None = field(default=None)
     entry_lag: int = 1
     cost_profile: str = "standard"
     objective_profile: str = "mean_return"
     _enable_validation: bool = field(default=True, init=False, repr=False)
-    _hid: Optional[str] = field(default=None, init=False, repr=False)
+    _hid: str | None = field(default=None, init=False, repr=False)
 
     def __post_init__(self):
         if not self._enable_validation:
@@ -317,8 +317,8 @@ class HypothesisSpec:
             self, "_hid", "hyp_" + hashlib.sha256(payload.encode("utf-8")).hexdigest()[:20]
         )
 
-    def to_dict(self) -> Dict[str, Any]:
-        d: Dict[str, Any] = {
+    def to_dict(self) -> dict[str, Any]:
+        d: dict[str, Any] = {
             "trigger": self.trigger.to_dict(),
             "direction": self.direction,
             "horizon": self.horizon,
@@ -343,7 +343,7 @@ class HypothesisSpec:
             ).hexdigest()[:20]
         )
 
-    def semantic_branch_key(self) -> Dict[str, Any]:
+    def semantic_branch_key(self) -> dict[str, Any]:
         registry = get_domain_registry()
         operator = registry.get_operator(self.template_id)
         operator_raw = operator.raw if operator is not None and isinstance(operator.raw, dict) else {}
@@ -375,7 +375,7 @@ class HypothesisSpec:
         return "|".join(parts)
 
     @classmethod
-    def from_dict(cls, d: Dict[str, Any]) -> "HypothesisSpec":
+    def from_dict(cls, d: dict[str, Any]) -> HypothesisSpec:
         trigger = TriggerSpec.from_dict(d["trigger"])
         fc = TriggerSpec.from_dict(d["feature_condition"]) if "feature_condition" in d else None
         return cls(

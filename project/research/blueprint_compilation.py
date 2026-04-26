@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import logging
 import re
-from typing import Any, Dict, List, Tuple
+from typing import Any
 
 import numpy as np
 
@@ -65,7 +65,7 @@ def _coerce_bps(value: Any) -> float | None:
     return float(numeric)
 
 
-def _resolve_expected_sizing_inputs(row: Dict[str, Any]) -> tuple[float | None, float | None]:
+def _resolve_expected_sizing_inputs(row: dict[str, Any]) -> tuple[float | None, float | None]:
     """Extract expected_return_bps and expected_adverse_bps from a candidate row.
 
     Returns (expected_return_bps, expected_adverse_bps).
@@ -87,8 +87,8 @@ def _resolve_expected_sizing_inputs(row: Dict[str, Any]) -> tuple[float | None, 
 
 
 def _parse_symbol_scope(
-    row: Dict[str, Any],
-    run_symbols: List[str],
+    row: dict[str, Any],
+    run_symbols: list[str],
     condition_symbol_override: str | None = None,
 ) -> SymbolScopeSpec:
     candidate_symbol = (
@@ -117,7 +117,7 @@ def _parse_symbol_scope(
     )
 
 
-def _derive_time_stop(half_life: np.ndarray, row: Dict[str, Any]) -> int:
+def _derive_time_stop(half_life: np.ndarray, row: dict[str, Any]) -> int:
     policy = load_blueprint_policy().get("time_stop", {})
     if half_life.size:
         val = int(round(float(np.nanmedian(half_life))))
@@ -132,7 +132,7 @@ def _derive_time_stop(half_life: np.ndarray, row: Dict[str, Any]) -> int:
     )
 
 
-def _derive_stop_target(stats: Dict[str, np.ndarray], row: Dict[str, Any]) -> Tuple[float, float]:
+def _derive_stop_target(stats: dict[str, np.ndarray], row: dict[str, Any]) -> tuple[float, float]:
     policy = load_blueprint_policy().get("stop_target", {})
     adverse = stats.get("adverse", np.array([]))
     favorable = stats.get("favorable", np.array([]))
@@ -171,12 +171,12 @@ def _derive_stop_target(stats: Dict[str, np.ndarray], row: Dict[str, Any]) -> Tu
 
 
 def _entry_from_row(
-    row: Dict[str, Any],
+    row: dict[str, Any],
     event_type: str,
     time_stop_bars: int,
-    run_symbols: List[str],
+    run_symbols: list[str],
     candidate_id: str,
-) -> Tuple[EntrySpec, str | None, int]:
+) -> tuple[EntrySpec, str | None, int]:
     policy = event_policy(event_type)
     robustness = safe_float(row.get("robustness_score"), np.nan)
 
@@ -216,7 +216,7 @@ def _entry_from_row(
     )
 
 
-def _sizing_from_row(row: Dict[str, Any]) -> SizingSpec:
+def _sizing_from_row(row: dict[str, Any]) -> SizingSpec:
     policy = load_blueprint_policy().get("sizing", {})
     robustness = safe_float(row.get("robustness_score"), np.nan)
     capacity = safe_float(row.get("capacity_proxy"), 0.0)
@@ -267,7 +267,7 @@ def _sizing_from_row(row: Dict[str, Any]) -> SizingSpec:
 
 
 def _evaluation_from_row(
-    row: Dict[str, Any], fees_bps: float, slippage_bps: float
+    row: dict[str, Any], fees_bps: float, slippage_bps: float
 ) -> EvaluationSpec:
     n_events = safe_int(row.get("n_events", row.get("sample_size", 0)), 0)
     min_trades = int(max(20, min(200, n_events // 2 if n_events else 20)))
@@ -290,7 +290,7 @@ def _evaluation_from_row(
     )
 
 
-def _execution_from_row(row: Dict[str, Any]) -> ExecutionSpec:
+def _execution_from_row(row: dict[str, Any]) -> ExecutionSpec:
     """
     Derive execution parameters from row or use defaults.
     """
@@ -310,10 +310,10 @@ def _execution_from_row(row: Dict[str, Any]) -> ExecutionSpec:
 
 
 def _merge_overlays(
-    policy_overlays: List[OverlaySpec], action_overlays: List[OverlaySpec]
-) -> List[OverlaySpec]:
-    by_name: Dict[str, OverlaySpec] = {}
-    order: List[str] = []
+    policy_overlays: list[OverlaySpec], action_overlays: list[OverlaySpec]
+) -> list[OverlaySpec]:
+    by_name: dict[str, OverlaySpec] = {}
+    order: list[str] = []
 
     for overlay in policy_overlays:
         if overlay.name not in by_name:
@@ -328,20 +328,20 @@ def _merge_overlays(
 
 
 def compile_blueprint(
-    merged_row: Dict[str, Any],
+    merged_row: dict[str, Any],
     run_id: str,
     *,
-    run_symbols: List[str],
-    stats: Dict[str, np.ndarray],
+    run_symbols: list[str],
+    stats: dict[str, np.ndarray],
     fees_bps: float,
     slippage_bps: float,
     ontology_spec_hash_value: str,
     cost_config_digest: str,
-    operator_registry: Dict[str, Dict[str, Any]] | None = None,
+    operator_registry: dict[str, dict[str, Any]] | None = None,
     min_events: int = 100,
     compiler_version: str = "strategy_dsl_v1",
     deterministic_ts: str = "1970-01-01T00:00:00Z",
-) -> Tuple[Blueprint, int]:
+) -> tuple[Blueprint, int]:
     """
     Compiles a research candidate row into a validated Strategy DSL Blueprint.
     This is the canonical business logic for blueprint generation.

@@ -9,11 +9,11 @@ from project.events.detectors.transition import TransitionDetector
 
 __all__ = [
     "BaseEventDetector",
+    "CompositeDetector",
+    "DislocationDetector",
+    "EpisodeDetector",
+    "EventInteractionDetector",
+    "EventSequenceDetector",
     "ThresholdDetector",
     "TransitionDetector",
-    "EpisodeDetector",
-    "DislocationDetector",
-    "CompositeDetector",
-    "EventSequenceDetector",
-    "EventInteractionDetector",
 ]

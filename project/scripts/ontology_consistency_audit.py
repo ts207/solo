@@ -5,7 +5,7 @@ import json
 import re
 import sys
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any
 
 import yaml
 
@@ -25,7 +25,7 @@ from project.specs.ontology import (
 )
 
 
-def _load_yaml(path: Path) -> Dict[str, Any]:
+def _load_yaml(path: Path) -> dict[str, Any]:
     if not path.exists():
         return {}
     payload = yaml.safe_load(path.read_text(encoding="utf-8"))
@@ -36,8 +36,8 @@ def _norm(value: Any) -> str:
     return str(value or "").strip().upper()
 
 
-def _iter_family_events(doc: Dict[str, Any]) -> List[str]:
-    out: List[str] = []
+def _iter_family_events(doc: dict[str, Any]) -> list[str]:
+    out: list[str] = []
     families = doc.get("families", {})
     if not isinstance(families, dict):
         return out
@@ -68,12 +68,12 @@ def _iter_family_events(doc: Dict[str, Any]) -> List[str]:
     return out
 
 
-def _iter_canonical_family_events(doc: Dict[str, Any]) -> List[str]:
+def _iter_canonical_family_events(doc: dict[str, Any]) -> list[str]:
     """Return events with lifecycle == 'active' from the taxonomy/canonical registry.
 
     Falls back to treating all string-format events as active (legacy docs).
     """
-    out: List[str] = []
+    out: list[str] = []
     families = doc.get("families", {})
     if not isinstance(families, dict):
         return out
@@ -106,7 +106,7 @@ def _iter_canonical_family_events(doc: Dict[str, Any]) -> List[str]:
     return out
 
 
-def _collect_events_from_list(doc: Dict[str, Any], key: str) -> set[str]:
+def _collect_events_from_list(doc: dict[str, Any], key: str) -> set[str]:
     out: set[str] = set()
     values = doc.get(key, [])
     if isinstance(values, list):
@@ -114,7 +114,7 @@ def _collect_events_from_list(doc: Dict[str, Any], key: str) -> set[str]:
     return out
 
 
-def _collect_declared_implemented(doc: Dict[str, Any]) -> set[str]:
+def _collect_declared_implemented(doc: dict[str, Any]) -> set[str]:
     out = _collect_events_from_list(doc, "implemented_events") | _collect_events_from_list(
         doc, "implemented_event_types"
     )
@@ -146,7 +146,7 @@ def _collect_declared_implemented(doc: Dict[str, Any]) -> set[str]:
     return {ev for ev in out if ev}
 
 
-def _collect_planned(doc: Dict[str, Any]) -> set[str]:
+def _collect_planned(doc: dict[str, Any]) -> set[str]:
     out = _collect_events_from_list(doc, "planned_events") | _collect_events_from_list(
         doc, "planned_event_types"
     )
@@ -178,8 +178,8 @@ def _collect_planned(doc: Dict[str, Any]) -> set[str]:
     return {ev for ev in out if ev}
 
 
-def _active_event_yaml_specs(spec_dir: Path) -> Dict[str, Dict[str, Any]]:
-    specs: Dict[str, Dict[str, Any]] = {}
+def _active_event_yaml_specs(spec_dir: Path) -> dict[str, dict[str, Any]]:
+    specs: dict[str, dict[str, Any]] = {}
     for path in sorted(spec_dir.glob("*.yaml")):
         if path.name == "canonical_event_registry.yaml":
             continue
@@ -206,7 +206,7 @@ def _script_declares_event_type(path: Path) -> bool:
     return any(re.search(p, text) for p in patterns)
 
 
-def run_audit(repo_root: Path) -> Dict[str, Any]:
+def run_audit(repo_root: Path) -> dict[str, Any]:
     repo_root = Path(repo_root).resolve()
     project_root = repo_root / "project"
     spec_paths = ontology_spec_paths(repo_root)
@@ -222,7 +222,7 @@ def run_audit(repo_root: Path) -> Dict[str, Any]:
     active_specs_without_registry = sorted(set(active_spec_events) - set(registry_backed))
 
     chain_events = sorted({_norm(ev) for ev, _, _ in PHASE2_EVENT_CHAIN if _norm(ev)})
-    chain_map: Dict[str, str] = {}
+    chain_map: dict[str, str] = {}
     for ev, script, _ in PHASE2_EVENT_CHAIN:
         event = _norm(ev)
         if event:
@@ -231,7 +231,7 @@ def run_audit(repo_root: Path) -> Dict[str, Any]:
     missing_phase2_chain_entries = sorted(set(registry_backed) - set(chain_events))
     chain_entries_with_missing_specs = sorted(set(chain_events) - set(registry_backed))
 
-    missing_analyzer_per_event: Dict[str, str] = {}
+    missing_analyzer_per_event: dict[str, str] = {}
     for ev in registry_backed:
         script_name = chain_map.get(ev, "")
         if not script_name:
@@ -241,10 +241,10 @@ def run_audit(repo_root: Path) -> Dict[str, Any]:
         if not script_path.exists():
             missing_analyzer_per_event[ev] = f"missing_script:{script_name}"
 
-    scripts_to_events: Dict[str, List[str]] = {}
+    scripts_to_events: dict[str, list[str]] = {}
     for ev, script_name in chain_map.items():
         scripts_to_events.setdefault(script_name, []).append(ev)
-    multi_type_analyzers_missing_event_type: Dict[str, List[str]] = {}
+    multi_type_analyzers_missing_event_type: dict[str, list[str]] = {}
     for script_name, events in sorted(scripts_to_events.items()):
         if len(events) <= 1:
             continue
@@ -308,7 +308,7 @@ def run_audit(repo_root: Path) -> Dict[str, Any]:
         state_id: state_id_to_context_column(state_id) for state_id in registry_materialized_ids
     }
 
-    failures: List[str] = []
+    failures: list[str] = []
     if missing_phase2_chain_entries:
         failures.append(f"missing_phase2_chain_entries={','.join(missing_phase2_chain_entries)}")
     if chain_entries_with_missing_specs:
@@ -381,7 +381,7 @@ def run_audit(repo_root: Path) -> Dict[str, Any]:
     }
 
 
-def _print_text(report: Dict[str, Any]) -> None:
+def _print_text(report: dict[str, Any]) -> None:
     counts = report.get("counts", {})
     implemented = report.get("implemented_contract", {})
     backlog = report.get("ontology_backlog", {})

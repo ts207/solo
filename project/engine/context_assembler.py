@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Dict
 
 import numpy as np
 import pandas as pd
@@ -151,7 +150,7 @@ def merge_event_flags(features: pd.DataFrame, event_flags: pd.DataFrame | None) 
 def merge_event_features(
     features: pd.DataFrame,
     event_features: pd.DataFrame | None,
-    ffill_limit: int | Dict[str, int] = 12,
+    ffill_limit: int | dict[str, int] = 12,
 ) -> pd.DataFrame:
     if event_features is None or event_features.empty:
         return features
@@ -186,8 +185,8 @@ def assemble_symbol_context(
     end_ts: pd.Timestamp | None = None,
     event_flags: pd.DataFrame | None = None,
     event_features: pd.DataFrame | None = None,
-    event_feature_ffill_bars: int | Dict[str, int] = 12,
-    higher_timeframe_features: Dict[str, pd.DataFrame] | None = None,
+    event_feature_ffill_bars: int | dict[str, int] = 12,
+    higher_timeframe_features: dict[str, pd.DataFrame] | None = None,
 ) -> pd.DataFrame:
     context = load_context_data(data_root, symbol, run_id=run_id, timeframe=timeframe)
     if start_ts is not None:

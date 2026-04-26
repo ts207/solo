@@ -1,6 +1,5 @@
 import ast
 import os
-from typing import List, Tuple
 
 SUSPICIOUS_METHODS = {"quantile", "mean", "std", "median", "ffill"}
 ALLOWED_WRAPPERS = {"rolling", "expanding", "shift", "trailing_"}
@@ -9,7 +8,7 @@ ALLOWED_WRAPPERS = {"rolling", "expanding", "shift", "trailing_"}
 class TemporalLintVisitor(ast.NodeVisitor):
     def __init__(self, filename: str):
         self.filename = filename
-        self.errors: List[Tuple[int, str]] = []
+        self.errors: list[tuple[int, str]] = []
 
     def visit_Call(self, node: ast.Call):
         if isinstance(node.func, ast.Attribute):
@@ -36,8 +35,8 @@ class TemporalLintVisitor(ast.NodeVisitor):
         self.generic_visit(node)
 
 
-def lint_file(filepath: str) -> List[Tuple[int, str]]:
-    with open(filepath, "r") as f:
+def lint_file(filepath: str) -> list[tuple[int, str]]:
+    with open(filepath) as f:
         tree = ast.parse(f.read())
     visitor = TemporalLintVisitor(filepath)
     visitor.visit(tree)

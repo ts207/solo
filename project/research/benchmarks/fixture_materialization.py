@@ -1,7 +1,8 @@
 from __future__ import annotations
 
+from collections.abc import Iterable
 from pathlib import Path
-from typing import Any, Iterable
+from typing import Any
 
 import pandas as pd
 
@@ -46,7 +47,7 @@ def _write_fixture_parquet(frame: pd.DataFrame, output_path: Path) -> None:
     global _WRITE_PARQUET
     if _WRITE_PARQUET is None:
         module = __import__("project.io.utils", fromlist=["write_parquet"])
-        _WRITE_PARQUET = getattr(module, "write_parquet")
+        _WRITE_PARQUET = module.write_parquet
     _WRITE_PARQUET(frame, output_path)
 
 
@@ -155,4 +156,4 @@ def materialize_benchmark_fixture(
 
     output_path.parent.mkdir(parents=True, exist_ok=True)
     _write_fixture_parquet(fixture, output_path)
-    return int(len(fixture))
+    return len(fixture)

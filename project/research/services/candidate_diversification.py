@@ -161,7 +161,7 @@ def _fold_sign_vector(row: dict) -> str:
     Uses fold_sign_vector if present, otherwise builds from fold_pass_rate
     as a single-character proxy.
     """
-    if "fold_sign_vector" in row and row["fold_sign_vector"]:
+    if row.get("fold_sign_vector"):
         return str(row["fold_sign_vector"]).strip()
     # Fallback: synthesize a 1-character sign from direction + robustness
     direction = _normalize_direction(row.get("direction"))
@@ -461,8 +461,8 @@ def cluster_candidates_by_overlap(
             sim = float(getattr(edge, "similarity", 0.0))
             if sim < float(edge_threshold):
                 continue
-            si = int(getattr(edge, "source_idx"))
-            ti = int(getattr(edge, "target_idx"))
+            si = int(edge.source_idx)
+            ti = int(edge.target_idx)
             if 0 <= si < n and 0 <= ti < n:
                 uf.union(si, ti)
                 max_sim[si] = max(max_sim[si], sim)
@@ -490,8 +490,8 @@ def cluster_candidates_by_overlap(
     if similarity_edges is not None and not similarity_edges.empty:
         for edge in similarity_edges.itertuples(index=False):
             sim = float(getattr(edge, "similarity", 0.0))
-            si = int(getattr(edge, "source_idx"))
-            ti = int(getattr(edge, "target_idx"))
+            si = int(edge.source_idx)
+            ti = int(edge.target_idx)
             if 0 <= si < n and 0 <= ti < n:
                 cid_s = cluster_id_map.get(si, "")
                 cid_t = cluster_id_map.get(ti, "")
@@ -545,8 +545,8 @@ def compute_novelty_crowding(
     if similarity_edges is not None and not similarity_edges.empty:
         for edge in similarity_edges.itertuples(index=False):
             sim = float(getattr(edge, "similarity", 0.0))
-            si = int(getattr(edge, "source_idx"))
-            ti = int(getattr(edge, "target_idx"))
+            si = int(edge.source_idx)
+            ti = int(edge.target_idx)
             if 0 <= si < n and 0 <= ti < n:
                 max_sim_to_other[si] = max(max_sim_to_other[si], sim)
                 max_sim_to_other[ti] = max(max_sim_to_other[ti], sim)

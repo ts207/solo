@@ -1,4 +1,4 @@
-from typing import Any, Dict
+from typing import Any
 
 import pandas as pd
 
@@ -11,7 +11,7 @@ _CANONICAL_ORDERS = {
 
 def run_state_acceptance(
     df: pd.DataFrame, state_col: str, target_metric_col: str
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     Verify monotonicity and separation of a state.
     Example: High vol state should have higher realized volatility than low vol state.

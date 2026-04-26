@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any
 
 from project.reliability.schemas import (
     ENGINE_MANIFEST_SCHEMA,
@@ -11,20 +11,20 @@ from project.reliability.schemas import (
 )
 
 
-def load_manifest(manifest_or_path: Dict[str, Any] | Path | str) -> Dict[str, Any]:
+def load_manifest(manifest_or_path: dict[str, Any] | Path | str) -> dict[str, Any]:
     if isinstance(manifest_or_path, dict):
         return dict(manifest_or_path)
     path = Path(manifest_or_path)
     return json.loads(path.read_text(encoding="utf-8"))
 
 
-def _select_schema(manifest: Dict[str, Any]) -> ManifestSchemaSpec:
+def _select_schema(manifest: dict[str, Any]) -> ManifestSchemaSpec:
     if str(manifest.get("manifest_type", "")).strip() == ENGINE_MANIFEST_SCHEMA.manifest_type:
         return ENGINE_MANIFEST_SCHEMA
     return STAGE_MANIFEST_SCHEMA
 
 
-def validate_manifest_core(manifest_or_path: Dict[str, Any] | Path | str) -> Dict[str, Any]:
+def validate_manifest_core(manifest_or_path: dict[str, Any] | Path | str) -> dict[str, Any]:
     manifest = load_manifest(manifest_or_path)
     schema = _select_schema(manifest)
     missing = [key for key in schema.required_keys if key not in manifest]
@@ -37,8 +37,8 @@ def validate_manifest_core(manifest_or_path: Dict[str, Any] | Path | str) -> Dic
 
 
 def validate_manifest_artifacts_exist(
-    manifest_or_path: Dict[str, Any] | Path | str,
-) -> Dict[str, Any]:
+    manifest_or_path: dict[str, Any] | Path | str,
+) -> dict[str, Any]:
     manifest = validate_manifest_core(manifest_or_path)
     inventory_key = _select_schema(manifest).artifact_inventory_key
     if not inventory_key:
@@ -62,7 +62,7 @@ def summarize_manifest_environment(
     storage_mode: str,
     smoke_dataset_version: str,
     config_hash: str,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     return {
         "git_sha": str(git_sha),
         "python_version": str(python_version),

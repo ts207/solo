@@ -5,7 +5,6 @@ import json
 import logging
 import sys
 from pathlib import Path
-from typing import Dict, List
 
 import pandas as pd
 
@@ -68,14 +67,14 @@ def main() -> int:
         "timeframe": timeframe,
         "force": int(args.force),
     }
-    inputs: List[Dict[str, object]] = []
-    outputs: List[Dict[str, object]] = []
+    inputs: list[dict[str, object]] = []
+    outputs: list[dict[str, object]] = []
     manifest = start_manifest("build_universe_snapshots", args.run_id, params, inputs, outputs)
-    stats: Dict[str, object] = {"symbols": {}, "monthly_membership": {}, "timeframe": timeframe}
+    stats: dict[str, object] = {"symbols": {}, "monthly_membership": {}, "timeframe": timeframe}
     dataset = bars_dataset_name(timeframe)
 
     try:
-        rows: List[Dict[str, object]] = []
+        rows: list[dict[str, object]] = []
         for symbol in symbols:
             df = _load_symbol_bars(args.run_id, symbol, args.market, timeframe)
             if df.empty:
@@ -93,7 +92,7 @@ def main() -> int:
                 }
             )
             stats["symbols"][symbol] = {
-                "rows": int(len(df)),
+                "rows": len(df),
                 "listed": True,
                 "listing_start": start_ts.isoformat(),
                 "listing_end": end_ts.isoformat(),
@@ -116,7 +115,7 @@ def main() -> int:
                             data_root, args.run_id, "cleaned", args.market, symbol, dataset
                         )
                     ),
-                    "rows": int(len(df)),
+                    "rows": len(df),
                     "start_ts": start_ts.isoformat(),
                     "end_ts": end_ts.isoformat(),
                     "timeframe": timeframe,
@@ -163,7 +162,7 @@ def main() -> int:
         outputs.append(
             {
                 "path": str(written),
-                "rows": int(len(snap_df)),
+                "rows": len(snap_df),
                 "start_ts": None,
                 "end_ts": None,
                 "storage": storage,
@@ -177,7 +176,7 @@ def main() -> int:
             "timeframe": timeframe,
             "dataset": dataset,
             "symbols_requested": symbols,
-            "symbols_with_history": int(len(snap_df)),
+            "symbols_with_history": len(snap_df),
             "snapshots": snap_df.assign(
                 listing_start=snap_df["listing_start"].astype(str)
                 if not snap_df.empty
@@ -207,7 +206,7 @@ def main() -> int:
         outputs.append(
             {
                 "path": str(summary_md),
-                "rows": int(len(md_text.splitlines())),
+                "rows": len(md_text.splitlines()),
                 "start_ts": None,
                 "end_ts": None,
             }

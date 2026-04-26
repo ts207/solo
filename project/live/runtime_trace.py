@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Any, Dict, Optional, Tuple
+from typing import Any
 
 
 @dataclass(frozen=True)
@@ -26,8 +26,8 @@ class RuntimeTrace:
     oms_order_id: str = ""
     oms_status: str = "pending"
 
-    reasons: Tuple[str, ...] = ()
-    raw: Dict[str, Any] = field(default_factory=dict)
+    reasons: tuple[str, ...] = ()
+    raw: dict[str, Any] = field(default_factory=dict)
 
     @property
     def was_submitted(self) -> bool:
@@ -53,10 +53,10 @@ class ThesisArbitrationResult:
     event_type: str
     symbol: str
     bar_index: int
-    candidate_thesis_ids: Tuple[str, ...]
-    selected_thesis_id: Optional[str]
+    candidate_thesis_ids: tuple[str, ...]
+    selected_thesis_id: str | None
     selection_reason: str
-    rejected: Tuple[str, ...] = ()
+    rejected: tuple[str, ...] = ()
 
     @property
     def had_candidates(self) -> bool:

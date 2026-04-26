@@ -2,8 +2,9 @@ from __future__ import annotations
 
 import json
 import logging
+from collections.abc import Iterable
 from pathlib import Path
-from typing import Any, Dict, Iterable, List, Optional, Tuple
+from typing import Any
 
 import numpy as np
 import pandas as pd
@@ -52,7 +53,7 @@ LOGGER = logging.getLogger(__name__)
 _DEFAULT_TIMEFRAME = "5m"
 
 
-def _spec_metadata_payload(raw_spec: Any) -> Dict[str, Any]:
+def _spec_metadata_payload(raw_spec: Any) -> dict[str, Any]:
     if raw_spec is None:
         return {}
     if hasattr(raw_spec, "model_dump"):
@@ -85,7 +86,7 @@ def _spec_metadata_payload(raw_spec: Any) -> Dict[str, Any]:
     }
 
 
-def _execution_model_family(params: Dict[str, object]) -> str:
+def _execution_model_family(params: dict[str, object]) -> str:
     execution_model = params.get("execution_model", {})
     if not isinstance(execution_model, dict):
         return "legacy_static"
@@ -99,7 +100,7 @@ def _execution_model_family(params: Dict[str, object]) -> str:
 
 def run_engine_for_specs(
     run_id: str,
-    symbols: List[str],
+    symbols: list[str],
     strategy_specs: Iterable[Any],
     *,
     cost_bps: float,
@@ -108,9 +109,9 @@ def run_engine_for_specs(
     end_ts: pd.Timestamp | None = None,
     timeframe: str = _DEFAULT_TIMEFRAME,
     memory_efficient: bool = True,
-) -> Dict[str, object]:
+) -> dict[str, object]:
     strategies: list[str] = []
-    params_by_strategy: Dict[str, Dict[str, object]] = {}
+    params_by_strategy: dict[str, dict[str, object]] = {}
     for idx, spec in enumerate(strategy_specs):
         metadata = _spec_metadata_payload(spec)
         suffix = str(metadata.get("blueprint_id") or idx).strip() or str(idx)
@@ -134,7 +135,7 @@ def run_engine_for_specs(
 
 def _load_symbol_data(
     data_root: Path, symbol: str, run_id: str, timeframe: str
-) -> Tuple[pd.DataFrame, pd.DataFrame]:
+) -> tuple[pd.DataFrame, pd.DataFrame]:
     return load_symbol_raw_data(data_root, symbol, run_id, timeframe)
 
 
@@ -308,29 +309,29 @@ def _trace_from_frame(frame: pd.DataFrame) -> pd.DataFrame:
 
 def run_engine(
     run_id: str,
-    symbols: List[str],
-    strategies: List[str],
-    params: Dict[str, object],
+    symbols: list[str],
+    strategies: list[str],
+    params: dict[str, object],
     cost_bps: float,
     data_root: Path | None = None,
-    params_by_strategy: Optional[Dict[str, Dict[str, object]]] = None,
+    params_by_strategy: dict[str, dict[str, object]] | None = None,
     start_ts: pd.Timestamp | None = None,
     end_ts: pd.Timestamp | None = None,
     timeframe: str = _DEFAULT_TIMEFRAME,
     memory_efficient: bool = True,
-) -> Dict[str, object]:
+) -> dict[str, object]:
     data_root = Path(data_root) if data_root is not None else get_data_root()
     engine_dir = data_root / "runs" / run_id / "engine"
     ensure_dir(engine_dir)
 
-    strategy_frames: Dict[str, pd.DataFrame] = {}
-    metrics: Dict[str, object] = {
+    strategy_frames: dict[str, pd.DataFrame] = {}
+    metrics: dict[str, object] = {
         "strategies": {},
         "strategy_metadata": {},
         "execution_model_family": _execution_model_family(params),
     }
-    event_flags_cache: Dict[Tuple[str, str], pd.DataFrame] = {}
-    event_features_cache: Dict[Tuple[str, str], pd.DataFrame] = {}
+    event_flags_cache: dict[tuple[str, str], pd.DataFrame] = {}
+    event_features_cache: dict[tuple[str, str], pd.DataFrame] = {}
 
     universe_snapshots = load_universe_snapshots(data_root, run_id)
 
@@ -348,7 +349,7 @@ def run_engine(
         )
         bars_cols = ["timestamp", "open", "high", "low", "close", "volume", "quote_volume"]
 
-        symbol_results: List[StrategyResult] = []
+        symbol_results: list[StrategyResult] = []
         for symbol in symbols:
             event_flags = pd.DataFrame()
             event_features = pd.DataFrame()

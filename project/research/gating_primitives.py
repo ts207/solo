@@ -6,7 +6,7 @@ Refactored to improve testability and separate concerns.
 from __future__ import annotations
 
 import logging
-from typing import Any, Dict
+from typing import Any
 
 import numpy as np
 import pandas as pd
@@ -24,7 +24,7 @@ from project.research.holdout_integrity import assert_no_lookahead_join
 log = logging.getLogger(__name__)
 
 
-def distribution_stats(returns: np.ndarray) -> Dict[str, float]:
+def distribution_stats(returns: np.ndarray) -> dict[str, float]:
     """Compute mean, std, HAC t-stat, p-value for a return distribution."""
     clean = np.asarray(returns, dtype=float)
     clean = clean[np.isfinite(clean)]
@@ -150,7 +150,7 @@ def join_events_to_features(
     return merged
 
 
-def empty_expectancy_stats() -> Dict[str, Any]:
+def empty_expectancy_stats() -> dict[str, Any]:
     return {
         "mean_return": 0.0,
         "p_value": 1.0,

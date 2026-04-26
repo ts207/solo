@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import json
-from typing import Any, Dict, List
+from typing import Any
 
 import numpy as np
 import pandas as pd
@@ -10,12 +10,7 @@ from project.core.coercion import as_bool
 from project.research.promotion.promotion_reporting_support import (
     _quiet_float,
     _quiet_int,
-    apply_portfolio_overlap_gate,
-    assign_and_validate_promotion_tiers,
-    build_promotion_capital_footprint,
-    portfolio_diversification_violations,
     resolve_promotion_tier,
-    stabilize_promoted_output_schema,
 )
 from project.research.utils.decision_safety import bool_gate
 
@@ -23,10 +18,10 @@ from project.research.utils.decision_safety import bool_gate
 def build_negative_control_diagnostics(
     *,
     audit_df: pd.DataFrame,
-    negative_control_summary: Dict[str, Any],
+    negative_control_summary: dict[str, Any],
     max_negative_control_pass_rate: float,
     allow_missing_negative_controls: bool,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     global_input = negative_control_summary.get("global", {})
     by_event_input = negative_control_summary.get("by_event", {})
     if not isinstance(global_input, dict):
@@ -34,7 +29,7 @@ def build_negative_control_diagnostics(
     if not isinstance(by_event_input, dict):
         by_event_input = {}
 
-    output: Dict[str, Any] = {
+    output: dict[str, Any] = {
         "policy": {
             "max_negative_control_pass_rate": float(max_negative_control_pass_rate),
             "allow_missing_negative_controls": bool(allow_missing_negative_controls),
@@ -46,7 +41,7 @@ def build_negative_control_diagnostics(
             "by_event_summary_events": sorted(str(k) for k in by_event_input.keys()),
         },
         "audit": {
-            "candidates_total": int(len(audit_df)),
+            "candidates_total": len(audit_df),
             "control_rate_missing_count": 0,
             "promoted_with_missing_control_rate": 0,
         },
@@ -73,7 +68,7 @@ def build_negative_control_diagnostics(
     if event_col is None:
         return output
 
-    by_event_rows: Dict[str, Dict[str, Any]] = {}
+    by_event_rows: dict[str, dict[str, Any]] = {}
     for event_type, sub in audit_df.groupby(event_col, sort=True):
         sub_rates = pd.to_numeric(sub.get("control_pass_rate"), errors="coerce")
         sources = (
@@ -84,7 +79,7 @@ def build_negative_control_diagnostics(
             .to_dict()
         )
         by_event_rows[str(event_type)] = {
-            "candidate_count": int(len(sub)),
+            "candidate_count": len(sub),
             "promoted_count": int(
                 (
                     sub.get("promotion_decision", pd.Series(dtype="object")).astype(str)
@@ -229,7 +224,7 @@ def build_promotion_statistical_audit(
     if audit_df.empty:
         return pd.DataFrame(columns=cols)
 
-    records: List[Dict[str, Any]] = []
+    records: list[dict[str, Any]] = []
     for row in audit_df.to_dict(orient="records"):
         decision = str(row.get("promotion_decision", "")).strip()
         primary_fail = str(row.get("promotion_fail_gate_primary", "")).strip()

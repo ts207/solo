@@ -3,7 +3,7 @@ from __future__ import annotations
 import argparse
 import json
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any
 
 from project import PROJECT_ROOT
 from project.reliability.cli_smoke import run_smoke_cli
@@ -14,14 +14,14 @@ def _default_config_path() -> Path:
     return PROJECT_ROOT / "configs" / "golden_workflow.yaml"
 
 
-def load_workflow_config(path: Path) -> Dict[str, Any]:
+def load_workflow_config(path: Path) -> dict[str, Any]:
     payload = load_yaml_path(path) or {}
     if not isinstance(payload, dict):
         raise ValueError(f"Golden workflow config must be a mapping: {path}")
     return dict(payload)
 
 
-def run_golden_workflow(*, root: Path, config_path: Path) -> Dict[str, Any]:
+def run_golden_workflow(*, root: Path, config_path: Path) -> dict[str, Any]:
     config = load_workflow_config(config_path)
     mode = str(config.get("mode", "full") or "full").strip()
     seed = int(config.get("seed", 20260101) or 20260101)

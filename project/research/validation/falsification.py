@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-from typing import Any, Dict, Iterable, Optional
+from collections.abc import Iterable
+from typing import Any
 
 import numpy as np
 import pandas as pd
@@ -51,7 +52,7 @@ def generate_placebo_events(
 
 def run_permutation_test(
     values: Iterable[float], labels: Iterable[int], *, n_iter: int = 250, random_seed: int = 0
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     vals = pd.to_numeric(pd.Series(list(values), dtype="float64"), errors="coerce")
     lbls = pd.to_numeric(pd.Series(list(labels), dtype="float64"), errors="coerce")
     frame = pd.DataFrame({"v": vals, "l": lbls}).dropna()
@@ -89,8 +90,8 @@ def run_permutation_test(
 
 def evaluate_negative_controls(
     *,
-    row: Dict[str, Any],
-    control_rate: Optional[float],
+    row: dict[str, Any],
+    control_rate: float | None,
     max_negative_control_pass_rate: float,
     allow_missing_negative_controls: bool,
 ) -> FalsificationResult:

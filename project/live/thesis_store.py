@@ -2,8 +2,8 @@ from __future__ import annotations
 
 import json
 import logging
+from collections.abc import Iterable
 from pathlib import Path
-from typing import Iterable, List
 
 from project.artifacts import live_thesis_index_path, promoted_theses_path
 from project.core.exceptions import (
@@ -163,7 +163,7 @@ class ThesisStore:
         path: str | Path,
         *,
         strict_live_gate: bool = True,
-    ) -> "ThesisStore":
+    ) -> ThesisStore:
         resolved_path = Path(path)
         payload = _load_payload(resolved_path)
         trust = inspect_artifact_trust("promoted_theses", resolved_path)
@@ -194,7 +194,7 @@ class ThesisStore:
         )
 
     @classmethod
-    def from_run_id(cls, run_id: str, *, data_root: Path | None = None) -> "ThesisStore":
+    def from_run_id(cls, run_id: str, *, data_root: Path | None = None) -> ThesisStore:
         return cls.from_path(promoted_theses_path(run_id, data_root))
 
     @classmethod
@@ -203,7 +203,7 @@ class ThesisStore:
         *,
         data_root: Path | None = None,
         allow_implicit_latest: bool = False,
-    ) -> "ThesisStore":
+    ) -> ThesisStore:
         if not allow_implicit_latest:
             raise RuntimeError(
                 "Implicit latest thesis resolution is disabled. "
@@ -231,7 +231,7 @@ class ThesisStore:
             )
         raise MissingArtifactError("No live thesis index is available.")
 
-    def all(self) -> List[PromotedThesis]:
+    def all(self) -> list[PromotedThesis]:
         return list(self._theses)
 
     def filter(
@@ -245,7 +245,7 @@ class ThesisStore:
         canonical_regime: str | None = None,
         deployment_state: str | None = None,
         overlap_group_id: str | None = None,
-    ) -> List[PromotedThesis]:
+    ) -> list[PromotedThesis]:
         filtered = self._theses
         if status is not None:
             status_token = str(status).strip().lower()
@@ -302,7 +302,7 @@ class ThesisStore:
         canonical_regime: str | None = None,
         deployment_state: str | None = None,
         overlap_group_id: str | None = None,
-    ) -> List[PromotedThesis]:
+    ) -> list[PromotedThesis]:
         return self.filter(
             status="active",
             symbol=symbol,

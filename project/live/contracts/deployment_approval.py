@@ -14,9 +14,9 @@ from __future__ import annotations
 
 import json
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
-from typing import Any, Dict, List, Literal, Optional
+from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
@@ -34,11 +34,11 @@ class PaperRunMetrics(BaseModel):
     days_observed: int = Field(default=0, ge=0)
     signal_count: int = Field(default=0, ge=0)
     fill_count: int = Field(default=0, ge=0)
-    avg_realized_slippage_bps: Optional[float] = None
-    avg_realized_fee_bps: Optional[float] = None
-    avg_net_edge_bps: Optional[float] = None
-    max_drawdown_pct: Optional[float] = None
-    instability_flags: List[str] = Field(default_factory=list)
+    avg_realized_slippage_bps: float | None = None
+    avg_realized_fee_bps: float | None = None
+    avg_net_edge_bps: float | None = None
+    max_drawdown_pct: float | None = None
+    instability_flags: list[str] = Field(default_factory=list)
     quality_summary: str = ""
 
 
@@ -81,11 +81,11 @@ class DeploymentApprovalRecord(BaseModel):
 
     # Evidence used to justify this approval
     paper_metrics: PaperRunMetrics = Field(default_factory=PaperRunMetrics)
-    checklist: List[ChecklistItem] = Field(default_factory=list)
+    checklist: list[ChecklistItem] = Field(default_factory=list)
     notes: str = ""
 
     @model_validator(mode="after")
-    def _validate_approved_fields(self) -> "DeploymentApprovalRecord":
+    def _validate_approved_fields(self) -> DeploymentApprovalRecord:
         if self.status == "approved":
             missing = []
             if not self.approved_by:
@@ -112,18 +112,18 @@ class DeploymentApprovalRecord(BaseModel):
         )
 
     @property
-    def failed_checklist_items(self) -> List[str]:
+    def failed_checklist_items(self) -> list[str]:
         return [item.name for item in self.checklist if not item.passed]
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return self.model_dump(mode="json")
 
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> "DeploymentApprovalRecord":
+    def from_dict(cls, data: dict[str, Any]) -> DeploymentApprovalRecord:
         return cls.model_validate(data)
 
     @classmethod
-    def from_file(cls, path: str | Path) -> "DeploymentApprovalRecord":
+    def from_file(cls, path: str | Path) -> DeploymentApprovalRecord:
         p = Path(path)
         try:
             data = json.loads(p.read_text(encoding="utf-8"))
@@ -147,7 +147,7 @@ def create_approval_record(
     risk_profile_id: str,
     cap_profile: ThesisCapProfile,
     paper_metrics: PaperRunMetrics,
-    checklist: List[ChecklistItem],
+    checklist: list[ChecklistItem],
     thesis_version: str = "",
     promotion_run_id: str = "",
     validation_run_id: str = "",
@@ -161,7 +161,7 @@ def create_approval_record(
         validation_run_id=validation_run_id,
         status="approved",
         approved_by=approved_by,
-        approved_at=datetime.now(timezone.utc).isoformat(),
+        approved_at=datetime.now(UTC).isoformat(),
         risk_profile_id=risk_profile_id,
         cap_profile=cap_profile,
         paper_metrics=paper_metrics,

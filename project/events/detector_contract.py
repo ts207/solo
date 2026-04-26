@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from typing import Any, ClassVar, List, Type
+from typing import Any, ClassVar
 
 import pandas as pd
 
@@ -213,7 +213,7 @@ class NormalizedDetectorMetadata:
 
 
 def detector_metadata_from_class(
-    detector_cls: Type[Any], *, event_name: str | None = None
+    detector_cls: type[Any], *, event_name: str | None = None
 ) -> NormalizedDetectorMetadata:
     token = str(
         event_name
@@ -262,7 +262,7 @@ class DetectorLogicContract(ABC):
     event_name: ClassVar[str] = ""
     event_type: ClassVar[str] = ""
     event_version: ClassVar[str] = "v1"
-    required_columns: ClassVar[List[str]] = []
+    required_columns: ClassVar[list[str]] = []
     lookback_bars: ClassVar[int] = 0
     warmup_bars: ClassVar[int] = 0
     bar_type: ClassVar[str] = "bar_close"

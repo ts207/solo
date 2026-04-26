@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-from typing import Dict
-
 import numpy as np
 import pandas as pd
 
@@ -10,7 +8,7 @@ from project.core.constants import BARS_PER_YEAR_BY_TIMEFRAME
 BARS_PER_YEAR = BARS_PER_YEAR_BY_TIMEFRAME["5m"]  # 5m bars
 
 
-def compute_buy_hold_sharpe(close: pd.Series) -> Dict[str, float]:
+def compute_buy_hold_sharpe(close: pd.Series) -> dict[str, float]:
     ret = close.pct_change().dropna()
     if ret.empty:
         return {"sharpe_annualized": 0.0, "annualized_return": 0.0, "annualized_vol": 0.0}
@@ -20,7 +18,7 @@ def compute_buy_hold_sharpe(close: pd.Series) -> Dict[str, float]:
     return {"sharpe_annualized": sharpe, "annualized_return": ann_ret, "annualized_vol": ann_vol}
 
 
-def compute_btc_beta(strategy_returns: pd.Series, btc_returns: pd.Series) -> Dict[str, float]:
+def compute_btc_beta(strategy_returns: pd.Series, btc_returns: pd.Series) -> dict[str, float]:
     aligned = pd.DataFrame({"strat": strategy_returns, "btc": btc_returns}).dropna()
     if len(aligned) < 10:
         return {"beta": float("nan"), "r_squared": float("nan")}
@@ -31,7 +29,7 @@ def compute_btc_beta(strategy_returns: pd.Series, btc_returns: pd.Series) -> Dic
     return {"beta": beta, "r_squared": corr**2}
 
 
-def compute_exposure_summary(positions: pd.Series) -> Dict[str, float]:
+def compute_exposure_summary(positions: pd.Series) -> dict[str, float]:
     gross = positions.abs()
     turnover = positions.diff().abs()
     return {

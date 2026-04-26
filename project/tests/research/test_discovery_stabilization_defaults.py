@@ -69,7 +69,7 @@ def test_search_space_defaults_are_stable():
     from project import PROJECT_ROOT
 
     spec_path = PROJECT_ROOT.parent / "spec/search_space.yaml"
-    with open(spec_path, "r") as f:
+    with open(spec_path) as f:
         spec = yaml.safe_load(f)
         # Assert benchmark mode D is the official default:
         # hierarchical search, no selection overlay.
@@ -85,7 +85,7 @@ def test_ledger_default_is_disabled():
 
     config_path = PROJECT_ROOT.parent / "project/configs/discovery_ledger.yaml"
     if config_path.exists():
-        with open(config_path, "r") as f:
+        with open(config_path) as f:
             cfg = yaml.safe_load(f)
             if "discovery_scoring" in cfg and "ledger_adjustment" in cfg["discovery_scoring"]:
                 assert cfg["discovery_scoring"]["ledger_adjustment"]["enabled"] is False

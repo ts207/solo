@@ -1,20 +1,20 @@
 from __future__ import annotations
 
-from project.events.contract_registry import load_active_event_contracts
 import json
+from collections.abc import Mapping
 from pathlib import Path
-from typing import Any, Dict, List, Mapping, Tuple
-import yaml
+from typing import Any
+
 
 def _nested_mapping(mapping: Mapping[str, Any], key: str) -> Mapping[str, Any]:
     value = mapping.get(key)
     return value if isinstance(value, Mapping) else {}
 
 
-def _load_json(path: Path) -> List[Dict[str, Any]]:
+def _load_json(path: Path) -> list[dict[str, Any]]:
     if not path.exists():
         return []
-    with open(path, "r") as f:
+    with open(path) as f:
         return json.load(f)
 
 
@@ -33,7 +33,7 @@ def _load_active_event_contracts(root: Path = Path(".")) -> Mapping[str, Any]:
     return active_contracts
 
 
-def validate_governance_consistency(root: Path = Path(".")) -> List[Tuple[str, str]]:
+def validate_governance_consistency(root: Path = Path(".")) -> list[tuple[str, str]]:
     """Validate authored governance hints against generated detector eligibility.
 
     Detector planning, promotion, runtime, anchor, and band eligibility is owned
@@ -52,7 +52,7 @@ def validate_governance_consistency(root: Path = Path(".")) -> List[Tuple[str, s
         for row in matrix_rows
         if str(row.get("event_name", "")).strip()
     }
-    errors: List[Tuple[str, str]] = []
+    errors: list[tuple[str, str]] = []
 
     active_contracts = _load_active_event_contracts(root=root)
 

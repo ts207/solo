@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any
 
 import yaml
 
@@ -36,14 +36,14 @@ _ALLOWED_DISPOSITIONS = set(ALLOWED_DISPOSITION_VALUES)
 _ALLOWED_EVIDENCE_MODES = set(ALLOWED_EVIDENCE_MODE_VALUES)
 
 
-def _load_yaml(path: Path) -> Dict[str, Any]:
+def _load_yaml(path: Path) -> dict[str, Any]:
     if not path.exists():
         return {}
     payload = yaml.safe_load(path.read_text(encoding="utf-8"))
     return payload if isinstance(payload, dict) else {}
 
 
-def _load_detector_ownership(repo_root: Path) -> Dict[str, str]:
+def _load_detector_ownership(repo_root: Path) -> dict[str, str]:
     payload = _load_yaml(repo_root / "project" / "configs" / "registries" / "detectors.yaml")
     raw = payload.get("detector_ownership", {}) if isinstance(payload, dict) else {}
     if not isinstance(raw, dict):
@@ -55,11 +55,11 @@ def _load_detector_ownership(repo_root: Path) -> Dict[str, str]:
     }
 
 
-def _mapping(value: Any) -> Dict[str, Any]:
+def _mapping(value: Any) -> dict[str, Any]:
     return dict(value) if isinstance(value, dict) else {}
 
 
-def _present(mapping: Dict[str, Any], key: str) -> Any:
+def _present(mapping: dict[str, Any], key: str) -> Any:
     return mapping[key] if key in mapping else _MISSING
 
 
@@ -102,7 +102,7 @@ def _int_value(*values: Any, default: int = 0) -> int:
         return default
 
 
-def _event_kind_from_row(identity: Dict[str, Any], governance: Dict[str, Any], ontology: Dict[str, Any]) -> str:
+def _event_kind_from_row(identity: dict[str, Any], governance: dict[str, Any], ontology: dict[str, Any]) -> str:
     explicit = _first_text(
         _present(governance, "event_kind"),
         _present(identity, "event_kind"),
@@ -121,7 +121,7 @@ def _event_kind_from_row(identity: Dict[str, Any], governance: Dict[str, Any], o
     return "market_event"
 
 
-def _infer_layer(identity: Dict[str, Any], governance: Dict[str, Any], payload: Dict[str, Any]) -> str:
+def _infer_layer(identity: dict[str, Any], governance: dict[str, Any], payload: dict[str, Any]) -> str:
     explicit = _first_text(
         _present(identity, "layer"),
         _present(governance, "layer"),
@@ -162,12 +162,12 @@ def _default_disposition(layer: str) -> str:
 
 def _normalized_ontology_row(
     event_type: str,
-    payload: Dict[str, Any],
+    payload: dict[str, Any],
     *,
-    identity: Dict[str, Any],
-    governance: Dict[str, Any],
-    semantics: Dict[str, Any],
-) -> Dict[str, Any]:
+    identity: dict[str, Any],
+    governance: dict[str, Any],
+    semantics: dict[str, Any],
+) -> dict[str, Any]:
     layer = _infer_layer(identity, governance, payload)
     is_composite = _bool_value(
         _present(governance, "is_composite"),
@@ -229,7 +229,7 @@ def _normalized_ontology_row(
     }
 
 
-def _validate_mapping_rows(rows: Dict[str, Dict[str, Any]]) -> list[str]:
+def _validate_mapping_rows(rows: dict[str, dict[str, Any]]) -> list[str]:
     issues: list[str] = []
     for event_type, row in rows.items():
         if not row["canonical_regime"]:
@@ -256,8 +256,8 @@ def _validate_mapping_rows(rows: Dict[str, Dict[str, Any]]) -> list[str]:
     return issues
 
 
-def _canonical_regime_fanout(rows: Dict[str, Dict[str, Any]]) -> Dict[str, tuple[str, ...]]:
-    groups: Dict[str, list[str]] = {}
+def _canonical_regime_fanout(rows: dict[str, dict[str, Any]]) -> dict[str, tuple[str, ...]]:
+    groups: dict[str, list[str]] = {}
     for event_type, row in rows.items():
         regime = str(row.get("canonical_regime", "")).strip().upper()
         if not regime:
@@ -266,7 +266,7 @@ def _canonical_regime_fanout(rows: Dict[str, Dict[str, Any]]) -> Dict[str, tuple
     return {regime: tuple(sorted(event_types)) for regime, event_types in sorted(groups.items())}
 
 
-def build_unified_registry(repo_root: Path) -> Dict[str, Any]:
+def build_unified_registry(repo_root: Path) -> dict[str, Any]:
     spec_root = repo_root / "spec"
     events_root = spec_root / "events"
     detector_ownership = _load_detector_ownership(repo_root)
@@ -276,8 +276,8 @@ def build_unified_registry(repo_root: Path) -> Dict[str, Any]:
     template_registry = _load_yaml(spec_root / "templates" / "registry.yaml")
 
     # Build event rows from per-event specs first.
-    event_rows: Dict[str, Dict[str, Any]] = {}
-    ontology_rows: Dict[str, Dict[str, Any]] = {}
+    event_rows: dict[str, dict[str, Any]] = {}
+    ontology_rows: dict[str, dict[str, Any]] = {}
     for spec_path in sorted(events_root.glob("*.yaml")):
         if spec_path.name.startswith("_") or spec_path.name in {
             "canonical_event_registry.yaml",
@@ -523,8 +523,7 @@ def build_unified_registry(repo_root: Path) -> Dict[str, Any]:
         if not token or not isinstance(row, dict):
             continue
         if not bool(row.get("active", True)) or bool(row.get("deprecated", False)):
-            if token in event_rows:
-                del event_rows[token]
+            event_rows.pop(token, None)
             continue
         base = event_rows.setdefault(
             token,
@@ -617,7 +616,7 @@ def build_unified_registry(repo_root: Path) -> Dict[str, Any]:
         if "synthetic_coverage" in row:
             base.setdefault("parameters", {})["synthetic_coverage"] = row["synthetic_coverage"]
 
-    family_rows: Dict[str, Dict[str, Any]] = {}
+    family_rows: dict[str, dict[str, Any]] = {}
     family_default_rows = event_family_defaults.get("families", {})
     if not isinstance(family_default_rows, dict):
         family_default_rows = {}
@@ -636,7 +635,7 @@ def build_unified_registry(repo_root: Path) -> Dict[str, Any]:
             if isinstance(raw, dict):
                 params = dict(raw)
 
-        out: Dict[str, Any] = {"parameters": params}
+        out: dict[str, Any] = {"parameters": params}
         template_row = template_families.get(family, {})
         if isinstance(template_row, dict):
             for key in (

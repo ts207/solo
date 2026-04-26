@@ -11,7 +11,7 @@ Covers:
 """
 from __future__ import annotations
 
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 import pandas as pd
 import pytest
@@ -58,7 +58,7 @@ def _make_ledger_row(
     is_discovery: bool = False,
     days_ago: int = 30,
 ) -> dict:
-    ts = (datetime.now(timezone.utc) - timedelta(days=days_ago)).isoformat()
+    ts = (datetime.now(UTC) - timedelta(days=days_ago)).isoformat()
     return {
         "ledger_id": f"{run_id}_{lineage_key}_{days_ago}",
         "run_id": run_id,

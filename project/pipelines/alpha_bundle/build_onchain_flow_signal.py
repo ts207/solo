@@ -25,7 +25,6 @@ Notes:
 import argparse
 import json
 from pathlib import Path
-from typing import Dict
 
 import numpy as np
 import pandas as pd
@@ -99,7 +98,7 @@ def main() -> int:
     if missing:
         raise ValueError(f"onchain_path missing columns: {sorted(missing)}")
 
-    asset_to_symbol: Dict[str, str] = {}
+    asset_to_symbol: dict[str, str] = {}
     if args.asset_to_symbol_json:
         asset_to_symbol.update(json.loads(args.asset_to_symbol_json))
 
@@ -154,7 +153,7 @@ def main() -> int:
     write_parquet(out, out_path)
 
     finalize_manifest(
-        manifest, status="success", stats={"rows": int(len(out)), "out": str(out_path)}
+        manifest, status="success", stats={"rows": len(out), "out": str(out_path)}
     )
     return 0
 

@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-from typing import Dict
-
 import numpy as np
 import pandas as pd
 
@@ -39,10 +37,10 @@ def candidate_cost_fields(
     sub: pd.DataFrame,
     action: ActionSpec,
     expectancy_per_trade: float,
-    execution_cost_config: Dict[str, float],
+    execution_cost_config: dict[str, float],
     stressed_cost_multiplier: float,
-) -> Dict[str, float | bool]:
-    n = int(len(sub))
+) -> dict[str, float | bool]:
+    n = len(sub)
     turnover = turnover_proxy_for_action(action=action, n=n)
     if n <= 0 or turnover.size == 0:
         return {

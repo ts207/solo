@@ -2,9 +2,10 @@ from __future__ import annotations
 
 import hashlib
 import json
+from collections.abc import Sequence
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Dict, List, Sequence
+from typing import Any
 
 import numpy as np
 import pandas as pd
@@ -14,15 +15,15 @@ from project.core.config import load_configs
 
 @dataclass(frozen=True)
 class ResolvedExecutionCosts:
-    config_paths: List[str]
-    config: Dict[str, Any]
+    config_paths: list[str]
+    config: dict[str, Any]
     fee_bps_per_side: float
     slippage_bps_per_fill: float
     round_trip_cost_bps: float
     slippage_model: str
     impact_coefficient_scaling: bool
     cost_bps: float
-    execution_model: Dict[str, float]
+    execution_model: dict[str, float]
     config_digest: str
 
 
@@ -30,7 +31,7 @@ def _sha256_text(text: str) -> str:
     return hashlib.sha256(text.encode("utf-8")).hexdigest()
 
 
-def _default_config_paths(project_root: Path) -> List[Path]:
+def _default_config_paths(project_root: Path) -> list[Path]:
     candidate_dirs = [
         project_root / "configs",
         project_root / "project" / "configs",
@@ -42,7 +43,7 @@ def _default_config_paths(project_root: Path) -> List[Path]:
     return [cfg / "pipeline.yaml", cfg / "fees.yaml"]
 
 
-def _resolve_config_paths(project_root: Path, config_paths: Sequence[str] | None) -> List[Path]:
+def _resolve_config_paths(project_root: Path, config_paths: Sequence[str] | None) -> list[Path]:
     paths = _default_config_paths(project_root)
     for raw in list(config_paths or []):
         path = Path(str(raw))
@@ -109,7 +110,7 @@ def resolve_execution_costs(
 def estimate_transaction_cost_bps(
     frame: pd.DataFrame,
     turnover: pd.Series,
-    config: Dict[str, float],
+    config: dict[str, float],
 ) -> pd.Series:
     """
     Estimate one-way per-turnover transaction cost in bps from spread, volatility,
@@ -293,7 +294,7 @@ def estimate_slippage_bps_v2(
 def estimate_execution_model_v2_cost_bps(
     frame: pd.DataFrame,
     turnover: pd.Series,
-    config: Dict[str, float],
+    config: dict[str, float],
 ) -> pd.Series:
     idx = turnover.index
     turnover_abs = pd.to_numeric(turnover.reindex(idx), errors="coerce").fillna(0.0).abs()

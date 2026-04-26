@@ -3,7 +3,6 @@ from __future__ import annotations
 import argparse
 import json
 import sys
-from typing import Dict, List
 
 from project import PROJECT_ROOT
 from project.core.config import get_data_root
@@ -31,10 +30,10 @@ def main() -> int:
         "run_id": str(args.run_id),
         "fail_on_mismatch": bool(int(args.fail_on_mismatch)),
     }
-    inputs: List[Dict[str, object]] = [
+    inputs: list[dict[str, object]] = [
         {"path": str(ticks_path), "rows": None, "start_ts": None, "end_ts": None}
     ]
-    outputs: List[Dict[str, object]] = [
+    outputs: list[dict[str, object]] = [
         {"path": str(report_path), "rows": 1, "start_ts": None, "end_ts": None}
     ]
     manifest = start_manifest(
@@ -42,7 +41,7 @@ def main() -> int:
     )
 
     try:
-        ticks: List[Dict[str, object]]
+        ticks: list[dict[str, object]]
         if ticks_path.exists():
             ticks = list(read_parquet(ticks_path).to_dict(orient="records"))
         else:

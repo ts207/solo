@@ -190,9 +190,7 @@ def _run_proposal_inspect(args: argparse.Namespace) -> int:
     lines.append(f"date_range: {start} -> {end}")
     if promotion_profile:
         lines.append(f"promotion_profile: {promotion_profile}")
-    if isinstance(search_spec, str) and search_spec:
-        lines.append(f"search_spec: {search_spec}")
-    elif isinstance(search_spec, dict):
+    if (isinstance(search_spec, str) and search_spec) or isinstance(search_spec, dict):
         lines.append(f"search_spec: {search_spec}")
     lines.append(f"anchor: {anchor}")
     lines.append(f"template: {template}")

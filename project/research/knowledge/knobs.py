@@ -3,7 +3,7 @@ from __future__ import annotations
 import argparse
 import importlib
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any
 
 from project.research.knowledge.schemas import canonical_json, stable_hash
 from project.spec_registry import load_yaml_path
@@ -34,11 +34,11 @@ def _knob_row(
     source_module: str,
     description: str,
     cli_flag: str = "",
-    choices: List[Any] | None = None,
+    choices: list[Any] | None = None,
     agent_level: str = "advanced",
     mutability: str = "inspect_only",
     risk: str = "medium",
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     return {
         "knob_id": stable_hash((scope, group, name, cli_flag, source_module)),
         "scope": scope,
@@ -63,8 +63,8 @@ def _parser_knobs(
     group: str,
     source_module: str,
     include_prefixes: tuple[str, ...],
-) -> List[Dict[str, Any]]:
-    rows: List[Dict[str, Any]] = []
+) -> list[dict[str, Any]]:
+    rows: list[dict[str, Any]] = []
     for action in parser._actions:
         option_strings = list(getattr(action, "option_strings", []) or [])
         if not option_strings:
@@ -145,7 +145,7 @@ def _default_risk(group: str, name: str) -> str:
     return "medium"
 
 
-def build_agent_knob_rows() -> List[Dict[str, Any]]:
+def build_agent_knob_rows() -> list[dict[str, Any]]:
     build_run_all_parser = importlib.import_module(
         "project.pipelines.pipeline_planning"
     ).build_parser
@@ -156,7 +156,7 @@ def build_agent_knob_rows() -> List[Dict[str, Any]]:
         "project.pipelines.stages.research"
     )._PROFILE_PROMOTION_DEFAULTS
 
-    rows: List[Dict[str, Any]] = []
+    rows: list[dict[str, Any]] = []
     rows.extend(
         _parser_knobs(
             build_run_all_parser(),
@@ -216,8 +216,8 @@ def build_agent_knob_rows() -> List[Dict[str, Any]]:
     return rows
 
 
-def _flatten_config_rows(prefix: str, payload: Any) -> List[tuple[str, Any]]:
-    rows: List[tuple[str, Any]] = []
+def _flatten_config_rows(prefix: str, payload: Any) -> list[tuple[str, Any]]:
+    rows: list[tuple[str, Any]] = []
     if isinstance(payload, dict):
         for key, value in sorted(payload.items()):
             next_prefix = f"{prefix}.{key}" if prefix else str(key)
@@ -230,11 +230,11 @@ def _flatten_config_rows(prefix: str, payload: Any) -> List[tuple[str, Any]]:
 def _config_group_rows(
     *,
     group: str,
-    payload: Dict[str, Any],
+    payload: dict[str, Any],
     source_module: str,
     path: Path,
-) -> List[Dict[str, Any]]:
-    rows: List[Dict[str, Any]] = []
+) -> list[dict[str, Any]]:
+    rows: list[dict[str, Any]] = []
     for name, value in _flatten_config_rows("", payload):
         if not name:
             continue
@@ -254,7 +254,7 @@ def _config_group_rows(
     return rows
 
 
-def build_config_knob_rows() -> List[Dict[str, Any]]:
+def build_config_knob_rows() -> list[dict[str, Any]]:
     repo_root = Path.cwd()
     specs = [
         (
@@ -288,7 +288,7 @@ def build_config_knob_rows() -> List[Dict[str, Any]]:
             ("limits", "defaults"),
         ),
     ]
-    rows: List[Dict[str, Any]] = []
+    rows: list[dict[str, Any]] = []
     for group, path, source_module, top_keys in specs:
         payload = load_yaml_path(path)
         if not isinstance(payload, dict):
@@ -305,8 +305,8 @@ def build_config_knob_rows() -> List[Dict[str, Any]]:
     return rows
 
 
-def build_code_knob_rows(profile_defaults: Dict[str, Dict[str, Any]]) -> List[Dict[str, Any]]:
-    rows: List[Dict[str, Any]] = []
+def build_code_knob_rows(profile_defaults: dict[str, dict[str, Any]]) -> list[dict[str, Any]]:
+    rows: list[dict[str, Any]] = []
     for profile_name, values in sorted(profile_defaults.items()):
         for key, value in sorted(values.items()):
             rows.append(

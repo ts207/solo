@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import enum
 import logging
-from typing import Any, Dict
+from typing import Any
 
 from project.core.execution_costs import estimate_fill_probability_v2
 
@@ -51,7 +51,7 @@ def estimate_fill_details(
     vol_regime: float,
     urgency: OrderUrgency = OrderUrgency.BASE,
     profile: ExecutionProfile = ExecutionProfile.BASE,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     Detailed fill estimation.
     """

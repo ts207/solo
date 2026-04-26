@@ -1,7 +1,8 @@
 from __future__ import annotations
 
+from collections.abc import Iterable
 from dataclasses import dataclass
-from typing import Any, Iterable
+from typing import Any
 
 import numpy as np
 import pandas as pd
@@ -97,7 +98,7 @@ def summarize_frame_quality(
     coerced_value_count: int = 0,
     z_threshold: float = 10.0,
 ) -> DataQualitySummary:
-    rows = int(len(frame))
+    rows = len(frame)
     numeric_columns = _safe_numeric_columns(frame, numeric_cols)
     missing_ratio = 0.0
     if rows > 0 and numeric_columns:

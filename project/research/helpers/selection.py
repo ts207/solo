@@ -1,17 +1,18 @@
 from __future__ import annotations
 
+from collections.abc import Callable
 from pathlib import Path
-from typing import Any, Callable, Dict, List, Tuple
+from typing import Any
 
 import pandas as pd
 
 
 def rank_key(
-    row: Dict[str, object],
+    row: dict[str, object],
     *,
     safe_float_fn: Callable[[object, float], float],
     as_bool_fn: Callable[[object], bool],
-) -> Tuple[float, float, float, float, str]:
+) -> tuple[float, float, float, float, str]:
     after_cost = safe_float_fn(
         row.get(
             "bridge_expectancy_conservative",
@@ -42,8 +43,8 @@ def rank_key(
 
 
 def passes_fallback_gate(
-    row: Dict[str, object],
-    gates: Dict[str, Any],
+    row: dict[str, object],
+    gates: dict[str, Any],
     *,
     safe_float_fn: Callable[[object, float], float],
     safe_int_fn: Callable[[object, int], int],
@@ -75,7 +76,7 @@ def choose_event_rows(
     *,
     run_id: str,
     event_type: str,
-    edge_rows: List[Dict[str, object]],
+    edge_rows: list[dict[str, object]],
     phase2_df: pd.DataFrame,
     max_per_event: int,
     allow_fallback_blueprints: bool,
@@ -84,7 +85,7 @@ def choose_event_rows(
     min_robustness: float,
     require_positive_expectancy: bool,
     expected_cost_digest: str | None,
-    naive_validation: Dict[Tuple[str, str], bool] | None,
+    naive_validation: dict[tuple[str, str], bool] | None,
     allow_naive_entry_fail: bool,
     mode: str,
     min_tob_coverage: float,
@@ -92,15 +93,15 @@ def choose_event_rows(
     max_fee_plus_slippage_bps: float | None,
     max_daily_turnover_multiple: float | None,
     data_root: Path,
-    candidate_id_fn: Callable[[Dict[str, object], int], str],
-    load_gates_spec_fn: Callable[[], Dict[str, Any]],
+    candidate_id_fn: Callable[[dict[str, object], int], str],
+    load_gates_spec_fn: Callable[[], dict[str, Any]],
     passes_quality_floor_fn: Callable[..., bool],
-    rank_key_fn: Callable[[Dict[str, object]], Tuple[float, float, float, float, str]],
-    passes_fallback_gate_fn: Callable[[Dict[str, object], Dict[str, Any]], bool],
+    rank_key_fn: Callable[[dict[str, object]], tuple[float, float, float, float, str]],
+    passes_fallback_gate_fn: Callable[[dict[str, object], dict[str, Any]], bool],
     as_bool_fn: Callable[[object], bool],
     safe_float_fn: Callable[[object, float], float],
-) -> Tuple[List[Dict[str, object]], Dict[str, object], pd.DataFrame]:
-    phase2_lookup: Dict[str, Dict[str, object]] = {}
+) -> tuple[list[dict[str, object]], dict[str, object], pd.DataFrame]:
+    phase2_lookup: dict[str, dict[str, object]] = {}
     if not phase2_df.empty:
         for idx, row in enumerate(phase2_df.to_dict(orient="records")):
             cid = candidate_id_fn(row, idx)
@@ -109,7 +110,7 @@ def choose_event_rows(
     full_gates = load_gates_spec_fn()
     gates = full_gates.get("gate_v1_fallback", {})
 
-    def _enrich(row: Dict[str, object], idx: int, status_default: str) -> Dict[str, object]:
+    def _enrich(row: dict[str, object], idx: int, status_default: str) -> dict[str, object]:
         cid = str(row.get("candidate_id", "")).strip() or candidate_id_fn(row, idx)
         merged = dict(phase2_lookup.get(cid, {}))
         merged.update(dict(row))
@@ -172,7 +173,7 @@ def choose_event_rows(
 
     selection_data = []
 
-    def _add_selection_record(c: Dict[str, object], reason: str, selected: bool, rank: int) -> None:
+    def _add_selection_record(c: dict[str, object], reason: str, selected: bool, rank: int) -> None:
         after_cost = safe_float_fn(
             c.get(
                 "bridge_expectancy_conservative",
@@ -207,7 +208,7 @@ def choose_event_rows(
     for c in ineligible_rows:
         _add_selection_record(c, f"ineligible_{c.get('_ineligible_reason')}", False, 0)
 
-    diagnostics: Dict[str, object] = {
+    diagnostics: dict[str, object] = {
         "event_type": event_type,
         "selected_count": 0,
         "rejected_quality_floor_count": 0,
@@ -251,7 +252,7 @@ def choose_event_rows(
 
             diagnostics.update(
                 {
-                    "selected_count": int(len(selected)),
+                    "selected_count": len(selected),
                     "rejected_quality_floor_count": int(rejected_quality_floor_count),
                     "reason": "promoted_quality",
                     "used_fallback": False,
@@ -306,7 +307,7 @@ def choose_event_rows(
 
             diagnostics.update(
                 {
-                    "selected_count": int(len(selected)),
+                    "selected_count": len(selected),
                     "rejected_quality_floor_count": int(rejected_quality_floor_count),
                     "reason": "fallback_non_promoted_quality",
                     "used_fallback": True,
@@ -368,7 +369,7 @@ def choose_event_rows(
 
             diagnostics.update(
                 {
-                    "selected_count": int(len(selected)),
+                    "selected_count": len(selected),
                     "rejected_quality_floor_count": int(rejected_quality_floor_count),
                     "reason": "fallback_edge_quality",
                     "used_fallback": True,
@@ -390,7 +391,7 @@ def choose_event_rows(
             by=["robustness_score", "profit_density_score", "candidate_id"],
             ascending=[False, False, True],
         ).to_dict(orient="records")
-        parsed_rows: List[Dict[str, object]] = []
+        parsed_rows: list[dict[str, object]] = []
         for idx, row in enumerate(ordered_rows):
             parsed_rows.append(_enrich(row, idx, "DRAFT"))
 
@@ -402,11 +403,7 @@ def choose_event_rows(
             )
             is_fall = passes_fallback_gate_fn(row, gates)
 
-            if mode == "discovery" and not is_disc:
-                is_eligible = False
-            elif mode == "fallback" and not is_fall:
-                is_eligible = False
-            elif mode == "both" and not (is_disc or is_fall):
+            if (mode == "discovery" and not is_disc) or (mode == "fallback" and not is_fall) or (mode == "both" and not (is_disc or is_fall)):
                 is_eligible = False
 
             if is_eligible and not allow_naive_entry_fail and naive_validation is not None:
@@ -449,7 +446,7 @@ def choose_event_rows(
 
             diagnostics.update(
                 {
-                    "selected_count": int(len(selected)),
+                    "selected_count": len(selected),
                     "rejected_quality_floor_count": int(rejected_quality_floor_count),
                     "reason": "fallback_phase2_quality",
                     "used_fallback": True,

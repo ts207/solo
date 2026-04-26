@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Iterable, Sequence
+from collections.abc import Iterable, Sequence
 
 ENGINE_ARTIFACT_SCHEMA_VERSION = "engine_artifact_v2"
 STRATEGY_FRAME_SCHEMA_VERSION = "strategy_frame_v2"

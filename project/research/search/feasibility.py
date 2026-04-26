@@ -1,7 +1,8 @@
 from __future__ import annotations
 
+from collections.abc import Iterable, Mapping
 from dataclasses import dataclass, field
-from typing import Any, Dict, Iterable, Mapping
+from typing import Any
 
 import pandas as pd
 
@@ -15,8 +16,6 @@ from project.research.search.evaluator_utils import load_context_state_map
 from project.research.search.role_contracts import validate_standalone_event_role
 
 
-
-
 @dataclass(frozen=True)
 class FeasibilityDrop:
     hypothesis_id: str
@@ -24,9 +23,9 @@ class FeasibilityDrop:
     template_id: str
     reason: str
     reasons: tuple[str, ...] = ()
-    details: Dict[str, Any] = field(default_factory=dict)
+    details: dict[str, Any] = field(default_factory=dict)
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "hypothesis_id": self.hypothesis_id,
             "trigger_key": self.trigger_key,
@@ -47,15 +46,15 @@ class FeasibilityReport:
     def dropped_count(self) -> int:
         return len(self.dropped)
 
-    def counts_by_reason(self) -> Dict[str, int]:
-        counts: Dict[str, int] = {}
+    def counts_by_reason(self) -> dict[str, int]:
+        counts: dict[str, int] = {}
         for drop in self.dropped:
             reason = str(drop.reason or "infeasible")
             counts[reason] = counts.get(reason, 0) + 1
         return dict(sorted(counts.items()))
 
-    def examples_by_reason(self, *, limit: int = 5) -> Dict[str, list[Dict[str, Any]]]:
-        examples: Dict[str, list[Dict[str, Any]]] = {}
+    def examples_by_reason(self, *, limit: int = 5) -> dict[str, list[dict[str, Any]]]:
+        examples: dict[str, list[dict[str, Any]]] = {}
         for drop in self.dropped:
             reason = str(drop.reason or "infeasible")
             bucket = examples.setdefault(reason, [])
@@ -63,7 +62,7 @@ class FeasibilityReport:
                 bucket.append(drop.to_dict())
         return examples
 
-    def summary(self, *, limit: int = 5) -> Dict[str, Any]:
+    def summary(self, *, limit: int = 5) -> dict[str, Any]:
         return {
             "generated": int(self.generated),
             "feasible": int(self.feasible),
@@ -72,7 +71,7 @@ class FeasibilityReport:
             "examples": self.examples_by_reason(limit=limit),
         }
 
-    def to_dict(self, *, limit: int = 25) -> Dict[str, Any]:
+    def to_dict(self, *, limit: int = 25) -> dict[str, Any]:
         payload = self.summary(limit=5)
         payload["dropped_examples"] = [d.to_dict() for d in self.dropped[: int(limit)]]
         return payload
@@ -120,7 +119,7 @@ def filter_hypotheses_with_report(
 class FeasibilityResult:
     valid: bool
     reasons: tuple[str, ...] = ()
-    details: Dict[str, Any] = field(default_factory=dict)
+    details: dict[str, Any] = field(default_factory=dict)
 
     @property
     def primary_reason(self) -> str:
@@ -156,12 +155,12 @@ def _template_family_reason(spec: HypothesisSpec, registry: DomainRegistry) -> s
 def _context_feasibility(
     context: Mapping[str, str] | None,
     available_columns: set[str] | None,
-) -> tuple[list[str], Dict[str, Any]]:
+) -> tuple[list[str], dict[str, Any]]:
     if not context:
         return [], {}
 
     reasons: list[str] = []
-    details: Dict[str, Any] = {}
+    details: dict[str, Any] = {}
     try:
         context_map = load_context_state_map()
     except Exception:
@@ -194,7 +193,7 @@ def check_hypothesis_feasibility(
     registry = registry or get_domain_registry()
     available_columns = set(map(str, features.columns)) if features is not None else None
     reasons: list[str] = []
-    details: Dict[str, Any] = {}
+    details: dict[str, Any] = {}
 
     t = spec.trigger
     ttype = t.trigger_type

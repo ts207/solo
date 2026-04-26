@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, Dict, List, Literal
+from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
@@ -24,10 +24,10 @@ class TradeIntent(BaseModel):
     utility_score: float = 0.0
     confidence_band: Literal["none", "low", "medium", "high"] = "none"
     size_fraction: float = 0.0
-    invalidation: Dict[str, Any] = Field(default_factory=dict)
-    reasons_for: List[str] = Field(default_factory=list)
-    reasons_against: List[str] = Field(default_factory=list)
-    metadata: Dict[str, Any] = Field(default_factory=dict)
+    invalidation: dict[str, Any] = Field(default_factory=dict)
+    reasons_for: list[str] = Field(default_factory=list)
+    reasons_against: list[str] = Field(default_factory=list)
+    metadata: dict[str, Any] = Field(default_factory=dict)
 
     @field_validator("symbol")
     @classmethod

@@ -5,9 +5,8 @@ import json
 import logging
 import shutil
 import sys
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
-from typing import Dict, List, Tuple
 
 import numpy as np
 import pandas as pd
@@ -65,8 +64,8 @@ def _next_month(ts: datetime) -> datetime:
     return ts.replace(year=year, month=month, day=1, hour=0, minute=0, second=0, microsecond=0)
 
 
-def _iter_months(start: datetime, end: datetime) -> List[datetime]:
-    months: List[datetime] = []
+def _iter_months(start: datetime, end: datetime) -> list[datetime]:
+    months: list[datetime] = []
     cursor = _month_start(start)
     while cursor <= end:
         months.append(cursor)
@@ -86,8 +85,8 @@ def _parse_optional_utc(ts_raw: str | None) -> pd.Timestamp | None:
         return None
     ts = pd.Timestamp(raw)
     if ts.tzinfo is None:
-        return ts.tz_localize(timezone.utc)
-    return ts.tz_convert(timezone.utc)
+        return ts.tz_localize(UTC)
+    return ts.tz_convert(UTC)
 
 
 def _resolve_requested_window(
@@ -107,7 +106,7 @@ def _resolve_requested_window(
     return start_ts, end_exclusive
 
 
-def _align_funding(bars: pd.DataFrame, funding: pd.DataFrame) -> Tuple[pd.DataFrame, float]:
+def _align_funding(bars: pd.DataFrame, funding: pd.DataFrame) -> tuple[pd.DataFrame, float]:
     if funding.empty:
         aligned = bars[["timestamp"]].copy()
         aligned["funding_event_ts"] = pd.NaT
@@ -283,13 +282,13 @@ def main() -> int:
         "funding_scale": str(args.funding_scale),
         "source_vendor": "bybit",
     }
-    inputs: List[Dict[str, object]] = []
-    outputs: List[Dict[str, object]] = []
+    inputs: list[dict[str, object]] = []
+    outputs: list[dict[str, object]] = []
     stage_name = (
         f"build_cleaned_{timeframe}" if market == "perp" else f"build_cleaned_{timeframe}_spot"
     )
     manifest = start_manifest(stage_name, run_id, params, inputs, outputs)
-    stats: Dict[str, object] = {"symbols": {}}
+    stats: dict[str, object] = {"symbols": {}}
 
     try:
         for symbol in symbols:
@@ -355,7 +354,7 @@ def main() -> int:
             inputs.append(
                 {
                     "path": str(raw_dir),
-                    "rows": int(len(raw)),
+                    "rows": len(raw),
                     "start_ts": raw["timestamp"].min().isoformat(),
                     "end_ts": raw["timestamp"].max().isoformat(),
                     "provenance": {
@@ -377,7 +376,7 @@ def main() -> int:
                 start=start_ts,
                 end=end_exclusive - timedelta(minutes=tf_minutes),
                 freq=tf_freq,
-                tz=timezone.utc,
+                tz=UTC,
             )
             bars = (
                 raw.set_index("timestamp")
@@ -443,7 +442,7 @@ def main() -> int:
                 inputs.append(
                     {
                         "path": str(funding_dir),
-                        "rows": int(len(funding)),
+                        "rows": len(funding),
                         "start_ts": funding["timestamp"].min().isoformat()
                         if not funding.empty
                         else funding_raw_start.isoformat(),
@@ -622,7 +621,7 @@ def main() -> int:
                 outputs.append(
                     {
                         "path": str(written_path),
-                        "rows": int(len(bars_month)),
+                        "rows": len(bars_month),
                         "start_ts": bars_month["timestamp"].min().isoformat(),
                         "end_ts": bars_month["timestamp"].max().isoformat(),
                         "storage": storage,
@@ -676,7 +675,7 @@ def main() -> int:
             stats["symbols"][symbol] = {
                 "start": start_ts.isoformat(),
                 "end": end_ts.isoformat(),
-                "rows": int(len(bars)),
+                "rows": len(bars),
                 "funding_scale_mode": str(args.funding_scale),
                 "requested_start": requested_start.isoformat()
                 if requested_start is not None

@@ -1,8 +1,9 @@
 from __future__ import annotations
 
 import os
+from collections.abc import Iterable
 from pathlib import Path
-from typing import Any, Dict, Iterable
+from typing import Any
 
 import yaml
 
@@ -22,7 +23,7 @@ def get_data_root() -> Path:
     return (PROJECT_ROOT.parent / "data").resolve()
 
 
-def _deep_merge(base: Dict[str, Any], incoming: Dict[str, Any]) -> Dict[str, Any]:
+def _deep_merge(base: dict[str, Any], incoming: dict[str, Any]) -> dict[str, Any]:
     for key, value in incoming.items():
         if isinstance(value, dict) and isinstance(base.get(key), dict):
             base[key] = _deep_merge(base[key], value)
@@ -31,12 +32,12 @@ def _deep_merge(base: Dict[str, Any], incoming: Dict[str, Any]) -> Dict[str, Any
     return base
 
 
-def load_configs(paths: Iterable[str]) -> Dict[str, Any]:
+def load_configs(paths: Iterable[str]) -> dict[str, Any]:
     """
     Load and merge one or more YAML config files.
     Later configs override values from earlier ones.
     """
-    merged: Dict[str, Any] = {}
+    merged: dict[str, Any] = {}
     for path_str in paths:
         path = Path(path_str)
         if not path.exists():

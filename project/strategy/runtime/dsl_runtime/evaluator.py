@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import logging
-from typing import List
 
 import numpy as np
 import pandas as pd
@@ -73,7 +72,7 @@ def condition_mask_node(merged: pd.DataFrame, node: ConditionNodeSpec) -> pd.Ser
 
 
 def combined_entry_mask(merged: pd.DataFrame, entry: EntrySpec) -> pd.Series:
-    masks: List[pd.Series] = []
+    masks: list[pd.Series] = []
     masks.extend(condition_mask_node(merged, node) for node in entry.condition_nodes)
     if not masks:
         return pd.Series(True, index=merged.index, dtype=bool)

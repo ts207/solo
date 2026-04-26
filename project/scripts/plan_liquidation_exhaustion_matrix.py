@@ -5,7 +5,7 @@ import json
 import subprocess
 import sys
 from dataclasses import asdict, dataclass
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
@@ -334,7 +334,7 @@ def main(argv: list[str] | None = None) -> int:
     )
     args = parser.parse_args(argv)
 
-    stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+    stamp = datetime.now(UTC).strftime("%Y%m%dT%H%M%SZ")
     phase = str(args.phase).upper()
     out_dir = Path(args.out_dir) / f"phase_{phase.lower()}_{stamp}"
     out_dir.mkdir(parents=True, exist_ok=True)

@@ -1,9 +1,9 @@
 from __future__ import annotations
 
 import importlib
-from typing import Iterable, Tuple
+from collections.abc import Iterable
 
-DETECTOR_FAMILY_MODULES: Tuple[str, ...] = (
+DETECTOR_FAMILY_MODULES: tuple[str, ...] = (
     "project.events.families.basis",
     "project.events.families.funding",
     "project.events.families.liquidation",

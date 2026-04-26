@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Iterable
+from collections.abc import Iterable
 
 from project.domain.compiled_registry import get_domain_registry
 from project.domain.models import ThesisDefinition

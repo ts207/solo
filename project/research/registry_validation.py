@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import logging
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from project.spec_registry import load_template_registry
 
@@ -10,10 +10,10 @@ _LOG = logging.getLogger(__name__)
 
 def validate_agent_selections(
     *,
-    events: Optional[List[str]] = None,
-    templates: Optional[List[str]] = None,
-    horizons: Optional[List[str]] = None,
-) -> Dict[str, Any]:
+    events: list[str] | None = None,
+    templates: list[str] | None = None,
+    horizons: list[str] | None = None,
+) -> dict[str, Any]:
     """
     Validates agent-provided subsets against the authoritative registry.
 
@@ -71,9 +71,9 @@ def validate_agent_selections(
 
 
 def filter_event_chain(
-    full_chain: List[tuple[str, str, List[str]]],
-    selected_events: Optional[List[str]] = None,
-) -> List[tuple[str, str, List[str]]]:
+    full_chain: list[tuple[str, str, list[str]]],
+    selected_events: list[str] | None = None,
+) -> list[tuple[str, str, list[str]]]:
     """Filters the PHASE2_EVENT_CHAIN based on agent-selected events."""
     if not selected_events:
         return full_chain

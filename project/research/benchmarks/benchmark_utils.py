@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 import yaml
 
@@ -12,7 +12,7 @@ from project.core.config import get_data_root
 THRESHOLDS_PATH = PROJECT_ROOT / "configs" / "benchmarks" / "discovery" / "thresholds_v1.yaml"
 
 
-def load_thresholds(path: Optional[Path] = None) -> Dict[str, Any]:
+def load_thresholds(path: Path | None = None) -> dict[str, Any]:
     p = path or THRESHOLDS_PATH
     if not p.exists():
         return {}
@@ -25,14 +25,14 @@ def load_thresholds(path: Optional[Path] = None) -> Dict[str, Any]:
 
 def evaluate_thresholds(
     *,
-    mode_results: Dict[str, Dict[str, Any]],
-    thresholds: Optional[Dict[str, Any]] = None,
-) -> Dict[str, Any]:
+    mode_results: dict[str, dict[str, Any]],
+    thresholds: dict[str, Any] | None = None,
+) -> dict[str, Any]:
     """Evaluate benchmark results for the single canonical D path."""
     if thresholds is None:
         thresholds = load_thresholds()
 
-    scorecard: Dict[str, Any] = {}
+    scorecard: dict[str, Any] = {}
 
     for mode_id, result in mode_results.items():
         scorecard[mode_id] = {
@@ -52,7 +52,7 @@ def evaluate_thresholds(
     }
 
 
-def _safe_delta(curr: Optional[float], baseline: Optional[float], invert: bool = False) -> Optional[float]:
+def _safe_delta(curr: float | None, baseline: float | None, invert: bool = False) -> float | None:
     if curr is None or baseline is None or baseline == 0:
         return None
     val = (curr - baseline) / abs(baseline) if baseline != 0 else None
@@ -61,7 +61,7 @@ def _safe_delta(curr: Optional[float], baseline: Optional[float], invert: bool =
     return round(val, 4) if val is not None else None
 
 
-def _evaluate_components(mode_results: Dict[str, Dict[str, Any]], thresholds: Dict[str, Any]) -> Dict[str, Any]:
+def _evaluate_components(mode_results: dict[str, dict[str, Any]], thresholds: dict[str, Any]) -> dict[str, Any]:
     """Evaluate the canonical D path without alternate-mode comparisons."""
     d_result = mode_results.get("D", {})
     min_candidates = int(thresholds.get("min_final_candidates", 0) or 0)
@@ -75,7 +75,7 @@ def _evaluate_components(mode_results: Dict[str, Dict[str, Any]], thresholds: Di
     return {"canonical_d": status}
 
 
-def _suite_recommendation(components: Dict[str, Any], thresholds: Dict[str, Any]) -> str:
+def _suite_recommendation(components: dict[str, Any], thresholds: dict[str, Any]) -> str:
     status = components.get("canonical_d")
     if status == "promote":
         return "promote"
@@ -84,7 +84,7 @@ def _suite_recommendation(components: Dict[str, Any], thresholds: Dict[str, Any]
     return "inconclusive"
 
 
-def find_historical_reviews(matrix_id: str, history_limit: int = 5) -> List[Dict[str, Any]]:
+def find_historical_reviews(matrix_id: str, history_limit: int = 5) -> list[dict[str, Any]]:
     """Return the N latest review+certification bundles for a specific matrix_id."""
     root = get_data_root()
     search_paths = [
@@ -92,7 +92,7 @@ def find_historical_reviews(matrix_id: str, history_limit: int = 5) -> List[Dict
         root / "reports" / "perf_benchmarks" / "history",
     ]
 
-    matches: List[Dict[str, Any]] = []
+    matches: list[dict[str, Any]] = []
     for p in search_paths:
         if p.exists():
             for d in p.iterdir():
@@ -100,7 +100,7 @@ def find_historical_reviews(matrix_id: str, history_limit: int = 5) -> List[Dict
                     review_file = d / "benchmark_review.json"
                     cert_file = d / "benchmark_certification.json"
                     if review_file.exists():
-                        entry: Dict[str, Any] = {
+                        entry: dict[str, Any] = {
                             "path": str(d),
                             "review": None,
                             "certification": None,

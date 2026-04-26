@@ -1,22 +1,20 @@
 from pathlib import Path
-from typing import List, Optional, Tuple
 
 from project.domain.compiled_registry import get_domain_registry
 from project.spec_validation.loaders import (
-    load_family_registry,
     load_ontology_events,
     load_ontology_states,
 )
 
 
-def validate_ontology(root: Path = Path(".")) -> List[Tuple[str, str]]:
+def validate_ontology(root: Path = Path(".")) -> list[tuple[str, str]]:
     errors = []
     # Note: load_ontology_events and load_ontology_states use get_domain_registry()
-    # which currently depends on PROJECT_ROOT/REPO_ROOT. 
+    # which currently depends on PROJECT_ROOT/REPO_ROOT.
     # For now we assume they are consistent with the root.
     events = load_ontology_events()
     states = load_ontology_states()
-    
+
     from project.spec_validation.loaders import load_yaml
     family_registry = load_yaml(root / "spec" / "grammar" / "family_registry.yaml")
 
@@ -40,27 +38,27 @@ def validate_ontology(root: Path = Path(".")) -> List[Tuple[str, str]]:
     return errors
 
 
-def get_event_ids_for_family(family_name: str) -> List[str]:
+def get_event_ids_for_family(family_name: str) -> list[str]:
     return list(get_domain_registry().get_event_ids_for_family(family_name))
 
 
-def get_event_ids_for_regime(family_name: str, *, executable_only: bool = False) -> List[str]:
+def get_event_ids_for_regime(family_name: str, *, executable_only: bool = False) -> list[str]:
     return list(get_domain_registry().get_event_ids_for_regime(family_name, executable_only=executable_only))
 
 
-def get_state_ids_for_family(family_name: str) -> List[str]:
+def get_state_ids_for_family(family_name: str) -> list[str]:
     return list(get_domain_registry().get_state_ids_for_family(family_name))
 
 
-def get_event_family(event_id: str) -> Optional[str]:
+def get_event_family(event_id: str) -> str | None:
     """Return the family name for a single event_id, or None if not found."""
     event = get_domain_registry().get_event(event_id)
     return event.canonical_regime if event is not None else None
 
 
-def get_searchable_event_families() -> List[str]:
+def get_searchable_event_families() -> list[str]:
     return list(get_domain_registry().searchable_event_families)
 
 
-def get_searchable_state_families() -> List[str]:
+def get_searchable_state_families() -> list[str]:
     return list(get_domain_registry().searchable_state_families)

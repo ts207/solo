@@ -1,5 +1,5 @@
 filepath = "project/events/families/regime.py"
-with open(filepath, "r") as f:
+with open(filepath) as f:
     lines = f.readlines()
 
 with open(filepath, "w") as f:

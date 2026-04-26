@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 import logging
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 import pandas as pd
 
@@ -16,18 +16,18 @@ class FeatureAuditRegistry:
     """Registry for tracking feature provenance and staleness."""
 
     def __init__(self):
-        self.metadata: Dict[str, Dict[str, Any]] = {}
-        self.audit_records: List[pd.DataFrame] = []
+        self.metadata: dict[str, dict[str, Any]] = {}
+        self.audit_records: list[pd.DataFrame] = []
 
     def record_join(
         self,
         *,
-        feature_cols: List[str],
+        feature_cols: list[str],
         source_table: str,
         source_ts_col: str,
         join_method: str = "asof_backward",
         join_tolerance: str = "1h",
-        lookback_window: Optional[str] = None,
+        lookback_window: str | None = None,
         min_lag: int = 0,
         age_seconds: pd.Series,
         symbol: str,
@@ -57,7 +57,7 @@ class FeatureAuditRegistry:
         audit_df["features"] = ",".join(feature_cols)
         self.audit_records.append(audit_df)
 
-    def get_summary(self) -> Dict[str, Any]:
+    def get_summary(self) -> dict[str, Any]:
         if not self.audit_records:
             return {}
 

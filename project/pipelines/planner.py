@@ -1,8 +1,8 @@
 from __future__ import annotations
 
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Callable, Dict, List, Tuple
 
 from project.pipelines.stage_registry import assert_stage_registry_contract
 from project.pipelines.stages import (
@@ -17,11 +17,11 @@ from project.pipelines.stages import (
 class StageDefinition:
     name: str
     script_path: Path
-    args: List[str]
-    depends_on: List[str] = field(default_factory=list)
+    args: list[str]
+    depends_on: list[str] = field(default_factory=list)
 
 
-def _upsert_cli_flag(base_args: List[str], flag: str, value: str) -> None:
+def _upsert_cli_flag(base_args: list[str], flag: str, value: str) -> None:
     try:
         idx = base_args.index(flag)
     except ValueError:
@@ -39,7 +39,7 @@ def _upsert_cli_flag(base_args: List[str], flag: str, value: str) -> None:
 # `phase2_search_engine` is the canonical planner-owned phase-2 discovery stage.
 # Legacy per-event phase-2 stage names remain only for compatibility with
 # historical artifacts, replay tooling, and old tests.
-DEPENDENCY_PATTERNS: List[Tuple[str, List[str]]] = [
+DEPENDENCY_PATTERNS: list[tuple[str, list[str]]] = [
     ("build_cleaned_{tf}", ["@OHLCV_INGEST_STAGES"]),
     ("build_features_{tf}", ["build_cleaned_{tf}", "@FUNDING_INGEST_STAGES"]),
     ("build_features_{tf}_spot", ["build_cleaned_{tf}_spot"]),
@@ -89,7 +89,7 @@ DEPENDENCY_PATTERNS: List[Tuple[str, List[str]]] = [
 ]
 
 
-def _resolve_dependencies(name: str, all_stage_names: List[str]) -> List[str]:
+def _resolve_dependencies(name: str, all_stage_names: list[str]) -> list[str]:
     """Resolve dependencies for a stage name based on patterns and special tokens."""
     deps = []
 
@@ -279,10 +279,10 @@ def build_pipeline_plan(
     research_gate_profile: str,
     project_root: Path,
     data_root: Path,
-    phase2_event_chain: List[Tuple[str, str, List[str]]],
+    phase2_event_chain: list[tuple[str, str, list[str]]],
     script_supports_flag: Callable[[Path, str], bool],
     retail_profile_name: str,
-) -> Dict[str, StageDefinition]:
+) -> dict[str, StageDefinition]:
     force_flag = str(int(getattr(args, "force", 0) or 0))
     # Collect all stages
     raw_stages = []
@@ -336,7 +336,7 @@ def build_pipeline_plan(
     )
 
     all_stage_names = [s[0] for s in raw_stages]
-    plan: Dict[str, StageDefinition] = {}
+    plan: dict[str, StageDefinition] = {}
 
     for name, path, s_args in raw_stages:
         deps = _resolve_dependencies(name, all_stage_names)
@@ -397,7 +397,7 @@ def build_pipeline_plan(
     return plan
 
 
-def _validate_pipeline_dag(plan: Dict[str, StageDefinition]) -> None:
+def _validate_pipeline_dag(plan: dict[str, StageDefinition]) -> None:
     """Perform cycle detection and ensure a valid topological order exists."""
     visited = set()
     stack = set()

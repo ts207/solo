@@ -1,7 +1,8 @@
 from __future__ import annotations
 
 import json
-from typing import Any, Dict, Iterable
+from collections.abc import Iterable
+from typing import Any
 
 import numpy as np
 import pandas as pd
@@ -11,7 +12,7 @@ from project.core.exceptions import DataIntegrityError
 from project.research.validation.schemas import StabilityResult
 
 
-def _parse_mapping(value: Any) -> Dict[str, float]:
+def _parse_mapping(value: Any) -> dict[str, float]:
     if isinstance(value, dict):
         out = {}
         for k, v in value.items():
@@ -49,7 +50,7 @@ def compute_regime_labels(
 
 def evaluate_by_regime(
     df: pd.DataFrame, *, value_col: str, regime_col: str = "regime"
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     if df.empty or value_col not in df.columns or regime_col not in df.columns:
         return {
             "by_regime": {},
@@ -81,13 +82,13 @@ def evaluate_by_regime(
         "by_regime": by_regime,
         "regime_flip_flag": flip,
         "worst_regime_estimate": worst,
-        "num_regimes": int(len(by_regime)),
+        "num_regimes": len(by_regime),
     }
 
 
 def evaluate_cross_symbol_stability(
     df: pd.DataFrame, *, value_col: str, symbol_col: str = "symbol"
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     if df.empty or value_col not in df.columns or symbol_col not in df.columns:
         return {
             "cross_symbol_sign_consistency": 0.0,
@@ -120,11 +121,11 @@ def evaluate_cross_symbol_stability(
         "cross_symbol_sign_consistency": consistency,
         "worst_symbol_estimate": float(min(by_symbol.values(), default=0.0)),
         "by_symbol": by_symbol,
-        "n_symbols": int(len(by_symbol)),
+        "n_symbols": len(by_symbol),
     }
 
 
-def rolling_stability_metrics(values: Iterable[float], *, window: int = 3) -> Dict[str, Any]:
+def rolling_stability_metrics(values: Iterable[float], *, window: int = 3) -> dict[str, Any]:
     series = pd.Series(list(values), dtype="float64").replace([np.inf, -np.inf], np.nan).dropna()
     if series.empty:
         return {"rolling_instability_score": 0.0, "rolling_means": []}
@@ -153,7 +154,7 @@ def _is_missing_value(value: Any) -> bool:
 
 
 def _stability_context(
-    row: Dict[str, Any], field: str, source_artifact: str | None = None
+    row: dict[str, Any], field: str, source_artifact: str | None = None
 ) -> str:
     parts = [
         f"field={field}",
@@ -166,7 +167,7 @@ def _stability_context(
 
 
 def _first_finite_row_float(
-    row: Dict[str, Any],
+    row: dict[str, Any],
     fields: tuple[str, ...],
     *,
     default: float,
@@ -190,7 +191,7 @@ def _first_finite_row_float(
 
 
 def build_stability_result_from_row(
-    row: Dict[str, Any], *, source_artifact: str | None = None
+    row: dict[str, Any], *, source_artifact: str | None = None
 ) -> StabilityResult:
     effect = safe_float(
         row.get("effect_shrunk_state", row.get("expectancy", row.get("estimate", 0.0))),

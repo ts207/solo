@@ -1,7 +1,8 @@
 from __future__ import annotations
 
+from collections.abc import Iterable, Mapping
 from pathlib import Path
-from typing import Any, Dict, Iterable, Mapping
+from typing import Any
 
 from project import PROJECT_ROOT
 from project.domain.compiled_registry import get_domain_registry
@@ -82,9 +83,9 @@ def _family_for_proxy(spec_payload: Mapping[str, Any], fallback: str) -> str:
     return token or fallback
 
 
-def ontology_rows_by_event() -> Dict[str, Dict[str, Any]]:
+def ontology_rows_by_event() -> dict[str, dict[str, Any]]:
     registry = get_domain_registry()
-    out: Dict[str, Dict[str, Any]] = {}
+    out: dict[str, dict[str, Any]] = {}
     for event_type in registry.event_ids:
         spec = registry.event_definitions.get(event_type)
         if spec is None:
@@ -109,7 +110,7 @@ def ontology_rows_by_event() -> Dict[str, Dict[str, Any]]:
     return out
 
 
-def event_ontology_mapping_payload() -> Dict[str, Any]:
+def event_ontology_mapping_payload() -> dict[str, Any]:
     return {
         "version": 1,
         "kind": "event_ontology_mapping",
@@ -129,7 +130,7 @@ def event_ontology_mapping_payload() -> Dict[str, Any]:
     }
 
 
-def event_contract_overrides_payload() -> Dict[str, Any]:
+def event_contract_overrides_payload() -> dict[str, Any]:
     contracts = load_active_event_contracts()
     events = {
         event_type: {
@@ -157,9 +158,9 @@ def proxy_event_types() -> set[str]:
     return set(LEGACY_PROXY_TIER_EVENTS)
 
 
-def canonical_event_registry_payload() -> Dict[str, Any]:
+def canonical_event_registry_payload() -> dict[str, Any]:
     registry = get_domain_registry()
-    event_metadata: Dict[str, Dict[str, Any]] = {}
+    event_metadata: dict[str, dict[str, Any]] = {}
     for event_type in sorted(proxy_event_types()):
         source_event_type = EVENT_ALIASES.get(event_type, event_type)
         spec = registry.event_definitions.get(source_event_type)

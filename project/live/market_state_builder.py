@@ -1,7 +1,8 @@
 from __future__ import annotations
 
+from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
-from typing import Any, Mapping, Sequence
+from typing import Any
 
 from project.core.regime_classifier import classify_regime
 from project.live.cost_estimator import estimate_expected_cost_bps

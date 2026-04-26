@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import logging
-from typing import Any, Dict, List
+from typing import Any
 
 import pandas as pd
 
@@ -11,7 +11,7 @@ _LOG = logging.getLogger(__name__)
 def evaluate_event_occurrence(
     events: pd.DataFrame,
     min_hits_per_year: int = 24,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     Check if the event occurs frequently enough to be tradable.
     """
@@ -33,7 +33,7 @@ def evaluate_regime_variance(
     events: pd.DataFrame,
     regimes: pd.Series,
     min_regimes: int = 2,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     Check if the event occurs across multiple regimes (vol, trend, etc.).
     """
@@ -52,9 +52,9 @@ def evaluate_regime_variance(
 
 def evaluate_parameter_sensitivity(
     events: pd.DataFrame,
-    perturbed_events: List[pd.DataFrame],
+    perturbed_events: list[pd.DataFrame],
     max_drop_ratio: float = 0.5,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     Check if small parameter changes cause the event count to drop wildly.
     """

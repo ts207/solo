@@ -99,8 +99,8 @@ def _synthetic_split_status(*, start: str, end: str, timeframe: str) -> dict[str
         "mode": "synthetic",
         "fold_count": len(folds),
         "coverage_ratio": 1.0,
-        "bar_count": int(len(timestamps)),
-        "expected_bar_count": int(len(timestamps)),
+        "bar_count": len(timestamps),
+        "expected_bar_count": len(timestamps),
     }
 
 
@@ -109,7 +109,7 @@ def _split_status(*, data_root: Path, run_id: str, symbols: list[str], timeframe
     statuses: list[str] = []
     used_real = False
     expected = _expected_timestamps(start=start, end=end, timeframe=timeframe)
-    expected_count = int(len(expected))
+    expected_count = len(expected)
     for symbol in symbols:
         bars, source = _load_bars_for_viability(
             data_root=data_root,
@@ -161,7 +161,7 @@ def _split_status(*, data_root: Path, run_id: str, symbols: list[str], timeframe
             "status": status,
             "mode": "real",
             "bars_source": source,
-            "bar_count": int(len(ts)),
+            "bar_count": len(ts),
             "expected_bar_count": expected_count,
             "coverage_ratio": coverage_ratio,
             "fold_count": len(folds),
@@ -329,7 +329,7 @@ def _support_status(
     if cache_key not in detection_cache:
         detection_cache[cache_key] = _detected_events(feature_frame, event_type=atom.event_type, symbol=symbol)
     events, event_error = detection_cache[cache_key]
-    event_count = int(len(events))
+    event_count = len(events)
     if event_error:
         return {
             "status": "not_evaluated",
@@ -338,7 +338,7 @@ def _support_status(
         }
     if context is None:
         support_count = event_count
-        state_row_count = int(len(feature_frame))
+        state_row_count = len(feature_frame)
         state_density_ratio = 1.0 if len(feature_frame) else 0.0
     else:
         if context_frame.empty:
@@ -599,9 +599,7 @@ def verify_data_contract(
     ]
     if matrix and all(row["status"] == "block" for row in matrix):
         status = "block"
-    elif "block" in statuses or any(row["status"] == "block" for row in matrix):
-        status = "warn"
-    elif "warn" in statuses or "unknown" in statuses or any(
+    elif "block" in statuses or any(row["status"] == "block" for row in matrix) or "warn" in statuses or "unknown" in statuses or any(
         row["status"] in {"warn", "unknown"} for row in matrix
     ):
         status = "warn"

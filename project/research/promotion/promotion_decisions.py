@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any
 
 import numpy as np
 
@@ -14,13 +14,13 @@ from project.research.promotion.promotion_decision_support import (
     _restore_boolean_compat_gates,
     evaluate_sensitivity_gate,
 )
+from project.research.promotion.promotion_eligibility import _ReasonRecorder
 from project.research.promotion.promotion_gate_evaluators import (
     _evaluate_continuation_quality,
     _evaluate_control_audit_and_dsr,
     _evaluate_deploy_oos_and_low_capital,
     _evaluate_market_execution_and_stability,
 )
-from project.research.promotion.promotion_eligibility import _ReasonRecorder
 from project.research.promotion.promotion_result_support import _assemble_promotion_result
 from project.research.promotion.promotion_scoring import _context_complexity_penalty
 from project.research.promotion.promotion_thresholds import _build_bundle_policy
@@ -42,11 +42,11 @@ _CELL_ORIGIN_SUPPORTIVE_STATUSES = {
 }
 
 
-def _is_cell_origin_row(row: Dict[str, Any]) -> bool:
+def _is_cell_origin_row(row: dict[str, Any]) -> bool:
     return str(row.get("source_discovery_mode", "") or "").strip().lower() == _CELL_ORIGIN_MODE
 
 
-def _has_explicit_runtime_mapping(row: Dict[str, Any]) -> bool:
+def _has_explicit_runtime_mapping(row: dict[str, Any]) -> bool:
     if as_bool(row.get("runtime_executable", False)):
         return True
     mapping_status = str(
@@ -61,9 +61,9 @@ def _has_explicit_runtime_mapping(row: Dict[str, Any]) -> bool:
 
 
 def _evaluate_cell_origin_governance(
-    row: Dict[str, Any],
+    row: dict[str, Any],
     reasons: _ReasonRecorder,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     if not _is_cell_origin_row(row):
         return {
             "applies": False,
@@ -115,9 +115,9 @@ def _evaluate_cell_origin_governance(
 
 
 def _apply_cell_origin_authority(
-    result: Dict[str, Any],
-    cell_origin_eval: Dict[str, Any],
-) -> Dict[str, Any]:
+    result: dict[str, Any],
+    cell_origin_eval: dict[str, Any],
+) -> dict[str, Any]:
     out = dict(result)
     applies = bool(cell_origin_eval.get("applies", False))
     passed = bool(cell_origin_eval.get("pass", True))
@@ -166,10 +166,10 @@ def _apply_cell_origin_authority(
 
 
 def _apply_authoritative_bundle_decision(
-    result: Dict[str, Any],
-    bundle: Dict[str, Any] | None,
-    bundle_decision: Dict[str, Any] | None = None,
-) -> Dict[str, Any]:
+    result: dict[str, Any],
+    bundle: dict[str, Any] | None,
+    bundle_decision: dict[str, Any] | None = None,
+) -> dict[str, Any]:
     """Apply bundle decision as authority for final promotion outcome fields.
 
     The bundle remains authoritative for final status/track/score, but
@@ -196,9 +196,9 @@ def _apply_authoritative_bundle_decision(
 
 def evaluate_row(
     *,
-    row: Dict[str, Any],
-    hypothesis_index: Dict[str, Dict[str, Any]],
-    negative_control_summary: Dict[str, Any],
+    row: dict[str, Any],
+    hypothesis_index: dict[str, dict[str, Any]],
+    negative_control_summary: dict[str, Any],
     max_q_value: float,
     min_events: int,
     min_stability_score: float,
@@ -215,7 +215,7 @@ def evaluate_row(
     require_low_capital_viability: bool = False,
     require_multiplicity_diagnostics: bool = False,
     min_dsr: float = 0.0,
-    promotion_confirmatory_gates: Dict[str, Any] | None = None,
+    promotion_confirmatory_gates: dict[str, Any] | None = None,
     promotion_profile: str = "deploy",
     enforce_baseline_beats_complexity: bool = True,
     enforce_placebo_controls: bool = True,
@@ -227,10 +227,10 @@ def evaluate_row(
     policy_version: str = "phase4_pr5_v1",
     bundle_version: str = "phase4_bundle_v1",
     is_reduced_evidence: bool = False,
-    benchmark_certification: Dict[str, Any] | None = None,
+    benchmark_certification: dict[str, Any] | None = None,
     run_id: str | None = None,
     data_root: Path | None = None,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     try:
         reasons = _ReasonRecorder.create()
         event_type = str(row.get("event_type", row.get("event", ""))).strip() or "UNKNOWN_EVENT"

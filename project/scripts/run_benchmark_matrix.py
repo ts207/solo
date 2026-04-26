@@ -3,9 +3,9 @@ import json
 import logging
 import re
 import sys
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any
 
 import yaml
 
@@ -28,9 +28,9 @@ def write_run_matrix_summary_report(
     *,
     out_dir: str | Path,
     baseline_run_id: str,
-    candidate_run_ids: List[str] | None = None,
+    candidate_run_ids: list[str] | None = None,
     data_root: Path | None = None,
-    thresholds: Dict[str, Any] | None = None,
+    thresholds: dict[str, Any] | None = None,
     drift_mode: str = "warn",
 ) -> Path:
     from project.research.services.run_comparison_service import (
@@ -109,13 +109,13 @@ def write_live_data_foundation_report(
 def build_context_mode_comparison_payload(
     *,
     run_id: str,
-    symbols: List[str],
+    symbols: list[str],
     timeframe: str,
     data_root: Path | None = None,
     min_sample_size: int = 30,
     search_space_path: str | Path | None = None,
     event_registry_override: str | Path | None = None,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     from project.research.services.context_mode_comparison_service import (
         build_context_mode_comparison_payload as _build_context_mode_comparison_payload,
     )
@@ -134,7 +134,7 @@ def build_context_mode_comparison_payload(
 def write_context_mode_comparison_report(
     *,
     out_path: str | Path,
-    comparison: Dict[str, Any],
+    comparison: dict[str, Any],
 ) -> Path:
     from project.research.services.context_mode_comparison_service import (
         write_context_mode_comparison_report as _write_context_mode_comparison_report,
@@ -146,26 +146,26 @@ def write_context_mode_comparison_report(
     )
 
 
-def load_yaml(path: Path) -> Dict[str, Any]:
-    with open(path, 'r', encoding='utf-8') as f:
+def load_yaml(path: Path) -> dict[str, Any]:
+    with open(path, encoding='utf-8') as f:
         return yaml.safe_load(f)
 
 
-def _load_preset(preset_name: str) -> Dict[str, Any]:
+def _load_preset(preset_name: str) -> dict[str, Any]:
     preset_path = PROJECT_ROOT / "configs" / "benchmarks" / "discovery" / f"{preset_name}.yaml"
     if not preset_path.exists():
         raise FileNotFoundError(f"Preset config not found: {preset_path}")
     return load_yaml(preset_path)
 
 
-def _load_slice(slice_filename: str, preset_dir: Path) -> Dict[str, Any]:
+def _load_slice(slice_filename: str, preset_dir: Path) -> dict[str, Any]:
     slice_path = preset_dir / slice_filename
     if not slice_path.exists():
         raise FileNotFoundError(f"Slice config not found: {slice_path}")
     return load_yaml(slice_path)
 
 
-def _validate_slice(slice_cfg: Dict[str, Any], slice_file: str) -> None:
+def _validate_slice(slice_cfg: dict[str, Any], slice_file: str) -> None:
     for field in SLICE_REQUIRED_FIELDS:
         if field not in slice_cfg:
             raise ValueError(f"Slice {slice_file} missing required field: {field}")
@@ -179,10 +179,10 @@ def _validate_slice(slice_cfg: Dict[str, Any], slice_file: str) -> None:
 
 
 def _build_jobs(
-    preset_def: Dict[str, Any],
+    preset_def: dict[str, Any],
     preset_dir: Path,
     execute: bool,
-) -> List[Dict[str, Any]]:
+) -> list[dict[str, Any]]:
     slice_files = preset_def.get("slices", [])
     mode_defs = preset_def.get("benchmark_modes", {})
     preset_phase2_defaults = dict(preset_def.get("phase2_defaults", {}) or {})
@@ -246,7 +246,7 @@ def _build_jobs(
     return jobs
 
 
-def _execute_job(job: Dict[str, Any], out_dir: Path) -> Dict[str, Any]:
+def _execute_job(job: dict[str, Any], out_dir: Path) -> dict[str, Any]:
     from project.research.benchmarks.benchmark_modes import get_mode
     from project.research.benchmarks.discovery_benchmark import run_benchmark_job
 
@@ -293,7 +293,7 @@ def _execute_job(job: Dict[str, Any], out_dir: Path) -> Dict[str, Any]:
     return job
 
 
-def _metric_number(metrics: Dict[str, Any], *path: str) -> float | None:
+def _metric_number(metrics: dict[str, Any], *path: str) -> float | None:
     obj: Any = metrics
     for key in path:
         if not isinstance(obj, dict):
@@ -307,12 +307,12 @@ def _metric_number(metrics: Dict[str, Any], *path: str) -> float | None:
         return None
 
 
-def _candidate_count_from_metrics(metrics: Dict[str, Any]) -> int:
+def _candidate_count_from_metrics(metrics: dict[str, Any]) -> int:
     value = _metric_number(metrics, "candidate_count")
     return int(value) if value is not None else 0
 
 
-def _shortlist_count_from_metrics(metrics: Dict[str, Any]) -> int:
+def _shortlist_count_from_metrics(metrics: dict[str, Any]) -> int:
     value = _metric_number(metrics, "shortlist_count")
     return int(value) if value is not None else 0
 
@@ -320,11 +320,11 @@ def _shortlist_count_from_metrics(metrics: Dict[str, Any]) -> int:
 def build_canonical_path_report(
     *,
     matrix_id: str,
-    results: List[Dict[str, Any]],
-) -> Dict[str, Any]:
+    results: list[dict[str, Any]],
+) -> dict[str, Any]:
     """Build an artifact-derived report for the single canonical D path."""
-    slices: List[Dict[str, Any]] = []
-    noncanonical_modes: List[str] = []
+    slices: list[dict[str, Any]] = []
+    noncanonical_modes: list[str] = []
     success_count = 0
     materialized_count = 0
 
@@ -404,7 +404,7 @@ def build_canonical_path_report(
     }
 
 
-def render_canonical_path_markdown(report: Dict[str, Any]) -> str:
+def render_canonical_path_markdown(report: dict[str, Any]) -> str:
     lines = [
         "# Canonical Discovery Path Report",
         "",
@@ -444,8 +444,8 @@ def render_canonical_path_markdown(report: Dict[str, Any]) -> str:
 def write_canonical_path_report(
     *,
     out_dir: Path,
-    report: Dict[str, Any],
-) -> Dict[str, str]:
+    report: dict[str, Any],
+) -> dict[str, str]:
     json_path = out_dir / "canonical_path_report.json"
     md_path = out_dir / "canonical_path_report.md"
     json_path.write_text(json.dumps(report, indent=2, sort_keys=True), encoding="utf-8")
@@ -453,7 +453,7 @@ def write_canonical_path_report(
     return {"canonical_path_json": str(json_path), "canonical_path_md": str(md_path)}
 
 
-def _write_outputs(out_dir: Path, matrix_id: str, execute: bool, results: List[Dict[str, Any]]):
+def _write_outputs(out_dir: Path, matrix_id: str, execute: bool, results: list[dict[str, Any]]):
     from project.research.services.benchmark_governance_service import (
         certify_benchmark_review,
         write_certification_report,
@@ -544,7 +544,7 @@ def _write_outputs(out_dir: Path, matrix_id: str, execute: bool, results: List[D
 
     from project.research.benchmarks.benchmark_utils import evaluate_thresholds
 
-    mode_results: Dict[str, Dict[str, Any]] = {}
+    mode_results: dict[str, dict[str, Any]] = {}
     for r in results:
         mid = r.get("mode_id", "")
         metrics = r.get("benchmark_metrics", {})
@@ -605,7 +605,7 @@ def _run_matrix_mode(args) -> int:
     if args.out_dir:
         out_dir = Path(args.out_dir)
     else:
-        stamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
+        stamp = datetime.now(UTC).strftime("%Y%m%d_%H%M%S")
         out_dir = DATA_ROOT / "reports" / "benchmarks" / f"{matrix_id}_{stamp}"
 
     out_dir.mkdir(parents=True, exist_ok=True)
@@ -722,7 +722,7 @@ def _run_preset_mode(args) -> int:
     preset_dir = PROJECT_ROOT / "configs" / "benchmarks" / "discovery"
 
     matrix_id = preset_name
-    stamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
+    stamp = datetime.now(UTC).strftime("%Y%m%d_%H%M%S")
 
     if args.out_dir:
         out_dir = Path(args.out_dir)

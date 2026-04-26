@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import List, Tuple
 
 import pandas as pd
 
@@ -17,7 +16,7 @@ from project.io.utils import (
 _DEFAULT_TIMEFRAME = "5m"
 
 
-def dedupe_timestamp_rows(frame: pd.DataFrame, *, label: str) -> Tuple[pd.DataFrame, int]:
+def dedupe_timestamp_rows(frame: pd.DataFrame, *, label: str) -> tuple[pd.DataFrame, int]:
     if frame.empty or "timestamp" not in frame.columns:
         return frame, 0
     out = frame.sort_values("timestamp").copy()
@@ -30,11 +29,11 @@ def load_symbol_raw_data(
     symbol: str,
     run_id: str,
     timeframe: str = _DEFAULT_TIMEFRAME,
-    bars_columns: List[str] | None = None,
-    feature_columns: List[str] | None = None,
+    bars_columns: list[str] | None = None,
+    feature_columns: list[str] | None = None,
     start_ts: pd.Timestamp | None = None,
     end_ts: pd.Timestamp | None = None,
-) -> Tuple[pd.DataFrame, pd.DataFrame]:
+) -> tuple[pd.DataFrame, pd.DataFrame]:
     feature_dataset = feature_dataset_dir_name()
     feature_candidates = [
         run_scoped_lake_path(

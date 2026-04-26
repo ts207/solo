@@ -2,7 +2,7 @@ import copy
 import json
 import logging
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 import pandas as pd
 import yaml
@@ -23,7 +23,7 @@ LEDGER_CONFIG_PATH = PROJECT_ROOT / "configs/discovery_ledger.yaml"
 SCORING_V2_CONFIG_PATH = PROJECT_ROOT / "configs/discovery_scoring_v2.yaml"
 
 
-def _load_json_dict(path: Path) -> Dict[str, Any]:
+def _load_json_dict(path: Path) -> dict[str, Any]:
     if not path.exists():
         return {}
     try:
@@ -146,7 +146,7 @@ def _build_ledger_config_for_mode(mode: DiscoveryBenchmarkMode) -> dict:
     }
 
 
-def _swap_config_file(path: Path, content: dict) -> Optional[dict]:
+def _swap_config_file(path: Path, content: dict) -> dict | None:
     original = None
     if path.exists():
         original = yaml.safe_load(path.read_text(encoding="utf-8"))
@@ -156,7 +156,7 @@ def _swap_config_file(path: Path, content: dict) -> Optional[dict]:
     return original
 
 
-def _restore_config_file(path: Path, original: Optional[dict]):
+def _restore_config_file(path: Path, original: dict | None):
     if original is not None:
         with open(path, "w", encoding="utf-8") as f:
             yaml.safe_dump(original, f)
@@ -164,7 +164,7 @@ def _restore_config_file(path: Path, original: Optional[dict]):
         path.unlink()
 
 
-def _extract_benchmark_metrics(df: pd.DataFrame, out_dir: Path) -> Dict[str, Any]:
+def _extract_benchmark_metrics(df: pd.DataFrame, out_dir: Path) -> dict[str, Any]:
     if df.empty:
         return {
             "emergence": False,
@@ -279,7 +279,7 @@ def _extract_benchmark_metrics(df: pd.DataFrame, out_dir: Path) -> Dict[str, Any
     }
 
 
-def _extract_metrics_from_phase2_diagnostics(diagnostics: Dict[str, Any]) -> Dict[str, Any]:
+def _extract_metrics_from_phase2_diagnostics(diagnostics: dict[str, Any]) -> dict[str, Any]:
     if not diagnostics:
         return {}
     feasible_hypotheses = int(diagnostics.get("feasible_hypotheses", 0) or 0)
@@ -305,9 +305,9 @@ def _extract_metrics_from_phase2_diagnostics(diagnostics: Dict[str, Any]) -> Dic
 
 
 def _attach_phase2_diagnostics_context(
-    benchmark_metrics: Dict[str, Any],
-    diagnostics: Dict[str, Any],
-) -> Dict[str, Any]:
+    benchmark_metrics: dict[str, Any],
+    diagnostics: dict[str, Any],
+) -> dict[str, Any]:
     """Attach diagnostics without changing artifact-derived candidate counts."""
     diagnostics_metrics = _extract_metrics_from_phase2_diagnostics(diagnostics)
     if not diagnostics_metrics:
@@ -328,10 +328,10 @@ def run_benchmark_job(
     mode: DiscoveryBenchmarkMode,
     data_root: Path,
     out_dir: Path,
-    event_source: Optional[str] = None,
-    fixture_event_registry: Optional[str] = None,
-    phase2_overrides: Optional[Dict[str, Any]] = None,
-) -> Dict:
+    event_source: str | None = None,
+    fixture_event_registry: str | None = None,
+    phase2_overrides: dict[str, Any] | None = None,
+) -> dict:
     out_dir.mkdir(parents=True, exist_ok=True)
 
     log.info(
@@ -368,7 +368,7 @@ def run_benchmark_job(
     validation_original = _swap_config_file(VALIDATION_CONFIG_PATH, validation_config)
     ledger_original = _swap_config_file(LEDGER_CONFIG_PATH, ledger_config)
 
-    result: Dict[str, Any] = {
+    result: dict[str, Any] = {
         "run_id": run_id,
         "mode_id": mode.mode_id,
         "mode_label": mode.label,
@@ -388,11 +388,11 @@ def run_benchmark_job(
                 fp = PROJECT_ROOT.parent / fixture_event_registry
             if not fp.exists():
                 event_types = list(
-                    (
+
                         (search_spec.get("triggers") or {}).get("events")
                         or search_spec.get("events")
                         or []
-                    )
+
                 )
                 materialized_rows = materialize_benchmark_fixture(
                     slice_id=run_id,
@@ -510,13 +510,13 @@ def run_benchmark_job(
 
 
 def run_benchmark(
-    spec_path: Path = BENCHMARK_SPEC_PATH, modes: Optional[List[DiscoveryBenchmarkMode]] = None
+    spec_path: Path = BENCHMARK_SPEC_PATH, modes: list[DiscoveryBenchmarkMode] | None = None
 ):
     if not spec_path.exists():
         log.error(f"Benchmark spec not found at {spec_path}")
         return
 
-    with open(spec_path, "r") as f:
+    with open(spec_path) as f:
         spec = yaml.safe_load(f)
 
     if modes is None:
@@ -812,7 +812,7 @@ def summarize_case_comparison(case_id, case_results, out_dir):
 def _compute_recommendations(results: list) -> dict:
     """Derive mode recommendations from benchmark results rather than hard-coding them."""
 
-    def _avg_metric(mode: str, *path: str) -> Optional[float]:
+    def _avg_metric(mode: str, *path: str) -> float | None:
         vals = []
         for r in results:
             if mode not in r or not r[mode]:
@@ -860,7 +860,7 @@ def summarize_global_benchmark(results, out_dir):
     md.append("| --- | --- | --- | --- | --- |")
     for r in results:
         for m in mode_ids:
-            if m in r and r[m]:
+            if r.get(m):
                 dense = [r[m][f"top{n}"]["promotion_density"] for n in [10, 20, 50]]
                 md.append(
                     f"| {r['case_id']} | {m} | {dense[0]:.2f} | {dense[1]:.2f} | {dense[2]:.2f} |"
@@ -871,7 +871,7 @@ def summarize_global_benchmark(results, out_dir):
     md.append("| --- | --- | --- | --- |")
     for r in results:
         for m in mode_ids:
-            if m in r and r[m]:
+            if r.get(m):
                 trad = [r[m][f"top{n}"]["median_after_cost_expectancy_bps"] for n in [10, 50]]
                 t_str = [(f"{v:.1f}" if v is not None else "N/A") for v in trad]
                 md.append(f"| {r['case_id']} | {m} | {t_str[0]} | {t_str[1]} |")
@@ -881,7 +881,7 @@ def summarize_global_benchmark(results, out_dir):
     md.append("| --- | --- | --- | --- |")
     for r in results:
         for m in mode_ids:
-            if m in r and r[m]:
+            if r.get(m):
                 p_fail = r[m]["top10"]["placebo_fail_rate"]
                 f_stab = r[m]["top10"]["median_fold_stability"]
                 f_str = f"{f_stab:.2f}" if f_stab is not None else "N/A"
@@ -892,14 +892,14 @@ def summarize_global_benchmark(results, out_dir):
     md.append("| --- | --- | --- | --- |")
     for r in results:
         for m in mode_ids:
-            if m in r and r[m]:
+            if r.get(m):
                 uniq = r[m]["top20"]["unique_event_families"]
                 conc = r[m]["top20"]["overlap_concentration"]
                 md.append(f"| {r['case_id']} | {m} | {uniq} | {conc:.2f} |")
 
     recs = _compute_recommendations(results)
 
-    def _rec_str(val: Optional[bool]) -> str:
+    def _rec_str(val: bool | None) -> str:
         if val is None:
             return "inconclusive (insufficient data)"
         return "true" if val else "false"

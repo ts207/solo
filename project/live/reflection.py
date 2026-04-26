@@ -1,11 +1,11 @@
 from __future__ import annotations
 
-from typing import Any, Dict
+from typing import Any
 
 from project.live.memory import load_live_episodes
 
 
-def build_live_reflection(root: str) -> Dict[str, Any]:
+def build_live_reflection(root: str) -> dict[str, Any]:
     episodes = load_live_episodes(root)
     if not episodes:
         return {

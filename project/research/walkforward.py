@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import logging
 from dataclasses import dataclass
-from typing import Any, Dict, List, Tuple
+from typing import Any
 
 import numpy as np
 import pandas as pd
@@ -12,10 +12,10 @@ _LOG = logging.getLogger(__name__)
 
 @dataclass
 class WindowResult:
-    train_range: Tuple[pd.Timestamp, pd.Timestamp]
-    test_range: Tuple[pd.Timestamp, pd.Timestamp]
-    train_metrics: Dict[str, float]
-    test_metrics: Dict[str, float]
+    train_range: tuple[pd.Timestamp, pd.Timestamp]
+    test_range: tuple[pd.Timestamp, pd.Timestamp]
+    train_metrics: dict[str, float]
+    test_metrics: dict[str, float]
 
 
 def generate_walkforward_windows(
@@ -24,7 +24,7 @@ def generate_walkforward_windows(
     test_size_bars: int,
     step_size_bars: int,
     embargo_bars: int = 0,
-) -> List[Tuple[pd.DatetimeIndex, pd.DatetimeIndex]]:
+) -> list[tuple[pd.DatetimeIndex, pd.DatetimeIndex]]:
     """
     Generate training and testing window indices.
     """
@@ -44,8 +44,8 @@ def generate_walkforward_windows(
 
 
 def evaluate_walkforward_stability(
-    results: List[WindowResult],
-) -> Dict[str, Any]:
+    results: list[WindowResult],
+) -> dict[str, Any]:
     """
     Calculate stability metrics across walk-forward windows.
     """

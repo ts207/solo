@@ -1,15 +1,13 @@
 from __future__ import annotations
 
-from typing import Optional, Tuple
-
 import numpy as np
 import pandas as pd
 from scipy import stats
 
 
 def _clean_inputs(
-    values: pd.Series, clusters: Optional[pd.Series] = None
-) -> Tuple[pd.Series, Optional[pd.Series]]:
+    values: pd.Series, clusters: pd.Series | None = None
+) -> tuple[pd.Series, pd.Series | None]:
     vals = pd.to_numeric(values, errors="coerce")
     mask = vals.notna()
     vals = vals.loc[mask]
@@ -24,7 +22,7 @@ def _clean_inputs(
 
 
 def clustered_standard_error(
-    values: pd.Series, clusters: Optional[pd.Series] = None
+    values: pd.Series, clusters: pd.Series | None = None
 ) -> tuple[float, int, str]:
     vals, cl = _clean_inputs(values, clusters)
     n = len(vals)

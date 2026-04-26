@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, Dict
+from typing import Any
 
 import numpy as np
 import pandas as pd
@@ -25,7 +25,7 @@ def _group_value(row: pd.Series, column: str, default: str = "UNKNOWN") -> str:
 
 def apply_statistical_gates(
     candidates: pd.DataFrame,
-    gate_spec: Dict[str, Any],
+    gate_spec: dict[str, Any],
 ) -> pd.DataFrame:
     """Apply basic statistical gating and BH-FDR correction to candidate rows."""
     out = candidates.copy()

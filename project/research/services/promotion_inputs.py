@@ -3,8 +3,9 @@ from __future__ import annotations
 import importlib
 import json
 import logging
+from collections.abc import Callable
 from pathlib import Path
-from typing import Any, Callable, Dict, List
+from typing import Any
 
 import pandas as pd
 
@@ -30,7 +31,7 @@ def _read_csv_or_parquet(path: Path) -> pd.DataFrame:
         return read_parquet_compat(path)
 
 
-def _normalize_statuses(value: Any) -> List[str]:
+def _normalize_statuses(value: Any) -> list[str]:
     if isinstance(value, list):
         return [str(item).strip() for item in value if str(item).strip()]
     if isinstance(value, tuple):
@@ -68,15 +69,15 @@ def _load_hypothesis_index(
     *,
     run_id: str,
     data_root: Path,
-    diagnostics: Dict[str, Any] | None = None,
+    diagnostics: dict[str, Any] | None = None,
     read_csv_or_parquet_fn: Callable[[Path], pd.DataFrame],
     record_degraded_state_fn: Callable[..., None],
-) -> Dict[str, Dict[str, Any]]:
+) -> dict[str, dict[str, Any]]:
     phase2_root = data_root / "reports" / "phase2" / run_id
     if not phase2_root.exists():
         return {}
 
-    candidate_paths: List[Path] = []
+    candidate_paths: list[Path] = []
     for direct_name in ("hypothesis_registry.parquet", "hypothesis_registry.csv"):
         direct_path = phase2_root / direct_name
         if direct_path.exists():
@@ -84,7 +85,7 @@ def _load_hypothesis_index(
     for pattern in ("*/*/hypothesis_registry.parquet", "*/*/hypothesis_registry.csv"):
         candidate_paths.extend(sorted(phase2_root.glob(pattern)))
 
-    index: Dict[str, Dict[str, Any]] = {}
+    index: dict[str, dict[str, Any]] = {}
     seen_paths: set[Path] = set()
     for registry_path in candidate_paths:
         if registry_path in seen_paths or not registry_path.exists():
@@ -177,12 +178,12 @@ def _merge_bridge_metrics(phase2_df: pd.DataFrame, bridge_df: pd.DataFrame) -> p
     return out
 
 
-def _parse_run_symbols(raw_symbols: Any) -> List[str]:
+def _parse_run_symbols(raw_symbols: Any) -> list[str]:
     if isinstance(raw_symbols, (list, tuple, set)):
         values = raw_symbols
     else:
         values = str(raw_symbols or "").split(",")
-    ordered: List[str] = []
+    ordered: list[str] = []
     seen: set[str] = set()
     for value in values:
         symbol = str(value).strip().upper()
@@ -196,7 +197,7 @@ def _parse_run_symbols(raw_symbols: Any) -> List[str]:
 def _hydrate_edge_candidates_from_phase2(
     *,
     run_id: str,
-    run_symbols: List[str],
+    run_symbols: list[str],
     source_run_mode: str,
     data_root: Path,
 ) -> pd.DataFrame:
@@ -235,7 +236,7 @@ def _hydrate_edge_candidates_from_phase2(
     return candidates_df
 
 
-def _load_negative_control_summary(run_id: str) -> Dict[str, Any]:
+def _load_negative_control_summary(run_id: str) -> dict[str, Any]:
     data_root = get_data_root()
     path = data_root / "reports" / "negative_control" / run_id / "negative_control_summary.json"
     if not path.exists():

@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import logging
-from typing import Any, Dict, List
+from typing import Any
 
 import pandas as pd
 
@@ -10,7 +10,7 @@ log = logging.getLogger(__name__)
 
 def extract_excursions(
     features: pd.DataFrame,
-    target_columns: List[str],
+    target_columns: list[str],
     threshold_z: float = 2.5,
     min_persistence: int = 1
 ) -> pd.DataFrame:
@@ -56,9 +56,9 @@ def extract_excursions(
 
 def cluster_excursions(
     excursions_df: pd.DataFrame,
-    target_columns: List[str],
+    target_columns: list[str],
     min_support: int = 5
-) -> List[Dict[str, Any]]:
+) -> list[dict[str, Any]]:
     """
     Cluster contiguous or frequent multi-feature excursions.
     Assigns an arbitrary signature based on which features crossed the threshold.

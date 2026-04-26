@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, Dict, List
+from typing import Any
 
 import numpy as np
 
@@ -52,7 +52,7 @@ def _assemble_promotion_result(
     net_expectancy_bps: float,
     effective_cost_bps: float,
     turnover_proxy_mean: float,
-    audit_statuses: List[str],
+    audit_statuses: list[str],
     net_expectancy_pass: bool,
     cost_budget_pass: bool,
     turnover_pass: bool,
@@ -74,7 +74,7 @@ def _assemble_promotion_result(
     min_validation_events_required: int,
     min_test_events_required: int,
     low_capital_viability_score: float,
-    low_capital_reject_codes: List[str],
+    low_capital_reject_codes: list[str],
     run_mode_normalized: str,
     is_deploy_mode: bool,
     is_descriptive: bool,
@@ -85,7 +85,7 @@ def _assemble_promotion_result(
     benchmark_pass: bool = True,
     sensitivity_pass: bool = True,
     cell_origin_pass: bool = True,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     # In non-deploy modes, missing OOS evidence is visible via `oos_pass_state` but
     # does not block promotion. Deploy-mode enforcement still happens upstream.
     oos_pass_for_gate: bool = (

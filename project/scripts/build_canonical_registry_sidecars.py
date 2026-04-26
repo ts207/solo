@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any
 
 import yaml
 
@@ -16,7 +16,7 @@ from project.events.canonical_registry_sidecars import (
 REPO_ROOT = PROJECT_ROOT.parent
 
 
-def _write_yaml(path: Path, payload: Dict[str, Any]) -> None:
+def _write_yaml(path: Path, payload: dict[str, Any]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(yaml.safe_dump(payload, sort_keys=False), encoding="utf-8")
 

@@ -3,7 +3,6 @@ from __future__ import annotations
 
 import argparse
 import difflib
-from pathlib import Path
 
 import yaml
 

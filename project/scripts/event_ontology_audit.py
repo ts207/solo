@@ -4,8 +4,9 @@ from __future__ import annotations
 import argparse
 import json
 import sys
+from collections.abc import Mapping
 from pathlib import Path
-from typing import Any, Dict, Mapping
+from typing import Any
 
 from project.domain.compiled_registry import get_domain_registry
 from project.events.ontology_mapping import (
@@ -14,12 +15,12 @@ from project.events.ontology_mapping import (
 )
 
 
-def _issue(check_id: str, severity: str, message: str) -> Dict[str, str]:
+def _issue(check_id: str, severity: str, message: str) -> dict[str, str]:
     return {"check_id": check_id, "severity": severity, "message": message}
 
 
-def _proxy_direct_groups(rows: Mapping[str, Mapping[str, Any]]) -> Dict[str, list[str]]:
-    out: Dict[str, list[str]] = {}
+def _proxy_direct_groups(rows: Mapping[str, Mapping[str, Any]]) -> dict[str, list[str]]:
+    out: dict[str, list[str]] = {}
     for event_type in rows:
         token = str(event_type).strip().upper()
         stem = token.replace("_DIRECT", "").replace("_PROXY", "")
@@ -27,10 +28,10 @@ def _proxy_direct_groups(rows: Mapping[str, Mapping[str, Any]]) -> Dict[str, lis
     return out
 
 
-def run_audit() -> Dict[str, Any]:
+def run_audit() -> dict[str, Any]:
     registry = get_domain_registry()
     mapped_rows = ontology_rows_by_event()
-    issues: list[Dict[str, str]] = []
+    issues: list[dict[str, str]] = []
 
     active_event_ids = set(registry.event_ids)
     mapped_event_ids = set(mapped_rows.keys())

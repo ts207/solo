@@ -8,7 +8,7 @@ import subprocess
 import sys
 from collections.abc import Iterable, Mapping
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any
 
 import pandas as pd
 
@@ -27,7 +27,7 @@ def _default_config_path() -> Path:
     return PROJECT_ROOT / "configs" / "golden_synthetic_discovery.yaml"
 
 
-def _run_pipeline(*, data_root: Path, argv: List[str]) -> subprocess.CompletedProcess[str]:
+def _run_pipeline(*, data_root: Path, argv: list[str]) -> subprocess.CompletedProcess[str]:
     env = dict(os.environ)
     env["BACKTEST_DATA_ROOT"] = str(data_root)
     env["BACKTEST_STRICT_RUN_SCOPED_READS"] = "1"
@@ -60,7 +60,7 @@ def _render_required_outputs(raw_outputs: object, *, run_id: str) -> list[str]:
     return rendered
 
 
-def _candidate_summary(search_candidates_path: Path) -> Dict[str, Any]:
+def _candidate_summary(search_candidates_path: Path) -> dict[str, Any]:
     if (
         not search_candidates_path.exists()
         and not search_candidates_path.with_suffix(".csv").exists()
@@ -72,7 +72,7 @@ def _candidate_summary(search_candidates_path: Path) -> Dict[str, Any]:
         else search_candidates_path.with_suffix(".csv")
     )
     return {
-        "candidate_rows": int(len(frame)),
+        "candidate_rows": len(frame),
         "candidate_event_types": sorted(
             frame.get("event_type", pd.Series(dtype=str)).astype(str).unique().tolist()
         )
@@ -87,7 +87,7 @@ def run_golden_synthetic_discovery(
     config_path: Path,
     pipeline_runner=_run_pipeline,
     overrides: Mapping[str, Any] | None = None,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     config = load_workflow_config(config_path)
     if overrides:
         config.update({key: value for key, value in overrides.items() if value is not None})

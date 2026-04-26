@@ -1,7 +1,8 @@
 from __future__ import annotations
 
 import functools
-from typing import Any, Dict, Mapping
+from collections.abc import Mapping
+from typing import Any
 
 from project.events.canonical_registry_sidecars import (
     ALLOWED_DISPOSITION_VALUES,
@@ -14,7 +15,7 @@ from project.events.canonical_registry_sidecars import (
 )
 
 
-def load_event_ontology_mapping() -> Dict[str, Any]:
+def load_event_ontology_mapping() -> dict[str, Any]:
     return event_ontology_mapping_payload()
 
 
@@ -31,11 +32,11 @@ def allowed_evidence_modes() -> tuple[str, ...]:
 
 
 @functools.lru_cache(maxsize=1)
-def ontology_rows_by_event() -> Dict[str, Dict[str, Any]]:
+def ontology_rows_by_event() -> dict[str, dict[str, Any]]:
     return _ontology_rows_by_event()
 
 
-def ontology_row(event_type: str) -> Dict[str, Any]:
+def ontology_row(event_type: str) -> dict[str, Any]:
     return dict(ontology_rows_by_event().get(str(event_type).strip().upper(), {}))
 
 
@@ -43,9 +44,9 @@ def canonical_regime_fanout(
     rows: Mapping[str, Mapping[str, Any]] | None = None,
     *,
     executable_only: bool = False,
-) -> Dict[str, tuple[str, ...]]:
+) -> dict[str, tuple[str, ...]]:
     selected = rows if rows is not None else ontology_rows_by_event()
-    groups: Dict[str, list[str]] = {}
+    groups: dict[str, list[str]] = {}
     for event_type, row in selected.items():
         if not isinstance(row, Mapping):
             continue
@@ -58,7 +59,7 @@ def canonical_regime_fanout(
     return {regime: tuple(sorted(event_types)) for regime, event_types in sorted(groups.items())}
 
 
-def rows_for_layer(layer: str) -> Dict[str, Dict[str, Any]]:
+def rows_for_layer(layer: str) -> dict[str, dict[str, Any]]:
     normalized = str(layer).strip()
     return {
         event_type: dict(row)
@@ -74,7 +75,7 @@ def is_default_executable(row: Mapping[str, Any]) -> bool:
     )
 
 
-def infer_bool_flags(row: Mapping[str, Any]) -> Dict[str, bool]:
+def infer_bool_flags(row: Mapping[str, Any]) -> dict[str, bool]:
     layer = str(row.get("layer", "")).strip()
     return {
         "is_composite": layer == "composite",
@@ -83,7 +84,7 @@ def infer_bool_flags(row: Mapping[str, Any]) -> Dict[str, bool]:
     }
 
 
-def normalized_ontology_row(event_type: str, row: Mapping[str, Any]) -> Dict[str, Any]:
+def normalized_ontology_row(event_type: str, row: Mapping[str, Any]) -> dict[str, Any]:
     token = str(event_type).strip().upper()
     data = dict(row)
     flags = infer_bool_flags(data)
@@ -106,7 +107,7 @@ def normalized_ontology_row(event_type: str, row: Mapping[str, Any]) -> Dict[str
     return normalized
 
 
-def normalized_ontology_rows() -> Dict[str, Dict[str, Any]]:
+def normalized_ontology_rows() -> dict[str, dict[str, Any]]:
     return {
         event_type: normalized_ontology_row(event_type, row)
         for event_type, row in ontology_rows_by_event().items()

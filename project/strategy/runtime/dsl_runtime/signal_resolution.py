@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-from typing import Dict, List
-
 import pandas as pd
 
 from project.strategy.dsl.contract_v1 import resolve_trigger_column
@@ -73,7 +71,7 @@ def signal_mask(signal: str, frame: pd.DataFrame, blueprint: Blueprint) -> pd.Se
 
 
 def signal_list_mask(
-    frame: pd.DataFrame, signal_names: List[str], blueprint: Blueprint, signal_kind: str
+    frame: pd.DataFrame, signal_names: list[str], blueprint: Blueprint, signal_kind: str
 ) -> pd.Series:
     if not signal_names:
         return pd.Series(True, index=frame.index, dtype=bool)
@@ -84,7 +82,7 @@ def signal_list_mask(
     return out.fillna(False)
 
 
-def compute_trigger_coverage(frame: pd.DataFrame, triggers: List[str]) -> Dict[str, object]:
+def compute_trigger_coverage(frame: pd.DataFrame, triggers: list[str]) -> dict[str, object]:
     """
     Computes coverage statistics for entry triggers.
     """

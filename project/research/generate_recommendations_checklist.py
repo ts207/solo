@@ -3,7 +3,7 @@ from __future__ import annotations
 import argparse
 import json
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any
 
 import numpy as np
 import pandas as pd
@@ -21,7 +21,7 @@ from project.io.utils import read_table_auto
 from project.research.recommendations.checklist import build_checklist_payload
 from project.specs.manifest import finalize_manifest, start_manifest
 
-CHECKLIST_GATE_PROFILES: Dict[str, Dict[str, int]] = {
+CHECKLIST_GATE_PROFILES: dict[str, dict[str, int]] = {
     "discovery": {
         "min_edge_candidates": 1,
         "min_promoted_candidates": 1,
@@ -66,7 +66,7 @@ def _parse_args() -> argparse.Namespace:
     return parser.parse_args()
 
 
-def _load_json(path: Path) -> Dict[str, Any]:
+def _load_json(path: Path) -> dict[str, Any]:
     if not path.exists():
         return {}
     try:
@@ -75,7 +75,7 @@ def _load_json(path: Path) -> Dict[str, Any]:
         return {}
 
 
-def _metric_value(payload: Dict[str, Any], name: str, default: float = 0.0) -> float:
+def _metric_value(payload: dict[str, Any], name: str, default: float = 0.0) -> float:
     value = payload.get("metrics", {}).get(name, {}).get("value")
     if value is None:
         return float(default)
@@ -114,14 +114,14 @@ def _edge_candidate_metrics(
     promotion_audit_parquet_path: Path,
     promotion_audit_csv_path: Path,
     promotion_summary_path: Path,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     edge_df = _read_table(edge_parquet_path, edge_csv_path)
     promoted_df = _read_table(promoted_candidates_parquet_path, promoted_candidates_csv_path)
     promo_df = _read_table(promotion_audit_parquet_path, promotion_audit_csv_path)
     promoted_count = 0
     bridge_tradable_promoted = 0
     if not promoted_df.empty:
-        promoted_count = int(len(promoted_df))
+        promoted_count = len(promoted_df)
         if "gate_bridge_tradable" in promoted_df.columns:
             bridge_tradable_promoted = int(
                 promoted_df.get("gate_bridge_tradable", pd.Series(False, index=promoted_df.index)).map(
@@ -152,7 +152,7 @@ def _edge_candidate_metrics(
             "source": "edge_candidates_parquet"
             if edge_parquet_path.exists()
             else "edge_candidates_csv",
-            "rows": int(len(edge_df)),
+            "rows": len(edge_df),
             "promoted": int(promoted_count or promoted.sum()),
             "bridge_tradable": int(bridge.sum()),
             "bridge_tradable_promoted": int(
@@ -168,7 +168,7 @@ def _edge_candidate_metrics(
             "source": "promotion_audit_parquet"
             if promotion_audit_parquet_path.exists()
             else "promotion_audit_csv",
-            "rows": int(len(promo_df)),
+            "rows": len(promo_df),
             "promoted": int(promoted_count),
             "bridge_tradable": int(bridge.sum()),
             "bridge_tradable_promoted": int(bridge_tradable_promoted),
@@ -185,10 +185,10 @@ def _edge_candidate_metrics(
 
 def _hydrate_kpi_payload_with_promotion_fallback(
     *,
-    kpi_payload: Dict[str, Any],
+    kpi_payload: dict[str, Any],
     promotion_audit_parquet_path: Path,
     promotion_audit_csv_path: Path,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     if kpi_payload.get("metrics"):
         return dict(kpi_payload)
     promo_df = _read_table(promotion_audit_parquet_path, promotion_audit_csv_path)
@@ -234,12 +234,12 @@ def _build_payload(
     *,
     run_id: str,
     args,
-    edge_metrics: Dict[str, Any],
-    expectancy_payload: Dict[str, Any],
-    robustness_payload: Dict[str, Any],
-    paths: Dict[str, str],
-    capital_footprint_payload: Dict[str, Any] | None = None,
-) -> Dict[str, Any]:
+    edge_metrics: dict[str, Any],
+    expectancy_payload: dict[str, Any],
+    robustness_payload: dict[str, Any],
+    paths: dict[str, str],
+    capital_footprint_payload: dict[str, Any] | None = None,
+) -> dict[str, Any]:
     config = {
         "min_edge_candidates": int(getattr(args, "min_edge_candidates", 1)),
         "min_promoted_candidates": int(getattr(args, "min_promoted_candidates", 1)),
@@ -300,10 +300,10 @@ def _build_payload(
 def _build_release_signoff(
     *,
     run_id: str,
-    checklist_payload: Dict[str, Any],
-    run_manifest_payload: Dict[str, Any],
-    kpi_payload: Dict[str, Any],
-) -> Dict[str, Any]:
+    checklist_payload: dict[str, Any],
+    run_manifest_payload: dict[str, Any],
+    kpi_payload: dict[str, Any],
+) -> dict[str, Any]:
     hard_gates = dict(run_manifest_payload.get("objective_hard_gates", {}))
     retail_cfg = dict(run_manifest_payload.get("retail_profile_config", {}))
     overrides = list(run_manifest_payload.get("non_production_overrides", []) or [])

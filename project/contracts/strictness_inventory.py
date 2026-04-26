@@ -2,7 +2,8 @@ from __future__ import annotations
 
 import json
 from collections import Counter
-from typing import Any, Dict, Iterable, List
+from collections.abc import Iterable
+from typing import Any
 
 from project.contracts.artifacts import list_artifact_contracts
 from project.contracts.pipeline_registry import STAGE_ARTIFACT_REGISTRY
@@ -11,13 +12,13 @@ from project.contracts.schemas import list_payload_schema_contracts, list_schema
 SCHEMA_VERSION = "contract_strictness_inventory_v1"
 
 
-def _strictness_counts(rows: Iterable[Dict[str, Any]]) -> Dict[str, int]:
+def _strictness_counts(rows: Iterable[dict[str, Any]]) -> dict[str, int]:
     counts = Counter(str(row.get("strictness", "")).strip() or "unknown" for row in rows)
     return {key: int(counts[key]) for key in sorted(counts)}
 
 
-def _stage_artifact_rows() -> List[Dict[str, Any]]:
-    rows: List[Dict[str, Any]] = []
+def _stage_artifact_rows() -> list[dict[str, Any]]:
+    rows: list[dict[str, Any]] = []
     for idx, contract in enumerate(STAGE_ARTIFACT_REGISTRY, start=1):
         rows.append(
             {
@@ -34,8 +35,8 @@ def _stage_artifact_rows() -> List[Dict[str, Any]]:
     return rows
 
 
-def _lifecycle_artifact_rows() -> List[Dict[str, Any]]:
-    rows: List[Dict[str, Any]] = []
+def _lifecycle_artifact_rows() -> list[dict[str, Any]]:
+    rows: list[dict[str, Any]] = []
     for contract in list_artifact_contracts():
         rows.append(
             {
@@ -54,8 +55,8 @@ def _lifecycle_artifact_rows() -> List[Dict[str, Any]]:
     return rows
 
 
-def _dataframe_schema_rows() -> List[Dict[str, Any]]:
-    rows: List[Dict[str, Any]] = []
+def _dataframe_schema_rows() -> list[dict[str, Any]]:
+    rows: list[dict[str, Any]] = []
     for contract in list_schema_contracts():
         rows.append(
             {
@@ -70,8 +71,8 @@ def _dataframe_schema_rows() -> List[Dict[str, Any]]:
     return rows
 
 
-def _payload_schema_rows() -> List[Dict[str, Any]]:
-    rows: List[Dict[str, Any]] = []
+def _payload_schema_rows() -> list[dict[str, Any]]:
+    rows: list[dict[str, Any]] = []
     for contract in list_payload_schema_contracts():
         rows.append(
             {
@@ -88,7 +89,7 @@ def _payload_schema_rows() -> List[Dict[str, Any]]:
     return rows
 
 
-def build_contract_strictness_inventory_payload() -> Dict[str, Any]:
+def build_contract_strictness_inventory_payload() -> dict[str, Any]:
     sections = {
         "stage_artifact_contracts": _stage_artifact_rows(),
         "lifecycle_artifact_contracts": _lifecycle_artifact_rows(),
@@ -107,7 +108,7 @@ def build_contract_strictness_inventory_payload() -> Dict[str, Any]:
     }
 
 
-def render_contract_strictness_inventory_json(payload: Dict[str, Any]) -> str:
+def render_contract_strictness_inventory_json(payload: dict[str, Any]) -> str:
     return json.dumps(payload, indent=2, sort_keys=True) + "\n"
 
 
@@ -119,7 +120,7 @@ def _compact(value: Any) -> str:
     return str(value)
 
 
-def _render_rows(title: str, rows: List[Dict[str, Any]], columns: tuple[str, ...]) -> List[str]:
+def _render_rows(title: str, rows: list[dict[str, Any]], columns: tuple[str, ...]) -> list[str]:
     lines = [f"## {title}", ""]
     if not rows:
         lines.extend(["No contracts.", ""])
@@ -132,7 +133,7 @@ def _render_rows(title: str, rows: List[Dict[str, Any]], columns: tuple[str, ...
     return lines
 
 
-def render_contract_strictness_inventory_markdown(payload: Dict[str, Any]) -> str:
+def render_contract_strictness_inventory_markdown(payload: dict[str, Any]) -> str:
     summary = dict(payload.get("summary", {}))
     strictness_counts = dict(summary.get("strictness_counts", {}))
     sections = dict(payload.get("sections", {}))

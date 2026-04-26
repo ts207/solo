@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import argparse
 from pathlib import Path
-from typing import List
 
 import numpy as np
 import pandas as pd
@@ -91,7 +90,7 @@ def main() -> int:
     else:
         raise ValueError("Provide --symbols for multi-universe or --symbol for single-asset mode")
 
-    outputs_written: List[str] = []
+    outputs_written: list[str] = []
     total_rows = 0
     inputs = []
 
@@ -323,7 +322,7 @@ def main() -> int:
         out_path = out_dir / f"signals_{symbol}.parquet"
         write_parquet(out, out_path)
         outputs_written.append(str(out_path))
-        total_rows += int(len(out))
+        total_rows += len(out)
 
     manifest = start_manifest(
         stage, run_id, params={"symbols": symbols}, inputs=inputs, outputs=[{"path": str(out_dir)}]

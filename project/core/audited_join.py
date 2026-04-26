@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import logging
-from typing import Any, Literal, Optional
+from typing import Any, Literal
 
 import pandas as pd
 
@@ -15,10 +15,10 @@ def audited_merge_asof(
     left_on: str,
     right_on: str,
     direction: str = "backward",
-    tolerance: Optional[pd.Timedelta] = None,
+    tolerance: pd.Timedelta | None = None,
     feature_name: str,
     stale_threshold_seconds: float,
-    audit_registry: Optional[Any] = None,
+    audit_registry: Any | None = None,
     symbol: str,
     run_id: str,
     stale_action: Literal["raise", "warn", "ignore"] = "raise",

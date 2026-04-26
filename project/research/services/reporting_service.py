@@ -1,9 +1,10 @@
 from __future__ import annotations
 
 import json
+from collections.abc import Mapping
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Dict, Mapping, Optional
+from typing import Any
 
 import pandas as pd
 
@@ -13,11 +14,11 @@ from project.io.utils import ensure_dir, write_parquet
 
 @dataclass
 class ReportBundleResult:
-    written_paths: Dict[str, Path] = field(default_factory=dict)
-    written_frames: Dict[str, pd.DataFrame] = field(default_factory=dict)
+    written_paths: dict[str, Path] = field(default_factory=dict)
+    written_frames: dict[str, pd.DataFrame] = field(default_factory=dict)
 
 
-_PROMOTION_SCHEMA_DEFAULTS: Dict[str, Dict[str, Any]] = {
+_PROMOTION_SCHEMA_DEFAULTS: dict[str, dict[str, Any]] = {
     "evidence_bundle_summary": {
         "policy_version": "",
         "bundle_version": "",
@@ -31,7 +32,7 @@ _PROMOTION_SCHEMA_DEFAULTS: Dict[str, Dict[str, Any]] = {
 }
 
 
-def _apply_schema_defaults(frame: pd.DataFrame, schema_name: Optional[str]) -> pd.DataFrame:
+def _apply_schema_defaults(frame: pd.DataFrame, schema_name: str | None) -> pd.DataFrame:
     out = frame.copy()
     defaults = _PROMOTION_SCHEMA_DEFAULTS.get(str(schema_name or ""))
     if not defaults:
@@ -48,7 +49,7 @@ def write_dataframe_report(
     df: pd.DataFrame,
     output_path: Path,
     *,
-    schema_name: Optional[str] = None,
+    schema_name: str | None = None,
     allow_empty: bool = True,
 ) -> tuple[pd.DataFrame, Path]:
     frame = _apply_schema_defaults(df, schema_name)
@@ -70,7 +71,7 @@ def write_candidate_reports(
     out_dir: Path,
     combined_candidates: pd.DataFrame,
     symbol_candidates: Mapping[str, pd.DataFrame],
-    diagnostics: Optional[Mapping[str, Any]] = None,
+    diagnostics: Mapping[str, Any] | None = None,
 ) -> ReportBundleResult:
     result = ReportBundleResult()
     combined_out = out_dir / "phase2_candidates.parquet"

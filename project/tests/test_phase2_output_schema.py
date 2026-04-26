@@ -46,7 +46,7 @@ def _templates_from_verb_lexicon() -> set[str]:
     if not path.exists():
         return set()
     try:
-        with open(path, "r", encoding="utf-8") as f:
+        with open(path, encoding="utf-8") as f:
             data = yaml.safe_load(f) or {}
     except Exception:
         return set()

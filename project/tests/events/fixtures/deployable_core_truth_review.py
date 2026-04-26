@@ -155,7 +155,7 @@ def _event_summary(events: pd.DataFrame) -> dict[str, Any]:
     confidence = pd.to_numeric(events["confidence"], errors="coerce")
     severity = pd.to_numeric(events["severity"], errors="coerce")
     return {
-        "event_count": int(len(events)),
+        "event_count": len(events),
         "first_ts_start": _iso_ts(starts.min()),
         "last_ts_start": _iso_ts(starts.max()),
         "min_confidence": None if confidence.dropna().empty else round(float(confidence.min()), 12),
@@ -270,7 +270,7 @@ def review_detector_events(
         "observed": _event_summary(events),
         "windows": window_reviews,
         "false_positive_count": int(len(events) if expected_absent else len(unmatched)),
-        "failure_count": int(len(failures)),
+        "failure_count": len(failures),
         "status": "pass" if not failures else "fail",
         "failures": failures,
     }
@@ -308,9 +308,9 @@ def review_deployable_core_episode_truth() -> dict[str, Any]:
     return {
         "review_schema_version": REVIEW_SCHEMA_VERSION,
         "review_type": "deployable_core_truth_review",
-        "episode_count": int(len(episode_reviews)),
-        "detector_count": int(len(DEPLOYABLE_CORE_EVENT_TYPES)),
-        "failure_count": int(len(all_failures)),
+        "episode_count": len(episode_reviews),
+        "detector_count": len(DEPLOYABLE_CORE_EVENT_TYPES),
+        "failure_count": len(all_failures),
         "status": "pass" if not all_failures else "fail",
         "episodes": episode_reviews,
         "failures": all_failures,

@@ -1,9 +1,10 @@
 from __future__ import annotations
 
+from collections.abc import Sequence
 from dataclasses import dataclass
 from fnmatch import fnmatch
 from pathlib import Path
-from typing import Any, Dict, List, Sequence, Set, Tuple
+from typing import Any
 
 from project.core.exceptions import ContractViolationError
 from project.core.timeframes import (
@@ -18,7 +19,7 @@ from project.core.timeframes import (
     parse_timeframes,
 )
 
-StageSpec = Tuple[str, str, List[str]]
+StageSpec = tuple[str, str, list[str]]
 
 
 @dataclass(frozen=True)
@@ -166,8 +167,8 @@ def make_ingest_bybit_derivatives_funding_contract(timeframe: str) -> StageArtif
     )
 
 
-def get_timeframe_aware_contracts(timeframes: List[str]) -> List[StageArtifactContract]:
-    contracts: List[StageArtifactContract] = []
+def get_timeframe_aware_contracts(timeframes: list[str]) -> list[StageArtifactContract]:
+    contracts: list[StageArtifactContract] = []
     for tf in timeframes:
         contracts.extend(
             [
@@ -603,7 +604,7 @@ def match_stage_pattern(stage_name: str, pattern: str) -> bool:
     return fnmatch(stage_name, pattern.replace("{tf}", "*").replace("{event_type}", "*"))
 
 
-def _flag_value(args: List[str], flag: str) -> str | None:
+def _flag_value(args: list[str], flag: str) -> str | None:
     try:
         idx = args.index(flag)
     except ValueError:
@@ -613,7 +614,7 @@ def _flag_value(args: List[str], flag: str) -> str | None:
     return str(args[idx + 1]).strip()
 
 
-def _timeframe_from_stage(stage_name: str, base_args: List[str]) -> str:
+def _timeframe_from_stage(stage_name: str, base_args: list[str]) -> str:
     for flag in ("--timeframe", "--universe_timeframe"):
         raw = _flag_value(base_args, flag)
         if raw:
@@ -634,7 +635,7 @@ def _timeframe_from_stage(stage_name: str, base_args: List[str]) -> str:
     return DEFAULT_TIMEFRAME
 
 
-def _event_type_from_stage(stage_name: str, base_args: List[str]) -> str:
+def _event_type_from_stage(stage_name: str, base_args: list[str]) -> str:
     raw = _flag_value(base_args, "--event_type")
     if raw:
         return raw.strip().upper()
@@ -656,7 +657,7 @@ def _materialize_artifact_keys(
     templates: tuple[str, ...],
     *,
     stage_name: str,
-    base_args: List[str],
+    base_args: list[str],
 ) -> tuple[str, ...]:
     timeframe = _timeframe_from_stage(stage_name, base_args)
     event_type = _event_type_from_stage(stage_name, base_args)
@@ -668,7 +669,7 @@ def _materialize_artifact_keys(
     return tuple(out)
 
 
-def _matching_artifact_contracts(stage_name: str) -> List[Any]:
+def _matching_artifact_contracts(stage_name: str) -> list[Any]:
     matched: list[Any] = []
     for contract in STAGE_ARTIFACT_REGISTRY:
         for pattern in contract.stage_patterns:
@@ -687,9 +688,9 @@ def _matching_artifact_contracts(stage_name: str) -> List[Any]:
 
 def resolve_stage_artifact_contract(
     stage_name: str,
-    base_args: List[str],
-) -> tuple[ResolvedStageArtifactContract | None, List[str]]:
-    issues: List[str] = []
+    base_args: list[str],
+) -> tuple[ResolvedStageArtifactContract | None, list[str]]:
+    issues: list[str] = []
     matches = _matching_artifact_contracts(stage_name)
     if not matches:
         issues.append(f"missing artifact contract for stage '{stage_name}'")
@@ -729,8 +730,8 @@ def resolve_stage_artifact_contract(
     )
 
 
-def validate_stage_dataflow_dag(stages: Sequence[StageSpec]) -> List[str]:
-    issues: List[str] = []
+def validate_stage_dataflow_dag(stages: Sequence[StageSpec]) -> list[str]:
+    issues: list[str] = []
     resolved: dict[int, ResolvedStageArtifactContract] = {}
     for idx, (stage_name, _script_path, base_args) in enumerate(stages):
         contract, contract_issues = resolve_stage_artifact_contract(stage_name, list(base_args))
@@ -740,7 +741,7 @@ def validate_stage_dataflow_dag(stages: Sequence[StageSpec]) -> List[str]:
         if contract is not None:
             resolved[idx] = contract
 
-    produced_by: Dict[str, List[str]] = {}
+    produced_by: dict[str, list[str]] = {}
     for idx, (stage_name, _script_path, base_args) in enumerate(stages):
         contract = resolved.get(idx)
         if contract is None:
@@ -754,7 +755,7 @@ def validate_stage_dataflow_dag(stages: Sequence[StageSpec]) -> List[str]:
         if len(producers) > 1:
             issues.append(f"duplicate artifact producer for '{artifact}': {producers}")
 
-    available: Set[str] = set()
+    available: set[str] = set()
     for idx, (stage_name, _script_path, _base_args) in enumerate(stages):
         contract = resolved.get(idx)
         if contract is None:
@@ -782,9 +783,9 @@ def list_artifact_stage_families() -> tuple[str, ...]:
     return tuple(contract.family for contract in ARTIFACT_STAGE_FAMILY_REGISTRY)
 
 
-def validate_artifact_stage_family_names(families: Sequence[str]) -> List[str]:
+def validate_artifact_stage_family_names(families: Sequence[str]) -> list[str]:
     known = set(list_artifact_stage_families())
-    issues: List[str] = []
+    issues: list[str] = []
     for family in families:
         token = str(family).strip()
         if not token:
@@ -824,7 +825,7 @@ def _resolve_existing_script_path(script_path: Path, project_root: Path) -> Path
     return None
 
 
-def _matching_family_contracts(stage_name: str) -> List[StageFamilyContract]:
+def _matching_family_contracts(stage_name: str) -> list[StageFamilyContract]:
     matched = []
     for contract in STAGE_FAMILY_REGISTRY:
         if any(fnmatch(stage_name, pattern) for pattern in contract.stage_patterns):
@@ -839,8 +840,8 @@ def resolve_stage_family_contract(stage_name: str) -> StageFamilyContract | None
     return contracts[0]
 
 
-def validate_stage_plan_contract(stages: Sequence[StageSpec], project_root: Path) -> List[str]:
-    issues: List[str] = []
+def validate_stage_plan_contract(stages: Sequence[StageSpec], project_root: Path) -> list[str]:
+    issues: list[str] = []
     for stage_name, script_path, _ in stages:
         contracts = _matching_family_contracts(stage_name)
         if not contracts:

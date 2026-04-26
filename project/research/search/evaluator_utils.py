@@ -7,7 +7,7 @@ Broken out from evaluator.py to avoid circular imports.
 from __future__ import annotations
 
 import logging
-from typing import Any, Dict, Optional, Tuple
+from typing import Any
 
 import numpy as np
 import pandas as pd
@@ -62,7 +62,7 @@ def forward_log_returns(close: pd.Series, horizon_bars: int) -> pd.Series:
 
 def excursion_stats(
     close: pd.Series, mask: pd.Series, horizon_bars: int, direction_sign: float
-) -> Tuple[pd.Series, pd.Series]:
+) -> tuple[pd.Series, pd.Series]:
     """
     Calculate Max Adverse Excursion (MAE) and Max Favorable Excursion (MFE)
     for each trigger event in the mask.
@@ -215,7 +215,7 @@ def trigger_mask(spec: HypothesisSpec, features: pd.DataFrame) -> pd.Series:
     return false_mask
 
 
-def load_context_state_map() -> Dict[Tuple[str, str], str]:
+def load_context_state_map() -> dict[tuple[str, str], str]:
     """
     Load the compiled context state map and return a flat mapping of
     (family, label) -> state_id. Raises FileNotFoundError if the compiled map
@@ -253,15 +253,15 @@ def _series_matches_values(series: pd.Series, values: list[object]) -> pd.Series
 
 
 # Cache for the context state map to avoid repeated file I/O
-_CACHED_CONTEXT_MAP: Optional[Dict[Tuple[str, str], str]] = None
+_CACHED_CONTEXT_MAP: dict[tuple[str, str], str] | None = None
 
 
 def context_mask(
-    context: Dict[str, str],
+    context: dict[str, str],
     features: pd.DataFrame,
     *,
     use_context_quality: bool = True,
-) -> Optional[pd.Series]:
+) -> pd.Series | None:
     """
     Build a boolean mask from a context dict (e.g. {vol_regime: "high", carry_state: "funding_pos"}).
     Returns None if ANY context key cannot be resolved to a feature column (context is unresolvable).
@@ -322,7 +322,7 @@ def trigger_key(spec: HypothesisSpec) -> str:
     return spec.trigger.label()
 
 
-def event_direction_series(spec: HypothesisSpec, features: pd.DataFrame) -> Optional[pd.Series]:
+def event_direction_series(spec: HypothesisSpec, features: pd.DataFrame) -> pd.Series | None:
     if spec.trigger.trigger_type != TriggerType.EVENT or features.empty:
         return None
     event_id = str(spec.trigger.event_id or "").upper()
@@ -332,7 +332,7 @@ def event_direction_series(spec: HypothesisSpec, features: pd.DataFrame) -> Opti
     return None
 
 
-def operator_semantics(spec: HypothesisSpec) -> Optional[Dict[str, Any]]:
+def operator_semantics(spec: HypothesisSpec) -> dict[str, Any] | None:
     operator = get_domain_registry().get_operator(spec.template_id)
     if operator is None:
         return None
@@ -351,7 +351,7 @@ def signed_returns_for_spec(
     spec: HypothesisSpec,
     features: pd.DataFrame,
     returns: pd.Series,
-) -> tuple[Optional[pd.Series], Optional[str]]:
+) -> tuple[pd.Series | None, str | None]:
     semantics = operator_semantics(spec)
     if semantics is None:
         return None, "unknown_template_operator"

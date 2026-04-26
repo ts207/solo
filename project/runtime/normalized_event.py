@@ -1,9 +1,10 @@
 from __future__ import annotations
 
 import math
+from collections.abc import Iterable, Mapping
 from dataclasses import asdict, dataclass
-from datetime import datetime, timezone
-from typing import Any, Dict, Iterable, List, Mapping, Optional, Tuple
+from datetime import UTC, datetime
+from typing import Any
 
 import pandas as pd
 
@@ -32,7 +33,7 @@ class NormalizedEvent:
     order_id: str = ""
 
 
-def to_us(value: Any) -> Optional[int]:
+def to_us(value: Any) -> int | None:
     if value is None:
         return None
     if isinstance(value, bool):
@@ -54,13 +55,13 @@ def to_us(value: Any) -> Optional[int]:
         try:
             dt = value.to_pydatetime()
             if dt.tzinfo is None:
-                dt = dt.replace(tzinfo=timezone.utc)
+                dt = dt.replace(tzinfo=UTC)
             return int(dt.timestamp() * 1_000_000)
         except Exception:
             return None
 
     if isinstance(value, datetime):
-        dt = value if value.tzinfo is not None else value.replace(tzinfo=timezone.utc)
+        dt = value if value.tzinfo is not None else value.replace(tzinfo=UTC)
         return int(dt.timestamp() * 1_000_000)
 
     if isinstance(value, float):
@@ -82,7 +83,7 @@ def to_us(value: Any) -> Optional[int]:
     return None
 
 
-def _first_timestamp_us(row: Mapping[str, Any], fields: Iterable[str]) -> Optional[int]:
+def _first_timestamp_us(row: Mapping[str, Any], fields: Iterable[str]) -> int | None:
     for field in fields:
         if field not in row:
             continue
@@ -95,10 +96,10 @@ def _first_timestamp_us(row: Mapping[str, Any], fields: Iterable[str]) -> Option
 def normalize_event_rows(
     rows: Iterable[Mapping[str, Any]],
     *,
-    max_events: Optional[int] = None,
-) -> Tuple[List[NormalizedEvent], List[str]]:
-    events: List[NormalizedEvent] = []
-    issues: List[str] = []
+    max_events: int | None = None,
+) -> tuple[list[NormalizedEvent], list[str]]:
+    events: list[NormalizedEvent] = []
+    issues: list[str] = []
     max_n = int(max_events) if max_events is not None else 0
 
     for idx, raw in enumerate(rows):
@@ -169,19 +170,19 @@ def normalize_event_rows(
     return events, issues
 
 
-def event_to_record(event: NormalizedEvent) -> Dict[str, Any]:
+def event_to_record(event: NormalizedEvent) -> dict[str, Any]:
     return dict(asdict(event))
 
 
-def events_to_records(events: Iterable[NormalizedEvent]) -> List[Dict[str, Any]]:
+def events_to_records(events: Iterable[NormalizedEvent]) -> list[dict[str, Any]]:
     return [event_to_record(event) for event in events]
 
 
 def normalized_events_from_frame(
     frame: pd.DataFrame,
     *,
-    max_events: Optional[int] = None,
-) -> List[NormalizedEvent]:
+    max_events: int | None = None,
+) -> list[NormalizedEvent]:
     if frame.empty:
         return []
 
@@ -190,7 +191,7 @@ def normalized_events_from_frame(
     if max_n > 0:
         rows = frame.iloc[:max_n]
 
-    events: List[NormalizedEvent] = []
+    events: list[NormalizedEvent] = []
     for row in rows.itertuples(index=False):
         events.append(
             NormalizedEvent(

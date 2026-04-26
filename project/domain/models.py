@@ -1,7 +1,8 @@
 from __future__ import annotations
 
+from collections.abc import Mapping
 from dataclasses import dataclass, field
-from typing import Any, Dict, Mapping
+from typing import Any
 
 
 @dataclass(frozen=True)
@@ -52,9 +53,9 @@ class EventDefinition:
     routing_profile_ref: str = ""
     suppresses: tuple[Any, ...] = ()
     suppressed_by: tuple[Any, ...] = ()
-    maturity_scores: Dict[str, Any] = field(default_factory=dict)
-    parameters: Dict[str, Any] = field(default_factory=dict)
-    raw: Dict[str, Any] = field(default_factory=dict)
+    maturity_scores: dict[str, Any] = field(default_factory=dict)
+    parameters: dict[str, Any] = field(default_factory=dict)
+    raw: dict[str, Any] = field(default_factory=dict)
     spec_path: str = ""
     source_kind: str = "unified_registry"
 
@@ -64,7 +65,7 @@ class StateDefinition:
     state_id: str
     family: str
     source_event_type: str
-    raw: Dict[str, Any] = field(default_factory=dict)
+    raw: dict[str, Any] = field(default_factory=dict)
     state_scope: str = "source_only"
     min_events: int = 200
     activation_rule: str = ""
@@ -88,7 +89,7 @@ class TemplateOperatorDefinition:
     template_id: str
     compatible_families: tuple[str, ...]
     template_kind: str = ""
-    raw: Dict[str, Any] = field(default_factory=dict)
+    raw: dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass(frozen=True)
@@ -102,11 +103,11 @@ class RegimeDefinition:
     holding_horizon_profile: str = ""
     stop_logic_profile: str = ""
     profit_taking_profile: str = ""
-    overrides: Dict[str, Any] = field(default_factory=dict)
+    overrides: dict[str, Any] = field(default_factory=dict)
     routing_profile_id: str = ""
     scorecard_version: str = ""
     scorecard_source_run: str = ""
-    raw: Dict[str, Any] = field(default_factory=dict)
+    raw: dict[str, Any] = field(default_factory=dict)
     spec_path: str = ""
     source_kind: str = "regime_registry"
 
@@ -130,40 +131,40 @@ class ThesisDefinition:
     supportive_states: tuple[str, ...] = ()
     source_event_contract_ids: tuple[str, ...] = ()
     source_episode_contract_ids: tuple[str, ...] = ()
-    required_context: Dict[str, Any] = field(default_factory=dict)
-    supportive_context: Dict[str, Any] = field(default_factory=dict)
-    expected_response: Dict[str, Any] = field(default_factory=dict)
-    invalidation: Dict[str, Any] = field(default_factory=dict)
-    freshness_policy: Dict[str, Any] = field(default_factory=dict)
-    governance: Dict[str, Any] = field(default_factory=dict)
-    symbol_scope: Dict[str, Any] = field(default_factory=dict)
-    detection: Dict[str, Any] = field(default_factory=dict)
+    required_context: dict[str, Any] = field(default_factory=dict)
+    supportive_context: dict[str, Any] = field(default_factory=dict)
+    expected_response: dict[str, Any] = field(default_factory=dict)
+    invalidation: dict[str, Any] = field(default_factory=dict)
+    freshness_policy: dict[str, Any] = field(default_factory=dict)
+    governance: dict[str, Any] = field(default_factory=dict)
+    symbol_scope: dict[str, Any] = field(default_factory=dict)
+    detection: dict[str, Any] = field(default_factory=dict)
     notes: str = ""
-    raw: Dict[str, Any] = field(default_factory=dict)
+    raw: dict[str, Any] = field(default_factory=dict)
     spec_path: str = ""
     source_kind: str = "thesis_registry"
 
 
 @dataclass(frozen=True)
 class DomainRegistry:
-    unified_payload: Dict[str, Any] = field(default_factory=dict)
-    event_definitions: Dict[str, EventDefinition] = field(default_factory=dict)
-    state_definitions: Dict[str, StateDefinition] = field(default_factory=dict)
-    template_operator_definitions: Dict[str, TemplateOperatorDefinition] = field(default_factory=dict)
-    regime_definitions: Dict[str, RegimeDefinition] = field(default_factory=dict)
-    gates_spec: Dict[str, Any] = field(default_factory=dict)
+    unified_payload: dict[str, Any] = field(default_factory=dict)
+    event_definitions: dict[str, EventDefinition] = field(default_factory=dict)
+    state_definitions: dict[str, StateDefinition] = field(default_factory=dict)
+    template_operator_definitions: dict[str, TemplateOperatorDefinition] = field(default_factory=dict)
+    regime_definitions: dict[str, RegimeDefinition] = field(default_factory=dict)
+    gates_spec: dict[str, Any] = field(default_factory=dict)
     unified_registry_path: str = ""
-    template_registry_payload: Dict[str, Any] = field(default_factory=dict)
-    family_registry_payload: Dict[str, Any] = field(default_factory=dict)
-    thesis_definitions: Dict[str, ThesisDefinition] = field(default_factory=dict)
-    context_state_map: Dict[tuple[str, str], str] = field(default_factory=dict)
+    template_registry_payload: dict[str, Any] = field(default_factory=dict)
+    family_registry_payload: dict[str, Any] = field(default_factory=dict)
+    thesis_definitions: dict[str, ThesisDefinition] = field(default_factory=dict)
+    context_state_map: dict[tuple[str, str], str] = field(default_factory=dict)
     searchable_event_families: tuple[str, ...] = ()
     searchable_state_families: tuple[str, ...] = ()
     state_aliases: tuple[str, ...] = ()
-    stress_scenarios: tuple[Dict[str, Any], ...] = ()
+    stress_scenarios: tuple[dict[str, Any], ...] = ()
     kill_switch_candidate_features: tuple[str, ...] = ()
-    sequence_definitions: tuple[Dict[str, Any], ...] = ()
-    interaction_definitions: tuple[Dict[str, Any], ...] = ()
+    sequence_definitions: tuple[dict[str, Any], ...] = ()
+    interaction_definitions: tuple[dict[str, Any], ...] = ()
 
     def has_event(self, event_type: str) -> bool:
         normalized = str(event_type).strip().upper()
@@ -216,8 +217,8 @@ class DomainRegistry:
     def get_thesis(self, thesis_id: str) -> ThesisDefinition | None:
         return self.thesis_definitions.get(str(thesis_id).strip().upper())
 
-    def operator_rows(self) -> Dict[str, Dict[str, Any]]:
-        rows: Dict[str, Dict[str, Any]] = {}
+    def operator_rows(self) -> dict[str, dict[str, Any]]:
+        rows: dict[str, dict[str, Any]] = {}
         for name, spec in self.template_operator_definitions.items():
             row = dict(spec.raw)
             row.setdefault("template_id", spec.template_id)
@@ -226,8 +227,8 @@ class DomainRegistry:
             rows[name] = row
         return rows
 
-    def thesis_rows(self) -> Dict[str, Dict[str, Any]]:
-        rows: Dict[str, Dict[str, Any]] = {}
+    def thesis_rows(self) -> dict[str, dict[str, Any]]:
+        rows: dict[str, dict[str, Any]] = {}
         for name, spec in self.thesis_definitions.items():
             row = dict(spec.raw)
             row.setdefault("thesis_id", spec.thesis_id)
@@ -286,36 +287,36 @@ class DomainRegistry:
                 seen.add(token)
         return tuple(out)
 
-    def family_defaults(self, family: str) -> Dict[str, Any]:
+    def family_defaults(self, family: str) -> dict[str, Any]:
         families = self.unified_payload.get("families", {})
         if not isinstance(families, Mapping):
             return {}
         row = families.get(str(family).strip().upper(), {})
         return dict(row) if isinstance(row, Mapping) else {}
 
-    def defaults(self) -> Dict[str, Any]:
+    def defaults(self) -> dict[str, Any]:
         payload = self.unified_payload.get("defaults", {})
         return dict(payload) if isinstance(payload, Mapping) else {}
 
-    def template_registry(self) -> Dict[str, Any]:
+    def template_registry(self) -> dict[str, Any]:
         return dict(self.template_registry_payload)
 
-    def template_defaults(self) -> Dict[str, Any]:
+    def template_defaults(self) -> dict[str, Any]:
         payload = self.template_registry_payload.get("defaults", {})
         return dict(payload) if isinstance(payload, Mapping) else {}
 
-    def family_registry(self) -> Dict[str, Any]:
+    def family_registry(self) -> dict[str, Any]:
         return dict(self.family_registry_payload)
 
-    def event_family_rows(self) -> Dict[str, Any]:
+    def event_family_rows(self) -> dict[str, Any]:
         payload = self.family_registry_payload.get("event_families", {})
         return dict(payload) if isinstance(payload, Mapping) else {}
 
-    def state_family_rows(self) -> Dict[str, Any]:
+    def state_family_rows(self) -> dict[str, Any]:
         payload = self.family_registry_payload.get("state_families", {})
         return dict(payload) if isinstance(payload, Mapping) else {}
 
-    def event_row(self, event_type: str) -> Dict[str, Any]:
+    def event_row(self, event_type: str) -> dict[str, Any]:
         event = self.get_event(event_type)
         if event is None:
             return {}
@@ -387,7 +388,7 @@ class DomainRegistry:
             )
         )
 
-    def canonical_regime_rows(self) -> Dict[str, tuple[str, ...]]:
+    def canonical_regime_rows(self) -> dict[str, tuple[str, ...]]:
         regimes = {
             spec.canonical_regime
             for spec in self.event_definitions.values()
@@ -518,7 +519,7 @@ class DomainRegistry:
     def default_expression_templates(self) -> tuple[str, ...]:
         return self.default_hypothesis_templates()
 
-    def family_filter_templates(self, family_name: str) -> tuple[Dict[str, Any], ...]:
+    def family_filter_templates(self, family_name: str) -> tuple[dict[str, Any], ...]:
         allowed = set(self.family_templates(family_name))
         registry_filters = self.template_registry_payload.get("filter_templates", {})
         if not isinstance(registry_filters, Mapping) or not registry_filters:
@@ -530,7 +531,7 @@ class DomainRegistry:
                 registry_filters = fallback_filters if isinstance(fallback_filters, Mapping) else {}
             except Exception:
                 registry_filters = {}
-        out: list[Dict[str, Any]] = []
+        out: list[dict[str, Any]] = []
         for name in sorted(allowed):
             operator = self.get_operator(name)
             if operator is None or operator.template_kind != "filter_template":
@@ -586,14 +587,14 @@ class DomainRegistry:
                 continue
         return tuple(out or [1, 2])
 
-    def stress_scenario_rows(self) -> list[Dict[str, Any]]:
+    def stress_scenario_rows(self) -> list[dict[str, Any]]:
         return [dict(row) for row in self.stress_scenarios]
 
     def kill_switch_candidates(self) -> list[str]:
         return list(self.kill_switch_candidate_features)
 
-    def sequence_rows(self) -> list[Dict[str, Any]]:
+    def sequence_rows(self) -> list[dict[str, Any]]:
         return [dict(row) for row in self.sequence_definitions]
 
-    def interaction_rows(self) -> list[Dict[str, Any]]:
+    def interaction_rows(self) -> list[dict[str, Any]]:
         return [dict(row) for row in self.interaction_definitions]

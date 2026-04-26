@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Set, Tuple
+from typing import Any
 
 import pandas as pd
 
@@ -41,7 +41,7 @@ class ThesisIntent:
     marginal_volatility: float | None = None
     marginal_drawdown_contribution: float | None = None
     overlap_score: float | None = None
-    raw: Dict[str, Any] = field(default_factory=dict)
+    raw: dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass(frozen=True)
@@ -67,8 +67,8 @@ class PortfolioCapitalDecision:
     decision_status: str = "blocked"
     priority_score: float = 0.0
     available_capacity_notional: float = 0.0
-    clip_factors: Tuple[str, ...] = ()
-    reasons: Tuple[str, ...] = ()
+    clip_factors: tuple[str, ...] = ()
+    reasons: tuple[str, ...] = ()
 
     @property
     def is_allocated(self) -> bool:
@@ -100,8 +100,8 @@ class PortfolioDecisionEngine:
     def __init__(
         self,
         *,
-        family_budgets: Dict[str, float] | None = None,
-        symbol_caps: Dict[str, float] | None = None,
+        family_budgets: dict[str, float] | None = None,
+        symbol_caps: dict[str, float] | None = None,
         max_gross_leverage: float = 1.0,
         target_vol: float = 0.10,
         current_vol: float = 0.10,
@@ -109,11 +109,11 @@ class PortfolioDecisionEngine:
         correlation_limit: float = 0.5,
         max_strategies_per_cluster: int = 3,
         thesis_covariance: pd.DataFrame | None = None,
-        overlap_budgets: Dict[str, float] | None = None,
+        overlap_budgets: dict[str, float] | None = None,
         max_portfolio_notional: float | None = None,
     ) -> None:
         self._admission = PortfolioAdmissionPolicy(family_budgets=family_budgets or {})
-        self._symbol_caps: Dict[str, float] = dict(symbol_caps or {})
+        self._symbol_caps: dict[str, float] = dict(symbol_caps or {})
         self._max_gross_leverage = max_gross_leverage
         self._target_vol = target_vol
         self._current_vol = current_vol
@@ -128,20 +128,20 @@ class PortfolioDecisionEngine:
 
     def decide(
         self,
-        intents: List[ThesisIntent],
+        intents: list[ThesisIntent],
         *,
-        active_overlap_groups: Set[str] | None = None,
-        family_exposures: Dict[str, float] | None = None,
-        bucket_exposures: Dict[str, float] | None = None,
-        active_cluster_counts: Dict[int, int] | None = None,
-        symbol_exposures: Dict[str, float] | None = None,
-        thesis_exposures: Dict[str, float] | None = None,
-        overlap_exposures: Dict[str, float] | None = None,
+        active_overlap_groups: set[str] | None = None,
+        family_exposures: dict[str, float] | None = None,
+        bucket_exposures: dict[str, float] | None = None,
+        active_cluster_counts: dict[int, int] | None = None,
+        symbol_exposures: dict[str, float] | None = None,
+        thesis_exposures: dict[str, float] | None = None,
+        overlap_exposures: dict[str, float] | None = None,
         gross_exposure: float | None = None,
         current_vol: float | None = None,
         available_portfolio_notional: float | None = None,
-        incubation_evidence: Dict[str, IncubationEvidence] | None = None,
-    ) -> List[PortfolioCapitalDecision]:
+        incubation_evidence: dict[str, IncubationEvidence] | None = None,
+    ) -> list[PortfolioCapitalDecision]:
         """Produce one PortfolioCapitalDecision per intent, in priority order.
 
         Intents are processed in descending expected utility order when EV
@@ -149,13 +149,13 @@ class PortfolioDecisionEngine:
         fallback. Overlap, family, symbol, and gross caps still gate the final
         committed allocation state.
         """
-        active_groups: Set[str] = set(active_overlap_groups or set())
-        fam_exp: Dict[str, float] = dict(family_exposures or {})
-        bucket_exp: Dict[str, float] = dict(bucket_exposures or {})
-        cluster_counts: Dict[int, int] = dict(active_cluster_counts or {})
-        sym_exp: Dict[str, float] = dict(symbol_exposures or {})
-        thesis_exp: Dict[str, float] = dict(thesis_exposures or {})
-        overlap_exp: Dict[str, float] = dict(overlap_exposures or {})
+        active_groups: set[str] = set(active_overlap_groups or set())
+        fam_exp: dict[str, float] = dict(family_exposures or {})
+        bucket_exp: dict[str, float] = dict(bucket_exposures or {})
+        cluster_counts: dict[int, int] = dict(active_cluster_counts or {})
+        sym_exp: dict[str, float] = dict(symbol_exposures or {})
+        thesis_exp: dict[str, float] = dict(thesis_exposures or {})
+        overlap_exp: dict[str, float] = dict(overlap_exposures or {})
 
         current_gross_exposure = float(self._gross_exposure if gross_exposure is None else gross_exposure)
         current_realized_vol = float(self._current_vol if current_vol is None else current_vol)
@@ -173,13 +173,13 @@ class PortfolioDecisionEngine:
         if configured_capacity is not None:
             remaining_portfolio_capacity = max(0.0, float(configured_capacity))
 
-        incubation_map: Dict[str, IncubationEvidence] = dict(incubation_evidence or {})
+        incubation_map: dict[str, IncubationEvidence] = dict(incubation_evidence or {})
 
         sorted_intents = sorted(intents, key=self._priority_score, reverse=True)
-        decisions: List[PortfolioCapitalDecision] = []
+        decisions: list[PortfolioCapitalDecision] = []
 
         for intent in sorted_intents:
-            reasons: List[str] = []
+            reasons: list[str] = []
 
             # --- incubation gate ---
             if intent.incubation_state == "incubating":
@@ -289,8 +289,8 @@ class PortfolioDecisionEngine:
             )
             raw_allocated = max(0.0, intent.requested_notional * combined_mult)
 
-            clip_factors: List[str] = []
-            remaining_caps: List[float] = []
+            clip_factors: list[str] = []
+            remaining_caps: list[float] = []
             family_budget = self._admission.family_budgets.get(intent.family, 0.0)
             if family_budget > 0.0:
                 remaining_family = max(0.0, family_budget - abs(fam_exp.get(intent.family, 0.0)))
@@ -399,9 +399,9 @@ class PortfolioDecisionEngine:
     def _blocked(
         self,
         intent: ThesisIntent,
-        reasons: List[str],
+        reasons: list[str],
         risk_multiplier: float,
-        cluster_counts: Dict[int, int],
+        cluster_counts: dict[int, int],
         *,
         admission: AdmissionResult | None = None,
     ) -> PortfolioCapitalDecision:

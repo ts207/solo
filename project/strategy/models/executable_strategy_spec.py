@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, Dict, Literal
+from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -47,7 +47,7 @@ class ResearchOriginSpec(BaseModel):
     template_verb: str = ""
     wf_status: str = "pending"
     wf_evidence_hash: str = ""
-    constraints: Dict[str, Any] = Field(default_factory=dict)
+    constraints: dict[str, Any] = Field(default_factory=dict)
 
 
 class ExecutableEntrySpec(BaseModel):
@@ -73,14 +73,14 @@ class ExecutableExitSpec(BaseModel):
     trailing_stop_type: str
     trailing_stop_value: float
     break_even_r: float
-    invalidation: Dict[str, Any]
+    invalidation: dict[str, Any]
 
 
 class ExecutableRiskSpec(BaseModel):
     model_config = ConfigDict(frozen=True)
 
-    low_capital_contract: Dict[str, Any] = Field(default_factory=dict)
-    cost_model: Dict[str, Any] = Field(default_factory=dict)
+    low_capital_contract: dict[str, Any] = Field(default_factory=dict)
+    cost_model: dict[str, Any] = Field(default_factory=dict)
 
 
 class ExecutableSizingSpec(BaseModel):
@@ -94,10 +94,10 @@ class ExecutableSizingSpec(BaseModel):
 class ExecutableExecutionSpec(BaseModel):
     model_config = ConfigDict(frozen=True)
 
-    symbol_scope: Dict[str, Any]
-    execution: Dict[str, Any]
-    policy_executor_config: Dict[str, Any]
-    throttles: Dict[str, Any]
+    symbol_scope: dict[str, Any]
+    execution: dict[str, Any]
+    policy_executor_config: dict[str, Any]
+    throttles: dict[str, Any]
 
 
 class PortfolioConstraintsSpec(BaseModel):
@@ -119,7 +119,7 @@ class ExecutableStrategySpec(BaseModel):
     execution: ExecutableExecutionSpec
     portfolio_constraints: PortfolioConstraintsSpec
 
-    def to_blueprint_dict(self) -> Dict[str, Any]:
+    def to_blueprint_dict(self) -> dict[str, Any]:
         execution_cfg = dict(self.execution.execution)
         cost_model = dict(self.risk.cost_model)
         return {
@@ -217,13 +217,13 @@ class ExecutableStrategySpec(BaseModel):
         blueprint: Blueprint,
         run_id: str,
         retail_profile: str,
-        low_capital_contract: Dict[str, Any],
+        low_capital_contract: dict[str, Any],
         effective_max_concurrent_positions: int,
         effective_per_position_notional_cap_usd: float,
         default_fee_tier: str,
         fees_bps_per_side: float,
         slippage_bps_per_fill: float,
-    ) -> "ExecutableStrategySpec":
+    ) -> ExecutableStrategySpec:
         constraints = blueprint.lineage.constraints or {}
         entry_delay = blueprint.entry.delay_bars
         return cls(

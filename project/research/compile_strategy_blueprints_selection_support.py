@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, Dict, Tuple
+from typing import Any
 
 import numpy as np
 
@@ -13,7 +13,7 @@ from project.research.utils.decision_safety import (
 )
 
 
-def candidate_id(row: Dict[str, object], idx: int) -> str:
+def candidate_id(row: dict[str, object], idx: int) -> str:
     candidate_id = str(row.get("candidate_id", "")).strip()
     if candidate_id:
         return candidate_id
@@ -21,20 +21,20 @@ def candidate_id(row: Dict[str, object], idx: int) -> str:
     return f"{event}_{idx}"
 
 
-def load_gates_spec() -> Dict[str, Any]:
+def load_gates_spec() -> dict[str, Any]:
     from project.specs.gates import load_gates_spec
 
     return load_gates_spec(PROJECT_ROOT.parent)
 
 
-def rank_key(row: Dict[str, object]) -> Tuple[float, float, float, float, str]:
+def rank_key(row: dict[str, object]) -> tuple[float, float, float, float, str]:
     from project.research.helpers.selection import rank_key as selection_rank_key
 
     return selection_rank_key(row, safe_float_fn=safe_float, as_bool_fn=as_bool)
 
 
 def passes_quality_floor(
-    row: Dict[str, Any],
+    row: dict[str, Any],
     *,
     strict_cost_fields: bool = False,
     min_events: int = 0,
@@ -89,7 +89,7 @@ def passes_quality_floor(
     return True
 
 
-def passes_fallback_gate(row: Dict[str, Any], gate_spec: Dict[str, Any]) -> bool:
+def passes_fallback_gate(row: dict[str, Any], gate_spec: dict[str, Any]) -> bool:
     t_stat = coerce_numeric_nan(row.get("t_stat"))
     min_t = coerce_numeric_nan(gate_spec.get("min_t_stat"))
     if not np.isfinite(min_t):

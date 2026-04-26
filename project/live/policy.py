@@ -1,7 +1,8 @@
 from __future__ import annotations
 
+from collections.abc import Iterable, Mapping
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Any, Dict, Iterable, Mapping
+from typing import TYPE_CHECKING, Any
 
 from project.live.contracts.trade_intent import TradeIntent
 from project.live.scoring import DecisionScore
@@ -22,7 +23,7 @@ class PolicyThresholds:
     watch_min_score: float = 0.10
 
 
-def thresholds_from_config(config: Dict[str, Any] | None) -> PolicyThresholds:
+def thresholds_from_config(config: dict[str, Any] | None) -> PolicyThresholds:
     payload = dict(config or {})
     return PolicyThresholds(
         min_trade_probability=float(
@@ -41,7 +42,7 @@ def thresholds_from_config(config: Dict[str, Any] | None) -> PolicyThresholds:
     )
 
 
-def normalize_live_event_detector_config(config: Mapping[str, Any] | None) -> Dict[str, Any]:
+def normalize_live_event_detector_config(config: Mapping[str, Any] | None) -> dict[str, Any]:
     payload = dict(config or {})
     adapter = str(
         payload.get("adapter")
@@ -108,12 +109,12 @@ def _action_label_from_fraction(
 def build_live_decision_trace(
     *,
     context: Any,
-    ranked_matches: Iterable["ThesisMatch"],
+    ranked_matches: Iterable[ThesisMatch],
     trade_intent: TradeIntent,
     top_score: DecisionScore | None,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     matches = list(ranked_matches)
-    blocked: list[Dict[str, Any]] = []
+    blocked: list[dict[str, Any]] = []
     for match in matches:
         if match.eligibility_passed:
             continue
@@ -180,7 +181,7 @@ def score_to_action(
     symbol: str,
     side: str,
     thesis_id: str,
-    invalidation: Dict[str, Any],
+    invalidation: dict[str, Any],
     thresholds: PolicyThresholds | None = None,
 ) -> TradeIntent:
     ladder = thresholds or PolicyThresholds()
@@ -190,9 +191,7 @@ def score_to_action(
     expected_downside = float(score.expected_downside_bps)
 
     # Hard reject gates
-    if score.contradiction_penalty >= ladder.max_contradiction_penalty:
-        action, confidence_band, size_fraction = "reject", "none", 0.0
-    elif utility <= 0.0 or expected_net_pnl <= 0.0:
+    if score.contradiction_penalty >= ladder.max_contradiction_penalty or utility <= 0.0 or expected_net_pnl <= 0.0:
         action, confidence_band, size_fraction = "reject", "none", 0.0
     elif probability < ladder.min_trade_probability:
         # Below trading floor: watch if score is meaningful, else reject

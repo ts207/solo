@@ -6,7 +6,7 @@ import hmac
 import json
 import logging
 import time
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 import aiohttp
 
@@ -51,7 +51,7 @@ class BybitDerivativesClient:
         self.api_key = api_key
         self.api_secret = api_secret
         self.BASE_URL = str(base_url or self.BASE_URL).rstrip("/")
-        self._session: Optional[aiohttp.ClientSession] = None
+        self._session: aiohttp.ClientSession | None = None
         self._session_lock = asyncio.Lock()
         # Bybit rate limits are generally generous, but let's keep a conservative default.
         self._rate_limiter = _AsyncTokenBucket(capacity=10.0, refill_per_second=10.0)
@@ -80,7 +80,7 @@ class BybitDerivativesClient:
         self,
         method: str,
         path: str,
-        params: Dict[str, Any] | None = None,
+        params: dict[str, Any] | None = None,
         signed: bool = False,
         _retry_count: int = 0,
     ) -> Any:
@@ -167,7 +167,7 @@ class BybitDerivativesClient:
                 method, path, params=params, signed=signed, _retry_count=_retry_count + 1
             )
 
-    async def get_wallet_balance(self, account_type: str = "UNIFIED") -> Dict[str, Any]:
+    async def get_wallet_balance(self, account_type: str = "UNIFIED") -> dict[str, Any]:
         """GET /v5/account/wallet-balance"""
         params = {"accountType": account_type}
         return await self._request("GET", "/v5/account/wallet-balance", params=params, signed=True)
@@ -178,7 +178,7 @@ class BybitDerivativesClient:
         interval: str,
         limit: int = 200,
         category: str = "linear",
-    ) -> List[List[Any]]:
+    ) -> list[list[Any]]:
         """GET /v5/market/kline"""
         # Map interval from Binance-style (1m, 5m) to Bybit-style if needed.
         # Bybit V5 kline intervals: 1, 3, 5, 15, 30, 60, 120, 240, 360, 720, D, M, W
@@ -203,7 +203,7 @@ class BybitDerivativesClient:
 
     async def get_tickers(
         self, symbol: str | None = None, category: str = "linear"
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """GET /v5/market/tickers"""
         params = {"category": category}
         if symbol:
@@ -213,14 +213,14 @@ class BybitDerivativesClient:
 
     async def get_instruments_info(
         self, symbol: str | None = None, category: str = "linear"
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """GET /v5/market/instruments-info"""
         params = {"category": category}
         if symbol:
             params["symbol"] = symbol.upper()
         return await self._request("GET", "/v5/market/instruments-info", params=params)
 
-    async def get_premium_index(self, symbol: str | None = None) -> Dict[str, Any]:
+    async def get_premium_index(self, symbol: str | None = None) -> dict[str, Any]:
         """Return mark price and funding rate in the same schema the runner expects.
 
         Bybit V5 exposes these on the tickers endpoint rather than a dedicated
@@ -245,7 +245,7 @@ class BybitDerivativesClient:
         interval: str = "5min",
         limit: int = 50,
         category: str = "linear",
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """GET /v5/market/open-interest
 
         Returns the most-recent data point in Binance-compatible flat format
@@ -275,7 +275,7 @@ class BybitDerivativesClient:
         end_time: int | None = None,
         limit: int = 200,
         category: str = "linear",
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """GET /v5/market/funding/history"""
         params = {
             "category": category,
@@ -291,7 +291,7 @@ class BybitDerivativesClient:
 
     async def get_mark_price_klines(
         self, symbol: str, interval: str, limit: int = 200
-    ) -> List[List[Any]]:
+    ) -> list[list[Any]]:
         """GET /v5/market/mark-price-kline"""
         return await self._request_kline_variant(
             "/v5/market/mark-price-kline", symbol, interval, limit
@@ -304,7 +304,7 @@ class BybitDerivativesClient:
         interval: str,
         limit: int = 200,
         category: str = "linear",
-    ) -> List[List[Any]]:
+    ) -> list[list[Any]]:
         bybit_interval = interval
         if interval.endswith("m"):
             bybit_interval = interval[:-1]
@@ -326,14 +326,14 @@ class BybitDerivativesClient:
 
     async def get_mark_price_klines_v2(
         self, symbol: str, interval: str, limit: int = 200
-    ) -> List[List[Any]]:
+    ) -> list[list[Any]]:
         return await self._request_kline_variant(
             "/v5/market/mark-price-kline", symbol, interval, limit
         )
 
     async def get_index_price_klines(
         self, symbol: str, interval: str, limit: int = 200
-    ) -> List[List[Any]]:
+    ) -> list[list[Any]]:
         return await self._request_kline_variant(
             "/v5/market/index-price-kline", symbol, interval, limit
         )

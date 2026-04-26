@@ -1,11 +1,11 @@
 __all__ = [
     "CandidateDiscoveryConfig",
     "CandidateDiscoveryResult",
-    "execute_candidate_discovery",
     "PromotionConfig",
     "PromotionServiceResult",
-    "execute_promotion",
     "ReportBundleResult",
+    "execute_candidate_discovery",
+    "execute_promotion",
     "write_candidate_reports",
     "write_promotion_reports",
 ]

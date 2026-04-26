@@ -6,9 +6,8 @@ import sys
 import tempfile
 import time
 from concurrent.futures import ProcessPoolExecutor, as_completed
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
-from typing import Dict, List, Tuple
 from zipfile import ZipFile
 
 import pandas as pd
@@ -29,13 +28,13 @@ from project.io.utils import ensure_dir
 from project.specs.manifest import finalize_manifest, start_manifest
 
 ARCHIVE_BASE = "https://data.binance.vision/data/futures/um"
-EARLIEST_UM_FUTURES = datetime(2019, 9, 1, tzinfo=timezone.utc)
+EARLIEST_UM_FUTURES = datetime(2019, 9, 1, tzinfo=UTC)
 CHUNK_SIZE = 1_000_000
 MAX_WORKERS = 2
 
 
 def _parse_date(value: str) -> datetime:
-    return datetime.strptime(value, "%Y-%m-%d").replace(tzinfo=timezone.utc)
+    return datetime.strptime(value, "%Y-%m-%d").replace(tzinfo=UTC)
 
 
 def _month_start(ts: datetime) -> datetime:
@@ -48,8 +47,8 @@ def _next_month(ts: datetime) -> datetime:
     return ts.replace(year=year, month=month, day=1, hour=0, minute=0, second=0, microsecond=0)
 
 
-def _iter_months(start: datetime, end: datetime) -> List[datetime]:
-    months: List[datetime] = []
+def _iter_months(start: datetime, end: datetime) -> list[datetime]:
+    months: list[datetime] = []
     cursor = _month_start(start)
     while cursor <= end:
         months.append(cursor)
@@ -57,8 +56,8 @@ def _iter_months(start: datetime, end: datetime) -> List[datetime]:
     return months
 
 
-def _iter_days(start: datetime, end: datetime) -> List[datetime]:
-    days: List[datetime] = []
+def _iter_days(start: datetime, end: datetime) -> list[datetime]:
+    days: list[datetime] = []
     cursor = start.replace(hour=0, minute=0, second=0, microsecond=0)
     while cursor <= end:
         days.append(cursor)
@@ -99,10 +98,7 @@ def _clean_book_ticker_chunk(df: pd.DataFrame, symbol: str, source: str) -> pd.D
         clean_c = str(c).lower().strip()
         target = mapping.get(clean_c, clean_c)
         if target == "timestamp":
-            if not found_timestamp and clean_c in ["transaction_time", "transact_time"]:
-                new_cols.append("timestamp")
-                found_timestamp = True
-            elif not found_timestamp and clean_c in ["event_time", "event_timestamp"]:
+            if (not found_timestamp and clean_c in ["transaction_time", "transact_time"]) or (not found_timestamp and clean_c in ["event_time", "event_timestamp"]):
                 new_cols.append("timestamp")
                 found_timestamp = True
             else:
@@ -149,7 +145,7 @@ def _process_csv_stream_to_parquet(
     range_start: datetime,
     range_end_exclusive: datetime,
     writer: pq.ParquetWriter | None = None,
-) -> Tuple[int, datetime | None, datetime | None, pq.ParquetWriter | None]:
+) -> tuple[int, datetime | None, datetime | None, pq.ParquetWriter | None]:
     total_rows = 0
     start_ts = None
     end_ts = None
@@ -197,7 +193,7 @@ def _ingest_symbol(
     effective_end: datetime,
     out_root: Path,
     args: argparse.Namespace,
-) -> Dict[str, object]:
+) -> dict[str, object]:
     log_handlers = [logging.StreamHandler(sys.stdout)]
     if args.log_path:
         log_handlers.append(logging.FileHandler(args.log_path, mode="a"))
@@ -209,9 +205,9 @@ def _ingest_symbol(
     )
 
     session = requests.Session()
-    missing_archives: List[str] = []
-    partitions_written: List[str] = []
-    partitions_skipped: List[str] = []
+    missing_archives: list[str] = []
+    partitions_written: list[str] = []
+    partitions_skipped: list[str] = []
     rows_written_total = 0
 
     logging.info(
@@ -353,12 +349,12 @@ def main() -> int:
         return 1
 
     manifest = start_manifest("ingest_binance_um_book_ticker", args.run_id, vars(args), [], [])
-    stats: Dict[str, object] = {"symbols": {}}
+    stats: dict[str, object] = {"symbols": {}}
 
     try:
         out_root = Path(args.out_root)
-        symbol_results: Dict[str, Dict[str, object]] = {}
-        symbol_failures: Dict[str, Dict[str, object]] = {}
+        symbol_results: dict[str, dict[str, object]] = {}
+        symbol_failures: dict[str, dict[str, object]] = {}
 
         actual_concurrency = min(args.concurrency, len(symbols))
 

@@ -7,7 +7,7 @@ import json
 import re
 import sys
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any
 
 from project.events.detectors.base import BaseEventDetector
 from project.events.detectors.registry import (
@@ -65,7 +65,7 @@ def _has_hardcoded_parameters(detector_cls: type[BaseEventDetector]) -> bool:
         return False
 
 
-def _issue(check_id: str, severity: str, message: str, path: str = "") -> Dict[str, str]:
+def _issue(check_id: str, severity: str, message: str, path: str = "") -> dict[str, str]:
     return {
         "check_id": check_id,
         "severity": severity,
@@ -104,7 +104,7 @@ def _maturity_tier(detector_cls: type[BaseEventDetector]) -> str:
     return "standard"
 
 
-def _detector_row(event_type: str) -> Dict[str, Any]:
+def _detector_row(event_type: str) -> dict[str, Any]:
     detector = get_detector(event_type)
     if detector is None:
         return {
@@ -135,13 +135,13 @@ def _is_registered_alias_without_spec(event_type: str, active_event_types: set[s
     return canonical != event_type and canonical in active_event_types
 
 
-def run_audit() -> Dict[str, Any]:
+def run_audit() -> dict[str, Any]:
     load_all_detectors()
     active_event_types = sorted(EVENT_REGISTRY_SPECS.keys())
     registered_event_types = sorted(list_registered_event_types())
     rows = [_detector_row(event_type) for event_type in active_event_types]
 
-    issues: List[Dict[str, str]] = []
+    issues: list[dict[str, str]] = []
     active_set = set(active_event_types)
     registered_set = set(registered_event_types)
 
@@ -195,8 +195,8 @@ def run_audit() -> Dict[str, Any]:
                 )
             )
 
-    maturity_counts: Dict[str, int] = {}
-    evidence_tier_counts: Dict[str, int] = {}
+    maturity_counts: dict[str, int] = {}
+    evidence_tier_counts: dict[str, int] = {}
     for row in rows:
         maturity = str(row["maturity_tier"])
         maturity_counts[maturity] = int(maturity_counts.get(maturity, 0)) + 1
@@ -222,7 +222,7 @@ def run_audit() -> Dict[str, Any]:
     }
 
 
-def render_markdown(report: Dict[str, Any]) -> str:
+def render_markdown(report: dict[str, Any]) -> str:
     summary = report["summary"]
     lines = [
         "# Detector Coverage Audit",

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-from typing import Any, Dict, Iterable, Mapping
+from collections.abc import Iterable, Mapping
+from typing import Any
 
 from project.runtime.hashing import hash_records
 
@@ -9,7 +10,7 @@ def determinism_replay_check(
     ticks: Iterable[Mapping[str, Any]],
     *,
     hashing_spec: Mapping[str, Any],
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     rows = [dict(row) for row in ticks]
     if not rows:
         return {
@@ -34,5 +35,5 @@ def determinism_replay_check(
             "reverse": reverse_digest,
             "source_seq_sorted": seq_sorted_digest,
         },
-        "tick_count": int(len(rows)),
+        "tick_count": len(rows),
     }

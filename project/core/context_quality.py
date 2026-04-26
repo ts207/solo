@@ -51,7 +51,7 @@ def _distribution_stats(series: pd.Series) -> dict[str, float | None]:
             "max": None,
         }
     return {
-        "count": int(len(numeric)),
+        "count": len(numeric),
         "mean": float(numeric.mean()),
         "median": float(numeric.median()),
         "p10": float(numeric.quantile(0.10)),
@@ -102,7 +102,7 @@ def summarize_context_quality(frame: pd.DataFrame) -> dict[str, Any]:
 
         dimensions[name] = {
             "state_column": state_col,
-            "valid_rows": int(len(valid_state)),
+            "valid_rows": len(valid_state),
             "occupancy": occupancy,
             "transition_count": transitions,
             "transition_rate": transition_rate,

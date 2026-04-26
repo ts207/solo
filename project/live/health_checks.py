@@ -1,8 +1,9 @@
 from __future__ import annotations
 
 import logging
-from datetime import datetime, timezone
-from typing import Any, Callable, Dict, List
+from collections.abc import Callable
+from datetime import UTC, datetime
+from typing import Any
 
 import numpy as np
 
@@ -21,10 +22,10 @@ class DataHealthMonitor:
         now_fn: Callable[[], datetime] | None = None,
     ):
         self.stale_threshold_sec = stale_threshold_sec
-        self._now_fn = now_fn or (lambda: datetime.now(timezone.utc))
-        self.last_update_times: Dict[str, datetime] = {}
-        self.registered_stream_times: Dict[str, datetime] = {}
-        self.status: Dict[str, str] = {}  # "HEALTHY" | "STALE" | "DISCONNECTED"
+        self._now_fn = now_fn or (lambda: datetime.now(UTC))
+        self.last_update_times: dict[str, datetime] = {}
+        self.registered_stream_times: dict[str, datetime] = {}
+        self.status: dict[str, str] = {}  # "HEALTHY" | "STALE" | "DISCONNECTED"
 
     def register_stream(self, symbol: str, stream: str) -> None:
         key = f"{str(symbol).upper()}:{stream}"
@@ -32,7 +33,7 @@ class DataHealthMonitor:
             self.registered_stream_times[key] = self._now_fn()
             self.status.setdefault(key, "HEALTHY")
 
-    def register_streams(self, streams: List[tuple[str, str]]) -> None:
+    def register_streams(self, streams: list[tuple[str, str]]) -> None:
         for symbol, stream in streams:
             self.register_stream(symbol, stream)
 
@@ -44,7 +45,7 @@ class DataHealthMonitor:
         self.last_update_times[key] = now
         self.status[key] = "HEALTHY"
 
-    def check_health(self) -> Dict[str, Any]:
+    def check_health(self) -> dict[str, Any]:
         """
         Scan all monitored streams and identify stale feeds.
         """
@@ -81,7 +82,7 @@ class DataHealthMonitor:
         return {
             "is_healthy": bool(is_healthy),
             "freshness_status": "healthy" if is_healthy else "stale",
-            "stale_count": int(len(stale_streams)),
+            "stale_count": len(stale_streams),
             "stale_streams": stale_streams,
             "max_last_seen_sec_ago": float(max_last_seen_sec_ago),
             "timestamp": now.isoformat(),
@@ -95,7 +96,7 @@ def check_kill_switch_triggers(
     current_drawdown: float,
     recent_invalidation_streak: int,
     streak_threshold: int = 5,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     Evaluate kill-switch triggers based on live performance vs research.
     """
@@ -138,13 +139,13 @@ def check_kill_switch_triggers(
 
 def build_runtime_certification_manifest(
     *,
-    postflight_audit: Dict[str, Any],
-    health_report: Dict[str, Any],
-    kill_switch_status: Dict[str, Any] | None = None,
-    oms_lineage: Dict[str, Any] | None = None,
-    replay_status: Dict[str, Any] | None = None,
-    live_state_status: Dict[str, Any] | None = None,
-) -> Dict[str, Any]:
+    postflight_audit: dict[str, Any],
+    health_report: dict[str, Any],
+    kill_switch_status: dict[str, Any] | None = None,
+    oms_lineage: dict[str, Any] | None = None,
+    replay_status: dict[str, Any] | None = None,
+    live_state_status: dict[str, Any] | None = None,
+) -> dict[str, Any]:
     stale_count = int(health_report.get("stale_count", 0) or 0)
     postflight_status = str(postflight_audit.get("status", "unknown")).strip().lower()
     kill_state = dict(kill_switch_status or {})
@@ -202,7 +203,7 @@ def validate_market_microstructure(
     max_spread_bps: float,
     liquidity_available: float,
     min_liquidity_usd: float,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     Validate if current market conditions allow safe trading.
     """
@@ -225,7 +226,7 @@ def evaluate_pretrade_microstructure_gate(
     max_spread_bps: float,
     min_depth_usd: float,
     min_tob_coverage: float,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     Hard pre-trade gate for live deployment.
 
@@ -241,7 +242,7 @@ def evaluate_pretrade_microstructure_gate(
     depth_ok = np.isfinite(resolved_depth) and resolved_depth >= float(min_depth_usd)
     coverage_ok = np.isfinite(resolved_coverage) and resolved_coverage >= float(min_tob_coverage)
 
-    reasons: List[str] = []
+    reasons: list[str] = []
     if not spread_ok:
         reasons.append("spread_blowout")
     if not depth_ok:
@@ -265,13 +266,13 @@ def evaluate_pretrade_microstructure_gate(
 
 
 def evaluate_market_state_components(
-    market_state: Dict[str, Any],
+    market_state: dict[str, Any],
     *,
     max_ticker_stale_seconds: float,
     runtime_feature_stale_after_seconds: float,
-) -> Dict[str, Any]:
-    stale_components: List[Dict[str, Any]] = []
-    missing_components: List[str] = []
+) -> dict[str, Any]:
+    stale_components: list[dict[str, Any]] = []
+    missing_components: list[str] = []
 
     if not bool(market_state.get("ticker_fresh", False)):
         stale_components.append(
@@ -308,8 +309,8 @@ def evaluate_market_state_components(
 
 
 def evaluate_live_quality_degradation(
-    live_quality_result: Dict[str, Any],
-) -> Dict[str, Any]:
+    live_quality_result: dict[str, Any],
+) -> dict[str, Any]:
     action = str(live_quality_result.get("action", "allow"))
     degraded = action in {"downscale", "disable"}
     return {

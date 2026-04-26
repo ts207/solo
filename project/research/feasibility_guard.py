@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import logging
 from pathlib import Path
-from typing import Tuple
 
 import yaml
 
@@ -18,12 +17,12 @@ class FeasibilityGuard:
         self.run_id = run_id
         self.log = logging.getLogger(__name__)
 
-    def check_feasibility(self, spec_path_str: str, symbol: str) -> Tuple[bool, str]:
+    def check_feasibility(self, spec_path_str: str, symbol: str) -> tuple[bool, str]:
         path = self.project_root / spec_path_str
         if not path.exists():
             return False, f"Spec file missing at {spec_path_str}"
         try:
-            with open(path, "r", encoding="utf-8") as f:
+            with open(path, encoding="utf-8") as f:
                 spec = yaml.safe_load(f)
         except Exception as e:
             return False, f"Failed to parse spec YAML: {e}"

@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import argparse
 from dataclasses import dataclass
-from typing import Optional, Tuple
 
 import numpy as np
 import pandas as pd
@@ -30,14 +29,14 @@ class EpisodeConfig:
     anchor_rule: str  # "max_intensity" | "first" | "last"
 
 
-def _first_existing(df: pd.DataFrame, cols) -> Optional[str]:
+def _first_existing(df: pd.DataFrame, cols) -> str | None:
     for c in cols:
         if c in df.columns:
             return c
     return None
 
 
-def _canonicalize_group(g: pd.DataFrame, cfg: EpisodeConfig) -> Tuple[pd.DataFrame, pd.DataFrame]:
+def _canonicalize_group(g: pd.DataFrame, cfg: EpisodeConfig) -> tuple[pd.DataFrame, pd.DataFrame]:
     # g is sorted by enter_ts
     if g.empty:
         return g, g
@@ -104,7 +103,7 @@ def _canonicalize_group(g: pd.DataFrame, cfg: EpisodeConfig) -> Tuple[pd.DataFra
             "episode_start_ts": ep_start,
             "episode_end_ts": ep_end + cfg.timeframe_ns,  # exclusive endpoint
             "anchor_ts": anchor_ts,
-            "rows_merged": int(len(sub)),
+            "rows_merged": len(sub),
         }
         # Preserve key metadata columns if present
         for c in ["signal_column", "direction", "sign", "split_label"]:
@@ -157,7 +156,7 @@ def _canonicalize_group(g: pd.DataFrame, cfg: EpisodeConfig) -> Tuple[pd.DataFra
 
 def canonicalize_event_episodes(
     events: pd.DataFrame, cfg: EpisodeConfig
-) -> Tuple[pd.DataFrame, pd.DataFrame]:
+) -> tuple[pd.DataFrame, pd.DataFrame]:
     if events.empty:
         return events.copy(), events.copy()
 

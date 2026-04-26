@@ -5,9 +5,10 @@ import argparse
 import csv
 import json
 import sys
+from collections.abc import Iterable, Mapping
 from io import StringIO
 from pathlib import Path
-from typing import Any, Dict, Iterable, Mapping
+from typing import Any
 
 from project.domain.compiled_registry import get_domain_registry
 from project.events.config import compose_event_config
@@ -155,7 +156,7 @@ def _is_simple_value(value: Any) -> bool:
     return isinstance(value, (str, int, float, bool)) or value is None
 
 
-def _threshold_parameters(parameters: Mapping[str, Any]) -> Dict[str, Any]:
+def _threshold_parameters(parameters: Mapping[str, Any]) -> dict[str, Any]:
     include_tokens = (
         "threshold",
         "quantile",
@@ -187,7 +188,7 @@ def _threshold_parameters(parameters: Mapping[str, Any]) -> Dict[str, Any]:
         "expected_behavior",
         "notes",
     }
-    out: Dict[str, Any] = {}
+    out: dict[str, Any] = {}
     for key, value in parameters.items():
         if key in exclude_keys:
             continue
@@ -200,10 +201,10 @@ def _threshold_parameters(parameters: Mapping[str, Any]) -> Dict[str, Any]:
         if isinstance(value, list) and all(_is_simple_value(item) for item in value):
             out[key] = list(value)
     return out
-def _rows() -> list[Dict[str, Any]]:
+def _rows() -> list[dict[str, Any]]:
     registry = get_domain_registry()
 
-    rows: list[Dict[str, Any]] = []
+    rows: list[dict[str, Any]] = []
     for event_type in registry.event_ids:
         event = registry.event_definitions[event_type]
         cfg = compose_event_config(event_type)
@@ -251,8 +252,8 @@ def _rows() -> list[Dict[str, Any]]:
     return rows
 
 
-def _grouped_rows(rows: Iterable[Mapping[str, Any]]) -> Dict[str, list[Dict[str, Any]]]:
-    grouped: Dict[str, list[Dict[str, Any]]] = {}
+def _grouped_rows(rows: Iterable[Mapping[str, Any]]) -> dict[str, list[dict[str, Any]]]:
+    grouped: dict[str, list[dict[str, Any]]] = {}
     for row in rows:
         grouped.setdefault(str(row["canonical_regime"]), []).append(dict(row))
     return {regime: sorted(items, key=lambda item: str(item["event_type"])) for regime, items in sorted(grouped.items())}
@@ -299,7 +300,7 @@ def _render_markdown(rows: list[Mapping[str, Any]]) -> str:
     return "\n".join(lines).rstrip() + "\n"
 
 
-def build_outputs() -> Dict[Path, str]:
+def build_outputs() -> dict[Path, str]:
     rows = _rows()
     grouped = _grouped_rows(rows)
     out_root = Path("docs/generated")

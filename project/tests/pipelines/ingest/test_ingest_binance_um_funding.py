@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import sys
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from project.pipelines.ingest import ingest_binance_um_funding as funding
 
@@ -13,7 +13,7 @@ def test_main_fails_when_required_funding_coverage_is_missing(monkeypatch, tmp_p
     monkeypatch.setattr(
         funding,
         "_iter_months",
-        lambda _start, _end: [datetime(2026, 1, 1, tzinfo=timezone.utc)],
+        lambda _start, _end: [datetime(2026, 1, 1, tzinfo=UTC)],
     )
 
     class _DownloadResult:

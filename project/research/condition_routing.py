@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import logging
-from typing import Tuple
 
 from project.strategy.dsl import is_executable_condition
 
@@ -59,7 +58,7 @@ def condition_routing(
     *,
     run_symbols=None,
     strict: bool = True,
-) -> Tuple[str, str]:
+) -> tuple[str, str]:
     name = _runtime_alias(str(cond_name or "").strip())
     if not name or name == "all":
         return "all", "unconditional"

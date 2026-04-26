@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import json
 import math
-from typing import Any, Dict
+from typing import Any
 
 import numpy as np
 
@@ -46,7 +46,7 @@ def _context_complexity_penalty(dimension_count: int) -> float:
 
 
 def stability_score(
-    row: Dict[str, Any],
+    row: dict[str, Any],
     sign_consistency_val: float,
     *,
     apply_context_penalty: bool = True,

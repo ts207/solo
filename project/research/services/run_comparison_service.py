@@ -1,9 +1,10 @@
 from __future__ import annotations
 
 import json
-from datetime import datetime, timezone
+from collections.abc import Mapping, Sequence
+from datetime import UTC, datetime
 from pathlib import Path
-from typing import Any, Dict, Mapping, Sequence
+from typing import Any
 
 import pandas as pd
 
@@ -11,7 +12,7 @@ from project.artifacts import phase2_diagnostics_path
 from project.core.exceptions import DataIntegrityError
 from project.io.utils import read_parquet as read_logical_parquet
 
-DEFAULT_DRIFT_THRESHOLDS: Dict[str, float] = {
+DEFAULT_DRIFT_THRESHOLDS: dict[str, float] = {
     "max_phase2_candidate_count_delta_abs": 10.0,
     "max_phase2_survivor_count_delta_abs": 2.0,
     "max_phase2_zero_eval_rows_increase": 0.0,
@@ -30,7 +31,7 @@ DEFAULT_DRIFT_THRESHOLDS: Dict[str, float] = {
 }
 
 
-def research_diagnostics_paths(*, data_root: Path, run_id: str) -> Dict[str, Path]:
+def research_diagnostics_paths(*, data_root: Path, run_id: str) -> dict[str, Path]:
     return {
         "phase2": phase2_diagnostics_path(run_id, data_root),
         "promotion": data_root / "reports" / "promotions" / run_id / "promotion_diagnostics.json",
@@ -47,7 +48,7 @@ def research_diagnostics_paths(*, data_root: Path, run_id: str) -> Dict[str, Pat
     }
 
 
-def _read_json(path: Path) -> Dict[str, Any]:
+def _read_json(path: Path) -> dict[str, Any]:
     if not path.exists():
         return {}
     try:
@@ -145,7 +146,7 @@ def _manifest_symbol_universe(manifest: Mapping[str, Any]) -> list[str]:
     return sorted({token.strip().upper() for token in raw.split(",") if token.strip()})
 
 
-def _phase2_contract_summary(diagnostics: Mapping[str, Any], manifest: Mapping[str, Any]) -> Dict[str, Any]:
+def _phase2_contract_summary(diagnostics: Mapping[str, Any], manifest: Mapping[str, Any]) -> dict[str, Any]:
     summary = {
         "discovery_profile": _normalize_string_token(diagnostics.get("discovery_profile", manifest.get("discovery_profile", ""))),
         "search_spec": _normalize_string_token(diagnostics.get("search_spec", manifest.get("search_spec", ""))),
@@ -158,7 +159,7 @@ def _phase2_contract_summary(diagnostics: Mapping[str, Any], manifest: Mapping[s
     return summary
 
 
-def _edge_candidate_metadata(frame: pd.DataFrame) -> Dict[str, Any]:
+def _edge_candidate_metadata(frame: pd.DataFrame) -> dict[str, Any]:
     if frame.empty:
         return {
             "required_columns_present": {},
@@ -221,7 +222,7 @@ def _build_run_comparison_compatibility(
     candidate_phase2_diag: Mapping[str, Any],
     baseline_edge_frame: pd.DataFrame,
     candidate_edge_frame: pd.DataFrame,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     reasons: list[str] = []
     notes: list[str] = []
 
@@ -324,7 +325,7 @@ def _build_run_comparison_compatibility(
     }
 
 
-def summarize_phase2_distribution(diagnostics: Mapping[str, Any]) -> Dict[str, Any]:
+def summarize_phase2_distribution(diagnostics: Mapping[str, Any]) -> dict[str, Any]:
     false_diag = diagnostics.get("false_discovery_diagnostics", {})
     global_diag = false_diag.get("global", {})
     sample_quality = false_diag.get("sample_quality", {})
@@ -363,7 +364,7 @@ def summarize_phase2_distribution(diagnostics: Mapping[str, Any]) -> Dict[str, A
     }
 
 
-def summarize_promotion_distribution(diagnostics: Mapping[str, Any]) -> Dict[str, Any]:
+def summarize_promotion_distribution(diagnostics: Mapping[str, Any]) -> dict[str, Any]:
     decision_summary = diagnostics.get("decision_summary", {})
     return {
         "candidate_count": _as_int(decision_summary.get("candidates_total", 0)),
@@ -379,9 +380,9 @@ def summarize_promotion_distribution(diagnostics: Mapping[str, Any]) -> Dict[str
     }
 
 
-def summarize_edge_candidate_distribution(frame: pd.DataFrame) -> Dict[str, Any]:
+def summarize_edge_candidate_distribution(frame: pd.DataFrame) -> dict[str, Any]:
     return {
-        "candidate_count": int(len(frame)),
+        "candidate_count": len(frame),
         "tradable_count": _count_pass_like(frame, "gate_bridge_tradable"),
         "after_cost_positive_validation_count": _count_pass_like(
             frame, "gate_bridge_after_cost_positive_validation"
@@ -395,7 +396,7 @@ def summarize_edge_candidate_distribution(frame: pd.DataFrame) -> Dict[str, Any]
     }
 
 
-def summarize_regime_effectiveness_distribution(summary: Mapping[str, Any]) -> Dict[str, Any]:
+def summarize_regime_effectiveness_distribution(summary: Mapping[str, Any]) -> dict[str, Any]:
     top_regimes = summary.get("top_regimes_by_incidence", [])
     bucket_counts = summary.get("recommended_bucket_counts", {})
     if not isinstance(top_regimes, list):
@@ -420,7 +421,7 @@ def summarize_run_research_status(
     *,
     data_root: Path,
     run_id: str,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     manifest = _read_json(_run_manifest_path(data_root=data_root, run_id=run_id))
     checklist = _read_json(_checklist_path(data_root=data_root, run_id=run_id))
     diag_paths = research_diagnostics_paths(data_root=data_root, run_id=run_id)
@@ -462,7 +463,7 @@ def summarize_run_research_status(
 def compare_phase2_run_diagnostics(
     baseline: Mapping[str, Any],
     candidate: Mapping[str, Any],
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     base = summarize_phase2_distribution(baseline)
     cand = summarize_phase2_distribution(candidate)
     return {
@@ -488,7 +489,7 @@ def compare_phase2_run_diagnostics(
 def compare_promotion_run_diagnostics(
     baseline: Mapping[str, Any],
     candidate: Mapping[str, Any],
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     base = summarize_promotion_distribution(baseline)
     cand = summarize_promotion_distribution(candidate)
     return {
@@ -522,7 +523,7 @@ def compare_promotion_run_diagnostics(
 def compare_edge_candidate_reports(
     baseline: pd.DataFrame,
     candidate: pd.DataFrame,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     base = summarize_edge_candidate_distribution(baseline)
     cand = summarize_edge_candidate_distribution(candidate)
     return {
@@ -549,7 +550,7 @@ def compare_edge_candidate_reports(
 def compare_regime_effectiveness_reports(
     baseline: Mapping[str, Any],
     candidate: Mapping[str, Any],
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     base = summarize_regime_effectiveness_distribution(baseline)
     cand = summarize_regime_effectiveness_distribution(candidate)
     return {
@@ -578,7 +579,7 @@ def compare_run_reports(
     candidate_edge_candidates_path: Path,
     baseline_regime_effectiveness_path: Path,
     candidate_regime_effectiveness_path: Path,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     baseline_phase2_exists = baseline_phase2_path.exists()
     candidate_phase2_exists = candidate_phase2_path.exists()
     baseline_promotion_exists = baseline_promotion_path.exists()
@@ -630,7 +631,7 @@ def compare_run_ids(
     data_root: Path,
     baseline_run_id: str,
     candidate_run_id: str,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     baseline_paths = research_diagnostics_paths(data_root=data_root, run_id=baseline_run_id)
     candidate_paths = research_diagnostics_paths(data_root=data_root, run_id=candidate_run_id)
     comparison = compare_run_reports(
@@ -656,7 +657,7 @@ def compare_run_ids(
 
 def resolve_drift_thresholds(
     thresholds: Mapping[str, Any] | None = None,
-) -> Dict[str, float]:
+) -> dict[str, float]:
     resolved = dict(DEFAULT_DRIFT_THRESHOLDS)
     for key, default in DEFAULT_DRIFT_THRESHOLDS.items():
         if thresholds is None or key not in thresholds:
@@ -671,7 +672,7 @@ def assess_run_comparison(
     *,
     thresholds: Mapping[str, Any] | None = None,
     mode: str = "warn",
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     resolved_mode = str(mode or "warn").strip().lower()
     resolved_thresholds = resolve_drift_thresholds(thresholds)
     baseline_phase2 = dict(comparison.get("phase2", {}).get("baseline", {}))
@@ -829,7 +830,7 @@ def assess_run_comparison(
     return {
         "mode": resolved_mode,
         "status": status,
-        "violation_count": int(len(violations)),
+        "violation_count": len(violations),
         "violations": violations,
         "notes": notes,
         "profile_mismatch": bool(profile_mismatch),
@@ -906,7 +907,7 @@ def build_run_matrix_summary(
     candidate_run_ids: Sequence[str],
     thresholds: Mapping[str, Any] | None = None,
     drift_mode: str = "warn",
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     ordered_run_ids: list[str] = []
     for run_id in [baseline_run_id, *candidate_run_ids]:
         token = str(run_id or "").strip()
@@ -940,7 +941,7 @@ def build_run_matrix_summary(
             }
         )
     return {
-        "created_at_utc": datetime.now(timezone.utc).isoformat(),
+        "created_at_utc": datetime.now(UTC).isoformat(),
         "baseline_run_id": baseline_run_id,
         "drift_mode": str(drift_mode or "warn"),
         "thresholds": resolve_drift_thresholds(thresholds),
@@ -1072,7 +1073,7 @@ def write_run_comparison_report(
         mode=drift_mode,
     )
     payload = {
-        "created_at_utc": datetime.now(timezone.utc).isoformat(),
+        "created_at_utc": datetime.now(UTC).isoformat(),
         "baseline_run_id": baseline_run_id,
         "candidate_run_id": candidate_run_id,
         "baseline_paths": {key: str(value) for key, value in baseline_paths.items()},

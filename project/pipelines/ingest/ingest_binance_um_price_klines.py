@@ -4,9 +4,8 @@ import argparse
 import logging
 import sys
 import tempfile
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
-from typing import Dict, List
 from zipfile import ZipFile
 
 import pandas as pd
@@ -20,7 +19,7 @@ from project.io.utils import ensure_dir, read_parquet, write_parquet
 from project.specs.manifest import finalize_manifest, start_manifest
 
 ARCHIVE_BASE = "https://data.binance.vision/data/futures/um"
-EARLIEST_UM_FUTURES = datetime(2019, 9, 1, tzinfo=timezone.utc)
+EARLIEST_UM_FUTURES = datetime(2019, 9, 1, tzinfo=UTC)
 
 TYPE_CONFIG = {
     "mark": {
@@ -42,7 +41,7 @@ TYPE_CONFIG = {
 
 
 def _parse_date(value: str) -> datetime:
-    return datetime.strptime(value, "%Y-%m-%d").replace(tzinfo=timezone.utc)
+    return datetime.strptime(value, "%Y-%m-%d").replace(tzinfo=UTC)
 
 
 def _month_start(ts: datetime) -> datetime:
@@ -55,8 +54,8 @@ def _next_month(ts: datetime) -> datetime:
     return ts.replace(year=year, month=month, day=1, hour=0, minute=0, second=0, microsecond=0)
 
 
-def _iter_months(start: datetime, end: datetime) -> List[datetime]:
-    months: List[datetime] = []
+def _iter_months(start: datetime, end: datetime) -> list[datetime]:
+    months: list[datetime] = []
     cursor = _month_start(start)
     while cursor <= end:
         months.append(cursor)
@@ -64,8 +63,8 @@ def _iter_months(start: datetime, end: datetime) -> List[datetime]:
     return months
 
 
-def _iter_days(start: datetime, end: datetime) -> List[datetime]:
-    days: List[datetime] = []
+def _iter_days(start: datetime, end: datetime) -> list[datetime]:
+    days: list[datetime] = []
     cursor = start.replace(hour=0, minute=0, second=0, microsecond=0)
     while cursor <= end:
         days.append(cursor)
@@ -184,21 +183,21 @@ def main() -> int:
         level=logging.INFO, handlers=log_handlers, format="%(asctime)s %(levelname)s %(message)s"
     )
 
-    inputs: List[Dict[str, object]] = []
-    outputs: List[Dict[str, object]] = []
+    inputs: list[dict[str, object]] = []
+    outputs: list[dict[str, object]] = []
     params = vars(args)
     manifest = start_manifest(f"ingest_binance_um_{args.type}_price_{args.timeframe}", run_id, params, inputs, outputs)
 
-    stats: Dict[str, object] = {"symbols": {}}
+    stats: dict[str, object] = {"symbols": {}}
 
     try:
         out_root = Path(args.out_root)
         session = requests.Session()
 
         for symbol in symbols:
-            missing_archives: List[str] = []
-            partitions_written: List[str] = []
-            partitions_skipped: List[str] = []
+            missing_archives: list[str] = []
+            partitions_written: list[str] = []
+            partitions_skipped: list[str] = []
             bars_written_total = 0
 
             for month_start in _iter_months(effective_start, effective_end):
@@ -245,7 +244,7 @@ def main() -> int:
                         session=session,
                     )
 
-                    frames: List[pd.DataFrame] = []
+                    frames: list[pd.DataFrame] = []
                     if result.status == "ok":
                         frames.append(
                             _read_price_from_zip(temp_zip, symbol, "archive_monthly", column_name)
@@ -303,14 +302,14 @@ def main() -> int:
                     outputs.append(
                         {
                             "path": str(written_path),
-                            "rows": int(len(data)),
+                            "rows": len(data),
                             "start_ts": data["timestamp"].min().isoformat(),
                             "end_ts": data["timestamp"].max().isoformat(),
                             "storage": storage,
                         }
                     )
                     partitions_written.append(str(written_path))
-                    bars_written_total += int(len(data))
+                    bars_written_total += len(data)
                 else:
                     logging.info(
                         "No data for %s %s-%02d", symbol, month_start.year, month_start.month

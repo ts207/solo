@@ -5,7 +5,7 @@ import json
 import logging
 import sys
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any
 
 import numpy as np
 import pandas as pd
@@ -35,7 +35,7 @@ def _load_candidates_table(run_id: str, candidates_path: str = "") -> tuple[pd.D
     DATA_ROOT = get_data_root()
     candidates_root = DATA_ROOT / "reports" / "strategy_builder" / run_id
     promotions_root = DATA_ROOT / "reports" / "promotions" / run_id
-    preferred_paths: List[Path] = []
+    preferred_paths: list[Path] = []
     if str(candidates_path).strip():
         requested = Path(candidates_path)
         preferred_paths.extend(
@@ -79,7 +79,7 @@ def _bool_series_default(df: pd.DataFrame, column: str, default: bool) -> pd.Ser
 
 
 def _first_numeric(
-    df: pd.DataFrame, names: List[str], default: float = np.nan
+    df: pd.DataFrame, names: list[str], default: float = np.nan
 ) -> tuple[pd.Series, str]:
     for name in names:
         if name in df.columns:
@@ -114,7 +114,7 @@ def _first_expectancy_bps(df: pd.DataFrame) -> tuple[pd.Series, str]:
 def _allocation_viable_series(df: pd.DataFrame) -> pd.Series:
     if "allocation_policy" not in df.columns:
         return pd.Series(True, index=df.index, dtype=bool)
-    out: List[bool] = []
+    out: list[bool] = []
     for value in df["allocation_policy"].tolist():
         if isinstance(value, dict):
             out.append(bool(value.get("allocation_viable", True)))
@@ -158,8 +158,8 @@ def _write_empty_selection_outputs(
     out_path: Path,
     out_csv_path: Path,
     summary_path: Path,
-    outputs: List[Dict[str, object]],
-    manifest: Dict[str, Any],
+    outputs: list[dict[str, object]],
+    manifest: dict[str, Any],
     min_expectancy_bps: float,
     min_events: int,
     min_oos_consistency: float,
@@ -261,8 +261,8 @@ def main() -> int:
         "max_candidates_per_event": int(args.max_candidates_per_event),
         "candidates_path": str(args.candidates_path),
     }
-    inputs: List[Dict[str, object]] = []
-    outputs: List[Dict[str, object]] = []
+    inputs: list[dict[str, object]] = []
+    outputs: list[dict[str, object]] = []
     manifest = start_manifest("select_profitable_strategies", run_id, params, inputs, outputs)
 
     try:
@@ -290,7 +290,7 @@ def main() -> int:
         raw_df, source_path = _load_candidates_table(
             run_id, candidates_path=str(args.candidates_path)
         )
-        inputs.append({"path": str(source_path), "rows": int(len(raw_df))})
+        inputs.append({"path": str(source_path), "rows": len(raw_df)})
 
         if raw_df.empty:
             return _write_empty_selection_outputs(
@@ -405,8 +405,8 @@ def main() -> int:
 
         summary = {
             "run_id": run_id,
-            "input_count": int(len(df)),
-            "selected_count": int(len(selected)),
+            "input_count": len(df),
+            "selected_count": len(selected),
             "selection_rate": float(len(selected) / len(df)) if len(df) else 0.0,
             "min_expectancy_bps": float(min_expectancy_bps),
             "min_events": int(min_events),
@@ -424,8 +424,8 @@ def main() -> int:
 
         outputs.extend(
             [
-                {"path": str(out_path), "rows": int(len(selected))},
-                {"path": str(out_csv_path), "rows": int(len(selected))},
+                {"path": str(out_path), "rows": len(selected)},
+                {"path": str(out_csv_path), "rows": len(selected)},
                 {"path": str(summary_path), "rows": 1},
             ]
         )

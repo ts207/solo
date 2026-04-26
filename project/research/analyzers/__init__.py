@@ -49,10 +49,10 @@ def run_analyzer_suite(
 __all__ = [
     "AnalyzerResult",
     "BaseEventAnalyzer",
+    "EdgeAnalyzer",
     "IntegrityAnalyzer",
     "MorphologyAnalyzer",
-    "EdgeAnalyzer",
-    "StabilityAnalyzer",
     "OverlapAnalyzer",
+    "StabilityAnalyzer",
     "run_analyzer_suite",
 ]

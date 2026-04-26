@@ -1,8 +1,9 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from datetime import UTC
 from pathlib import Path
-from typing import Any, Dict, List, Literal, Tuple
+from typing import Any, Literal
 
 StageReasonCode = Literal["selected", "skipped", "failed", "artifact_mismatch", "dependency_missing"]
 ArtifactVerificationStatus = Literal["conformant", "missing", "not_verified", "schema_violation"]
@@ -14,16 +15,16 @@ class PlannedStage:
     stage_name: str
     script_path: str
     reason_code: StageReasonCode
-    base_args: Tuple[str, ...] = ()
+    base_args: tuple[str, ...] = ()
     stage_instance_id: str = ""
     notes: str = ""
     stage_family: str = ""
     owner_service: str = ""
-    artifact_inputs: Tuple[str, ...] = ()
-    artifact_optional_inputs: Tuple[str, ...] = ()
-    artifact_outputs: Tuple[str, ...] = ()
-    artifact_external_inputs: Tuple[str, ...] = ()
-    required_artifact_contract_ids: Tuple[str, ...] = ()
+    artifact_inputs: tuple[str, ...] = ()
+    artifact_optional_inputs: tuple[str, ...] = ()
+    artifact_outputs: tuple[str, ...] = ()
+    artifact_external_inputs: tuple[str, ...] = ()
+    required_artifact_contract_ids: tuple[str, ...] = ()
 
     @property
     def is_active(self) -> bool:
@@ -39,8 +40,8 @@ class PlannedArtifactObligation:
     strictness: str
     required: bool
     expected_path: str
-    legacy_paths: Tuple[str, ...] = ()
-    producing_stage_names: Tuple[str, ...] = ()
+    legacy_paths: tuple[str, ...] = ()
+    producing_stage_names: tuple[str, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -52,21 +53,21 @@ class ExecutionPlan:
     """
     run_id: str
     planned_at: str
-    stages: Tuple[PlannedStage, ...]
+    stages: tuple[PlannedStage, ...]
     run_mode: str = "research"
-    symbols: Tuple[str, ...] = ()
+    symbols: tuple[str, ...] = ()
     timeframe: str = "5m"
     experiment_config: str = ""
     registry_root: str = ""
-    raw_args: Dict[str, Any] = field(default_factory=dict)
-    artifact_obligations: Tuple[PlannedArtifactObligation, ...] = ()
+    raw_args: dict[str, Any] = field(default_factory=dict)
+    artifact_obligations: tuple[PlannedArtifactObligation, ...] = ()
 
     @property
-    def active_stages(self) -> Tuple[PlannedStage, ...]:
+    def active_stages(self) -> tuple[PlannedStage, ...]:
         return tuple(s for s in self.stages if s.is_active)
 
     @property
-    def skipped_stages(self) -> Tuple[PlannedStage, ...]:
+    def skipped_stages(self) -> tuple[PlannedStage, ...]:
         return tuple(s for s in self.stages if s.reason_code == "skipped")
 
     def explain(self) -> str:
@@ -150,16 +151,16 @@ class ExecutionVerificationReport:
     verified_at: str
     plan_stage_count: int
     actual_stage_count: int
-    results: Tuple[StageVerificationResult, ...]
-    artifact_results: Tuple[ArtifactVerificationResult, ...] = ()
+    results: tuple[StageVerificationResult, ...]
+    artifact_results: tuple[ArtifactVerificationResult, ...] = ()
     final_status: str = "unknown"
 
     @property
-    def mismatches(self) -> Tuple[StageVerificationResult, ...]:
+    def mismatches(self) -> tuple[StageVerificationResult, ...]:
         return tuple(r for r in self.results if not r.matches_plan)
 
     @property
-    def artifact_mismatches(self) -> Tuple[ArtifactVerificationResult, ...]:
+    def artifact_mismatches(self) -> tuple[ArtifactVerificationResult, ...]:
         return tuple(r for r in self.artifact_results if not r.matches_plan)
 
     @property
@@ -192,14 +193,14 @@ class ExecutionVerificationReport:
 def build_execution_plan(
     run_id: str,
     planned_at: str,
-    stage_specs: List[Tuple[str, str, List[str], StageReasonCode]],
+    stage_specs: list[tuple[str, str, list[str], StageReasonCode]],
     *,
     run_mode: str = "research",
-    symbols: List[str] | None = None,
+    symbols: list[str] | None = None,
     timeframe: str = "5m",
     experiment_config: str = "",
     registry_root: str = "",
-    raw_args: Dict[str, Any] | None = None,
+    raw_args: dict[str, Any] | None = None,
 ) -> ExecutionPlan:
     """Construct an ExecutionPlan from the planner's stage list.
 
@@ -290,20 +291,20 @@ def _validate_artifact_schema(path: Path, schema_id: str) -> str | None:
 
 def verify_execution(
     plan: ExecutionPlan,
-    run_manifest: Dict[str, Any],
+    run_manifest: dict[str, Any],
     *,
     verified_at: str = "",
     data_root: str | Path | None = None,
 ) -> ExecutionVerificationReport:
     """Build a verification report from a completed run manifest vs the plan."""
-    from datetime import datetime, timezone
+    from datetime import datetime
 
-    ts = verified_at or datetime.now(timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z")
-    stage_timings: Dict[str, float] = dict(run_manifest.get("stage_timings_sec", {}))
+    ts = verified_at or datetime.now(UTC).replace(microsecond=0).isoformat().replace("+00:00", "Z")
+    stage_timings: dict[str, float] = dict(run_manifest.get("stage_timings_sec", {}))
     failed_stage: str = str(run_manifest.get("failed_stage", "") or "")
     final_status: str = str(run_manifest.get("status", "unknown"))
 
-    results: List[StageVerificationResult] = []
+    results: list[StageVerificationResult] = []
     for planned in plan.stages:
         name = planned.stage_name
         if name in stage_timings:
@@ -325,7 +326,7 @@ def verify_execution(
             )
         )
 
-    artifact_results: List[ArtifactVerificationResult] = []
+    artifact_results: list[ArtifactVerificationResult] = []
     resolved_data_root = Path(data_root) if data_root is not None else None
     for obligation in plan.artifact_obligations:
         if resolved_data_root is None:

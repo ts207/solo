@@ -4,7 +4,6 @@ import argparse
 import logging
 import sys
 from pathlib import Path
-from typing import Dict, List
 
 import pandas as pd
 
@@ -40,10 +39,10 @@ def main() -> int:
     params = {
         "symbols": symbols,
     }
-    inputs: List[Dict[str, object]] = []
-    outputs: List[Dict[str, object]] = []
+    inputs: list[dict[str, object]] = []
+    outputs: list[dict[str, object]] = []
     manifest = start_manifest("build_basis_state_5m", args.run_id, params, inputs, outputs)
-    stats: Dict[str, object] = {"symbols": {}}
+    stats: dict[str, object] = {"symbols": {}}
 
     try:
         for symbol in symbols:
@@ -75,10 +74,10 @@ def main() -> int:
                     continue
 
                 inputs.append(
-                    {"path": str(perp_files_map[month_file]), "rows": int(len(perp_data))}
+                    {"path": str(perp_files_map[month_file]), "rows": len(perp_data)}
                 )
                 inputs.append(
-                    {"path": str(spot_files_map[month_file]), "rows": int(len(spot_data))}
+                    {"path": str(spot_files_map[month_file]), "rows": len(spot_data)}
                 )
 
                 perp_data = perp_data[["timestamp", "close"]].rename(
@@ -112,7 +111,7 @@ def main() -> int:
                 outputs.append(
                     {
                         "path": str(written),
-                        "rows": int(len(merged)),
+                        "rows": len(merged),
                         "start_ts": merged["timestamp"].min().isoformat(),
                         "end_ts": merged["timestamp"].max().isoformat(),
                         "storage": storage,
@@ -120,7 +119,7 @@ def main() -> int:
                 )
 
                 stats["symbols"].setdefault(symbol, {})[month_key] = {
-                    "merged_rows": int(len(merged)),
+                    "merged_rows": len(merged),
                 }
 
         manifest["outputs"] = outputs

@@ -6,7 +6,7 @@ import os
 import subprocess
 import sys
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any
 
 from project import PROJECT_ROOT
 from project.core.config import get_data_root
@@ -14,7 +14,7 @@ from project.research.agent_io.proposal_to_experiment import translate_and_valid
 from project.research.CANONICAL_PIPELINE import persist_canonical_pipeline_artifact
 
 
-def _to_cli_tokens(flag: str, value: Any) -> List[str]:
+def _to_cli_tokens(flag: str, value: Any) -> list[str]:
     if value is None:
         return []
     if isinstance(value, bool):
@@ -35,13 +35,13 @@ def build_run_all_command(
     run_id: str,
     registry_root: Path,
     experiment_config_path: Path,
-    run_all_overrides: Dict[str, Any],
-    symbols: List[str],
+    run_all_overrides: dict[str, Any],
+    symbols: list[str],
     start: str,
     end: str,
     plan_only: bool,
     dry_run: bool,
-) -> List[str]:
+) -> list[str]:
     cmd = [
         sys.executable,
         "-m",
@@ -74,7 +74,7 @@ def build_run_all_command(
     return cmd
 
 
-def _run_env(*, data_root: Path) -> Dict[str, str]:
+def _run_env(*, data_root: Path) -> dict[str, str]:
     env = os.environ.copy()
     repo_root = str(PROJECT_ROOT.parent)
     existing_pythonpath = env.get("PYTHONPATH", "")
@@ -93,7 +93,7 @@ def execute_proposal(
     plan_only: bool = True,
     dry_run: bool = False,
     check: bool = False,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     resolved_data_root = Path(data_root) if data_root is not None else get_data_root()
     resolved_out_dir = Path(out_dir)
     resolved_out_dir.mkdir(parents=True, exist_ok=True)
@@ -180,7 +180,7 @@ def build_parser() -> argparse.ArgumentParser:
     return parser
 
 
-def main(argv: List[str] | None = None) -> int:
+def main(argv: list[str] | None = None) -> int:
     parser = build_parser()
     args = parser.parse_args(argv)
     result = execute_proposal(

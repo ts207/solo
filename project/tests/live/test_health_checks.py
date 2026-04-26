@@ -6,7 +6,7 @@ Verify that DataHealthMonitor correctly identifies stale data streams.
 
 from __future__ import annotations
 
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 from project.live.health_checks import (
     DataHealthMonitor,
@@ -18,7 +18,7 @@ from project.live.health_checks import (
 
 
 def test_stale_feed_detection():
-    current_time = datetime(2026, 1, 1, tzinfo=timezone.utc)
+    current_time = datetime(2026, 1, 1, tzinfo=UTC)
     monitor = DataHealthMonitor(stale_threshold_sec=0.1, now_fn=lambda: current_time)
 
     # 1. Initially healthy
@@ -44,7 +44,7 @@ def test_stale_data_with_frozen_time():
     monitor = DataHealthMonitor(stale_threshold_sec=60.0)
 
     # Mock some data seen 10 mins ago
-    past_time = datetime.now(timezone.utc) - timedelta(minutes=10)
+    past_time = datetime.now(UTC) - timedelta(minutes=10)
     monitor.last_update_times["ETHUSDT:ticker"] = past_time
 
     health = monitor.check_health()
@@ -54,7 +54,7 @@ def test_stale_data_with_frozen_time():
 
 
 def test_registered_but_never_seen_stream_becomes_disconnected() -> None:
-    current_time = datetime(2026, 1, 1, tzinfo=timezone.utc)
+    current_time = datetime(2026, 1, 1, tzinfo=UTC)
     monitor = DataHealthMonitor(stale_threshold_sec=1.0, now_fn=lambda: current_time)
     monitor.register_stream("BTCUSDT", "ticker")
 

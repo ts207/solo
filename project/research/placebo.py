@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import logging
-from typing import Any, Dict, List, Tuple
+from typing import Any
 
 import numpy as np
 import pandas as pd
@@ -12,7 +12,7 @@ _DEFAULT_RANDOM_SEED = 0
 
 def _aligned_returns_positions(
     returns: pd.Series, positions: pd.Series
-) -> Tuple[pd.Series, pd.Series]:
+) -> tuple[pd.Series, pd.Series]:
     df = pd.concat(
         [
             pd.to_numeric(returns, errors="coerce").rename("returns"),
@@ -23,9 +23,9 @@ def _aligned_returns_positions(
     return df["returns"], df["positions"]
 
 
-def _position_run_lengths(positions: pd.Series) -> List[int]:
+def _position_run_lengths(positions: pd.Series) -> list[int]:
     active = positions.fillna(0.0).ne(0.0)
-    lengths: List[int] = []
+    lengths: list[int] = []
     run = 0
     for flag in active:
         if flag:
@@ -42,7 +42,7 @@ def evaluate_shift_placebo(
     returns: pd.Series,
     positions: pd.Series,
     shift_bars: int = 5,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     Shift signals by +/- shift_bars and compare PnL.
     If actual PnL is not significantly better than shifted PnL, it may be spurious.
@@ -75,7 +75,7 @@ def evaluate_random_entry_placebo(
     actual_positions: pd.Series,
     n_iterations: int = 100,
     random_seed: int = _DEFAULT_RANDOM_SEED,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     Compare actual performance against random entries within the same market state.
     Random placements preserve observed trade-count and approximate holding durations.
@@ -109,7 +109,7 @@ def evaluate_random_entry_placebo(
         state: np.flatnonzero((state_values == state).to_numpy()) for state in state_counts.index
     }
     rng = np.random.default_rng(random_seed)
-    random_totals: List[float] = []
+    random_totals: list[float] = []
     lengths = trade_lengths if trade_lengths else [10]
 
     for _ in range(n_iterations):
@@ -144,7 +144,7 @@ def evaluate_random_entry_placebo(
 def evaluate_direction_reversal_placebo(
     returns: pd.Series,
     positions: pd.Series,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     Check if reversing the trade direction results in negative expectancy.
     """

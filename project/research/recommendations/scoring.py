@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, Dict
+from typing import Any
 
 import pandas as pd
 
@@ -11,10 +11,10 @@ from project.research.recommendations.checklist import gate_result
 def build_release_signoff(
     *,
     run_id: str,
-    checklist_payload: Dict[str, Any],
-    run_manifest_payload: Dict[str, Any],
-    kpi_payload: Dict[str, Any],
-) -> Dict[str, Any]:
+    checklist_payload: dict[str, Any],
+    run_manifest_payload: dict[str, Any],
+    kpi_payload: dict[str, Any],
+) -> dict[str, Any]:
     hard_gates = run_manifest_payload.get("objective_hard_gates", {})
     retail_cfg = run_manifest_payload.get("retail_profile_config", {})
 
@@ -67,9 +67,9 @@ def build_release_signoff(
 
 def hydrate_kpi_payload_with_promotion_fallback(
     *,
-    kpi_payload: Dict[str, Any],
+    kpi_payload: dict[str, Any],
     promotion_audit_df: pd.DataFrame,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     if kpi_payload.get("metrics"):
         return kpi_payload
 

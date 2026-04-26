@@ -4,18 +4,19 @@ import hashlib
 import json
 import os
 import sys
-from datetime import datetime, timezone
+from collections.abc import Callable
+from datetime import UTC, datetime
 from pathlib import Path
-from typing import Any, Callable, Dict, List, Optional
+from typing import Any
 
 from project.pipelines.pipeline_defaults import DATA_ROOT, PROJECT_ROOT
 
 
-def _report_dirs_for_run(run_id: str) -> List[Path]:
+def _report_dirs_for_run(run_id: str) -> list[Path]:
     reports_root = DATA_ROOT / "reports"
     if not reports_root.exists():
         return []
-    run_dirs: List[Path] = []
+    run_dirs: list[Path] = []
     for child in reports_root.iterdir():
         if not child.is_dir():
             continue
@@ -25,7 +26,7 @@ def _report_dirs_for_run(run_id: str) -> List[Path]:
     return sorted(run_dirs)
 
 
-def collect_late_artifacts(run_id: str, cutoff: datetime) -> List[str]:
+def collect_late_artifacts(run_id: str, cutoff: datetime) -> list[str]:
     """Find files for this run written after the terminal cutoff."""
     late_files = []
     scan_dirs = [DATA_ROOT / "runs" / run_id, *_report_dirs_for_run(run_id)]
@@ -50,9 +51,9 @@ def collect_late_artifacts(run_id: str, cutoff: datetime) -> List[str]:
     return sorted(late_files)
 
 
-def _artifact_catalog_for_run(run_id: str) -> Dict[str, Any]:
+def _artifact_catalog_for_run(run_id: str) -> dict[str, Any]:
     scan_dirs = [DATA_ROOT / "runs" / run_id, *_report_dirs_for_run(run_id)]
-    artifacts: List[Dict[str, Any]] = []
+    artifacts: list[dict[str, Any]] = []
     for d in scan_dirs:
         if not d.exists():
             continue
@@ -77,20 +78,20 @@ def _artifact_catalog_for_run(run_id: str) -> Dict[str, Any]:
     return catalog
 
 
-def apply_run_terminal_audit(run_id: str, manifest: Dict[str, Any]) -> None:
+def apply_run_terminal_audit(run_id: str, manifest: dict[str, Any]) -> None:
     """Performs a final audit of the run artifacts and updates the manifest."""
     cutoff_str = manifest.get("finished_at") or manifest.get("started_at")
     if cutoff_str:
         try:
             cutoff = datetime.fromisoformat(str(cutoff_str).replace("Z", "+00:00"))
         except ValueError:
-            cutoff = datetime.now(timezone.utc)
+            cutoff = datetime.now(UTC)
     else:
-        cutoff = datetime.now(timezone.utc)
+        cutoff = datetime.now(UTC)
 
     late = collect_late_artifacts(run_id, cutoff)
     manifest["late_artifacts"] = late
-    manifest["terminal_audit_ts"] = datetime.now(timezone.utc).isoformat()
+    manifest["terminal_audit_ts"] = datetime.now(UTC).isoformat()
     catalog = _artifact_catalog_for_run(run_id)
     manifest["artifact_count"] = int(catalog.get("artifact_count", 0))
     manifest["artifact_catalog"] = {
@@ -121,7 +122,7 @@ def run_runtime_postflight_audit(
     determinism_replay_checks: bool = False,
     max_events: int = 250_000,
     **kwargs,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Runs the runtime postflight audit by calling the core implementation."""
     from project.runtime.invariants import run_runtime_postflight_audit as _run
 
@@ -135,7 +136,7 @@ def run_runtime_postflight_audit(
 
 
 def apply_runtime_postflight_to_manifest(
-    run_manifest: Dict[str, Any], runtime_postflight: Dict[str, Any]
+    run_manifest: dict[str, Any], runtime_postflight: dict[str, Any]
 ) -> str:
     """Copies key stats from the runtime postflight audit result to the manifest."""
     status = runtime_postflight.get("status", "pass")
@@ -160,8 +161,8 @@ def apply_runtime_postflight_to_manifest(
 
 
 def enforce_runtime_postflight(
-    run_manifest: Dict[str, Any], runtime_invariants_mode: str = "warn", **kwargs
-) -> tuple[bool, List[str]]:
+    run_manifest: dict[str, Any], runtime_invariants_mode: str = "warn", **kwargs
+) -> tuple[bool, list[str]]:
     """Determines if the pipeline should fail based on runtime postflight results."""
     status = run_manifest.get("runtime_postflight_status", "pass")
     violations = run_manifest.get("runtime_postflight_violation_count", 0)
@@ -175,19 +176,19 @@ def enforce_runtime_postflight(
     return False, messages
 
 
-def emit_failure_messages(messages: List[str]) -> None:
+def emit_failure_messages(messages: list[str]) -> None:
     """Prints failure messages to stderr."""
     for m in messages:
         print(f"AUDIT FAILURE: {m}", file=sys.stderr)
 
 
 def record_non_production_overrides(
-    run_manifest: Dict[str, Any],
-    overrides: Optional[Any] = None,
+    run_manifest: dict[str, Any],
+    overrides: Any | None = None,
     *,
-    run_id: Optional[str] = None,
-    non_production_overrides: Optional[Any] = None,
-    write_run_manifest: Optional[Callable[[str, Dict[str, Any]], Any]] = None,
+    run_id: str | None = None,
+    non_production_overrides: Any | None = None,
+    write_run_manifest: Callable[[str, dict[str, Any]], Any] | None = None,
 ) -> None:
     """Saves non-production overrides to the manifest. Supports list and dict styles."""
     actual_overrides = overrides or non_production_overrides

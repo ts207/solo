@@ -19,9 +19,9 @@ from __future__ import annotations
 
 import hashlib
 import logging
-from datetime import datetime, timezone
+from collections.abc import Sequence
+from datetime import UTC, datetime
 from pathlib import Path
-from typing import Sequence
 
 import numpy as np
 import pandas as pd
@@ -366,7 +366,7 @@ def summarize_lineage_history(
         ledger_recent_test_count, ledger_recent_failure_count,
         ledger_empirical_success_rate, ledger_family_density.
     """
-    now_utc = datetime.now(timezone.utc)
+    now_utc = datetime.now(UTC)
     result_rows: list[dict] = []
 
     unique_keys = list(dict.fromkeys(str(k) for k in lineage_keys))
@@ -405,7 +405,7 @@ def summarize_lineage_history(
             windowed = key_df
 
         # Prior counts (full lookback window)
-        prior_test_count = int(len(windowed))
+        prior_test_count = len(windowed)
         prior_discovery_count = int(
             windowed["is_discovery"].fillna(False).astype(bool).sum()
             if "is_discovery" in windowed.columns
@@ -422,7 +422,7 @@ def summarize_lineage_history(
         dt_series = key_df["_tested_dt"]
         recent_mask = dt_series.notna() & (dt_series >= recent_cutoff)
         recent_df = key_df[recent_mask]
-        recent_test_count = int(len(recent_df))
+        recent_test_count = len(recent_df)
         recent_failure_count = int(
             (~recent_df["is_discovery"].fillna(False).astype(bool)).sum()
             if "is_discovery" in recent_df.columns
@@ -500,7 +500,7 @@ def build_ledger_records(
     if candidates is None or candidates.empty:
         return _empty_ledger()
 
-    now_str = datetime.now(timezone.utc).isoformat()
+    now_str = datetime.now(UTC).isoformat()
     records: list[dict] = []
 
     for _, row in candidates.iterrows():

@@ -1,9 +1,10 @@
 from __future__ import annotations
 
+from collections.abc import Iterable, Mapping
 from dataclasses import dataclass
 from functools import lru_cache
 from pathlib import Path
-from typing import Any, Dict, Iterable, Mapping
+from typing import Any
 
 import pandas as pd
 import yaml
@@ -27,7 +28,7 @@ class RegimeRoutingEntry:
     holding_horizon_profile: str
     stop_logic_profile: str
     profit_taking_profile: str
-    overrides: Dict[str, Any]
+    overrides: dict[str, Any]
     routing_profile_id: str
     scorecard_version: str
     scorecard_source_run: str
@@ -55,7 +56,7 @@ def recommended_bucket_for_regime(canonical_regime: str) -> str:
 
 
 @lru_cache(maxsize=4)
-def load_regime_routing_spec(path: Path | None = None) -> Dict[str, Any]:
+def load_regime_routing_spec(path: Path | None = None) -> dict[str, Any]:
     if path is None:
         payload = load_regime_registry()
     else:
@@ -83,7 +84,7 @@ def executable_canonical_regimes() -> tuple[str, ...]:
 
 
 @lru_cache(maxsize=4)
-def routing_rows(path: Path | None = None) -> Dict[str, RegimeRoutingEntry]:
+def routing_rows(path: Path | None = None) -> dict[str, RegimeRoutingEntry]:
     payload = load_regime_routing_spec(path)
     metadata = payload.get("metadata", {}) if isinstance(payload.get("metadata"), Mapping) else {}
     routing_profile_id = str(metadata.get("routing_profile_id", "regime_routing")).strip()
@@ -92,7 +93,7 @@ def routing_rows(path: Path | None = None) -> Dict[str, RegimeRoutingEntry]:
     regimes = payload.get("regimes", {})
     if not isinstance(regimes, Mapping):
         raise ValueError("regime routing spec must define a regimes mapping")
-    out: Dict[str, RegimeRoutingEntry] = {}
+    out: dict[str, RegimeRoutingEntry] = {}
     for canonical_regime, raw in regimes.items():
         if not isinstance(raw, Mapping):
             raise ValueError(f"routing row for {canonical_regime} must be an object")
@@ -118,20 +119,20 @@ def routing_rows(path: Path | None = None) -> Dict[str, RegimeRoutingEntry]:
     return out
 
 
-def validate_regime_routing_spec(path: Path | None = None) -> Dict[str, Any]:
+def validate_regime_routing_spec(path: Path | None = None) -> dict[str, Any]:
     registry = get_domain_registry()
     routing = routing_rows(path)
     executable = set(executable_canonical_regimes())
     available_templates = set(registry.template_operator_definitions.keys())
     missing = sorted(executable - set(routing))
     unexpected = sorted(set(routing) - executable)
-    invalid_templates: Dict[str, Dict[str, list[str]]] = {}
+    invalid_templates: dict[str, dict[str, list[str]]] = {}
     non_routable_entries: list[str] = []
-    eligible_templates_without_event_support: Dict[str, list[str]] = {}
-    events_without_supported_templates: Dict[str, list[str]] = {}
-    event_template_support: Dict[str, Dict[str, list[str]]] = {}
+    eligible_templates_without_event_support: dict[str, list[str]] = {}
+    events_without_supported_templates: dict[str, list[str]] = {}
+    event_template_support: dict[str, dict[str, list[str]]] = {}
     empty_intersection_regimes: list[str] = []
-    bucket_mismatches: Dict[str, Dict[str, str]] = {}
+    bucket_mismatches: dict[str, dict[str, str]] = {}
     for regime, entry in routing.items():
         invalid_eligible = sorted(set(entry.eligible_templates) - available_templates)
         invalid_forbidden = sorted(set(entry.forbidden_templates) - available_templates)
@@ -148,7 +149,7 @@ def validate_regime_routing_spec(path: Path | None = None) -> Dict[str, Any]:
                 "configured_bucket": entry.bucket,
                 "recommended_bucket": recommended_bucket,
             }
-        regime_event_support: Dict[str, list[str]] = {}
+        regime_event_support: dict[str, list[str]] = {}
         unsupported_events: list[str] = []
         for event_id in registry.get_event_ids_for_regime(regime, executable_only=True):
             event_templates = set(registry.event_row(event_id).get("templates", []) or [])
@@ -200,7 +201,7 @@ def routing_entry_for_regime(canonical_regime: str) -> RegimeRoutingEntry | None
     return routing_rows().get(str(canonical_regime or "").strip().upper())
 
 
-def regime_metadata_for_event(event_type: str) -> Dict[str, Any]:
+def regime_metadata_for_event(event_type: str) -> dict[str, Any]:
     spec = get_domain_registry().get_event(event_type)
     if spec is None:
         return {
@@ -250,9 +251,9 @@ def annotate_regime_metadata(frame: pd.DataFrame) -> pd.DataFrame:
     return out
 
 
-def executable_regime_event_fanout(regimes: Iterable[str]) -> Dict[str, list[str]]:
+def executable_regime_event_fanout(regimes: Iterable[str]) -> dict[str, list[str]]:
     registry = get_domain_registry()
-    out: Dict[str, list[str]] = {}
+    out: dict[str, list[str]] = {}
     for regime in regimes:
         normalized = str(regime or "").strip().upper()
         if not normalized:

@@ -93,7 +93,7 @@ class MorphologyAnalyzer(BaseEventAnalyzer):
                 frame.get(intensity_col, pd.Series(np.nan, index=frame.index)), errors="coerce"
             )
             summary = {
-                "n_events": int(len(frame)),
+                "n_events": len(frame),
                 "avg_duration_bars": float(durations.mean()) if durations.notna().any() else None,
                 "intensity_mean": float(intensity.mean()) if intensity.notna().any() else None,
                 "intensity_p90": float(intensity.quantile(0.9))
@@ -117,7 +117,7 @@ class MorphologyAnalyzer(BaseEventAnalyzer):
             aligned.get("duration_bars", pd.Series(np.nan, index=aligned.index)), errors="coerce"
         )
         summary = {
-            "n_events": int(len(aligned)),
+            "n_events": len(aligned),
             "pre_event_drift_bps": float(aligned["pre_return_bps"].mean())
             if aligned["pre_return_bps"].notna().any()
             else None,

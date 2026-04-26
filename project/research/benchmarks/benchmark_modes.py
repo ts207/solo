@@ -2,7 +2,6 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from enum import Enum
-from typing import Dict, List, Optional
 
 
 class ModeId(str, Enum):
@@ -24,7 +23,7 @@ class DiscoveryBenchmarkMode:
         return True
 
 
-_MODES: Dict[str, DiscoveryBenchmarkMode] = {
+_MODES: dict[str, DiscoveryBenchmarkMode] = {
     "D": DiscoveryBenchmarkMode(
         mode_id="D",
         label="hierarchical_v2_with_folds",
@@ -36,22 +35,22 @@ _MODES: Dict[str, DiscoveryBenchmarkMode] = {
     ),
 }
 
-_LABEL_TO_MODE: Dict[str, DiscoveryBenchmarkMode] = {
+_LABEL_TO_MODE: dict[str, DiscoveryBenchmarkMode] = {
     m.label: m for m in _MODES.values()
 }
 
 
-def get_mode(mode_id_or_label: str) -> Optional[DiscoveryBenchmarkMode]:
+def get_mode(mode_id_or_label: str) -> DiscoveryBenchmarkMode | None:
     if mode_id_or_label in _MODES:
         return _MODES[mode_id_or_label]
     return _LABEL_TO_MODE.get(mode_id_or_label)
 
 
-def all_modes() -> List[DiscoveryBenchmarkMode]:
+def all_modes() -> list[DiscoveryBenchmarkMode]:
     return list(_MODES.values())
 
 
-def runnable_modes() -> List[DiscoveryBenchmarkMode]:
+def runnable_modes() -> list[DiscoveryBenchmarkMode]:
     return [m for m in all_modes() if m.is_runnable]
 
 

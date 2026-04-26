@@ -2,9 +2,10 @@ from __future__ import annotations
 
 import json
 import logging
+from collections.abc import Mapping
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Dict, List, Mapping
+from typing import Any
 
 from project.io.utils import ensure_dir
 
@@ -51,7 +52,7 @@ def write_live_procedural_memory(root: str | Path, payload: Mapping[str, Any]) -
     return paths.procedural_path
 
 
-def load_live_episodes(root: str | Path) -> List[Dict[str, Any]]:
+def load_live_episodes(root: str | Path) -> list[dict[str, Any]]:
     paths = resolve_live_memory_paths(root)
     if not paths.episodic_path.exists():
         return []

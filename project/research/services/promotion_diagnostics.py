@@ -2,12 +2,12 @@ from __future__ import annotations
 
 import json
 from collections import Counter
-from typing import Any, Dict, List
+from typing import Any
 
 import pandas as pd
 
 
-def _trace_payload(raw: Any) -> Dict[str, Any]:
+def _trace_payload(raw: Any) -> dict[str, Any]:
     if isinstance(raw, dict):
         return dict(raw)
     if isinstance(raw, str):
@@ -22,9 +22,9 @@ def _trace_payload(raw: Any) -> Dict[str, Any]:
     return {}
 
 
-def _failed_stages_from_trace(raw: Any) -> List[str]:
+def _failed_stages_from_trace(raw: Any) -> list[str]:
     payload = _trace_payload(raw)
-    failed: List[str] = []
+    failed: list[str] = []
     for stage, meta in payload.items():
         if not isinstance(meta, dict):
             continue
@@ -33,7 +33,7 @@ def _failed_stages_from_trace(raw: Any) -> List[str]:
     return failed
 
 
-def _primary_reject_reason(row: Dict[str, Any]) -> str:
+def _primary_reject_reason(row: dict[str, Any]) -> str:
     primary = str(row.get("promotion_fail_reason_primary", "")).strip()
     if primary:
         return primary
@@ -43,7 +43,7 @@ def _primary_reject_reason(row: Dict[str, Any]) -> str:
     return next((token for token in reject_reason.split("|") if token.strip()), "")
 
 
-def _classify_rejection(row: Dict[str, Any], failed_stages: List[str]) -> str:
+def _classify_rejection(row: dict[str, Any], failed_stages: list[str]) -> str:
     primary_gate = str(row.get("promotion_fail_gate_primary", "")).strip().lower()
     primary_reason = _primary_reject_reason(row).strip().lower()
     reject_reason = str(row.get("reject_reason", "")).strip().lower()
@@ -132,7 +132,7 @@ def _annotate_promotion_audit_decisions(audit_df: pd.DataFrame) -> pd.DataFrame:
         out["weakest_fail_stage"] = pd.Series(dtype="object")
         return out
 
-    rows: List[Dict[str, Any]] = []
+    rows: list[dict[str, Any]] = []
     for row in audit_df.to_dict(orient="records"):
         failed_stages = _failed_stages_from_trace(row.get("promotion_metrics_trace", {}))
         primary_gate = str(row.get("promotion_fail_gate_primary", "")).strip()
@@ -142,7 +142,7 @@ def _annotate_promotion_audit_decisions(audit_df: pd.DataFrame) -> pd.DataFrame:
             {
                 **row,
                 "primary_reject_reason": _primary_reject_reason(row),
-                "failed_gate_count": int(len(failed_stages)),
+                "failed_gate_count": len(failed_stages),
                 "failed_gate_list": "|".join(failed_stages),
                 "weakest_fail_stage": weakest_fail_stage,
                 "rejection_classification": classification,
@@ -152,7 +152,7 @@ def _annotate_promotion_audit_decisions(audit_df: pd.DataFrame) -> pd.DataFrame:
     return pd.DataFrame(rows)
 
 
-def _build_promotion_decision_diagnostics(audit_df: pd.DataFrame) -> Dict[str, Any]:
+def _build_promotion_decision_diagnostics(audit_df: pd.DataFrame) -> dict[str, Any]:
     if audit_df.empty:
         return {
             "candidates_total": 0,
@@ -197,7 +197,7 @@ def _build_promotion_decision_diagnostics(audit_df: pd.DataFrame) -> Dict[str, A
             if token:
                 stage_counter[token] += 1
 
-    availability: Dict[str, Dict[str, int]] = {}
+    availability: dict[str, dict[str, int]] = {}
     field_names = [
         "plan_row_id",
         "has_realized_oos_path",
@@ -213,7 +213,7 @@ def _build_promotion_decision_diagnostics(audit_df: pd.DataFrame) -> Dict[str, A
     ]
     for field in field_names:
         if field not in audit_df.columns:
-            availability[field] = {"present": 0, "missing": int(len(audit_df))}
+            availability[field] = {"present": 0, "missing": len(audit_df)}
             continue
         series = audit_df[field]
         if series.dtype == bool:
@@ -229,7 +229,7 @@ def _build_promotion_decision_diagnostics(audit_df: pd.DataFrame) -> Dict[str, A
         }
 
     return {
-        "candidates_total": int(len(audit_df)),
+        "candidates_total": len(audit_df),
         "promoted_count": int(decision_counts.get("promoted", 0)),
         "rejected_count": int(decision_counts.get("rejected", 0)),
         "primary_fail_gate_counts": {

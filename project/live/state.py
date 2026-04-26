@@ -10,9 +10,9 @@ from __future__ import annotations
 import json
 import threading
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from project.core.exceptions import DataIntegrityError
 
@@ -25,11 +25,11 @@ class PositionState:
     entry_price: float
     mark_price: float
     unrealized_pnl: float
-    liquidation_price: Optional[float] = None
+    liquidation_price: float | None = None
     leverage: float = 1.0
     margin_type: str = "ISOLATED"
-    cluster_id: Optional[int] = None
-    update_time: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    cluster_id: int | None = None
+    update_time: datetime = field(default_factory=lambda: datetime.now(UTC))
 
     def __post_init__(self):
         self.symbol = self.symbol.upper()
@@ -42,8 +42,8 @@ class AccountState:
     margin_balance: float = 0.0
     available_balance: float = 0.0
     total_unrealized_pnl: float = 0.0
-    positions: Dict[str, PositionState] = field(default_factory=dict)
-    update_time: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    positions: dict[str, PositionState] = field(default_factory=dict)
+    update_time: datetime = field(default_factory=lambda: datetime.now(UTC))
     exchange_status: str = "NORMAL"  # NORMAL | DEGRADED | DOWN
 
     def update_position(self, pos: PositionState):
@@ -57,14 +57,14 @@ class AccountState:
 
     def _recalculate_totals(self):
         self.total_unrealized_pnl = sum(p.unrealized_pnl for p in self.positions.values())
-        self.update_time = datetime.now(timezone.utc)
+        self.update_time = datetime.now(UTC)
 
 
 @dataclass
 class KillSwitchSnapshot:
     is_active: bool = False
-    reason: Optional[str] = None
-    triggered_at: Optional[str] = None
+    reason: str | None = None
+    triggered_at: str | None = None
     message: str = ""
     recovery_streak: int = 0
 
@@ -80,21 +80,21 @@ class LiveStateStore:
 
     def __init__(self, *, snapshot_path: str | Path | None = None):
         self.account = AccountState()
-        self._last_snapshot_time: Optional[datetime] = None
+        self._last_snapshot_time: datetime | None = None
         self.kill_switch = KillSwitchSnapshot()
         self._snapshot_path = Path(snapshot_path) if snapshot_path is not None else None
         self._lock = threading.RLock()
         # Per-entity disable state — keys are thesis_id / symbol / family
         # Value: {"disabled": bool, "reason": str, "at": str}
-        self.thesis_disable_state: Dict[str, Dict[str, Any]] = {}
-        self.symbol_disable_state: Dict[str, Dict[str, Any]] = {}
-        self.family_disable_state: Dict[str, Dict[str, Any]] = {}
+        self.thesis_disable_state: dict[str, dict[str, Any]] = {}
+        self.symbol_disable_state: dict[str, dict[str, Any]] = {}
+        self.family_disable_state: dict[str, dict[str, Any]] = {}
 
     def _maybe_persist(self) -> None:
         if self._snapshot_path is not None:
             self.save_snapshot(self._snapshot_path)
 
-    def update_from_exchange_snapshot(self, data: Dict[str, Any]) -> None:
+    def update_from_exchange_snapshot(self, data: dict[str, Any]) -> None:
         """
         Update state from a full exchange account/position snapshot.
         Expected format: typical CCXT or Binance account information.
@@ -150,10 +150,10 @@ class LiveStateStore:
 
     def reconcile(
         self,
-        exchange_data: Dict[str, Any],
+        exchange_data: dict[str, Any],
         balance_tolerance_usd: float = 0.10,
         qty_tolerance_fraction: float = 1e-4,
-    ) -> List[str]:
+    ) -> list[str]:
         """
         Compare current state with exchange data and return a list of discrepancies.
         Discrepancies are returned as human-readable error messages.
@@ -193,7 +193,7 @@ class LiveStateStore:
 
         return errors
 
-    def set_kill_switch_snapshot(self, snapshot: Dict[str, Any]) -> None:
+    def set_kill_switch_snapshot(self, snapshot: dict[str, Any]) -> None:
         self.kill_switch = KillSwitchSnapshot(
             is_active=bool(snapshot.get("is_active", False)),
             reason=str(snapshot["reason"]) if snapshot.get("reason") else None,
@@ -203,7 +203,7 @@ class LiveStateStore:
         )
         self._maybe_persist()
 
-    def get_kill_switch_snapshot(self) -> Dict[str, Any]:
+    def get_kill_switch_snapshot(self) -> dict[str, Any]:
         return {
             "is_active": bool(self.kill_switch.is_active),
             "reason": self.kill_switch.reason,
@@ -236,11 +236,11 @@ class LiveStateStore:
             entry = self._entity_store(scope).get(key, {})
             return bool(entry.get("disabled", False))
 
-    def get_entity_state(self, scope: str, key: str) -> Dict[str, Any]:
+    def get_entity_state(self, scope: str, key: str) -> dict[str, Any]:
         with self._lock:
             return dict(self._entity_store(scope).get(key, {}))
 
-    def _entity_store(self, scope: str) -> Dict[str, Dict[str, Any]]:
+    def _entity_store(self, scope: str) -> dict[str, dict[str, Any]]:
         if scope == "thesis":
             return self.thesis_disable_state
         if scope == "symbol":
@@ -249,7 +249,7 @@ class LiveStateStore:
             return self.family_disable_state
         raise ValueError(f"Unknown entity scope: {scope!r}")
 
-    def to_snapshot(self) -> Dict[str, Any]:
+    def to_snapshot(self) -> dict[str, Any]:
         return {
             "account": {
                 "wallet_balance": float(self.account.wallet_balance),
@@ -287,7 +287,7 @@ class LiveStateStore:
         }
 
     @classmethod
-    def from_snapshot(cls, snapshot: Dict[str, Any]) -> "LiveStateStore":
+    def from_snapshot(cls, snapshot: dict[str, Any]) -> LiveStateStore:
         store = cls()
         account = dict(snapshot.get("account", {}))
         store.account.wallet_balance = float(account.get("wallet_balance", 0.0))
@@ -352,7 +352,7 @@ class LiveStateStore:
         return target
 
     @classmethod
-    def load_snapshot(cls, path: str | Path) -> "LiveStateStore":
+    def load_snapshot(cls, path: str | Path) -> LiveStateStore:
         source = Path(path)
         try:
             payload = json.loads(source.read_text(encoding="utf-8"))

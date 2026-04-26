@@ -5,7 +5,7 @@ import json
 import logging
 import sys
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 import numpy as np
 import pandas as pd
@@ -113,7 +113,7 @@ def _validate_promoted_candidates_frame(df: pd.DataFrame, source_label: str = ""
 def _choose_event_rows(
     run_id: str,
     event_type: str,
-    edge_rows: List[Dict[str, object]],
+    edge_rows: list[dict[str, object]],
     phase2_df: pd.DataFrame,
     max_per_event: int,
     allow_fallback_blueprints: bool,
@@ -121,7 +121,7 @@ def _choose_event_rows(
     min_events: int,
     *,
     mode: str = "both",
-) -> Tuple[List[Dict[str, Any]], Dict[str, Any], Any]:
+) -> tuple[list[dict[str, Any]], dict[str, Any], Any]:
     return _selection_choose_event_rows(
         run_id=run_id,
         event_type=event_type,
@@ -157,7 +157,7 @@ def _build_strategy_contract(
     blueprint: Blueprint,
     run_id: str,
     retail_profile: str,
-    low_capital_contract: Dict[str, Any],
+    low_capital_contract: dict[str, Any],
     effective_max_concurrent_positions: int,
     effective_per_position_notional_cap_usd: float,
     default_fee_tier: str,
@@ -182,7 +182,7 @@ def _build_executable_strategy_spec(
     blueprint: Blueprint,
     run_id: str,
     retail_profile: str,
-    low_capital_contract: Dict[str, Any],
+    low_capital_contract: dict[str, Any],
     effective_max_concurrent_positions: int,
     effective_per_position_notional_cap_usd: float,
     default_fee_tier: str,
@@ -203,7 +203,7 @@ def _build_executable_strategy_spec(
 
 
 def _resolve_sizing_inputs(
-    row: Dict[str, Any],
+    row: dict[str, Any],
 ) -> tuple[float | None, float | None]:
     """Phase 4.4 — Extract expected_return_bps and expected_adverse_bps from a promotion audit row.
 
@@ -222,7 +222,7 @@ def _resolve_sizing_inputs(
         document.  Falls back to None when stressed data is absent.
     """
     mean_return = coerce_numeric_nan(
-        row.get("mean_return_bps", row.get("after_cost_expectancy", None))
+        row.get("mean_return_bps", row.get("after_cost_expectancy"))
     )
     if not np.isfinite(mean_return if mean_return is not None else float("nan")):
         mean_return = None
@@ -230,7 +230,7 @@ def _resolve_sizing_inputs(
         # after_cost_expectancy is in decimal — convert to bps
         mean_return = mean_return * 10_000.0
 
-    stressed = coerce_numeric_nan(row.get("stressed_after_cost_expectancy", None))
+    stressed = coerce_numeric_nan(row.get("stressed_after_cost_expectancy"))
     adverse = None
     if stressed is not None and np.isfinite(stressed):
         if abs(stressed) < 1.0:
@@ -297,14 +297,14 @@ def _build_allocation_spec(
     blueprint: Blueprint,
     run_id: str,
     retail_profile: str,
-    low_capital_contract: Dict[str, Any],
+    low_capital_contract: dict[str, Any],
     effective_max_concurrent_positions: int,
     effective_per_position_notional_cap_usd: float,
     default_fee_tier: str,
     fees_bps_per_side: float,
     slippage_bps_per_fill: float,
     # Phase 4.4: promotion audit row for sizing inputs
-    audit_row: Dict[str, Any] | None = None,
+    audit_row: dict[str, Any] | None = None,
 ) -> AllocationSpec:
     """Phase 4.4 — Build AllocationSpec with sizing inputs from promotion audit.
 
@@ -336,7 +336,7 @@ def _build_allocation_spec(
 def _validate_strategy_contract(
     strategy_spec: ExecutableStrategySpec,
     *,
-    low_capital_contract: Dict[str, Any],
+    low_capital_contract: dict[str, Any],
     require_low_capital_contract: bool = False,
 ) -> None:
     if strategy_spec.entry.order_type_assumption != "market":
@@ -351,11 +351,11 @@ def _validate_strategy_contract(
 
 def _write_strategy_contract_artifacts(
     *,
-    blueprints: List[Blueprint],
+    blueprints: list[Blueprint],
     out_dir: Path,
     run_id: str,
     retail_profile: str,
-    low_capital_contract: Dict[str, Any],
+    low_capital_contract: dict[str, Any],
     require_low_capital_contract: bool,
     effective_max_concurrent_positions: int,
     effective_per_position_notional_cap_usd: float,
@@ -363,10 +363,10 @@ def _write_strategy_contract_artifacts(
     fees_bps_per_side: float,
     slippage_bps_per_fill: float,
     # Phase 4.4: map from blueprint.id → candidate audit row for sizing inputs
-    audit_rows: Dict[str, Dict[str, Any]] | None = None,
+    audit_rows: dict[str, dict[str, Any]] | None = None,
     # Phase 4.4: path to live portfolio state JSON written by the live runner
     portfolio_state_path: str | None = None,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     return _write_strategy_contract_artifacts_impl(
         blueprints=blueprints,
         out_dir=out_dir,
@@ -421,19 +421,19 @@ def _enforce_deploy_mode_retail_viability(
 
 def _build_blueprint(
     *,
-    row: Dict[str, Any],
+    row: dict[str, Any],
     run_id: str,
-    run_symbols: List[str],
-    phase2_lookup: Dict[str, Any] | None = None,
-    stats: Dict[str, Any],
+    run_symbols: list[str],
+    phase2_lookup: dict[str, Any] | None = None,
+    stats: dict[str, Any],
     fees_bps: float = 0.0,
     slippage_bps: float = 0.0,
     min_events: int = 100,
     cost_config_digest: str = "",
     ontology_spec_hash_value: str = "sha256:unknown",
-    operator_registry: Dict[str, Dict[str, Any]] | None = None,
+    operator_registry: dict[str, dict[str, Any]] | None = None,
     event_type: str | None = None,
-) -> Tuple[Blueprint, int]:
+) -> tuple[Blueprint, int]:
     merged_row = dict(row)
     if event_type and not str(merged_row.get("event_type", "")).strip():
         merged_row["event_type"] = event_type
@@ -454,8 +454,8 @@ def _build_blueprint(
 
 
 def _event_stats(
-    run_id: str, event_type: str, train_end_date: Optional[pd.Timestamp] = None
-) -> Dict[str, Any]:
+    run_id: str, event_type: str, train_end_date: pd.Timestamp | None = None
+) -> dict[str, Any]:
     """Load simple event-level move statistics for compilation diagnostics."""
     df = _load_phase2_table(run_id, event_type)
     if df.empty:
@@ -476,7 +476,7 @@ def _event_stats(
 LOGGER = logging.getLogger(__name__)
 
 
-def _load_operator_registry() -> Dict[str, Dict[str, Any]]:
+def _load_operator_registry() -> dict[str, dict[str, Any]]:
     return get_domain_registry().operator_rows()
 
 
@@ -503,20 +503,20 @@ def _load_phase2_table(run_id: str, event_type: str) -> pd.DataFrame:
 
 def _load_external_validation_strategy_metrics(
     run_id: str,
-) -> Tuple[Dict[str, Any], str, str]:
+) -> tuple[dict[str, Any], str, str]:
     return {}, "", ""
 
 
 def _annotate_blueprints_with_external_validation_evidence(
     *,
-    blueprints: List[Blueprint],
+    blueprints: list[Blueprint],
     run_id: str,
     evidence_hash: str,
-) -> Tuple[List[Blueprint], Dict[str, Any]]:
+) -> tuple[list[Blueprint], dict[str, Any]]:
     metrics_map, loaded_hash, source = _load_external_validation_strategy_metrics(run_id)
     effective_hash = str(evidence_hash or loaded_hash or "").strip()
     used = bool(metrics_map)
-    annotated: List[Blueprint] = []
+    annotated: list[Blueprint] = []
     for bp in blueprints:
         lineage = _copy_model(
             bp.lineage,
@@ -619,7 +619,7 @@ def main() -> int:
         if Path(burn_ledger_path).exists():
             burn_ledger = load_json_dict(Path(burn_ledger_path))
 
-        blueprints: List[Blueprint] = []
+        blueprints: list[Blueprint] = []
         symbols = [s.strip().upper() for s in args.symbols.split(",") if s.strip()]
 
         costs = resolve_execution_costs(
@@ -689,8 +689,8 @@ def main() -> int:
             # We will use the clustering service to enforce diversity.
 
             # Simple metadata-based clustering for now to demonstrate the gate
-            clusters: Dict[int, List[str]] = {}
-            sharpes: Dict[str, float] = {}
+            clusters: dict[int, list[str]] = {}
+            sharpes: dict[str, float] = {}
 
             for i, bp in enumerate(blueprints):
                 # We cluster by event_type and template_verb as a proxy for "alpha family"

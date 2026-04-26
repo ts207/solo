@@ -10,11 +10,11 @@ it emerged from. These fields are additive to multiplicity accounting
 """
 from __future__ import annotations
 
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 import pandas as pd
 
-SEARCH_BURDEN_FIELDS: List[str] = [
+SEARCH_BURDEN_FIELDS: list[str] = [
     "search_proposals_attempted",
     "search_candidates_generated",
     "search_candidates_scored",
@@ -30,7 +30,7 @@ SEARCH_BURDEN_FIELDS: List[str] = [
     "search_burden_estimated",
 ]
 
-SEARCH_BURDEN_NUMERIC_FIELDS: List[str] = [
+SEARCH_BURDEN_NUMERIC_FIELDS: list[str] = [
     "search_proposals_attempted",
     "search_candidates_generated",
     "search_candidates_scored",
@@ -51,7 +51,7 @@ def default_search_burden_dict(
     *,
     estimated: bool = False,
     scope_version: str = DEFAULT_SEARCH_BURDEN_VERSION,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Return a complete search-burden dict with all fields defaulted."""
     return {
         "search_proposals_attempted": 0,
@@ -111,7 +111,7 @@ def normalize_search_burden_frame(df: pd.DataFrame) -> pd.DataFrame:
 
 def merge_search_burden_columns(
     df: pd.DataFrame,
-    defaults: Optional[Dict[str, Any]] = None,
+    defaults: dict[str, Any] | None = None,
 ) -> pd.DataFrame:
     """
     Merge search-burden columns into a DataFrame.
@@ -159,10 +159,10 @@ def build_search_burden_summary(
     lineage_count: int = 0,
     estimated: bool = False,
     scope_version: str = DEFAULT_SEARCH_BURDEN_VERSION,
-    crowded_families: Optional[List[str]] = None,
-    crowded_lineages: Optional[List[str]] = None,
-    repeated_failure_lineages: Optional[List[str]] = None,
-) -> Dict[str, Any]:
+    crowded_families: list[str] | None = None,
+    crowded_lineages: list[str] | None = None,
+    repeated_failure_lineages: list[str] | None = None,
+) -> dict[str, Any]:
     """
     Build a complete search-burden summary dict for artifact emission.
     
@@ -214,9 +214,9 @@ def build_search_burden_summary(
 
 
 def write_search_burden_summary(
-    summary: Dict[str, Any],
+    summary: dict[str, Any],
     out_dir,
-) -> Dict[str, str]:
+) -> dict[str, str]:
     """
     Write search-burden summary as JSON and Markdown artifacts.
     
@@ -289,7 +289,7 @@ def write_search_burden_summary(
     }
 
 
-def load_search_burden_summary(out_dir) -> Optional[Dict[str, Any]]:
+def load_search_burden_summary(out_dir) -> dict[str, Any] | None:
     """
     Load search-burden summary from output directory.
     
@@ -311,13 +311,13 @@ def load_search_burden_summary(out_dir) -> Optional[Dict[str, Any]]:
 
 
 __all__ = [
+    "DEFAULT_SEARCH_BURDEN_VERSION",
     "SEARCH_BURDEN_FIELDS",
     "SEARCH_BURDEN_NUMERIC_FIELDS",
-    "DEFAULT_SEARCH_BURDEN_VERSION",
-    "default_search_burden_dict",
-    "normalize_search_burden_frame",
-    "merge_search_burden_columns",
     "build_search_burden_summary",
-    "write_search_burden_summary",
+    "default_search_burden_dict",
     "load_search_burden_summary",
+    "merge_search_burden_columns",
+    "normalize_search_burden_frame",
+    "write_search_burden_summary",
 ]

@@ -1,5 +1,4 @@
 from pathlib import Path
-from typing import List, Tuple
 
 from project.core.timeframes import parse_timeframes
 
@@ -12,8 +11,8 @@ def build_core_stages(
     end: str,
     run_spot_pipeline: bool,
     project_root: Path,
-) -> List[Tuple[str, Path, List[str]]]:
-    stages: List[Tuple[str, Path, List[str]]] = []
+) -> list[tuple[str, Path, list[str]]]:
+    stages: list[tuple[str, Path, list[str]]] = []
     runtime_invariants_mode = (
         str(getattr(args, "runtime_invariants_mode", "off") or "off").strip().lower()
     )

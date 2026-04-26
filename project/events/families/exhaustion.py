@@ -26,6 +26,6 @@ __all__ = [
     "MomentumDivergenceDetector",
     "PostDeleveragingReboundDetector",
     "TrendExhaustionDetector",
-    "detect_exhaustion_family",
     "analyze_exhaustion_family",
+    "detect_exhaustion_family",
 ]

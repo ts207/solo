@@ -3,8 +3,9 @@ from __future__ import annotations
 import functools
 import hashlib
 import json
+from collections.abc import Iterable
 from pathlib import Path
-from typing import Any, Dict, Iterable, List, Optional, Tuple
+from typing import Any
 
 import numpy as np
 import pandas as pd
@@ -19,7 +20,7 @@ from project.spec_registry import (
 # State ids that are currently materialized as first-class context columns in
 # market_context_v1. This keeps planner/state filtering and audit behavior
 # deterministic and spec-driven.
-MATERIALIZED_STATE_COLUMNS_BY_ID: Dict[str, str] = {
+MATERIALIZED_STATE_COLUMNS_BY_ID: dict[str, str] = {
     "REFILL_LAG_STATE": "refill_lag_state",
     "LIQUIDITY_ABSENCE_STATE": "liquidity_absence_state",
     "POST_SWEEP_STATE": "post_sweep_state",
@@ -95,7 +96,7 @@ MATERIALIZED_STATE_COLUMNS_BY_ID: Dict[str, str] = {
 }
 
 
-def ontology_spec_paths(repo_root: Path) -> Dict[str, Path]:
+def ontology_spec_paths(repo_root: Path) -> dict[str, Path]:
     return dict(_registry_ontology_spec_paths(repo_root))
 
 
@@ -117,7 +118,7 @@ def _canonical_spec_bytes(path: Path) -> bytes:
 
             data = load_yaml_path(path)
         elif suffix == ".json":
-            with open(path, "r", encoding="utf-8") as f:
+            with open(path, encoding="utf-8") as f:
                 data = json.load(f)
         else:
             return path.read_bytes()
@@ -132,9 +133,9 @@ def _canonical_spec_bytes(path: Path) -> bytes:
 
 
 @functools.lru_cache(maxsize=1)
-def _ontology_component_hashes_cached(repo_root_str: str) -> Dict[str, Optional[str]]:
+def _ontology_component_hashes_cached(repo_root_str: str) -> dict[str, str | None]:
     repo_root = Path(repo_root_str)
-    out: Dict[str, Optional[str]] = {}
+    out: dict[str, str | None] = {}
     for key, path in ontology_spec_paths(repo_root).items():
         if not path.exists():
             out[key] = None
@@ -143,7 +144,7 @@ def _ontology_component_hashes_cached(repo_root_str: str) -> Dict[str, Optional[
     return out
 
 
-def ontology_component_hashes(repo_root: Path) -> Dict[str, Optional[str]]:
+def ontology_component_hashes(repo_root: Path) -> dict[str, str | None]:
     return _ontology_component_hashes_cached(str(repo_root.resolve()))
 
 
@@ -165,7 +166,7 @@ def ontology_spec_hash(repo_root: Path) -> str:
     return _ontology_spec_hash_cached(str(repo_root.resolve()))
 
 
-def load_ontology_linkage_hash(atlas_dir: Path) -> Optional[str]:
+def load_ontology_linkage_hash(atlas_dir: Path) -> str | None:
     path = atlas_dir / "ontology_linkage.json"
     if not path.exists():
         return None
@@ -177,7 +178,7 @@ def load_ontology_linkage_hash(atlas_dir: Path) -> Optional[str]:
     return value or None
 
 
-def load_run_manifest_hashes(data_root: Path, run_id: str) -> Dict[str, Optional[str]]:
+def load_run_manifest_hashes(data_root: Path, run_id: str) -> dict[str, str | None]:
     path = data_root / "runs" / run_id / "run_manifest.json"
     if not path.exists():
         return {}
@@ -201,7 +202,7 @@ def _is_list_like(value: Any) -> bool:
     return isinstance(value, (list, tuple, np.ndarray))
 
 
-def _as_str_list(value: Any) -> List[str]:
+def _as_str_list(value: Any) -> list[str]:
     if value is None:
         return []
     if _is_list_like(value):
@@ -324,7 +325,7 @@ def validate_candidate_templates_schema(df: pd.DataFrame) -> None:
             )
 
 
-def parse_list_field(value: Any) -> List[str]:
+def parse_list_field(value: Any) -> list[str]:
     return _as_str_list(value)
 
 
@@ -339,7 +340,7 @@ def bool_field(value: Any) -> bool:
     return token in {"1", "true", "t", "yes", "y"}
 
 
-def choose_template_ontology_hash(df: pd.DataFrame) -> Optional[str]:
+def choose_template_ontology_hash(df: pd.DataFrame) -> str | None:
     if "ontology_spec_hash" not in df.columns:
         return None
     hashes = sorted({str(v).strip() for v in df["ontology_spec_hash"].tolist() if str(v).strip()})
@@ -349,8 +350,8 @@ def choose_template_ontology_hash(df: pd.DataFrame) -> Optional[str]:
 
 
 def ontology_component_hash_fields(
-    component_hashes: Dict[str, Optional[str]],
-) -> Dict[str, Optional[str]]:
+    component_hashes: dict[str, str | None],
+) -> dict[str, str | None]:
     return {
         "taxonomy_hash": component_hashes.get("taxonomy"),
         "canonical_event_registry_hash": component_hashes.get("canonical_event_registry"),
@@ -361,9 +362,9 @@ def ontology_component_hash_fields(
 
 def compare_hash_fields(
     expected: str,
-    candidates: Iterable[Tuple[str, Optional[str]]],
-) -> List[str]:
-    mismatches: List[str] = []
+    candidates: Iterable[tuple[str, str | None]],
+) -> list[str]:
+    mismatches: list[str] = []
     for label, value in candidates:
         v = str(value or "").strip()
         if not v:
@@ -373,14 +374,14 @@ def compare_hash_fields(
     return mismatches
 
 
-def normalize_state_registry_records(state_registry: Dict[str, Any]) -> List[Dict[str, Any]]:
+def normalize_state_registry_records(state_registry: dict[str, Any]) -> list[dict[str, Any]]:
     defaults = state_registry.get("defaults", {}) if isinstance(state_registry, dict) else {}
     if not isinstance(defaults, dict):
         defaults = {}
     default_scope = str(defaults.get("state_scope", "source_only")).strip() or "source_only"
     default_min_events = int(defaults.get("min_events", 200) or 200)
 
-    out: List[Dict[str, Any]] = []
+    out: list[dict[str, Any]] = []
     rows = state_registry.get("states", []) if isinstance(state_registry, dict) else []
     if not isinstance(rows, list):
         return out
@@ -420,17 +421,17 @@ def state_id_to_context_column(state_id: Any) -> str:
     return MATERIALIZED_STATE_COLUMNS_BY_ID.get(state, state.lower())
 
 
-def materialized_state_ids() -> List[str]:
+def materialized_state_ids() -> list[str]:
     return sorted(MATERIALIZED_STATE_COLUMNS_BY_ID.keys())
 
 
 def validate_state_registry_source_events(
     *,
-    state_registry: Dict[str, Any],
+    state_registry: dict[str, Any],
     canonical_event_types: Iterable[str],
-) -> List[str]:
+) -> list[str]:
     known = {str(x).strip().upper() for x in canonical_event_types if str(x).strip()}
-    issues: List[str] = []
+    issues: list[str] = []
     for row in normalize_state_registry_records(state_registry):
         source_event = row["source_event_type"]
         if source_event not in known:

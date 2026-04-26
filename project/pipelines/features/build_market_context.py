@@ -147,7 +147,7 @@ def _build_market_context(symbol: str, features: pd.DataFrame) -> pd.DataFrame:
     ).astype(float)
     if features["funding_rate_scaled"].isna().any():
         missing_count = int(features["funding_rate_scaled"].isna().sum())
-        total_rows = int(len(features))
+        total_rows = len(features)
         gap_pct = (missing_count / total_rows) if total_rows else 0.0
         if missing_count == total_rows:
             logging.warning(
@@ -442,7 +442,7 @@ def main() -> int:
                     outputs.append(
                         {
                             "path": str(actual_path),
-                            "rows": int(len(group)),
+                            "rows": len(group),
                             "start_ts": group["timestamp"].min().isoformat(),
                             "end_ts": group["timestamp"].max().isoformat(),
                         }
@@ -471,7 +471,7 @@ def main() -> int:
                 _write_context_quality_report(report_path, quality_payload)
                 outputs.append({"path": str(report_path), "rows": 1})
                 stats["symbols"][symbol] = {
-                    "rows": int(len(result)),
+                    "rows": len(result),
                     "context_quality_report_path": str(report_path),
                     "context_quality_summary": quality_payload["quality"],
                 }

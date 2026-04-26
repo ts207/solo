@@ -2,9 +2,10 @@ from __future__ import annotations
 
 import argparse
 import json
+from collections.abc import Iterable
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Dict, Iterable, List
+from typing import Any
 
 import numpy as np
 import pandas as pd
@@ -23,7 +24,7 @@ FIVE_MINUTES = pd.Timedelta(minutes=5)
 FUNDING_INTERVAL = pd.Timedelta(hours=8)
 
 
-def _resolve_profile_settings(volatility_profile: str) -> Dict[str, Any]:
+def _resolve_profile_settings(volatility_profile: str) -> dict[str, Any]:
     try:
         return PROFILE_SETTINGS[str(volatility_profile)]
     except KeyError as exc:
@@ -43,7 +44,7 @@ class RegimeSegment:
     sign: int
     amplitude: float
 
-    def _event_truth_windows(self) -> Dict[str, list[Dict[str, str]]]:
+    def _event_truth_windows(self) -> dict[str, list[dict[str, str]]]:
         duration = self.end_ts - self.start_ts
         if self.regime_type == "liquidity_stress":
             shock_end = self.start_ts + (duration * 0.18)
@@ -114,7 +115,7 @@ class RegimeSegment:
             }
         return {}
 
-    def to_record(self) -> Dict[str, Any]:
+    def to_record(self) -> dict[str, Any]:
         expectations = REGIME_EXPECTATIONS.get(self.regime_type, {})
         record = {
             "regime_type": self.regime_type,
@@ -152,12 +153,12 @@ def _build_index(start_ts: pd.Timestamp, end_exclusive: pd.Timestamp) -> pd.Date
 
 def build_regime_schedule(
     symbol: str, index: pd.DatetimeIndex, volatility_profile: str = "default"
-) -> List[RegimeSegment]:
+) -> list[RegimeSegment]:
     start_ts = index[0]
     last_ts = index[-1]
     total_days = (last_ts - start_ts).days
     end_exclusive = last_ts + FIVE_MINUTES
-    schedule: List[RegimeSegment] = []
+    schedule: list[RegimeSegment] = []
 
     settings = _resolve_profile_settings(volatility_profile)
     cycle_days = int(settings.get("schedule_cycle_days", 60))
@@ -228,7 +229,7 @@ def generate_symbol_frames(
     seed: int,
     noise_scale: float = 1.0,
     volatility_profile: str = "default",
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     index = _build_index(start_ts, end_exclusive)
     funding_index = pd.date_range(
         start=start_ts, end=end_exclusive - FUNDING_INTERVAL, freq="8h", tz="UTC"
@@ -673,8 +674,8 @@ def generate_symbol_frames(
 
 def _write_monthly_partitions(
     df: pd.DataFrame, output_dir: Path, filename_prefix: str
-) -> List[str]:
-    written: List[str] = []
+) -> list[str]:
+    written: list[str] = []
     if df.empty:
         return written
     ts = pd.to_datetime(df["timestamp"], utc=True, errors="coerce")
@@ -698,11 +699,11 @@ def generate_synthetic_crypto_run(
     symbols: Iterable[str] = ("BTCUSDT", "ETHUSDT"),
     noise_scale: float = 1.0,
     volatility_profile: str = "default",
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     root = Path(data_root) if data_root is not None else get_data_root()
     start_ts, end_exclusive = _normalize_bounds(start_date, end_date)
 
-    manifest: Dict[str, Any] = {
+    manifest: dict[str, Any] = {
         "schema_version": "synthetic_crypto_regimes_v1",
         "run_id": run_id,
         "start_ts": start_ts.isoformat(),
@@ -713,7 +714,7 @@ def generate_synthetic_crypto_run(
         "volatility_profile": volatility_profile,
         "available_profiles": sorted(PROFILE_SETTINGS),
     }
-    regime_records: List[Dict[str, Any]] = []
+    regime_records: list[dict[str, Any]] = []
 
     for offset, symbol in enumerate([str(s).strip().upper() for s in symbols if s.strip()]):
         payload = generate_symbol_frames(
@@ -757,9 +758,9 @@ def generate_synthetic_crypto_run(
         manifest["symbols"].append(
             {
                 "symbol": symbol,
-                "rows_5m": int(len(payload["perp"])),
-                "funding_rows": int(len(payload["funding"])),
-                "regime_count": int(len(payload["regimes"])),
+                "rows_5m": len(payload["perp"]),
+                "funding_rows": len(payload["funding"]),
+                "regime_count": len(payload["regimes"]),
                 "paths": {
                     "cleaned_perp": perp_files,
                     "cleaned_spot": spot_files,
@@ -790,13 +791,13 @@ def generate_synthetic_dataset_suite(
     *,
     suite_config_path: Path,
     data_root: Path | None = None,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     payload = yaml.safe_load(Path(suite_config_path).read_text(encoding="utf-8")) or {}
     datasets = list(payload.get("datasets", []))
     if not datasets:
         raise ValueError("suite config must contain a non-empty 'datasets' list")
     root = Path(data_root) if data_root is not None else get_data_root()
-    results: List[Dict[str, Any]] = []
+    results: list[dict[str, Any]] = []
     for item in datasets:
         manifest = generate_synthetic_crypto_run(
             run_id=str(item["run_id"]),

@@ -2,9 +2,9 @@ from __future__ import annotations
 
 import argparse
 import json
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any
 
 from project import PROJECT_ROOT
 from project.core.config import get_data_root
@@ -25,10 +25,10 @@ from project.core.golden_regression import (
 
 
 def _utc_now_iso() -> str:
-    return datetime.now(timezone.utc).isoformat()
+    return datetime.now(UTC).isoformat()
 
 
-def _read_json(path: Path) -> Dict[str, Any]:
+def _read_json(path: Path) -> dict[str, Any]:
     if not path.exists():
         raise FileNotFoundError(f"Missing baseline snapshot: {path}")
     payload = json.loads(path.read_text(encoding="utf-8"))

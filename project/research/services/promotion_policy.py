@@ -1,11 +1,12 @@
 from __future__ import annotations
 
 import logging
+from collections.abc import Callable
 from pathlib import Path
-from typing import Any, Callable, Dict
+from typing import Any
 
 
-def _load_dynamic_min_events_by_event(spec_root: str | Path) -> Dict[str, int]:
+def _load_dynamic_min_events_by_event(spec_root: str | Path) -> dict[str, int]:
     path = Path(spec_root) / "spec" / "states" / "state_registry.yaml"
     if not path.exists():
         return {}
@@ -21,7 +22,7 @@ def _load_dynamic_min_events_by_event(spec_root: str | Path) -> Dict[str, int]:
         logging.warning("Failed loading state_registry")
         return {}
 
-    out: Dict[str, int] = {}
+    out: dict[str, int] = {}
     default_min = data.get("defaults", {}).get("min_events", 0)
     for state_row in data.get("states", []):
         event_type = state_row.get("source_event_type")
@@ -47,12 +48,12 @@ def _resolve_promotion_policy(
     contract: Any,
     source_run_mode: str,
     project_root: Path,
-    load_dynamic_min_events_by_event_fn: Callable[[str | Path], Dict[str, int]],
+    load_dynamic_min_events_by_event_fn: Callable[[str | Path], dict[str, int]],
     resolved_policy_cls: type[Any],
 ) -> Any:
     profile = _resolve_promotion_profile(config.promotion_profile, source_run_mode)
     base_min_events = int(config.min_events)
-    dynamic_min_events: Dict[str, int] = {}
+    dynamic_min_events: dict[str, int] = {}
 
     min_net_expectancy_bps = float(
         max(0.0, float(getattr(contract, "min_net_expectancy_bps", 0.0) or 0.0))

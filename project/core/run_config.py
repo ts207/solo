@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import List
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -13,8 +12,8 @@ class RunConfiguration(BaseModel):
     """
 
     run_id: str
-    symbols: List[str]
-    timeframes: List[str] = Field(default_factory=lambda: ["5m"])
+    symbols: list[str]
+    timeframes: list[str] = Field(default_factory=lambda: ["5m"])
     data_root: Path
 
     # Run Mode

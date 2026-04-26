@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import argparse
 from pathlib import Path
-from typing import Dict, List, Optional
 
 import numpy as np
 import pandas as pd
@@ -13,7 +12,7 @@ from project.io.utils import ensure_dir, read_parquet, write_parquet
 from project.specs.manifest import finalize_manifest, start_manifest
 
 
-def _resolve_symbol_feature_path(base_feature_dir: Path, symbol: str) -> Optional[Path]:
+def _resolve_symbol_feature_path(base_feature_dir: Path, symbol: str) -> Path | None:
     # Support both "<SYMBOL>.parquet" and "signals_<SYMBOL>.parquet".
     candidates = [
         base_feature_dir / f"{symbol}.parquet",
@@ -25,7 +24,7 @@ def _resolve_symbol_feature_path(base_feature_dir: Path, symbol: str) -> Optiona
     return None
 
 
-def _dense_rank(values: np.ndarray, symbols_sorted: List[str], ascending: bool) -> np.ndarray:
+def _dense_rank(values: np.ndarray, symbols_sorted: list[str], ascending: bool) -> np.ndarray:
     # Deterministic dense rank with stable tie-breaker.
     order = np.argsort(values, kind="mergesort")
     if not ascending:
@@ -75,7 +74,7 @@ def main() -> int:
     # with columns: ts_event (or timestamp) and <base_feature_name>.
 
     # Preload base features into per-symbol series keyed by ts_event for fast lookups.
-    sym_to_series: Dict[str, pd.Series] = {}
+    sym_to_series: dict[str, pd.Series] = {}
     # Determine symbol universe from snapshot file (symbols_sorted stored as array in each row)
     sample_row = snap.iloc[0]
     symbols_sorted = list(sample_row["symbols_sorted"])
@@ -94,13 +93,13 @@ def main() -> int:
         sym_to_series[sym] = s
 
     eps = 1e-12
-    rows_out: List[Dict[str, object]] = []
+    rows_out: list[dict[str, object]] = []
 
     for _, row in snap.iterrows():
         ts_event = row["ts_event"]
         inc_flags = list(row["included_flags"])
-        used_symbols: List[str] = []
-        values: List[float] = []
+        used_symbols: list[str] = []
+        values: list[float] = []
 
         for sym, inc in zip(symbols_sorted, inc_flags):
             if not inc:
@@ -161,7 +160,7 @@ def main() -> int:
         manifest,
         status="success",
         stats={
-            "rows": int(len(out)),
+            "rows": len(out),
             "out": str(out_path),
             "ts_events": int(out["ts_event"].nunique()),
         },

@@ -8,9 +8,9 @@ from project.research.event_quality.lead_lag import (
 )
 
 __all__ = [
-    "compute_firing_rates",
     "compute_cooccurrence",
-    "compute_information_gain",
-    "compute_event_return_lead_lag",
     "compute_event_event_lead_lag",
+    "compute_event_return_lead_lag",
+    "compute_firing_rates",
+    "compute_information_gain",
 ]

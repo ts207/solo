@@ -3,9 +3,9 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any
 
 import pandas as pd
 import yaml
@@ -23,13 +23,13 @@ from project.research.knowledge.memory import (
 from project.research.knowledge.schemas import canonical_json
 
 
-def _proposal_signature(payload: Dict[str, Any]) -> str:
+def _proposal_signature(payload: dict[str, Any]) -> str:
     material = canonical_json(payload)
     return hashlib.sha256(material.encode("utf-8")).hexdigest()[:10]
 
 
-def generate_run_id(program_id: str, proposal_payload: Dict[str, Any]) -> str:
-    stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+def generate_run_id(program_id: str, proposal_payload: dict[str, Any]) -> str:
+    stamp = datetime.now(UTC).strftime("%Y%m%dT%H%M%SZ")
     compact_program = "".join(
         ch if ch.isalnum() else "_" for ch in str(program_id).strip().lower()
     ).strip("_")
@@ -48,11 +48,11 @@ def _write_proposal_copy(destination: Path, source_path: str | Path) -> None:
     atomic_write_text(destination, text)
 
 
-def _write_proposal_payload(destination: Path, payload: Dict[str, Any]) -> None:
+def _write_proposal_payload(destination: Path, payload: dict[str, Any]) -> None:
     atomic_write_text(destination, yaml.safe_dump(payload, sort_keys=False))
 
 
-def _load_raw_proposal_payload(path: str | Path) -> Dict[str, Any]:
+def _load_raw_proposal_payload(path: str | Path) -> dict[str, Any]:
     raw = yaml.safe_load(Path(path).read_text(encoding="utf-8"))
     if not isinstance(raw, dict):
         raise ValueError(f"Proposal must be a YAML mapping: {path}")
@@ -78,7 +78,7 @@ def issue_proposal(
     dry_run: bool = False,
     check: bool = False,
     promotion_profile: str | None = None,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     resolved_data_root = Path(data_root) if data_root is not None else get_data_root()
     promotion_override = str(promotion_profile or "").strip().lower()
     if promotion_override:
@@ -114,7 +114,7 @@ def issue_proposal(
         check=bool(check),
     )
 
-    issued_at = datetime.now(timezone.utc).isoformat()
+    issued_at = datetime.now(UTC).isoformat()
     campaign_meta = proposal_payload.get("campaign", {}) or {}
     if not isinstance(campaign_meta, dict):
         campaign_meta = {}
@@ -182,7 +182,7 @@ def build_parser() -> argparse.ArgumentParser:
     return parser
 
 
-def main(argv: List[str] | None = None) -> int:
+def main(argv: list[str] | None = None) -> int:
     parser = build_parser()
     args = parser.parse_args(argv)
     result = issue_proposal(

@@ -11,7 +11,7 @@ Phase 1 invariant:
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Any, Dict
+from typing import Any
 
 SCOPE_VERSION_PHASE1_V1 = "phase1_v1"
 
@@ -26,7 +26,7 @@ class MultiplicityScope:
     side_policy: str
     scope_version: str = SCOPE_VERSION_PHASE1_V1
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "run_id": self.run_id,
             "campaign_id": self.campaign_id,
@@ -38,7 +38,7 @@ class MultiplicityScope:
         }
 
 
-def resolve_campaign_scope_key(row: Dict[str, Any]) -> str:
+def resolve_campaign_scope_key(row: dict[str, Any]) -> str:
     campaign_id = str(row.get("campaign_id", "") or "").strip()
     program_id = str(row.get("program_id", "") or "").strip()
     run_id = str(row.get("run_id", "") or "").strip()
@@ -50,7 +50,7 @@ def resolve_campaign_scope_key(row: Dict[str, Any]) -> str:
     return f"run::{run_id}"
 
 
-def resolve_lineage_scope_key(row: Dict[str, Any]) -> str:
+def resolve_lineage_scope_key(row: dict[str, Any]) -> str:
     campaign_id = str(row.get("campaign_id", "") or "").strip()
     program_id = str(row.get("program_id", "") or "").strip()
     lineage_key = str(row.get("concept_lineage_key", "") or row.get("hypothesis_id", "") or "").strip()
@@ -71,7 +71,7 @@ def resolve_lineage_scope_key(row: Dict[str, Any]) -> str:
 
 
 def resolve_effective_scope_key(
-    row: Dict[str, Any],
+    row: dict[str, Any],
     mode: str = "campaign_lineage",
 ) -> str:
     mode = str(mode or "campaign_lineage").strip().lower()
@@ -98,7 +98,7 @@ def resolve_effective_scope_key(
 
 
 def infer_multiplicity_scope(
-    row: Dict[str, Any],
+    row: dict[str, Any],
     scope_version: str = SCOPE_VERSION_PHASE1_V1,
 ) -> MultiplicityScope:
     return MultiplicityScope(
@@ -115,10 +115,10 @@ def infer_multiplicity_scope(
 
 
 __all__ = [
-    "MultiplicityScope",
     "SCOPE_VERSION_PHASE1_V1",
+    "MultiplicityScope",
     "infer_multiplicity_scope",
     "resolve_campaign_scope_key",
-    "resolve_lineage_scope_key",
     "resolve_effective_scope_key",
+    "resolve_lineage_scope_key",
 ]

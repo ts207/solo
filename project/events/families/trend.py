@@ -27,6 +27,6 @@ __all__ = [
     "TrendAccelerationDetector",
     "TrendBase",
     "TrendDecelerationDetector",
-    "detect_trend_family",
     "analyze_trend_family",
+    "detect_trend_family",
 ]

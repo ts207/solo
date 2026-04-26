@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import logging
-from typing import Any, Dict
+from typing import Any
 
 import pandas as pd
 
@@ -14,7 +14,7 @@ log = logging.getLogger(__name__)
 def compute_registry_overlaps(
     proposal_mask: pd.Series,
     features: pd.DataFrame
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     Computes overlap metrics between a candidate trigger mask and all available 
     canonical events currently instantiated in the features DataFrame.

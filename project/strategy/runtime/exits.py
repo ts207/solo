@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import logging
-from typing import Any, Dict, Optional, Tuple
+from typing import Any
 
 import pandas as pd
 
@@ -12,10 +12,10 @@ def check_exit_conditions(
     bar: pd.Series,
     position_entry_price: float,
     is_long: bool,
-    blueprint_exit: Dict[str, Any],
+    blueprint_exit: dict[str, Any],
     bars_held: int,
-    market_data: Optional[Dict[str, Any]] = None,
-) -> Tuple[bool, str]:
+    market_data: dict[str, Any] | None = None,
+) -> tuple[bool, str]:
     """
     Evaluate adaptive exit conditions.
     """

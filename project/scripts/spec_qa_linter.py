@@ -1,7 +1,6 @@
 import argparse
 import sys
 from pathlib import Path
-from typing import Dict
 
 import yaml
 
@@ -31,16 +30,16 @@ KNOWN_DATASETS = {
 }
 
 
-def load_specs(spec_dir: Path) -> Dict[str, dict]:
+def load_specs(spec_dir: Path) -> dict[str, dict]:
     specs = {}
     for yaml_file in spec_dir.glob("*.yaml"):
-        with open(yaml_file, "r") as f:
+        with open(yaml_file) as f:
             spec = yaml.safe_load(f)
             specs[spec["concept_id"]] = spec
     return specs
 
 
-def check_cycles(specs: Dict[str, dict]):
+def check_cycles(specs: dict[str, dict]):
     graph = {cid: spec.get("dependencies", []) for cid, spec in specs.items()}
     visited = set()
     path = []
@@ -67,7 +66,7 @@ def check_cycles(specs: Dict[str, dict]):
     print("SUCCESS: No cycles in dependency DAG.")
 
 
-def check_datasets(specs: Dict[str, dict]):
+def check_datasets(specs: dict[str, dict]):
     errors = 0
     for cid, spec in specs.items():
         for req in spec.get("data_requirements", []):
@@ -81,7 +80,7 @@ def check_datasets(specs: Dict[str, dict]):
         sys.exit(1)
 
 
-def check_tests(specs: Dict[str, dict]):
+def check_tests(specs: dict[str, dict]):
     test_ids = set()
     errors = 0
     for cid, spec in specs.items():
@@ -106,7 +105,7 @@ def _resolve_artifact_path(
     path_str: str,
     *,
     project_root: Path,
-    placeholder_values: Dict[str, str] | None = None,
+    placeholder_values: dict[str, str] | None = None,
 ) -> Path:
     resolved = path_str.replace("{symbol}", "BTCUSDT")
     for key, value in (placeholder_values or {}).items():
@@ -115,8 +114,8 @@ def _resolve_artifact_path(
     return project_root / resolved
 
 
-def _parse_placeholder_args(raw_values: list[str] | None) -> Dict[str, str]:
-    parsed: Dict[str, str] = {}
+def _parse_placeholder_args(raw_values: list[str] | None) -> dict[str, str]:
+    parsed: dict[str, str] = {}
     for item in raw_values or []:
         if "=" not in item:
             raise ValueError(f"Invalid runtime placeholder override {item!r}; expected KEY=VALUE")
@@ -126,11 +125,11 @@ def _parse_placeholder_args(raw_values: list[str] | None) -> Dict[str, str]:
 
 
 def check_artifacts(
-    specs: Dict[str, dict],
+    specs: dict[str, dict],
     project_root: Path,
     *,
     strict_runtime_artifacts: bool = False,
-    runtime_placeholder_values: Dict[str, str] | None = None,
+    runtime_placeholder_values: dict[str, str] | None = None,
 ):
     missing = []
     runtime_artifacts = []
@@ -191,7 +190,7 @@ def _check_detector_contract_completeness(data: dict, fname: str, errors: list) 
             )
 
 
-def check_detector_contracts(specs: Dict[str, dict]):
+def check_detector_contracts(specs: dict[str, dict]):
     errors = []
     for fname, data in specs.items():
         _check_detector_contract_completeness(data, fname, errors)

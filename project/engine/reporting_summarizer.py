@@ -1,12 +1,10 @@
 from __future__ import annotations
 
-from typing import Dict, List
-
 import numpy as np
 import pandas as pd
 
 
-def summarize_pnl(series: pd.Series) -> Dict[str, float]:
+def summarize_pnl(series: pd.Series) -> dict[str, float]:
     if series.empty:
         return {"total_pnl": 0.0, "mean_pnl": 0.0, "std_pnl": 0.0}
     return {
@@ -16,7 +14,7 @@ def summarize_pnl(series: pd.Series) -> Dict[str, float]:
     }
 
 
-def summarize_portfolio_ledger(frame: pd.DataFrame) -> Dict[str, float]:
+def summarize_portfolio_ledger(frame: pd.DataFrame) -> dict[str, float]:
     if frame.empty:
         return {
             "total_pnl": 0.0,
@@ -74,11 +72,11 @@ def entry_count(frame: pd.DataFrame) -> int:
 
 
 def overlay_binding_stats(
-    overlays: List[str],
+    overlays: list[str],
     symbol: str,
     frame: pd.DataFrame,
-    overlay_stats: Dict[str, Dict[str, int]] | None = None,
-) -> Dict[str, object]:
+    overlay_stats: dict[str, dict[str, int]] | None = None,
+) -> dict[str, object]:
     entries = entry_count(frame)
     overlay_stats = overlay_stats or {}
     per_overlay = []

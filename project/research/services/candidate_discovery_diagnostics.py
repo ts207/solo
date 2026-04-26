@@ -31,7 +31,7 @@ def sample_quality_summary(df: pd.DataFrame) -> dict[str, Any]:
         df["n_obs"] if "n_obs" in df.columns else pd.Series(0, index=df.index), errors="coerce"
     ).fillna(0)
     return {
-        "candidates_total": int(len(df)),
+        "candidates_total": len(df),
         "zero_validation_rows": int((validation <= 0).sum()),
         "zero_test_rows": int((test <= 0).sum()),
         "zero_eval_rows": int(((validation <= 0) & (test <= 0)).sum()),
@@ -76,7 +76,7 @@ def survivor_quality_summary(df: pd.DataFrame) -> dict[str, Any]:
         }
 
     return {
-        "survivors_total": int(len(survivors)),
+        "survivors_total": len(survivors),
         "median_q_value": float(
             pd.to_numeric(
                 survivors["q_value"]
@@ -241,7 +241,7 @@ def build_false_discovery_diagnostics(combined: pd.DataFrame) -> dict[str, Any]:
 
     return {
         "global": {
-            "candidates_total": int(len(combined)),
+            "candidates_total": len(combined),
             "symbols_total": int(combined["symbol"].nunique())
             if "symbol" in combined.columns
             else 0,
@@ -550,10 +550,10 @@ def build_ledger_diagnostics(combined: pd.DataFrame) -> dict[str, Any]:
 
 
 def build_hierarchical_stage_diagnostics(
-    stage_artifacts: "dict[str, pd.DataFrame]",
+    stage_artifacts: dict[str, pd.DataFrame],
     *,
     flat_mode_equivalent_count: int = 0,
-) -> "dict[str, Any]":
+) -> dict[str, Any]:
     """Build a diagnostics dict summarising hierarchical stage progression.
 
     Args:
@@ -691,10 +691,10 @@ def build_hierarchical_stage_diagnostics(
 
 
 def build_diversification_diagnostics(
-    candidates: "pd.DataFrame",
-    shortlist: "pd.DataFrame | None" = None,
-    diversification_config: "dict | None" = None,
-) -> "dict[str, Any]":
+    candidates: pd.DataFrame,
+    shortlist: pd.DataFrame | None = None,
+    diversification_config: dict | None = None,
+) -> dict[str, Any]:
     """Build a diagnostics dict explaining the Phase 5 diversification output.
 
     Args:
@@ -857,7 +857,7 @@ def build_diversification_diagnostics(
     }
 
 
-def _best_quality_col_diag(df: "pd.DataFrame") -> str:
+def _best_quality_col_diag(df: pd.DataFrame) -> str:
     for col in ("discovery_quality_score_v3", "discovery_quality_score", "t_stat"):
         if col in df.columns:
             return col

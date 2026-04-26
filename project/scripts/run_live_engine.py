@@ -9,7 +9,7 @@ import logging
 import os
 import time
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any
 from urllib.parse import urlencode
 
 from project import PROJECT_ROOT
@@ -26,7 +26,7 @@ class VenueConnectivityError(RuntimeError):
     pass
 
 
-def _normalize_runtime_mode(config: Dict[str, Any], *, config_path: Path) -> str:
+def _normalize_runtime_mode(config: dict[str, Any], *, config_path: Path) -> str:
     runtime_mode = str(config.get("runtime_mode", "")).strip().lower()
     if runtime_mode not in {"monitor_only", "trading", "simulation"}:
         raise LiveRuntimeConfigError(
@@ -36,7 +36,7 @@ def _normalize_runtime_mode(config: Dict[str, Any], *, config_path: Path) -> str
     return runtime_mode
 
 
-def _normalize_strategy_runtime(config: Dict[str, Any], *, config_path: Path) -> Dict[str, Any]:
+def _normalize_strategy_runtime(config: dict[str, Any], *, config_path: Path) -> dict[str, Any]:
     strategy_runtime = config.get("strategy_runtime", {})
     if strategy_runtime in (None, ""):
         return {}
@@ -80,7 +80,7 @@ def _normalize_strategy_runtime(config: Dict[str, Any], *, config_path: Path) ->
     return normalized
 
 
-def load_live_engine_config(path: Path) -> Dict[str, Any]:
+def load_live_engine_config(path: Path) -> dict[str, Any]:
     payload = load_yaml_path(path) or {}
     if not isinstance(payload, dict):
         raise ValueError(f"Live engine config must be a mapping: {path}")
@@ -99,8 +99,8 @@ def load_live_engine_config(path: Path) -> Dict[str, Any]:
 
 
 def _resolve_live_engine_config(
-    *, config_path: Path, config: Dict[str, Any] | None = None
-) -> Dict[str, Any]:
+    *, config_path: Path, config: dict[str, Any] | None = None
+) -> dict[str, Any]:
     if config is None:
         return load_live_engine_config(config_path)
     if not isinstance(config, dict):
@@ -124,10 +124,10 @@ def _resolve_live_engine_config(
 def resolve_live_engine_session_metadata(
     *,
     config_path: Path,
-    config: Dict[str, Any] | None = None,
+    config: dict[str, Any] | None = None,
     symbols: list[str] | None = None,
     snapshot_path: str | None = None,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     config = _resolve_live_engine_config(config_path=config_path, config=config)
     resolved_symbols = symbols or [
         str(item.get("symbol", "")).strip().lower()
@@ -184,7 +184,7 @@ def resolve_live_engine_session_metadata(
     }
 
 
-def _resolve_runtime_environment(config: Dict[str, Any], *, config_path: Path) -> str:
+def _resolve_runtime_environment(config: dict[str, Any], *, config_path: Path) -> str:
     order_source = str(config.get("oms_lineage", {}).get("order_source", "")).strip().lower()
     workflow_id = str(config.get("workflow_id", "")).strip().lower()
     stem = config_path.stem.strip().lower()
@@ -210,10 +210,10 @@ def _path_matches_expected(actual: str, expected: str | Path) -> bool:
 def validate_live_runtime_environment(
     *,
     config_path: Path,
-    config: Dict[str, Any] | None = None,
+    config: dict[str, Any] | None = None,
     snapshot_path: str | None = None,
-    environ: Dict[str, str] | None = None,
-) -> Dict[str, str]:
+    environ: dict[str, str] | None = None,
+) -> dict[str, str]:
     config = _resolve_live_engine_config(config_path=config_path, config=config)
     runtime_mode = str(config.get("runtime_mode", "monitor_only")).strip().lower()
     strategy_runtime = config.get("strategy_runtime", {})
@@ -316,13 +316,13 @@ def validate_live_runtime_environment(
     }
 
 
-def _build_binance_signed_query(secret: str, params: Dict[str, Any]) -> str:
+def _build_binance_signed_query(secret: str, params: dict[str, Any]) -> str:
     query = urlencode([(str(key), str(value)) for key, value in params.items()])
     signature = hmac.new(secret.encode("utf-8"), query.encode("utf-8"), hashlib.sha256).hexdigest()
     return f"{query}&signature={signature}"
 
 
-def _resolve_binance_api_credentials(environment: Dict[str, str]) -> Dict[str, str]:
+def _resolve_binance_api_credentials(environment: dict[str, str]) -> dict[str, str]:
     runtime_environment = str(environment.get("environment", "")).strip().lower()
     if runtime_environment == "paper":
         return {
@@ -339,11 +339,11 @@ def _resolve_binance_api_credentials(environment: Dict[str, str]) -> Dict[str, s
     }
 
 
-def normalize_binance_futures_account_snapshot(payload: Dict[str, Any]) -> Dict[str, Any]:
+def normalize_binance_futures_account_snapshot(payload: dict[str, Any]) -> dict[str, Any]:
     if not isinstance(payload, dict):
         raise ValueError("Binance futures account payload must be a mapping")
 
-    positions: list[Dict[str, Any]] = []
+    positions: list[dict[str, Any]] = []
     for raw in list(payload.get("positions", [])):
         quantity = float(raw.get("positionAmt", 0.0) or 0.0)
         if quantity == 0.0:
@@ -378,10 +378,10 @@ def normalize_binance_futures_account_snapshot(payload: Dict[str, Any]) -> Dict[
 
 async def preflight_binance_venue_connectivity(
     *,
-    environment: Dict[str, str],
+    environment: dict[str, str],
     timeout_seconds: float = 5.0,
     session_factory: Any | None = None,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     venue = str(environment.get("venue", "")).strip().lower()
     runtime_environment = str(environment.get("environment", "")).strip().lower()
     if venue != "binance":
@@ -436,7 +436,7 @@ async def preflight_binance_venue_connectivity(
     }
 
 
-def validate_binance_account_preflight(preflight: Dict[str, Any]) -> Dict[str, Any]:
+def validate_binance_account_preflight(preflight: dict[str, Any]) -> dict[str, Any]:
     if not bool(preflight.get("account_can_trade", False)):
         raise VenueConnectivityError("Binance account preflight failed: account cannot trade")
 
@@ -450,10 +450,10 @@ def validate_binance_account_preflight(preflight: Dict[str, Any]) -> Dict[str, A
 
 async def fetch_binance_futures_account_snapshot(
     *,
-    environment: Dict[str, str],
+    environment: dict[str, str],
     timeout_seconds: float = 5.0,
     session_factory: Any | None = None,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     venue = str(environment.get("venue", "")).strip().lower()
     if venue != "binance":
         raise VenueConnectivityError(f"Unsupported venue snapshot fetch: {venue}")
@@ -491,7 +491,7 @@ async def fetch_binance_futures_account_snapshot(
     return normalize_binance_futures_account_snapshot(payload)
 
 
-def _resolve_bybit_api_credentials(environment: Dict[str, str]) -> Dict[str, str]:
+def _resolve_bybit_api_credentials(environment: dict[str, str]) -> dict[str, str]:
     runtime_environment = str(environment.get("environment", "")).strip().lower()
     if runtime_environment == "paper":
         return {
@@ -519,7 +519,7 @@ def _resolve_bybit_api_credentials(environment: Dict[str, str]) -> Dict[str, str
     }
 
 
-def normalize_bybit_account_snapshot(payload: Dict[str, Any]) -> Dict[str, Any]:
+def normalize_bybit_account_snapshot(payload: dict[str, Any]) -> dict[str, Any]:
     if not isinstance(payload, dict):
         raise ValueError("Bybit account payload must be a mapping")
 
@@ -530,7 +530,7 @@ def normalize_bybit_account_snapshot(payload: Dict[str, Any]) -> Dict[str, Any]:
         wallet_balance += float(account.get("totalWalletBalance", 0.0) or 0.0)
         available_balance += float(account.get("totalAvailableBalance", 0.0) or 0.0)
 
-    positions: list[Dict[str, Any]] = []
+    positions: list[dict[str, Any]] = []
     for account in result_list:
         for raw in list(account.get("coin", [])):
             qty = float(raw.get("totalPositionMM", 0.0) or 0.0)
@@ -560,10 +560,10 @@ def normalize_bybit_account_snapshot(payload: Dict[str, Any]) -> Dict[str, Any]:
 
 async def preflight_bybit_venue_connectivity(
     *,
-    environment: Dict[str, str],
+    environment: dict[str, str],
     timeout_seconds: float = 5.0,
     session_factory: Any | None = None,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     runtime_environment = str(environment.get("environment", "")).strip().lower()
     credentials = _resolve_bybit_api_credentials(environment)
     base_url = credentials["base_url"]
@@ -628,10 +628,10 @@ async def preflight_bybit_venue_connectivity(
 
 async def fetch_bybit_account_snapshot(
     *,
-    environment: Dict[str, str],
+    environment: dict[str, str],
     timeout_seconds: float = 5.0,
     session_factory: Any | None = None,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     credentials = _resolve_bybit_api_credentials(environment)
     base_url = credentials["base_url"]
     api_key = credentials["api_key"]
@@ -676,7 +676,7 @@ def _default_aiohttp_session_factory(*, timeout_seconds: float):
     return aiohttp.ClientSession(timeout=timeout)
 
 
-def _build_trading_order_manager(environment: Dict[str, str]) -> tuple[str, Any | None]:
+def _build_trading_order_manager(environment: dict[str, str]) -> tuple[str, Any | None]:
     from project.live.oms import OrderManager
 
     venue = str(environment.get("venue", "binance")).strip().lower()
@@ -717,10 +717,10 @@ def _build_trading_order_manager(environment: Dict[str, str]) -> tuple[str, Any 
 def build_live_runner(
     *,
     config_path: Path,
-    config: Dict[str, Any] | None = None,
+    config: dict[str, Any] | None = None,
     symbols: list[str] | None = None,
     snapshot_path: str | None = None,
-    environment: Dict[str, str] | None = None,
+    environment: dict[str, str] | None = None,
 ):
     from project.live.runner import LiveEngineRunner
 
@@ -757,7 +757,7 @@ def build_live_runner(
     )
 
 
-async def _fetch_trading_start_snapshot(environment: Dict[str, str]) -> Dict[str, Any]:
+async def _fetch_trading_start_snapshot(environment: dict[str, str]) -> dict[str, Any]:
     venue = str(environment.get("venue", "binance")).strip().lower()
     if venue == "bybit":
         await preflight_bybit_venue_connectivity(environment=environment)
@@ -768,7 +768,7 @@ async def _fetch_trading_start_snapshot(environment: Dict[str, str]) -> Dict[str
     return await fetch_binance_futures_account_snapshot(environment=environment)
 
 
-def configure_runner_for_trading_start(*, runner: Any, environment: Dict[str, str]) -> None:
+def configure_runner_for_trading_start(*, runner: Any, environment: dict[str, str]) -> None:
     venue = str(environment.get("venue", "binance")).strip().lower()
     if venue == "bybit":
         runner.account_snapshot_fetcher = lambda: fetch_bybit_account_snapshot(
@@ -831,7 +831,7 @@ def main(argv: list[str] | None = None) -> int:
         )
         return 0
 
-    runtime_environment: Dict[str, str] = {}
+    runtime_environment: dict[str, str] = {}
     if runtime_mode == "trading":
         runtime_environment = validate_live_runtime_environment(
             config_path=resolved_config_path,

@@ -70,17 +70,17 @@ def run_probe(args: argparse.Namespace) -> dict[str, Any]:
         "timeframe": str(args.timeframe),
         "search_spec": str(args.search_spec),
         "expected_events": expected_events,
-        "feature_rows": int(len(features)),
-        "feature_columns": int(len(features.columns)),
+        "feature_rows": len(features),
+        "feature_columns": len(features.columns),
         "feature_load_sec": feature_load_sec,
-        "hypotheses_generated": int(len(hypotheses)),
+        "hypotheses_generated": len(hypotheses),
         "hypotheses_evaluated": int(eval_count),
         "generation_sec": generation_sec,
         "evaluation_sec": evaluation_sec,
         "evaluation_sec_per_hypothesis": (
             round(evaluation_sec / eval_count, 6) if eval_count else 0.0
         ),
-        "metrics_rows": int(len(metrics)),
+        "metrics_rows": len(metrics),
         "valid_metrics_rows": _count_valid(metrics),
         "generation_counts": dict(generation_audit.get("counts", {})),
     }

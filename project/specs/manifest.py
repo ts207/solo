@@ -7,9 +7,9 @@ import os
 import platform
 import subprocess
 import sys
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 from project import PROJECT_ROOT
 from project.core.config import get_data_root
@@ -28,7 +28,7 @@ from project.specs.utils import get_spec_hashes
 
 
 def _utc_now_iso() -> str:
-    return datetime.now(timezone.utc).isoformat()
+    return datetime.now(UTC).isoformat()
 
 
 def _manifest_path(run_id: str, stage: str, stage_instance_id: str | None = None) -> Path:
@@ -47,7 +47,7 @@ def _run_manifest_path(run_id: str) -> Path:
     return data_root / "runs" / run_id / "run_manifest.json"
 
 
-def _is_stale_pipeline_session(manifest: Dict[str, Any]) -> bool:
+def _is_stale_pipeline_session(manifest: dict[str, Any]) -> bool:
     session_id = str(os.getenv("BACKTEST_PIPELINE_SESSION_ID", "")).strip()
     if not session_id:
         return False
@@ -109,15 +109,15 @@ def _normalize_manifest_value(value: Any) -> Any:
     return value
 
 
-def _normalize_manifest_dict(value: Dict[str, Any]) -> Dict[str, Any]:
+def _normalize_manifest_dict(value: dict[str, Any]) -> dict[str, Any]:
     return {
         str(k): _normalize_manifest_value(v)
         for k, v in sorted(dict(value).items(), key=lambda item: str(item[0]))
     }
 
 
-def _normalize_artifact_rows(rows: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
-    normalized: List[Dict[str, Any]] = []
+def _normalize_artifact_rows(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    normalized: list[dict[str, Any]] = []
     for row in rows:
         if not isinstance(row, dict):
             continue
@@ -125,8 +125,8 @@ def _normalize_artifact_rows(rows: List[Dict[str, Any]]) -> List[Dict[str, Any]]
     return normalized
 
 
-def _input_parquet_hashes(inputs: List[Dict[str, Any]], *, max_files: int = 32) -> Dict[str, Any]:
-    files: List[Path] = []
+def _input_parquet_hashes(inputs: list[dict[str, Any]], *, max_files: int = 32) -> dict[str, Any]:
+    files: list[Path] = []
     seen: set[str] = set()
     for item in inputs:
         raw_path = item.get("path")
@@ -151,7 +151,7 @@ def _input_parquet_hashes(inputs: List[Dict[str, Any]], *, max_files: int = 32) 
         if len(files) >= max_files:
             break
 
-    hashes: Dict[str, str] = {}
+    hashes: dict[str, str] = {}
     for path in files:
         if not path.exists() or not path.is_file():
             continue
@@ -164,8 +164,8 @@ def _input_parquet_hashes(inputs: List[Dict[str, Any]], *, max_files: int = 32) 
     }
 
 
-def _artifact_hashes(rows: List[Dict[str, Any]], *, max_files: int = 256) -> Dict[str, Any]:
-    files: List[Path] = []
+def _artifact_hashes(rows: list[dict[str, Any]], *, max_files: int = 256) -> dict[str, Any]:
+    files: list[Path] = []
     seen: set[str] = set()
     for item in rows:
         raw_path = item.get("path")
@@ -190,7 +190,7 @@ def _artifact_hashes(rows: List[Dict[str, Any]], *, max_files: int = 256) -> Dic
         if len(files) >= max_files:
             break
 
-    hashes: Dict[str, str] = {}
+    hashes: dict[str, str] = {}
     for path in files:
         hashes[str(path)] = _file_fingerprint(path)
     return {
@@ -201,7 +201,7 @@ def _artifact_hashes(rows: List[Dict[str, Any]], *, max_files: int = 256) -> Dic
 
 
 def validate_stage_manifest_contract(
-    manifest: Dict[str, Any],
+    manifest: dict[str, Any],
     *,
     allow_failed_minimal: bool = False,
 ) -> None:
@@ -254,13 +254,13 @@ REQUIRED_INPUT_PROVENANCE_KEYS = (
 )
 
 
-def schema_hash_from_columns(columns: List[str]) -> str:
+def schema_hash_from_columns(columns: list[str]) -> str:
     normalized = [str(col) for col in columns]
     payload = "|".join(normalized)
     return hashlib.sha256(payload.encode("utf-8")).hexdigest()
 
 
-def validate_input_provenance(inputs: List[Dict[str, Any]]) -> None:
+def validate_input_provenance(inputs: list[dict[str, Any]]) -> None:
     for idx, item in enumerate(inputs):
         provenance = item.get("provenance")
         if not isinstance(provenance, dict):
@@ -275,11 +275,11 @@ def feature_schema_registry_path() -> Path:
     return registry_feature_schema_registry_path()
 
 
-def load_feature_schema_registry() -> Dict[str, Any]:
+def load_feature_schema_registry() -> dict[str, Any]:
     return registry_load_feature_schema_registry()
 
 
-def feature_schema_identity() -> Tuple[str, str]:
+def feature_schema_identity() -> tuple[str, str]:
     schema_path = feature_schema_registry_path()
     payload = load_feature_schema_registry()
     version = str(payload.get("version", "feature_schema_v2"))
@@ -287,7 +287,7 @@ def feature_schema_identity() -> Tuple[str, str]:
     return version, schema_hash
 
 
-def validate_feature_schema_columns(*, dataset_key: str, columns: List[str]) -> Tuple[str, str]:
+def validate_feature_schema_columns(*, dataset_key: str, columns: list[str]) -> tuple[str, str]:
     registry = load_feature_schema_registry()
     datasets = registry.get("datasets", {})
     if not isinstance(datasets, dict):
@@ -311,11 +311,11 @@ def validate_feature_schema_columns(*, dataset_key: str, columns: List[str]) -> 
 def start_manifest(
     stage_name: str,
     run_id: str,
-    params: Dict[str, Any],
-    inputs: List[Dict[str, Any]],
-    outputs: List[Dict[str, Any]],
-    stage_instance_id: Optional[str] = None,
-) -> Dict[str, Any]:
+    params: dict[str, Any],
+    inputs: list[dict[str, Any]],
+    outputs: list[dict[str, Any]],
+    stage_instance_id: str | None = None,
+) -> dict[str, Any]:
     project_root = _project_root()
     ontology_hash = ontology_spec_hash(project_root.parent)
     ontology_component_fields = ontology_component_hash_fields(
@@ -355,11 +355,11 @@ def start_manifest(
 
 
 def finalize_manifest(
-    manifest: Dict[str, Any],
+    manifest: dict[str, Any],
     status: str,
-    error: Optional[str] = None,
-    stats: Optional[Dict[str, Any]] = None,
-) -> Dict[str, Any]:
+    error: str | None = None,
+    stats: dict[str, Any] | None = None,
+) -> dict[str, Any]:
     if _is_stale_pipeline_session(manifest):
         status = "aborted_stale_run"
         stale_msg = "stale pipeline_session_id detected; refusing to finalize stage as current run"
@@ -402,7 +402,7 @@ def finalize_manifest(
     return manifest
 
 
-def load_run_manifest(run_id: str) -> Dict[str, Any]:
+def load_run_manifest(run_id: str) -> dict[str, Any]:
     path = _run_manifest_path(run_id)
     if not path.exists():
         return {}

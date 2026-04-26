@@ -9,7 +9,7 @@ import json
 import logging
 import os
 from pathlib import Path
-from typing import Any, Dict, List, Tuple
+from typing import Any
 
 import pandas as pd
 
@@ -40,10 +40,10 @@ from project.research.validation import assign_split_labels as _validation_assig
 log = logging.getLogger(__name__)
 
 # Cache for feature DataFrames during tests to reduce disk I/O
-_FEATURE_CACHE: Dict[Tuple[str, str, str, str, str, str, Tuple[str, ...]], pd.DataFrame] = {}
+_FEATURE_CACHE: dict[tuple[str, str, str, str, str, str, tuple[str, ...]], pd.DataFrame] = {}
 
 
-def _schema_columns_for_parquet_files(files: List[Path]) -> list[str] | None:
+def _schema_columns_for_parquet_files(files: list[Path]) -> list[str] | None:
     if not HAS_PYARROW:
         return None
     if not files or any(path.suffix != ".parquet" for path in files):
@@ -63,7 +63,7 @@ def _schema_columns_for_parquet_files(files: List[Path]) -> list[str] | None:
         return None
 
 
-def _read_new_context_columns(files: List[Path], existing_columns: set[str]) -> pd.DataFrame:
+def _read_new_context_columns(files: list[Path], existing_columns: set[str]) -> pd.DataFrame:
     schema_columns = _schema_columns_for_parquet_files(files)
     if schema_columns is None:
         return read_parquet(files)
@@ -100,13 +100,13 @@ def clear_feature_cache() -> None:
     _FEATURE_CACHE.clear()
 
 
-def load_template_verb_lexicon(repo_root: Path) -> Dict[str, Any]:
+def load_template_verb_lexicon(repo_root: Path) -> dict[str, Any]:
     """Load the template verb lexicon from the compiled domain registry."""
     del repo_root
     return {"operators": get_domain_registry().operator_rows()}
 
 
-def operator_registry(verb_lexicon: Dict[str, Any]) -> Dict[str, Dict[str, Any]]:
+def operator_registry(verb_lexicon: dict[str, Any]) -> dict[str, dict[str, Any]]:
     """Extract operator definitions from the verb lexicon."""
     operators = verb_lexicon.get("operators", {})
     if isinstance(operators, dict) and operators:
@@ -122,8 +122,8 @@ def validate_operator_for_event(
     *,
     template_verb: str,
     canonical_family: str,
-    operator_registry_map: Dict[str, Dict[str, Any]],
-) -> Dict[str, Any]:
+    operator_registry_map: dict[str, dict[str, Any]],
+) -> dict[str, Any]:
     """Validate that a template verb is compatible with an event family."""
     op = operator_registry_map.get(str(template_verb).strip(), {})
     if not op:
@@ -144,7 +144,7 @@ def load_features(
     run_id: str,
     symbol: str,
     timeframe: str = "5m",
-    higher_timeframes: List[str] | None = None,
+    higher_timeframes: list[str] | None = None,
     market: str = "perp",
     start: str | None = None,
     end: str | None = None,
@@ -265,12 +265,12 @@ def prepare_events_dataframe(
     *,
     data_root: Path,
     run_id: str,
-    event_type: str | List[str],
-    symbols: List[str],
-    event_registry_specs: Dict[str, Any],
-    horizons: List[str],
+    event_type: str | list[str],
+    symbols: list[str],
+    event_registry_specs: dict[str, Any],
+    horizons: list[str],
     entry_lag_bars: int,
-    fam_config: Dict[str, Any],
+    fam_config: dict[str, Any],
     logger: logging.Logger,
     run_mode: str = "research",
     timeframe: str = "5m",
@@ -350,7 +350,7 @@ def prepare_events_dataframe(
         )
 
     events_df = pd.concat(all_events_frames, ignore_index=True)
-    raw_event_count = int(len(events_df))
+    raw_event_count = len(events_df)
 
     if "symbol" not in events_df.columns:
         # Edge case: all loaded dfs missing symbol
@@ -374,7 +374,7 @@ def prepare_events_dataframe(
                     event_type=event_type,
                     symbols_requested=list(symbols),
                     raw_event_count=raw_event_count,
-                    canonical_episode_count=int(len(events_df)),
+                    canonical_episode_count=len(events_df),
                     split_counts_payload=phase2_split_counts(events_df),
                     loaded_from_fallback_file=loaded_from_fallback_file,
                     holdout_integrity_failed=False,
@@ -386,7 +386,7 @@ def prepare_events_dataframe(
                     min_test_events=max(
                         1, safe_int(fam_config.get("min_holdout_test_events", 1), 1)
                     ),
-                    returned_rows=int(len(events_df)),
+                    returned_rows=len(events_df),
                 ),
             )
 
@@ -412,7 +412,7 @@ def prepare_events_dataframe(
 
     audit_registry = FeatureAuditRegistry()
 
-    merged_dfs: List[pd.DataFrame] = []
+    merged_dfs: list[pd.DataFrame] = []
     for sym in events_df["symbol"].dropna().unique():
         sym_events = events_df[events_df["symbol"] == sym].copy()
         null_enter_ts = sym_events[sym_events["enter_ts"].isna()].copy()
@@ -566,7 +566,7 @@ def prepare_events_dataframe(
                     event_type=event_type,
                     symbols_requested=list(symbols),
                     raw_event_count=raw_event_count,
-                    canonical_episode_count=int(len(events_df)),
+                    canonical_episode_count=len(events_df),
                     split_counts_payload=phase2_split_counts(events_df),
                     loaded_from_fallback_file=loaded_from_fallback_file,
                     holdout_integrity_failed=holdout_integrity_failed,
@@ -574,7 +574,7 @@ def prepare_events_dataframe(
                     returned_empty_due_to_holdout=False,
                     min_validation_events=min_validation_events,
                     min_test_events=min_test_events,
-                    returned_rows=int(len(events_df)),
+                    returned_rows=len(events_df),
                 ),
             )
 
@@ -618,7 +618,7 @@ def prepare_events_dataframe(
                     event_type=event_type,
                     symbols_requested=list(symbols),
                     raw_event_count=raw_event_count,
-                    canonical_episode_count=int(len(events_df)),
+                    canonical_episode_count=len(events_df),
                     split_counts_payload=phase2_split_counts(events_df),
                     loaded_from_fallback_file=loaded_from_fallback_file,
                     holdout_integrity_failed=holdout_integrity_failed,
@@ -642,7 +642,7 @@ def prepare_events_dataframe(
                     event_type=event_type,
                     symbols_requested=list(symbols),
                     raw_event_count=raw_event_count,
-                    canonical_episode_count=int(len(events_df)),
+                    canonical_episode_count=len(events_df),
                     split_counts_payload=phase2_split_counts(events_df),
                     loaded_from_fallback_file=loaded_from_fallback_file,
                     holdout_integrity_failed=holdout_integrity_failed,
@@ -661,7 +661,7 @@ def prepare_events_dataframe(
             event_type=event_type,
             symbols_requested=list(symbols),
             raw_event_count=raw_event_count,
-            canonical_episode_count=int(len(events_df)),
+            canonical_episode_count=len(events_df),
             split_counts_payload=phase2_split_counts(events_df),
             loaded_from_fallback_file=loaded_from_fallback_file,
             holdout_integrity_failed=holdout_integrity_failed,
@@ -669,7 +669,7 @@ def prepare_events_dataframe(
             returned_empty_due_to_holdout=returned_empty_due_to_holdout,
             min_validation_events=min_validation_events,
             min_test_events=min_test_events,
-            returned_rows=int(len(events_df)),
+            returned_rows=len(events_df),
         ),
     )
 

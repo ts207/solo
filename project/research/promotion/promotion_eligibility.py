@@ -2,8 +2,9 @@ from __future__ import annotations
 
 import json
 import re
+from collections.abc import Mapping
 from dataclasses import dataclass
-from typing import Any, Dict, List, Mapping
+from typing import Any
 
 import numpy as np
 import pandas as pd
@@ -24,14 +25,14 @@ def _quiet_float(value: Any, default: float) -> float:
 
 @dataclass
 class _ReasonRecorder:
-    reject_reasons: List[str]
-    promo_fail_reasons: List[str]
-    deploy_only_reject_reasons: List[str]
-    categorized_reject_reasons: Dict[str, List[str]]
-    categorized_promo_fail_reasons: Dict[str, List[str]]
+    reject_reasons: list[str]
+    promo_fail_reasons: list[str]
+    deploy_only_reject_reasons: list[str]
+    categorized_reject_reasons: dict[str, list[str]]
+    categorized_promo_fail_reasons: dict[str, list[str]]
 
     @classmethod
-    def create(cls) -> "_ReasonRecorder":
+    def create(cls) -> _ReasonRecorder:
         return cls(
             reject_reasons=[],
             promo_fail_reasons=[],
@@ -125,7 +126,7 @@ def _has_explicit_oos_samples(row: Mapping[str, Any]) -> bool:
     return ("mean_validation_return" in row) or ("mean_test_return" in row)
 
 
-def sign_consistency(row: Dict[str, Any]) -> float:
+def sign_consistency(row: dict[str, Any]) -> float:
     # Respect a pre-computed sign_consistency column (e.g. from phase2 bridge evaluation)
     pre_computed = row.get("sign_consistency")
     if pre_computed is not None:
@@ -156,7 +157,7 @@ def sign_consistency(row: Dict[str, Any]) -> float:
     return float(sum(matches) / len(matches))
 
 
-def cost_survival_ratio(row: Dict[str, Any]) -> float:
+def cost_survival_ratio(row: dict[str, Any]) -> float:
     scenario_keys = [
         "gate_after_cost_positive",
         "gate_after_cost_stressed_positive",
@@ -172,10 +173,10 @@ def cost_survival_ratio(row: Dict[str, Any]) -> float:
 
 def control_rate_details_for_event(
     *,
-    row: Dict[str, Any],
+    row: dict[str, Any],
     event_type: str,
-    summary: Dict[str, Any],
-) -> Dict[str, Any]:
+    summary: dict[str, Any],
+) -> dict[str, Any]:
     if "control_pass_rate" in row:
         val = _quiet_float(row.get("control_pass_rate"), np.nan)
         if np.isfinite(val):

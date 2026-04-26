@@ -1,11 +1,10 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import FrozenSet
 
 import pandas as pd
 
-DEFAULT_MUTUALLY_EXCLUSIVE_PAIRS: set[FrozenSet[str]] = {
+DEFAULT_MUTUALLY_EXCLUSIVE_PAIRS: set[frozenset[str]] = {
     frozenset({"TREND_ACCELERATION", "TREND_DECELERATION"}),
     frozenset({"CHOP_TO_TREND_SHIFT", "TREND_TO_CHOP_SHIFT"}),
     frozenset({"VOL_RELAXATION_START", "VOL_SPIKE"}),
@@ -14,7 +13,7 @@ DEFAULT_MUTUALLY_EXCLUSIVE_PAIRS: set[FrozenSet[str]] = {
     frozenset({"RANGE_BREAKOUT", "RANGE_COMPRESSION_END"}),
 }
 
-MUTUALLY_EXCLUSIVE_PAIRS: set[FrozenSet[str]] = DEFAULT_MUTUALLY_EXCLUSIVE_PAIRS.copy()
+MUTUALLY_EXCLUSIVE_PAIRS: set[frozenset[str]] = DEFAULT_MUTUALLY_EXCLUSIVE_PAIRS.copy()
 
 
 @dataclass

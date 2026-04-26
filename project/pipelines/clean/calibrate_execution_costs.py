@@ -60,7 +60,7 @@ def _calibrate_symbol(symbol: str, run_id: str) -> tuple[dict, Path] | None:
         "base_slippage_bps": round(median_spread / 2.0, 4),  # half-spread as slippage proxy
         "p75_spread_bps": round(p75_spread, 4),
         "calibration_source": "tob_5m_agg",
-        "n_bars": int(len(spread)),
+        "n_bars": len(spread),
     }
     return calib, tob_dir
 

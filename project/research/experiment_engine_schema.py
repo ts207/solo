@@ -4,7 +4,7 @@ from __future__ import annotations
 import logging
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any
 
 import yaml
 
@@ -19,8 +19,8 @@ _LOG = logging.getLogger(__name__)
 
 @dataclass(frozen=True)
 class InstrumentScope:
-    instrument_classes: List[str]
-    symbols: List[str]
+    instrument_classes: list[str]
+    symbols: list[str]
     timeframe: str
     start: str
     end: str
@@ -28,37 +28,37 @@ class InstrumentScope:
 
 @dataclass(frozen=True)
 class TriggerSpace:
-    allowed_trigger_types: List[str]
-    events: Dict[str, List[str]] = field(default_factory=dict)
-    canonical_regimes: List[str] = field(default_factory=list)
-    subtypes: List[str] = field(default_factory=list)
-    phases: List[str] = field(default_factory=list)
-    evidence_modes: List[str] = field(default_factory=list)
-    tiers: List[str] = field(default_factory=list)
-    operational_roles: List[str] = field(default_factory=list)
-    deployment_dispositions: List[str] = field(default_factory=list)
-    sequences: Dict[str, Any] = field(default_factory=dict)
-    states: Dict[str, List[str]] = field(default_factory=dict)
-    transitions: Dict[str, List[Dict[str, str]]] = field(default_factory=dict)
-    feature_predicates: Dict[str, List[Dict[str, Any]]] = field(default_factory=dict)
-    interactions: Dict[str, List[Dict[str, Any]]] = field(default_factory=dict)
+    allowed_trigger_types: list[str]
+    events: dict[str, list[str]] = field(default_factory=dict)
+    canonical_regimes: list[str] = field(default_factory=list)
+    subtypes: list[str] = field(default_factory=list)
+    phases: list[str] = field(default_factory=list)
+    evidence_modes: list[str] = field(default_factory=list)
+    tiers: list[str] = field(default_factory=list)
+    operational_roles: list[str] = field(default_factory=list)
+    deployment_dispositions: list[str] = field(default_factory=list)
+    sequences: dict[str, Any] = field(default_factory=dict)
+    states: dict[str, list[str]] = field(default_factory=dict)
+    transitions: dict[str, list[dict[str, str]]] = field(default_factory=dict)
+    feature_predicates: dict[str, list[dict[str, Any]]] = field(default_factory=dict)
+    interactions: dict[str, list[dict[str, Any]]] = field(default_factory=dict)
 
 
 @dataclass(frozen=True)
 class TemplateSelection:
-    include: List[str]
+    include: list[str]
 
 
 @dataclass(frozen=True)
 class EvaluationConfig:
-    horizons_bars: List[int]
-    directions: List[str]
-    entry_lags: List[int]
+    horizons_bars: list[int]
+    directions: list[str]
+    entry_lags: list[int]
 
 
 @dataclass(frozen=True)
 class ContextSelection:
-    include: Dict[str, List[str]]
+    include: dict[str, list[str]]
 
 
 @dataclass(frozen=True)
@@ -91,18 +91,18 @@ class AgentExperimentRequest:
     contexts: ContextSelection
     search_control: SearchControl
     promotion: PromotionConfig
-    avoid_region_keys: List[str] = field(default_factory=list)
-    artifacts: Dict[str, bool] = field(default_factory=dict)
+    avoid_region_keys: list[str] = field(default_factory=list)
+    artifacts: dict[str, bool] = field(default_factory=dict)
 
 @dataclass(frozen=True)
 class ValidatedExperimentPlan:
     program_id: str
-    hypotheses: List[HypothesisSpec]
-    required_detectors: List[str]
-    required_features: List[str]
-    required_states: List[str]
+    hypotheses: list[HypothesisSpec]
+    required_detectors: list[str]
+    required_features: list[str]
+    required_states: list[str]
     estimated_hypothesis_count: int
-    feasibility_summary: Dict[str, Any] = field(default_factory=dict)
+    feasibility_summary: dict[str, Any] = field(default_factory=dict)
 
 
 class RegistryBundle:
@@ -142,11 +142,11 @@ class RegistryBundle:
 
     def _merge_registry_section(
         self,
-        canonical: Dict[str, Any],
-        local: Dict[str, Any],
+        canonical: dict[str, Any],
+        local: dict[str, Any],
         *,
         section: str,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         merged = dict(canonical or {})
         canonical_rows = dict(merged.get(section, {}) or {})
         local_rows = local.get(section, {}) if isinstance(local, dict) else {}
@@ -158,9 +158,9 @@ class RegistryBundle:
 
     def _merge_templates(
         self,
-        canonical: Dict[str, Any],
-        local: Dict[str, Any],
-    ) -> Dict[str, Any]:
+        canonical: dict[str, Any],
+        local: dict[str, Any],
+    ) -> dict[str, Any]:
         merged = dict(canonical or {})
         canonical_templates = dict(merged.get("templates", {}) or {})
         canonical_families = dict(merged.get("families", {}) or {})
@@ -179,14 +179,14 @@ class RegistryBundle:
         merged["families"] = canonical_families
         return merged
 
-    def _load_yaml(self, path: Path) -> Dict[str, Any]:
+    def _load_yaml(self, path: Path) -> dict[str, Any]:
         if not path.exists():
             _LOG.warning(f"Registry file not found: {path}")
             return {}
         payload = yaml.safe_load(path.read_text())
         return payload if isinstance(payload, dict) else {}
 
-    def registry_source_paths(self) -> Dict[str, List[Path]]:
+    def registry_source_paths(self) -> dict[str, list[Path]]:
         return {
             **self.semantic_source_paths,
             **self.runtime_config_source_paths,

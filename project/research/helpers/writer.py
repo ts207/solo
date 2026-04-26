@@ -2,8 +2,9 @@ from __future__ import annotations
 
 import dataclasses
 import json
+from collections.abc import Sequence
 from pathlib import Path
-from typing import Any, Dict, List, Sequence, Tuple
+from typing import Any
 
 import yaml
 
@@ -19,9 +20,9 @@ def _replace_model(instance: Any, **updates: object) -> Any:
 
 def sort_blueprints_for_write(
     blueprints: Sequence[Blueprint],
-    selection_records: Sequence[Dict[str, object]],
-) -> List[Blueprint]:
-    by_candidate: Dict[str, Dict[str, object]] = {}
+    selection_records: Sequence[dict[str, object]],
+) -> list[Blueprint]:
+    by_candidate: dict[str, dict[str, object]] = {}
     for row in selection_records:
         cid = str(row.get("candidate_id", "")).strip()
         if cid and cid not in by_candidate:
@@ -42,7 +43,7 @@ def sort_blueprints_for_write(
 def apply_portfolio_cap(
     blueprints: Sequence[Blueprint],
     max_concurrent_positions: int | None,
-) -> Tuple[List[Blueprint], List[str]]:
+) -> tuple[list[Blueprint], list[str]]:
     out = list(blueprints)
     if max_concurrent_positions is None or int(max_concurrent_positions) <= 0:
         return out, []
@@ -55,11 +56,11 @@ def apply_portfolio_cap(
 
 def apply_retail_constraints(
     blueprints: Sequence[Blueprint],
-    retail_constraints: Dict[str, object],
-) -> List[Blueprint]:
+    retail_constraints: dict[str, object],
+) -> list[Blueprint]:
     if not blueprints:
         return []
-    updated: List[Blueprint] = []
+    updated: list[Blueprint] = []
     for bp in blueprints:
         constraints = dict(bp.lineage.constraints)
         constraints.update(retail_constraints)

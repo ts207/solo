@@ -2,9 +2,10 @@ from __future__ import annotations
 
 import argparse
 import json
+from collections.abc import Iterable
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Dict, Iterable
+from typing import Any
 
 import pandas as pd
 
@@ -39,7 +40,7 @@ class RegimeEffectivenessArtifacts:
     overlap_matrix: pd.DataFrame
     subtype_breakdown: pd.DataFrame
     direct_proxy_stability: pd.DataFrame
-    summary: Dict[str, Any]
+    summary: dict[str, Any]
 
 
 def _metric_column(frame: pd.DataFrame, candidates: Iterable[str]) -> str | None:
@@ -193,7 +194,7 @@ def compute_regime_effectiveness(episodes: pd.DataFrame) -> RegimeEffectivenessA
     for keys, sub in grouped:
         regime, subtype, phase, evidence_mode = (str(item or "").strip() for item in keys)
         continuation_share, reversal_share = _continuation_profile(sub, metric_column)
-        return_profile: Dict[str, float] = {}
+        return_profile: dict[str, float] = {}
         if metric_column is not None:
             if "horizon" in sub.columns:
                 horizon_stats = (
@@ -218,7 +219,7 @@ def compute_regime_effectiveness(episodes: pd.DataFrame) -> RegimeEffectivenessA
                 "subtype": subtype,
                 "phase": phase,
                 "evidence_mode": evidence_mode,
-                "episode_count": int(len(sub)),
+                "episode_count": len(sub),
                 "incidence_rate": float(len(sub) / total),
                 "average_episode_duration_bars": float(sub["_episode_duration_bars"].mean()),
                 "forward_return_profile": json.dumps(return_profile, sort_keys=True),
@@ -276,8 +277,8 @@ def compute_regime_effectiveness(episodes: pd.DataFrame) -> RegimeEffectivenessA
             direct_proxy_rows.append(
                 {
                     "canonical_regime": str(regime),
-                    "direct_count": int(len(direct)),
-                    "proxy_count": int(len(proxy)),
+                    "direct_count": len(direct),
+                    "proxy_count": len(proxy),
                     "direct_mean_return_bps": direct_mean,
                     "proxy_mean_return_bps": proxy_mean,
                     "stability_gap_bps": float(direct_mean - proxy_mean),
@@ -300,8 +301,8 @@ def compute_regime_effectiveness(episodes: pd.DataFrame) -> RegimeEffectivenessA
     summary = {
         "status": "ok",
         "regimes_total": int(main["canonical_regime"].nunique()),
-        "episodes_total": int(len(canonical)),
-        "scorecard_rows": int(len(main)),
+        "episodes_total": len(canonical),
+        "scorecard_rows": len(main),
         "recommended_bucket_counts": main["recommended_bucket"].astype(str).value_counts().to_dict(),
         "top_regimes_by_incidence": (
             main.groupby("canonical_regime", as_index=False)["episode_count"]

@@ -9,7 +9,7 @@ Three test classes:
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any
 from unittest.mock import MagicMock, patch
 
 import pandas as pd
@@ -154,7 +154,7 @@ class TestSearchSpaceLoader:
 class TestFrontierOrdering:
     """Verifies that search_intelligence._build_frontier sorts by quality weight."""
 
-    def _make_registries(self, events: Dict[str, Any]) -> MagicMock:
+    def _make_registries(self, events: dict[str, Any]) -> MagicMock:
         reg = MagicMock()
         reg.events = {"events": events}
         return reg

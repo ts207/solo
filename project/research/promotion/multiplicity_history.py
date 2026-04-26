@@ -8,7 +8,6 @@ from __future__ import annotations
 
 import logging
 from pathlib import Path
-from typing import Dict, List, Optional
 
 import pandas as pd
 
@@ -37,11 +36,11 @@ def _deduplicate_historical_candidates(df: pd.DataFrame) -> pd.DataFrame:
 def _load_promotion_audit_artifacts(
     data_root: Path,
     program_id: str,
-    campaign_id: Optional[str],
+    campaign_id: str | None,
     current_run_id: str,
 ) -> pd.DataFrame:
     """Load candidates from prior promotion audit artifacts."""
-    rows: List[Dict] = []
+    rows: list[dict] = []
 
     reports_dir = data_root / "reports" / "promotions"
     if not reports_dir.exists():
@@ -90,11 +89,11 @@ def _load_promotion_audit_artifacts(
 def _load_promoted_candidates_artifacts(
     data_root: Path,
     program_id: str,
-    campaign_id: Optional[str],
+    campaign_id: str | None,
     current_run_id: str,
 ) -> pd.DataFrame:
     """Load candidates from prior promoted_candidates artifacts."""
-    rows: List[Dict] = []
+    rows: list[dict] = []
 
     reports_dir = data_root / "reports" / "promotions"
     if not reports_dir.exists():
@@ -141,11 +140,11 @@ def _load_promoted_candidates_artifacts(
 def _load_evidence_bundle_summaries(
     data_root: Path,
     program_id: str,
-    campaign_id: Optional[str],
+    campaign_id: str | None,
     current_run_id: str,
 ) -> pd.DataFrame:
     """Load candidates from prior evidence bundle summaries."""
-    rows: List[Dict] = []
+    rows: list[dict] = []
 
     reports_dir = data_root / "reports" / "promotions"
     if not reports_dir.exists():
@@ -219,7 +218,7 @@ def load_historical_scope_candidates(
     *,
     data_root: Path,
     program_id: str,
-    campaign_id: Optional[str],
+    campaign_id: str | None,
     scope_mode: str,
     current_run_id: str,
 ) -> pd.DataFrame:
@@ -241,7 +240,7 @@ def load_historical_scope_candidates(
     Returns:
         DataFrame with historical candidates, deduplicated
     """
-    all_rows: List[Dict] = []
+    all_rows: list[dict] = []
     sources_tried = 0
     sources_succeeded = 0
 

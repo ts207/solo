@@ -1,8 +1,8 @@
 from __future__ import annotations
 
 import re
+from collections.abc import Sequence
 from pathlib import Path
-from typing import Dict, List, Optional, Sequence
 
 from project.spec_registry import load_yaml_path
 from project.specs.loader import load_global_defaults
@@ -20,7 +20,7 @@ _DEFAULT_RULE_TEMPLATES = [
 ]
 
 
-def _load_default_search_surface(project_root: Path) -> Dict[str, object]:
+def _load_default_search_surface(project_root: Path) -> dict[str, object]:
     search_space_path = project_root.parent / "spec" / "search_space.yaml"
     if not search_space_path.exists():
         return {}
@@ -28,7 +28,7 @@ def _load_default_search_surface(project_root: Path) -> Dict[str, object]:
     return payload if isinstance(payload, dict) else {}
 
 
-def load_hypothesis_defaults(project_root: Path) -> Dict[str, object]:
+def load_hypothesis_defaults(project_root: Path) -> dict[str, object]:
     defaults = load_global_defaults(project_root=project_root)
     search_surface = _load_default_search_surface(project_root)
     metadata = search_surface.get("metadata", {}) if isinstance(search_surface.get("metadata"), dict) else {}
@@ -54,7 +54,7 @@ def load_hypothesis_defaults(project_root: Path) -> Dict[str, object]:
     }
 
 
-def parse_symbols_filter(assets_filter: str, universe: Sequence[str]) -> List[str]:
+def parse_symbols_filter(assets_filter: str, universe: Sequence[str]) -> list[str]:
     normalized_universe = [str(s).strip().upper() for s in universe if str(s).strip()]
     if not normalized_universe:
         normalized_universe = list(DEFAULT_UNIVERSE)
@@ -67,7 +67,7 @@ def parse_symbols_filter(assets_filter: str, universe: Sequence[str]) -> List[st
     if not filters:
         return normalized_universe
 
-    selected: List[str] = []
+    selected: list[str] = []
     for symbol in normalized_universe:
         for token in filters:
             token_norm = token if token.endswith("USDT") else f"{token}USDT"
@@ -77,7 +77,7 @@ def parse_symbols_filter(assets_filter: str, universe: Sequence[str]) -> List[st
     return selected
 
 
-def extract_event_type(statement: str) -> Optional[str]:
+def extract_event_type(statement: str) -> str | None:
     text = str(statement or "")
     match = re.search(r'""event_type"": ""([A-Z0-9_]+)""', text)
     if match:

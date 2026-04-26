@@ -1,7 +1,8 @@
 from __future__ import annotations
 
+from collections.abc import Mapping
 from dataclasses import dataclass
-from typing import Any, Dict, Mapping
+from typing import Any
 
 from project.live.contracts.trade_intent import TradeIntent
 from project.live.execution_schedule import build_execution_schedule
@@ -16,7 +17,7 @@ class OrderPlan:
     accepted: bool
     client_order_id: str
     order: LiveOrder | None
-    plan: Dict[str, Any]
+    plan: dict[str, Any]
     blocked_by: str = ""
 
 
@@ -141,7 +142,7 @@ def build_order_plan(
         post_only = True
         order_type = OrderType.LIMIT
     price = entry_price if order_type == OrderType.LIMIT else None
-    venue_rule_diagnostics: Dict[str, Any] = {}
+    venue_rule_diagnostics: dict[str, Any] = {}
     if venue_rules is not None:
         venue_check = check_and_normalize_order(
             rules=venue_rules,

@@ -4,7 +4,7 @@ Base verification harness for feature and detection logic.
 
 from __future__ import annotations
 
-from typing import Any, Dict
+from typing import Any
 
 import numpy as np
 import pandas as pd
@@ -14,7 +14,7 @@ class VerificationHarness:
     def __init__(self, tolerance: float = 1e-6):
         self.tolerance = tolerance
 
-    def compare_series(self, actual: pd.Series, expected: pd.Series) -> Dict[str, Any]:
+    def compare_series(self, actual: pd.Series, expected: pd.Series) -> dict[str, Any]:
         """
         Compare two series and return results.
         """

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import logging
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Tuple
+from typing import Any
 
 import pandas as pd
 
@@ -30,7 +30,7 @@ class TriggerFeatureColumns:
     counterpart in the live feature pipeline.
     """
 
-    columns: Dict[str, pd.Series] = field(default_factory=dict)
+    columns: dict[str, pd.Series] = field(default_factory=dict)
 
     def apply_to_features(self, features: pd.DataFrame) -> pd.DataFrame:
         """Return a *copy* of *features* with the trigger columns appended.
@@ -45,7 +45,7 @@ class TriggerFeatureColumns:
             out[col_name] = series.reindex(out.index).fillna(False).astype(bool)
         return out
 
-    def column_names(self) -> List[str]:
+    def column_names(self) -> list[str]:
         """Return the list of injected column names."""
         return list(self.columns.keys())
 
@@ -63,8 +63,8 @@ class TriggerProposal:
         candidate_trigger_id: str,
         source_lane: str,
         detector_family: str,
-        parameterization: Dict[str, Any],
-        dominant_features: List[str] = None,
+        parameterization: dict[str, Any],
+        dominant_features: list[str] = None,
         suggested_trigger_name: str = "",
         spec: HypothesisSpec = None,
     ):
@@ -79,11 +79,11 @@ class TriggerProposal:
 
 def generate_parameter_sweep(
     features: pd.DataFrame,
-    family_grid: Dict[str, Dict[str, List[float]]],
+    family_grid: dict[str, dict[str, list[float]]],
     base_template_id: str = "continuation",
     base_direction: str = "long",
     base_horizon: str = "12b"
-) -> Tuple[List[TriggerProposal], TriggerFeatureColumns]:
+) -> tuple[list[TriggerProposal], TriggerFeatureColumns]:
     """Lane A: Generate parameterized threshold masks for known detector proxies.
 
     Returns proposals and a :class:`TriggerFeatureColumns` container holding
@@ -116,14 +116,14 @@ def generate_parameter_sweep(
         return [], TriggerFeatureColumns()
 
     proposals = []
-    injected: Dict[str, pd.Series] = {}
+    injected: dict[str, pd.Series] = {}
 
     # We construct pseudo-detectors directly against raw numeric columns
     # Example family: "vol_shock" mapping to testing thresholds over "realized_vol"
 
     for family, grid in family_grid.items():
         if family == "vol_shock":
-            base_col = next((c for c in features.columns if "rv" in c.lower() or "vol" in c.lower() and "shock" not in c.lower()), None)
+            base_col = next((c for c in features.columns if "rv" in c.lower() or ("vol" in c.lower() and "shock" not in c.lower())), None)
             if not base_col:
                 log.warning("No realized volatility proxy feature found for vol_shock sweep")
                 continue
@@ -165,12 +165,12 @@ def generate_parameter_sweep(
 
 def generate_feature_clusters(
     features: pd.DataFrame,
-    target_columns: List[str],
+    target_columns: list[str],
     min_support: int = 5,
     base_template_id: str = "continuation",
     base_direction: str = "long",
     base_horizon: str = "12b"
-) -> Tuple[List[TriggerProposal], TriggerFeatureColumns]:
+) -> tuple[list[TriggerProposal], TriggerFeatureColumns]:
     """Lane B: Mine excursions from arbitrary target feature columns and cluster them.
 
     Returns proposals and a :class:`TriggerFeatureColumns` container.  Callers
@@ -180,7 +180,7 @@ def generate_feature_clusters(
     if features.empty or not target_columns:
         return [], TriggerFeatureColumns()
 
-    injected: Dict[str, pd.Series] = {}
+    injected: dict[str, pd.Series] = {}
 
     excursions_df = extract_excursions(features, target_columns, threshold_z=2.5, min_persistence=1)
     if excursions_df.empty:

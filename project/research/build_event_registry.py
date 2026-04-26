@@ -6,7 +6,6 @@ import logging
 import sys
 import traceback
 from pathlib import Path
-from typing import Dict, List
 
 import pandas as pd
 
@@ -30,7 +29,7 @@ from project.schemas.data_contracts import EventRegistrySchema
 from project.specs.manifest import finalize_manifest, start_manifest
 
 
-def _parse_symbols(symbols_csv: str) -> List[str]:
+def _parse_symbols(symbols_csv: str) -> list[str]:
     symbols = [s.strip().upper() for s in str(symbols_csv).split(",") if s.strip()]
     return list(dict.fromkeys(symbols))
 
@@ -71,8 +70,8 @@ def main() -> int:
             "event_type": args.event_type,
             "timeframe": str(args.timeframe),
         }
-        inputs: List[Dict[str, object]] = []
-        outputs: List[Dict[str, object]] = []
+        inputs: list[dict[str, object]] = []
+        outputs: list[dict[str, object]] = []
         manifest = start_manifest("build_event_registry", args.run_id, params, inputs, outputs)
 
         for event_type in selected_event_types:
@@ -204,7 +203,7 @@ def main() -> int:
             event_flags=flags,
         )
 
-        per_family_counts: Dict[str, int] = {
+        per_family_counts: dict[str, int] = {
             event_type: 0 for event_type in sorted(EVENT_REGISTRY_SPECS.keys())
         }
         if not events.empty:
@@ -213,7 +212,7 @@ def main() -> int:
             ):
                 per_family_counts[str(event_type)] = int(count)
 
-        incoming_per_family_counts: Dict[str, int] = {
+        incoming_per_family_counts: dict[str, int] = {
             event_type: 0 for event_type in selected_event_types
         }
         if not incoming_events.empty:
@@ -225,9 +224,9 @@ def main() -> int:
         summary = {
             "run_id": args.run_id,
             "selected_event_types": selected_event_types,
-            "incoming_event_rows": int(len(incoming_events)),
-            "event_rows": int(len(events)),
-            "event_flag_rows": int(len(flags)),
+            "incoming_event_rows": len(incoming_events),
+            "event_rows": len(events),
+            "event_flag_rows": len(flags),
             "incoming_per_family_counts": incoming_per_family_counts,
             "per_family_counts": per_family_counts,
             **paths,
@@ -238,7 +237,7 @@ def main() -> int:
         outputs.append(
             {
                 "path": str(paths["events_path"]),
-                "rows": int(len(events)),
+                "rows": len(events),
                 "start_ts": None,
                 "end_ts": None,
             }
@@ -246,7 +245,7 @@ def main() -> int:
         outputs.append(
             {
                 "path": str(paths["event_flags_path"]),
-                "rows": int(len(flags)),
+                "rows": len(flags),
                 "start_ts": None,
                 "end_ts": None,
             }
@@ -257,10 +256,10 @@ def main() -> int:
             manifest,
             "success",
             stats={
-                "incoming_event_rows": int(len(incoming_events)),
-                "event_rows": int(len(events)),
-                "event_flag_rows": int(len(flags)),
-                "selected_event_family_count": int(len(selected_event_types)),
+                "incoming_event_rows": len(incoming_events),
+                "event_rows": len(events),
+                "event_flag_rows": len(flags),
+                "selected_event_family_count": len(selected_event_types),
                 "event_family_count": int(
                     sum(1 for value in per_family_counts.values() if int(value) > 0)
                 ),

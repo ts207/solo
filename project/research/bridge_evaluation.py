@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import json
 import logging
-from typing import Any, Dict, List, Tuple
+from typing import Any
 
 import numpy as np
 import pandas as pd
@@ -53,7 +53,7 @@ def _series_from_row_value(value: Any) -> pd.Series:
     return pd.Series(dtype=float)
 
 
-def _extract_row_series(row: pd.Series, candidates: List[str]) -> pd.Series:
+def _extract_row_series(row: pd.Series, candidates: list[str]) -> pd.Series:
     for key in candidates:
         if key in row and row.get(key) is not None:
             series = _series_from_row_value(row.get(key))
@@ -80,7 +80,7 @@ def _extract_repeated_fold_consistency(row: pd.Series) -> float:
     return float(np.clip(1.0 - dispersion, 0.0, 1.0))
 
 
-def _build_bridge_diagnostics(row: pd.Series, stressed_cost_multiplier: float) -> Dict[str, Any]:
+def _build_bridge_diagnostics(row: pd.Series, stressed_cost_multiplier: float) -> dict[str, Any]:
     from project.research.robustness import (
         evaluate_structural_breaks,
         evaluate_structural_robustness,
@@ -112,7 +112,7 @@ def _build_bridge_diagnostics(row: pd.Series, stressed_cost_multiplier: float) -
                 if not timestamps.empty:
                     break
 
-    diagnostics: Dict[str, Any] = {}
+    diagnostics: dict[str, Any] = {}
     if not pnl_series.empty:
         diagnostics.update(
             evaluate_structural_robustness(
@@ -155,7 +155,7 @@ def evaluate_microstructure_gate(
     max_sweep_pressure: float = 2.5,
     max_abs_imbalance: float = 0.90,
     min_feature_coverage: float = 0.25,
-) -> Dict[str, bool]:
+) -> dict[str, bool]:
     spread = safe_float(row.get("micro_spread_stress"), np.nan)
     depth = safe_float(row.get("micro_depth_depletion"), np.nan)
     sweep = safe_float(row.get("micro_sweep_pressure"), np.nan)
@@ -196,7 +196,7 @@ def effective_cost_bps(row: pd.Series) -> float:
     return float(max(0.0, gross_proxy_bps * min(1.0, cost_ratio))) if cost_ratio > 0.0 else 0.0
 
 
-def bridge_metrics_for_row(row: pd.Series, stressed_cost_multiplier: float) -> Dict[str, Any]:
+def bridge_metrics_for_row(row: pd.Series, stressed_cost_multiplier: float) -> dict[str, Any]:
     fallback_expectancy = _row_float(row, "expectancy", 0.0)
     eff_aft = _row_float(
         row,
@@ -261,7 +261,7 @@ def evaluate_bridge_performance(
     survivors: pd.DataFrame,
     *,
     event_type: str,
-    base_lookup: Dict[str, Dict[str, float]],
+    base_lookup: dict[str, dict[str, float]],
     edge_cost_k: float,
     min_validation_trades: int,
     stressed_cost_multiplier: float,
@@ -269,10 +269,10 @@ def evaluate_bridge_performance(
     max_fee_plus_slippage_bps: float | None,
     max_daily_turnover_multiple: float | None,
     require_retail_viability: bool,
-    micro_thresholds: Dict[str, float],
-    low_capital_contract: Dict[str, Any] | None = None,
+    micro_thresholds: dict[str, float],
+    low_capital_contract: dict[str, Any] | None = None,
     enforce_low_capital_viability: bool = False,
-) -> Tuple[List[Dict[str, Any]], List[Dict[str, Any]]]:
+) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
     metrics_rows, overlay_rows = [], []
     for _, row in survivors.iterrows():
         candidate_id = str(row.get("candidate_id", "")).strip()

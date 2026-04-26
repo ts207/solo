@@ -8,9 +8,9 @@ import argparse
 import asyncio
 import logging
 import sys
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any
 
 import aiohttp
 import pandas as pd
@@ -24,7 +24,7 @@ _LOG = logging.getLogger(__name__)
 
 
 def _parse_date(value: str) -> datetime:
-    return datetime.strptime(value, "%Y-%m-%d").replace(tzinfo=timezone.utc)
+    return datetime.strptime(value, "%Y-%m-%d").replace(tzinfo=UTC)
 
 
 def _month_start(ts: datetime) -> datetime:
@@ -37,8 +37,8 @@ def _next_month(ts: datetime) -> datetime:
     return ts.replace(year=year, month=month, day=1, hour=0, minute=0, second=0, microsecond=0)
 
 
-def _iter_months(start: datetime, end: datetime) -> List[datetime]:
-    months: List[datetime] = []
+def _iter_months(start: datetime, end: datetime) -> list[datetime]:
+    months: list[datetime] = []
     cursor = _month_start(start)
     while cursor <= end:
         months.append(cursor)
@@ -52,7 +52,7 @@ async def _fetch_funding(
     start_ms: int,
     end_ms: int,
     limit: int = 200,
-) -> List[Dict[str, Any]]:
+) -> list[dict[str, Any]]:
     url = "https://api.bybit.com/v5/market/funding/history"
     params = {
         "category": "linear",
@@ -82,7 +82,7 @@ async def _ingest_funding_month(
     force: bool,
     max_retries: int = 5,
     retry_backoff_sec: float = 2.0,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     async with semaphore:
         month_end = _next_month(month_start)
         actual_start = max(requested_start, month_start)
@@ -155,14 +155,14 @@ async def _ingest_funding_month(
         return {"status": "written", "partition": str(out_path), "count": len(df)}
 
 
-async def async_main(args: argparse.Namespace) -> Dict[str, Any]:
+async def async_main(args: argparse.Namespace) -> dict[str, Any]:
     symbols = [s.strip() for s in args.symbols.split(",") if s.strip()]
     start_dt = _parse_date(args.start)
     end_dt = _parse_date(args.end)
     out_root = Path(args.out_root)
 
     semaphore = asyncio.Semaphore(args.concurrency)
-    stats: Dict[str, Any] = {"symbols": {}}
+    stats: dict[str, Any] = {"symbols": {}}
     outputs = []
 
     async with aiohttp.ClientSession() as session:

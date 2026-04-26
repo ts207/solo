@@ -141,7 +141,7 @@ def main() -> int:
     write_parquet(df, out_path)
 
     finalize_manifest(
-        manifest, status="success", stats={"rows": int(len(df)), "out": str(out_path)}
+        manifest, status="success", stats={"rows": len(df), "out": str(out_path)}
     )
     return 0
 

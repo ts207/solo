@@ -3,7 +3,6 @@ from __future__ import annotations
 import argparse
 import json
 import sys
-from typing import Dict, List
 
 import pandas as pd
 
@@ -32,8 +31,8 @@ def main() -> int:
         "run_id": str(args.run_id),
         "max_events": int(args.max_events),
     }
-    inputs: List[Dict[str, object]] = []
-    outputs: List[Dict[str, object]] = [
+    inputs: list[dict[str, object]] = []
+    outputs: list[dict[str, object]] = [
         {"path": str(normalized_path), "rows": None, "start_ts": None, "end_ts": None},
         {"path": str(summary_path), "rows": 1, "start_ts": None, "end_ts": None},
     ]
@@ -49,7 +48,7 @@ def main() -> int:
         rows, source_path = read_raw_event_rows(data_root=data_root, run_id=str(args.run_id))
         if source_path:
             inputs.append(
-                {"path": str(source_path), "rows": int(len(rows)), "start_ts": None, "end_ts": None}
+                {"path": str(source_path), "rows": len(rows), "start_ts": None, "end_ts": None}
             )
 
         normalized, issues = normalize_event_rows(rows, max_events=int(args.max_events))
@@ -60,9 +59,9 @@ def main() -> int:
             "run_id": str(args.run_id),
             "status": "no_runtime_events" if not normalized_records else "pass",
             "event_source_path": str(source_path),
-            "event_count": int(len(rows)),
-            "normalized_event_count": int(len(normalized_records)),
-            "normalization_issue_count": int(len(issues)),
+            "event_count": len(rows),
+            "normalized_event_count": len(normalized_records),
+            "normalization_issue_count": len(issues),
             "normalization_issue_examples": list(issues[:20]),
             "normalized_events_path": str(normalized_path),
         }

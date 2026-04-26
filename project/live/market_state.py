@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-from typing import Any, Mapping
+from collections.abc import Mapping
+from typing import Any
 
 from project.live.cost_estimator import estimate_expected_cost_bps
 from project.live.liquidity_snapshot import (

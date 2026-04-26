@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import List
 
 import pandas as pd
 
@@ -30,7 +29,7 @@ class DslInterpreterV1:
     """
 
     name: str = "dsl_interpreter_v1"
-    required_features: List[str] = field(default_factory=lambda: ["high_96", "low_96"])
+    required_features: list[str] = field(default_factory=lambda: ["high_96", "low_96"])
 
     def generate_positions(
         self, bars: pd.DataFrame, features: pd.DataFrame, params: dict

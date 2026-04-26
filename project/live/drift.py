@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import logging
-from typing import Any, Dict
+from typing import Any
 
 import numpy as np
 import pandas as pd
@@ -105,7 +105,7 @@ def calculate_feature_drift(
     research_feature_samples: pd.Series,
     live_feature_samples: pd.Series,
     threshold: float = 0.2,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     Calculate feature drift using Population Stability Index (PSI) and the
     Kolmogorov-Smirnov statistic.
@@ -147,7 +147,7 @@ def monitor_execution_drift(
     live_slippage_bps: float,
     research_fill_rate: float,
     live_fill_rate: float,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     Monitor if execution conditions are worse than research assumptions.
     """

@@ -9,9 +9,9 @@ from __future__ import annotations
 import inspect
 import logging
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import Enum, auto
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 import pandas as pd
 
@@ -113,26 +113,26 @@ class LiveOrder:
     side: OrderSide
     order_type: OrderType
     quantity: float
-    price: Optional[float] = None
-    stop_price: Optional[float] = None
+    price: float | None = None
+    stop_price: float | None = None
 
     # State
     status: OrderStatus = OrderStatus.PENDING_NEW
     filled_quantity: float = 0.0
     remaining_quantity: float = 0.0
     avg_fill_price: float = 0.0
-    exchange_order_id: Optional[str] = None
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    exchange_order_id: str | None = None
+    metadata: dict[str, Any] = field(default_factory=dict)
 
     # Timestamps
-    created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
-    updated_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    created_at: datetime = field(default_factory=lambda: datetime.now(UTC))
+    updated_at: datetime = field(default_factory=lambda: datetime.now(UTC))
 
     def __post_init__(self):
         if self.remaining_quantity == 0:
             self.remaining_quantity = self.quantity
 
-    def update_status(self, new_status: OrderStatus, exchange_id: Optional[str] = None):
+    def update_status(self, new_status: OrderStatus, exchange_id: str | None = None):
         if self.status in _TERMINAL_STATES and new_status != self.status:
             LOGGER.warning(
                 "Ignoring status transition %s -> %s for order %s (already terminal)",
@@ -144,7 +144,7 @@ class LiveOrder:
         self.status = new_status
         if exchange_id:
             self.exchange_order_id = exchange_id
-        self.updated_at = datetime.now(timezone.utc)
+        self.updated_at = datetime.now(UTC)
 
     def apply_fill(self, fill_qty: float, fill_price: float):
         if self.status in _TERMINAL_STATES:
@@ -171,15 +171,15 @@ class LiveOrder:
 
 class OrderManager:
     def __init__(self, exchange_client: Any | None = None):
-        self.active_orders: Dict[str, LiveOrder] = {}  # client_order_id -> LiveOrder
-        self.order_history: List[LiveOrder] = []
-        self.execution_attribution: List[ExecutionAttributionRecord] = []
+        self.active_orders: dict[str, LiveOrder] = {}  # client_order_id -> LiveOrder
+        self.order_history: list[LiveOrder] = []
+        self.execution_attribution: list[ExecutionAttributionRecord] = []
         self.exchange_client = exchange_client
 
     def add_order(self, order: LiveOrder):
         self.active_orders[order.client_order_id] = order
 
-    def get_order(self, client_order_id: str) -> Optional[LiveOrder]:
+    def get_order(self, client_order_id: str) -> LiveOrder | None:
         return self.active_orders.get(client_order_id)
 
     @staticmethod
@@ -191,7 +191,7 @@ class OrderManager:
         max_spread_bps: float,
         min_depth_usd: float,
         min_tob_coverage: float,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         return evaluate_pretrade_microstructure_gate(
             spread_bps=spread_bps,
             depth_usd=depth_usd,
@@ -202,7 +202,7 @@ class OrderManager:
         )
 
     @staticmethod
-    def _submit_market_order_kwargs(order: LiveOrder) -> Dict[str, Any]:
+    def _submit_market_order_kwargs(order: LiveOrder) -> dict[str, Any]:
         reduce_only = bool((order.metadata or {}).get("reduce_only", False))
         return {
             "symbol": order.symbol,
@@ -211,7 +211,7 @@ class OrderManager:
             "reduce_only": reduce_only,
         }
 
-    def _market_order_call_kwargs(self, order: LiveOrder) -> Dict[str, Any]:
+    def _market_order_call_kwargs(self, order: LiveOrder) -> dict[str, Any]:
         kwargs = self._submit_market_order_kwargs(order)
         try:
             sig = inspect.signature(self.exchange_client.create_market_order)  # type: ignore[union-attr]
@@ -227,12 +227,12 @@ class OrderManager:
         order: LiveOrder,
         *,
         kill_switch_manager: Any | None = None,
-        market_state: Optional[Dict[str, float]] = None,
+        market_state: dict[str, float] | None = None,
         venue_rules: VenueSymbolRules | None = None,
         max_spread_bps: float = 5.0,
         min_depth_usd: float = 25_000.0,
         min_tob_coverage: float = 0.80,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Activate an order only if live microstructure is tradable.
 
@@ -293,12 +293,12 @@ class OrderManager:
         order: LiveOrder,
         *,
         kill_switch_manager: Any | None = None,
-        market_state: Optional[Dict[str, float]] = None,
+        market_state: dict[str, float] | None = None,
         venue_rules: VenueSymbolRules | None = None,
         max_spread_bps: float = 5.0,
         min_depth_usd: float = 25_000.0,
         min_tob_coverage: float = 0.80,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         gate = None
         if kill_switch_manager is not None:
             snapshot = dict(market_state or {})
@@ -358,7 +358,7 @@ class OrderManager:
             ),
         }
 
-    async def cancel_all_orders(self, symbol: Optional[str] = None):
+    async def cancel_all_orders(self, symbol: str | None = None):
         """Cancel all active orders for a symbol or ALL symbols via exchange client."""
         if not self.exchange_client:
             LOGGER.warning("No exchange client configured; skipping cancel_all_orders.")
@@ -367,7 +367,7 @@ class OrderManager:
         symbols_to_cancel = (
             [symbol] if symbol else list(set(o.symbol for o in self.active_orders.values()))
         )
-        failures: List[str] = []
+        failures: list[str] = []
         for sym in symbols_to_cancel:
             try:
                 await self.exchange_client.cancel_all_open_orders(sym)
@@ -380,7 +380,7 @@ class OrderManager:
                 "Failed to cancel all open orders during emergency unwind: " + "; ".join(failures)
             )
 
-    async def flatten_all_positions(self, state_store: Any, symbol: Optional[str] = None):
+    async def flatten_all_positions(self, state_store: Any, symbol: str | None = None):
         """Submit reactive market orders to close all positions in the state store."""
         if not self.exchange_client:
             LOGGER.warning("No exchange client configured; skipping flatten_all_positions.")
@@ -388,7 +388,7 @@ class OrderManager:
 
         positions = state_store.account.positions
         symbols = [symbol.upper()] if symbol else list(positions.keys())
-        failures: List[str] = []
+        failures: list[str] = []
 
         for sym in symbols:
             pos = positions.get(sym)
@@ -483,7 +483,7 @@ class OrderManager:
         )
         self.execution_attribution.append(record)
 
-    def summarize_execution_quality(self) -> Dict[str, float]:
+    def summarize_execution_quality(self) -> dict[str, float]:
         return summarize_execution_attribution(self.execution_attribution)
 
     async def close(self) -> None:

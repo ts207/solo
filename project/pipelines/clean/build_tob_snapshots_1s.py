@@ -3,9 +3,8 @@ from __future__ import annotations
 import argparse
 import logging
 import sys
-from datetime import timezone
+from datetime import UTC
 from pathlib import Path
-from typing import Dict, List
 
 import pandas as pd
 
@@ -42,10 +41,10 @@ def main() -> int:
         "symbols": symbols,
         "snapshot_interval": "1s",
     }
-    inputs: List[Dict[str, object]] = []
-    outputs: List[Dict[str, object]] = []
+    inputs: list[dict[str, object]] = []
+    outputs: list[dict[str, object]] = []
     manifest = start_manifest("build_tob_snapshots_1s", args.run_id, params, inputs, outputs)
-    stats: Dict[str, object] = {"symbols": {}}
+    stats: dict[str, object] = {"symbols": {}}
 
     try:
         for symbol in symbols:
@@ -69,7 +68,7 @@ def main() -> int:
                 inputs.append(
                     {
                         "path": str(file_path),
-                        "rows": int(len(data)),
+                        "rows": len(data),
                     }
                 )
 
@@ -78,7 +77,7 @@ def main() -> int:
 
                 start_ts = data["timestamp"].min().floor("1s")
                 end_ts = data["timestamp"].max().ceil("1s")
-                full_index = pd.date_range(start=start_ts, end=end_ts, freq="1s", tz=timezone.utc)
+                full_index = pd.date_range(start=start_ts, end=end_ts, freq="1s", tz=UTC)
 
                 grid = pd.DataFrame({"timestamp": full_index})
                 resampled = pd.merge_asof(
@@ -100,7 +99,7 @@ def main() -> int:
                 outputs.append(
                     {
                         "path": str(written),
-                        "rows": int(len(resampled)),
+                        "rows": len(resampled),
                         "start_ts": resampled["timestamp"].min().isoformat(),
                         "end_ts": resampled["timestamp"].max().isoformat(),
                         "storage": storage,
@@ -108,8 +107,8 @@ def main() -> int:
                 )
 
                 stats["symbols"].setdefault(symbol, {})[month_key] = {
-                    "raw_rows": int(len(data)),
-                    "snapshot_rows": int(len(resampled)),
+                    "raw_rows": len(data),
+                    "snapshot_rows": len(resampled),
                 }
 
         manifest["outputs"] = outputs

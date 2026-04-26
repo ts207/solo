@@ -1,9 +1,10 @@
 from __future__ import annotations
 
 import pickle
+from collections.abc import Sequence
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Sequence
+from typing import Any
 
 import numpy as np
 import pandas as pd
@@ -94,7 +95,7 @@ class EventConfidenceModel:
         return resolved
 
     @classmethod
-    def load(cls, path: str | Path) -> "EventConfidenceModel":
+    def load(cls, path: str | Path) -> EventConfidenceModel:
         with Path(path).open("rb") as handle:
             loaded = pickle.load(handle)
         if not isinstance(loaded, cls):

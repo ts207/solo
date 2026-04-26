@@ -1,5 +1,5 @@
 import logging
-from typing import Any, Dict, List
+from typing import Any
 
 import numpy as np
 import pandas as pd
@@ -9,8 +9,8 @@ LOGGER = logging.getLogger(__name__)
 
 
 def detect_parameter_drift(
-    old_manifest: Dict[str, Any], new_manifest: Dict[str, Any], threshold: float = 0.1
-) -> List[Dict[str, Any]]:
+    old_manifest: dict[str, Any], new_manifest: dict[str, Any], threshold: float = 0.1
+) -> list[dict[str, Any]]:
     """
     Detects parameters that have changed by more than `threshold` (10% by default)
     between `old_manifest` and `new_manifest`.
@@ -60,7 +60,7 @@ def detect_feature_drift(
     p_value_threshold: float = 0.05,
     ks_threshold: float = 0.15,
     reference_fraction: float = 0.5,
-) -> List[Dict[str, Any]]:
+) -> list[dict[str, Any]]:
     """
     Compares the latter portion of the features dataframe against the first portion using the Kolmogorov-Smirnov test.
     Emits a warning/flag if the KS p-value < 0.05 AND the KS statistic > ks_threshold.

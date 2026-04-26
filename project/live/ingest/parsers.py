@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Any, Dict, Optional
+from typing import Any
 
 import pandas as pd
 
@@ -42,7 +42,7 @@ class ForceOrderEvent:
     notional_usd: float  # filled_qty * price
 
 
-def parse_bybit_liquidation_event(payload: Dict[str, Any]) -> Optional[ForceOrderEvent]:
+def parse_bybit_liquidation_event(payload: dict[str, Any]) -> ForceOrderEvent | None:
     """Parse Bybit V5 liquidation stream message.
 
     Topic: liquidation.{SYMBOL}
@@ -68,7 +68,7 @@ def parse_bybit_liquidation_event(payload: Dict[str, Any]) -> Optional[ForceOrde
     )
 
 
-def parse_force_order_event(payload: Dict[str, Any]) -> Optional[ForceOrderEvent]:
+def parse_force_order_event(payload: dict[str, Any]) -> ForceOrderEvent | None:
     """Parse Binance forceOrder (liquidation) stream message."""
     data = payload.get("data", payload)
     if data.get("e") != "forceOrder":
@@ -87,7 +87,7 @@ def parse_force_order_event(payload: Dict[str, Any]) -> Optional[ForceOrderEvent
     )
 
 
-def parse_kline_event(payload: Dict[str, Any]) -> Optional[KlineEvent]:
+def parse_kline_event(payload: dict[str, Any]) -> KlineEvent | None:
     """Parse Binance kline stream message."""
     # Handle combined stream payload
     data = payload.get("data", payload)
@@ -114,8 +114,8 @@ def parse_kline_event(payload: Dict[str, Any]) -> Optional[KlineEvent]:
 
 
 def parse_book_ticker_event(
-    payload: Dict[str, Any], arrival_ts: Optional[pd.Timestamp] = None
-) -> Optional[BookTickerEvent]:
+    payload: dict[str, Any], arrival_ts: pd.Timestamp | None = None
+) -> BookTickerEvent | None:
     """Parse Binance bookTicker stream message."""
     data = payload.get("data", payload)
 
@@ -144,7 +144,7 @@ def parse_book_ticker_event(
     )
 
 
-def parse_bybit_kline_event(payload: Dict[str, Any]) -> Optional[KlineEvent]:
+def parse_bybit_kline_event(payload: dict[str, Any]) -> KlineEvent | None:
     """Parse Bybit V5 kline stream message."""
     topic = payload.get("topic", "")
     if not topic.startswith("kline"):
@@ -180,8 +180,8 @@ def parse_bybit_kline_event(payload: Dict[str, Any]) -> Optional[KlineEvent]:
 
 
 def parse_bybit_ticker_event(
-    payload: Dict[str, Any], arrival_ts: Optional[pd.Timestamp] = None
-) -> Optional[BookTickerEvent]:
+    payload: dict[str, Any], arrival_ts: pd.Timestamp | None = None
+) -> BookTickerEvent | None:
     """Parse Bybit V5 tickers stream message."""
     topic = payload.get("topic", "")
     if not topic.startswith("tickers"):

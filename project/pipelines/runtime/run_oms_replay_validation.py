@@ -3,7 +3,6 @@ from __future__ import annotations
 import argparse
 import json
 import sys
-from typing import Dict, List
 
 import pandas as pd
 
@@ -35,10 +34,10 @@ def main() -> int:
         "run_id": str(args.run_id),
         "fail_on_violations": bool(int(args.fail_on_violations)),
     }
-    inputs: List[Dict[str, object]] = [
+    inputs: list[dict[str, object]] = [
         {"path": str(normalized_path), "rows": None, "start_ts": None, "end_ts": None}
     ]
-    outputs: List[Dict[str, object]] = [
+    outputs: list[dict[str, object]] = [
         {"path": str(replay_rows_path), "rows": None, "start_ts": None, "end_ts": None},
         {"path": str(report_path), "rows": 1, "start_ts": None, "end_ts": None},
     ]

@@ -31,10 +31,10 @@ from __future__ import annotations
 
 import json
 import re
+from collections.abc import Sequence
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
-from typing import Optional, Sequence
 
 import pandas as pd
 
@@ -84,9 +84,9 @@ class EvaluationModeViolation(RuntimeError):
 class InvariantResult:
     id: str
     passed: bool
-    failure_reason: Optional[str] = None
-    remediation: Optional[str] = None
-    checked_at: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+    failure_reason: str | None = None
+    remediation: str | None = None
+    checked_at: str = field(default_factory=lambda: datetime.now(UTC).isoformat())
 
     def to_dict(self) -> dict:
         return {
@@ -102,7 +102,7 @@ class InvariantResult:
 class EvaluationModeResult:
     evaluation_mode: bool
     invariant_results: list[InvariantResult]
-    checked_at: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+    checked_at: str = field(default_factory=lambda: datetime.now(UTC).isoformat())
     hypothesis_spec_path: str = ""
 
     def to_manifest_dict(self) -> dict:
@@ -123,11 +123,11 @@ def check_evaluation_mode(
     *,
     run_id: str,
     project_root: Path,
-    blueprints_path: Optional[Path] = None,
-    ablation_report_path: Optional[Path] = None,
-    phase2_report_root: Optional[Path] = None,
+    blueprints_path: Path | None = None,
+    ablation_report_path: Path | None = None,
+    phase2_report_root: Path | None = None,
     embargo_days: int = 0,
-    cost_config_digest: Optional[str] = None,
+    cost_config_digest: str | None = None,
     skip_invariants: Sequence[str] = (),
     raise_on_failure: bool = True,
 ) -> EvaluationModeResult:
@@ -261,7 +261,7 @@ def _check_hypothesis_registered(spec_path: Path) -> InvariantResult:
     return InvariantResult(id=inv_id, passed=True)
 
 
-def _check_no_fallback_in_measurement(blueprints_path: Optional[Path]) -> InvariantResult:
+def _check_no_fallback_in_measurement(blueprints_path: Path | None) -> InvariantResult:
     inv_id = "INV_NO_FALLBACK_IN_MEASUREMENT"
     remediation = (
         "Ensure all strategy candidates have fallback_event_count=0 "
@@ -300,7 +300,7 @@ def _check_no_fallback_in_measurement(blueprints_path: Optional[Path]) -> Invari
     return InvariantResult(id=inv_id, passed=True)
 
 
-def _check_bh_applied_to_lift(ablation_path: Optional[Path]) -> InvariantResult:
+def _check_bh_applied_to_lift(ablation_path: Path | None) -> InvariantResult:
     inv_id = "INV_BH_APPLIED_TO_LIFT"
     remediation = (
         "Re-run evaluation/ablation stage. Ensure Benjamini-Hochberg (BH) "
@@ -340,7 +340,7 @@ def _check_bh_applied_to_lift(ablation_path: Optional[Path]) -> InvariantResult:
 
 
 def _check_symbol_stratified_family(
-    phase2_report_root: Optional[Path], run_id: str
+    phase2_report_root: Path | None, run_id: str
 ) -> InvariantResult:
     inv_id = "INV_SYMBOL_STRATIFIED_FAMILY"
     remediation = (
@@ -470,7 +470,7 @@ def _check_embargo_nonzero(embargo_days: int) -> InvariantResult:
 
 
 def _check_cost_digest_uniform(
-    blueprints_path: Optional[Path], expected_digest: Optional[str]
+    blueprints_path: Path | None, expected_digest: str | None
 ) -> InvariantResult:
     inv_id = "INV_COST_DIGEST_UNIFORM"
     remediation = (

@@ -12,7 +12,10 @@ def run(
     promotion_profile: str = "auto",
     require_forward_confirmation: bool | None = None,
 ):
-    from project.research.services.promotion_service import build_promotion_config, execute_promotion
+    from project.research.services.promotion_service import (
+        build_promotion_config,
+        execute_promotion,
+    )
 
     overrides: dict[str, Any] = {
         "retail_profile": retail_profile,

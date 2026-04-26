@@ -1,9 +1,10 @@
 from __future__ import annotations
 
 import os
-from datetime import datetime, timezone
+from collections.abc import Mapping
+from datetime import UTC, datetime
 from pathlib import Path
-from typing import Any, Mapping
+from typing import Any
 
 from project.spec_registry.loaders import repo_root
 
@@ -11,7 +12,7 @@ ARTIFACT_METADATA_SCHEMA_VERSION = "artifact_metadata_v1"
 
 
 def utc_now_iso() -> str:
-    return datetime.now(timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z")
+    return datetime.now(UTC).replace(microsecond=0).isoformat().replace("+00:00", "Z")
 
 
 def _resolve_root(path: str | Path | None) -> Path | None:

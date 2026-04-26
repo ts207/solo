@@ -2,14 +2,13 @@ from __future__ import annotations
 
 import re
 from dataclasses import dataclass
-from typing import Dict, List
 
 import pandas as pd
 
 from project.strategy.runtime.base import Strategy
 from project.strategy.runtime.dsl_interpreter_v1 import DslInterpreterV1
 
-_REGISTRY: Dict[str, Strategy] = {
+_REGISTRY: dict[str, Strategy] = {
     "dsl_interpreter_v1": DslInterpreterV1(),
 }
 
@@ -50,7 +49,7 @@ class _AliasedStrategy:
     _base: Strategy
 
     @property
-    def required_features(self) -> List[str]:
+    def required_features(self) -> list[str]:
         return list(getattr(self._base, "required_features", []) or [])
 
     def generate_positions(
@@ -75,7 +74,7 @@ class _SymbolScopedStrategy:
     _base: Strategy
 
     @property
-    def required_features(self) -> List[str]:
+    def required_features(self) -> list[str]:
         return list(getattr(self._base, "required_features", []) or [])
 
     def generate_positions(
@@ -162,5 +161,5 @@ def is_dsl_strategy(name: str) -> tuple[bool, str | None]:
     return is_dsl, resolved.variant
 
 
-def list_strategies() -> List[str]:
+def list_strategies() -> list[str]:
     return sorted(_REGISTRY.keys())

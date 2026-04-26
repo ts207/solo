@@ -1,14 +1,14 @@
 from __future__ import annotations
 
 import json
+from collections.abc import Iterable
 from pathlib import Path
-from typing import Dict, Iterable, List, Tuple
 
 import numpy as np
 import pandas as pd
 
 
-def load_expectancy_payload(path: Path) -> Dict[str, object]:
+def load_expectancy_payload(path: Path) -> dict[str, object]:
     if not path.exists():
         return {}
     try:
@@ -22,8 +22,8 @@ def write_empty_robustness_payload(
     *,
     out_dir: Path,
     run_id: str,
-    symbols: List[str],
-    horizons: List[int],
+    symbols: list[str],
+    horizons: list[int],
     skip_reason: str,
 ) -> int:
     payload = {
@@ -53,7 +53,7 @@ def write_empty_robustness_payload(
     return 0
 
 
-def parse_horizons(value: str) -> List[int]:
+def parse_horizons(value: str) -> list[int]:
     parts = [x.strip() for x in value.split(",") if x.strip()]
     horizons = sorted({int(x) for x in parts if int(x) > 0})
     if not horizons:
@@ -62,7 +62,7 @@ def parse_horizons(value: str) -> List[int]:
 
 
 def pick_window_column(columns: Iterable[str], prefix: str) -> str:
-    candidates: List[Tuple[int, str]] = []
+    candidates: list[tuple[int, str]] = []
     for col in columns:
         if not col.startswith(prefix):
             continue

@@ -5,7 +5,7 @@ import yaml
 from project.events.detectors.registry import list_registered_event_types
 
 registry_path = Path("project/configs/registries/detectors.yaml")
-with open(registry_path, "r") as f:
+with open(registry_path) as f:
     data = yaml.safe_load(f)
 
 registered = set(list_registered_event_types())

@@ -1,7 +1,7 @@
 import json
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any
 
 
 class IncubationLedger:
@@ -9,9 +9,9 @@ class IncubationLedger:
         self.path = ledger_path
         self._data = self._load()
 
-    def _load(self) -> Dict[str, Any]:
+    def _load(self) -> dict[str, Any]:
         if self.path.exists():
-            with open(self.path, "r") as f:
+            with open(self.path) as f:
                 return json.load(f)
         return {"strategies": {}}
 
@@ -24,13 +24,13 @@ class IncubationLedger:
         if strategy_id not in self._data["strategies"]:
             self._data["strategies"][strategy_id] = {
                 "blueprint_hash": blueprint_hash,
-                "start_time": datetime.now(timezone.utc).isoformat(),
+                "start_time": datetime.now(UTC).isoformat(),
                 "status": "incubating",
                 "days_required": 30,
             }
             self.save()
 
-    def get_status(self, strategy_id: str) -> Dict[str, Any]:
+    def get_status(self, strategy_id: str) -> dict[str, Any]:
         return self._data["strategies"].get(strategy_id, {"status": "not_found"})
 
     def is_graduated(self, strategy_id: str) -> bool:
@@ -45,17 +45,16 @@ class IncubationLedger:
 
         start_time = datetime.fromisoformat(strat["start_time"])
         required_days = strat.get("days_required", 30)
-        return (datetime.now(timezone.utc) - start_time) >= timedelta(days=required_days)
+        return (datetime.now(UTC) - start_time) >= timedelta(days=required_days)
 
     def graduate(self, strategy_id: str):
         if strategy_id in self._data["strategies"]:
             self._data["strategies"][strategy_id]["status"] = "live"
-            self._data["strategies"][strategy_id]["graduation_time"] = datetime.now(timezone.utc).isoformat()
+            self._data["strategies"][strategy_id]["graduation_time"] = datetime.now(UTC).isoformat()
             self.save()
 
 
 from dataclasses import dataclass
-from typing import Optional
 
 
 @dataclass(frozen=True)
@@ -70,8 +69,8 @@ class IncubationEvidence:
     days_required: float
     realized_pnl_usd: float = 0.0
     n_trades: int = 0
-    hit_rate: Optional[float] = None
-    max_drawdown_pct: Optional[float] = None
+    hit_rate: float | None = None
+    max_drawdown_pct: float | None = None
     drawdown_limit_pct: float = 0.15
 
     @property

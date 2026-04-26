@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Union
+from typing import Any
 
 
 @dataclass
@@ -10,12 +10,12 @@ class StageSpec:
     """Specification for a single pipeline stage."""
 
     name: str
-    script: Union[str, Path]
-    args: List[str] = field(default_factory=list)
-    depends_on: List[str] = field(default_factory=list)
+    script: str | Path
+    args: list[str] = field(default_factory=list)
+    depends_on: list[str] = field(default_factory=list)
     is_template: bool = False
 
-    def expand(self, tf: str, event: Optional[str] = None) -> StageSpec:
+    def expand(self, tf: str, event: str | None = None) -> StageSpec:
         """Expand placeholders in name and args."""
         new_name = self.name.replace("{tf}", tf)
         if event:
@@ -40,9 +40,9 @@ class PipelineSpec:
     """Specification for an entire pipeline."""
 
     name: str
-    stages: List[StageSpec] = field(default_factory=list)
+    stages: list[StageSpec] = field(default_factory=list)
 
-    def build_dag(self) -> Dict[str, Any]:
+    def build_dag(self) -> dict[str, Any]:
         """Convert specs into a runnable DAG."""
         # This will eventually replace the manual building in stages/
         pass

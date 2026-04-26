@@ -181,7 +181,7 @@ class TestStagePolicytNormRecalibration:
 
     def test_t_min_gate_constant_value(self):
         from project.research.search.stage_policy import _T_MIN_GATE
-        assert _T_MIN_GATE == pytest.approx(1.5), (
+        assert pytest.approx(1.5) == _T_MIN_GATE, (
             "_T_MIN_GATE must match the discovery pipeline minimum t-stat gate"
         )
 

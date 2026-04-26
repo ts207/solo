@@ -1,10 +1,9 @@
 from __future__ import annotations
 
 import re
-from typing import Dict, List
 
 # Canonical annualization factors by timeframe.
-BARS_PER_YEAR_BY_TIMEFRAME: Dict[str, int] = {
+BARS_PER_YEAR_BY_TIMEFRAME: dict[str, int] = {
     "1m": 365 * 24 * 60,
     "5m": 365 * 24 * 12,
     "15m": 365 * 24 * 4,
@@ -17,7 +16,7 @@ BARS_PER_YEAR_BY_TIMEFRAME: Dict[str, int] = {
 }
 
 # Canonical horizon label to 5-minute bars mapping used by research tooling.
-HORIZON_BARS_BY_TIMEFRAME: Dict[str, int] = {
+HORIZON_BARS_BY_TIMEFRAME: dict[str, int] = {
     "1m": 1,
     "5m": 1,
     "4b": 4,
@@ -35,7 +34,7 @@ HORIZON_BARS_BY_TIMEFRAME: Dict[str, int] = {
 }
 
 # Default horizon grid for event quality / conditional analysis at 5m base bars.
-DEFAULT_EVENT_HORIZON_BARS: List[int] = [1, 3, 12]
+DEFAULT_EVENT_HORIZON_BARS: list[int] = [1, 3, 12]
 
 _ARBITRARY_BAR_HORIZON_RE = re.compile(r"^(?P<bars>\d+)(?:b)?$")
 

@@ -5,7 +5,7 @@ Numerical reasoning and core shrinkage math kernels.
 from __future__ import annotations
 
 import logging
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 import numpy as np
 import pandas as pd
@@ -47,7 +47,7 @@ def _effective_sample_size(weights: pd.Series) -> float:
 def _aggregate_effect_units(
     df: pd.DataFrame,
     *,
-    unit_cols: List[str],
+    unit_cols: list[str],
     n_col: str,
     mean_col: str,
     var_col: str,
@@ -62,7 +62,7 @@ def _aggregate_effect_units(
     work["_mean"] = pd.to_numeric(work[mean_col], errors="coerce").fillna(0.0)
     work["_var"] = pd.to_numeric(work[var_col], errors="coerce").fillna(0.0).clip(lower=0.0)
 
-    rows: List[Dict[str, Any]] = []
+    rows: list[dict[str, Any]] = []
     for keys, g in work.groupby(unit_cols, dropna=False):
         g = g.copy()
         total_n = float(g["_n"].sum())
@@ -89,7 +89,7 @@ def _aggregate_effect_units(
 def _estimate_adaptive_lambda(
     units_df: pd.DataFrame,
     *,
-    parent_cols: List[str],
+    parent_cols: list[str],
     child_col: str,
     n_col: str,
     mean_col: str,
@@ -102,7 +102,7 @@ def _estimate_adaptive_lambda(
     eps: float,
     min_total_samples: int,
     min_samples_for_adaptive_lambda: int = 30,
-    previous_lambda_by_parent: Optional[Dict[Tuple[Any, ...], float]] = None,
+    previous_lambda_by_parent: dict[tuple[Any, ...], float] | None = None,
     lambda_smoothing_alpha: float = 0.1,
     lambda_shock_cap_pct: float = 0.5,
     lambda_decay_factor: float = 0.0,
@@ -134,7 +134,7 @@ def _estimate_adaptive_lambda(
         base[f"{lambda_name}_prev"] = np.nan
         return base
 
-    rows: List[Dict[str, Any]] = []
+    rows: list[dict[str, Any]] = []
     for keys, g in units_df.groupby(parent_cols, dropna=False):
         if not isinstance(keys, tuple):
             keys = (keys,)
@@ -215,7 +215,7 @@ def _estimate_adaptive_lambda(
 def _compute_loso_stability(
     df: pd.DataFrame,
     *,
-    group_cols: List[str],
+    group_cols: list[str],
     symbol_col: str = "_symbol",
     effect_col: str = "effect_raw",
     n_col: str = "_n",
@@ -279,14 +279,14 @@ def _apply_hierarchical_shrinkage(
     adaptive_lambda_max: float = 5000.0,
     adaptive_lambda_eps: float = 1e-8,
     adaptive_lambda_min_total_samples: int = 200,
-    previous_lambda_maps: Optional[Dict[str, Dict[Tuple[Any, ...], float]]] = None,
+    previous_lambda_maps: dict[str, dict[tuple[Any, ...], float]] | None = None,
     lambda_smoothing_alpha: float = 0.1,
     lambda_shock_cap_pct: float = 0.5,
     lambda_decay_factor: float = 0.05,
-    elapsed_days: Optional[float] = None,
+    elapsed_days: float | None = None,
     lambda_decay_halflife_days: float = 90.0,
     train_only_lambda: bool = False,
-    split_col: Optional[str] = None,
+    split_col: str | None = None,
     run_mode: str = "exploratory",  # Added run_mode
 ) -> pd.DataFrame:
     """Empirical-Bayes partial pooling across family -> event -> state."""
@@ -310,7 +310,7 @@ def _apply_hierarchical_shrinkage(
         "deploy",
     }
     effective_train_only = train_only_lambda
-    aggregate_train_count_col: Optional[str] = None
+    aggregate_train_count_col: str | None = None
 
     if split_col and split_col in raw_df.columns:
         # Respect the explicit caller contract. Train-only estimation is enabled

@@ -5,9 +5,8 @@ Defines the list of canonical Phase 1 event types and the corresponding analyzer
 scripts and arguments required to process them in Phase 2 candidate discovery.
 """
 
-from typing import List, Tuple
 
-PHASE2_EVENT_CHAIN: List[Tuple[str, str, List[str]]] = [
+PHASE2_EVENT_CHAIN: list[tuple[str, str, list[str]]] = [
     ("VOL_SHOCK", "analyze_events.py", ["--event_type", "VOL_SHOCK", "--timeframe", "5m"]),
     (
         "LIQUIDITY_VACUUM",

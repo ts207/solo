@@ -1,7 +1,8 @@
 from __future__ import annotations
 
+from collections.abc import Iterable, Mapping
 from functools import lru_cache
-from typing import Any, Iterable, Mapping
+from typing import Any
 
 from project.events.contract_registry import load_active_event_contracts
 from project.events.event_aliases import resolve_event_alias

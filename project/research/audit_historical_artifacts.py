@@ -9,9 +9,9 @@ from __future__ import annotations
 import json
 import logging
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 import pandas as pd
 
@@ -89,19 +89,19 @@ class ArtifactInventoryRow:
     inference_confidence: str = ""
     policy_version: str = ""
     bundle_version: str = ""
-    q_value: Optional[float] = None
-    q_value_scope: Optional[float] = None
-    effective_q_value: Optional[float] = None
-    num_tests_scope: Optional[int] = None
-    multiplicity_scope_mode: Optional[str] = None
-    search_scope_version: Optional[str] = None
-    search_burden_estimated: Optional[bool] = None
+    q_value: float | None = None
+    q_value_scope: float | None = None
+    effective_q_value: float | None = None
+    num_tests_scope: int | None = None
+    multiplicity_scope_mode: str | None = None
+    search_scope_version: str | None = None
+    search_burden_estimated: bool | None = None
     historical_trust_status: str = ""
     historical_trust_reason: str = ""
     canonical_reuse_allowed: bool = False
     compat_reuse_allowed: bool = False
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "run_id": self.run_id,
             "candidate_id": self.candidate_id,
@@ -136,19 +136,19 @@ class ArtifactInventoryRow:
 
 @dataclass
 class AuditInventoryResult:
-    rows: List[ArtifactInventoryRow]
-    run_id_counts: Dict[str, int]
-    stat_regime_counts: Dict[str, int]
-    audit_status_counts: Dict[str, int]
-    trust_status_counts: Dict[str, int] = field(default_factory=dict)
+    rows: list[ArtifactInventoryRow]
+    run_id_counts: dict[str, int]
+    stat_regime_counts: dict[str, int]
+    audit_status_counts: dict[str, int]
+    trust_status_counts: dict[str, int] = field(default_factory=dict)
     requires_repromotion_count: int = 0
     requires_manual_review_count: int = 0
     canonical_reuse_blocked_count: int = 0
     compat_reuse_blocked_count: int = 0
-    scanned_artifact_paths: List[str] = field(default_factory=list)
-    errors: List[str] = field(default_factory=list)
+    scanned_artifact_paths: list[str] = field(default_factory=list)
+    errors: list[str] = field(default_factory=list)
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "schema_version": AUDIT_INVENTORY_SCHEMA_VERSION,
             "total_rows": len(self.rows),
@@ -169,13 +169,13 @@ class AuditInventoryResult:
 def _get_file_created_at(path: Path) -> str:
     try:
         stat = path.stat()
-        dt = datetime.fromtimestamp(stat.st_mtime, tz=timezone.utc)
+        dt = datetime.fromtimestamp(stat.st_mtime, tz=UTC)
         return dt.isoformat().replace("+00:00", "Z")
     except OSError:
-        return datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+        return datetime.now(UTC).isoformat().replace("+00:00", "Z")
 
 
-def _safe_float(value: Any) -> Optional[float]:
+def _safe_float(value: Any) -> float | None:
     if value is None:
         return None
     try:
@@ -187,7 +187,7 @@ def _safe_float(value: Any) -> Optional[float]:
         return None
 
 
-def _safe_int(value: Any) -> Optional[int]:
+def _safe_int(value: Any) -> int | None:
     if value is None:
         return None
     try:
@@ -196,7 +196,7 @@ def _safe_int(value: Any) -> Optional[int]:
         return None
 
 
-def _safe_bool(value: Any) -> Optional[bool]:
+def _safe_bool(value: Any) -> bool | None:
     if value is None:
         return None
     if isinstance(value, bool):
@@ -209,7 +209,7 @@ def _safe_bool(value: Any) -> Optional[bool]:
     return None
 
 
-def _parse_created_at(value: str) -> Optional[datetime]:
+def _parse_created_at(value: str) -> datetime | None:
     if not value:
         return None
     try:
@@ -245,7 +245,7 @@ def _infer_run_hint_from_path(data_root: Path, path: Path) -> str:
     return ""
 
 
-def _find_historical_artifacts(data_root: Path) -> List[DiscoveredArtifact]:
+def _find_historical_artifacts(data_root: Path) -> list[DiscoveredArtifact]:
     paths: dict[tuple[str, str], DiscoveredArtifact] = {}
 
     def _record(artifact_type: str, candidate: Path) -> None:
@@ -297,7 +297,7 @@ def _find_historical_artifacts(data_root: Path) -> List[DiscoveredArtifact]:
     return sorted(paths.values(), key=lambda item: (item.artifact_type, str(item.artifact_path)))
 
 
-def _flatten_validation_bundle_records(payload: dict[str, Any]) -> List[Dict[str, Any]]:
+def _flatten_validation_bundle_records(payload: dict[str, Any]) -> list[dict[str, Any]]:
     run_id = str(payload.get("run_id", "")).strip()
     program_id = str(payload.get("summary_stats", {}).get("program_id", "")).strip() if isinstance(payload.get("summary_stats", {}), dict) else ""
     candidate_lists = []
@@ -305,7 +305,7 @@ def _flatten_validation_bundle_records(payload: dict[str, Any]) -> List[Dict[str
         values = payload.get(key, [])
         if isinstance(values, list):
             candidate_lists.extend(values)
-    rows: List[Dict[str, Any]] = []
+    rows: list[dict[str, Any]] = []
     for entry in candidate_lists:
         if not isinstance(entry, dict):
             continue
@@ -330,17 +330,17 @@ def _flatten_validation_bundle_records(payload: dict[str, Any]) -> List[Dict[str
     return [{"run_id": run_id, "program_id": program_id}]
 
 
-def _flatten_promotion_lineage_rows(payload: dict[str, Any]) -> List[Dict[str, Any]]:
+def _flatten_promotion_lineage_rows(payload: dict[str, Any]) -> list[dict[str, Any]]:
     rows = payload.get("rows", [])
     if isinstance(rows, list) and rows:
         return [dict(row) for row in rows if isinstance(row, dict)]
     return [{"run_id": str(payload.get("run_id", "")).strip()}]
 
 
-def _flatten_promoted_theses_rows(payload: dict[str, Any]) -> List[Dict[str, Any]]:
+def _flatten_promoted_theses_rows(payload: dict[str, Any]) -> list[dict[str, Any]]:
     run_id = str(payload.get("run_id", "")).strip()
     theses = payload.get("theses", [])
-    rows: List[Dict[str, Any]] = []
+    rows: list[dict[str, Any]] = []
     if isinstance(theses, list):
         for thesis in theses:
             if not isinstance(thesis, dict):
@@ -368,11 +368,11 @@ def _flatten_promoted_theses_rows(payload: dict[str, Any]) -> List[Dict[str, Any
     return [{"run_id": run_id}]
 
 
-def _flatten_live_index_rows(payload: dict[str, Any]) -> List[Dict[str, Any]]:
+def _flatten_live_index_rows(payload: dict[str, Any]) -> list[dict[str, Any]]:
     runs = payload.get("runs", {})
     if not isinstance(runs, dict) or not runs:
         return [{"run_id": str(payload.get("latest_run_id", "")).strip()}]
-    rows: List[Dict[str, Any]] = []
+    rows: list[dict[str, Any]] = []
     for run_id, meta in runs.items():
         meta = meta if isinstance(meta, dict) else {}
         rows.append(
@@ -384,11 +384,11 @@ def _flatten_live_index_rows(payload: dict[str, Any]) -> List[Dict[str, Any]]:
     return rows
 
 
-def _flatten_run_manifest_rows(payload: dict[str, Any]) -> List[Dict[str, Any]]:
+def _flatten_run_manifest_rows(payload: dict[str, Any]) -> list[dict[str, Any]]:
     return [{"run_id": str(payload.get("run_id", "")).strip(), "program_id": str(payload.get("program_id", "")).strip()}]
 
 
-def _load_artifact_records(artifact: DiscoveredArtifact) -> List[Dict[str, Any]]:
+def _load_artifact_records(artifact: DiscoveredArtifact) -> list[dict[str, Any]]:
     path = artifact.artifact_path
     if artifact.artifact_type in _DATAFRAME_ARTIFACT_TYPES:
         return _read_dataframe(path).to_dict(orient="records")
@@ -411,7 +411,7 @@ def _load_artifact_records(artifact: DiscoveredArtifact) -> List[Dict[str, Any]]
 
 
 def _build_inventory_row(
-    row: Dict[str, Any],
+    row: dict[str, Any],
     *,
     artifact_path: str,
     artifact_type: str,
@@ -453,17 +453,17 @@ def _build_inventory_row(
 
 
 def scan_historical_artifacts(
-    data_root: Optional[Path] = None,
+    data_root: Path | None = None,
     *,
-    run_id: Optional[str] = None,
-    since: Optional[str] = None,
+    run_id: str | None = None,
+    since: str | None = None,
 ) -> AuditInventoryResult:
     resolved_root = Path(data_root) if data_root is not None else get_data_root()
     artifacts = _find_historical_artifacts(resolved_root)
 
-    rows: List[ArtifactInventoryRow] = []
-    scanned_paths: List[str] = []
-    errors: List[str] = []
+    rows: list[ArtifactInventoryRow] = []
+    scanned_paths: list[str] = []
+    errors: list[str] = []
 
     since_dt = _parse_created_at(str(since or ""))
 
@@ -479,7 +479,7 @@ def scan_historical_artifacts(
                     continue
             trust_stamp = inspect_artifact_trust(artifact.artifact_type, path)
             records = _load_artifact_records(artifact)
-            artifact_rows: List[ArtifactInventoryRow] = []
+            artifact_rows: list[ArtifactInventoryRow] = []
             for record in records:
                 inventory_row = _build_inventory_row(
                     record,
@@ -511,10 +511,10 @@ def scan_historical_artifacts(
             errors.append(f"{path}: {exc}")
             log.warning("Failed to scan artifact %s: %s", path, exc)
 
-    run_id_counts: Dict[str, int] = {}
-    stat_regime_counts: Dict[str, int] = {}
-    audit_status_counts: Dict[str, int] = {}
-    trust_status_counts: Dict[str, int] = {}
+    run_id_counts: dict[str, int] = {}
+    stat_regime_counts: dict[str, int] = {}
+    audit_status_counts: dict[str, int] = {}
+    trust_status_counts: dict[str, int] = {}
     requires_repromotion_count = 0
     requires_manual_review_count = 0
     canonical_reuse_blocked_count = 0
@@ -554,9 +554,9 @@ def scan_historical_artifacts(
 def build_run_historical_trust_summary(
     *,
     run_id: str,
-    data_root: Optional[Path] = None,
+    data_root: Path | None = None,
     result: AuditInventoryResult | None = None,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     resolved = Path(data_root) if data_root is not None else get_data_root()
     inventory = result if result is not None else scan_historical_artifacts(resolved, run_id=run_id)
     run_rows = [row for row in inventory.rows if str(row.run_id).strip() == str(run_id).strip()]
@@ -624,7 +624,7 @@ def write_artifact_audit_stamp_sidecar(
 def write_audit_inventory(
     result: AuditInventoryResult,
     output_dir: Path,
-) -> Dict[str, Path]:
+) -> dict[str, Path]:
     ensure_dir(output_dir)
     parquet_path = output_dir / "historical_artifact_audit.parquet"
     json_path = output_dir / "historical_artifact_audit.json"
@@ -695,9 +695,9 @@ def ensure_dir(path: Path) -> None:
 
 def rewrite_audit_stamp_sidecars(
     result: AuditInventoryResult,
-) -> Dict[str, Any]:
-    artifact_stamps: Dict[str, List[ArtifactAuditStamp]] = {}
-    artifact_trust: Dict[str, List[HistoricalTrustStamp]] = {}
+) -> dict[str, Any]:
+    artifact_stamps: dict[str, list[ArtifactAuditStamp]] = {}
+    artifact_trust: dict[str, list[HistoricalTrustStamp]] = {}
     for row in result.rows:
         path_key = row.artifact_path
         artifact_stamps.setdefault(path_key, []).append(
@@ -722,8 +722,8 @@ def rewrite_audit_stamp_sidecars(
         )
 
     written_count = 0
-    aggregated_stamps: Dict[str, ArtifactAuditStamp] = {}
-    aggregated_trust: Dict[str, HistoricalTrustStamp] = {}
+    aggregated_stamps: dict[str, ArtifactAuditStamp] = {}
+    aggregated_trust: dict[str, HistoricalTrustStamp] = {}
 
     for artifact_path_str, stamps in artifact_stamps.items():
         trust_stamps = artifact_trust.get(artifact_path_str, [])
@@ -773,12 +773,12 @@ def rewrite_audit_stamp_sidecars(
 
 
 __all__ = [
+    "AUDIT_INVENTORY_SCHEMA_VERSION",
     "ArtifactInventoryRow",
     "AuditInventoryResult",
     "build_run_historical_trust_summary",
+    "rewrite_audit_stamp_sidecars",
     "scan_historical_artifacts",
     "write_artifact_audit_stamp_sidecar",
     "write_audit_inventory",
-    "rewrite_audit_stamp_sidecars",
-    "AUDIT_INVENTORY_SCHEMA_VERSION",
 ]

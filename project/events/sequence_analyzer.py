@@ -1,4 +1,3 @@
-from typing import Dict, List
 
 import pandas as pd
 
@@ -12,7 +11,7 @@ def _normalize_gap_value(gap, sample_diff):
 
 
 def detect_sequences(
-    df: pd.DataFrame, events: List[str], max_gaps: List[int], sequence_name: str
+    df: pd.DataFrame, events: list[str], max_gaps: list[int], sequence_name: str
 ) -> pd.DataFrame:
     """
     Detect causal chains of events in an event stream.
@@ -56,11 +55,11 @@ def detect_sequences(
 
 def _find_next_step(
     group: pd.DataFrame,
-    events: List[str],
-    max_gaps: List[int],
+    events: list[str],
+    max_gaps: list[int],
     step: int,
-    current_path: List[int],
-    event_indices: Dict[str, List[int]],
+    current_path: list[int],
+    event_indices: dict[str, list[int]],
 ) -> bool:
     if step == len(events):
         return True

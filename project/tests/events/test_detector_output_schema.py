@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 import numpy as np
 import pandas as pd
@@ -65,8 +65,8 @@ def test_detected_event_bounds_and_serialization() -> None:
         detector_class='VolSpikeDetectorV2',
         symbol='BTCUSDT',
         timeframe='5m',
-        ts_start=datetime.now(timezone.utc),
-        ts_end=datetime.now(timezone.utc),
+        ts_start=datetime.now(UTC),
+        ts_end=datetime.now(UTC),
         canonical_family='VOLATILITY_TRANSITION',
         subtype='vol_spike',
         phase='shock',
@@ -98,8 +98,8 @@ def test_detected_event_rejects_invalid_quality_flag() -> None:
             detector_class='VolSpikeDetectorV2',
             symbol='BTCUSDT',
             timeframe='5m',
-            ts_start=datetime.now(timezone.utc),
-            ts_end=datetime.now(timezone.utc),
+            ts_start=datetime.now(UTC),
+            ts_end=datetime.now(UTC),
             canonical_family='VOLATILITY_TRANSITION',
             subtype='vol_spike',
             phase='shock',
