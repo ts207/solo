@@ -307,11 +307,18 @@ def _benchmark_slice(
     start_date = "2024-01-01"
     end_date = "2024-01-31"
 
-    # Generated proposal path for the second stage
+    # Resolve generated proposal path dynamically
     generated_proposal_dir = data_root / "runs" / run_id / "generated_proposals"
-    # We assume one proposal is generated for the benchmark event
-    proposal_name = f"cell_{slice_spec.event_id.lower()}_unconditional.yaml"
-    generated_proposal = generated_proposal_dir / proposal_name
+    proposal_name_fallback = f"cell_{slice_spec.event_id.lower()}_unconditional.yaml"
+    generated_proposal = generated_proposal_dir / proposal_name_fallback
+
+    if execute:
+        # After assemble-theses, we find the actual file
+        proposals = sorted(generated_proposal_dir.glob("*.yaml"))
+        if proposals:
+            # Prefer one matching event_id
+            event_match = [p for p in proposals if slice_spec.event_id.lower() in p.name.lower()]
+            generated_proposal = event_match[0] if event_match else proposals[0]
 
     commands = [
         [
@@ -365,7 +372,7 @@ def _benchmark_slice(
             "discover",
             "run",
             "--proposal",
-            str(generated_proposal),
+            "RESOLVED_AT_RUNTIME",  # Placeholder, will be replaced in execute loop
             "--run_id",
             run_id,
             "--data_root",
@@ -408,6 +415,8 @@ def _benchmark_slice(
         ],
     ]
     if not execute:
+        # For dry-run, show the fallback path in planned commands
+        commands[3][commands[3].index("RESOLVED_AT_RUNTIME")] = str(generated_proposal)
         return {
             "slice": asdict(slice_spec),
             "run_id": run_id,
@@ -426,17 +435,23 @@ def _benchmark_slice(
     for index, command in enumerate(commands):
         # Index 3 is 'discover run' using generated proposal
         if index == 3:
-            if not generated_proposal.exists():
+            # Re-scan after assemble-theses finished in previous step
+            proposals = sorted(generated_proposal_dir.glob("*.yaml"))
+            if not proposals:
                 command_results.append(
                     {
                         "command": command,
                         "returncode": 1,
                         "stdout_tail": "",
-                        "stderr_tail": f"generated proposal missing: {generated_proposal}",
-                        "status": "failed_generated_proposal_missing",
+                        "stderr_tail": f"no generated proposals found in {generated_proposal_dir}",
+                        "status": "failed_no_generated_proposals",
                     }
                 )
                 break
+            
+            event_match = [p for p in proposals if slice_spec.event_id.lower() in p.name.lower()]
+            generated_proposal = event_match[0] if event_match else proposals[0]
+            command[command.index("RESOLVED_AT_RUNTIME")] = str(generated_proposal)
 
         # Index 6 is 'promote export'
         if index == 6:
