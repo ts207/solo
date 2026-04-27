@@ -2,8 +2,8 @@ from __future__ import annotations
 
 import json
 import logging
-from dataclasses import asdict, dataclass, field
-from datetime import datetime
+from dataclasses import asdict, dataclass
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Literal
 
@@ -67,7 +67,9 @@ class PaperExecutionLedger:
         pos_key = f"{thesis_id}:{symbol}"
 
         # 1. Update MAE/MFE for active position
-        if pos_key in self.active_positions:
+        # We exclude exit price from intra-trade extremes to match reporting conventions
+        is_exit = action == "reject" or (action == "watch" and side == "flat")
+        if pos_key in self.active_positions and not is_exit:
             pos = self.active_positions[pos_key]
             pos.highest_price = max(pos.highest_price, price)
             pos.lowest_price = min(pos.lowest_price, price)
@@ -181,7 +183,7 @@ class PaperExecutionLedger:
             "fee_bps_total": sum(t["fee_bps"] for t in trades),
             "slippage_bps_total": sum(t["slippage_bps"] for t in trades),
             "funding_bps_total": sum(t["funding_bps"] for t in trades),
-            "last_updated_at": datetime.now().isoformat()
+            "last_updated_at": datetime.now(UTC).isoformat()
         }
         
         summary_path = self.root_dir / thesis_id / "summary.json"
