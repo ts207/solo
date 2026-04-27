@@ -234,7 +234,15 @@ class LiveEngineRunner:
         self.incubation_ledger = IncubationLedger(PROJECT_ROOT / "live" / "incubation_ledger.json")
 
         # Sprint 4: Paper Ledger
-        self.paper_ledger = PaperExecutionLedger(data_root / "reports" / "paper")
+        from project.core.config import get_data_root
+
+        paper_ledger_root = Path(
+            self.strategy_runtime.get(
+                "paper_ledger_root",
+                get_data_root() / "reports" / "paper",
+            )
+        )
+        self.paper_ledger = PaperExecutionLedger(paper_ledger_root)
 
         self._latest_book_ticker_by_symbol: dict[str, dict[str, Any]] = {}
         self._latest_runtime_market_features_by_symbol: dict[str, dict[str, Any]] = {}
