@@ -303,6 +303,10 @@ def _detected_events(feature_frame: pd.DataFrame, *, event_type: str, symbol: st
     try:
         detector = detector_cls()
         events = detector.detect(feature_frame.copy(), symbol=symbol)
+    except TypeError as exc:
+        if "Can't instantiate abstract class" in str(exc):
+            return pd.DataFrame(), "detector_unimplemented"
+        return pd.DataFrame(), f"detect_failed:{exc}"
     except Exception as exc:  # pragma: no cover - best-effort diagnostic path
         return pd.DataFrame(), f"detect_failed:{exc}"
     if events is None or events.empty or "timestamp" not in events.columns:
@@ -331,8 +335,9 @@ def _support_status(
     events, event_error = detection_cache[cache_key]
     event_count = len(events)
     if event_error:
+        status = "block" if event_error == "detector_unimplemented" else "not_evaluated"
         return {
-            "status": "not_evaluated",
+            "status": status,
             "reason": event_error,
             "event_count": event_count,
         }

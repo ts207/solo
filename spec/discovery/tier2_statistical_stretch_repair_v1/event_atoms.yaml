@@ -9,7 +9,6 @@ event_atoms:
   templates:
   - mean_reversion
   - overshoot_repair
-  - tail_risk_avoid
   horizons:
   - 12b
   - 24b
@@ -28,7 +27,6 @@ event_atoms:
   templates:
   - mean_reversion
   - overshoot_repair
-  - tail_risk_avoid
   horizons:
   - 12b
   - 24b
@@ -47,7 +45,6 @@ event_atoms:
   templates:
   - mean_reversion
   - overshoot_repair
-  - tail_risk_avoid
   horizons:
   - 12b
   - 24b
@@ -66,7 +63,6 @@ event_atoms:
   templates:
   - mean_reversion
   - overshoot_repair
-  - tail_risk_avoid
   horizons:
   - 12b
   - 24b
