@@ -3,7 +3,7 @@ import pandas as pd
 import numpy as np
 from pathlib import Path
 from unittest.mock import MagicMock, patch
-from project.validate.forward_confirm import oos_frozen_thesis_replay_v1
+from project.validate.forward_confirm import oos_frozen_thesis_replay_v1, _load_frozen_thesis
 from project.domain.hypotheses import HypothesisSpec
 
 @pytest.fixture
@@ -22,8 +22,6 @@ def synthetic_features():
     df["high"] = df["close"] + 0.1
     df["low"] = df["close"] - 0.1
     df["volume"] = 1000
-    # Add dummy event flag column if needed by evaluator
-    # (Actually evaluate_hypothesis_batch will detect events based on TriggerSpec in HypothesisSpec)
     return df
 
 @patch("project.validate.forward_confirm.prepare_search_features_for_symbol")
@@ -70,3 +68,28 @@ def test_oos_frozen_thesis_replay_v1_empty_features(mock_prepare, mock_thesis):
     assert res["event_count"] == 0
     assert res["status"] == "fail"
     assert res["reason"] == "no_oos_features_loaded"
+
+@patch("project.validate.forward_confirm.load_normalized_operator_proposal")
+@patch("project.validate.forward_confirm.Path.exists")
+@patch("project.domain.hypotheses.TriggerSpec.validate", return_value=None)
+def test_load_frozen_thesis_from_proposal(mock_trigger_val, mock_exists, mock_load):
+    mock_exists.return_value = True
+    
+    mock_proposal = MagicMock()
+    mock_proposal.hypothesis.anchor.type = "event"
+    mock_proposal.hypothesis.anchor.event_id = "test_event"
+    mock_proposal.hypothesis.direction = "long"
+    mock_proposal.hypothesis.horizon_bars = 24
+    mock_proposal.hypothesis.template.id = "test_template"
+    mock_proposal.hypothesis.filters.contexts = {"symbol": "ETHUSDT"}
+    mock_proposal.hypothesis.sampling_policy.entry_lag_bars = 1
+    
+    mock_load.return_value = mock_proposal
+    
+    thesis = _load_frozen_thesis(run_id="run1", proposal_path=Path("prop.yaml"))
+    
+    assert isinstance(thesis, HypothesisSpec)
+    assert thesis.trigger.trigger_type == "event"
+    assert thesis.direction == "long"
+    assert thesis.horizon == "24"
+    assert thesis.context == {"symbol": "ETHUSDT"}

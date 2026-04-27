@@ -8,9 +8,9 @@ from typing import Any
 import pandas as pd
 
 from project.core.config import get_data_root
-from project.domain.hypotheses import HypothesisSpec
+from project.domain.hypotheses import HypothesisSpec, TriggerSpec
 from project.io.utils import atomic_write_json, ensure_dir, read_json, read_parquet
-from project.research.agent_io.proposal_schema import load_operator_proposal
+from project.research.agent_io.proposal_schema import load_normalized_operator_proposal
 from project.research.search.evaluator import evaluate_hypothesis_batch
 from project.research.search.search_feature_utils import prepare_search_features_for_symbol
 
@@ -26,6 +26,44 @@ def _phase2_candidate_path(data_root: Path, run_id: str) -> Path:
     return data_root / "reports" / "phase2" / str(run_id) / "phase2_candidates.parquet"
 
 
+def _translate_structured_to_hypothesis_spec(structured: Any) -> HypothesisSpec:
+    """Translate StructuredHypothesisSpec (from agent_io) to HypothesisSpec (from domain)."""
+    # structured is a StructuredHypothesisSpec-like object
+    # Map AnchorSpec to TriggerSpec
+    anchor = structured.anchor
+    ttype = anchor.type
+    if ttype == "feature_crossing":
+        ttype = "feature_predicate"
+
+    # TriggerSpec in domain uses trigger_type instead of type, and max_gap instead of max_gap_bars
+    trigger = TriggerSpec(
+        trigger_type=ttype.upper(),
+        event_id=getattr(anchor, "event_id", None),
+        state_id=getattr(anchor, "state_id", None),
+        from_state=getattr(anchor, "from_state", None),
+        to_state=getattr(anchor, "to_state", None),
+        events=getattr(anchor, "events", None),
+        max_gap=[anchor.max_gap_bars] if getattr(anchor, "max_gap_bars", None) is not None else None,
+        feature=getattr(anchor, "feature", None),
+        operator=getattr(anchor, "operator", None),
+        threshold=getattr(anchor, "threshold", None),
+    )
+
+    # Disable validation if we are in a testing/replay context where registry might not be full
+    object.__setattr__(trigger, "_enable_validation", False)
+
+    spec = HypothesisSpec(
+        trigger=trigger,
+        direction=structured.direction,
+        horizon=str(structured.horizon_bars),
+        template_id=structured.template.id,
+        context=structured.filters.contexts if structured.filters.contexts else None,
+        entry_lag=structured.sampling_policy.entry_lag_bars,
+    )
+    object.__setattr__(spec, "_enable_validation", False)
+    return spec
+
+
 def _load_frozen_thesis(
     run_id: str,
     proposal_path: Path | None = None,
@@ -36,8 +74,9 @@ def _load_frozen_thesis(
 
     # Priority 1: Explicit --proposal path
     if proposal_path and proposal_path.exists():
-        proposal = load_operator_proposal(proposal_path)
-        return HypothesisSpec.from_dict(proposal.hypothesis.to_dict())
+        proposal = load_normalized_operator_proposal(proposal_path)
+        # proposal is a StructuredProposal, it has a .hypothesis attribute (StructuredHypothesisSpec)
+        return _translate_structured_to_hypothesis_spec(proposal.hypothesis)
 
     # Priority 2: promoted_theses.json
     thesis_json_path = root / "live" / "theses" / run_id / "promoted_theses.json"
@@ -57,8 +96,8 @@ def _load_frozen_thesis(
         manifest = read_json(manifest_path)
         frozen_proposal = manifest.get("proposal_path")
         if frozen_proposal:
-            proposal = load_operator_proposal(Path(frozen_proposal))
-            return HypothesisSpec.from_dict(proposal.hypothesis.to_dict())
+            proposal = load_normalized_operator_proposal(Path(frozen_proposal))
+            return _translate_structured_to_hypothesis_spec(proposal.hypothesis)
 
     # Priority 4: candidate_id lookup in phase2_candidates.parquet (NO SORTING)
     if candidate_id:
@@ -81,8 +120,13 @@ def oos_frozen_thesis_replay_v1(
     data_root: Path,
 ) -> dict[str, Any]:
     # Determine symbol and timeframe (defaulting to BTCUSDT/5m if not in thesis)
-    symbol = thesis.context.get("symbol", "BTCUSDT") if thesis.context else "BTCUSDT"
-    timeframe = thesis.context.get("timeframe", "5m") if thesis.context else "5m"
+    symbol = "BTCUSDT"
+    if thesis.context and "symbol" in thesis.context:
+        symbol = thesis.context["symbol"]
+    
+    timeframe = "5m"
+    if thesis.context and "timeframe" in thesis.context:
+        timeframe = thesis.context["timeframe"]
 
     # Load OOS features (prepare_search_features_for_symbol handles start/end)
     features = prepare_search_features_for_symbol(
