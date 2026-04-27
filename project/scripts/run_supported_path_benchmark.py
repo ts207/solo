@@ -236,6 +236,50 @@ def _runtime_event_count(slice_spec: BenchmarkSlice, *, execute: bool, max_rows:
     }
 
 
+def _search_control_metrics(data_root: Path, run_id: str) -> dict[str, Any]:
+    phase2_dir = data_root / "reports" / "phase2" / run_id
+    burden = _json_load(phase2_dir / "search_burden_summary.json")
+    if not burden:
+        return {"present": False}
+    return {
+        "present": True,
+        "proposals_attempted": int(burden.get("search_proposals_attempted", 0)),
+        "candidates_generated": int(burden.get("search_candidates_generated", 0)),
+        "family_count": int(burden.get("search_family_count", 0)),
+        "lineage_count": int(burden.get("search_lineage_count", 0)),
+        "burden_estimated": bool(burden.get("search_burden_estimated", False)),
+        "scope_version": str(burden.get("search_scope_version", "")),
+    }
+
+
+def _multiplicity_metrics(data_root: Path, run_id: str) -> dict[str, Any]:
+    phase2_dir = data_root / "reports" / "phase2" / run_id
+    diagnostics = _json_load(phase2_dir / "phase2_diagnostics.json")
+    funnel = diagnostics.get("gate_funnel", {})
+    discoveries = int(diagnostics.get("multiplicity_discoveries", 0))
+    pass_mult = int(funnel.get("pass_multiplicity", 0))
+    q_passed = int(funnel.get("q_passed", 0))
+
+    best_q: float | None = None
+    candidates_path = phase2_dir / "phase2_candidates.parquet"
+    if candidates_path.exists():
+        try:
+            import pandas as pd
+
+            cands = pd.read_parquet(candidates_path, columns=["q_value"] if True else [])
+            if "q_value" in cands.columns and not cands.empty:
+                best_q = float(pd.to_numeric(cands["q_value"], errors="coerce").min())
+        except Exception:
+            pass
+
+    return {
+        "discoveries": discoveries,
+        "pass_multiplicity": pass_mult,
+        "q_passed": q_passed,
+        "best_q_value": best_q,
+    }
+
+
 def _portfolio_allocations(thesis_metrics: dict[str, Any]) -> dict[str, Any]:
     theses = thesis_metrics.get("theses", [])
     if not theses:
@@ -307,6 +351,8 @@ def _collect_metrics(
             max_rows=runtime_max_rows,
         ),
         "portfolio_allocations": _portfolio_allocations(thesis),
+        "search_control": _search_control_metrics(data_root, run_id),
+        "multiplicity": _multiplicity_metrics(data_root, run_id),
         "artifact_contract_failures": _contract_failures(data_root, run_id),
     }
 
@@ -503,14 +549,18 @@ def _write_markdown(report: dict[str, Any], path: Path) -> None:
         f"- run_prefix: `{report['run_prefix']}`",
         f"- status: `{report['status']}`",
         "",
-        "| slice | event | candidates | pass_rate | promotions | theses | runtime_events | allocations | failures |",
-        "|---|---:|---:|---:|---:|---:|---:|---:|---|",
+        "| slice | event | candidates | pass_rate | promotions | theses | runtime_events | allocations | proposals | mult_disc | best_q | failures |",
+        "|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---|",
     ]
     for item in report["slices"]:
         metrics = item["metrics"]
         failures = item.get("failures") or metrics.get("artifact_contract_failures") or []
+        sc = metrics.get("search_control", {})
+        mult = metrics.get("multiplicity", {})
+        best_q = mult.get("best_q_value")
+        best_q_str = f"{best_q:.4f}" if best_q is not None else "—"
         lines.append(
-            "| {slice_id} | {event_id} | {candidates} | {pass_rate:.3f} | {promotions} | {theses} | {runtime_events} | {allocations} | {failures} |".format(
+            "| {slice_id} | {event_id} | {candidates} | {pass_rate:.3f} | {promotions} | {theses} | {runtime_events} | {allocations} | {proposals} | {mult_disc} | {best_q} | {failures} |".format(
                 slice_id=item["slice"]["slice_id"],
                 event_id=item["slice"]["event_id"],
                 candidates=metrics["candidate_counts"]["count"],
@@ -519,6 +569,9 @@ def _write_markdown(report: dict[str, Any], path: Path) -> None:
                 theses=metrics["thesis_export"]["thesis_export_count"],
                 runtime_events=metrics["runtime_events"]["count"],
                 allocations=metrics["portfolio_allocations"]["allocated_count"],
+                proposals=sc.get("proposals_attempted", "—"),
+                mult_disc=mult.get("discoveries", "—"),
+                best_q=best_q_str,
                 failures=", ".join(failures) if failures else "",
             )
         )
