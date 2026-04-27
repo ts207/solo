@@ -178,6 +178,9 @@ deploy-status:
 list-theses:
 	@$(CLI) deploy list-theses $(if $(DATA_ROOT),--data_root "$(DATA_ROOT)",)
 
+monitor-lead-thesis:
+	@PYTHONPATH=$(PYTHONPATH) $(PYTHON) project/scripts/monitor_research_thesis.py --run_id stat_stretch_04 --data_root data
+
 deploy-paper: bind-config
 
 governance:
