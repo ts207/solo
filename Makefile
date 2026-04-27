@@ -197,6 +197,7 @@ minimum-green-gate:
 	@PYTHONPATH=$(PYTHONPATH) $(PYTHON) -m pytest -q -s project/tests/scripts/test_monitor_research_thesis.py
 	@PYTHONPATH=$(PYTHONPATH) $(PYTHON) -m pytest -q -s project/tests/live/test_deploy_admission.py
 	@PYTHONPATH=$(PYTHONPATH) $(PYTHON) -m pytest -q -s project/tests/live/test_runtime_admission.py
+	@PYTHONPATH=$(PYTHONPATH) $(PYTHON) -m pytest -q -s project/tests/live/test_paper_ledger.py
 
 discover-cells-verify:
 	@test -n "$(RUN_ID)" || (echo 'RUN_ID is required' >&2; exit 2)

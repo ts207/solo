@@ -9,6 +9,9 @@ def validate_runtime_mode_against_theses(runtime_mode: str, theses: list) -> Non
     """
     runtime_mode = runtime_mode.lower()
     
+    if runtime_mode not in {"monitor_only", "simulation", "trading"}:
+        raise ValueError(f"Unsupported runtime_mode: {runtime_mode}")
+
     for thesis in theses:
         state = getattr(thesis, "deployment_state", "unknown")
         if runtime_mode == "trading":

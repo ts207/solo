@@ -57,6 +57,7 @@ from project.live.oms import (
     build_live_order_from_strategy_result,
 )
 from project.live.order_planner import build_order_plan
+from project.live.paper_ledger import PaperExecutionLedger
 from project.live.policy import build_live_decision_trace
 from project.live.portfolio_circuit import PortfolioCircuitBreaker, PortfolioCircuitConfig
 from project.live.risk import RiskEnforcer, RuntimeRiskCaps
@@ -231,6 +232,9 @@ class LiveEngineRunner:
         )
         # Keep the default ledger under the canonical project live directory.
         self.incubation_ledger = IncubationLedger(PROJECT_ROOT / "live" / "incubation_ledger.json")
+
+        # Sprint 4: Paper Ledger
+        self.paper_ledger = PaperExecutionLedger(data_root / "reports" / "paper")
 
         self._latest_book_ticker_by_symbol: dict[str, dict[str, Any]] = {}
         self._latest_runtime_market_features_by_symbol: dict[str, dict[str, Any]] = {}
@@ -2073,6 +2077,16 @@ class LiveEngineRunner:
             oms_result = oms_results_by_thesis.get(thesis_id)
             self._decision_outcomes.append(candidate)
             self._record_live_decision_episode(candidate, oms_result=oms_result)
+
+            if self.runtime_mode != "trading":
+                self.paper_ledger.update(
+                    thesis_id=thesis_id,
+                    symbol=candidate.trade_intent.symbol,
+                    action=candidate.trade_intent.action,
+                    side=candidate.trade_intent.side,
+                    price=close,
+                    timestamp=str(timestamp),
+                )
         self._decision_outcomes = self._decision_outcomes[-100:]
 
         self.persist_runtime_metrics_snapshot()
