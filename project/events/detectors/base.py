@@ -165,6 +165,43 @@ class BaseEventDetector(DetectorLogicContract, ABC):
 
         return events
 
+    def detect_events(self, df: pd.DataFrame, params: dict) -> pd.DataFrame:
+        """Compatibility entrypoint required by DetectorLogicContract.
+
+        Delegates to the newer `detect()` pipeline so threshold-style subclasses
+        don't need to implement this separately.
+        """
+        payload = dict(params or {})
+        symbol = str(
+            payload.pop("symbol", payload.pop("asset", payload.pop("instrument", "UNKNOWN")))
+            or "UNKNOWN"
+        )
+        return self.detect(df, symbol=symbol, **payload)
+
+    def validate_no_lookahead(self, df: pd.DataFrame, event_frame: pd.DataFrame) -> None:
+        """Validate the generic timestamp-level no-lookahead invariant."""
+        if event_frame is None or event_frame.empty:
+            return
+        if df is None or df.empty:
+            raise ValueError("cannot validate events against an empty source frame")
+
+        source_ts_col = "timestamp" if "timestamp" in df.columns else None
+        if source_ts_col is None:
+            raise ValueError("source frame missing timestamp column")
+
+        event_ts_col = "timestamp" if "timestamp" in event_frame.columns else "signal_ts"
+        if event_ts_col not in event_frame.columns:
+            raise ValueError("event frame missing timestamp/signal_ts column")
+
+        source_ts = pd.to_datetime(df[source_ts_col], utc=True, errors="coerce").dropna()
+        event_ts = pd.to_datetime(event_frame[event_ts_col], utc=True, errors="coerce").dropna()
+        if event_ts.empty:
+            return
+        if source_ts.empty:
+            raise ValueError("source frame has no valid timestamps")
+        if bool((event_ts > source_ts.max()).any()):
+            raise ValueError("event frame contains timestamps after source frame end")
+
 
 class MarketEventDetector(BaseEventDetector):
     """

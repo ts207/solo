@@ -62,6 +62,22 @@ class StatisticalBase(ThresholdDetector):
             return "major"
         return "moderate"
 
+    def compute_direction(
+        self, idx: int, features: dict[str, pd.Series], **params: Any
+    ) -> str:
+        for key in ("px_z", "close_ret"):
+            sig = features.get(key)
+            if sig is not None:
+                try:
+                    val = float(sig.iloc[idx])
+                    if val > 0:
+                        return "up"
+                    if val < 0:
+                        return "down"
+                except Exception:
+                    pass
+        return "non_directional"
+
     def compute_metadata(
         self, idx: int, features: dict[str, pd.Series], **params: Any
     ) -> dict[str, Any]:
@@ -96,7 +112,7 @@ class ZScoreStretchDetector(StatisticalBase):
             .quantile(zscore_quantile)
             .shift(1)
         )
-        return {"px_abs": px_abs, "px_threshold": px_threshold}
+        return {"px_abs": px_abs, "px_threshold": px_threshold, "px_z": px_z}
 
     def compute_raw_mask(
         self, df: pd.DataFrame, *, features: dict[str, pd.Series], **params: Any
@@ -120,7 +136,7 @@ class BandBreakDetector(StatisticalBase):
         lookback, min_periods, mult = _band_params()
         ma = close.rolling(lookback, min_periods=min_periods).mean()
         sd = close.rolling(lookback, min_periods=min_periods).std().replace(0.0, np.nan)
-        return {"close": close, "ma": ma, "sd": sd, "mult": pd.Series(mult, index=df.index)}
+        return {"close": close, "ma": ma, "sd": sd, "mult": pd.Series(mult, index=df.index), "close_ret": (close - ma)}
 
     def compute_raw_mask(
         self, df: pd.DataFrame, *, features: dict[str, pd.Series], **params: Any
@@ -163,7 +179,7 @@ class OvershootDetector(StatisticalBase):
         rv_threshold = (
             rv_z.rolling(threshold_window, min_periods=min_periods).quantile(rv_quantile).shift(1)
         )
-        return {"rv_z": rv_z, "px_abs": px_abs, "px_threshold": px_threshold, "rv_threshold": rv_threshold}
+        return {"rv_z": rv_z, "px_abs": px_abs, "px_threshold": px_threshold, "rv_threshold": rv_threshold, "px_z": px_z}
 
     def compute_raw_mask(
         self, df: pd.DataFrame, *, features: dict[str, pd.Series], **params: Any
@@ -186,7 +202,8 @@ class GapOvershootDetector(StatisticalBase):
     event_type = "GAP_OVERSHOOT"
 
     def prepare_features(self, df: pd.DataFrame, **params: Any) -> dict[str, pd.Series]:
-        ret_abs = df["close"].pct_change(1).abs()
+        close_ret = df["close"].pct_change(1)
+        ret_abs = close_ret.abs()
         spec_params, _, threshold_window, min_periods = _stat_windows(self.event_type, params)
         return_quantile = float(
             params.get("return_quantile", spec_params.get("return_quantile", 0.995))
@@ -196,7 +213,7 @@ class GapOvershootDetector(StatisticalBase):
             .quantile(return_quantile)
             .shift(1)
         )
-        return {"ret_abs": ret_abs, "ret_threshold": ret_threshold}
+        return {"ret_abs": ret_abs, "ret_threshold": ret_threshold, "close_ret": close_ret}
 
     def compute_raw_mask(
         self, df: pd.DataFrame, *, features: dict[str, pd.Series], **params: Any

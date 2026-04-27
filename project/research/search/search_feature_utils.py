@@ -97,6 +97,21 @@ def _materialize_event_flags_from_detectors(
         hint_sign = _get_event_direction_hint_sign(event_id)
         if hint_sign is not None:
             out.loc[ts.isin(ev_ts_set), dir_col] = hint_sign
+        elif "direction" in events.columns:
+            # Bidirectional event: write per-event direction signs from detector output.
+            ev_dir = events[["timestamp", "direction"]].copy()
+            ev_dir["timestamp"] = pd.to_datetime(ev_dir["timestamp"], utc=True, errors="coerce")
+            ev_dir["_sign"] = ev_dir["direction"].map(direction_to_sign).astype(float)
+            ev_dir = ev_dir.dropna(subset=["timestamp", "_sign"])
+            if not ev_dir.empty:
+                agg = (
+                    ev_dir.groupby("timestamp")["_sign"]
+                    .agg(lambda s: float(s.iloc[0]) if s.nunique() == 1 else 0.0)
+                )
+                for ev_ts_val, sign in agg.items():
+                    matches = out.index[ts == ev_ts_val]
+                    if len(matches):
+                        out.loc[matches, dir_col] = sign
     return out
 
 
