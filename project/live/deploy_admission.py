@@ -75,7 +75,7 @@ def assert_deploy_admission(
                  )
 
         if runtime_mode == "simulation":
-            paper_compatible = ["paper_enabled", "paper_approved", "live_eligible", "live_enabled", "paper_only"]
+            paper_compatible = ["paper_enabled", "paper_approved", "live_eligible", "live_enabled"]
             if state not in paper_compatible:
                 # Special case: allow robust 'promoted' theses to enter simulation if monitor ready
                 if state == "promoted" and deployment_ready:

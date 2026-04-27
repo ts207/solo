@@ -15,6 +15,6 @@ def validate_runtime_mode_against_theses(runtime_mode: str, theses: list) -> Non
             if state != "live_enabled":
                 raise ValueError(f"Thesis in state '{state}' cannot run in trading mode. Requires 'live_enabled'.")
         elif runtime_mode == "simulation":
-            paper_compatible = ["paper_enabled", "paper_approved", "live_eligible", "live_enabled", "paper_only"]
+            paper_compatible = ["paper_enabled", "paper_approved", "live_eligible", "live_enabled"]
             if state not in paper_compatible:
                 raise ValueError(f"Thesis in state '{state}' cannot run in simulation mode. Requires paper-enabled state.")

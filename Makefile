@@ -23,6 +23,7 @@ RUNTIME_MODE ?= monitor_only
 REGISTRY_ROOT ?= project/configs/registries
 EXECUTE ?= 0
 RUNTIME_MAX_ROWS ?= 500
+MONITOR_REPORT ?=
 
 .PHONY: help first-edge discover discover-proposal-plan discover-proposal list-artifacts summarize summarize-proposal explain-empty proposal-inspect \
 	validate promote export bind-config paper-run live-run deploy-status list-theses \
@@ -161,7 +162,7 @@ export:
 bind-config:
 	@test -n "$(RUN_ID)" || (echo 'RUN_ID is required' >&2; exit 2)
 	@mkdir -p "$(OUT_DIR)"
-	@$(CLI) deploy bind-config --run_id "$(RUN_ID)" --out_dir "$(OUT_DIR)" --runtime_mode "$(RUNTIME_MODE)" --symbols "$(SYMBOLS)" $(if $(DATA_ROOT),--data_root "$(DATA_ROOT)",)
+	@$(CLI) deploy bind-config --run_id "$(RUN_ID)" --out_dir "$(OUT_DIR)" --runtime_mode "$(RUNTIME_MODE)" --symbols "$(SYMBOLS)" $(if $(DATA_ROOT),--data_root "$(DATA_ROOT)",) $(if $(MONITOR_REPORT),--monitor_report "$(MONITOR_REPORT)",)
 
 paper-run:
 	@test -n "$(CONFIG)" || (echo 'CONFIG is required' >&2; exit 2)

@@ -1,4 +1,5 @@
 import pytest
+import json
 from pathlib import Path
 from unittest.mock import patch, MagicMock
 from project.live.deploy_admission import assert_deploy_admission
@@ -94,4 +95,112 @@ def test_deploy_admission_passes_through_thesis_store_errors():
             assert_deploy_admission(
                 thesis_path=Path("dummy.json"),
                 runtime_mode="monitor_only"
+            )
+
+def test_deploy_admission_real_artifact_live_enabled_no_approval(tmp_path):
+    """live_enabled without approval record -> should raise RuntimeError (via DeploymentGate)"""
+    thesis_file = tmp_path / "promoted_theses.json"
+    content = {
+        "schema_version": "promoted_theses_v1",
+        "run_id": "test_run",
+        "generated_at_utc": "2026-04-27T00:00:00Z",
+        "thesis_count": 1,
+        "active_thesis_count": 1,
+        "pending_thesis_count": 0,
+        "theses": [
+            {
+                "thesis_id": "test_thesis",
+                "deployment_state": "live_enabled",
+                "status": "active",
+                "timeframe": "5m",
+                "primary_event_id": "VOL_SHOCK",
+                "evidence": {"sample_size": 100},
+                "lineage": {"run_id": "test_run", "candidate_id": "cand_1"},
+            }
+        ]
+    }
+    thesis_file.write_text(json.dumps(content))
+    
+    with patch("project.live.thesis_store.inspect_artifact_trust") as m_trust:
+        m_trust.return_value.historical_trust_status = "trusted_under_current_rules"
+        # DeploymentGate should raise because live_approval_status is empty
+        with pytest.raises(RuntimeError, match="live_approval_status is '', expected 'approved'"):
+            assert_deploy_admission(
+                thesis_path=thesis_file,
+                runtime_mode="trading"
+            )
+
+def test_deploy_admission_real_artifact_live_enabled_no_caps(tmp_path):
+    """live_enabled + approval but NO caps -> should raise RuntimeError"""
+    thesis_file = tmp_path / "promoted_theses.json"
+    content = {
+        "schema_version": "promoted_theses_v1",
+        "run_id": "test_run",
+        "generated_at_utc": "2026-04-27T00:00:00Z",
+        "thesis_count": 1,
+        "active_thesis_count": 1,
+        "pending_thesis_count": 0,
+        "theses": [
+            {
+                "thesis_id": "test_thesis",
+                "deployment_state": "live_enabled",
+                "deployment_mode_allowed": "live_enabled",
+                "status": "active",
+                "timeframe": "5m",
+                "primary_event_id": "VOL_SHOCK",
+                "live_approval": {
+                    "live_approval_status": "approved",
+                    "approved_by": "tester",
+                    "approved_at": "2026-04-27T00:00:00Z",
+                    "risk_profile_id": "standard"
+                },
+                "cap_profile": {
+                    "max_notional": 0.0,
+                    "max_position_notional": 0.0,
+                    "max_daily_loss": 0.0
+                },
+                "evidence": {"sample_size": 100},
+                "lineage": {"run_id": "test_run", "candidate_id": "cand_1"},
+            }
+        ]
+    }
+    thesis_file.write_text(json.dumps(content))
+    
+    with patch("project.live.thesis_store.inspect_artifact_trust") as m_trust:
+        m_trust.return_value.historical_trust_status = "trusted_under_current_rules"
+        with pytest.raises(RuntimeError, match="cap_profile has no hard caps configured"):
+            assert_deploy_admission(
+                thesis_path=thesis_file,
+                runtime_mode="trading"
+            )
+
+def test_deploy_admission_real_artifact_trading_monitor_only_fails(tmp_path):
+    """trading + monitor_only thesis -> should raise PermissionError"""
+    thesis_file = tmp_path / "promoted_theses.json"
+    content = {
+        "schema_version": "promoted_theses_v1",
+        "run_id": "test_run",
+        "generated_at_utc": "2026-04-27T00:00:00Z",
+        "thesis_count": 1,
+        "active_thesis_count": 0,
+        "pending_thesis_count": 0,
+        "theses": [
+            {
+                "thesis_id": "test_thesis",
+                "deployment_state": "monitor_only",
+                "timeframe": "5m",
+                "primary_event_id": "VOL_SHOCK",
+                "evidence": {"sample_size": 100},
+                "lineage": {"run_id": "test_run", "candidate_id": "cand_1"},
+            }
+        ]
+    }
+    thesis_file.write_text(json.dumps(content))
+    
+    with patch("project.live.thesis_store.inspect_artifact_trust") as m_trust:
+        m_trust.return_value.historical_trust_status = "trusted_under_current_rules"
+        with pytest.raises(PermissionError, match="Requires 'live_enabled'"):
+            assert_deploy_admission(
+                thesis_path=thesis_file,
+                runtime_mode="trading"
             )
