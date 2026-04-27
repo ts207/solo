@@ -222,15 +222,22 @@ def _build_summary(
     *, n: int | None, t_net: float | None, robustness: float | None,
     net_bps: float | None, gate_progress: float | None, deployment_ready: bool,
 ) -> str:
+    def _f3(v): return f"{v:.3f}" if v is not None else "None"
+    def _f1(v): return f"{v:.1f}" if v is not None else "None"
+    def _fp(v): return f"{v:.1%}" if v is not None else "None"
+
     lines = [
-        f"n={n}  t_net={t_net:.3f}  robustness={robustness:.3f}  net_bps={net_bps:.1f}",
-        f"gate_progress={gate_progress:.1%}  deployment_ready={deployment_ready}",
+        f"n={n}  t_net={_f3(t_net)}  robustness={_f3(robustness)}  net_bps={_f1(net_bps)}",
+        f"gate_progress={_fp(gate_progress)}  deployment_ready={deployment_ready}",
     ]
     if not deployment_ready:
-        lines.append(
-            f"Gap to gate: robustness needs {0.70 - (robustness or 0):.3f} more "
-            f"(current {robustness:.3f} → target 0.70)"
-        )
+        if robustness is not None:
+            lines.append(
+                f"Gap to gate: robustness needs {0.70 - robustness:.3f} more "
+                f"(current {robustness:.3f} → target 0.70)"
+            )
+        else:
+            lines.append("Gap to gate: robustness data missing (target 0.70)")
     return "  |  ".join(lines)
 
 
