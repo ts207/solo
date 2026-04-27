@@ -88,6 +88,14 @@ def atomic_write_json(
     return target
 
 
+def read_json(path: Path) -> Any:
+    """
+    Read a JSON payload from a file.
+    """
+    with open(path, "r", encoding="utf-8") as f:
+        return json.load(f)
+
+
 def run_scoped_lake_path(data_root: Path, run_id: str, *parts: str) -> Path:
     """
     Build a run-scoped lake path under ``data/lake/runs/<run_id>/...``.
