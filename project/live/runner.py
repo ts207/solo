@@ -273,6 +273,9 @@ class LiveEngineRunner:
 
         # Workstream 1: Deploy admission control
         self._thesis_store = self._load_thesis_store()
+        if self._thesis_store:
+            from project.live.runtime_admission import validate_runtime_mode_against_theses
+            validate_runtime_mode_against_theses(self.runtime_mode, self._thesis_store.all())
 
         # P0: Thesis-batch reconciliation on startup
         if self._thesis_store and self.reconcile_at_startup:
