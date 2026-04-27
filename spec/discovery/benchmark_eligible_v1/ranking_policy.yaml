@@ -1,5 +1,9 @@
-version: 1
-kind: ranking_policy
-primary_ranking_metric: net_mean_bps
-min_sample_size: 1
-min_lift_bps: 0.1
+version: edge_cells_v1
+ranking_policy:
+  primary_ranking_metric: net_mean_bps
+  min_sample_size: 1
+  min_lift_bps: 0.1
+  min_support: 1
+  min_forward_valid_folds: 2
+  min_forward_support: 10
+  min_forward_support_fraction: 0.05

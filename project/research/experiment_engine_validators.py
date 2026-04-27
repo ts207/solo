@@ -532,12 +532,16 @@ def _resolve_requested_event_ids(
                 f"tiers={sorted(tiers)} roles={sorted(operational_roles)} dispositions={sorted(deployment_dispositions)}."
             )
         governance = get_event_governance_metadata(event_id)
+        promotion_profile = str(getattr(request, "promotion_profile", "") or "").strip().lower()
         deployment_like_mode = str(getattr(request, "run_mode", "") or "").strip().lower() in {
             "production",
             "promotion",
             "deploy",
             "certification",
-        } or bool(getattr(getattr(request, "promotion", None), "enabled", False))
+        } or (
+            bool(getattr(getattr(request, "promotion", None), "enabled", False))
+            and promotion_profile not in {"research", "disabled", ""}
+        )
         if deployment_like_mode and not bool(governance.get("trade_trigger_eligible", False)):
             raise ValueError(
                 f"Explicit event '{event_id}' is not deployment eligible under current governance: "

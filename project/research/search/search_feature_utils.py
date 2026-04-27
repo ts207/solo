@@ -18,6 +18,32 @@ from project.specs.ontology import MATERIALIZED_STATE_COLUMNS_BY_ID
 
 log = logging.getLogger(__name__)
 
+_DIRECTION_HINT_SIGN_CACHE: dict[str, float | None] = {}
+
+
+def _get_event_direction_hint_sign(event_id: str) -> float | None:
+    """Return constant sign (-1.0 or 1.0) for fixed-direction events, None for bidirectional."""
+    if event_id in _DIRECTION_HINT_SIGN_CACHE:
+        return _DIRECTION_HINT_SIGN_CACHE[event_id]
+    sign: float | None = None
+    try:
+        from project.domain.compiled_registry import get_domain_registry
+        import yaml
+        event_def = get_domain_registry().get_event(event_id)
+        if event_def is not None and event_def.spec_path:
+            spec_path = Path(event_def.spec_path)
+            if spec_path.is_file():
+                raw = yaml.safe_load(spec_path.read_text())
+                hint = (raw.get("directionality") or {}).get("direction_hint", "")
+                if hint == "short":
+                    sign = -1.0
+                elif hint == "long":
+                    sign = 1.0
+    except Exception:
+        pass
+    _DIRECTION_HINT_SIGN_CACHE[event_id] = sign
+    return sign
+
 
 def _materialize_event_flags_from_detectors(
     features: pd.DataFrame,
@@ -62,7 +88,15 @@ def _materialize_event_flags_from_detectors(
         ev_ts = pd.to_datetime(events["timestamp"], utc=True, errors="coerce").dropna().drop_duplicates()
         if ev_ts.empty:
             continue
-        out.loc[ts.isin(set(ev_ts.tolist())), col] = True
+        ev_ts_set = set(ev_ts.tolist())
+        out.loc[ts.isin(ev_ts_set), col] = True
+
+        dir_col = ColumnRegistry.event_direction_cols(event_id)[0]
+        if dir_col not in out.columns:
+            out[dir_col] = float("nan")
+        hint_sign = _get_event_direction_hint_sign(event_id)
+        if hint_sign is not None:
+            out.loc[ts.isin(ev_ts_set), dir_col] = hint_sign
     return out
 
 
