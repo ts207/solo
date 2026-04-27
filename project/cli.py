@@ -225,13 +225,19 @@ def _run_validate_specs(args: argparse.Namespace) -> int:
 def _run_validate_forward_confirm(args: argparse.Namespace) -> int:
     from project.validate.forward_confirm import forward_confirm
 
-    payload = forward_confirm(
-        run_id=args.run_id,
-        window=args.window,
-        data_root=_path_or_none(args.data_root),
-    )
-    _emit_json(payload)
-    return 0
+    try:
+        payload = forward_confirm(
+            run_id=args.run_id,
+            window=args.window,
+            data_root=_path_or_none(args.data_root),
+            proposal_path=_path_or_none(args.proposal),
+            candidate_id=args.candidate_id,
+        )
+        _emit_json(payload)
+        return 0
+    except RuntimeError as exc:
+        _emit_json({"status": "error", "message": str(exc)})
+        return 1
 
 
 def _run_promote(args: argparse.Namespace) -> int:
@@ -527,6 +533,8 @@ def build_parser() -> argparse.ArgumentParser:
     forward_confirm.add_argument("--run_id", required=True)
     forward_confirm.add_argument("--window", required=True)
     forward_confirm.add_argument("--data_root")
+    forward_confirm.add_argument("--proposal")
+    forward_confirm.add_argument("--candidate_id")
     forward_confirm.set_defaults(func=_run_validate_forward_confirm)
 
     promote = sub.add_parser("promote", help="canonical promotion/export stage")

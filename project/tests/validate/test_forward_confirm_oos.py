@@ -93,3 +93,14 @@ def test_load_frozen_thesis_from_proposal(mock_trigger_val, mock_exists, mock_lo
     assert thesis.direction == "long"
     assert thesis.horizon == "24"
     assert thesis.context == {"symbol": "ETHUSDT"}
+
+@patch("project.validate.forward_confirm._load_frozen_thesis")
+def test_build_forward_confirmation_payload_fail_closed(mock_load):
+    from project.validate.forward_confirm import build_forward_confirmation_payload
+    mock_load.side_effect = ValueError("No frozen thesis found")
+    
+    with pytest.raises(RuntimeError, match="forward-confirm snapshot mode is disabled"):
+        build_forward_confirmation_payload(
+            run_id="run1",
+            window="2025-01-01/2025-01-02",
+        )
