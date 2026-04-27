@@ -163,9 +163,35 @@ Startup certification (no credentials needed): `PYTHONPATH=. python3 project/scr
 
 ## Current research state
 
-Clean slate as of 2026-04-20. No promoted theses, no prior results, no cached runs.
+### Confirmed green as of 2026-04-27
 
-Raw lake data is present at `data/lake/cleaned/` and `data/lake/features/` covering BTCUSDT 2021–2024 and ETHUSDT 2022–2024. No run-scoped lake exists — the pipeline will fall back to the global lake automatically.
+```bash
+make minimum-green-gate                                                        # pass
+PYTHONPATH=. python3 project/scripts/run_supported_path_benchmark.py \
+    --execute 1 --data_root data                                               # completed, failures: []
+```
+
+Benchmark slice verified end-to-end:
+
+```
+event:   PRICE_DOWN_OI_DOWN
+spec:    spec/discovery/benchmark_eligible_v1
+symbol:  BTCUSDT  (2022-01-01 – 2024-12-31)
+
+proposals attempted:      1
+multiplicity discoveries: 1
+best q-value:             ≈ 0.0095
+validation pass rate:     1.0
+```
+
+The full supported path is smoke-proven:
+`cell discovery → summarize → assemble-theses → discover → validate → promote → export`
+
+### Lake data
+
+`data/lake/cleaned/` and `data/lake/features/` cover BTCUSDT 2021–2024 and ETHUSDT 2022–2024.
+`data/lake/features/perp/BTCUSDT/5m/market_context/` covers 2022–2024 (required for context-conditioned cells).
+No run-scoped lake — the pipeline falls back to the global lake automatically.
 
 ### Starting a new discovery run
 
