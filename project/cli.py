@@ -235,7 +235,7 @@ def _run_validate_forward_confirm(args: argparse.Namespace) -> int:
         )
         _emit_json(payload)
         return 0
-    except RuntimeError as exc:
+    except (RuntimeError, ValueError) as exc:
         _emit_json({"status": "error", "message": str(exc)})
         return 1
 

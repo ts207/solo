@@ -20,6 +20,14 @@ from project.research.phase2_cost_model import expected_cost_per_trade_bps
 log = logging.getLogger(__name__)
 
 
+def _to_utc_ts(value: str | pd.Timestamp) -> pd.Timestamp:
+    """Normalize input to UTC-aware pandas Timestamp."""
+    ts = pd.Timestamp(value)
+    if ts.tzinfo is None:
+        return ts.tz_localize("UTC")
+    return ts.tz_convert("UTC")
+
+
 def _parse_window(window: str) -> tuple[str, str]:
     parts = str(window or "").split("/", 1)
     if len(parts) != 2 or not parts[0].strip() or not parts[1].strip():
@@ -38,16 +46,21 @@ def _assert_oos_window_non_overlapping(
     research_start: str | None,
     research_end: str | None,
 ) -> None:
-    if research_start and research_end:
-        o_start = pd.Timestamp(oos_start, tz="UTC")
-        o_end = pd.Timestamp(oos_end, tz="UTC")
-        r_start = pd.Timestamp(research_start, tz="UTC")
-        r_end = pd.Timestamp(research_end, tz="UTC")
-        if not (o_start > r_end or o_end < r_start):
-            raise ValueError(
-                f"forward-confirm OOS window [{oos_start}..{oos_end}] overlaps "
-                f"research window [{research_start}..{research_end}]"
-            )
+    if not research_start or not research_end:
+        raise ValueError(
+            "forward-confirm requires research_start and research_end to verify OOS isolation"
+        )
+    
+    o_start = _to_utc_ts(oos_start)
+    o_end = _to_utc_ts(oos_end)
+    r_start = _to_utc_ts(research_start)
+    r_end = _to_utc_ts(research_end)
+    
+    if not (o_start > r_end or o_end < r_start):
+        raise ValueError(
+            f"forward-confirm OOS window [{oos_start}..{oos_end}] overlaps "
+            f"research window [{research_start}..{research_end}]"
+        )
 
 
 def _translate_structured_to_hypothesis_spec(structured: Any) -> HypothesisSpec:
@@ -90,8 +103,7 @@ def _hypothesis_spec_from_promoted_dict(d: dict[str, Any]) -> HypothesisSpec:
     try:
         thesis = PromotedThesis.model_validate(d)
     except Exception as exc:
-        log.warning("Failed to validate PromotedThesis: %s. Attempting direct mapping.", exc)
-        return HypothesisSpec.from_dict(d)
+        raise ValueError(f"invalid promoted thesis schema: {exc}") from exc
 
     trigger_events = thesis.requirements.trigger_events
     if not trigger_events:
@@ -125,7 +137,9 @@ def _load_frozen_thesis(
     research_end = None
 
     # Priority 1: Explicit --proposal path
-    if proposal_path and proposal_path.exists():
+    if proposal_path is not None:
+        if not proposal_path.exists():
+             raise FileNotFoundError(f"proposal not found: {proposal_path}")
         proposal = load_normalized_operator_proposal(proposal_path)
         research_start = getattr(proposal, "start", None)
         research_end = getattr(proposal, "end", None)
@@ -183,6 +197,8 @@ def _load_frozen_thesis(
             match = df[df["candidate_id"] == candidate_id]
             if not match.empty:
                 row_dict = match.iloc[0].to_dict()
+                # If we load from phase2_candidates, we might still lack research window info 
+                # unless it's in the row.
                 return HypothesisSpec.from_dict(row_dict), research_start, research_end
 
     raise ValueError(f"No frozen thesis identity found for run {run_id}")
@@ -202,7 +218,7 @@ def oos_frozen_thesis_replay_v1(
         symbol = str(thesis.context["symbol"]).upper()
     
     if not symbol:
-        raise ValueError("Cannot resolve symbol from frozen thesis identity. Use --symbol or ensure it is in context.")
+        raise ValueError("Cannot resolve symbol from frozen thesis identity. Ensure it is in context.")
 
     timeframe = None
     if thesis.context and "timeframe" in thesis.context:
@@ -212,14 +228,14 @@ def oos_frozen_thesis_replay_v1(
         log.warning("Timeframe not found in thesis context, defaulting to 5m for replay.")
         timeframe = "5m"
 
-    # Load OOS features
+    # Load OOS features - NO FUTURE DATA (end=end)
     features = prepare_search_features_for_symbol(
         run_id=run_id,
         symbol=symbol,
         timeframe=timeframe,
         data_root=data_root,
         start=start,
-        end=None, 
+        end=end,
     )
 
     if features.empty:
@@ -254,24 +270,24 @@ def oos_frozen_thesis_replay_v1(
 
     # Strict OOS filtering: signal_ts >= start AND exit_ts <= end
     ts = pd.to_datetime(features["timestamp"], utc=True)
-    oos_start_ts = pd.Timestamp(start, tz="UTC")
-    oos_end_ts = pd.Timestamp(end, tz="UTC")
+    oos_start_ts = _to_utc_ts(start)
+    oos_end_ts = _to_utc_ts(end)
     
-    # event_returns index are integer indices into features
-    signal_tss = ts.iloc[event_returns.index].reset_index(drop=True)
+    # signal_tss corresponds to the trigger events
+    signal_tss = ts.iloc[event_returns.index]
     signal_tss.index = event_returns.index
     
-    # Estimate exit_ts (signal_ts + horizon * bar_duration)
+    # exit_ts = signal_ts + horizon
     exit_indices = event_returns.index + hbars
     valid_exit_mask = exit_indices < len(ts)
     
-    # Use object type for series then convert to avoid FutureWarning
     exit_tss = pd.Series(index=event_returns.index, dtype="object")
     if valid_exit_mask.any():
         exit_tss.loc[valid_exit_mask] = ts.iloc[exit_indices[valid_exit_mask]].values
     
     exit_tss = pd.to_datetime(exit_tss, utc=True)
     
+    # Horizon rule: drop signals if exit_ts > oos_end
     oos_mask = (signal_tss >= oos_start_ts) & (exit_tss <= oos_end_ts)
     
     filtered_returns = event_returns[oos_mask]
@@ -301,7 +317,6 @@ def oos_frozen_thesis_replay_v1(
     net_mean, net_std, t_stat_net = _weighted_newey_west_mean_std(signed_net, weights, horizon_bars=hbars)
     
     # Excursions
-    # Need to match excursion mask exactly
     exc_mask = pd.Series(False, index=features.index)
     exc_mask.loc[filtered_returns.index] = True
     maes, mfes = _excursion_stats(features["close"], exc_mask, hbars, direction_sign)

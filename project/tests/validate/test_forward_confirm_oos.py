@@ -42,7 +42,10 @@ def test_oos_frozen_thesis_replay_v1_success(mock_cost, mock_context_cls, mock_p
     mock_prepare.return_value = synthetic_features
     
     mock_context = MagicMock()
-    mock_context.event_mask.return_value = (pd.Series([True] * 10 + [False] * (len(synthetic_features)-10)), None)
+    # Mock some triggers
+    mask = pd.Series(False, index=synthetic_features.index)
+    mask.iloc[:10] = True
+    mock_context.event_mask.return_value = (mask, None)
     mock_context.forward_returns.return_value = pd.Series([0.001] * len(synthetic_features))
     mock_context.weights = pd.Series([1.0] * len(synthetic_features))
     mock_context_cls.return_value = mock_context
@@ -60,6 +63,10 @@ def test_oos_frozen_thesis_replay_v1_success(mock_cost, mock_context_cls, mock_p
     assert res["event_count"] > 0
     assert "mean_return_net_bps" in res
     assert "t_stat_net" in res
+    
+    # Verify end=end was passed (Patch 1)
+    args, kwargs = mock_prepare.call_args
+    assert kwargs["end"] == "2025-01-01T23:59:59Z"
 
 @patch("project.validate.forward_confirm.prepare_search_features_for_symbol")
 def test_oos_frozen_thesis_replay_v1_empty_features(mock_prepare, mock_thesis):
@@ -112,6 +119,17 @@ def test_build_forward_confirmation_payload_overlap_fails(mock_load, mock_thesis
             window="2024-01-01/2025-01-01",
         )
 
+@patch("project.validate.forward_confirm._load_frozen_thesis")
+def test_build_forward_confirmation_payload_unknown_research_fails(mock_load, mock_thesis):
+    # Patch 2: Fail closed on unknown research window
+    mock_load.return_value = (mock_thesis, None, None)
+    
+    with pytest.raises(ValueError, match="requires research_start and research_end"):
+        build_forward_confirmation_payload(
+            run_id="run1",
+            window="2025-01-01/2025-06-30",
+        )
+
 def test_forward_confirm_loader_does_not_rank_candidates():
     import inspect
     import project.validate.forward_confirm as fc
@@ -133,4 +151,65 @@ def test_load_frozen_thesis_ambiguous_promoted_fails(mock_exists, mock_read_json
     }
     
     with pytest.raises(ValueError, match="Ambiguous promoted run"):
+        _load_frozen_thesis(run_id="run1")
+
+@patch("project.validate.forward_confirm.prepare_search_features_for_symbol")
+@patch("project.validate.forward_confirm.EvaluationContext")
+@patch("project.validate.forward_confirm.expected_cost_per_trade_bps")
+def test_oos_frozen_thesis_replay_v1_horizon_filtering(mock_cost, mock_context_cls, mock_prepare, mock_thesis, synthetic_features):
+    # Patch 3: Event near oos_end with exit_ts > oos_end is dropped
+    mock_prepare.return_value = synthetic_features
+    
+    mock_context = MagicMock()
+    # Trigger at the last bar
+    mask = pd.Series(False, index=synthetic_features.index)
+    mask.iloc[-1] = True
+    mock_context.event_mask.return_value = (mask, None)
+    mock_context.forward_returns.return_value = pd.Series([0.001] * len(synthetic_features))
+    mock_context.weights = pd.Series([1.0] * len(synthetic_features))
+    mock_context_cls.return_value = mock_context
+    
+    mock_cost.return_value = pd.Series([0.0] * len(synthetic_features))
+    
+    # Window ends exactly at the last bar's timestamp, so signal_ts == end but exit_ts > end
+    end_ts = synthetic_features["timestamp"].iloc[-1].isoformat()
+    
+    res = oos_frozen_thesis_replay_v1(
+        run_id="test_run",
+        thesis=mock_thesis,
+        start="2025-01-01T00:00:00Z",
+        end=end_ts,
+        data_root=Path("/tmp/data")
+    )
+    
+    # Should fail with no events after filtering
+    assert res["status"] == "fail"
+    assert res["reason"] == "all_events_filtered_by_oos_boundary"
+
+def test_to_utc_ts_handling():
+    # Patch 4: tz-aware window strings do not crash
+    from project.validate.forward_confirm import _to_utc_ts
+    ts1 = _to_utc_ts("2025-01-01")
+    assert ts1.tzinfo is not None
+    
+    ts2 = _to_utc_ts("2025-01-01T00:00:00Z")
+    assert ts2.tzinfo is not None
+    assert ts1 == ts2
+
+@patch("project.validate.forward_confirm.Path.exists")
+def test_load_frozen_thesis_missing_proposal_fails(mock_exists):
+    # Patch 5: explicit missing --proposal path fails
+    mock_exists.return_value = False
+    with pytest.raises(FileNotFoundError, match="proposal not found"):
+        _load_frozen_thesis(run_id="run1", proposal_path=Path("missing.yaml"))
+
+@patch("project.validate.forward_confirm.read_json")
+@patch("project.validate.forward_confirm.Path.exists")
+def test_load_frozen_thesis_malformed_promoted_fails(mock_exists, mock_read_json):
+    # Patch 6: promoted thesis schema validation failure fails closed
+    mock_exists.return_value = True
+    mock_read_json.return_value = {
+        "theses": [{"invalid": "schema"}]
+    }
+    with pytest.raises(ValueError, match="invalid promoted thesis schema"):
         _load_frozen_thesis(run_id="run1")

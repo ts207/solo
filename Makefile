@@ -235,10 +235,16 @@ funnel:
 	@test -n "$(RUN_ID)" || (echo 'RUN_ID is required' >&2; exit 2)
 	@$(CLI) discover funnel --run_id "$(RUN_ID)" $(if $(DATA_ROOT),--data_root "$(DATA_ROOT)",)
 
+CANDIDATE_ID ?=
 forward-confirm:
 	@test -n "$(RUN_ID)" || (echo 'RUN_ID is required' >&2; exit 2)
 	@test -n "$(WINDOW)" || (echo 'WINDOW is required, e.g. 2025-07-01/2025-09-30' >&2; exit 2)
-	@$(CLI) validate forward-confirm --run_id "$(RUN_ID)" --window "$(WINDOW)" $(if $(DATA_ROOT),--data_root "$(DATA_ROOT)",)
+	@$(CLI) validate forward-confirm \
+	  --run_id "$(RUN_ID)" \
+	  --window "$(WINDOW)" \
+	  $(if $(DATA_ROOT),--data_root "$(DATA_ROOT)",) \
+	  $(if $(PROPOSAL),--proposal "$(PROPOSAL)",) \
+	  $(if $(CANDIDATE_ID),--candidate_id "$(CANDIDATE_ID)",)
 
 
 registries:
