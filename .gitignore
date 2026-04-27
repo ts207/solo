@@ -93,3 +93,4 @@ pytest_smoke.log
 fragments.jsonl
 knowledge_atlas.json
 features_v1*.parquet
+.worktrees/
