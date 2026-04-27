@@ -179,33 +179,24 @@ def build_forward_confirmation_payload(
     *,
     run_id: str,
     window: str,
+    data_root: Path | None = None,
     proposal_path: Path | None = None,
     candidate_id: str | None = None,
-    data_root: Path | None = None,
 ) -> dict[str, Any]:
     root = Path(data_root) if data_root is not None else get_data_root()
     start, end = _parse_window(window)
 
-    if not proposal_path and not candidate_id:
-        # Check run manifest or promoted theses for frozen identity
-        try:
-            thesis = _load_frozen_thesis(
-                run_id=run_id,
-                proposal_path=proposal_path,
-                candidate_id=candidate_id,
-                data_root=root,
-            )
-        except ValueError:
-            raise RuntimeError(
-                "forward-confirm snapshot mode is disabled. "
-                "Implement oos_frozen_thesis_replay_v1 with explicit frozen identity."
-            )
-    else:
+    try:
         thesis = _load_frozen_thesis(
             run_id=run_id,
             proposal_path=proposal_path,
             candidate_id=candidate_id,
             data_root=root,
+        )
+    except ValueError:
+        raise RuntimeError(
+            "forward-confirm snapshot mode is disabled. "
+            "Implement oos_frozen_thesis_replay_v1 with explicit frozen identity."
         )
 
     metrics = oos_frozen_thesis_replay_v1(
