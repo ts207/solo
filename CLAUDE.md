@@ -187,6 +187,36 @@ validation pass rate:     1.0
 The full supported path is smoke-proven:
 `cell discovery → summarize → assemble-theses → discover → validate → promote → export`
 
+### Lead research thesis (as of 2026-04-27)
+
+```
+OVERSHOOT_AFTER_SHOCK / chop / long / 48b / mean_reversion
+status:     research_promoted, monitor-only, NOT deployable
+run:        stat_stretch_04
+t_net:      2.094  (clears canonical >= 2.0)
+robustness: 0.585  (below deployment gate 0.70 — fold sparsity)
+net_bps:    33.1
+n:          234 (BTCUSDT 2022-2024)
+ETH cross:  t_net 1.165, net_bps 20.8 — same sign, sub-threshold
+```
+
+Ablations confirmed this is the local optimum. No horizon or context variant improves robustness.
+Deployment blocker is structural fold sparsity (~78 events/year in chop regime on BTCUSDT alone).
+Full characterization: `docs/research/oasrep_chop_long_48b_characterization.md`
+
+### Active cell-sweep surfaces (as of 2026-04-27)
+
+```
+stat_stretch:  run stat_stretch_04 — 72 scoreboard rows, 8 rankable, lead promoted
+trend_cont:    run trend_cont_02   — 84 scoreboard rows, 8 rankable, top rejected (t<2.0)
+vol_transition: run vol_transition_01 — top rejected (t<2.0)
+```
+
+Key fixes applied that unblocked these surfaces:
+- `BaseEventDetector.detect_events/validate_no_lookahead` added (satisfied DetectorLogicContract)
+- `StatisticalBase.compute_direction()` added + signed features in each stat detector
+- `search_feature_utils.py`: bidirectional event direction columns now populated per-event
+
 ### Lake data
 
 `data/lake/cleaned/` and `data/lake/features/` cover BTCUSDT 2021–2024 and ETHUSDT 2022–2024.
