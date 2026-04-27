@@ -218,17 +218,28 @@ def build_report(*, run_id: str, data_root: Path) -> dict:
     }
 
 
+def _fmt_float(value: float | None, digits: int = 3) -> str:
+    return "NA" if value is None else f"{value:.{digits}f}"
+
+
+def _fmt_bps(value: float | None) -> str:
+    return "NA" if value is None else f"{value:.1f}"
+
+
+def _fmt_pct(value: float | None) -> str:
+    return "NA" if value is None else f"{value:.1%}"
+
+
 def _build_summary(
     *, n: int | None, t_net: float | None, robustness: float | None,
     net_bps: float | None, gate_progress: float | None, deployment_ready: bool,
 ) -> str:
-    def _f3(v): return f"{v:.3f}" if v is not None else "None"
-    def _f1(v): return f"{v:.1f}" if v is not None else "None"
-    def _fp(v): return f"{v:.1%}" if v is not None else "None"
-
     lines = [
-        f"n={n}  t_net={_f3(t_net)}  robustness={_f3(robustness)}  net_bps={_f1(net_bps)}",
-        f"gate_progress={_fp(gate_progress)}  deployment_ready={deployment_ready}",
+        f"n={n if n is not None else 'NA'}  "
+        f"t_net={_fmt_float(t_net)}  "
+        f"robustness={_fmt_float(robustness)}  "
+        f"net_bps={_fmt_bps(net_bps)}",
+        f"gate_progress={_fmt_pct(gate_progress)}  deployment_ready={deployment_ready}",
     ]
     if not deployment_ready:
         if robustness is not None:
