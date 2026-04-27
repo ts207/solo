@@ -316,36 +316,17 @@ def _run_deploy_bind_config(args: argparse.Namespace) -> int:
     if not thesis_path.exists():
         raise FileNotFoundError(f"thesis artifact not found: {thesis_path}")
 
-    # Load thesis state
-    thesis_data = json.loads(thesis_path.read_text(encoding="utf-8"))
-    theses = thesis_data.get("theses", [])
-    # Default to "promoted" if no theses list found (though it should be there)
-    primary_state = theses[0].get("deployment_state", "promoted") if theses else "promoted"
-    thesis_slug = theses[0].get("thesis_slug", "unknown") if theses else "unknown"
-
-    # Try to load monitor report for deployment_ready flag
-    deployment_ready = False
-    monitor_dir = data_root / "reports" / "monitor" / thesis_slug
-    if monitor_dir.exists():
-        # Get latest report by name (dated YYYYMMDDTHHMMSSZ.json)
-        reports = sorted(monitor_dir.glob("*.json"))
-        if reports:
-            try:
-                latest_report = json.loads(reports[-1].read_text(encoding="utf-8"))
-                deployment_ready = latest_report.get("deployment_ready", False)
-            except Exception:
-                pass
-
+    monitor_report_path = _path_or_none(getattr(args, "monitor_report", None))
     runtime_mode = str(args.runtime_mode).strip().lower() or "monitor_only"
     
     # Assert admission
     try:
         assert_deploy_admission(
-            thesis_state=primary_state,
+            thesis_path=thesis_path,
             runtime_mode=runtime_mode,
-            deployment_ready=deployment_ready
+            monitor_report_path=monitor_report_path
         )
-    except PermissionError as e:
+    except (PermissionError, RuntimeError, ValueError) as e:
         _emit_json({"status": "error", "message": str(e)})
         return 1
 
@@ -573,6 +554,7 @@ def build_parser() -> argparse.ArgumentParser:
     bind_config.add_argument("--run_id", required=True)
     bind_config.add_argument("--data_root")
     bind_config.add_argument("--thesis_path")
+    bind_config.add_argument("--monitor_report")
     bind_config.add_argument("--out_dir", default=str(DEFAULT_CONFIG_OUTPUT_DIR))
     bind_config.add_argument("--runtime_mode", default="monitor_only")
     bind_config.add_argument("--profile", choices=["paper", "monitor", "production"], default=None)

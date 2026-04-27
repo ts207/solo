@@ -331,12 +331,26 @@ def test_cli_deploy_bind_config_defaults_to_project_configs_and_emits_single_the
     (thesis_dir / "promoted_theses.json").write_text(
         json.dumps(
             {
+                "schema_version": "promoted_theses_v1",
+                "run_id": run_id,
+                "generated_at_utc": "2026-04-27T00:00:00Z",
+                "thesis_count": 1,
+                "active_thesis_count": 0,
+                "pending_thesis_count": 0,
                 "theses": [
                     {
                         "primary_event_id": "VOL_SHOCK",
                         "thesis_id": f"thesis::{run_id}::BTCUSDT",
+                        "deployment_state": "monitor_only",
+                        "timeframe": "5m",
+                        "evidence": {"sample_size": 100},
+                        "lineage": {
+                            "source_run_id": run_id,
+                            "run_id": run_id,
+                            "candidate_id": f"cand::{run_id}",
+                        },
                     }
-                ]
+                ],
             }
         ),
         encoding="utf-8",
@@ -438,16 +452,31 @@ def test_cli_deploy_bind_config_does_not_inject_synthetic_microstructure_default
     (thesis_dir / "promoted_theses.json").write_text(
         json.dumps(
             {
+                "schema_version": "promoted_theses_v1",
+                "run_id": run_id,
+                "generated_at_utc": "2026-04-27T00:00:00Z",
+                "thesis_count": 1,
+                "active_thesis_count": 0,
+                "pending_thesis_count": 0,
                 "theses": [
                     {
                         "primary_event_id": "VOL_SHOCK",
                         "thesis_id": f"thesis::{run_id}::BTCUSDT",
+                        "deployment_state": "monitor_only",
+                        "timeframe": "5m",
+                        "evidence": {"sample_size": 100},
+                        "lineage": {
+                            "source_run_id": run_id,
+                            "run_id": run_id,
+                            "candidate_id": f"cand::{run_id}",
+                        },
                     }
-                ]
+                ],
             }
         ),
         encoding="utf-8",
     )
+
     out_dir = tmp_path / "configs"
     monkeypatch.setattr(
         sys,
