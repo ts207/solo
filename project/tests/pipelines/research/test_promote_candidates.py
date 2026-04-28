@@ -8,24 +8,24 @@ import pytest
 
 from project.research.promotion import evaluate_row as _evaluate_row_impl
 from project.research.promotion.promotion_reporting import (
-    apply_portfolio_overlap_gate as _apply_portfolio_overlap_gate,
-)
-from project.research.promotion.promotion_reporting import (
-    assign_and_validate_promotion_tiers as _assign_and_validate_promotion_tiers,
-)
-from project.research.promotion.promotion_reporting import (
     build_negative_control_diagnostics as _build_negative_control_diagnostics,
-)
-from project.research.promotion.promotion_reporting import (
-    build_promotion_capital_footprint as _build_promotion_capital_footprint,
 )
 from project.research.promotion.promotion_reporting import (
     build_promotion_statistical_audit as _build_promotion_statistical_audit,
 )
-from project.research.promotion.promotion_reporting import (
+from project.research.promotion.promotion_reporting_support import (
+    apply_portfolio_overlap_gate as _apply_portfolio_overlap_gate,
+)
+from project.research.promotion.promotion_reporting_support import (
+    assign_and_validate_promotion_tiers as _assign_and_validate_promotion_tiers,
+)
+from project.research.promotion.promotion_reporting_support import (
+    build_promotion_capital_footprint as _build_promotion_capital_footprint,
+)
+from project.research.promotion.promotion_reporting_support import (
     portfolio_diversification_violations as _portfolio_diversification_violations,
 )
-from project.research.promotion.promotion_reporting import (
+from project.research.promotion.promotion_reporting_support import (
     stabilize_promoted_output_schema as _stabilize_promoted_output_schema,
 )
 from project.research.services.promotion_service import (
@@ -925,6 +925,7 @@ def test_assign_and_validate_promotion_tiers_maps_expected_tiers():
         zip(
             audit_out["candidate_id"].astype(str).tolist(),
             audit_out["promotion_tier"].astype(str).tolist(),
+            strict=True,
         )
     )
     assert tier_by_id["deployable_1"] == "live_eligible"
