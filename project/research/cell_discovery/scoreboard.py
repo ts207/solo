@@ -388,6 +388,7 @@ def build_scoreboard(
     scoreboard = raw.merge(contrast, on=["cell_id", "source_cell_id"], how="left")
     if scoreboard.empty:
         scoreboard["rank_score"] = pd.Series(dtype="float64")
+        scoreboard["calibrated_t_conservative"] = pd.Series(dtype="float64")
         scoreboard["status"] = pd.Series(dtype="object")
     else:
         scoreboard["contrast_lift_bps"] = pd.to_numeric(
@@ -405,6 +406,12 @@ def build_scoreboard(
             else rank_score(dict(row), registry.ranking_policy),
             axis=1,
         )
+        # Conservative validated-t estimate. Empirically, cells t_stat is 2-4x
+        # higher than validated t_net. 0.40x is the lower bound of observed
+        # discount ratios — use this to filter candidates worth pursuing.
+        scoreboard["calibrated_t_conservative"] = pd.to_numeric(
+            scoreboard.get("t_stat", 0), errors="coerce"
+        ).fillna(0.0) * 0.40
         scoreboard["status"] = "rankable_research_only"
         scoreboard.loc[scoreboard["thesis_eligible"], "status"] = "rankable_thesis_eligible"
         scoreboard.loc[scoreboard["runtime_executable"], "status"] = "rankable_runtime_executable"

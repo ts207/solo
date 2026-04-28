@@ -11,8 +11,7 @@ event_atoms:
   - long
   - short
   templates:
-  - slippage_aware_filter
-  - only_if_liquidity
+  - mean_reversion
   horizons:
   - 12b
   - 24b
@@ -29,8 +28,7 @@ event_atoms:
   - long
   - short
   templates:
-  - slippage_aware_filter
-  - tail_risk_avoid
+  - mean_reversion
   horizons:
   - 12b
   - 24b
@@ -47,8 +45,7 @@ event_atoms:
   - long
   - short
   templates:
-  - slippage_aware_filter
-  - tail_risk_avoid
+  - mean_reversion
   horizons:
   - 12b
   - 24b

@@ -3,7 +3,7 @@ import json
 from project.live.thesis_store import ThesisStore
 from project.live.contracts.promoted_thesis import LIVE_TRADEABLE_STATES, PromotedThesis
 from project.core.exceptions import CompatibilityRequiredError, DataIntegrityError
-from project.promote.paper_gate import evaluate_paper_gate
+from project.live.paper_gate import evaluate_paper_gate
 from project.live.live_approval import load_live_approval
 from project.live.cap_profiles import validate_thesis_caps_against_profile
 

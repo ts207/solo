@@ -240,18 +240,34 @@ def _proposal_payload(
     return payload
 
 
+def _load_candidates(paths, *, per_cell: bool, limit: int) -> pd.DataFrame:
+    if per_cell:
+        if not paths.scoreboard_path.exists():
+            raise FileNotFoundError(f"scoreboard not found: {paths.scoreboard_path}")
+        df = read_parquet([paths.scoreboard_path])
+        if df.empty:
+            return df
+        df = df[df.get("rank_score", pd.Series(0.0, index=df.index)).astype(float) > 0].copy()
+        return df.sort_values(["rank_score", "net_mean_bps"], ascending=False).head(limit)
+    if not paths.cluster_representatives_path.exists():
+        raise FileNotFoundError(
+            f"edge cluster representatives not found: {paths.cluster_representatives_path}"
+        )
+    df = read_parquet([paths.cluster_representatives_path])
+    if df.empty:
+        return df
+    return df.sort_values(["rank_score", "net_mean_bps"], ascending=False).head(limit)
+
+
 def assemble_theses(
     *,
     run_id: str,
     data_root: Path,
     limit: int = 20,
+    per_cell: bool = False,
 ) -> dict[str, Any]:
     paths = paths_for_run(data_root=data_root, run_id=run_id)
-    if not paths.cluster_representatives_path.exists():
-        raise FileNotFoundError(
-            f"edge cluster representatives not found: {paths.cluster_representatives_path}"
-        )
-    representatives = read_parquet([paths.cluster_representatives_path])
+    candidates = _load_candidates(paths, per_cell=per_cell, limit=limit)
     source_scope = _load_source_scope(paths)
     if source_scope:
         source_scope.setdefault("experiment_path", str(paths.experiment_path))
@@ -259,15 +275,9 @@ def assemble_theses(
     generated: list[dict[str, Any]] = []
     rejected: list[dict[str, Any]] = []
 
-    if not representatives.empty:
-        representatives = representatives.sort_values(
-            ["rank_score", "net_mean_bps"],
-            ascending=False,
-        ).head(limit)
-
-    for _, row in representatives.iterrows():
+    for _, row in candidates.iterrows():
         cell_id = str(row.get("cell_id", ""))
-        if not bool(row.get("is_representative", False)):
+        if not per_cell and not bool(row.get("is_representative", False)):
             rejected.append({"cell_id": cell_id, "reason": "not_cluster_representative"})
             continue
         if str(row.get("blocked_reason", "") or "").strip():

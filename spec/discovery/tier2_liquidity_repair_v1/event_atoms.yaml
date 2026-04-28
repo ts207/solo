@@ -30,7 +30,6 @@ event_atoms:
   templates:
   - mean_reversion
   - overshoot_repair
-  - only_if_liquidity
   horizons:
   - 12b
   - 24b
@@ -49,8 +48,6 @@ event_atoms:
   - short
   templates:
   - mean_reversion
-  - slippage_aware_filter
-  - only_if_liquidity
   horizons:
   - 12b
   - 24b
@@ -69,7 +66,6 @@ event_atoms:
   templates:
   - mean_reversion
   - overshoot_repair
-  - only_if_highvol
   horizons:
   - 12b
   - 24b

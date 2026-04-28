@@ -17,9 +17,9 @@ event_atoms:
   required_feature_keys:
   - close
   - liquidation_notional
-  search_role: primary_trigger
-  promotion_role: eligible
-  runtime_role: trade_trigger
+  search_role: diagnostic
+  promotion_role: ineligible
+  runtime_role: observer
 - id: liquidation_cascade_proxy_positioning
   event_family: positioning
   event_type: LIQUIDATION_CASCADE_PROXY
@@ -58,7 +58,7 @@ event_atoms:
   - oi_delta_1h
   search_role: diagnostic
   promotion_role: ineligible
-  runtime_role: trade_trigger
+  runtime_role: observer
 - id: oi_spike_positive_positioning
   event_family: positioning
   event_type: OI_SPIKE_POSITIVE
@@ -87,7 +87,6 @@ event_atoms:
   templates:
   - mean_reversion
   - exhaustion_reversal
-  - only_if_highvol
   horizons:
   - 12b
   - 24b
@@ -106,7 +105,6 @@ event_atoms:
   templates:
   - mean_reversion
   - exhaustion_reversal
-  - tail_risk_avoid
   horizons:
   - 12b
   - 24b
