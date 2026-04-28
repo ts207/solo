@@ -137,7 +137,7 @@ def test_tiny_live_admission_e2e_fail_exceed_caps(tmp_path):
     
     # Update thesis with excessive caps
     data = json.loads(thesis_path.read_text())
-    data["theses"][0]["cap_profile"]["max_notional"] = 500.0  # tiny_live_v1 limit is 50.0
+    data["theses"][0]["cap_profile"]["max_notional"] = 50.1  # tiny_live_v1 limit is 50.0
     thesis_path.write_text(json.dumps(data))
     
     with pytest.raises(PermissionError, match="cap profile violates live approval"):
