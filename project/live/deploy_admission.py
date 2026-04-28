@@ -5,6 +5,7 @@ from project.live.contracts.promoted_thesis import LIVE_TRADEABLE_STATES, Promot
 from project.core.exceptions import CompatibilityRequiredError, DataIntegrityError
 from project.promote.paper_gate import evaluate_paper_gate
 from project.live.live_approval import load_live_approval
+from project.live.cap_profiles import validate_thesis_caps_against_profile
 
 def _assert_forward_confirmation_passes(fc_path: Path) -> None:
     if not fc_path.exists():
@@ -54,6 +55,7 @@ def assert_deploy_admission(
       require forward_confirmation.json pass (OOS replay)
       require paper_quality_summary.json pass (Paper Gate)
       require live_approval.json exists and risk acknowledged
+      require thesis.cap_profile to be within live approval cap profile limits
       require DeploymentGate pass (already checked by ThesisStore)
     """
     runtime_mode = runtime_mode.lower()
@@ -125,6 +127,18 @@ def assert_deploy_admission(
                 approval.validate_for_live()
                 if approval.thesis_id != thesis.thesis_id:
                     raise PermissionError(f"Trading mode blocked: approval artifact thesis_id mismatch: {approval.thesis_id} != {thesis.thesis_id}")
+                
+                # Cap profile enforcement: ensure actual thesis caps obey the approved profile
+                cap_reasons = validate_thesis_caps_against_profile(
+                    thesis.cap_profile,
+                    approval.cap_profile_id,
+                )
+                if cap_reasons:
+                    raise PermissionError(
+                        f"Trading mode blocked: thesis {thesis.thesis_id} cap profile violates live approval "
+                        f"({approval.cap_profile_id}): {', '.join(cap_reasons)}"
+                    )
+
             except (FileNotFoundError, ValueError) as exc:
                 raise PermissionError(f"Trading mode blocked: live approval missing or invalid for thesis {thesis.thesis_id}: {exc}")
 
