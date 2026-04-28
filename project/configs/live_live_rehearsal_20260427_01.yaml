@@ -1,0 +1,10 @@
+runtime_mode: trading
+strategy_runtime:
+  implemented: true
+  event_detector:
+    adapter: governed_runtime_core
+    legacy_heuristic_enabled: false
+  thesis_run_id: rehearsal_20260427_01
+freshness_streams:
+- symbol: btcusdt
+  stream: kline_5m
