@@ -73,6 +73,7 @@ METRICS_COLUMNS = [
     "template_id",
     "entry_lag",
     "entry_lag_bars",
+    "context_timing",
     "n",
     "train_n_obs",
     "validation_n_obs",
@@ -222,6 +223,22 @@ class EvaluationContext:
         *,
         use_context_quality: bool,
     ) -> tuple[pd.Series | None, str | None]:
+        """Return a boolean mask for events after entry-lag shift, with optional context filtering.
+
+        The mask is built as follows:
+
+        1. Start from the raw trigger mask (no lag).
+        2. Apply the context filter at the bar determined by ``spec.context_timing``:
+           - ``"trigger"`` (recommended for cell discovery): context is evaluated
+             at the original trigger bar before the entry-lag shift.
+           - ``"entry"`` (legacy default): context is evaluated at the entry bar
+             (post-shift), which may differ from the trigger bar when entry_lag > 0.
+        3. Shift the resulting mask by ``spec.entry_lag`` to produce entry-bar indices.
+
+        Callers that subsequently pass these indices to
+        ``split_labels_for_indices`` must pass ``entry_lag_bars=0`` because the
+        lag has already been applied here.
+        """
         if spec.entry_lag < 1:
             return None, "entry_lag_guardrail"
         trigger_key = _trigger_cache_key(spec)
@@ -232,10 +249,17 @@ class EvaluationContext:
         if shifted_key in self.shifted_mask_cache:
             return self.shifted_mask_cache[shifted_key], None
 
-        mask = self.raw_trigger_mask(spec).astype("boolean").shift(
-            spec.entry_lag, fill_value=False
-        ).astype(bool)
-        if spec.context:
+        raw_trigger = self.raw_trigger_mask(spec)
+
+        # Sprint 1 fix 1.3 — context timing.
+        # When context_timing="trigger", apply context BEFORE shifting so that
+        # the context column is read at the same bar the trigger fired.
+        # When context_timing="entry" (default/legacy), apply context AFTER
+        # shifting so context is read at the entry bar.
+        context_timing = str(getattr(spec, "context_timing", "entry") or "entry").strip().lower()
+
+        if spec.context and context_timing == "trigger":
+            # Evaluate context at trigger bar, then shift the combined mask
             if context_key not in self.context_cache:
                 self.context_cache[context_key] = _context_mask(
                     spec.context,
@@ -245,7 +269,27 @@ class EvaluationContext:
             ctx_mask = self.context_cache[context_key]
             if ctx_mask is None:
                 return None, "context_unresolvable"
-            mask = mask & ctx_mask
+            combined = raw_trigger.astype(bool) & ctx_mask
+            mask = combined.astype("boolean").shift(
+                spec.entry_lag, fill_value=False
+            ).astype(bool)
+        else:
+            # Legacy/default: shift first, then apply context at entry bar
+            mask = raw_trigger.astype("boolean").shift(
+                spec.entry_lag, fill_value=False
+            ).astype(bool)
+            if spec.context:
+                if context_key not in self.context_cache:
+                    self.context_cache[context_key] = _context_mask(
+                        spec.context,
+                        self.features,
+                        use_context_quality=use_context_quality,
+                    )
+                ctx_mask = self.context_cache[context_key]
+                if ctx_mask is None:
+                    return None, "context_unresolvable"
+                mask = mask & ctx_mask
+
         self.shifted_mask_cache[shifted_key] = mask
         return mask, None
 
@@ -256,6 +300,29 @@ class EvaluationContext:
         entry_lag_bars: int,
         horizon_bars: int,
     ) -> pd.Series:
+        """Assign split labels to a set of row indices.
+
+        Parameters
+        ----------
+        indices:
+            Row indices of the events to label.  **These must be the indices
+            as they appear after any entry-lag shift has already been applied**
+            (i.e. they already point at the entry bar, not the trigger bar).
+        entry_lag_bars:
+            Additional forward offset to apply *on top of* ``indices`` when
+            computing which split the entry/exit window belongs to.
+
+            **IMPORTANT — avoid double-counting:**  ``event_mask()`` already
+            shifts the trigger mask by ``spec.entry_lag`` before returning it,
+            so the indices extracted from ``fwd[mask]`` already sit at the
+            entry bar.  Callers in ``evaluate_hypothesis_batch`` must therefore
+            pass ``entry_lag_bars=0`` here to avoid shifting the window a
+            second time and incorrectly dropping events near split boundaries.
+        horizon_bars:
+            Number of bars in the holding window.  The entire window
+            ``[entry_pos, entry_pos + horizon_bars]`` must fall within a single
+            split for the event to be considered split-compatible.
+        """
         if self.split_codes is None or len(indices) == 0:
             return pd.Series(dtype=object, index=indices)
 
@@ -546,9 +613,14 @@ def evaluate_hypothesis_batch(
         event_returns = fwd[mask].dropna()
         split_labels = pd.Series(dtype=object)
         if "split_label" in features.columns and not event_returns.empty:
+            # entry_lag_bars=0 here because event_mask() already shifted the
+            # trigger mask by spec.entry_lag, so event_returns.index already
+            # points at the entry bar.  Passing spec.entry_lag again would
+            # double-count the lag and incorrectly drop events near split
+            # boundaries (Sprint 1 fix 1.1).
             split_labels = eval_context.split_labels_for_indices(
                 event_returns.index,
-                entry_lag_bars=int(spec.entry_lag),
+                entry_lag_bars=0,
                 horizon_bars=int(hbars),
             )
             keep_mask = split_labels.astype(str).isin(_EVALUATION_SPLIT_LABELS)

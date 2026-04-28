@@ -41,6 +41,7 @@ class CandidateHypothesis:
             "filter_template_id": self.spec.filter_template_id,
             "entry_lag": int(self.spec.entry_lag),
             "entry_lag_bars": int(self.spec.entry_lag),
+            "context_timing": str(getattr(self.spec, "context_timing", "entry") or "entry"),
             "context": dict(self.spec.context or {}),
             "search_spec_name": self.search_spec_name,
             "origin_stage": self.origin_stage,

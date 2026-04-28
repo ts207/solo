@@ -678,7 +678,12 @@ def test_materialize_interaction_trigger_columns_builds_exclude_mask() -> None:
 
     interaction_col = ColumnRegistry.interaction_cols("INT_EXCLUDE_TEST")[0]
     assert interaction_col in observed.columns
-    assert observed[interaction_col].tolist() == [False, False, False, False, True, False]
+    # Sprint 1 fix 1.2 — exclude now uses past-only rolling window (~prior_right).
+    # Row 1: left fires, prior_right has no VOL_SPIKE in rows ≤0 → fires.
+    # Row 4: left fires, prior_right includes VOL_SPIKE at row 2 (within lag=10) → suppressed.
+    # Old result was [False, False, False, False, True, False] (future-looking).
+    # New result:     [False, True,  False, False, False, False] (past-only).
+    assert observed[interaction_col].tolist() == [False, True, False, False, False, False]
 
 
 def test_attach_candidate_run_lineage_sets_missing_run_id() -> None:

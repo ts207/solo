@@ -294,6 +294,13 @@ class HypothesisSpec:
     entry_lag: int = 1
     cost_profile: str = "standard"
     objective_profile: str = "mean_return"
+    # Sprint 1 fix 1.3 — explicit context evaluation timing.
+    # "entry"   : context is checked at the entry bar (post entry-lag shift).
+    #             This is the legacy behaviour and the default.
+    # "trigger" : context is checked at the original trigger bar (pre-lag).
+    #             Cell discovery should use this to avoid evaluating context
+    #             on a bar the researcher never intended.
+    context_timing: str = "entry"
     _enable_validation: bool = field(default=True, init=False, repr=False)
     _hid: str | None = field(default=None, init=False, repr=False)
 
@@ -326,6 +333,7 @@ class HypothesisSpec:
             "entry_lag": self.entry_lag,
             "cost_profile": self.cost_profile,
             "objective_profile": self.objective_profile,
+            "context_timing": self.context_timing,
         }
         if self.context:
             d["context"] = {k: v for k, v in sorted(self.context.items())}
@@ -389,4 +397,5 @@ class HypothesisSpec:
             entry_lag=d.get("entry_lag", 1),
             cost_profile=d.get("cost_profile", "standard"),
             objective_profile=d.get("objective_profile", "mean_return"),
+            context_timing=d.get("context_timing", "entry"),
         )

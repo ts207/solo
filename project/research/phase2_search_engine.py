@@ -669,18 +669,39 @@ def _materialize_interaction_trigger_columns(
         lag_steps = _interaction_lag_steps(out, getattr(trigger, "lag", 1))
         op = str(getattr(trigger, "op", "") or "").strip().lower()
 
-        future_right = (
-            right_mask.shift(-1)
-            .iloc[::-1]
+        # Sprint 1 fix 1.2 — lookahead-safe interaction operators.
+        #
+        # Operators that are safe to use as live trade-entry triggers (no
+        # future information consumed at decision time):
+        #   "confirm" — right fires NOW, left fired in the past lag window  ✓
+        #   "or"      — union of current signals, both evaluated at NOW     ✓
+        #   "and"     — both must be true simultaneously at NOW             ✓ (fixed)
+        #   "exclude" — left fires NOW, right NOT seen in past lag window   ✓ (fixed)
+        #
+        # The previous implementation used right_mask.shift(-1) for "and" and
+        # "exclude", which is a 1-bar forward look: the entry at bar T used
+        # information from bar T+1.  That is not available at decision time and
+        # inflates hit rates / t-stats for any candidate whose trigger column
+        # was derived here.
+        #
+        # Fixed semantics:
+        #   "and"     → left & right must be true on the SAME bar (simultaneous)
+        #   "exclude" → left fires NOW & right has NOT fired within the past
+        #               lag_steps bars (past-only rolling window)
+        _LOOKAHEAD_SAFE_OPS = frozenset({"and", "or", "confirm", "exclude"})
+
+        # past rolling window used by "confirm" and (fixed) "exclude"
+        prior_right = (
+            right_mask.shift(1)
             .rolling(window=lag_steps, min_periods=1)
             .max()
-            .iloc[::-1]
             .fillna(0)
             .astype(bool)
         )
 
         if op == "and":
-            interaction_mask = left_mask & future_right
+            # Simultaneous co-occurrence — no lookahead (Sprint 1 fix)
+            interaction_mask = left_mask & right_mask
         elif op == "confirm":
             prior_left = (
                 left_mask.shift(1)
@@ -691,7 +712,9 @@ def _materialize_interaction_trigger_columns(
             )
             interaction_mask = right_mask & prior_left
         elif op == "exclude":
-            interaction_mask = left_mask & (~future_right)
+            # left fires NOW; right must NOT have fired in the past lag window
+            # (Sprint 1 fix: was "~future_right" which used bar T+1 information)
+            interaction_mask = left_mask & (~prior_right)
         elif op == "or":
             interaction_mask = left_mask | right_mask
         else:
