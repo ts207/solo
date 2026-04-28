@@ -4,6 +4,7 @@ from project.live.thesis_store import ThesisStore
 from project.live.contracts.promoted_thesis import LIVE_TRADEABLE_STATES, PromotedThesis
 from project.core.exceptions import CompatibilityRequiredError, DataIntegrityError
 from project.promote.paper_gate import evaluate_paper_gate
+from project.live.live_approval import load_live_approval
 
 def _assert_forward_confirmation_passes(fc_path: Path) -> None:
     if not fc_path.exists():
@@ -52,6 +53,7 @@ def assert_deploy_admission(
       require deployment_ready=true
       require forward_confirmation.json pass (OOS replay)
       require paper_quality_summary.json pass (Paper Gate)
+      require live_approval.json exists and risk acknowledged
       require DeploymentGate pass (already checked by ThesisStore)
     """
     runtime_mode = runtime_mode.lower()
@@ -115,6 +117,16 @@ def assert_deploy_admission(
                      f"Trading mode blocked: paper gate failed for thesis {thesis.thesis_id}. "
                      f"Reasons: {', '.join(paper_gate.reason_codes)}"
                  )
+
+            # Require Explicit Live Approval
+            approval_path = data_root / "reports" / "approval" / str(thesis.thesis_id) / "live_approval.json"
+            try:
+                approval = load_live_approval(approval_path)
+                approval.validate_for_live()
+                if approval.thesis_id != thesis.thesis_id:
+                    raise PermissionError(f"Trading mode blocked: approval artifact thesis_id mismatch: {approval.thesis_id} != {thesis.thesis_id}")
+            except (FileNotFoundError, ValueError) as exc:
+                raise PermissionError(f"Trading mode blocked: live approval missing or invalid for thesis {thesis.thesis_id}: {exc}")
 
         if runtime_mode == "simulation":
             paper_compatible = ["paper_enabled", "paper_approved", "live_eligible", "live_enabled"]

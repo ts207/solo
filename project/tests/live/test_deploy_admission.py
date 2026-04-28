@@ -65,6 +65,7 @@ def test_deploy_admission_trading_allowed_for_live_enabled_ready(mock_paper_gate
     """live_enabled + trading + deployment_ready=True + all gates pass -> pass"""
     mock_thesis.deployment_state = "live_enabled"
     mock_thesis.lineage.run_id = "test_run"
+    mock_thesis.thesis_id = "test_thesis"
     mock_paper_gate.return_value = MagicMock(status="pass")
     
     # Forward confirmation
@@ -73,6 +74,17 @@ def test_deploy_admission_trading_allowed_for_live_enabled_ready(mock_paper_gate
     (fc_dir / "forward_confirmation.json").write_text(json.dumps({
         "method": "oos_frozen_thesis_replay_v1",
         "metrics": {"status": "success", "event_count": 1, "mean_return_net_bps": 1.0, "t_stat_net": 1.0}
+    }))
+
+    # Live approval
+    approval_dir = tmp_path / "reports" / "approval" / "test_thesis"
+    approval_dir.mkdir(parents=True, exist_ok=True)
+    (approval_dir / "live_approval.json").write_text(json.dumps({
+        "thesis_id": "test_thesis",
+        "approved_by": "operator",
+        "approved_at_utc": "2026-04-27T00:00:00Z",
+        "cap_profile_id": "tiny_live_v1",
+        "risk_acknowledgement": True
     }))
     
     monitor_path = tmp_path / "report.json"

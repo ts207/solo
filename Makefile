@@ -197,6 +197,7 @@ minimum-green-gate:
 	@PYTHONPATH=$(PYTHONPATH) $(PYTHON) -m pytest -q -s project/tests/scripts/test_monitor_research_thesis.py
 	@PYTHONPATH=$(PYTHONPATH) $(PYTHON) -m pytest -q -s project/tests/live/test_deploy_admission.py
 	@PYTHONPATH=$(PYTHONPATH) $(PYTHON) -m pytest -q -s project/tests/live/test_deploy_admission_v2.py
+	@PYTHONPATH=$(PYTHONPATH) $(PYTHON) -m pytest -q -s project/tests/live/test_live_approval.py
 	@PYTHONPATH=$(PYTHONPATH) $(PYTHON) -m pytest -q -s project/tests/live/test_runtime_admission.py
 	@PYTHONPATH=$(PYTHONPATH) $(PYTHON) -m pytest -q -s project/tests/live/test_paper_ledger.py
 	@PYTHONPATH=$(PYTHONPATH) $(PYTHON) -m pytest -q -s project/tests/live/test_paper_ledger_runtime_init.py
