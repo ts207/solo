@@ -3,12 +3,14 @@ import json
 from project.live.thesis_store import ThesisStore
 from project.live.contracts.promoted_thesis import LIVE_TRADEABLE_STATES, PromotedThesis
 from project.core.exceptions import CompatibilityRequiredError, DataIntegrityError
+from project.promote.paper_gate import evaluate_paper_gate
 
 def assert_deploy_admission(
     *,
     thesis_path: Path,
     runtime_mode: str,
     monitor_report_path: Path | None = None,
+    data_root: Path | None = None,
 ) -> None:
     """
     Gates deployment based on validated thesis artifacts and monitor readiness.
@@ -22,21 +24,18 @@ def assert_deploy_admission(
     - trading:
       allow live_enabled only
       require deployment_ready=true
+      require forward_confirmation.json pass (OOS replay)
+      require paper_quality_summary.json pass (Paper Gate)
       require DeploymentGate pass (already checked by ThesisStore)
     """
     runtime_mode = runtime_mode.lower()
     
     # 1. Load and validate via ThesisStore (applies DeploymentGate)
-    # Raises RuntimeError on schema mismatch or DeploymentGate violations (if strict_live_gate=True)
-    # ThesisStore.from_path performs artifact trust checks as well.
     try:
         store = ThesisStore.from_path(thesis_path, strict_live_gate=True)
         theses = store.all()
     except (CompatibilityRequiredError, DataIntegrityError):
-        # Allow bypass for monitor_only mode ONLY. 
-        # Research artifacts might not have full trust headers yet.
         if runtime_mode == "monitor_only":
-            # Fallback to direct loading without trust checks
             from project.live.thesis_store import _load_payload
             payload = _load_payload(thesis_path)
             theses = [
@@ -62,6 +61,7 @@ def assert_deploy_admission(
     # 3. Mode-specific admission
     for thesis in theses:
         state = str(thesis.deployment_state or "").strip().lower()
+        run_id = thesis.lineage.run_id if hasattr(thesis, "lineage") and thesis.lineage else None
         
         if runtime_mode == "trading":
             if state not in LIVE_TRADEABLE_STATES:
@@ -74,15 +74,33 @@ def assert_deploy_admission(
                      f"Trading mode blocked: monitor report deployment_ready=False for thesis {thesis.thesis_id}."
                  )
 
+            # Require Forward Confirmation
+            if not run_id or not data_root:
+                 raise PermissionError(f"Trading mode blocked: cannot resolve run_id or data_root for thesis {thesis.thesis_id}")
+            
+            fc_path = data_root / "reports" / "validation" / str(run_id) / "forward_confirmation.json"
+            if not fc_path.exists():
+                 raise PermissionError(f"Trading mode blocked: forward confirmation missing at {fc_path}")
+            
+            fc = json.loads(fc_path.read_text(encoding="utf-8"))
+            if fc.get("method") != "oos_frozen_thesis_replay_v1":
+                 raise PermissionError(f"Trading mode blocked: forward confirmation method must be 'oos_frozen_thesis_replay_v1'")
+
+            # Require Paper Gate Pass
+            paper_summary_path = data_root / "reports" / "paper" / str(thesis.thesis_id) / "paper_quality_summary.json"
+            paper_gate = evaluate_paper_gate(paper_summary_path)
+            if paper_gate.status != "pass":
+                 raise PermissionError(
+                     f"Trading mode blocked: paper gate failed for thesis {thesis.thesis_id}. "
+                     f"Reasons: {', '.join(paper_gate.reason_codes)}"
+                 )
+
         if runtime_mode == "simulation":
             paper_compatible = ["paper_enabled", "paper_approved", "live_eligible", "live_enabled"]
             if state not in paper_compatible:
-                # Special case: allow robust 'promoted' theses to enter simulation if monitor ready
                 if state == "promoted" and deployment_ready:
                     continue
                 raise PermissionError(
                     f"Simulation mode blocked: thesis {thesis.thesis_id} is in state '{state}'. "
                     "Requires paper-enabled state."
                 )
-
-    # monitor_only is always allowed if ThesisStore.from_path didn't raise

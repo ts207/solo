@@ -11,6 +11,7 @@ def mock_thesis():
     thesis.deployment_state = "monitor_only"
     thesis.live_approval.live_approval_status = ""
     thesis.cap_profile.is_configured = False
+    thesis.lineage.run_id = "test_run"
     return thesis
 
 @pytest.fixture
@@ -59,34 +60,57 @@ def test_deploy_admission_simulation_allowed_for_promoted_ready(mock_store, mock
                         monitor_report_path=Path("report.json")
                     )
 
-def test_deploy_admission_trading_allowed_for_live_enabled_ready(mock_store, mock_thesis):
-    """live_enabled + trading + deployment_ready=True -> pass"""
+@patch("project.live.deploy_admission.evaluate_paper_gate")
+def test_deploy_admission_trading_allowed_for_live_enabled_ready(mock_paper_gate, mock_store, mock_thesis, tmp_path):
+    """live_enabled + trading + deployment_ready=True + all gates pass -> pass"""
     mock_thesis.deployment_state = "live_enabled"
+    mock_thesis.lineage.run_id = "test_run"
+    mock_paper_gate.return_value = MagicMock(status="pass")
+    
+    # Forward confirmation
+    fc_dir = tmp_path / "reports" / "validation" / "test_run"
+    fc_dir.mkdir(parents=True)
+    (fc_dir / "forward_confirmation.json").write_text(json.dumps({
+        "method": "oos_frozen_thesis_replay_v1"
+    }))
+    
     with patch("project.live.deploy_admission.ThesisStore.from_path", return_value=mock_store):
         with patch("project.live.deploy_admission.json.loads") as m_json:
             m_json.return_value = {"deployment_ready": True}
-            with patch("pathlib.Path.exists", return_value=True):
-                with patch("pathlib.Path.read_text", return_value="{}"):
-                    assert_deploy_admission(
-                        thesis_path=Path("dummy.json"),
-                        runtime_mode="trading",
-                        monitor_report_path=Path("report.json")
-                    )
+            with patch("project.live.deploy_admission.Path.exists", side_effect=lambda p: True if "forward_confirmation.json" in str(p) else Path.exists(p)):
+                # We need a more robust way to mock Path.exists or just use the tmp_path correctly
+                pass
 
-def test_deploy_admission_trading_blocked_for_live_enabled_not_ready(mock_store, mock_thesis):
+    # Actually, better to just use the new test file or fix this one properly by providing real paths
+    fc_dir = tmp_path / "reports" / "validation" / "test_run"
+    fc_dir.mkdir(parents=True, exist_ok=True)
+    (fc_dir / "forward_confirmation.json").write_text(json.dumps({"method": "oos_frozen_thesis_replay_v1"}))
+    
+    monitor_path = tmp_path / "report.json"
+    monitor_path.write_text(json.dumps({"deployment_ready": True}))
+    
+    with patch("project.live.deploy_admission.ThesisStore.from_path", return_value=mock_store):
+        assert_deploy_admission(
+            thesis_path=Path("dummy.json"),
+            runtime_mode="trading",
+            monitor_report_path=monitor_path,
+            data_root=tmp_path
+        )
+
+def test_deploy_admission_trading_blocked_for_live_enabled_not_ready(mock_store, mock_thesis, tmp_path):
     """live_enabled + trading + deployment_ready=False -> fail"""
     mock_thesis.deployment_state = "live_enabled"
+    monitor_path = tmp_path / "report.json"
+    monitor_path.write_text(json.dumps({"deployment_ready": False}))
+    
     with patch("project.live.deploy_admission.ThesisStore.from_path", return_value=mock_store):
-        with patch("project.live.deploy_admission.json.loads") as m_json:
-            m_json.return_value = {"deployment_ready": False}
-            with patch("pathlib.Path.exists", return_value=True):
-                with patch("pathlib.Path.read_text", return_value="{}"):
-                    with pytest.raises(PermissionError, match="monitor report deployment_ready=False"):
-                        assert_deploy_admission(
-                            thesis_path=Path("dummy.json"),
-                            runtime_mode="trading",
-                            monitor_report_path=Path("report.json")
-                        )
+        with pytest.raises(PermissionError, match="monitor report deployment_ready=False"):
+            assert_deploy_admission(
+                thesis_path=Path("dummy.json"),
+                runtime_mode="trading",
+                monitor_report_path=monitor_path,
+                data_root=tmp_path
+            )
 
 def test_deploy_admission_passes_through_thesis_store_errors():
     """Verify that ThesisStore (and thus DeploymentGate) errors are propagated"""

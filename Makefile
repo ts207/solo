@@ -200,6 +200,7 @@ minimum-green-gate:
 	@PYTHONPATH=$(PYTHONPATH) $(PYTHON) -m pytest -q -s project/tests/live/test_paper_ledger.py
 	@PYTHONPATH=$(PYTHONPATH) $(PYTHON) -m pytest -q -s project/tests/live/test_paper_ledger_runtime_init.py
 	@PYTHONPATH=$(PYTHONPATH) $(PYTHON) -m pytest -q -s project/tests/validate/test_forward_confirm_oos.py
+	@PYTHONPATH=$(PYTHONPATH) $(PYTHON) -m pytest -q -s project/tests/promote/test_paper_gate.py
 
 discover-cells-verify:
 	@test -n "$(RUN_ID)" || (echo 'RUN_ID is required' >&2; exit 2)

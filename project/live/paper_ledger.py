@@ -5,9 +5,10 @@ import logging
 from dataclasses import asdict, dataclass
 from datetime import UTC, datetime
 from pathlib import Path
-from typing import Literal
+from typing import Literal, Any
 
-from project.io.utils import ensure_dir
+from project.io.utils import ensure_dir, atomic_write_json
+from project.live.execution_costs import estimate_execution_cost_bps
 
 _LOG = logging.getLogger(__name__)
 
@@ -19,6 +20,7 @@ class PaperPosition:
     side: Literal["long", "short"]
     entry_price: float
     entry_ts: str
+    entry_idx: int = 0
     quantity: float = 1.0  # Unit quantity for bps calculation
     highest_price: float = 0.0
     lowest_price: float = 0.0
@@ -41,7 +43,9 @@ class PaperTradeRecord:
     net_bps: float = 0.0
     mae_bps: float = 0.0
     mfe_bps: float = 0.0
-    cost_model_version: str = "v1_basic"
+    cost_model_version: str = "paper_cost_v1"
+    degraded_cost: bool = False
+    degraded_reason: str | None = None
 
 
 class PaperExecutionLedger:
@@ -50,7 +54,7 @@ class PaperExecutionLedger:
         self.active_positions: dict[str, PaperPosition] = {}  # "thesis_id:symbol" -> PaperPosition
         self.taker_fee_bps = 2.0  # Default fallback
         self.slippage_bps = 1.0  # Default fallback
-        self.cost_model_version = "v1_basic"
+        self._bar_counter = 0
 
     def update(
         self,
@@ -60,14 +64,17 @@ class PaperExecutionLedger:
         side: str,
         price: float,
         timestamp: str,
+        best_bid: float | None = None,
+        best_ask: float | None = None,
+        funding_rate: float | None = None,
     ):
         if not thesis_id or not symbol:
             return
 
+        self._bar_counter += 1
         pos_key = f"{thesis_id}:{symbol}"
 
         # 1. Update MAE/MFE for active position
-        # We exclude exit price from intra-trade extremes to match reporting conventions
         is_exit = action == "reject" or (action == "watch" and side == "flat")
         if pos_key in self.active_positions and not is_exit:
             pos = self.active_positions[pos_key]
@@ -84,6 +91,7 @@ class PaperExecutionLedger:
                         side="long" if side == "buy" else "short",
                         entry_price=price,
                         entry_ts=timestamp,
+                        entry_idx=self._bar_counter,
                         highest_price=price,
                         lowest_price=price,
                     )
@@ -93,9 +101,17 @@ class PaperExecutionLedger:
         elif action == "reject" or (action == "watch" and side == "flat"):
             if pos_key in self.active_positions:
                 pos = self.active_positions.pop(pos_key)
-                self._record_exit(pos, price, timestamp)
+                self._record_exit(pos, price, timestamp, best_bid, best_ask, funding_rate)
 
-    def _record_exit(self, pos: PaperPosition, exit_price: float, exit_ts: str):
+    def _record_exit(
+        self, 
+        pos: PaperPosition, 
+        exit_price: float, 
+        exit_ts: str,
+        best_bid: float | None = None,
+        best_ask: float | None = None,
+        funding_rate: float | None = None,
+    ):
         if pos.entry_price <= 0:
             return
 
@@ -115,15 +131,21 @@ class PaperExecutionLedger:
             else (pos.lowest_price / pos.entry_price - 1.0) * -10000.0
         )
 
-        # Net BPS (2x fees for entry+exit, 2x slippage)
-        # TODO: Add real funding and spread attribution in next phase
-        fee_total = self.taker_fee_bps * 2
-        slippage_total = self.slippage_bps * 2
-        funding_total = 0.0 # Placeholder
-        spread_total = 0.0  # Placeholder
+        # Real Paper Costs
+        horizon_bars = max(1, self._bar_counter - pos.entry_idx)
+        costs = estimate_execution_cost_bps(
+            side=pos.side,
+            entry_price=pos.entry_price,
+            exit_price=exit_price,
+            best_bid=best_bid,
+            best_ask=best_ask,
+            funding_rate=funding_rate,
+            horizon_bars=horizon_bars,
+            fee_bps_per_side=self.taker_fee_bps,
+            fallback_slippage_bps=self.slippage_bps,
+        )
         
-        total_costs = fee_total + slippage_total + funding_total + spread_total
-        net_bps = gross_bps - total_costs
+        net_bps = gross_bps - costs.total_bps
 
         record = PaperTradeRecord(
             thesis_id=pos.thesis_id,
@@ -134,18 +156,20 @@ class PaperExecutionLedger:
             exit_ts=exit_ts,
             exit_price=exit_price,
             gross_bps=gross_bps,
-            fee_bps=fee_total,
-            slippage_bps=slippage_total,
-            funding_bps=funding_total,
-            spread_bps=spread_total,
+            fee_bps=costs.fee_bps,
+            slippage_bps=costs.slippage_bps,
+            funding_bps=costs.funding_bps,
+            spread_bps=costs.spread_bps,
             net_bps=net_bps,
             mae_bps=min(0.0, mae_raw),
             mfe_bps=max(0.0, mfe_raw),
-            cost_model_version=self.cost_model_version
+            cost_model_version=costs.cost_model_version,
+            degraded_cost=costs.degraded,
+            degraded_reason=costs.degraded_reason,
         )
 
         self._persist_record(record)
-        self._update_summary(pos.thesis_id)
+        self._write_quality_summary(pos.thesis_id)
         _LOG.info(f"PAPER EXIT: {pos.thesis_id} net_bps={net_bps:.2f}")
 
     def _persist_record(self, record: PaperTradeRecord):
@@ -154,7 +178,7 @@ class PaperExecutionLedger:
         with open(path, "a", encoding="utf-8") as f:
             f.write(json.dumps(asdict(record), sort_keys=True) + "\n")
 
-    def _update_summary(self, thesis_id: str):
+    def _write_quality_summary(self, thesis_id: str):
         trades_path = self.root_dir / thesis_id / "trades.jsonl"
         if not trades_path.exists():
             return
@@ -171,20 +195,61 @@ class PaperExecutionLedger:
         net_bps = [t["net_bps"] for t in trades]
         mae_bps = [t["mae_bps"] for t in trades]
         mfe_bps = [t["mfe_bps"] for t in trades]
+        degraded = [t.get("degraded_cost", False) for t in trades]
         
+        trade_count = len(trades)
+        mean_net_bps = sum(net_bps) / trade_count
+        cumulative_net_bps = sum(net_bps)
+        hit_rate = sum(1 for b in net_bps if b > 0) / trade_count
+        degraded_cost_fraction = sum(1 for d in degraded if d) / trade_count
+        
+        # Calculate max drawdown in BPS from cumulative net BPS
+        cum_bps = []
+        curr = 0.0
+        for b in net_bps:
+            curr += b
+            cum_bps.append(curr)
+        
+        running_max = 0.0
+        max_drawdown = 0.0
+        for val in cum_bps:
+            running_max = max(running_max, val)
+            drawdown = running_max - val
+            max_drawdown = max(max_drawdown, drawdown)
+
+        # gate-ready logic
+        # conservative defaults: drawdown > 500 bps is bad
+        gate_ready = (
+            trade_count >= 30 and
+            mean_net_bps > 0 and
+            cumulative_net_bps > 0 and
+            hit_rate > 0.50 and
+            degraded_cost_fraction <= 0.20 and
+            max_drawdown < 500.0
+        )
+
         summary = {
             "thesis_id": thesis_id,
-            "trade_count": len(trades),
-            "hit_rate": sum(1 for b in net_bps if b > 0) / len(trades),
-            "mean_net_bps": sum(net_bps) / len(trades),
-            "cumulative_net_bps": sum(net_bps),
-            "mean_mae_bps": sum(mae_bps) / len(trades),
-            "mean_mfe_bps": sum(mfe_bps) / len(trades),
-            "fee_bps_total": sum(t["fee_bps"] for t in trades),
-            "slippage_bps_total": sum(t["slippage_bps"] for t in trades),
-            "funding_bps_total": sum(t["funding_bps"] for t in trades),
+            "trade_count": trade_count,
+            "mean_net_bps": round(mean_net_bps, 4),
+            "cumulative_net_bps": round(cumulative_net_bps, 4),
+            "hit_rate": round(hit_rate, 4),
+            "max_drawdown_bps": round(max_drawdown, 4),
+            "mean_mae_bps": round(sum(mae_bps) / trade_count, 4),
+            "mean_mfe_bps": round(sum(mfe_bps) / trade_count, 4),
+            "fee_bps_total": round(sum(t["fee_bps"] for t in trades), 4),
+            "spread_bps_total": round(sum(t["spread_bps"] for t in trades), 4),
+            "slippage_bps_total": round(sum(t["slippage_bps"] for t in trades), 4),
+            "funding_bps_total": round(sum(t["funding_bps"] for t in trades), 4),
+            "degraded_cost_fraction": round(degraded_cost_fraction, 4),
+            "paper_gate_ready": gate_ready,
             "last_updated_at": datetime.now(UTC).isoformat()
         }
         
-        summary_path = self.root_dir / thesis_id / "summary.json"
-        summary_path.write_text(json.dumps(summary, indent=2, sort_keys=True), encoding="utf-8")
+        # Legacy summary.json in thesis dir
+        legacy_path = self.root_dir / thesis_id / "summary.json"
+        atomic_write_json(legacy_path, summary)
+        
+        # New quality summary in canonical location
+        quality_path = self.root_dir / thesis_id / "paper_quality_summary.json"
+        atomic_write_json(quality_path, summary)

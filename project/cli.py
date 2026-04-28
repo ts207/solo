@@ -330,7 +330,8 @@ def _run_deploy_bind_config(args: argparse.Namespace) -> int:
         assert_deploy_admission(
             thesis_path=thesis_path,
             runtime_mode=runtime_mode,
-            monitor_report_path=monitor_report_path
+            monitor_report_path=monitor_report_path,
+            data_root=data_root,
         )
     except (PermissionError, RuntimeError, ValueError) as e:
         _emit_json({"status": "error", "message": str(e)})
