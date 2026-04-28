@@ -2094,6 +2094,9 @@ class LiveEngineRunner:
                     side=candidate.trade_intent.side,
                     price=close,
                     timestamp=str(timestamp),
+                    best_bid=float(market_state.get("best_bid_price", 0.0) or 0.0),
+                    best_ask=float(market_state.get("best_ask_price", 0.0) or 0.0),
+                    funding_rate=float(market_state.get("funding_rate", 0.0) or 0.0),
                 )
         self._decision_outcomes = self._decision_outcomes[-100:]
 

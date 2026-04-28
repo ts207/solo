@@ -10,6 +10,8 @@ def test_paper_gate_pass(tmp_path):
         "cumulative_net_bps": 30.0,
         "hit_rate": 0.51,
         "degraded_cost_fraction": 0.1,
+        "paper_gate_ready": True,
+        "max_drawdown_bps": 100.0,
     }
     summary_path = tmp_path / "paper_quality_summary.json"
     summary_path.write_text(json.dumps(summary))
@@ -26,6 +28,8 @@ def test_paper_gate_fail_low_trades(tmp_path):
         "cumulative_net_bps": 29.0,
         "hit_rate": 0.51,
         "degraded_cost_fraction": 0.1,
+        "paper_gate_ready": True,
+        "max_drawdown_bps": 100.0,
     }
     summary_path = tmp_path / "paper_quality_summary.json"
     summary_path.write_text(json.dumps(summary))
@@ -41,6 +45,8 @@ def test_paper_gate_fail_negative_net(tmp_path):
         "cumulative_net_bps": -3.0,
         "hit_rate": 0.51,
         "degraded_cost_fraction": 0.1,
+        "paper_gate_ready": True,
+        "max_drawdown_bps": 100.0,
     }
     summary_path = tmp_path / "paper_quality_summary.json"
     summary_path.write_text(json.dumps(summary))
@@ -50,20 +56,39 @@ def test_paper_gate_fail_negative_net(tmp_path):
     assert "nonpositive_mean_net_bps" in result.reason_codes
     assert "nonpositive_cumulative_net_bps" in result.reason_codes
 
-def test_paper_gate_fail_degraded_cost(tmp_path):
+def test_paper_gate_fail_drawdown(tmp_path):
     summary = {
         "trade_count": 30,
         "mean_net_bps": 1.0,
         "cumulative_net_bps": 30.0,
         "hit_rate": 0.51,
-        "degraded_cost_fraction": 0.21,
+        "degraded_cost_fraction": 0.1,
+        "paper_gate_ready": True,
+        "max_drawdown_bps": 600.0,
     }
     summary_path = tmp_path / "paper_quality_summary.json"
     summary_path.write_text(json.dumps(summary))
     
     result = evaluate_paper_gate(summary_path)
     assert result.status == "fail"
-    assert "cost_attribution_degraded" in result.reason_codes
+    assert "excessive_paper_drawdown" in result.reason_codes
+
+def test_paper_gate_fail_not_ready(tmp_path):
+    summary = {
+        "trade_count": 30,
+        "mean_net_bps": 1.0,
+        "cumulative_net_bps": 30.0,
+        "hit_rate": 0.51,
+        "degraded_cost_fraction": 0.1,
+        "paper_gate_ready": False,
+        "max_drawdown_bps": 100.0,
+    }
+    summary_path = tmp_path / "paper_quality_summary.json"
+    summary_path.write_text(json.dumps(summary))
+    
+    result = evaluate_paper_gate(summary_path)
+    assert result.status == "fail"
+    assert "paper_quality_summary_not_gate_ready" in result.reason_codes
 
 def test_paper_gate_missing_file(tmp_path):
     summary_path = tmp_path / "missing.json"

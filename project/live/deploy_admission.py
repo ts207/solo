@@ -5,6 +5,32 @@ from project.live.contracts.promoted_thesis import LIVE_TRADEABLE_STATES, Promot
 from project.core.exceptions import CompatibilityRequiredError, DataIntegrityError
 from project.promote.paper_gate import evaluate_paper_gate
 
+def _assert_forward_confirmation_passes(fc_path: Path) -> None:
+    if not fc_path.exists():
+         raise PermissionError(f"Trading mode blocked: forward confirmation missing at {fc_path}")
+    
+    fc = json.loads(fc_path.read_text(encoding="utf-8"))
+
+    if fc.get("method") != "oos_frozen_thesis_replay_v1":
+        raise PermissionError(
+            "Trading mode blocked: forward confirmation method must be oos_frozen_thesis_replay_v1"
+        )
+
+    metrics = fc.get("metrics", {})
+    if isinstance(metrics, dict) and metrics.get("status") == "fail":
+        raise PermissionError(
+            f"Trading mode blocked: forward confirmation failed: {metrics.get('reason', 'unknown')}"
+        )
+
+    if int(metrics.get("event_count", 0) or 0) <= 0:
+        raise PermissionError("Trading mode blocked: forward confirmation has no OOS events")
+
+    if float(metrics.get("mean_return_net_bps", 0.0) or 0.0) <= 0:
+        raise PermissionError("Trading mode blocked: forward confirmation net bps is nonpositive")
+
+    if float(metrics.get("t_stat_net", 0.0) or 0.0) <= 0:
+        raise PermissionError("Trading mode blocked: forward confirmation t_stat_net is nonpositive")
+
 def assert_deploy_admission(
     *,
     thesis_path: Path,
@@ -74,17 +100,12 @@ def assert_deploy_admission(
                      f"Trading mode blocked: monitor report deployment_ready=False for thesis {thesis.thesis_id}."
                  )
 
-            # Require Forward Confirmation
+            # Require Forward Confirmation Pass
             if not run_id or not data_root:
                  raise PermissionError(f"Trading mode blocked: cannot resolve run_id or data_root for thesis {thesis.thesis_id}")
             
             fc_path = data_root / "reports" / "validation" / str(run_id) / "forward_confirmation.json"
-            if not fc_path.exists():
-                 raise PermissionError(f"Trading mode blocked: forward confirmation missing at {fc_path}")
-            
-            fc = json.loads(fc_path.read_text(encoding="utf-8"))
-            if fc.get("method") != "oos_frozen_thesis_replay_v1":
-                 raise PermissionError(f"Trading mode blocked: forward confirmation method must be 'oos_frozen_thesis_replay_v1'")
+            _assert_forward_confirmation_passes(fc_path)
 
             # Require Paper Gate Pass
             paper_summary_path = data_root / "reports" / "paper" / str(thesis.thesis_id) / "paper_quality_summary.json"

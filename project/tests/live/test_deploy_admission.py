@@ -69,22 +69,11 @@ def test_deploy_admission_trading_allowed_for_live_enabled_ready(mock_paper_gate
     
     # Forward confirmation
     fc_dir = tmp_path / "reports" / "validation" / "test_run"
-    fc_dir.mkdir(parents=True)
-    (fc_dir / "forward_confirmation.json").write_text(json.dumps({
-        "method": "oos_frozen_thesis_replay_v1"
-    }))
-    
-    with patch("project.live.deploy_admission.ThesisStore.from_path", return_value=mock_store):
-        with patch("project.live.deploy_admission.json.loads") as m_json:
-            m_json.return_value = {"deployment_ready": True}
-            with patch("project.live.deploy_admission.Path.exists", side_effect=lambda p: True if "forward_confirmation.json" in str(p) else Path.exists(p)):
-                # We need a more robust way to mock Path.exists or just use the tmp_path correctly
-                pass
-
-    # Actually, better to just use the new test file or fix this one properly by providing real paths
-    fc_dir = tmp_path / "reports" / "validation" / "test_run"
     fc_dir.mkdir(parents=True, exist_ok=True)
-    (fc_dir / "forward_confirmation.json").write_text(json.dumps({"method": "oos_frozen_thesis_replay_v1"}))
+    (fc_dir / "forward_confirmation.json").write_text(json.dumps({
+        "method": "oos_frozen_thesis_replay_v1",
+        "metrics": {"status": "success", "event_count": 1, "mean_return_net_bps": 1.0, "t_stat_net": 1.0}
+    }))
     
     monitor_path = tmp_path / "report.json"
     monitor_path.write_text(json.dumps({"deployment_ready": True}))

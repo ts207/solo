@@ -38,6 +38,12 @@ def evaluate_paper_gate(summary_path: Path) -> PaperGateResult:
     if float(summary.get("degraded_cost_fraction", 1.0)) > 0.20:
         reasons.append("cost_attribution_degraded")
 
+    if not bool(summary.get("paper_gate_ready", False)):
+        reasons.append("paper_quality_summary_not_gate_ready")
+
+    if float(summary.get("max_drawdown_bps", 999999.0)) >= 500.0:
+        reasons.append("excessive_paper_drawdown")
+
     status = "pass" if not reasons else "fail"
 
     return PaperGateResult(
