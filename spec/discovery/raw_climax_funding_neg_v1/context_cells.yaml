@@ -1,0 +1,14 @@
+version: edge_cells_v2
+context_cells:
+- id: negative_funding
+  dimension: carry_state
+  values:
+  - funding_neg
+  required_feature_key: carry_state
+  executability_class: supportive_only
+  supportive_context:
+    canonical_regime: BASIS_FUNDING_DISLOCATION
+    support_dimension: carry_state
+    support_values:
+    - funding_neg
+  max_conjunction_depth: 1

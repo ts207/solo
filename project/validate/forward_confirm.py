@@ -19,6 +19,9 @@ from project.research.phase2_cost_model import expected_cost_per_trade_bps
 
 log = logging.getLogger(__name__)
 
+_REPLAY_IDENTITY_CONTEXT_KEYS = {"symbol", "timeframe"}
+_FORWARD_CONFIRM_OOS_RUN_SUFFIX = "__forward_confirm_oos"
+
 
 def _to_utc_ts(value: str | pd.Timestamp) -> pd.Timestamp:
     """Normalize input to UTC-aware pandas Timestamp."""
@@ -37,6 +40,97 @@ def _parse_window(window: str) -> tuple[str, str]:
 
 def _phase2_candidate_path(data_root: Path, run_id: str) -> Path:
     return data_root / "reports" / "phase2" / str(run_id) / "phase2_candidates.parquet"
+
+
+def _normalize_singleton_contexts(contexts: dict[str, Any] | None) -> dict[str, Any] | None:
+    if not contexts:
+        return None
+    normalized: dict[str, Any] = {}
+    for raw_key, raw_value in contexts.items():
+        key = str(raw_key or "").strip()
+        if not key:
+            continue
+        if isinstance(raw_value, (list, tuple, set)):
+            values = list(raw_value)
+            if len(values) != 1:
+                raise ValueError(
+                    "forward-confirm requires singleton context filters; "
+                    f"{key!r} has {len(values)} values"
+                )
+            raw_value = values[0]
+        normalized[key] = raw_value
+    return normalized or None
+
+
+def _copy_hypothesis_with_context(
+    thesis: HypothesisSpec,
+    context: dict[str, Any] | None,
+) -> HypothesisSpec:
+    cloned = HypothesisSpec(
+        trigger=thesis.trigger,
+        direction=thesis.direction,
+        horizon=thesis.horizon,
+        template_id=thesis.template_id,
+        context=context,
+        feature_condition=thesis.feature_condition,
+        filter_template_id=thesis.filter_template_id,
+        entry_lag=thesis.entry_lag,
+        cost_profile=thesis.cost_profile,
+        objective_profile=thesis.objective_profile,
+        context_timing=thesis.context_timing,
+    )
+    object.__setattr__(cloned, "_enable_validation", False)
+    return cloned
+
+
+def _with_replay_identity(
+    thesis: HypothesisSpec,
+    *,
+    symbol: str | None,
+    timeframe: str | None,
+) -> HypothesisSpec:
+    context = dict(thesis.context or {})
+    if symbol and "symbol" not in {str(k).lower() for k in context}:
+        context["symbol"] = str(symbol).strip().upper()
+    if timeframe and "timeframe" not in {str(k).lower() for k in context}:
+        context["timeframe"] = str(timeframe).strip()
+    return _copy_hypothesis_with_context(thesis, context or None)
+
+
+def _without_replay_identity_context(thesis: HypothesisSpec) -> HypothesisSpec:
+    if not thesis.context:
+        return thesis
+    context = {
+        key: value
+        for key, value in thesis.context.items()
+        if str(key).strip().lower() not in _REPLAY_IDENTITY_CONTEXT_KEYS
+    }
+    if context == thesis.context:
+        return thesis
+    return _copy_hypothesis_with_context(thesis, context or None)
+
+
+def _hypothesis_id_value(thesis: HypothesisSpec) -> str:
+    hypothesis_id = getattr(thesis, "hypothesis_id", None)
+    if callable(hypothesis_id):
+        return str(hypothesis_id())
+    if hypothesis_id:
+        return str(hypothesis_id)
+    return "unknown"
+
+
+def _expected_event_ids_for_replay(thesis: HypothesisSpec) -> list[str] | None:
+    event_ids: list[str] = []
+    trigger = thesis.trigger
+    if trigger.event_id:
+        event_ids.append(str(trigger.event_id).strip().upper())
+    if trigger.events:
+        event_ids.extend(str(event_id).strip().upper() for event_id in trigger.events)
+    if thesis.feature_condition and thesis.feature_condition.event_id:
+        event_ids.append(str(thesis.feature_condition.event_id).strip().upper())
+
+    deduped = [event_id for event_id in dict.fromkeys(event_ids) if event_id]
+    return deduped or None
 
 
 def _assert_oos_window_non_overlapping(
@@ -90,7 +184,9 @@ def _translate_structured_to_hypothesis_spec(structured: Any) -> HypothesisSpec:
         direction=structured.direction,
         horizon=str(structured.horizon_bars),
         template_id=structured.template.id,
-        context=structured.filters.contexts if structured.filters.contexts else None,
+        context=_normalize_singleton_contexts(
+            structured.filters.contexts if structured.filters.contexts else None
+        ),
         entry_lag=structured.sampling_policy.entry_lag_bars,
     )
     object.__setattr__(spec, "_enable_validation", False)
@@ -143,7 +239,15 @@ def _load_frozen_thesis(
         proposal = load_normalized_operator_proposal(proposal_path)
         research_start = getattr(proposal, "start", None)
         research_end = getattr(proposal, "end", None)
-        return _translate_structured_to_hypothesis_spec(proposal.hypothesis), research_start, research_end
+        symbols = getattr(proposal, "symbols", None) or []
+        if len(symbols) != 1:
+            raise ValueError(
+                "forward-confirm explicit proposal replay requires exactly one symbol"
+            )
+        timeframe = str(getattr(proposal, "timeframe", "") or "").strip() or None
+        thesis = _translate_structured_to_hypothesis_spec(proposal.hypothesis)
+        thesis = _with_replay_identity(thesis, symbol=str(symbols[0]), timeframe=timeframe)
+        return thesis, research_start, research_end
 
     # Priority 2: promoted_theses.json
     thesis_json_path = root / "live" / "theses" / run_id / "promoted_theses.json"
@@ -187,7 +291,15 @@ def _load_frozen_thesis(
                 p_path = root / frozen_proposal
             if p_path.exists():
                 proposal = load_normalized_operator_proposal(p_path)
-                return _translate_structured_to_hypothesis_spec(proposal.hypothesis), research_start, research_end
+                symbols = getattr(proposal, "symbols", None) or []
+                if len(symbols) != 1:
+                    raise ValueError(
+                        "forward-confirm manifest proposal replay requires exactly one symbol"
+                    )
+                timeframe = str(getattr(proposal, "timeframe", "") or "").strip() or None
+                thesis = _translate_structured_to_hypothesis_spec(proposal.hypothesis)
+                thesis = _with_replay_identity(thesis, symbol=str(symbols[0]), timeframe=timeframe)
+                return thesis, research_start, research_end
 
     # Priority 4: candidate_id lookup in phase2_candidates.parquet (NO SORTING)
     if candidate_id:
@@ -229,13 +341,16 @@ def oos_frozen_thesis_replay_v1(
         timeframe = "5m"
 
     # Load OOS features - NO FUTURE DATA (end=end)
+    # Use a replay-scoped run id so research-window partitions and registries do not shadow
+    # global OOS data. Expected event ids allow detector rematerialization in the OOS window.
     features = prepare_search_features_for_symbol(
-        run_id=run_id,
+        run_id=f"{run_id}{_FORWARD_CONFIRM_OOS_RUN_SUFFIX}",
         symbol=symbol,
         timeframe=timeframe,
         data_root=data_root,
         start=start,
         end=end,
+        expected_event_ids=_expected_event_ids_for_replay(thesis),
     )
 
     if features.empty:
@@ -247,7 +362,8 @@ def oos_frozen_thesis_replay_v1(
         }
 
     eval_context = EvaluationContext(features)
-    mask, mask_reason = eval_context.event_mask(thesis, use_context_quality=True)
+    evaluation_thesis = _without_replay_identity_context(thesis)
+    mask, mask_reason = eval_context.event_mask(evaluation_thesis, use_context_quality=True)
     if mask is None or not mask.any():
         return {
             "event_count": 0,
@@ -377,7 +493,7 @@ def build_forward_confirmation_payload(
         "evidence_bundle_path": str(out_dir / "forward_confirmation.json"),
         "method": "oos_frozen_thesis_replay_v1",
         "source": {
-            "thesis_id": getattr(thesis, "hypothesis_id", "unknown") if hasattr(thesis, "hypothesis_id") else "unknown",
+            "thesis_id": _hypothesis_id_value(thesis),
             "data_root": str(root),
             "window": window,
             "research_start": research_start,

@@ -147,8 +147,18 @@ def promote_candidates(
         scope_version=scope_version,
     )
 
-    # Step 5: Filter back to current rows only for downstream promotion
-    df = scored_scope_df[scored_scope_df["multiplicity_context"] == "current"].copy()
+    # Step 5: Filter back to current rows only for downstream promotion.
+    # Forward-confirmation rejection can intentionally empty the candidate pool
+    # before promotion; multiplicity scoring may then return an empty frame
+    # without context columns.
+    if "multiplicity_context" in scored_scope_df.columns:
+        df = scored_scope_df[scored_scope_df["multiplicity_context"] == "current"].copy()
+    elif scored_scope_df.empty:
+        scored_scope_df = scored_scope_df.copy()
+        scored_scope_df["multiplicity_context"] = pd.Series(dtype="object")
+        df = scored_scope_df.copy()
+    else:
+        raise ValueError("scope multiplicity output missing multiplicity_context")
 
     # Step 6: Record expanded scope diagnostics
     scope_degraded_count = int(scored_scope_df.get("multiplicity_scope_degraded", pd.Series([False])).sum())

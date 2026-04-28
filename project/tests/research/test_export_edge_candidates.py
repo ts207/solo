@@ -22,6 +22,12 @@ def test_collect_phase2_candidates_reads_root_level_search_engine_output(
                 "n_events": 32,
                 "sample_size": 32,
                 "after_cost_expectancy_per_trade": 0.00418,
+                "stressed_after_cost_expectancy_per_trade": 0.00318,
+                "expected_cost_bps_per_trade": 2.0,
+                "mean_return_bps": 43.8,
+                "mean_return_gross_bps": 43.8,
+                "t_stat": 2.0,
+                "validation_samples": 12,
                 "gate_bridge_tradable": True,
             }
         ]
@@ -35,3 +41,9 @@ def test_collect_phase2_candidates_reads_root_level_search_engine_output(
     assert rows[0]["candidate_id"] == "ETHUSDT::cand_root"
     assert rows[0]["event"] == "LIQUIDITY_GAP_PRINT"
     assert rows[0]["candidate_symbol"] == "ETHUSDT"
+    assert rows[0]["bridge_validation_after_cost_bps"] == 41.8
+    assert rows[0]["bridge_validation_stressed_after_cost_bps"] == 31.8
+    assert rows[0]["bridge_validation_trades"] == 12
+    assert rows[0]["bridge_effective_cost_bps_per_trade"] == 2.0
+    assert rows[0]["bridge_gross_edge_bps_per_trade"] == 43.8
+    assert rows[0]["std_return"] > 0.0

@@ -48,14 +48,20 @@ artifacts:
     carry_state=funding_neg survive as a bounded 24-bar branch without adding
     symbols, horizons, contexts, or templates?
   calibration_evidence:
-    old_spec_btc_funding_negative_n: 82
-    old_spec_btc_funding_negative_mean_bps: 14.37
-    old_spec_btc_funding_negative_t_stat: 0.72
-    old_spec_btc_funding_negative_hit_rate: 0.488
-    new_spec_btc_funding_negative_n: 287
-    new_spec_btc_funding_negative_mean_bps: 14.50
-    new_spec_btc_funding_negative_t_stat: 1.90
-    new_spec_btc_funding_negative_hit_rate: 0.540
+    old_spec_btc_funding_negative_n: 100
+    old_spec_btc_funding_negative_mean_bps: 18.88
+    old_spec_btc_funding_negative_t_stat: 1.173
+    old_spec_btc_funding_negative_hit_rate: 0.530
+    new_spec_btc_funding_negative_n: 471
+    new_spec_btc_funding_negative_mean_bps: 26.72
+    new_spec_btc_funding_negative_t_stat: 4.428
+    new_spec_btc_funding_negative_hit_rate: 0.575
+    bounded_phase2_run_id: single_event_climax_volu_20260428T212745Z_386e107171
+    bounded_phase2_n: 309
+    bounded_phase2_t_net: 2.2495
+    bounded_phase2_net_bps: 25.9578
+    bounded_phase2_robustness: 0.7041
+    bounded_phase2_q_value: 0.012241
   decision_rules:
     min_events: 100
     kill_if_events_below: 50

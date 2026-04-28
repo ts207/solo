@@ -325,6 +325,36 @@ def test_kpi_payload_hydrates_from_promotion_statistical_audit_when_missing(tmp_
     assert checklist._metric_value(hydrated, "max_drawdown_pct") == -0.2
 
 
+def test_kpi_payload_hydrates_from_edge_candidates_when_kpi_missing(tmp_path):
+    edge_dir = tmp_path / "reports" / "edge_candidates" / "r8"
+    promo_dir = tmp_path / "reports" / "promotions" / "r8"
+    edge_dir.mkdir(parents=True, exist_ok=True)
+    promo_dir.mkdir(parents=True, exist_ok=True)
+    pd.DataFrame(
+        [
+            {
+                "n_events": 42,
+                "bridge_validation_stressed_after_cost_bps": 12.0,
+                "sign_consistency": 0.75,
+                "turnover_proxy_mean": 0.5,
+            }
+        ]
+    ).to_parquet(edge_dir / "edge_candidates_normalized.parquet", index=False)
+
+    hydrated = checklist._hydrate_kpi_payload_with_promotion_fallback(
+        kpi_payload={"metrics": {}},
+        promotion_audit_parquet_path=promo_dir / "promotion_statistical_audit.parquet",
+        promotion_audit_csv_path=promo_dir / "promotion_statistical_audit.csv",
+        edge_parquet_path=edge_dir / "edge_candidates_normalized.parquet",
+        edge_csv_path=edge_dir / "edge_candidates_normalized.csv",
+    )
+
+    assert hydrated["hydrated_with_edge_candidate_fallback"] is True
+    assert checklist._metric_value(hydrated, "trade_count") == 42.0
+    assert checklist._metric_value(hydrated, "net_expectancy_bps") == 12.0
+    assert checklist._metric_value(hydrated, "oos_sign_consistency") == 0.75
+
+
 def test_metric_value_treats_missing_kpi_as_default_without_warning(caplog) -> None:
     with caplog.at_level(logging.WARNING):
         out = checklist._metric_value({"metrics": {"trade_count": {"value": None}}}, "trade_count")

@@ -11,7 +11,7 @@ def test_cell_coverage_audit_reports_authored_tier2_surfaces() -> None:
     assert payload["status"] == "ok"
     assert payload["registry_event_count"] == 83
     assert payload["default_search_event_count"] == 60
-    assert payload["cell_event_count"] == 60
+    assert payload["cell_event_count"] == 61
     assert payload["cell_coverage_fraction_of_default_search"] == 1.0
     assert payload["cell_surfaces"]["tier2_liquidity_stress_v1"]["events"] == [
         "DEPTH_COLLAPSE",
@@ -46,7 +46,8 @@ def test_cell_coverage_audit_reports_authored_tier2_surfaces() -> None:
         "POST_DELEVERAGING_REBOUND",
     ]
     assert payload["default_search_events_missing_from_cell"] == []
-    assert payload["cell_events_not_in_default_search"] == []
+    # PRICE_DOWN_OI_DOWN is covered by benchmark_eligible_v1 but not in the default search space
+    assert payload["cell_events_not_in_default_search"] == ["PRICE_DOWN_OI_DOWN"]
 
 
 def test_tier2_cell_specs_load_through_registry() -> None:

@@ -188,44 +188,79 @@ def _hydrate_kpi_payload_with_promotion_fallback(
     kpi_payload: dict[str, Any],
     promotion_audit_parquet_path: Path,
     promotion_audit_csv_path: Path,
+    edge_parquet_path: Path | None = None,
+    edge_csv_path: Path | None = None,
 ) -> dict[str, Any]:
-    if kpi_payload.get("metrics"):
+    metrics = dict(kpi_payload.get("metrics", {}) or {})
+    has_value = any(
+        isinstance(metric, dict) and metric.get("value") is not None for metric in metrics.values()
+    )
+    if metrics and has_value:
         return dict(kpi_payload)
     promo_df = _read_table(promotion_audit_parquet_path, promotion_audit_csv_path)
-    if promo_df.empty:
+    source_name = "promotion_fallback"
+    source_df = promo_df
+    if source_df.empty and edge_parquet_path is not None and edge_csv_path is not None:
+        source_df = _read_table(edge_parquet_path, edge_csv_path)
+        source_name = "edge_candidate_fallback"
+    if source_df.empty:
         return dict(kpi_payload)
+
+    def _mean_numeric(*columns: str) -> float:
+        for column in columns:
+            if column not in source_df.columns:
+                continue
+            series = pd.to_numeric(source_df.get(column), errors="coerce").dropna()
+            if not series.empty:
+                return float(series.mean())
+        return float("nan")
+
+    def _min_numeric(*columns: str) -> float:
+        for column in columns:
+            if column not in source_df.columns:
+                continue
+            series = pd.to_numeric(source_df.get(column), errors="coerce").dropna()
+            if not series.empty:
+                return float(series.min())
+        return float("nan")
+
+    def _sum_numeric(*columns: str) -> float:
+        for column in columns:
+            if column not in source_df.columns:
+                continue
+            series = pd.to_numeric(source_df.get(column), errors="coerce").dropna()
+            if not series.empty:
+                return float(series.sum())
+        return float("nan")
+
     out = dict(kpi_payload)
-    out["hydrated_with_promotion_fallback"] = True
+    out[f"hydrated_with_{source_name}"] = True
     out["metrics"] = {
         "trade_count": {
-            "value": float(
-                pd.to_numeric(promo_df.get("n_events"), errors="coerce").fillna(0.0).sum()
-            )
+            "value": _sum_numeric("n_events", "trade_count", "n_trades")
         },
         "net_expectancy_bps": {
-            "value": float(
-                pd.to_numeric(
-                    promo_df.get("bridge_validation_stressed_after_cost_bps"), errors="coerce"
-                )
-                .dropna()
-                .mean()
+            "value": _mean_numeric(
+                "bridge_validation_stressed_after_cost_bps",
+                "net_expectancy_bps",
+                "net_expectancy",
+                "expectancy",
             )
         },
         "oos_sign_consistency": {
-            "value": float(
-                pd.to_numeric(promo_df.get("sign_consistency"), errors="coerce").dropna().mean()
-            )
+            "value": _mean_numeric("sign_consistency", "oos_sign_consistency")
         },
         "turnover_proxy_mean": {
-            "value": float(
-                pd.to_numeric(promo_df.get("turnover_proxy_mean"), errors="coerce").dropna().mean()
-            )
+            "value": _mean_numeric("turnover_proxy_mean")
         },
         "max_drawdown_pct": {
-            "value": float(
-                pd.to_numeric(promo_df.get("naive_max_drawdown"), errors="coerce").dropna().min()
-            )
+            "value": _min_numeric("naive_max_drawdown", "max_drawdown_pct")
         },
+    }
+    out["metrics"] = {
+        name: metric
+        for name, metric in out["metrics"].items()
+        if metric.get("value") is not None and np.isfinite(metric.get("value"))
     }
     return out
 
@@ -443,6 +478,8 @@ def main() -> int:
             kpi_payload=_load_json(kpi_path),
             promotion_audit_parquet_path=promo_dir / "promotion_statistical_audit.parquet",
             promotion_audit_csv_path=promo_dir / "promotion_statistical_audit.csv",
+            edge_parquet_path=edge_dir / "edge_candidates_normalized.parquet",
+            edge_csv_path=edge_dir / "edge_candidates_normalized.csv",
         )
         payload["release_signoff"] = _build_release_signoff(
             run_id=args.run_id,

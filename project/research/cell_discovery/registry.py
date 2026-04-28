@@ -33,13 +33,13 @@ def _read_yaml(path: Path) -> dict[str, Any]:
     return payload
 
 
-def _tuple_of_str(values: Any, *, field: str) -> tuple[str, ...]:
+def _tuple_of_str(values: Any, *, field: str, allow_empty: bool = False) -> tuple[str, ...]:
     if isinstance(values, str):
         raw = [values]
     else:
         raw = list(values or [])
     out = tuple(str(item).strip() for item in raw if str(item).strip())
-    if not out:
+    if not out and not allow_empty:
         raise ValueError(f"{field} must contain at least one value")
     return out
 
@@ -79,7 +79,7 @@ def load_registry(spec_dir: str | Path = "spec/discovery") -> DiscoveryRegistry:
             event_family=str(item.get("event_family", "")).strip(),
             event_type=str(item.get("event_type", "")).strip().upper(),
             directions=_tuple_of_str(item.get("directions", []), field="event directions"),
-            templates=_tuple_of_str(item.get("templates", []), field="event templates"),
+            templates=_tuple_of_str(item.get("templates", []), field="event templates", allow_empty=True),
             horizons=_tuple_of_str(item.get("horizons", []), field="event horizons"),
             required_feature_keys=tuple(
                 str(value).strip()

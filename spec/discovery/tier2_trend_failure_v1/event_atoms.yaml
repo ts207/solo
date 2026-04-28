@@ -47,8 +47,8 @@ event_atoms:
   - long
   - short
   templates:
-  - mean_reversion
-  - exhaustion_reversal
+  - false_breakout_reversal
+  - continuation
   horizons:
   - 12b
   - 24b

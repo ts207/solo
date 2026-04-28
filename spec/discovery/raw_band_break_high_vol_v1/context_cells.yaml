@@ -1,0 +1,9 @@
+version: edge_cells_v2
+context_cells:
+- id: high_vol
+  dimension: vol_regime
+  values:
+  - high
+  required_feature_key: high_vol_regime
+  executability_class: runtime
+  max_conjunction_depth: 1

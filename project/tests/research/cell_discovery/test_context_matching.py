@@ -18,14 +18,14 @@ def _write_minimal_discovery_spec(base: Path, *, context_values: list[str]) -> N
                 "event_atoms": [
                     {
                         "id": "vol_shock_core",
-                        "event_family": "FORCED_FLOW_AND_EXHAUSTION",
-                        "event_type": "LIQUIDATION_CASCADE",
+                        "event_family": "POSITIONING_EXTREMES",
+                        "event_type": "PRICE_DOWN_OI_DOWN",
                         "directions": ["long"],
                         "templates": ["continuation"],
                         "horizons": ["12b"],
-                        "search_role": "primary_trigger",
-                        "promotion_role": "eligible",
-                        "runtime_role": "trade_trigger",
+                        "search_role": "diagnostic",
+                        "promotion_role": "ineligible",
+                        "runtime_role": "observer",
                     }
                 ]
             }

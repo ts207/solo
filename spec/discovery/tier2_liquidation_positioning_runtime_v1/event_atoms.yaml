@@ -66,9 +66,8 @@ event_atoms:
   - long
   - short
   templates:
-  - mean_reversion
-  - continuation
-  - convexity_capture
+  - carry_continuation_confirmed
+  - squeeze_followthrough_confirmed
   horizons:
   - 12b
   - 24b

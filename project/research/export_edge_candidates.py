@@ -389,6 +389,50 @@ def _phase2_row_to_candidate(
             row.get("after_cost_expectancy_per_trade", row.get("expectancy")),
             candidate["expectancy_per_trade"],
         )
+    if "stressed_after_cost_expectancy_per_trade" not in candidate:
+        candidate["stressed_after_cost_expectancy_per_trade"] = _quiet_float(
+            row.get("stressed_after_cost_expectancy_per_trade"),
+            candidate["after_cost_expectancy_per_trade"],
+        )
+
+    after_cost_bps = _quiet_float(
+        row.get("bridge_validation_after_cost_bps"),
+        _quiet_float(candidate.get("after_cost_expectancy_per_trade"), np.nan) * 10000.0,
+    )
+    stressed_after_cost_bps = _quiet_float(
+        row.get("bridge_validation_stressed_after_cost_bps"),
+        _quiet_float(candidate.get("stressed_after_cost_expectancy_per_trade"), np.nan)
+        * 10000.0,
+    )
+    if "bridge_validation_after_cost_bps" not in candidate and np.isfinite(after_cost_bps):
+        candidate["bridge_validation_after_cost_bps"] = after_cost_bps
+    if (
+        "bridge_validation_stressed_after_cost_bps" not in candidate
+        and np.isfinite(stressed_after_cost_bps)
+    ):
+        candidate["bridge_validation_stressed_after_cost_bps"] = stressed_after_cost_bps
+    if "bridge_train_after_cost_bps" not in candidate and np.isfinite(after_cost_bps):
+        candidate["bridge_train_after_cost_bps"] = after_cost_bps
+    if "bridge_validation_trades" not in candidate:
+        candidate["bridge_validation_trades"] = _quiet_int(
+            row.get("validation_samples", row.get("validation_n_obs", row.get("n_events", 0))),
+            0,
+        )
+    if "bridge_effective_cost_bps_per_trade" not in candidate:
+        candidate["bridge_effective_cost_bps_per_trade"] = _quiet_float(
+            row.get("expected_cost_bps_per_trade"), 0.0
+        )
+    if "bridge_gross_edge_bps_per_trade" not in candidate:
+        candidate["bridge_gross_edge_bps_per_trade"] = _quiet_float(
+            row.get("mean_return_gross_bps", row.get("mean_return_bps")), np.nan
+        )
+
+    if "std_return" not in candidate:
+        mean_bps = _quiet_float(row.get("mean_return_bps"), np.nan)
+        t_stat = abs(_quiet_float(row.get("t_stat"), np.nan))
+        n_obs = max(1, _quiet_int(row.get("n", row.get("sample_size", 0)), 0))
+        if np.isfinite(mean_bps) and np.isfinite(t_stat) and t_stat > 0.0:
+            candidate["std_return"] = abs(mean_bps / 10000.0) * np.sqrt(float(n_obs)) / t_stat
 
     # Robustness / Stability
     gate_cols = [

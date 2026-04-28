@@ -1,0 +1,16 @@
+version: edge_cells_v2
+event_atoms:
+- id: band_break_high_vol_reversion
+  event_family: statistical_stretch
+  event_type: BAND_BREAK
+  directions:
+  - long
+  templates:
+  - mean_reversion
+  horizons:
+  - 24b
+  required_feature_keys:
+  - close
+  search_role: diagnostic
+  promotion_role: ineligible
+  runtime_role: observer

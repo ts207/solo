@@ -1,0 +1,19 @@
+version: edge_cells_v2
+event_atoms:
+- id: climax_volume_funding_neg_exhaustion
+  event_family: trend_failure
+  event_type: CLIMAX_VOLUME_BAR
+  directions:
+  - long
+  templates:
+  - exhaustion_reversal
+  horizons:
+  - 24b
+  required_feature_keys:
+  - close
+  - high
+  - low
+  - volume
+  search_role: diagnostic
+  promotion_role: ineligible
+  runtime_role: observer
