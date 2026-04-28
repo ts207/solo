@@ -23,6 +23,16 @@ templates:
     supports_trigger_types:
     - EVENT
     - SEQUENCE
+  carry_continuation_confirmed:
+    enabled: true
+    template_kind: expression_template
+    supports_contexts: true
+    supports_directions:
+    - long
+    - short
+    supports_trigger_types:
+    - EVENT
+    - SEQUENCE
   continuation:
     enabled: true
     template_kind: expression_template
@@ -100,6 +110,16 @@ templates:
     - short
     supports_trigger_types:
     - EVENT
+  forced_flow_rebound:
+    enabled: true
+    template_kind: expression_template
+    supports_contexts: true
+    supports_directions:
+    - long
+    - short
+    supports_trigger_types:
+    - EVENT
+    - SEQUENCE
   lead_lag_follow:
     enabled: true
     template_kind: expression_template
@@ -249,6 +269,16 @@ templates:
     - short
     supports_trigger_types:
     - EVENT
+  squeeze_followthrough_confirmed:
+    enabled: true
+    template_kind: expression_template
+    supports_contexts: true
+    supports_directions:
+    - long
+    - short
+    supports_trigger_types:
+    - EVENT
+    - SEQUENCE
   stop_run_repair:
     enabled: true
     template_kind: expression_template

@@ -100,6 +100,8 @@ families:
   POSITIONING_EXTREMES:
     parameters: {}
     templates:
+    - carry_continuation_confirmed
+    - squeeze_followthrough_confirmed
     - reversal_or_squeeze
     - mean_reversion
     - continuation
@@ -897,9 +899,9 @@ events:
       cascade_window_bars: 12
       cooldown_bars: 48
       merge_gap_bars: 0
-      vol_quantile: 0.992
-      ret_quantile: 0.998
-      range_quantile: 0.995
+      vol_quantile: 0.97
+      ret_quantile: 0.97
+      range_quantile: 0.95
     templates:
     - mean_reversion
     - exhaustion_reversal
@@ -4525,11 +4527,8 @@ events:
       spike_z_th: 2.5
       flush_pct_th: -0.005
     templates:
-    - reversal_or_squeeze
-    - mean_reversion
-    - continuation
-    - exhaustion_reversal
-    - convexity_capture
+    - carry_continuation_confirmed
+    - squeeze_followthrough_confirmed
     - only_if_funding
     - only_if_oi
     - tail_risk_avoid

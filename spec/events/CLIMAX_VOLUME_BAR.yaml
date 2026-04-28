@@ -8,9 +8,9 @@ parameters:
   cascade_window_bars: 12
   cooldown_bars: 48
   merge_gap_bars: 0
-  vol_quantile: 0.992
-  ret_quantile: 0.998
-  range_quantile: 0.995
+  vol_quantile: 0.97
+  ret_quantile: 0.97
+  range_quantile: 0.95
 research_family: FORCED_FLOW_AND_EXHAUSTION
 trigger: Detector triggers on climax volume bar pattern
 confirmation: Post-detection price action confirms signal validity

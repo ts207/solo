@@ -18,6 +18,8 @@ import sys
 
 import pandas as pd
 
+from project.core.config import get_data_root
+
 
 def __getattr__(name):
     if name == "DATA_ROOT":
@@ -29,7 +31,7 @@ TIMEFRAME_MINUTES = {"1m": 1, "5m": 5, "15m": 15, "1h": 60}
 
 
 def check_symbol(symbol: str, timeframe: str, max_staleness_bars: int) -> tuple[bool, str]:
-    bar_dir = DATA_ROOT / "lake" / "cleaned" / "perp" / symbol / f"bars_{timeframe}"
+    bar_dir = get_data_root() / "lake" / "cleaned" / "perp" / symbol / f"bars_{timeframe}"
     files = sorted(bar_dir.rglob("*.parquet")) if bar_dir.exists() else []
     if not files:
         return False, f"{symbol}: no cleaned bars found at {bar_dir}"

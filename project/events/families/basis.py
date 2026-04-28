@@ -170,7 +170,7 @@ class BasisDislocationDetector(DislocationDetector):
         return sparsify_mask(mask, min_spacing=spacing)
 
 
-class CrossVenueDesyncDetector(BasisDislocationDetector):
+class _LegacyCrossVenueDesyncDetector(BasisDislocationDetector):
     event_type = "CROSS_VENUE_DESYNC"
     required_columns = ("timestamp", "close_perp", "close_spot")
     PERSISTENCE_BARS_DEFAULT = 2

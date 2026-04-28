@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any
+from typing import Any, ClassVar
 
 from pydantic import BaseModel, Field
 
@@ -32,7 +32,7 @@ class TemplateRegistry:
     Enables declarative strategy building from event concepts.
     """
 
-    _TEMPLATES: dict[str, TemplateSpec] = {}
+    _TEMPLATES: ClassVar[dict[str, TemplateSpec]] = {}
 
     @classmethod
     def load_from_yaml(cls, path: Path | None = None) -> None:

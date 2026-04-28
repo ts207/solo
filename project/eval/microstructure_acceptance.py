@@ -3,6 +3,7 @@ from typing import Any
 
 import pandas as pd
 
+from project.core.config import get_data_root
 from project.spec_registry import load_concept_spec
 
 
@@ -36,7 +37,7 @@ def run_acceptance_tests(symbol: str, run_id: str):
     print(f"Loaded Spec: {spec['name']}")
 
     # 1. Load Data
-    perp_dir = DATA_ROOT / "lake" / "cleaned" / "perp" / symbol / "bars_1m"
+    perp_dir = get_data_root() / "lake" / "cleaned" / "perp" / symbol / "bars_1m"
     files = list_parquet_files(perp_dir)
     if not files:
         print(f"FAILED: No cleaned bars found for {symbol}")

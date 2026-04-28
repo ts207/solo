@@ -42,8 +42,8 @@ def fit_t_copula(u1: np.ndarray, u2: np.ndarray) -> tuple[float, float]:
     """
     Estimate parameters for a Student-t copula: (rho, df).
     Degrees of freedom (df) controls tail dependence.
-    
-    Note: The relationship rho = sin(pi/2 * tau) assumes the copula correctly 
+
+    Note: The relationship rho = sin(pi/2 * tau) assumes the copula correctly
     captures the underlying dependence structure (elliptical margins).
     """
     # Quick estimate of rho using Spearman's rho or Kendall's tau

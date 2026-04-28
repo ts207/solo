@@ -133,9 +133,7 @@ def _fold_forward_metrics(folds: pd.DataFrame) -> pd.DataFrame:
             if "t_stat" in valid_group.columns
             else pd.Series(dtype="float64")
         )
-        signs = []
-        for value in values:
-            signs.append("+" if value > 0 else ("-" if value < 0 else "0"))
+        signs = ["+" if value > 0 else ("-" if value < 0 else "0") for value in values]
         valid_count = len(values)
         fail_count = int((values <= 0).sum()) if valid_count else 0
         rows.append(
@@ -186,7 +184,9 @@ def build_scoreboard(
             raise RuntimeError(
                 "invalid_required_artifact: phase2_candidate_fold_metrics.parquet (empty)"
             )
-        if "valid" in folds.columns and not bool(pd.to_numeric(folds["valid"], errors="coerce").fillna(False).astype(bool).any()):
+        if "valid" in folds.columns and not bool(
+            pd.to_numeric(folds["valid"], errors="coerce").fillna(False).astype(bool).any()
+        ):
             raise RuntimeError(
                 "invalid_required_artifact: phase2_candidate_fold_metrics.parquet (no valid folds)"
             )
@@ -194,18 +194,24 @@ def build_scoreboard(
         raw = pd.DataFrame(columns=RAW_COLUMNS)
     else:
         raw = source.copy()
-        if not lineage.empty and "hypothesis_id" in raw.columns and "hypothesis_id" in lineage.columns:
+        if (
+            not lineage.empty
+            and "hypothesis_id" in raw.columns
+            and "hypothesis_id" in lineage.columns
+        ):
             before = len(raw)
             if "symbol" in raw.columns and "symbol" in lineage.columns:
                 allowed_pairs = set(
                     zip(
                         lineage["hypothesis_id"].dropna().astype(str),
                         lineage["symbol"].fillna("").astype(str).str.upper(),
+                        strict=False,
                     )
                 )
                 raw_pairs = zip(
                     raw["hypothesis_id"].fillna("").astype(str),
                     raw["symbol"].fillna("").astype(str).str.upper(),
+                    strict=False,
                 )
                 raw = raw[[pair in allowed_pairs for pair in raw_pairs]].copy()
             else:
@@ -217,9 +223,7 @@ def build_scoreboard(
                 left = raw.copy()
                 right = lineage.copy()
                 left["__edge_cell_symbol_key"] = left["symbol"].fillna("").astype(str).str.upper()
-                right["__edge_cell_symbol_key"] = (
-                    right["symbol"].fillna("").astype(str).str.upper()
-                )
+                right["__edge_cell_symbol_key"] = right["symbol"].fillna("").astype(str).str.upper()
                 existing = set(left.columns)
                 lineage_cols = [
                     col
@@ -401,17 +405,19 @@ def build_scoreboard(
             "blocked_reason"
         ].mask(scoreboard["blocked_reason"].astype(str) == "", "rejected_no_contrast")
         scoreboard["rank_score"] = scoreboard.apply(
-            lambda row: 0.0
-            if str(row.get("blocked_reason", "")).strip()
-            else rank_score(dict(row), registry.ranking_policy),
+            lambda row: (
+                0.0
+                if str(row.get("blocked_reason", "")).strip()
+                else rank_score(dict(row), registry.ranking_policy)
+            ),
             axis=1,
         )
         # Conservative validated-t estimate. Empirically, cells t_stat is 2-4x
         # higher than validated t_net. 0.40x is the lower bound of observed
-        # discount ratios — use this to filter candidates worth pursuing.
-        scoreboard["calibrated_t_conservative"] = pd.to_numeric(
-            scoreboard.get("t_stat", 0), errors="coerce"
-        ).fillna(0.0) * 0.40
+        # discount ratios; use this to filter candidates worth pursuing.
+        scoreboard["calibrated_t_conservative"] = (
+            pd.to_numeric(scoreboard.get("t_stat", 0), errors="coerce").fillna(0.0) * 0.40
+        )
         scoreboard["status"] = "rankable_research_only"
         scoreboard.loc[scoreboard["thesis_eligible"], "status"] = "rankable_thesis_eligible"
         scoreboard.loc[scoreboard["runtime_executable"], "status"] = "rankable_runtime_executable"

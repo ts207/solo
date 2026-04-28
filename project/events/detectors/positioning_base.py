@@ -12,7 +12,7 @@ from project.events.detectors.funding_support import (
     prepare_funding_persistence_features,
     run_length,
 )
-from project.events.thresholding import percentile_rank_historical
+from project.events.thresholding import rolling_percentile_rank
 from project.features.context_guards import state_at_least, state_at_most
 
 
@@ -76,7 +76,13 @@ class FundingExtremeOnsetDetectorV2(BaseFundingDetectorV2):
         accel_lookback = int(params.get("accel_lookback", 12))
         threshold_window = int(params.get("threshold_window", 2880))
         accel = (f_abs - f_abs.shift(accel_lookback)).clip(lower=0.0)
-        accel_rank = percentile_rank_historical(accel, window=threshold_window, min_periods=max(24, accel_lookback)).fillna(0.0)
+        accel_rank = rolling_percentile_rank(
+            accel,
+            window=threshold_window,
+            min_periods=max(24, accel_lookback),
+            shift=0,
+            scale=100.0,
+        ).fillna(0.0)
         extreme_flag = (f_pct >= extreme_pct).fillna(False)
         persistence_run = run_length(extreme_flag)
         persist_flag = persistence_run >= int(params.get("persistence_bars", 1))

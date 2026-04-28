@@ -84,6 +84,8 @@ regimes:
   POSITIONING_EXPANSION:
     bucket: trade_generating
     eligible_templates:
+    - carry_continuation_confirmed
+    - squeeze_followthrough_confirmed
     - continuation
     - convexity_capture
     - reversal_or_squeeze

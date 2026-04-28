@@ -1076,7 +1076,6 @@ def prepare_run_preflight(
                 "exit_code": 2,
                 "run_id": run_id,
                 "local_cleaned": local_cleaned,
-        "feature_surface_viability": feature_surface_viability,
                 "feature_surface_viability": feature_surface_viability,
             }
 

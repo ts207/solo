@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, ClassVar
 
 import numpy as np
 import pandas as pd
@@ -12,7 +12,7 @@ from project.events.detectors.funding_support import (
 )
 from project.events.detectors.threshold import ThresholdDetector
 from project.events.sparsify import sparsify_mask
-from project.events.thresholding import percentile_rank_historical
+from project.events.thresholding import rolling_percentile_rank
 
 FUNDING_EVENT_TYPES = (
     "FUNDING_EXTREME_ONSET",
@@ -30,7 +30,7 @@ class BaseFundingDetector(ThresholdDetector, MarketEventDetector):
     required_columns = ("timestamp", "funding_abs_pct", "funding_abs")
     default_severity_major_threshold = 0.95
 
-    defaults = {
+    defaults: ClassVar[dict[str, Any]] = {
         "extreme_pct": 95.0,
         "accel_pct": 90.0,
         "persistence_pct": 85.0,
@@ -111,10 +111,12 @@ class FundingExtremeOnsetDetector(BaseFundingDetector):
         threshold_window = int(params.get("threshold_window", 2880))
 
         accel = (f_abs - f_abs.shift(accel_lookback)).clip(lower=0.0)
-        accel_rank = percentile_rank_historical(
+        accel_rank = rolling_percentile_rank(
             accel,
             window=threshold_window,
             min_periods=max(1, min(threshold_window, max(24, accel_lookback))),
+            shift=0,
+            scale=100.0,
         ).fillna(0.0)
         extreme_flag = (f_pct >= extreme_pct).fillna(False)
         accel_flag = (accel_rank >= accel_pct).fillna(False)

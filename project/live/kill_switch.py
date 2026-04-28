@@ -18,7 +18,7 @@ from enum import Enum, auto
 
 # Imported lazily to avoid a circular import (audit_log -> kill_switch -> audit_log)
 # Use TYPE_CHECKING to satisfy type checkers without causing import cycles.
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, ClassVar
 
 import pandas as pd
 
@@ -56,7 +56,7 @@ class KillSwitchStatus:
 
 
 class KillSwitchManager:
-    TIER1_FEATURES = [
+    TIER1_FEATURES: ClassVar[list[str]] = [
         "vol_regime",
         "ms_spread_state",
         "funding_abs_pct",

@@ -24,7 +24,7 @@ def test_deployment_ready_logic():
             m_val.return_value = {}
             with patch("project.scripts.monitor_research_thesis._load_promotion_trace") as m_promo:
                 m_promo.return_value = None
-                
+
                 # Mocking eval results that pass all gates
                 # robustness >= 0.70, t_net >= 2.0, net_bps > 0
                 m_eval.side_effect = [
@@ -45,7 +45,7 @@ def test_deployment_ready_logic():
                     },
                     None # ETH cross-symbol
                 ]
-                
+
                 report = build_report(run_id="test_run", data_root=Path("/tmp"))
                 assert report["deployment_ready"] is True
                 assert report["gate_progress_to_0_70"] >= 1.0

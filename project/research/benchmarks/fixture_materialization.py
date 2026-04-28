@@ -52,7 +52,7 @@ def _write_fixture_parquet(frame: pd.DataFrame, output_path: Path) -> None:
 
 
 def _candidate_source_paths(event_type: str, *, data_root: Path | None = None) -> list[Path]:
-    resolved_root = Path(data_root) if data_root is not None else DATA_ROOT
+    resolved_root = Path(data_root) if data_root is not None else get_data_root()
     candidates: list[Path] = []
     for relative in _EVENT_SOURCE_RELATIVE_PATHS.get(str(event_type or "").strip().upper(), ()):
         path = Path(relative)

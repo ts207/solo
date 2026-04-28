@@ -104,7 +104,7 @@ def test_tiny_live_admission_e2e_pass(tmp_path):
     run_id = "rehearsal_run"
     thesis_id = "rehearsal_thesis"
     thesis_path, monitor_path = create_artifact_chain(tmp_path, run_id, thesis_id)
-    
+
     # This should pass without raising
     assert_deploy_admission(
         thesis_path=thesis_path,
@@ -117,11 +117,11 @@ def test_tiny_live_admission_e2e_fail_missing_approval(tmp_path):
     run_id = "rehearsal_run"
     thesis_id = "rehearsal_thesis"
     thesis_path, monitor_path = create_artifact_chain(tmp_path, run_id, thesis_id)
-    
+
     # Remove approval
     approval_path = tmp_path / "reports" / "approval" / thesis_id / "live_approval.json"
     approval_path.unlink()
-    
+
     with pytest.raises(PermissionError, match="live approval missing"):
         assert_deploy_admission(
             thesis_path=thesis_path,
@@ -134,12 +134,12 @@ def test_tiny_live_admission_e2e_fail_exceed_caps(tmp_path):
     run_id = "rehearsal_run"
     thesis_id = "rehearsal_thesis"
     thesis_path, monitor_path = create_artifact_chain(tmp_path, run_id, thesis_id)
-    
+
     # Update thesis with excessive caps
     data = json.loads(thesis_path.read_text())
     data["theses"][0]["cap_profile"]["max_notional"] = 50.1  # tiny_live_v1 limit is 50.0
     thesis_path.write_text(json.dumps(data))
-    
+
     with pytest.raises(PermissionError, match="cap profile violates live approval"):
         assert_deploy_admission(
             thesis_path=thesis_path,

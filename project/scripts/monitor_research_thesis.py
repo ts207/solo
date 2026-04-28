@@ -14,7 +14,7 @@ import argparse
 import json
 import math
 import sys
-from datetime import datetime, timezone
+from datetime import datetime, timezone, UTC
 from pathlib import Path
 
 import pandas as pd
@@ -103,7 +103,7 @@ def _robustness_gate_progress(robustness: float | None) -> float | None:
 # ---------------------------------------------------------------------------
 
 def build_report(*, run_id: str, data_root: Path) -> dict:
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
 
     # 1. Canonical BTC evaluation
     eval_row = _load_eval_results(data_root, run_id, THESIS_PROGRAM_ID)
@@ -273,7 +273,7 @@ def main(argv: list[str] | None = None) -> int:
         print(out)
         return 0
 
-    date_str = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+    date_str = datetime.now(UTC).strftime("%Y%m%dT%H%M%SZ")
     out_dir = Path(args.out_dir) if args.out_dir else data_root / "reports" / "monitor" / THESIS_SLUG
     out_dir.mkdir(parents=True, exist_ok=True)
     out_path = out_dir / f"{date_str}.json"

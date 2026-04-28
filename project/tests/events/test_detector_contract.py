@@ -1,3 +1,5 @@
+from typing import ClassVar
+
 import pandas as pd
 import pytest
 
@@ -18,7 +20,7 @@ def _minimal_df():
 
 
 class _GoodDetector(DetectorLogicContract):
-    required_columns = ["close", "high", "low", "volume"]
+    required_columns: ClassVar[list[str]] = ["close", "high", "low", "volume"]
     lookback_bars = 5
     warmup_bars = 5
     bar_type = "bar_close"

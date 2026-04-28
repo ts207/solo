@@ -4,8 +4,8 @@ metadata:
   status: generated
   graph_role: runtime_read_model
   schema_version: 2
-  generated_at_utc: '2026-04-28T10:26:09Z'
-  spec_sources_digest: 8d3f9e1dfd171151d866da48903640a2067c20fc282dfaf11274ce7be5661315
+  generated_at_utc: '2026-04-28T20:59:25Z'
+  spec_sources_digest: 72f8c0ec44ab70246f9d67ef031af46891df5953721be6d67ae57ba3cf723111
   notes: Compiled runtime read model. Semantic nodes are normalized for direct runtime/search
     loading.
 events:
@@ -613,9 +613,9 @@ events:
       cluster_id: exhaustion
       liquidation_spike_z_threshold: 3.0
       cascade_window_bars: 12
-      vol_quantile: 0.992
-      ret_quantile: 0.998
-      range_quantile: 0.995
+      vol_quantile: 0.97
+      ret_quantile: 0.97
+      range_quantile: 0.95
     runtime:
       templates:
       - mean_reversion
@@ -2345,6 +2345,8 @@ events:
         - 'execution_friction_blocked: spread/slippage too high'
     runtime:
       templates:
+      - carry_continuation_confirmed
+      - squeeze_followthrough_confirmed
       - reversal_or_squeeze
       - mean_reversion
       - continuation
@@ -2442,6 +2444,8 @@ events:
         - 'execution_friction_blocked: spread/slippage too high'
     runtime:
       templates:
+      - carry_continuation_confirmed
+      - squeeze_followthrough_confirmed
       - reversal_or_squeeze
       - mean_reversion
       - continuation
@@ -2539,6 +2543,8 @@ events:
         - 'execution_friction_blocked: spread/slippage too high'
     runtime:
       templates:
+      - carry_continuation_confirmed
+      - squeeze_followthrough_confirmed
       - reversal_or_squeeze
       - mean_reversion
       - continuation
@@ -2636,6 +2642,8 @@ events:
         - 'execution_friction_blocked: spread/slippage too high'
     runtime:
       templates:
+      - carry_continuation_confirmed
+      - squeeze_followthrough_confirmed
       - reversal_or_squeeze
       - mean_reversion
       - continuation
@@ -2733,6 +2741,8 @@ events:
         - 'execution_friction_blocked: spread/slippage too high'
     runtime:
       templates:
+      - carry_continuation_confirmed
+      - squeeze_followthrough_confirmed
       - reversal_or_squeeze
       - mean_reversion
       - continuation
@@ -3072,6 +3082,8 @@ events:
         - 'execution_friction_blocked: spread/slippage too high'
     runtime:
       templates:
+      - carry_continuation_confirmed
+      - squeeze_followthrough_confirmed
       - reversal_or_squeeze
       - mean_reversion
       - continuation
@@ -3169,6 +3181,8 @@ events:
         - 'execution_friction_blocked: spread/slippage too high'
     runtime:
       templates:
+      - carry_continuation_confirmed
+      - squeeze_followthrough_confirmed
       - reversal_or_squeeze
       - mean_reversion
       - continuation
@@ -3266,6 +3280,8 @@ events:
         - 'execution_friction_blocked: spread/slippage too high'
     runtime:
       templates:
+      - carry_continuation_confirmed
+      - squeeze_followthrough_confirmed
       - reversal_or_squeeze
       - mean_reversion
       - continuation
@@ -4921,11 +4937,8 @@ events:
       flush_pct_th: -0.005
     runtime:
       templates:
-      - reversal_or_squeeze
-      - mean_reversion
-      - continuation
-      - exhaustion_reversal
-      - convexity_capture
+      - carry_continuation_confirmed
+      - squeeze_followthrough_confirmed
       - only_if_funding
       - only_if_oi
       - tail_risk_avoid
@@ -5304,6 +5317,8 @@ events:
         price_oi_quadrant: price_down_oi_down
     runtime:
       templates:
+      - carry_continuation_confirmed
+      - squeeze_followthrough_confirmed
       - reversal_or_squeeze
       - mean_reversion
       - continuation
@@ -5401,6 +5416,8 @@ events:
         - 'execution_friction_blocked: spread/slippage too high'
     runtime:
       templates:
+      - carry_continuation_confirmed
+      - squeeze_followthrough_confirmed
       - reversal_or_squeeze
       - mean_reversion
       - continuation
@@ -5498,6 +5515,8 @@ events:
         - 'execution_friction_blocked: spread/slippage too high'
     runtime:
       templates:
+      - carry_continuation_confirmed
+      - squeeze_followthrough_confirmed
       - reversal_or_squeeze
       - mean_reversion
       - continuation
@@ -5595,6 +5614,8 @@ events:
         - 'execution_friction_blocked: spread/slippage too high'
     runtime:
       templates:
+      - carry_continuation_confirmed
+      - squeeze_followthrough_confirmed
       - reversal_or_squeeze
       - mean_reversion
       - continuation
@@ -10101,6 +10122,17 @@ templates:
     supports_trigger_types:
     - EVENT
     - SEQUENCE
+  carry_continuation_confirmed:
+    template_id: carry_continuation_confirmed
+    compatible_families:
+    - POSITIONING_EXTREMES
+    template_kind: expression_template
+    side_policy: directional
+    label_target: signed_return_h
+    requires_direction: true
+    supports_trigger_types:
+    - EVENT
+    - SEQUENCE
   continuation:
     template_id: continuation
     compatible_families:
@@ -10210,6 +10242,18 @@ templates:
     requires_direction: true
     supports_trigger_types:
     - EVENT
+  forced_flow_rebound:
+    template_id: forced_flow_rebound
+    compatible_families:
+    - POSITIONING_EXTREMES
+    - FORCED_FLOW_AND_EXHAUSTION
+    template_kind: expression_template
+    side_policy: contrarian
+    label_target: contrarian_signed_return_h
+    requires_direction: true
+    supports_trigger_types:
+    - EVENT
+    - SEQUENCE
   lead_lag_follow:
     template_id: lead_lag_follow
     compatible_families:
@@ -10425,6 +10469,17 @@ templates:
     requires_direction: false
     supports_trigger_types:
     - EVENT
+  squeeze_followthrough_confirmed:
+    template_id: squeeze_followthrough_confirmed
+    compatible_families:
+    - POSITIONING_EXTREMES
+    template_kind: expression_template
+    side_policy: directional
+    label_target: path_acceleration_h
+    requires_direction: true
+    supports_trigger_types:
+    - EVENT
+    - SEQUENCE
   stop_run_repair:
     template_id: stop_run_repair
     compatible_families:
@@ -10583,6 +10638,8 @@ regimes:
     canonical_regime: POSITIONING_EXPANSION
     bucket: trade_generating
     eligible_templates:
+    - carry_continuation_confirmed
+    - squeeze_followthrough_confirmed
     - continuation
     - convexity_capture
     - reversal_or_squeeze
@@ -11257,6 +11314,8 @@ runtime:
       POSITIONING_EXTREMES:
         parameters: {}
         templates:
+        - carry_continuation_confirmed
+        - squeeze_followthrough_confirmed
         - reversal_or_squeeze
         - mean_reversion
         - continuation
@@ -11732,6 +11791,8 @@ runtime:
         max_candidates_per_run: 500
       FUNDING_FLIP_TO_NEGATIVE:
         templates:
+        - carry_continuation_confirmed
+        - squeeze_followthrough_confirmed
         - reversal_or_squeeze
         - mean_reversion
         - continuation
@@ -11754,6 +11815,8 @@ runtime:
         max_candidates_per_run: 1000
       FUNDING_FLIP_TO_POSITIVE:
         templates:
+        - carry_continuation_confirmed
+        - squeeze_followthrough_confirmed
         - reversal_or_squeeze
         - mean_reversion
         - continuation
@@ -11776,6 +11839,8 @@ runtime:
         max_candidates_per_run: 1000
       FUNDING_NEG_EXTREME_ONSET:
         templates:
+        - carry_continuation_confirmed
+        - squeeze_followthrough_confirmed
         - reversal_or_squeeze
         - mean_reversion
         - continuation
@@ -11798,6 +11863,8 @@ runtime:
         max_candidates_per_run: 1000
       FUNDING_NEG_NORMALIZATION:
         templates:
+        - carry_continuation_confirmed
+        - squeeze_followthrough_confirmed
         - reversal_or_squeeze
         - mean_reversion
         - continuation
@@ -11820,6 +11887,8 @@ runtime:
         max_candidates_per_run: 1000
       FUNDING_NEG_PERSISTENCE:
         templates:
+        - carry_continuation_confirmed
+        - squeeze_followthrough_confirmed
         - reversal_or_squeeze
         - mean_reversion
         - continuation
@@ -11884,6 +11953,8 @@ runtime:
         max_candidates_per_run: 500
       FUNDING_POS_EXTREME_ONSET:
         templates:
+        - carry_continuation_confirmed
+        - squeeze_followthrough_confirmed
         - reversal_or_squeeze
         - mean_reversion
         - continuation
@@ -11906,6 +11977,8 @@ runtime:
         max_candidates_per_run: 1000
       FUNDING_POS_NORMALIZATION:
         templates:
+        - carry_continuation_confirmed
+        - squeeze_followthrough_confirmed
         - reversal_or_squeeze
         - mean_reversion
         - continuation
@@ -11928,6 +12001,8 @@ runtime:
         max_candidates_per_run: 1000
       FUNDING_POS_PERSISTENCE:
         templates:
+        - carry_continuation_confirmed
+        - squeeze_followthrough_confirmed
         - reversal_or_squeeze
         - mean_reversion
         - continuation
@@ -12231,11 +12306,8 @@ runtime:
         max_candidates_per_run: 250
       OI_SPIKE_POSITIVE:
         templates:
-        - reversal_or_squeeze
-        - mean_reversion
-        - continuation
-        - exhaustion_reversal
-        - convexity_capture
+        - carry_continuation_confirmed
+        - squeeze_followthrough_confirmed
         - only_if_funding
         - only_if_oi
         - tail_risk_avoid
@@ -12303,6 +12375,8 @@ runtime:
         max_candidates_per_run: 400
       PRICE_DOWN_OI_DOWN:
         templates:
+        - carry_continuation_confirmed
+        - squeeze_followthrough_confirmed
         - reversal_or_squeeze
         - mean_reversion
         - continuation
@@ -12325,6 +12399,8 @@ runtime:
         max_candidates_per_run: 1000
       PRICE_DOWN_OI_UP:
         templates:
+        - carry_continuation_confirmed
+        - squeeze_followthrough_confirmed
         - reversal_or_squeeze
         - mean_reversion
         - continuation
@@ -12347,6 +12423,8 @@ runtime:
         max_candidates_per_run: 1000
       PRICE_UP_OI_DOWN:
         templates:
+        - carry_continuation_confirmed
+        - squeeze_followthrough_confirmed
         - reversal_or_squeeze
         - mean_reversion
         - continuation
@@ -12369,6 +12447,8 @@ runtime:
         max_candidates_per_run: 1000
       PRICE_UP_OI_UP:
         templates:
+        - carry_continuation_confirmed
+        - squeeze_followthrough_confirmed
         - reversal_or_squeeze
         - mean_reversion
         - continuation
@@ -12966,6 +13046,8 @@ runtime:
         - only_if_regime
       POSITIONING_EXTREMES:
         templates:
+        - carry_continuation_confirmed
+        - squeeze_followthrough_confirmed
         - reversal_or_squeeze
         - mean_reversion
         - continuation

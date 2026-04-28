@@ -94,9 +94,9 @@ class CrossAssetDesyncDetector(ThresholdDetector):
     DEFAULT_MIN_PAIR_OBSERVATIONS = 96
 
     """Detects price desynchronization between correlated asset pairs.
-    
+
     Triggered when the spread between two historically correlated assets
-    (e.g., BTC and ETH, or SOL and ETH) deviates significantly from its 
+    (e.g., BTC and ETH, or SOL and ETH) deviates significantly from its
     rolling mean, suggesting a lead-lag opportunity or relative value dislocation.
     """
     event_type = "CROSS_ASSET_DESYNC_EVENT"

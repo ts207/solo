@@ -42,8 +42,7 @@ event_atoms:
   directions:
   - long
   - short
-  templates:
-  - mean_reversion
+  templates: []
   horizons:
   - 12b
   - 24b
@@ -59,8 +58,7 @@ event_atoms:
   directions:
   - long
   - short
-  templates:
-  - mean_reversion
+  templates: []
   horizons:
   - 12b
   - 24b

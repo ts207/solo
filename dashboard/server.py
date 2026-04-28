@@ -15,6 +15,7 @@ import sys
 import threading
 import uuid
 from http.server import BaseHTTPRequestHandler, HTTPServer
+from typing import ClassVar
 from urllib.parse import parse_qs, urlparse
 
 try:
@@ -1007,7 +1008,7 @@ def save_proposal(filename: str, content: str) -> dict:
 
 
 class Handler(BaseHTTPRequestHandler):
-    _data: dict = {}
+    _data: ClassVar[dict] = {}
 
     def log_message(self, fmt, *args):
         print(f"  {self.address_string()} {fmt % args}")

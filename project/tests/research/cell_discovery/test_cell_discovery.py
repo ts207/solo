@@ -60,20 +60,20 @@ def _write_scoreboard_inputs(rows: pd.DataFrame, paths) -> None:
             continue
         forward_n = int(float(row.get("forward_n", valid_count * 10) or valid_count * 10))
         per_fold_n = max(3, forward_n // valid_count)
-        for fold_id in range(1, valid_count + 1):
-            fold_rows.append(
+        fold_rows.extend(
+            [
                 {
                     "fold_id": fold_id,
                     "valid": True,
                     "n": per_fold_n,
-                    "after_cost_expectancy_bps": float(
-                        row["fold_median_after_cost_expectancy"]
-                    ),
+                    "after_cost_expectancy_bps": float(row["fold_median_after_cost_expectancy"]),
                     "t_stat": float(row.get("fold_median_t_stat", 2.0) or 2.0),
                     "hypothesis_id": row["hypothesis_id"],
                     "trigger_key": "event:UNIT",
                 }
-            )
+                for fold_id in range(1, valid_count + 1)
+            ]
+        )
     write_parquet(pd.DataFrame(fold_rows), paths.run_dir / "phase2_candidate_fold_metrics.parquet")
 
 
@@ -94,9 +94,7 @@ def test_default_discovery_registry_loads_bounded_surface() -> None:
     assert registry.ranking_policy.min_forward_support == 30
     assert registry.ranking_policy.min_forward_support_fraction == 0.10
     assert registry.ranking_policy.min_contrast_lift_bps == 5.0
-    assert [rule.rule_type for rule in registry.contrast_rules] == [
-        "in_bucket_vs_unconditional"
-    ]
+    assert [rule.rule_type for rule in registry.contrast_rules] == ["in_bucket_vs_unconditional"]
 
 
 def test_cell_compiler_writes_search_spec_and_lineage(tmp_path: Path) -> None:
@@ -219,10 +217,13 @@ def test_phase2_edge_cells_fails_closed_without_lineage() -> None:
     )
 
     assert _filter_edge_cell_authorized_hypotheses([hypothesis], pd.DataFrame()) == []
-    assert _filter_edge_cell_authorized_hypotheses(
-        [hypothesis],
-        pd.DataFrame({"symbol": ["BTCUSDT"]}),
-    ) == []
+    assert (
+        _filter_edge_cell_authorized_hypotheses(
+            [hypothesis],
+            pd.DataFrame({"symbol": ["BTCUSDT"]}),
+        )
+        == []
+    )
 
 
 def test_phase2_edge_cells_filters_authorization_by_symbol() -> None:
@@ -247,11 +248,14 @@ def test_phase2_edge_cells_filters_authorization_by_symbol() -> None:
         lineage,
         symbol="BTCUSDT",
     ) == [hypothesis]
-    assert _filter_edge_cell_authorized_hypotheses(
-        [hypothesis],
-        lineage,
-        symbol="ETHUSDT",
-    ) == []
+    assert (
+        _filter_edge_cell_authorized_hypotheses(
+            [hypothesis],
+            lineage,
+            symbol="ETHUSDT",
+        )
+        == []
+    )
 
 
 def test_scoreboard_requires_forward_support_and_contrast(tmp_path: Path) -> None:
@@ -758,6 +762,8 @@ def test_scoreboard_filters_unauthorized_phase2_rows(tmp_path: Path) -> None:
     assert summary["unauthorized_rows_filtered"] == 1
     assert "hyp_unauthorized" not in set(scoreboard.get("hypothesis_id", pd.Series(dtype=str)))
     assert int(summary["scoreboard_rows"]) == 2
+    top = scoreboard.sort_values("t_stat", ascending=False).iloc[0]
+    assert abs(float(top["calibrated_t_conservative"]) - float(top["t_stat"]) * 0.40) < 1e-9
 
 
 def test_scoreboard_filters_symbol_pruned_phase2_rows(tmp_path: Path) -> None:
@@ -1050,7 +1056,9 @@ def test_plan_cells_compiles_reduced_surface_for_partial_data_block(
         for atom in registry.event_atoms
         for context_cell in ("unconditional", "bullish_trend", "positive_funding")
     ]
-    report_path = paths_for_run(data_root=tmp_path, run_id="UNIT_CELL_PLAN_PARTIAL").data_contract_path
+    report_path = paths_for_run(
+        data_root=tmp_path, run_id="UNIT_CELL_PLAN_PARTIAL"
+    ).data_contract_path
 
     def _fake_verify_data_contract(**_kwargs):
         report_path.parent.mkdir(parents=True, exist_ok=True)
@@ -1104,7 +1112,9 @@ def test_summarize_cells_reports_plan_only_skipped_cells(
         for atom in registry.event_atoms
         for context_cell in ("unconditional", "bullish_trend", "positive_funding")
     ]
-    report_path = paths_for_run(data_root=tmp_path, run_id="UNIT_CELL_SUMMARY_PLAN").data_contract_path
+    report_path = paths_for_run(
+        data_root=tmp_path, run_id="UNIT_CELL_SUMMARY_PLAN"
+    ).data_contract_path
 
     def _fake_verify_data_contract(**_kwargs):
         report_path.parent.mkdir(parents=True, exist_ok=True)
@@ -1194,7 +1204,9 @@ def test_run_cells_uses_compiled_surface_as_data_block_gate(
     monkeypatch,
     tmp_path: Path,
 ) -> None:
-    report_path = paths_for_run(data_root=tmp_path, run_id="UNIT_CELL_RUN_PARTIAL").data_contract_path
+    report_path = paths_for_run(
+        data_root=tmp_path, run_id="UNIT_CELL_RUN_PARTIAL"
+    ).data_contract_path
     captured: dict[str, str] = {}
 
     def _fake_verify_data_contract(**_kwargs):
@@ -1369,6 +1381,75 @@ def test_redundancy_and_thesis_assembly_use_representatives_only(tmp_path: Path)
     assert proposal["artifacts"]["context_routing"][0]["routing_source"] == "runtime"
 
 
+def test_thesis_assembly_per_cell_uses_rankable_scoreboard_rows(tmp_path: Path) -> None:
+    registry = load_registry("spec/discovery/expanded_v2")
+    run_id = "UNIT_CELL_ASSEMBLY_PER_CELL"
+    compiled = compile_cells(
+        registry=registry,
+        run_id=run_id,
+        data_root=tmp_path,
+        symbols=["BTCUSDT"],
+        timeframe="5m",
+        start="2025-01-01",
+        end="2025-02-01",
+    )
+    paths = paths_for_run(data_root=tmp_path, run_id=run_id)
+    lineage = read_parquet([compiled.lineage_path])
+    unconditional = lineage[lineage["source_context_cell"] == "unconditional"].iloc[0]
+    high_vol = _matching_lineage_row(lineage, "high_vol", reference=unconditional)
+    low_vol = _matching_lineage_row(lineage, "low_vol", reference=unconditional)
+
+    _write_scoreboard_inputs(
+        pd.DataFrame(
+            [
+                {
+                    "hypothesis_id": unconditional["hypothesis_id"],
+                    "symbol": "BTCUSDT",
+                    "n_events": 80,
+                    "mean_return_bps": 8.0,
+                    "cost_adjusted_return_bps": 8.0,
+                    "t_stat": 2.5,
+                    "robustness_score": 0.7,
+                    **_forward_metrics(8.0, t_stat=2.5),
+                },
+                {
+                    "hypothesis_id": high_vol["hypothesis_id"],
+                    "symbol": "BTCUSDT",
+                    "n_events": 90,
+                    "mean_return_bps": 12.0,
+                    "cost_adjusted_return_bps": 11.0,
+                    "t_stat": 3.0,
+                    "robustness_score": 0.8,
+                    **_forward_metrics(11.0, t_stat=3.0),
+                },
+                {
+                    "hypothesis_id": low_vol["hypothesis_id"],
+                    "symbol": "BTCUSDT",
+                    "n_events": 85,
+                    "mean_return_bps": 11.0,
+                    "cost_adjusted_return_bps": 11.0,
+                    "t_stat": 2.8,
+                    "robustness_score": 0.75,
+                    **_forward_metrics(11.0, t_stat=2.8),
+                },
+            ]
+        ),
+        paths,
+    )
+    build_scoreboard(registry=registry, run_id=run_id, data_root=tmp_path)
+    build_redundancy_clusters(run_id=run_id, data_root=tmp_path)
+
+    representative_report = assemble_theses(run_id=run_id, data_root=tmp_path)
+    per_cell_report = assemble_theses(run_id=run_id, data_root=tmp_path, per_cell=True)
+
+    assert representative_report["generated_count"] == 1
+    assert per_cell_report["generated_count"] == 2
+    assert {row["cell_id"] for row in per_cell_report["generated"]} == {
+        str(high_vol["source_cell_id"]),
+        str(low_vol["source_cell_id"]),
+    }
+
+
 def test_redundancy_merges_behaviorally_similar_pnl_traces(tmp_path: Path) -> None:
     registry = load_registry("spec/discovery/expanded_v2")
     run_id = "UNIT_CELL_PNL_REDUNDANCY"
@@ -1428,12 +1509,36 @@ def test_redundancy_merges_behaviorally_similar_pnl_traces(tmp_path: Path) -> No
     write_parquet(
         pd.DataFrame(
             [
-                {"signal_ts": "2025-01-01T00:00:00Z", "cell_id": high_vol["source_cell_id"], "pnl_bps": 1.0},
-                {"signal_ts": "2025-01-01T00:05:00Z", "cell_id": high_vol["source_cell_id"], "pnl_bps": 2.0},
-                {"signal_ts": "2025-01-01T00:10:00Z", "cell_id": high_vol["source_cell_id"], "pnl_bps": 3.0},
-                {"signal_ts": "2025-01-01T00:00:00Z", "cell_id": low_vol["source_cell_id"], "pnl_bps": 1.1},
-                {"signal_ts": "2025-01-01T00:05:00Z", "cell_id": low_vol["source_cell_id"], "pnl_bps": 2.1},
-                {"signal_ts": "2025-01-01T00:10:00Z", "cell_id": low_vol["source_cell_id"], "pnl_bps": 3.1},
+                {
+                    "signal_ts": "2025-01-01T00:00:00Z",
+                    "cell_id": high_vol["source_cell_id"],
+                    "pnl_bps": 1.0,
+                },
+                {
+                    "signal_ts": "2025-01-01T00:05:00Z",
+                    "cell_id": high_vol["source_cell_id"],
+                    "pnl_bps": 2.0,
+                },
+                {
+                    "signal_ts": "2025-01-01T00:10:00Z",
+                    "cell_id": high_vol["source_cell_id"],
+                    "pnl_bps": 3.0,
+                },
+                {
+                    "signal_ts": "2025-01-01T00:00:00Z",
+                    "cell_id": low_vol["source_cell_id"],
+                    "pnl_bps": 1.1,
+                },
+                {
+                    "signal_ts": "2025-01-01T00:05:00Z",
+                    "cell_id": low_vol["source_cell_id"],
+                    "pnl_bps": 2.1,
+                },
+                {
+                    "signal_ts": "2025-01-01T00:10:00Z",
+                    "cell_id": low_vol["source_cell_id"],
+                    "pnl_bps": 3.1,
+                },
             ]
         ),
         paths.pnl_traces_path,
@@ -1442,17 +1547,24 @@ def test_redundancy_merges_behaviorally_similar_pnl_traces(tmp_path: Path) -> No
     build_redundancy_clusters(run_id=run_id, data_root=tmp_path)
     clusters = read_parquet([paths.clusters_path])
     representatives = read_parquet([paths.cluster_representatives_path])
-    pair = clusters[clusters["cell_id"].isin([high_vol["source_cell_id"], low_vol["source_cell_id"]])]
+    pair = clusters[
+        clusters["cell_id"].isin([high_vol["source_cell_id"], low_vol["source_cell_id"]])
+    ]
 
     assert len(pair) == 2
     assert pair["redundancy_cluster_id"].nunique() == 1
     assert set(pair["cluster_basis"]) == {"pnl_similarity+structural"}
     assert pair["max_pnl_similarity"].min() >= 0.85
-    assert len(
-        representatives[
-            representatives["cell_id"].isin([high_vol["source_cell_id"], low_vol["source_cell_id"]])
-        ]
-    ) == 1
+    assert (
+        len(
+            representatives[
+                representatives["cell_id"].isin(
+                    [high_vol["source_cell_id"], low_vol["source_cell_id"]]
+                )
+            ]
+        )
+        == 1
+    )
 
 
 def test_thesis_assembly_downgrades_mapped_supportive_only_representative(

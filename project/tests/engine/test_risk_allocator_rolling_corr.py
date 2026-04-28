@@ -12,11 +12,11 @@ def _ts(n: int) -> pd.DatetimeIndex:
 def test_rolling_correlation_adapts_to_time_varying_correlation():
     """
     Test that the correlation constraint adapts to time-varying correlation.
-    
+
     In this test:
     - First 100 bars: s1 and s2 are perfectly correlated.
     - Next 100 bars: s1 and s2 are uncorrelated.
-    
+
     If rolling correlation is working, the first 100 bars should be clipped,
     and the next 100 bars should NOT be clipped (or clipped less).
     """

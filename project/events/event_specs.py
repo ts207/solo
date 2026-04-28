@@ -60,7 +60,7 @@ def _load_event_specs() -> dict[str, EventRegistrySpec]:
         if isinstance(runtime_params, dict):
             params.update(runtime_params)
 
-        def _param(name: str, default):
+        def _param(name: str, default, *, params=params, raw=raw):
             if name in params:
                 return params[name]
             if name in raw:

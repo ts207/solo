@@ -16,7 +16,7 @@ def compute_registry_overlaps(
     features: pd.DataFrame
 ) -> dict[str, Any]:
     """
-    Computes overlap metrics between a candidate trigger mask and all available 
+    Computes overlap metrics between a candidate trigger mask and all available
     canonical events currently instantiated in the features DataFrame.
     """
     if not proposal_mask.any() or features.empty:

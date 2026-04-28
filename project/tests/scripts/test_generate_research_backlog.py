@@ -3,12 +3,13 @@ from __future__ import annotations
 import csv
 import json
 from pathlib import Path
+from typing import ClassVar
 
 from project.scripts import generate_research_backlog as backlog
 
 
 class _FakeRegistry:
-    event_ids = ["VOL_SPIKE", "LIQ_GAP"]
+    event_ids: ClassVar[list[str]] = ["VOL_SPIKE", "LIQ_GAP"]
 
     @staticmethod
     def event_row(event_type: str) -> dict:

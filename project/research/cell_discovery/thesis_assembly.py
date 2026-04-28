@@ -174,9 +174,7 @@ def _proposal_payload(
     symbol = str(row.get("symbol", "BTCUSDT") or "BTCUSDT")
     horizon = _horizon_bars(row.get("horizon"))
     event_atom = str(row.get("event_atom", "") or row.get("source_event_atom", ""))
-    program_id = (
-        f"edge_cell_{_slug(run_id)}_{_slug(row.get('cell_id'))}_{_slug(symbol)}_v1"
-    )[:120]
+    program_id = (f"edge_cell_{_slug(run_id)}_{_slug(row.get('cell_id'))}_{_slug(symbol)}_v1")[:120]
     start = str(source_scope.get("start", "") or "").strip()
     end = str(source_scope.get("end", "") or "").strip()
     search_spec = str(source_scope.get("search_spec_path", "") or "").strip()

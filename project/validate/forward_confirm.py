@@ -50,12 +50,12 @@ def _assert_oos_window_non_overlapping(
         raise ValueError(
             "forward-confirm requires research_start and research_end to verify OOS isolation"
         )
-    
+
     o_start = _to_utc_ts(oos_start)
     o_end = _to_utc_ts(oos_end)
     r_start = _to_utc_ts(research_start)
     r_end = _to_utc_ts(research_end)
-    
+
     if not (o_start > r_end or o_end < r_start):
         raise ValueError(
             f"forward-confirm OOS window [{oos_start}..{oos_end}] overlaps "
@@ -108,7 +108,7 @@ def _hypothesis_spec_from_promoted_dict(d: dict[str, Any]) -> HypothesisSpec:
     trigger_events = thesis.requirements.trigger_events
     if not trigger_events:
         raise ValueError("Promoted thesis missing trigger_events")
-    
+
     trigger = TriggerSpec(
         trigger_type="EVENT",
         event_id=trigger_events[0],
@@ -152,7 +152,7 @@ def _load_frozen_thesis(
         theses = payload.get("theses", [])
         if not theses:
              raise ValueError(f"No theses found in {thesis_json_path}")
-        
+
         target_thesis = None
         if candidate_id:
             for t in theses:
@@ -168,8 +168,8 @@ def _load_frozen_thesis(
                     "Please provide --candidate_id."
                 )
             target_thesis = theses[0]
-            
-        research_start = target_thesis.get("lineage", {}).get("research_start") 
+
+        research_start = target_thesis.get("lineage", {}).get("research_start")
         research_end = target_thesis.get("lineage", {}).get("research_end")
         return _hypothesis_spec_from_promoted_dict(target_thesis), research_start, research_end
 
@@ -197,7 +197,7 @@ def _load_frozen_thesis(
             match = df[df["candidate_id"] == candidate_id]
             if not match.empty:
                 row_dict = match.iloc[0].to_dict()
-                # If we load from phase2_candidates, we might still lack research window info 
+                # If we load from phase2_candidates, we might still lack research window info
                 # unless it's in the row.
                 return HypothesisSpec.from_dict(row_dict), research_start, research_end
 
@@ -216,14 +216,14 @@ def oos_frozen_thesis_replay_v1(
     symbol = None
     if thesis.context and "symbol" in thesis.context:
         symbol = str(thesis.context["symbol"]).upper()
-    
+
     if not symbol:
         raise ValueError("Cannot resolve symbol from frozen thesis identity. Ensure it is in context.")
 
     timeframe = None
     if thesis.context and "timeframe" in thesis.context:
         timeframe = thesis.context["timeframe"]
-    
+
     if not timeframe:
         log.warning("Timeframe not found in thesis context, defaulting to 5m for replay.")
         timeframe = "5m"
@@ -259,7 +259,7 @@ def oos_frozen_thesis_replay_v1(
     hbars = int(thesis.horizon)
     fwd = eval_context.forward_returns(hbars)
     event_returns = fwd[mask].dropna()
-    
+
     if event_returns.empty:
          return {
             "event_count": 0,
@@ -272,24 +272,24 @@ def oos_frozen_thesis_replay_v1(
     ts = pd.to_datetime(features["timestamp"], utc=True)
     oos_start_ts = _to_utc_ts(start)
     oos_end_ts = _to_utc_ts(end)
-    
+
     # signal_tss corresponds to the trigger events
     signal_tss = ts.iloc[event_returns.index]
     signal_tss.index = event_returns.index
-    
+
     # exit_ts = signal_ts + horizon
     exit_indices = event_returns.index + hbars
     valid_exit_mask = exit_indices < len(ts)
-    
+
     exit_tss = pd.Series(index=event_returns.index, dtype="object")
     if valid_exit_mask.any():
         exit_tss.loc[valid_exit_mask] = ts.iloc[exit_indices[valid_exit_mask]].values
-    
+
     exit_tss = pd.to_datetime(exit_tss, utc=True)
-    
+
     # Horizon rule: drop signals if exit_ts > oos_end
     oos_mask = (signal_tss >= oos_start_ts) & (exit_tss <= oos_end_ts)
-    
+
     filtered_returns = event_returns[oos_mask]
     if filtered_returns.empty:
         return {
@@ -302,7 +302,7 @@ def oos_frozen_thesis_replay_v1(
     # Signed returns
     direction_sign = 1.0 if thesis.direction == "long" else -1.0 if thesis.direction == "short" else 1.0
     signed = filtered_returns * direction_sign
-    
+
     # Costs
     per_trade_cost_bps = expected_cost_per_trade_bps(
         features.loc[filtered_returns.index],
@@ -315,12 +315,12 @@ def oos_frozen_thesis_replay_v1(
     weights = eval_context.weights[mask].loc[filtered_returns.index]
     gross_mean, gross_std, t_stat_gross = _weighted_newey_west_mean_std(signed, weights, horizon_bars=hbars)
     net_mean, net_std, t_stat_net = _weighted_newey_west_mean_std(signed_net, weights, horizon_bars=hbars)
-    
+
     # Excursions
     exc_mask = pd.Series(False, index=features.index)
     exc_mask.loc[filtered_returns.index] = True
     maes, mfes = _excursion_stats(features["close"], exc_mask, hbars, direction_sign)
-    
+
     n = len(filtered_returns)
     res = {
         "event_count": n,
@@ -351,7 +351,7 @@ def build_forward_confirmation_payload(
         candidate_id=candidate_id,
         data_root=root,
     )
-    
+
     _assert_oos_window_non_overlapping(
         oos_start=oos_start,
         oos_end=oos_end,

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import re
 from abc import ABC, abstractmethod
+from typing import ClassVar
 
 from project.strategy.dsl.schema import ConditionNodeSpec
 
@@ -23,7 +24,7 @@ class BaseConditionHandler(ABC):
 class ConditionRegistry:
     """Registry for DSL condition handlers."""
 
-    _HANDLERS: list[BaseConditionHandler] = []
+    _HANDLERS: ClassVar[list[BaseConditionHandler]] = []
 
     @classmethod
     def register(cls, handler: BaseConditionHandler) -> None:
@@ -41,7 +42,7 @@ class ConditionRegistry:
 
 
 class SessionConditionHandler(BaseConditionHandler):
-    MAP = {
+    MAP: ClassVar[dict[str, tuple[int, int]]] = {
         "session_asia": (0, 7),
         "session_eu": (8, 15),
         "session_us": (16, 23),
@@ -63,7 +64,7 @@ class SessionConditionHandler(BaseConditionHandler):
 
 
 class VolRegimeConditionHandler(BaseConditionHandler):
-    MAP = {
+    MAP: ClassVar[dict[str, float]] = {
         "vol_regime_low": 0.0,
         "vol_regime_mid": 1.0,
         "vol_regime_medium": 1.0,
@@ -80,7 +81,7 @@ class VolRegimeConditionHandler(BaseConditionHandler):
 
 
 class BullBearConditionHandler(BaseConditionHandler):
-    MAP = {
+    MAP: ClassVar[dict[str, float]] = {
         "bull_bear_bull": 1.0,
         "bull_bear_bear": -1.0,
     }
@@ -95,7 +96,9 @@ class BullBearConditionHandler(BaseConditionHandler):
 
 
 class NumericConditionHandler(BaseConditionHandler):
-    PATTERN = re.compile(r"^\s*([A-Za-z_][A-Za-z0-9_]*)\s*(>=|<=|==|>|<)\s*(-?\d+(?:\.\d+)?)\s*$")
+    PATTERN: ClassVar[re.Pattern[str]] = re.compile(
+        r"^\s*([A-Za-z_][A-Za-z0-9_]*)\s*(>=|<=|==|>|<)\s*(-?\d+(?:\.\d+)?)\s*$"
+    )
 
     def handles(self, c):
         return bool(self.PATTERN.match(c))

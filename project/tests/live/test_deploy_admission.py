@@ -67,7 +67,7 @@ def test_deploy_admission_trading_allowed_for_live_enabled_ready(mock_paper_gate
     mock_thesis.lineage.run_id = "test_run"
     mock_thesis.thesis_id = "test_thesis"
     mock_paper_gate.return_value = MagicMock(status="pass")
-    
+
     # Forward confirmation
     fc_dir = tmp_path / "reports" / "validation" / "test_run"
     fc_dir.mkdir(parents=True, exist_ok=True)
@@ -86,10 +86,10 @@ def test_deploy_admission_trading_allowed_for_live_enabled_ready(mock_paper_gate
         "cap_profile_id": "tiny_live_v1",
         "risk_acknowledgement": True
     }))
-    
+
     monitor_path = tmp_path / "report.json"
     monitor_path.write_text(json.dumps({"deployment_ready": True}))
-    
+
     with patch("project.live.deploy_admission.ThesisStore.from_path", return_value=mock_store):
         assert_deploy_admission(
             thesis_path=Path("dummy.json"),
@@ -103,7 +103,7 @@ def test_deploy_admission_trading_blocked_for_live_enabled_not_ready(mock_store,
     mock_thesis.deployment_state = "live_enabled"
     monitor_path = tmp_path / "report.json"
     monitor_path.write_text(json.dumps({"deployment_ready": False}))
-    
+
     with patch("project.live.deploy_admission.ThesisStore.from_path", return_value=mock_store):
         with pytest.raises(PermissionError, match="monitor report deployment_ready=False"):
             assert_deploy_admission(
@@ -145,7 +145,7 @@ def test_deploy_admission_real_artifact_live_enabled_no_approval(tmp_path):
         ]
     }
     thesis_file.write_text(json.dumps(content))
-    
+
     with patch("project.live.thesis_store.inspect_artifact_trust") as m_trust:
         m_trust.return_value.historical_trust_status = "trusted_under_current_rules"
         # DeploymentGate should raise because live_approval_status is empty
@@ -190,7 +190,7 @@ def test_deploy_admission_real_artifact_live_enabled_no_caps(tmp_path):
         ]
     }
     thesis_file.write_text(json.dumps(content))
-    
+
     with patch("project.live.thesis_store.inspect_artifact_trust") as m_trust:
         m_trust.return_value.historical_trust_status = "trusted_under_current_rules"
         with pytest.raises(RuntimeError, match="cap_profile has no hard caps configured"):
@@ -221,7 +221,7 @@ def test_deploy_admission_real_artifact_trading_monitor_only_fails(tmp_path):
         ]
     }
     thesis_file.write_text(json.dumps(content))
-    
+
     with patch("project.live.thesis_store.inspect_artifact_trust") as m_trust:
         m_trust.return_value.historical_trust_status = "trusted_under_current_rules"
         with pytest.raises(PermissionError, match="Requires 'live_enabled'"):

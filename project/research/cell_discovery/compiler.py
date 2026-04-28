@@ -234,7 +234,7 @@ def _filter_lineage_for_feasibility(
     frames = []
     for symbol in normalized_symbols:
         mask = lineage.apply(
-            lambda row: (
+            lambda row, symbol=symbol: (
                 _lineage_key(row, symbol=symbol) in allowed_symbol
                 or _lineage_key(row, symbol=symbol)[:2] in allowed_global
             ),

@@ -21,6 +21,7 @@ import sys
 import numpy as np
 import pandas as pd
 
+from project.core.config import get_data_root
 from project.core.feature_schema import feature_dataset_dir_name
 
 
@@ -63,8 +64,9 @@ def _compute_psi(ref: pd.Series, live: pd.Series, n_bins: int = 10) -> float:
 
 def _load_features(run_id: str, symbol: str, timeframe: str) -> pd.DataFrame:
     feature_dataset = feature_dataset_dir_name()
+    data_root = get_data_root()
     candidates = [
-        DATA_ROOT
+        data_root
         / "lake"
         / "runs"
         / run_id
@@ -73,7 +75,7 @@ def _load_features(run_id: str, symbol: str, timeframe: str) -> pd.DataFrame:
         / symbol
         / timeframe
         / feature_dataset,
-        DATA_ROOT / "lake" / "features" / "perp" / symbol / timeframe / feature_dataset,
+        data_root / "lake" / "features" / "perp" / symbol / timeframe / feature_dataset,
     ]
     for d in candidates:
         if d.exists():

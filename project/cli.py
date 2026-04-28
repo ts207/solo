@@ -136,7 +136,7 @@ def _run_trigger_lane(mode: str, args: argparse.Namespace) -> int:
     ]
     if hasattr(args, "family"):
         cmd.extend(["--family", args.family])
-    result = subprocess.run(cmd)
+    result = subprocess.run(cmd)  # noqa: S603 - command is assembled from fixed CLI entrypoint.
     return int(result.returncode)
 
 
@@ -167,16 +167,23 @@ def _run_proposal_inspect(args: argparse.Namespace) -> int:
     timeframe = str(payload.get("timeframe", "") or "")
     start = str(payload.get("start", "") or "")
     end = str(payload.get("end", "") or "")
-    promotion_profile = str(payload.get("promotion_profile", "") or payload.get("promotion_mode", "") or "")
+    promotion_profile = str(
+        payload.get("promotion_profile", "") or payload.get("promotion_mode", "") or ""
+    )
     search_spec = payload.get("search_spec")
-    hypothesis = payload.get("hypothesis", {}) if isinstance(payload.get("hypothesis"), dict) else {}
+    hypothesis = (
+        payload.get("hypothesis", {}) if isinstance(payload.get("hypothesis"), dict) else {}
+    )
     anchor = hypothesis.get("anchor", {}) if isinstance(hypothesis.get("anchor"), dict) else {}
-    template = hypothesis.get("template", {}) if isinstance(hypothesis.get("template"), dict) else {}
+    template = (
+        hypothesis.get("template", {}) if isinstance(hypothesis.get("template"), dict) else {}
+    )
 
     resolved_root = _path_or_none(args.data_root) or (PROJECT_ROOT.parent / "data")
     phase2_dir = resolved_root / "reports" / "phase2" / str(args.run_id or "<run_id>")
     proposal_memory_dir = (
-        memory_paths(program_id, data_root=resolved_root).proposals_dir / str(args.run_id or "<run_id>")
+        memory_paths(program_id, data_root=resolved_root).proposals_dir
+        / str(args.run_id or "<run_id>")
         if program_id
         else None
     )
@@ -276,9 +283,16 @@ def _run_deploy_export(args: argparse.Namespace) -> int:
     if not thesis_path.exists():
         phase2_dir = data_root / "reports" / "phase2" / args.run_id
         if phase2_dir.exists():
-            _emit_json({"status": "error", "message": "Deploy stage requires a completed 'promote' stage"})
+            _emit_json(
+                {"status": "error", "message": "Deploy stage requires a completed 'promote' stage"}
+            )
         else:
-            _emit_json({"status": "error", "message": f"Error: No promoted thesis found for run {args.run_id}"})
+            _emit_json(
+                {
+                    "status": "error",
+                    "message": f"Error: No promoted thesis found for run {args.run_id}",
+                }
+            )
         return 1
     return _run_promote_export(args)
 
@@ -313,6 +327,7 @@ def _run_deploy_inspect(args: argparse.Namespace) -> int:
 
 def _run_deploy_bind_config(args: argparse.Namespace) -> int:
     from project.live.deploy_admission import assert_deploy_admission
+
     data_root = _path_or_none(args.data_root) or PROJECT_ROOT.parent / "data"
     thesis_path_override = _path_or_none(args.thesis_path)
     thesis_path = thesis_path_override or _thesis_path_for_run(
@@ -324,7 +339,7 @@ def _run_deploy_bind_config(args: argparse.Namespace) -> int:
 
     monitor_report_path = _path_or_none(getattr(args, "monitor_report", None))
     runtime_mode = str(args.runtime_mode).strip().lower() or "monitor_only"
-    
+
     # Assert admission
     try:
         assert_deploy_admission(
@@ -388,7 +403,9 @@ def _run_deploy_bind_config(args: argparse.Namespace) -> int:
 
 def _run_live_engine_entry(config: Path) -> int:
     script = PROJECT_ROOT / "scripts" / "run_live_engine.py"
-    result = subprocess.run([sys.executable, str(script), "--config", str(config)])
+    result = subprocess.run(  # noqa: S603 - invokes repo-owned live engine with explicit argv.
+        [sys.executable, str(script), "--config", str(config)]
+    )
     return int(result.returncode)
 
 
@@ -493,6 +510,14 @@ def build_parser() -> argparse.ArgumentParser:
     assemble.add_argument("--run_id", required=True)
     assemble.add_argument("--data_root")
     assemble.add_argument("--limit", type=int, default=20)
+    assemble.add_argument(
+        "--per-cell",
+        action="store_true",
+        help=(
+            "Assemble from rankable scoreboard rows instead of only redundancy-cluster "
+            "representatives."
+        ),
+    )
     assemble.set_defaults(func=_run_discover_cells, cells_action="assemble-theses")
 
     triggers = discover_sub.add_parser(
@@ -545,7 +570,9 @@ def build_parser() -> argparse.ArgumentParser:
     promote_run.add_argument("--symbols", required=True)
     promote_run.add_argument("--out_dir")
     promote_run.add_argument("--retail_profile", default="capital_constrained")
-    promote_run.add_argument("--promotion_profile", choices=["auto", "research", "deploy"], default="auto")
+    promote_run.add_argument(
+        "--promotion_profile", choices=["auto", "research", "deploy"], default="auto"
+    )
     promote_run.add_argument("--require_forward_confirmation", type=int, default=None)
     promote_run.set_defaults(func=_run_promote)
     promote_export = promote_sub.add_parser("export")
@@ -599,7 +626,9 @@ def build_parser() -> argparse.ArgumentParser:
     status.add_argument("--data_root")
     status.set_defaults(func=_run_deploy_status)
 
-    proposal = sub.add_parser("proposal", help="inspect and sanity-check a proposal before running it")
+    proposal = sub.add_parser(
+        "proposal", help="inspect and sanity-check a proposal before running it"
+    )
     proposal_sub = proposal.add_subparsers(dest="proposal_action")
     inspect = proposal_sub.add_parser("inspect")
     inspect.add_argument("--proposal", required=True)

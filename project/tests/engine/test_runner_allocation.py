@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+from typing import ClassVar
 
 import pandas as pd
 import pytest
@@ -10,7 +11,7 @@ from project.engine.strategy_executor import StrategyResult
 
 
 class _DummyStrategy:
-    required_features: list[str] = []
+    required_features: ClassVar[list[str]] = []
 
 
 def _make_frame(strategy_name: str, symbol: str) -> pd.DataFrame:

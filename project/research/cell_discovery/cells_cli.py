@@ -67,5 +67,6 @@ def run_from_namespace(args: argparse.Namespace) -> dict[str, Any]:
             run_id=args.run_id,
             data_root=args.data_root,
             limit=args.limit,
+            per_cell=bool(getattr(args, "per_cell", False)),
         )
     return {"exit_code": 2, "status": "error", "reason": f"unknown cells action: {action}"}

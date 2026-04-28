@@ -40,8 +40,6 @@ def base_row():
         "val_t_stat": 2.5,
         "oos1_t_stat": 2.5,
         "std_return": 0.0001,  # low vol -> high stability score
-        "gate_stability": True,
-        "gate_delay_robustness": True,
         "pass_consensus_5m_1m": True,
         "pass_consensus_5m_15m": True,
         "delay_expectancy_map": {"1": 0.0005},

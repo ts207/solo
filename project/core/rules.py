@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import Any
+from typing import Any, ClassVar
 
 
 class BaseRuleHandler(ABC):
@@ -16,7 +16,7 @@ class BaseRuleHandler(ABC):
 class RuleRegistry:
     """Registry for domain-specific logic rules."""
 
-    _RULES: dict[str, type[BaseRuleHandler]] = {}
+    _RULES: ClassVar[dict[str, type[BaseRuleHandler]]] = {}
 
     @classmethod
     def register(cls, name: str, rule_cls: type[BaseRuleHandler]) -> None:

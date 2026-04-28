@@ -17,10 +17,7 @@ from project.research.cell_discovery.thesis_assembly import assemble_theses
 
 
 def _symbols(value: str | list[str] | tuple[str, ...]) -> list[str]:
-    if isinstance(value, str):
-        raw = value.split(",")
-    else:
-        raw = list(value)
+    raw = value.split(",") if isinstance(value, str) else list(value)
     return [str(item).strip().upper() for item in raw if str(item).strip()]
 
 
@@ -312,10 +309,16 @@ def assemble_cell_theses(
     run_id: str,
     data_root: str | Path | None = None,
     limit: int = 20,
+    per_cell: bool = False,
 ) -> dict[str, Any]:
     resolved_root = _data_root(data_root)
     paths = paths_for_run(data_root=resolved_root, run_id=run_id)
-    if not paths.cluster_representatives_path.exists():
+    if not per_cell and not paths.cluster_representatives_path.exists():
         build_redundancy_clusters(run_id=run_id, data_root=resolved_root, shortlist_size=limit)
-    report = assemble_theses(run_id=run_id, data_root=resolved_root, limit=limit)
+    report = assemble_theses(
+        run_id=run_id,
+        data_root=resolved_root,
+        limit=limit,
+        per_cell=per_cell,
+    )
     return {"exit_code": 0, "status": "ok", **report}

@@ -15,7 +15,7 @@ def test_paper_gate_pass(tmp_path):
     }
     summary_path = tmp_path / "paper_quality_summary.json"
     summary_path.write_text(json.dumps(summary))
-    
+
     result = evaluate_paper_gate(summary_path)
     assert result.status == "pass"
     assert result.eligible_next_state == "paper_approved"
@@ -33,7 +33,7 @@ def test_paper_gate_fail_low_trades(tmp_path):
     }
     summary_path = tmp_path / "paper_quality_summary.json"
     summary_path.write_text(json.dumps(summary))
-    
+
     result = evaluate_paper_gate(summary_path)
     assert result.status == "fail"
     assert "insufficient_paper_trades" in result.reason_codes
@@ -50,7 +50,7 @@ def test_paper_gate_fail_negative_net(tmp_path):
     }
     summary_path = tmp_path / "paper_quality_summary.json"
     summary_path.write_text(json.dumps(summary))
-    
+
     result = evaluate_paper_gate(summary_path)
     assert result.status == "fail"
     assert "nonpositive_mean_net_bps" in result.reason_codes
@@ -68,7 +68,7 @@ def test_paper_gate_fail_drawdown(tmp_path):
     }
     summary_path = tmp_path / "paper_quality_summary.json"
     summary_path.write_text(json.dumps(summary))
-    
+
     result = evaluate_paper_gate(summary_path)
     assert result.status == "fail"
     assert "excessive_paper_drawdown" in result.reason_codes
@@ -85,7 +85,7 @@ def test_paper_gate_fail_not_ready(tmp_path):
     }
     summary_path = tmp_path / "paper_quality_summary.json"
     summary_path.write_text(json.dumps(summary))
-    
+
     result = evaluate_paper_gate(summary_path)
     assert result.status == "fail"
     assert "paper_quality_summary_not_gate_ready" in result.reason_codes

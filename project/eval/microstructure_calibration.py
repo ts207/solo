@@ -1,5 +1,7 @@
 import pandas as pd
 
+from project.core.config import get_data_root
+
 
 def __getattr__(name):
     if name == "DATA_ROOT":
@@ -19,10 +21,11 @@ def run_calibration(symbols: list[str], run_id: str):
     print(f"Running Microstructure Calibration for {symbols} (Run: {run_id})")
 
     rows = []
+    data_root = get_data_root()
 
     for symbol in symbols:
         print(f"Processing {symbol}...")
-        perp_dir = DATA_ROOT / "lake" / "cleaned" / "perp" / symbol / "bars_1m"
+        perp_dir = data_root / "lake" / "cleaned" / "perp" / symbol / "bars_1m"
         files = list_parquet_files(perp_dir)
         if not files:
             print(f"  No data for {symbol}")
@@ -70,7 +73,7 @@ def run_calibration(symbols: list[str], run_id: str):
     print(res_df.to_markdown(index=False, floatfmt=".4f"))
 
     # Save to report
-    out_dir = DATA_ROOT / "reports" / "calibration" / run_id
+    out_dir = data_root / "reports" / "calibration" / run_id
     out_dir.mkdir(parents=True, exist_ok=True)
     res_df.to_csv(out_dir / "microstructure_calibration.csv", index=False)
     print(f"\nSaved to {out_dir / 'microstructure_calibration.csv'}")

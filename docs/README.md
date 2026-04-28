@@ -64,6 +64,7 @@ PYTHONPATH=. ./.venv/bin/python project/scripts/build_domain_graph.py
 edge discover cells run --run_id <run_id> --start <start> --end <end>
 edge discover cells summarize --run_id <run_id>
 edge discover cells assemble-theses --run_id <run_id>
+edge discover cells assemble-theses --run_id <run_id> --per-cell --limit 8
 edge discover run --proposal <generated_proposal.yaml> --run_id <run_id>
 edge validate run --run_id <run_id>
 edge promote run --run_id <run_id> --symbols BTCUSDT

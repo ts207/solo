@@ -7,7 +7,7 @@ from project.strategy.dsl.schema import Blueprint
 
 def compute_ontology_invariant_hash(blueprint: Blueprint) -> str:
     """Computes a sha256 hash of a blueprint that is invariant to run_id, timestamps, and IDs.
-    
+
     This ensures that the same strategy logic discovered in different runs produces the same hash,
     allowing for consistent enforcement of the 'Holdout Burn' rule.
     """

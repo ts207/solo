@@ -81,6 +81,7 @@ edge discover cells plan --run_id <run_id> --symbols BTCUSDT --start 2024-01-01 
 edge discover cells run --run_id <run_id> --symbols BTCUSDT --start 2024-01-01 --end 2025-12-31
 edge discover cells summarize --run_id <run_id>
 edge discover cells assemble-theses --run_id <run_id>
+edge discover cells assemble-theses --run_id <run_id> --per-cell --limit 8
 ```
 
 `coverage-audit` is read-only. It compares the unified event registry, the
@@ -96,6 +97,9 @@ allowed templates, and runtime versus supportive-only context counts. Pass
 cell surface.
 `assemble-theses` never promotes directly. It writes proposal YAML files that must
 go back through canonical lifecycle commands.
+By default, `assemble-theses` uses redundancy-cluster representatives. Add
+`--per-cell` to assemble proposals from every rankable scoreboard row when a
+cluster collapse would otherwise hide second-tier cells.
 
 ## Authored Specs
 

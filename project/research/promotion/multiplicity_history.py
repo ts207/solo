@@ -224,19 +224,19 @@ def load_historical_scope_candidates(
 ) -> pd.DataFrame:
     """
     Load historical tested candidates for scope multiplicity accounting.
-    
+
     Searches prior artifacts in priority order:
     1. promotion audit artifacts
     2. promoted candidate artifacts
     3. evidence bundle summaries
-    
+
     Args:
         data_root: Data root path
         program_id: Program ID to filter by
         campaign_id: Optional campaign ID to filter by
         scope_mode: Scope mode (affects filtering logic)
         current_run_id: Current run ID to exclude
-    
+
     Returns:
         DataFrame with historical candidates, deduplicated
     """

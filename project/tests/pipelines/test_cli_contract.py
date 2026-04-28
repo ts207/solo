@@ -4,6 +4,7 @@ import importlib.util
 import json
 import sys
 from pathlib import Path
+from typing import ClassVar
 
 import pytest
 import yaml
@@ -253,12 +254,14 @@ def test_cli_discover_cells_assemble_theses_delegates(monkeypatch, tmp_path: Pat
             str(tmp_path),
             "--limit",
             "3",
+            "--per-cell",
         ],
     )
 
     assert cli.main() == 0
     assert captured["args"].cells_action == "assemble-theses"
     assert captured["args"].limit == 3
+    assert captured["args"].per_cell is True
 
 
 def test_cli_promote_run_delegates_without_compatibility_bridge(monkeypatch):
@@ -267,7 +270,7 @@ def test_cli_promote_run_delegates_without_compatibility_bridge(monkeypatch):
 
     class _Result:
         exit_code = 0
-        diagnostics = {}
+        diagnostics: ClassVar[dict] = {}
 
     def _fake_run(**kwargs):
         captured["kwargs"] = kwargs
@@ -293,6 +296,7 @@ def test_cli_promote_run_delegates_without_compatibility_bridge(monkeypatch):
         "promotion_profile": "auto",
         "require_forward_confirmation": None,
     }
+
 
 def test_cli_promote_run_rejects_compatibility_bridge_flag(monkeypatch, capsys):
     cli = _load_cli_module()

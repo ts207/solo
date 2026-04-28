@@ -46,7 +46,7 @@ def test_load_live_approval(tmp_path):
         "risk_acknowledgement": True
     }
     path.write_text(json.dumps(data))
-    
+
     artifact = load_live_approval(path)
     assert artifact.thesis_id == "test_thesis"
     assert artifact.cap_profile_id == "tiny_live_v1"

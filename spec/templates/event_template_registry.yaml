@@ -98,6 +98,8 @@ families:
     - only_if_regime
   POSITIONING_EXTREMES:
     templates:
+    - carry_continuation_confirmed
+    - squeeze_followthrough_confirmed
     - reversal_or_squeeze
     - mean_reversion
     - continuation
@@ -519,11 +521,8 @@ events:
   OI_SPIKE_POSITIVE:
     research_family: POSITIONING_EXTREMES
     templates:
-    - reversal_or_squeeze
-    - mean_reversion
-    - continuation
-    - exhaustion_reversal
-    - convexity_capture
+    - carry_continuation_confirmed
+    - squeeze_followthrough_confirmed
     - only_if_funding
     - only_if_oi
     - tail_risk_avoid
@@ -1272,6 +1271,31 @@ operators:
     default_conditioning: {}
     risk_metrics_required: []
     template_kind: expression_template
+  carry_continuation_confirmed:
+    enabled: true
+    supports_contexts: true
+    supports_directions:
+    - long
+    - short
+    supports_trigger_types:
+    - EVENT
+    - SEQUENCE
+    operator_id: op.carry_continuation_confirmed
+    operator_version: v1
+    requires_direction: true
+    side_policy: directional
+    label_target: signed_return_h
+    test_spec: mean_gt_0
+    compatible_families:
+    - POSITIONING_EXTREMES
+    default_conditioning:
+      oi_phase: expansion
+    risk_metrics_required:
+    - tail_risk_avoid
+    template_kind: expression_template
+    feature: oi_delta_1h
+    operator: '>'
+    threshold: 0.0
   convergence:
     enabled: true
     supports_contexts: true
@@ -1436,6 +1460,32 @@ operators:
     default_conditioning: {}
     risk_metrics_required: []
     template_kind: expression_template
+  forced_flow_rebound:
+    enabled: true
+    supports_contexts: true
+    supports_directions:
+    - long
+    - short
+    supports_trigger_types:
+    - EVENT
+    - SEQUENCE
+    operator_id: op.forced_flow_rebound
+    operator_version: v1
+    requires_direction: true
+    side_policy: contrarian
+    label_target: contrarian_signed_return_h
+    test_spec: mean_gt_0
+    compatible_families:
+    - POSITIONING_EXTREMES
+    - FORCED_FLOW_AND_EXHAUSTION
+    default_conditioning:
+      forced_flow_phase: cooldown
+    risk_metrics_required:
+    - tail_risk_avoid
+    template_kind: expression_template
+    feature: liquidation_count
+    operator: '>'
+    threshold: 0.0
   lead_lag_follow:
     enabled: true
     supports_contexts: true
@@ -1849,6 +1899,31 @@ operators:
     feature: liquidation_count
     operator: '>'
     threshold: 0.0
+  squeeze_followthrough_confirmed:
+    enabled: true
+    supports_contexts: true
+    supports_directions:
+    - long
+    - short
+    supports_trigger_types:
+    - EVENT
+    - SEQUENCE
+    operator_id: op.squeeze_followthrough_confirmed
+    operator_version: v1
+    requires_direction: true
+    side_policy: directional
+    label_target: path_acceleration_h
+    test_spec: hit_rate_gt_threshold
+    compatible_families:
+    - POSITIONING_EXTREMES
+    default_conditioning:
+      oi_phase: expansion
+    risk_metrics_required:
+    - tail_risk_avoid
+    template_kind: expression_template
+    feature: oi_delta_1h
+    operator: '>'
+    threshold: 0.0
   tail_risk_avoid:
     enabled: true
     supports_contexts: true
@@ -1936,6 +2011,10 @@ expression_templates:
     feature: basis_zscore
     operator: '>'
     threshold: 1.0
+  carry_continuation_confirmed:
+    feature: oi_delta_1h
+    operator: '>'
+    threshold: 0.0
   convexity_capture:
     feature: oi_delta_1h
     operator: <
@@ -1952,6 +2031,10 @@ expression_templates:
     feature: rv_pct_17280
     operator: '>'
     threshold: 0.8
+  forced_flow_rebound:
+    feature: liquidation_count
+    operator: '>'
+    threshold: 0.0
   momentum_fade:
     feature: logret_1
     operator: <
@@ -1970,6 +2053,10 @@ expression_templates:
     threshold: 1.0
   stop_run_repair:
     feature: liquidation_count
+    operator: '>'
+    threshold: 0.0
+  squeeze_followthrough_confirmed:
+    feature: oi_delta_1h
     operator: '>'
     threshold: 0.0
   volatility_expansion_follow:

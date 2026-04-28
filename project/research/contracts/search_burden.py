@@ -73,7 +73,7 @@ def default_search_burden_dict(
 def normalize_search_burden_frame(df: pd.DataFrame) -> pd.DataFrame:
     """
     Normalize a DataFrame to include all canonical search-burden fields.
-    
+
     Missing numeric fields are filled with 0.
     Missing string/bool fields are filled with defaults.
     Existing values are preserved.
@@ -115,10 +115,10 @@ def merge_search_burden_columns(
 ) -> pd.DataFrame:
     """
     Merge search-burden columns into a DataFrame.
-    
+
     If defaults are provided, missing fields are filled from defaults.
     Otherwise, canonical defaults are used.
-    
+
     This is safe to call multiple times (idempotent).
     """
     if defaults is None:
@@ -165,7 +165,7 @@ def build_search_burden_summary(
 ) -> dict[str, Any]:
     """
     Build a complete search-burden summary dict for artifact emission.
-    
+
     Args:
         proposals_attempted: Number of search proposals attempted
         candidates_generated: Number of candidates generated
@@ -183,7 +183,7 @@ def build_search_burden_summary(
         crowded_families: Families with many candidates
         crowded_lineages: Lineages with many candidates
         repeated_failure_lineages: Lineages that repeatedly failed
-    
+
     Returns:
         Dict with canonical search-burden fields plus optional diagnostics
     """
@@ -219,11 +219,11 @@ def write_search_burden_summary(
 ) -> dict[str, str]:
     """
     Write search-burden summary as JSON and Markdown artifacts.
-    
+
     Args:
         summary: Search-burden summary dict
         out_dir: Output directory path
-    
+
     Returns:
         Dict with paths to written artifacts
     """
@@ -292,7 +292,7 @@ def write_search_burden_summary(
 def load_search_burden_summary(out_dir) -> dict[str, Any] | None:
     """
     Load search-burden summary from output directory.
-    
+
     Returns None if not found.
     """
     import json

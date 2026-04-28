@@ -2,7 +2,7 @@
 Audit historical run artifacts for statistical integrity contamination.
 
 This script is READ-ONLY. It scans Parquet files and reports issues without modifying
-any artifacts. Labels runs that may have been affected by legacy p-value behavior, 
+any artifacts. Labels runs that may have been affected by legacy p-value behavior,
 missing multiplicity fields, or non-split-aware gate calculations.
 
 SCOPE: This is a FIRST-PASS AUDIT TOOL, NOT A FULL VERIFIER. It uses heuristics to:

@@ -104,9 +104,9 @@ class PaperExecutionLedger:
                 self._record_exit(pos, price, timestamp, best_bid, best_ask, funding_rate)
 
     def _record_exit(
-        self, 
-        pos: PaperPosition, 
-        exit_price: float, 
+        self,
+        pos: PaperPosition,
+        exit_price: float,
         exit_ts: str,
         best_bid: float | None = None,
         best_ask: float | None = None,
@@ -144,7 +144,7 @@ class PaperExecutionLedger:
             fee_bps_per_side=self.taker_fee_bps,
             fallback_slippage_bps=self.slippage_bps,
         )
-        
+
         net_bps = gross_bps - costs.total_bps
 
         record = PaperTradeRecord(
@@ -182,34 +182,34 @@ class PaperExecutionLedger:
         trades_path = self.root_dir / thesis_id / "trades.jsonl"
         if not trades_path.exists():
             return
-            
+
         trades = []
-        with open(trades_path, "r", encoding="utf-8") as f:
+        with open(trades_path, encoding="utf-8") as f:
             for line in f:
                 if line.strip():
                     trades.append(json.loads(line))
-        
+
         if not trades:
             return
-            
+
         net_bps = [t["net_bps"] for t in trades]
         mae_bps = [t["mae_bps"] for t in trades]
         mfe_bps = [t["mfe_bps"] for t in trades]
         degraded = [t.get("degraded_cost", False) for t in trades]
-        
+
         trade_count = len(trades)
         mean_net_bps = sum(net_bps) / trade_count
         cumulative_net_bps = sum(net_bps)
         hit_rate = sum(1 for b in net_bps if b > 0) / trade_count
         degraded_cost_fraction = sum(1 for d in degraded if d) / trade_count
-        
+
         # Calculate max drawdown in BPS from cumulative net BPS
         cum_bps = []
         curr = 0.0
         for b in net_bps:
             curr += b
             cum_bps.append(curr)
-        
+
         running_max = 0.0
         max_drawdown = 0.0
         for val in cum_bps:
@@ -245,11 +245,11 @@ class PaperExecutionLedger:
             "paper_gate_ready": gate_ready,
             "last_updated_at": datetime.now(UTC).isoformat()
         }
-        
+
         # Legacy summary.json in thesis dir
         legacy_path = self.root_dir / thesis_id / "summary.json"
         atomic_write_json(legacy_path, summary)
-        
+
         # New quality summary in canonical location
         quality_path = self.root_dir / thesis_id / "paper_quality_summary.json"
         atomic_write_json(quality_path, summary)

@@ -88,14 +88,24 @@ def test_calculate_ms_funding_state():
     states = calculate_ms_funding_state(fnd, window=20)
     assert states.iloc[-1] == 0.0
 
-    # Persistent positive funding once long-window quantiles are available.
+    # Flat default funding should not saturate the persistent state once
+    # long-window quantiles are available.
     states_ready = calculate_ms_funding_state(fnd, window=20, window_long=60)
-    assert states_ready.iloc[-1] == 1.0  # PERSISTENT
+    assert states_ready.iloc[-1] == 0.0
 
-    # Extreme positive funding
-    fnd_ext = pd.Series([5.0] * 100)
-    states_ext = calculate_ms_funding_state(fnd_ext, window=5, window_long=60)
-    assert states_ext.iloc[-1] == 2.0  # EXTREME
+    # A fresh move from baseline funding into elevated funding is detected.
+    fnd_ext = pd.Series([0.5] * 100 + [5.0] * 30)
+    states_ext = calculate_ms_funding_state(fnd_ext, window=20, window_long=60)
+    assert 1.0 in states_ext.tail(30).values  # PERSISTENT
+    assert 2.0 in states_ext.tail(30).values  # EXTREME
+
+
+def test_calculate_ms_funding_state_does_not_saturate_on_default_funding():
+    fnd = pd.Series([1.0] * 500)
+    states = calculate_ms_funding_state(fnd, window=20, window_long=60)
+    ready = states.iloc[60:]
+
+    assert (ready == 0.0).mean() >= 0.95
 
 
 def test_calculate_ms_funding_probabilities_default_to_neutral_without_long_history():

@@ -107,6 +107,8 @@ families:
     - only_if_highvol
   POSITIONING_EXTREMES:
     allowed_templates:
+    - carry_continuation_confirmed
+    - squeeze_followthrough_confirmed
     - reversal_or_squeeze
     - mean_reversion
     - continuation

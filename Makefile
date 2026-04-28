@@ -10,6 +10,7 @@ FIRST_EDGE_SPEC_DIR ?= spec/discovery/tier2_liquidation_exhaustion_focused_v1
 SPEC_DIR ?= $(DEFAULT_CELL_SPEC_DIR)
 SEARCH_BUDGET ?=
 ASSEMBLE_LIMIT ?= 20
+ASSEMBLE_PER_CELL ?= 0
 PROMOTION_PROFILE ?= research
 TOP_K ?= 10
 SYMBOLS ?= BTCUSDT,ETHUSDT
@@ -35,8 +36,8 @@ MONITOR_REPORT ?=
 help:
 	@printf '%s\n' \
 	  'Canonical stage targets:' \
-	  '  make first-edge RUN_ID=<run_id> DATA_ROOT=<lake> START=<start> END=<end>' \
-	  '  make discover RUN_ID=<run_id> START=<start> END=<end> [DATA_ROOT=...] [SPEC_DIR=...] [REGISTRY_ROOT=...]' \
+	  '  make first-edge RUN_ID=<run_id> DATA_ROOT=<lake> START=<start> END=<end> [ASSEMBLE_PER_CELL=1]' \
+	  '  make discover RUN_ID=<run_id> START=<start> END=<end> [DATA_ROOT=...] [SPEC_DIR=...] [REGISTRY_ROOT=...] [ASSEMBLE_PER_CELL=1]' \
 	  '  make discover-proposal PROPOSAL=<proposal.yaml> RUN_ID=<run_id> [DATA_ROOT=...] [REGISTRY_ROOT=...]' \
 	  '  make list-artifacts RUN_ID=<run_id> [DATA_ROOT=...]' \
 	  '  make summarize RUN_ID=<run_id> [DATA_ROOT=...]' \
@@ -112,7 +113,7 @@ first-edge:
 	@test -n "$(END)" || (echo 'END is required' >&2; exit 2)
 	@$(CLI) discover cells run --run_id "$(RUN_ID)" --symbols "$(SYMBOLS)" --timeframe "$(TIMEFRAME)" --start "$(START)" --end "$(END)" --data_root "$(DATA_ROOT)" --spec_dir "$(FIRST_EDGE_SPEC_DIR)" --registry_root "$(REGISTRY_ROOT)" $(if $(SEARCH_BUDGET),--search_budget "$(SEARCH_BUDGET)",)
 	@$(CLI) discover cells summarize --run_id "$(RUN_ID)" --data_root "$(DATA_ROOT)"
-	@$(CLI) discover cells assemble-theses --run_id "$(RUN_ID)" --data_root "$(DATA_ROOT)" --limit "$(ASSEMBLE_LIMIT)"
+	@$(CLI) discover cells assemble-theses --run_id "$(RUN_ID)" --data_root "$(DATA_ROOT)" --limit "$(ASSEMBLE_LIMIT)" $(if $(filter 1 true yes,$(ASSEMBLE_PER_CELL)),--per-cell,)
 
 discover:
 	@test -n "$(RUN_ID)" || (echo 'RUN_ID is required' >&2; exit 2)
@@ -120,7 +121,7 @@ discover:
 	@test -n "$(END)" || (echo 'END is required' >&2; exit 2)
 	@$(CLI) discover cells run --run_id "$(RUN_ID)" --symbols "$(SYMBOLS)" --timeframe "$(TIMEFRAME)" --start "$(START)" --end "$(END)" --spec_dir "$(SPEC_DIR)" --registry_root "$(REGISTRY_ROOT)" $(if $(DATA_ROOT),--data_root "$(DATA_ROOT)",) $(if $(SEARCH_BUDGET),--search_budget "$(SEARCH_BUDGET)",)
 	@$(CLI) discover cells summarize --run_id "$(RUN_ID)" $(if $(DATA_ROOT),--data_root "$(DATA_ROOT)",)
-	@$(CLI) discover cells assemble-theses --run_id "$(RUN_ID)" $(if $(DATA_ROOT),--data_root "$(DATA_ROOT)",) --limit "$(ASSEMBLE_LIMIT)"
+	@$(CLI) discover cells assemble-theses --run_id "$(RUN_ID)" $(if $(DATA_ROOT),--data_root "$(DATA_ROOT)",) --limit "$(ASSEMBLE_LIMIT)" $(if $(filter 1 true yes,$(ASSEMBLE_PER_CELL)),--per-cell,)
 
 discover-proposal:
 	@test -n "$(PROPOSAL)" || (echo 'PROPOSAL is required' >&2; exit 2)

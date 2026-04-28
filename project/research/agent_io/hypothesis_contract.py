@@ -301,7 +301,7 @@ def validate_structured_hypothesis_for_execution(
     hypothesis: StructuredHypothesisSpec,
 ) -> list[NormalizationWarning]:
     """Perform strict validation for execution eligibility.
-    
+
     Returns a list of warnings or raises ValueError for fatal execution mismatches.
     """
     warnings: list[NormalizationWarning] = []

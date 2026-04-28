@@ -70,14 +70,20 @@ def test_no_unshifted_rolling_quantiles():
                 shift_visitor.visit(tree)
 
                 class LeakedQuantileVisitor(ast.NodeVisitor):
-                    def visit_Call(self, node):
+                    def visit_Call(
+                        self,
+                        node,
+                        *,
+                        shifted_quantile_nodes=shift_visitor.shifted_quantile_nodes,
+                        filepath_name=filepath.name,
+                    ):
                         if isinstance(node.func, ast.Attribute) and node.func.attr == "quantile":
-                            if node not in shift_visitor.shifted_quantile_nodes:
+                            if node not in shifted_quantile_nodes:
                                 # Also check if there's a shift *before* the rolling
                                 expr_str = ast.unparse(node)
                                 if ".shift(" not in expr_str:
                                     errors.append(
-                                        f"{filepath.name}:{node.lineno} - Unshifted quantile call: {expr_str}"
+                                        f"{filepath_name}:{node.lineno} - Unshifted quantile call: {expr_str}"
                                     )
                         self.generic_visit(node)
 

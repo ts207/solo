@@ -1,7 +1,7 @@
 """
 Verification tests for event detection logic.
 
-NOTE: These tests require full market context (L2 data, context states) 
+NOTE: These tests require full market context (L2 data, context states)
 not available in unit test environment. Skipping at module level.
 """
 

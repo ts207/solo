@@ -214,6 +214,8 @@ def calculate_ms_funding_probabilities(
     window: int = 96,
     window_long: int = 8640,
     abs_floor_bps: float = 1.0,
+    persistence_multiplier: float = 1.50,
+    extreme_multiplier: float = 1.50,
 ) -> pd.DataFrame:
     """
     Funding Dimension:
@@ -240,8 +242,8 @@ def calculate_ms_funding_probabilities(
         .apply(_sign_consist, raw=True)
         .shift(1)
     )
-    baseline_65 = p_65.clip(lower=abs_floor_bps)
-    baseline_ext = p_ext.clip(lower=abs_floor_bps)
+    baseline_65 = p_65.clip(lower=abs_floor_bps) * max(float(persistence_multiplier), 1.0)
+    baseline_ext = p_ext.clip(lower=abs_floor_bps) * max(float(extreme_multiplier), 1.0)
     valid = funding_rate_bps.notna() & p_65.notna() & p_ext.notna() & consistency.notna()
 
     neutral_score = -((abs_mean / baseline_65).fillna(0.0))
@@ -249,10 +251,12 @@ def calculate_ms_funding_probabilities(
         (abs_mean / baseline_65) - 1.0
     ).fillna(-5.0)
     extreme_score = (((abs_mean / baseline_ext) - 1.0) / 0.20).fillna(-5.0)
-    persistent_flag = (consistency >= 0.80) & (abs_mean >= baseline_65)
-    extreme_flag = abs_mean >= baseline_ext
-    persistent_score = persistent_score + persistent_flag.astype(float) * 2.0
-    extreme_score = extreme_score + extreme_flag.astype(float) * 4.0
+    persistent_flag = (consistency >= 0.80) & (abs_mean > baseline_65)
+    extreme_flag = abs_mean > baseline_ext
+    persistent_score = (persistent_score + persistent_flag.astype(float) * 2.0).where(
+        persistent_flag, -5.0
+    )
+    extreme_score = (extreme_score + extreme_flag.astype(float) * 4.0).where(extreme_flag, -5.0)
 
     probs = _softmax_from_scores(
         {
@@ -284,12 +288,16 @@ def calculate_ms_funding_state(
     window: int = 96,
     window_long: int = 8640,
     abs_floor_bps: float = 1.0,
+    persistence_multiplier: float = 1.50,
+    extreme_multiplier: float = 1.50,
 ) -> pd.Series:
     return calculate_ms_funding_probabilities(
         funding_rate_bps,
         window=window,
         window_long=window_long,
         abs_floor_bps=abs_floor_bps,
+        persistence_multiplier=persistence_multiplier,
+        extreme_multiplier=extreme_multiplier,
     )["ms_funding_state"]
 
 
@@ -416,12 +424,12 @@ def calculate_ms_cross_asset_probabilities(
 ) -> pd.DataFrame:
     """
     Cross-Asset Dimension:
-    
+
     Correlation (BTC/ETH proxy):
     0: LOW (fragmented discovery)
     1: MID (normal coupling)
     2: HIGH (index-driven regime)
-    
+
     Relative Vol (Asset vs Benchmark):
     0: LOW (idiosyncratic compression)
     1: NORMAL (beta-matched)

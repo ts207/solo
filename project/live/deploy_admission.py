@@ -10,7 +10,7 @@ from project.live.cap_profiles import validate_thesis_caps_against_profile
 def _assert_forward_confirmation_passes(fc_path: Path) -> None:
     if not fc_path.exists():
          raise PermissionError(f"Trading mode blocked: forward confirmation missing at {fc_path}")
-    
+
     fc = json.loads(fc_path.read_text(encoding="utf-8"))
 
     if fc.get("method") != "oos_frozen_thesis_replay_v1":
@@ -42,7 +42,7 @@ def assert_deploy_admission(
 ) -> None:
     """
     Gates deployment based on validated thesis artifacts and monitor readiness.
-    
+
     Rules:
     - monitor_only:
       allow monitor_only, paper_only, promoted, paper_enabled, paper_approved, live_eligible, live_enabled
@@ -59,7 +59,7 @@ def assert_deploy_admission(
       require DeploymentGate pass (already checked by ThesisStore)
     """
     runtime_mode = runtime_mode.lower()
-    
+
     # 1. Load and validate via ThesisStore (applies DeploymentGate)
     try:
         store = ThesisStore.from_path(thesis_path, strict_live_gate=True)
@@ -92,7 +92,7 @@ def assert_deploy_admission(
     for thesis in theses:
         state = str(thesis.deployment_state or "").strip().lower()
         run_id = thesis.lineage.run_id if hasattr(thesis, "lineage") and thesis.lineage else None
-        
+
         if runtime_mode == "trading":
             if state not in LIVE_TRADEABLE_STATES:
                 raise PermissionError(
@@ -107,7 +107,7 @@ def assert_deploy_admission(
             # Require Forward Confirmation Pass
             if not run_id or not data_root:
                  raise PermissionError(f"Trading mode blocked: cannot resolve run_id or data_root for thesis {thesis.thesis_id}")
-            
+
             fc_path = data_root / "reports" / "validation" / str(run_id) / "forward_confirmation.json"
             _assert_forward_confirmation_passes(fc_path)
 
@@ -127,7 +127,7 @@ def assert_deploy_admission(
                 approval.validate_for_live()
                 if approval.thesis_id != thesis.thesis_id:
                     raise PermissionError(f"Trading mode blocked: approval artifact thesis_id mismatch: {approval.thesis_id} != {thesis.thesis_id}")
-                
+
                 # Cap profile enforcement: ensure actual thesis caps obey the approved profile
                 cap_reasons = validate_thesis_caps_against_profile(
                     thesis.cap_profile,

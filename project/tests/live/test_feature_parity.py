@@ -4,9 +4,9 @@ from project.live.runner import _classify_canonical_regime
 
 def test_regime_classifier_runtime_approximation():
     """
-    Verify that the shared regime classifier correctly falls back to 
+    Verify that the shared regime classifier correctly falls back to
     bps-based approximation when research features are missing.
-    
+
     This tests helper behavior, not full research/live parity.
     """
     # 1. High Vol (> 80 bps move)
@@ -32,7 +32,7 @@ def test_regime_classifier_research_exact():
     """
     Verify that the shared regime classifier uses exact research semantics
     when research features are provided.
-    
+
     This tests helper behavior, not full research/live parity.
     """
     # High Vol (rv_pct >= 80)

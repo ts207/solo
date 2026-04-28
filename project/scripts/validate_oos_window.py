@@ -18,6 +18,8 @@ import argparse
 import json
 import sys
 
+from project.core.config import get_data_root
+
 
 def __getattr__(name):
     if name == "DATA_ROOT":
@@ -28,7 +30,7 @@ def __getattr__(name):
 
 
 def _load_manifest(run_id: str) -> dict:
-    path = DATA_ROOT / "runs" / run_id / "run_manifest.json"
+    path = get_data_root() / "runs" / run_id / "run_manifest.json"
     if not path.exists():
         print(
             f"[oos_guard] Warning: run_manifest.json not found for run_id={run_id}. Skipping OOS check.",

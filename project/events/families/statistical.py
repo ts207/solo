@@ -17,15 +17,26 @@ from project.research.analyzers import run_analyzer_suite
 from project.spec_registry import load_event_spec
 
 
-def _band_params() -> tuple[int, int, float]:
+def _band_params(params: dict[str, Any] | None = None) -> tuple[int, int, float]:
+    params = params or {}
     try:
         payload = get_domain_registry().event_row("BAND_BREAK")
     except Exception:
         payload = {}
-    params = payload.get("parameters", {}) if isinstance(payload, dict) else {}
-    lookback = int(params.get("lookback_window", 96))
-    min_periods = int(params.get("min_periods", max(24, lookback // 4)))
-    mult = float(params.get("band_std_mult", params.get("band_z_threshold", 2.0)))
+    spec_params = payload.get("parameters", {}) if isinstance(payload, dict) else {}
+    lookback = int(params.get("lookback_window", spec_params.get("lookback_window", 96)))
+    min_periods = int(
+        params.get("min_periods", spec_params.get("min_periods", max(24, lookback // 4)))
+    )
+    mult = float(
+        params.get(
+            "band_std_mult",
+            params.get(
+                "band_z_threshold",
+                spec_params.get("band_std_mult", spec_params.get("band_z_threshold", 2.0)),
+            ),
+        )
+    )
     return lookback, min_periods, mult
 
 
@@ -133,10 +144,16 @@ class BandBreakDetector(StatisticalBase):
 
     def prepare_features(self, df: pd.DataFrame, **params: Any) -> dict[str, pd.Series]:
         close = df["close"]
-        lookback, min_periods, mult = _band_params()
+        lookback, min_periods, mult = _band_params(params)
         ma = close.rolling(lookback, min_periods=min_periods).mean()
         sd = close.rolling(lookback, min_periods=min_periods).std().replace(0.0, np.nan)
-        return {"close": close, "ma": ma, "sd": sd, "mult": pd.Series(mult, index=df.index), "close_ret": (close - ma)}
+        return {
+            "close": close,
+            "ma": ma,
+            "sd": sd,
+            "mult": pd.Series(mult, index=df.index),
+            "close_ret": close - ma,
+        }
 
     def compute_raw_mask(
         self, df: pd.DataFrame, *, features: dict[str, pd.Series], **params: Any

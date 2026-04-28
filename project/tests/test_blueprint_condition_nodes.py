@@ -12,6 +12,8 @@ Verifies:
 
 from __future__ import annotations
 
+from typing import ClassVar
+
 import pytest
 
 # ---------------------------------------------------------------------------
@@ -96,7 +98,7 @@ class TestConditionNodeProduction:
 class TestConditionStringInvariants:
     """Verify compile-time guards on condition string format."""
 
-    _RULE_TEMPLATES = {"mean_reversion", "continuation", "carry", "breakout"}
+    _RULE_TEMPLATES: ClassVar[set[str]] = {"mean_reversion", "continuation", "carry", "breakout"}
 
     def test_no_double_underscore_in_executable_conditions(self):
         """

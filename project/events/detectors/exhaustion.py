@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from collections.abc import Mapping
-from typing import Any
+from typing import Any, ClassVar
 
 import numpy as np
 import pandas as pd
@@ -33,7 +33,7 @@ class FlowExhaustionDetector(CompositeDetector):
     )
     min_spacing = 24
 
-    defaults = {
+    defaults: ClassVar[dict[str, Any]] = {
         "threshold_window": 2880,
         "oi_drop_quantile": 0.80,
         "liquidation_quantile": 0.85,
@@ -101,7 +101,7 @@ class PostDeleveragingReboundDetector(CompositeDetector):
     required_columns = ("timestamp", "close", "rv_96", "oi_delta_1h", "liquidation_notional")
     min_spacing = 12
 
-    defaults = {
+    defaults: ClassVar[dict[str, Any]] = {
         "threshold_window": 2880,
         "oi_drop_quantile": 0.80,
         "liquidation_quantile": 0.85,
@@ -171,7 +171,7 @@ class TrendExhaustionDetector(CompositeDetector):
     required_columns = ("timestamp", "close", "rv_96")
     min_spacing = 96
 
-    defaults = {
+    defaults: ClassVar[dict[str, Any]] = {
         "context_min_confidence": 0.55,
         "context_max_entropy": 0.90,
         "trend_window": 96,
@@ -596,7 +596,7 @@ class ForcedFlowExhaustionDetector(FlowExhaustionDetector):
 
     event_type = "FORCED_FLOW_EXHAUSTION"
     # Stricter defaults — forced flows carry a stronger prior on liquidation
-    defaults = {
+    defaults: ClassVar[dict[str, Any]] = {
         **FlowExhaustionDetector.defaults,
         "oi_drop_quantile": 0.88,
         "liquidation_quantile": 0.92,
