@@ -122,10 +122,10 @@ export EDGE_LIVE_SNAPSHOT_PATH=artifacts/live_state_trading_<run_id>.json
 export EDGE_BYBIT_API_KEY=<real_key>
 export EDGE_BYBIT_API_SECRET=<real_secret>
 
-edge deploy paper-run --config project/configs/live_trading_<run_id>.yaml
+edge deploy live-run --config project/configs/live_trading_<run_id>.yaml
 ```
 
-*Note: `paper-run` is used for the tiny-pilot as it uses the same engine runner but with production credentials and the tiny-cap enforcer.*
+**CRITICAL**: Only run this after `bind-config` has succeeded with `runtime_mode=trading` and the config has been manually inspected.
 
 ---
 
