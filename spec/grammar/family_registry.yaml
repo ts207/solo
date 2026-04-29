@@ -189,15 +189,3 @@ state_families:
   TEMPORAL_STRUCTURE:
     description: "Time-of-day or session-based states."
     searchable: true
-  INFORMATION_DESYNC:
-    description: "Arbitrage and desync states."
-    searchable: true
-  REGIME_CONTEXT:
-    description: "Broad regime and context states."
-    searchable: true
-  FORCED_FLOW_AND_EXHAUSTION:
-    description: "States of flow exhaustion and climax."
-    searchable: true
-  MICROSTRUCTURE_CONTEXT:
-    description: "Intrabar microstructure states."
-    searchable: true
