@@ -202,6 +202,18 @@ def test_writers_emit_json_parquet_and_markdown(tmp_path: Path):
                 "decision_reason": "bridge_candidates_present",
                 "next_safe_command": "make validate RUN_ID=run",
                 "forbidden_rescue_actions": ["loosen_gates"],
+                "manual_decision": False,
+                "nearby_attempt_count": 3,
+                "governed_reproduction_status": "pass",
+                "governed_reproduction_decision": "review",
+                "governed_reproduction_reason": "year_split_pending",
+                "year_split_status": "pass",
+                "year_split_classification": "general_candidate",
+                "year_split_reason": "not concentrated",
+                "specificity_status": "review",
+                "specificity_classification": "insufficient_trace_data",
+                "specificity_reason": "specificity cannot be computed",
+                "specificity_decision": "review",
             }
         ],
         columns=results_index.RESULT_COLUMNS,
@@ -217,5 +229,147 @@ def test_writers_emit_json_parquet_and_markdown(tmp_path: Path):
     payload = json.loads(json_path.read_text(encoding="utf-8"))
     assert payload["schema_version"] == "results_index_v1"
     assert payload["rows"][0]["forbidden_rescue_actions"] == ["loosen_gates"]
+    assert payload["rows"][0]["nearby_attempt_count"] == 3
+    assert payload["rows"][0]["governed_reproduction_status"] == "pass"
+    assert payload["rows"][0]["year_split_status"] == "pass"
+    assert payload["rows"][0]["specificity_status"] == "review"
     assert pd.read_parquet(parquet_path).iloc[0]["event_id"] == "TEST_EVENT"
-    assert "TEST_EVENT" in md_path.read_text(encoding="utf-8")
+    md = md_path.read_text(encoding="utf-8")
+    assert "TEST_EVENT" in md
+    assert "year_split_event_support_pass" in md
+
+
+def test_attach_search_ledger_counts_reads_exact_surface_match(tmp_path: Path):
+    ledger_path = tmp_path / "search_burden.parquet"
+    pd.DataFrame(
+        [
+            {
+                "run_id": "run",
+                "event_id": "TEST_EVENT",
+                "template_id": "mean_reversion",
+                "context": "",
+                "direction": "long",
+                "horizon_bars": 24,
+                "symbol": "BTCUSDT",
+                "nearby_attempt_count": 9,
+            }
+        ]
+    ).to_parquet(ledger_path, index=False)
+    rows = [
+        {
+            "run_id": "run",
+            "event_id": "TEST_EVENT",
+            "template_id": "mean_reversion",
+            "context": "",
+            "direction": "long",
+            "horizon_bars": 24,
+            "symbol": "BTCUSDT",
+        }
+    ]
+
+    out = results_index.attach_search_ledger_counts(rows, ledger_path)
+
+    assert out[0]["nearby_attempt_count"] == 9
+
+
+def test_attach_governed_reproduction_reports_preserves_manual_decision(tmp_path: Path):
+    reports_root = tmp_path / "reproduction"
+    run_dir = reports_root / "run"
+    run_dir.mkdir(parents=True)
+    (run_dir / "governed_reproduction.json").write_text(
+        json.dumps(
+            {
+                "reproduction_run_id": "run",
+                "status": "pass",
+                "decision": "advance",
+                "reason": "current governed reproduction passed",
+            }
+        ),
+        encoding="utf-8",
+    )
+    rows = [
+        {
+            "run_id": "run",
+            "manual_decision": True,
+            "decision": "review",
+            "decision_reason": "year_split_pending",
+        }
+    ]
+
+    out = results_index.attach_governed_reproduction_reports(rows, reports_root)
+
+    assert out[0]["governed_reproduction_status"] == "pass"
+    assert out[0]["governed_reproduction_decision"] == "advance"
+    assert out[0]["decision"] == "review"
+    assert out[0]["decision_reason"] == "year_split_pending"
+
+
+def test_attach_year_split_reports_preserves_manual_decision(tmp_path: Path):
+    reports_root = tmp_path / "regime"
+    run_dir = reports_root / "run"
+    run_dir.mkdir(parents=True)
+    (run_dir / "cand_year_split.json").write_text(
+        json.dumps(
+            {
+                "run_id": "run",
+                "status": "pass",
+                "classification": "general_candidate",
+                "decision": "review",
+                "reason": "year support is not concentrated above 50%",
+            }
+        ),
+        encoding="utf-8",
+    )
+    rows = [
+        {
+            "run_id": "run",
+            "manual_decision": True,
+            "decision": "review",
+            "decision_reason": "year_split_pending",
+        }
+    ]
+
+    out = results_index.attach_year_split_reports(rows, reports_root)
+
+    assert out[0]["year_split_status"] == "pass"
+    assert out[0]["year_split_classification"] == "general_candidate"
+    assert out[0]["decision"] == "review"
+    assert out[0]["decision_reason"] == "year_split_pending"
+
+
+def test_attach_specificity_reports_records_status_without_overriding_manual(
+    tmp_path: Path,
+) -> None:
+    reports_root = tmp_path / "specificity"
+    run_dir = reports_root / "run"
+    run_dir.mkdir(parents=True)
+    (run_dir / "cand_specificity.json").write_text(
+        json.dumps(
+            {
+                "run_id": "run",
+                "candidate_id": "cand",
+                "status": "review",
+                "classification": "insufficient_trace_data",
+                "decision": "review",
+                "reason": "specificity cannot be computed from aggregate candidate metrics only",
+                "next_safe_command": "Implement candidate trace extraction before promotion or validation.",
+            }
+        ),
+        encoding="utf-8",
+    )
+    rows = [
+        {
+            "run_id": "run",
+            "candidate_id": "cand",
+            "manual_decision": True,
+            "decision": "review",
+            "decision_reason": "year_split_passed_specificity_pending",
+        }
+    ]
+
+    out = results_index.attach_specificity_reports(rows, reports_root)
+
+    assert out[0]["specificity_status"] == "review"
+    assert out[0]["specificity_classification"] == "insufficient_trace_data"
+    assert out[0]["decision"] == "review"
+    assert out[0]["decision_reason"] == "year_split_passed_specificity_pending"

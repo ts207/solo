@@ -21,8 +21,8 @@ decisions:
       horizon_bars: 24
     decision: review
     evidence_class: review_only
-    decision_reason: year_split_pending
-    next_safe_command: Run governed reproduction, year split, specificity, cost stress, and forward confirmation before promotion thinking.
+    decision_reason: specificity_insufficient_trace_data
+    next_safe_command: Inspect pipeline trace generation for specificity control traces before validation.
     forbidden_rescue_actions:
       - change_horizon
       - drop_bad_years

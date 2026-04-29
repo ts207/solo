@@ -21,6 +21,7 @@ RESULTS_DIR = ROOT / "data" / "reports" / "results"
 RESULTS_JSON_PATH = RESULTS_DIR / "results_index.json"
 RESULTS_PARQUET_PATH = RESULTS_DIR / "results_index.parquet"
 RESULTS_MD_PATH = ROOT / "docs" / "research" / "results.md"
+SEARCH_LEDGER_PARQUET_PATH = ROOT / "data" / "reports" / "search_ledger" / "search_burden.parquet"
 
 RESULT_COLUMNS = [
     "run_id",
@@ -44,6 +45,17 @@ RESULT_COLUMNS = [
     "next_safe_command",
     "forbidden_rescue_actions",
     "manual_decision",
+    "nearby_attempt_count",
+    "governed_reproduction_status",
+    "governed_reproduction_decision",
+    "governed_reproduction_reason",
+    "year_split_status",
+    "year_split_classification",
+    "year_split_reason",
+    "specificity_status",
+    "specificity_classification",
+    "specificity_reason",
+    "specificity_decision",
 ]
 
 TEMPLATE_HINTS = {
@@ -279,6 +291,17 @@ def normalize_result_row(row: dict[str, Any]) -> dict[str, Any]:
         "robustness_score": _round(_to_float(row.get("robustness_score")), 4),
         "forbidden_rescue_actions": [],
         "manual_decision": False,
+        "nearby_attempt_count": 0,
+        "governed_reproduction_status": "",
+        "governed_reproduction_decision": "",
+        "governed_reproduction_reason": "",
+        "year_split_status": "",
+        "year_split_classification": "",
+        "year_split_reason": "",
+        "specificity_status": "",
+        "specificity_classification": "",
+        "specificity_reason": "",
+        "specificity_decision": "",
     }
     normalized["candidate_id"] = _candidate_id(row, normalized)
     evidence_class, decision, reason, next_safe = _default_classification(normalized)
@@ -504,6 +527,165 @@ def _dedupe_rows(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
     return df.drop(columns=["_source_prio", "_t_sort"]).to_dict(orient="records")
 
 
+def attach_search_ledger_counts(
+    rows: list[dict[str, Any]], ledger_path: Path = SEARCH_LEDGER_PARQUET_PATH
+) -> list[dict[str, Any]]:
+    if not rows or not ledger_path.exists():
+        return rows
+    try:
+        ledger = pd.read_parquet(ledger_path)
+    except Exception as exc:
+        warnings.warn(f"Could not read search ledger from {ledger_path}: {exc}", stacklevel=2)
+        return rows
+    if ledger.empty or "nearby_attempt_count" not in ledger.columns:
+        return rows
+
+    key_columns = [
+        "run_id",
+        "event_id",
+        "template_id",
+        "context",
+        "direction",
+        "horizon_bars",
+        "symbol",
+    ]
+    available = [column for column in key_columns if column in ledger.columns]
+    counts: dict[tuple[str, ...], int] = {}
+    for _, row in ledger.iterrows():
+        key = tuple(_norm(row.get(column)) for column in available)
+        counts[key] = max(counts.get(key, 0), _to_int(row.get("nearby_attempt_count")) or 0)
+
+    out: list[dict[str, Any]] = []
+    for row in rows:
+        updated = dict(row)
+        key = tuple(_norm(updated.get(column)) for column in available)
+        updated["nearby_attempt_count"] = counts.get(key, 0)
+        out.append(updated)
+    return out
+
+
+def attach_governed_reproduction_reports(
+    rows: list[dict[str, Any]], reports_root: Path
+) -> list[dict[str, Any]]:
+    if not rows or not reports_root.exists():
+        return rows
+    reports: dict[str, dict[str, Any]] = {}
+    for path in reports_root.glob("*/governed_reproduction.json"):
+        try:
+            payload = json.loads(path.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError, TypeError, ValueError) as exc:
+            warnings.warn(
+                f"Could not read governed reproduction report {path}: {exc}", stacklevel=2
+            )
+            continue
+        if isinstance(payload, dict):
+            run_id = str(payload.get("reproduction_run_id", "") or path.parent.name)
+            reports[run_id] = payload
+
+    out: list[dict[str, Any]] = []
+    for row in rows:
+        updated = dict(row)
+        report = reports.get(str(updated.get("run_id", "") or ""))
+        if report is not None:
+            updated["governed_reproduction_status"] = str(report.get("status", "") or "")
+            updated["governed_reproduction_decision"] = str(report.get("decision", "") or "")
+            updated["governed_reproduction_reason"] = str(report.get("reason", "") or "")
+            if not bool(updated.get("manual_decision")):
+                decision = str(report.get("decision", "") or "")
+                status = str(report.get("status", "") or "")
+                if status == "pass" and decision == "advance":
+                    updated["decision"] = "review"
+                    updated["decision_reason"] = "governed_reproduction_passed_pending_next_gate"
+                elif decision in {"review", "park", "kill"}:
+                    updated["decision"] = decision
+                    updated["decision_reason"] = str(report.get("reason", "") or "")
+        out.append(updated)
+    return out
+
+
+def attach_year_split_reports(
+    rows: list[dict[str, Any]], reports_root: Path
+) -> list[dict[str, Any]]:
+    if not rows or not reports_root.exists():
+        return rows
+    reports: dict[str, dict[str, Any]] = {}
+    for path in reports_root.glob("*/*_year_split.json"):
+        try:
+            payload = json.loads(path.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError, TypeError, ValueError) as exc:
+            warnings.warn(f"Could not read year split report {path}: {exc}", stacklevel=2)
+            continue
+        if isinstance(payload, dict):
+            run_id = str(payload.get("run_id", "") or path.parent.name)
+            reports[run_id] = payload
+
+    out: list[dict[str, Any]] = []
+    for row in rows:
+        updated = dict(row)
+        report = reports.get(str(updated.get("run_id", "") or ""))
+        if report is not None:
+            updated["year_split_status"] = str(report.get("status", "") or "")
+            updated["year_split_classification"] = str(report.get("classification", "") or "")
+            updated["year_split_reason"] = str(report.get("reason", "") or "")
+            if not bool(updated.get("manual_decision")):
+                classification = str(report.get("classification", "") or "")
+                decision = str(report.get("decision", "") or "")
+                if classification == "year_conditional":
+                    updated["decision"] = "monitor"
+                    updated["decision_reason"] = str(report.get("reason", "") or "")
+                elif decision in {"review", "monitor", "park", "kill"}:
+                    updated["decision"] = decision
+                    updated["decision_reason"] = str(report.get("reason", "") or "")
+        out.append(updated)
+    return out
+
+
+def attach_specificity_reports(
+    rows: list[dict[str, Any]], reports_root: Path
+) -> list[dict[str, Any]]:
+    if not rows or not reports_root.exists():
+        return rows
+    reports: dict[tuple[str, str], dict[str, Any]] = {}
+    run_level_reports: dict[str, dict[str, Any]] = {}
+    for path in reports_root.glob("*/*_specificity.json"):
+        try:
+            payload = json.loads(path.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError, TypeError, ValueError) as exc:
+            warnings.warn(f"Could not read specificity report {path}: {exc}", stacklevel=2)
+            continue
+        if isinstance(payload, dict):
+            run_id = str(payload.get("run_id", "") or path.parent.name)
+            candidate_id = str(payload.get("candidate_id", "") or "")
+            if candidate_id:
+                reports[(run_id, candidate_id)] = payload
+            run_level_reports[run_id] = payload
+
+    out: list[dict[str, Any]] = []
+    for row in rows:
+        updated = dict(row)
+        run_id = str(updated.get("run_id", "") or "")
+        candidate_id = str(updated.get("candidate_id", "") or "")
+        report = reports.get((run_id, candidate_id)) or run_level_reports.get(run_id)
+        if report is not None:
+            updated["specificity_status"] = str(report.get("status", "") or "")
+            updated["specificity_classification"] = str(report.get("classification", "") or "")
+            updated["specificity_reason"] = str(report.get("reason", "") or "")
+            updated["specificity_decision"] = str(report.get("decision", "") or "")
+            if not bool(updated.get("manual_decision")):
+                decision = str(report.get("decision", "") or "")
+                classification = str(report.get("classification", "") or "")
+                if classification == "insufficient_trace_data":
+                    updated["decision"] = "review"
+                    updated["decision_reason"] = "specificity_insufficient_trace_data"
+                    updated["next_safe_command"] = str(report.get("next_safe_command", "") or "")
+                elif decision in {"advance", "review", "park", "kill"}:
+                    updated["decision"] = "review" if decision == "advance" else decision
+                    updated["decision_reason"] = str(report.get("reason", "") or "")
+                    updated["next_safe_command"] = str(report.get("next_safe_command", "") or "")
+        out.append(updated)
+    return out
+
+
 def _clean_records(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
     cleaned: list[dict[str, Any]] = []
     for row in rows:
@@ -518,6 +700,8 @@ def _clean_records(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
                 value = list(value or [])
             if column == "manual_decision":
                 value = bool(value) if not _is_missing(value) else False
+            if column == "nearby_attempt_count":
+                value = _to_int(value) or 0
             item[column] = value
         cleaned.append(item)
     return cleaned
@@ -528,7 +712,23 @@ def build_results_index(root: Path = ROOT, decisions_path: Path = DECISIONS_PATH
     normalized = [row for row in normalized if row.get("event_id")]
     with_doctor = attach_doctor_status(normalized, root=root)
     with_manual = attach_manual_decisions(with_doctor, load_manual_decisions(decisions_path))
-    rows = _clean_records(_dedupe_rows(with_manual))
+    with_search_counts = attach_search_ledger_counts(
+        _dedupe_rows(with_manual),
+        root / "data" / "reports" / "search_ledger" / "search_burden.parquet",
+    )
+    with_reproduction = attach_governed_reproduction_reports(
+        with_search_counts,
+        root / "data" / "reports" / "reproduction",
+    )
+    with_year_split = attach_year_split_reports(
+        with_reproduction,
+        root / "data" / "reports" / "regime",
+    )
+    with_specificity = attach_specificity_reports(
+        with_year_split,
+        root / "data" / "reports" / "specificity",
+    )
+    rows = _clean_records(with_specificity)
     return pd.DataFrame(rows, columns=RESULT_COLUMNS).sort_values(
         ["event_id", "direction", "horizon_bars", "t_stat_net"],
         ascending=[True, True, True, False],
@@ -591,6 +791,7 @@ def render_results_markdown(df: pd.DataFrame) -> str:
         "*Auto-generated. Do not edit manually - rerun `project/scripts/update_results_index.py`.*",
         f"*{len(df)} indexed rows across {n_events} events.*",
         "*Decision fields come from discover-doctor plus `docs/research/decisions.yaml`.*",
+        "*`year_split_event_support_pass` means event support is not dominated by one year; it is not PnL stability unless per-event returns are available.*",
         "",
         "## Summary - Decision Row Per Event",
         "",
@@ -618,8 +819,8 @@ def render_results_markdown(df: pd.DataFrame) -> str:
     lines.extend(["", "## Full Index", ""])
     lines.extend(
         [
-            "| Event | Symbol | Context | Dir | Horizon | Template | n | events | t | net bps | Evidence | Decision | Run |",
-            "|---|---|---|---|---:|---|---:|---:|---:|---:|---|---|---|",
+            "| Event | Symbol | Context | Dir | Horizon | Template | n | events | t | net bps | nearby | Evidence | Decision | Run |",
+            "|---|---|---|---|---:|---|---:|---:|---:|---:|---:|---|---|---|",
         ]
     )
     for _, row in df.iterrows():
@@ -632,6 +833,7 @@ def render_results_markdown(df: pd.DataFrame) -> str:
             f"{row.get('template_id', '')} | {_fmt(row.get('n_obs'), '{:.0f}')} | "
             f"{_fmt(row.get('event_count'), '{:.0f}')} | {_fmt(row.get('t_stat_net'), '{:.2f}')} | "
             f"{_fmt(row.get('mean_return_net_bps'), '{:.1f}')} | "
+            f"{_fmt(row.get('nearby_attempt_count'), '{:.0f}')} | "
             f"{row.get('evidence_class', '')} | {row.get('decision', '')} | `{run_id}` |"
         )
     lines.append("")

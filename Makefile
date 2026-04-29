@@ -1,6 +1,10 @@
 PYTHON ?= python3
 PYTHONPATH ?= .
+TMPDIR ?= /tmp
+TEMP ?= /tmp
+TMP ?= /tmp
 CLI := PYTHONPATH=$(PYTHONPATH) $(PYTHON) -m project.cli
+TEST_ENV := TMPDIR=$(TMPDIR) TEMP=$(TEMP) TMP=$(TMP) PYTHONPATH=$(PYTHONPATH)
 
 RUN_ID ?=
 PROPOSAL ?=
@@ -202,26 +206,26 @@ governance:
 minimum-green-gate:
 	@PYTHONPATH=$(PYTHONPATH) $(PYTHON) project/scripts/spec_qa_linter.py
 	@PYTHONPATH=$(PYTHONPATH) $(PYTHON) project/scripts/check_domain_graph_freshness.py
-	@PYTHONPATH=$(PYTHONPATH) $(PYTHON) -m pytest -q -s project/tests/architecture
-	@PYTHONPATH=$(PYTHONPATH) $(PYTHON) -m pytest -q -s project/tests/contracts/test_live_environment_config_contract.py
-	@PYTHONPATH=$(PYTHONPATH) $(PYTHON) -m pytest -q -s project/tests/live/test_cli_deploy_run.py
-	@PYTHONPATH=$(PYTHONPATH) $(PYTHON) -m pytest -q -s project/tests/pipelines/test_cli_contract.py
-	@PYTHONPATH=$(PYTHONPATH) $(PYTHON) -m pytest -q -s project/tests/scripts/test_monitor_research_thesis.py
-	@PYTHONPATH=$(PYTHONPATH) $(PYTHON) -m pytest -q -s project/tests/live/test_deploy_admission.py
-	@PYTHONPATH=$(PYTHONPATH) $(PYTHON) -m pytest -q -s project/tests/live/test_deploy_admission_v2.py
-	@PYTHONPATH=$(PYTHONPATH) $(PYTHON) -m pytest -q -s project/tests/live/test_tiny_live_admission_e2e.py
-	@PYTHONPATH=$(PYTHONPATH) $(PYTHON) -m pytest -q -s project/tests/live/test_live_approval.py
-	@PYTHONPATH=$(PYTHONPATH) $(PYTHON) -m pytest -q -s project/tests/live/test_runtime_admission.py
-	@PYTHONPATH=$(PYTHONPATH) $(PYTHON) -m pytest -q -s project/tests/live/test_paper_ledger.py
-	@PYTHONPATH=$(PYTHONPATH) $(PYTHON) -m pytest -q -s project/tests/live/test_paper_ledger_runtime_init.py
-	@PYTHONPATH=$(PYTHONPATH) $(PYTHON) -m pytest -q -s project/tests/validate/test_forward_confirm_oos.py
-	@PYTHONPATH=$(PYTHONPATH) $(PYTHON) -m pytest -q -s project/tests/promote/test_paper_gate.py
+	@$(TEST_ENV) $(PYTHON) -m pytest -q -s project/tests/architecture
+	@$(TEST_ENV) $(PYTHON) -m pytest -q -s project/tests/contracts/test_live_environment_config_contract.py
+	@$(TEST_ENV) $(PYTHON) -m pytest -q -s project/tests/live/test_cli_deploy_run.py
+	@$(TEST_ENV) $(PYTHON) -m pytest -q -s project/tests/pipelines/test_cli_contract.py
+	@$(TEST_ENV) $(PYTHON) -m pytest -q -s project/tests/scripts/test_monitor_research_thesis.py
+	@$(TEST_ENV) $(PYTHON) -m pytest -q -s project/tests/live/test_deploy_admission.py
+	@$(TEST_ENV) $(PYTHON) -m pytest -q -s project/tests/live/test_deploy_admission_v2.py
+	@$(TEST_ENV) $(PYTHON) -m pytest -q -s project/tests/live/test_tiny_live_admission_e2e.py
+	@$(TEST_ENV) $(PYTHON) -m pytest -q -s project/tests/live/test_live_approval.py
+	@$(TEST_ENV) $(PYTHON) -m pytest -q -s project/tests/live/test_runtime_admission.py
+	@$(TEST_ENV) $(PYTHON) -m pytest -q -s project/tests/live/test_paper_ledger.py
+	@$(TEST_ENV) $(PYTHON) -m pytest -q -s project/tests/live/test_paper_ledger_runtime_init.py
+	@$(TEST_ENV) $(PYTHON) -m pytest -q -s project/tests/validate/test_forward_confirm_oos.py
+	@$(TEST_ENV) $(PYTHON) -m pytest -q -s project/tests/promote/test_paper_gate.py
 
 agent-check-fast:
 	@PYTHONPATH=$(PYTHONPATH) $(PYTHON) project/scripts/spec_qa_linter.py
 	@PYTHONPATH=$(PYTHONPATH) $(PYTHON) project/scripts/check_domain_graph_freshness.py
 	@PYTHONPATH=$(PYTHONPATH) $(PYTHON) project/scripts/check_protected_paths.py
-	@PYTHONPATH=$(PYTHONPATH) $(PYTHON) -m pytest -q -s project/tests/architecture
+	@$(TEST_ENV) $(PYTHON) -m pytest -q -s project/tests/architecture
 
 agent-check-full: minimum-green-gate check-hygiene check-registry-sync check-domain-graph check-protected-paths
 
