@@ -1,0 +1,77 @@
+schema_version: research_decisions_v1
+decisions:
+  - match:
+      event_id: CLIMAX_VOLUME_BAR
+      direction: long
+      horizon_bars: 24
+      template_id: exhaustion_reversal
+    decision: park
+    evidence_class: parked_candidate
+    decision_reason: forward_confirmation_failed
+    next_safe_command: Write or update candidate autopsy; do not validate, promote, or rescue by changing the search surface.
+    forbidden_rescue_actions:
+      - change_horizon
+      - drop_2025
+      - loosen_gates
+      - switch_context_without_mechanism
+
+  - match:
+      event_id: PRICE_DOWN_OI_DOWN
+      direction: long
+      horizon_bars: 24
+    decision: review
+    evidence_class: review_only
+    decision_reason: year_split_pending
+    next_safe_command: Run governed reproduction, year split, specificity, cost stress, and forward confirmation before promotion thinking.
+    forbidden_rescue_actions:
+      - change_horizon
+      - drop_bad_years
+      - loosen_gates
+      - add_symbols_without_mechanism
+
+  - match:
+      event_id: OVERSHOOT_AFTER_SHOCK
+      direction: long
+      horizon_bars: 48
+    decision: monitor
+    evidence_class: parked_candidate
+    decision_reason: robustness_failed_monitor_only
+    next_safe_command: Monitor only; do not deploy-profile promote without new confirmatory evidence.
+    forbidden_rescue_actions:
+      - change_horizon
+      - loosen_gates
+      - switch_context_without_mechanism
+
+  - match:
+      event_id: BAND_BREAK
+      symbol: ETHUSDT
+      context: vol_regime=low
+      direction: long
+      horizon_bars: 24
+      template_id: mean_reversion
+    run_id: single_event_band_break__20260429T051949Z_d7bff7f5e9
+    decision: kill
+    evidence_class: killed_candidate
+    decision_reason: governed_reproduction_failed_no_bridge_candidates
+    next_safe_command: Record failure and move to the next bounded mechanistic cell.
+    forbidden_rescue_actions:
+      - change_horizon
+      - switch_symbol_after_failure
+      - loosen_gates
+
+  - match:
+      event_id: FALSE_BREAKOUT
+      symbol: BTCUSDT
+      context: ms_trend_state=bullish
+      direction: long
+      horizon_bars: 48
+      template_id: exhaustion_reversal
+    run_id: single_event_false_break_20260429T052713Z_47ac6a4a04
+    decision: kill
+    evidence_class: killed_candidate
+    decision_reason: specificity_and_governed_reproduction_failed
+    next_safe_command: Record failure and do not rescue by switching timing, context, or template.
+    forbidden_rescue_actions:
+      - change_horizon
+      - switch_context_without_mechanism
+      - loosen_gates

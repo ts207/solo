@@ -109,7 +109,9 @@ done
 echo "[hygiene] checking for large untracked data..."
 untracked_data="$(find data -type f ! -name ".gitkeep" -print -quit)"
 if [[ -n "$untracked_data" ]]; then
-  echo "[hygiene] untracked data detected in data/ directory. Run 'make clean-all-data' to purge."
+  echo "[hygiene] non-fatal: generated data artifacts are untracked in data/."
+  echo "[hygiene] this does not block agent-check unless STRICT_HYGIENE=1 or protected paths are modified."
+  echo "[hygiene] run 'make clean-all-data' to purge generated data artifacts."
   # We don't fail hard on untracked data, just warn, unless strict mode requested
   if [[ "${STRICT_HYGIENE:-0}" == "1" ]]; then
     fail=1
