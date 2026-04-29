@@ -1,22 +1,22 @@
 {
-  "total_atoms": 89,
+  "total_atoms": 95,
   "by_detector_band": {
-    "": 88,
+    "": 94,
     "deployable_core": 1
   },
   "by_search_role": {
-    "diagnostic": 77,
+    "diagnostic": 83,
     "confirm": 7,
     "context": 4,
     "primary_trigger": 1
   },
   "by_promotion_role": {
-    "ineligible": 81,
+    "ineligible": 87,
     "requires_composite": 7,
     "eligible": 1
   },
   "by_runtime_role": {
-    "observer": 78,
+    "observer": 84,
     "unavailable": 7,
     "guard": 4
   },
@@ -504,6 +504,54 @@
     {
       "id": "breakout_trigger_transition",
       "event_type": "BREAKOUT_TRIGGER",
+      "detector_band": "",
+      "search_role": "diagnostic",
+      "promotion_role": "ineligible",
+      "runtime_role": "observer"
+    },
+    {
+      "id": "vol_shock_core",
+      "event_type": "VOL_SHOCK",
+      "detector_band": "",
+      "search_role": "diagnostic",
+      "promotion_role": "ineligible",
+      "runtime_role": "observer"
+    },
+    {
+      "id": "vol_spike_core",
+      "event_type": "VOL_SPIKE",
+      "detector_band": "",
+      "search_role": "diagnostic",
+      "promotion_role": "ineligible",
+      "runtime_role": "observer"
+    },
+    {
+      "id": "vol_relaxation_core",
+      "event_type": "VOL_RELAXATION_START",
+      "detector_band": "",
+      "search_role": "diagnostic",
+      "promotion_role": "ineligible",
+      "runtime_role": "observer"
+    },
+    {
+      "id": "liquidity_vacuum_core",
+      "event_type": "LIQUIDITY_VACUUM",
+      "detector_band": "",
+      "search_role": "diagnostic",
+      "promotion_role": "ineligible",
+      "runtime_role": "observer"
+    },
+    {
+      "id": "funding_extreme_core",
+      "event_type": "FUNDING_EXTREME_ONSET",
+      "detector_band": "",
+      "search_role": "diagnostic",
+      "promotion_role": "ineligible",
+      "runtime_role": "observer"
+    },
+    {
+      "id": "funding_persistence_core",
+      "event_type": "FUNDING_PERSISTENCE_TRIGGER",
       "detector_band": "",
       "search_role": "diagnostic",
       "promotion_role": "ineligible",

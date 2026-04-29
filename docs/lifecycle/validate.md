@@ -90,8 +90,7 @@ artifacts.
 
 The funding-continuation branch is the canonical failure example:
 2023-2024 validation passed, but full-2025 confirmation failed on `min_t_stat`
-with zero edge candidates. See
-[`funding-continuation-2025-postmortem.md`](funding-continuation-2025-postmortem.md).
+with zero edge candidates.
 
 ## Inputs Worth Inspecting
 

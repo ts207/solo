@@ -20,3 +20,6 @@ cost_profiles:
 - standard
 expression_templates:
 - continuation
+template_policy:
+  generic_templates_allowed: true
+  reason: "Incumbent benchmark template"

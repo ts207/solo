@@ -71,18 +71,9 @@ Deprecated: removed CLI aliases, implicit latest thesis selection, and downstrea
 
 ## Current Discovery Notes
 
-- [Broad current-data event reflections](broad-current-data-event-reflections.md)
-  records the 2023-2024 BTCUSDT event sweep and the resulting event-level
-  follow-up decisions. The sweep supports a bounded BTCUSDT long funding
-  continuation validation branch and rejects broad standalone expansion from
-  the other event families under current artifacts.
-- [Funding continuation 2025 postmortem](funding-continuation-2025-postmortem.md)
-  records the forward-confirmation failure of the funding-continuation branch:
-  both `FUNDING_EXTREME_ONSET` and `FUNDING_PERSISTENCE_TRIGGER` failed full
-  2025 Phase 2 confirmation on `min_t_stat` with zero edge candidates.
-- [Liquidation exhaustion matrix](liquidation-exhaustion-matrix.md) records the
-  bounded `LIQUIDATION_EXHAUSTION_REVERSAL` matrix and its non-promotable
-  outcome under current gates.
+- Historical 2023-2024 BTCUSDT event sweeps support a bounded BTCUSDT long funding continuation validation branch. Other event families were rejected as non-promotable under current gates.
+- Previous postmortems on funding continuation and liquidation exhaustion recorded non-promotable outcomes on `min_t_stat` with zero edge candidates.
+
 
 ## Boundary Between Research and Runtime
 
