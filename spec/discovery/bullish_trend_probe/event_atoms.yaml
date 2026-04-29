@@ -27,6 +27,6 @@ event_atoms:
   - 48b
   required_feature_keys:
   - funding_rate_bps
-  search_role: primary_trigger
-  promotion_role: eligible
+  search_role: diagnostic
+  promotion_role: ineligible
   runtime_role: observer

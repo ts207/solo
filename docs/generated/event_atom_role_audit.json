@@ -1,22 +1,22 @@
 {
-  "total_atoms": 95,
+  "total_atoms": 98,
   "by_detector_band": {
-    "": 94,
+    "": 97,
     "deployable_core": 1
   },
   "by_search_role": {
-    "diagnostic": 83,
+    "diagnostic": 86,
     "confirm": 7,
     "context": 4,
     "primary_trigger": 1
   },
   "by_promotion_role": {
-    "ineligible": 87,
+    "ineligible": 90,
     "requires_composite": 7,
     "eligible": 1
   },
   "by_runtime_role": {
-    "observer": 84,
+    "observer": 87,
     "unavailable": 7,
     "guard": 4
   },
@@ -72,6 +72,14 @@
     {
       "id": "support_resistance_break_trend",
       "event_type": "SUPPORT_RESISTANCE_BREAK",
+      "detector_band": "",
+      "search_role": "diagnostic",
+      "promotion_role": "ineligible",
+      "runtime_role": "observer"
+    },
+    {
+      "id": "funding_persistence_probe",
+      "event_type": "FUNDING_PERSISTENCE_TRIGGER",
       "detector_band": "",
       "search_role": "diagnostic",
       "promotion_role": "ineligible",
@@ -368,6 +376,22 @@
     {
       "id": "climax_volume_bar_runtime",
       "event_type": "CLIMAX_VOLUME_BAR",
+      "detector_band": "",
+      "search_role": "diagnostic",
+      "promotion_role": "ineligible",
+      "runtime_role": "observer"
+    },
+    {
+      "id": "vol_shock_probe",
+      "event_type": "VOL_SHOCK",
+      "detector_band": "",
+      "search_role": "diagnostic",
+      "promotion_role": "ineligible",
+      "runtime_role": "observer"
+    },
+    {
+      "id": "funding_persistence_probe",
+      "event_type": "FUNDING_PERSISTENCE_TRIGGER",
       "detector_band": "",
       "search_role": "diagnostic",
       "promotion_role": "ineligible",

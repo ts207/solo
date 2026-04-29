@@ -1777,6 +1777,7 @@ operators:
     risk_metrics_required:
     - tail_risk_avoid
     template_kind: expression_template
+    contract_status: abstract_template_family
     feature: funding_rate_scaled
     operator: '>'
     threshold: 1.0
