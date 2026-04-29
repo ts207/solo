@@ -11,6 +11,7 @@ Forbidden strings:
   - live_live_<run_id>.yaml      (old naming; now live_trading_<run_id>.yaml)
   - project/configs/live_live_   (old config prefix)
 """
+
 from __future__ import annotations
 
 import re
@@ -26,6 +27,10 @@ SCAN_PATHS = [
     REPO_ROOT / "CLAUDE.md",
     REPO_ROOT / "docs",
 ]
+
+EXCLUDED_PATH_PARTS = {
+    "generated",
+}
 
 FORBIDDEN: list[tuple[str, str]] = [
     ("cd /home/irene/Edge", "hardcoded developer path — use <repo> or 'from the repo root'"),
@@ -51,14 +56,17 @@ SUPPRESSION_SUBSTRINGS: list[str] = [
 ]
 
 
-
 def collect_md_files() -> list[Path]:
     files: list[Path] = []
     for p in SCAN_PATHS:
         if p.is_file() and p.suffix == ".md":
             files.append(p)
         elif p.is_dir():
-            files.extend(sorted(p.rglob("*.md")))
+            files.extend(
+                path
+                for path in sorted(p.rglob("*.md"))
+                if not (set(path.relative_to(p).parts) & EXCLUDED_PATH_PARTS)
+            )
     return files
 
 

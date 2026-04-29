@@ -75,8 +75,10 @@ make discover-proposal \
 make discover-doctor RUN_ID=<run_id> DATA_ROOT=<lake>
 ```
 
-- **Exit 0** (`validate_ready` / `review_candidate`): proceed to validation.
+- **Exit 0** (`validate_ready` / `review_candidate`): proceed only as directed by `next_safe_command`. `validate_ready` is still candidate evidence, not an edge claim.
 - **Exit 1** (`blocked` / `rejected`): do not validate. Inspect `phase2_diagnostics.json` and address or move to the next bounded cell.
+
+The JSON report includes `evidence_class`, `requires`, `next_safe_command`, and `forbidden_rescue_actions`. Do not call a candidate an edge until forward confirmation passes.
 
 ### 7. Validate
 

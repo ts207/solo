@@ -31,7 +31,7 @@ MONITOR_REPORT ?=
 	deploy-paper check-domain-graph domain-graph check-registry-sync benchmark-supported-path \
 	discover-cells-verify discover-cells-plan discover-cells-run \
 	check-hygiene clean clean-runtime clean-run-data clean-all-data clean-hygiene \
-	governance minimum-green-gate discover-doctor agent-check check-protected-paths check-docs
+	governance minimum-green-gate discover-doctor agent-check-fast agent-check-full agent-check check-protected-paths check-docs
 
 help:
 	@printf '%s\n' \
@@ -65,6 +65,8 @@ help:
 	  '  make domain-graph' \
 	  '  make governance' \
 	  '  make minimum-green-gate' \
+	  '  make agent-check-fast' \
+	  '  make agent-check-full' \
 	  '  make agent-check' \
 	  '  make check-protected-paths' \
 	  '  make benchmark-supported-path EXECUTE=0|1 [DATA_ROOT=...] [RUNTIME_MAX_ROWS=500]' \
@@ -215,7 +217,15 @@ minimum-green-gate:
 	@PYTHONPATH=$(PYTHONPATH) $(PYTHON) -m pytest -q -s project/tests/validate/test_forward_confirm_oos.py
 	@PYTHONPATH=$(PYTHONPATH) $(PYTHON) -m pytest -q -s project/tests/promote/test_paper_gate.py
 
-agent-check: minimum-green-gate check-hygiene check-registry-sync check-domain-graph check-protected-paths
+agent-check-fast:
+	@PYTHONPATH=$(PYTHONPATH) $(PYTHON) project/scripts/spec_qa_linter.py
+	@PYTHONPATH=$(PYTHONPATH) $(PYTHON) project/scripts/check_domain_graph_freshness.py
+	@PYTHONPATH=$(PYTHONPATH) $(PYTHON) project/scripts/check_protected_paths.py
+	@PYTHONPATH=$(PYTHONPATH) $(PYTHON) -m pytest -q -s project/tests/architecture
+
+agent-check-full: minimum-green-gate check-hygiene check-registry-sync check-domain-graph check-protected-paths
+
+agent-check: agent-check-full
 
 check-protected-paths:
 	@PYTHONPATH=$(PYTHONPATH) $(PYTHON) project/scripts/check_protected_paths.py

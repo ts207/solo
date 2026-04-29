@@ -8,13 +8,14 @@ from typing import Any
 
 from project.discover.reporting import build_discover_summary, explain_empty_discovery
 
-
 BLOCKED_CLASSIFICATIONS = {
     "missing_diagnostics",
     "no_qualifying_events",
     "search_space_too_narrow",
     "hypotheses_rejected_pre_metrics",
     "zero_feasible_hypotheses",
+    "zero_generated_hypotheses",
+    "zero_valid_metrics_rows",
     "invalid_or_insufficient_metrics",
 }
 
@@ -28,20 +29,62 @@ LOW_VALUE_CLASSIFICATIONS = {
     "final_gate_failed",
 }
 
+REQUIRED_CONFIRMATION_STEPS = [
+    "governed_reproduction",
+    "candidate_autopsy",
+    "year_split",
+    "forward_confirmation",
+]
+
+FORBIDDEN_RESCUE_ACTIONS = [
+    "change_horizon",
+    "drop_bad_years",
+    "loosen_gates",
+    "switch_context_without_mechanism",
+    "add_symbols_without_mechanism",
+]
+
+
+def _make_target(target: str, run_id: str, data_root: Path | None) -> str:
+    command = f"make {target} RUN_ID={run_id}"
+    if data_root is not None:
+        command += f" DATA_ROOT={data_root}"
+    return command
+
+
+def _evidence_class_for_status(status: str) -> str:
+    if status == "review_candidate":
+        return "candidate_signal"
+    if status in {"blocked", "rejected", "validate_ready"}:
+        return status
+    return "blocked"
+
+
+def _next_safe_command_for_status(status: str, run_id: str, data_root: Path | None) -> str:
+    if status == "validate_ready":
+        return _make_target("validate", run_id, data_root)
+    if status == "review_candidate":
+        return "Review top_candidates and write a candidate autopsy before any validation decision."
+    if status == "rejected":
+        return "Record the rejection reason and move to the next bounded cell."
+    return _make_target("explain-empty", run_id, data_root)
+
 
 def _status_for_summary(summary: dict[str, Any]) -> tuple[str, str, list[str], list[str]]:
     counts = summary.get("counts", {}) if isinstance(summary.get("counts"), dict) else {}
     diagnostics = (
         summary.get("diagnostics", {}) if isinstance(summary.get("diagnostics"), dict) else {}
     )
-    top = summary.get("top_candidates", {}) if isinstance(summary.get("top_candidates"), dict) else {}
+    top = (
+        summary.get("top_candidates", {}) if isinstance(summary.get("top_candidates"), dict) else {}
+    )
     rows = top.get("rows", []) if isinstance(top.get("rows"), list) else []
 
     candidates_total = int(counts.get("candidates_total", 0) or 0)
-    candidates_final = int(counts.get("candidates_final", 0) or 0)
     valid_metrics_rows = int(diagnostics.get("valid_metrics_rows", 0) or 0)
     feasible = int(diagnostics.get("feasible_hypotheses", 0) or 0)
     generated = int(diagnostics.get("hypotheses_generated", 0) or 0)
+    bridge_candidates = int(diagnostics.get("bridge_candidates_rows", 0) or 0)
 
     if candidates_total <= 0:
         empty = explain_empty_discovery(
@@ -81,9 +124,15 @@ def _status_for_summary(summary: dict[str, Any]) -> tuple[str, str, list[str], l
         )
 
     if generated <= 0 or feasible <= 0 or valid_metrics_rows <= 0:
+        if feasible <= 0:
+            classification = "zero_feasible_hypotheses"
+        elif valid_metrics_rows <= 0:
+            classification = "zero_valid_metrics_rows"
+        else:
+            classification = "zero_generated_hypotheses"
         return (
             "blocked",
-            "mechanical_or_feasibility_failure",
+            classification,
             [
                 "Candidates exist but diagnostics indicate generated/feasible/valid metric counts are zero.",
                 "Inspect phase2_diagnostics.json and validated_plan.json before trusting rankings.",
@@ -91,7 +140,7 @@ def _status_for_summary(summary: dict[str, Any]) -> tuple[str, str, list[str], l
             ["edge validate run", "edge promote run", "edge deploy bind-config"],
         )
 
-    if candidates_final > 0:
+    if bridge_candidates > 0:
         return (
             "validate_ready",
             "bridge_candidates_present",
@@ -118,7 +167,9 @@ def _status_for_summary(summary: dict[str, Any]) -> tuple[str, str, list[str], l
     return (
         "blocked",
         "unranked_candidates",
-        ["Candidates exist but no top-candidate rows were rankable; inspect candidate schema and diagnostics."],
+        [
+            "Candidates exist but no top-candidate rows were rankable; inspect candidate schema and diagnostics."
+        ],
         ["edge validate run", "edge promote run", "edge deploy bind-config"],
     )
 
@@ -131,6 +182,7 @@ def build_discover_doctor_report(
 ) -> dict[str, Any]:
     summary = build_discover_summary(run_id=run_id, data_root=data_root, top_k=top_k)
     status, classification, next_actions, forbidden_actions = _status_for_summary(summary)
+    evidence_class = _evidence_class_for_status(status)
 
     counts = summary.get("counts", {}) if isinstance(summary.get("counts"), dict) else {}
     empty_diagnostics = None
@@ -141,9 +193,13 @@ def build_discover_doctor_report(
         "kind": "discover_doctor",
         "run_id": str(run_id),
         "status": status,
+        "evidence_class": evidence_class,
         "classification": classification,
+        "requires": REQUIRED_CONFIRMATION_STEPS,
         "next_actions": next_actions,
+        "next_safe_command": _next_safe_command_for_status(status, str(run_id), data_root),
         "forbidden_actions": forbidden_actions,
+        "forbidden_rescue_actions": FORBIDDEN_RESCUE_ACTIONS,
         "summary": summary,
         "empty_diagnostics": empty_diagnostics,
     }

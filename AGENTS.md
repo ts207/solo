@@ -18,6 +18,18 @@ Run after any code, spec, docs, or lifecycle change:
 make agent-check
 ```
 
+For small local edits, use the fast structural check while iterating:
+
+```bash
+make agent-check-fast
+```
+
+Run the full check before finalizing PRs, commits, meaningful research runs, or any change that touches lifecycle behavior:
+
+```bash
+make agent-check
+```
+
 ---
 
 ## Allowed by default
@@ -27,6 +39,7 @@ make agent-check
 - Run `discover`, `validate`, `promote`, and `deploy` inspection commands in non-live modes.
 - Update docs, source, and tests within the declared task scope.
 - Regenerate generated docs through their owning scripts.
+- Run `discover_doctor`, results-index refresh, reflections refresh, validation, and forward-confirmation inspection commands.
 
 ## Human approval required
 
@@ -39,11 +52,15 @@ make agent-check
 - Deleting run data or report artifacts
 - Modifying `.env*`
 - Broadening symbols, horizons, or templates as a rescue tactic
+- Broadening any search surface after failure, including events, contexts, templates, symbols, horizons, date windows, or feature proxies.
 
 ## Forbidden
 
 - Commit or print API keys or secrets.
 - Treat discovery or promotion output as live approval.
+- Rescue failed candidates by changing horizon, context, symbol, template, or date window after seeing failed evidence.
+- Drop bad years without declaring an ex-ante regime-conditional thesis.
+- Loosen thresholds after seeing results.
 - Manually edit generated docs (files under `docs/generated/`).
 - Modify protected live artifacts unless explicitly authorized.
 
@@ -52,7 +69,7 @@ make agent-check
 1. State objective.
 2. Identify relevant files.
 3. Make the smallest coherent change.
-4. Run `make agent-check`.
+4. Run `make agent-check-fast` after small edits and `make agent-check` before finalizing.
 5. Summarize changed files, checks run, remaining risks, and next safe command.
 
 ---
@@ -62,12 +79,14 @@ make agent-check
 AI agents MUST adhere to these rules to maintain repository integrity and research quality.
 
 ### 1. Discovery Quality Gate
-Before promoting any run or claiming an "edge" was found, agents MUST run the `discover-doctor`:
+Before validating, promoting, or claiming an "edge" was found, agents MUST run the `discover-doctor`:
 ```bash
 make discover-doctor RUN_ID=<run_id> DATA_ROOT=<lake>
 ```
-- **Exit 0 (validate_ready/review_candidate)**: Proceed to validation or manual review.
+- **Exit 0 (validate_ready/review_candidate)**: Proceed to validation or manual review. This is candidate evidence, not an edge claim.
 - **Exit 1 (blocked/rejected)**: DO NOT validate. Inspect `phase2_diagnostics.json` or move to the next bounded cell.
+
+Forward confirmation is the boundary for calling a candidate an edge. Paper execution evidence is the boundary for calling it tradable.
 
 ### 2. Empirical Reproduction
 Before fixing a bug, agents MUST:
@@ -126,7 +145,7 @@ AI agents are FORBIDDEN from modifying the following paths without an explicit u
 
 ## Makefile Target: `make agent-check`
 
-This target runs a suite of checks designed to verify repo health from an agent's perspective.
+This target runs the full suite of checks designed to verify repo health from an agent's perspective.
 
 ```bash
 make agent-check
@@ -137,3 +156,15 @@ Includes:
 3. `check-registry-sync` (Spec vs Code sync)
 4. `check-domain-graph` (Freshness check)
 5. `check-protected-paths` (Protected artifact write policy)
+
+Fast iteration target:
+
+```bash
+make agent-check-fast
+```
+
+Includes:
+1. `spec_qa_linter.py`
+2. `check_domain_graph_freshness.py`
+3. `check_protected_paths.py`
+4. `project/tests/architecture`
