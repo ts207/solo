@@ -10,6 +10,35 @@ To add an observation, insert a new `### [YYYY-MM-DD] Title` block before the AU
 
 ## Observations
 
+### [2026-04-29] CLIMAX_VOLUME_BAR / funding_neg fails forward confirmation
+
+The bounded BTC validation branch was replayed with the frozen proposal:
+`single_event_climax_volume_funding_neg_exhaustion_reversal_long_h24_btc_v1`.
+
+Canonical research window: 2022-01-01 through 2024-12-31.
+
+Original validated candidate event concentration:
+- 2022: 189/309 events, 61.17%
+- 2023: 62/309 events, 20.06%
+- 2024: 58/309 events, 18.77%
+
+Forward-confirm results:
+- 2025-01-01 through 2025-12-31: n=120, net=0.8833 bps, t=0.0759, hit_rate=0.5167
+- 2026-01-01 through 2026-04-27: n=110, net=8.3311 bps, t=0.8759, hit_rate=0.5273
+
+Interpretation: the thesis remains positive outside the research window, but the edge collapses
+from validation strength to statistically weak forward returns. The 2025 full-year holdout is
+the decisive failure: adequate support with effectively zero post-cost expectancy.
+
+**Decision:** Do not promote or port this branch. Park `CLIMAX_VOLUME_BAR / carry_state=funding_neg /
+exhaustion_reversal / long / 24b` unless a new mechanism explains why 2023-2024 and post-2024
+behavior should be isolated from the 2022 concentration.
+
+**Rule:** For context-conditioned event branches, a passing in-sample bridge gate is not enough
+when the first full post-research year has `abs(t_net) < 1` and net expectancy near zero.
+
+---
+
 ### [2026-04-28] Proxy engineering: basis_zscore and imbalance now populated
 
 `basis_zscore`, `cross_exchange_spread_z`, and `imbalance` were null/zero everywhere because:
@@ -187,4 +216,3 @@ Events tested >=3 times that are still below bridge gate (t >= 2.0 AND rob >= 0.
 ### Regime sensitivity (more data -> lower t)
 
 *None detected.*
-

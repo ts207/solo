@@ -31,7 +31,7 @@ MONITOR_REPORT ?=
 	deploy-paper check-domain-graph domain-graph check-registry-sync benchmark-supported-path \
 	discover-cells-verify discover-cells-plan discover-cells-run \
 	check-hygiene clean clean-runtime clean-run-data clean-all-data clean-hygiene \
-	governance minimum-green-gate
+	governance minimum-green-gate discover-doctor
 
 help:
 	@printf '%s\n' \
@@ -43,6 +43,7 @@ help:
 	  '  make summarize RUN_ID=<run_id> [DATA_ROOT=...]' \
 	  '  make summarize-proposal RUN_ID=<run_id> [DATA_ROOT=...] [TOP_K=10]' \
 	  '  make explain-empty RUN_ID=<run_id> [DATA_ROOT=...]' \
+	  '  make discover-doctor RUN_ID=<run_id> [DATA_ROOT=...] [TOP_K=10]' \
 	  '  make proposal-inspect PROPOSAL=<proposal.yaml> [RUN_ID=<run_id>] [DATA_ROOT=...]' \
 	  '  make validate RUN_ID=<run_id> [DATA_ROOT=...]' \
 	  '  make promote RUN_ID=<run_id> SYMBOLS=BTCUSDT,ETHUSDT [OUT_DIR=...]' \
@@ -142,6 +143,10 @@ summarize-proposal:
 explain-empty:
 	@test -n "$(RUN_ID)" || (echo 'RUN_ID is required' >&2; exit 2)
 	@$(CLI) discover explain-empty --run_id "$(RUN_ID)" $(if $(DATA_ROOT),--data_root "$(DATA_ROOT)",)
+
+discover-doctor:
+	@test -n "$(RUN_ID)" || (echo 'RUN_ID is required' >&2; exit 2)
+	@PYTHONPATH=$(PYTHONPATH) $(PYTHON) project/scripts/discover_doctor.py --run_id "$(RUN_ID)" $(if $(DATA_ROOT),--data_root "$(DATA_ROOT)",) --top_k "$(TOP_K)"
 
 proposal-inspect:
 	@test -n "$(PROPOSAL)" || (echo 'PROPOSAL is required' >&2; exit 2)
