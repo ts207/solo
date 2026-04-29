@@ -166,6 +166,14 @@ def ensure_market_context_feature_definitions_registered() -> None:
             owner="project.pipelines.features.build_market_context",
         ),
         FeatureDefinition(
+            name="macro_regime",
+            definition="Multi-month trend cycle label: 0=flat, 1=bull (close >5% above 90d SMA), 2=bear (close >5% below 90d SMA). Identifies macro bear/bull cycles that ms_trend_state (30-day window) misses.",
+            dependencies=("close",),
+            units="state_code",
+            source_stage="build_market_context",
+            owner="project.pipelines.features.build_market_context",
+        ),
+        FeatureDefinition(
             name="ms_context_state_code",
             definition="Encoded composite market-state code across vol, liquidity, OI, funding, trend, and spread dimensions.",
             dependencies=(

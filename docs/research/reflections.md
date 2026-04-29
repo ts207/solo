@@ -10,6 +10,24 @@ To add an observation, insert a new `### [YYYY-MM-DD] Title` block before the AU
 
 ## Observations
 
+### [2026-04-28] Proxy engineering: basis_zscore and imbalance now populated
+
+`basis_zscore`, `cross_exchange_spread_z`, and `imbalance` were null/zero everywhere because:
+- No spot OHLCV in the lake → `_add_basis_features` fell back to all-null
+- `taker_base_volume=0` everywhere in Bybit v5 raw data → `imbalance` fell back to `0.0`
+
+Engineering fix in `project/pipelines/features/build_features.py`:
+- **`basis_bps` proxy**: when no spot data, use deviation of close from its 8h EMA (in bps). EMA deviation varies every bar and captures intraday premium vs. trend anchor. Produces `basis_zscore` mean≈0, std≈1.4 — a well-calibrated z-score.
+- **`imbalance` proxy**: when `taker_base_volume` is all zeros, substitute a Lee-Ready tick-rule proxy: rolling mean of `sign(close.diff())` over 24 bars. Range: -1 (persistent selling) to +1 (persistent buying). Produces std≈0.19 vs. flat 0.0 before.
+
+`liquidation_notional` remains 0 by design — a synthetic proxy would contaminate the LIQUIDATION_CASCADE detector's threshold calibration (`liq > median * 3`). LIQUIDATION_CASCADE_PROXY is the correct alternative.
+
+Global lake rebuilt (72 files: BTC 2022-2024, ETH 2022-2024). FALSE_BREAKOUT template also fixed (TREND_STRUCTURE family; `false_breakout_reversal` + `continuation` replace the incompatible `mean_reversion` + `exhaustion_reversal`).
+
+**Rule:** `basis_zscore` from this proxy measures intra-session price deviation from 8h EMA trend, not cross-venue perp-spot basis. Signals conditioned on it should be interpreted as "price extended from recent trend" rather than "funding arbitrage".
+
+---
+
 ### [2026-04-28] Null features silently kill entire event families
 
 `liquidation_notional`, `basis_zscore`, `cross_exchange_spread_z`, and `imbalance` are all zero or 100% null across the entire lake (all years, both symbols). This is not missing data — the columns exist in the schema, they simply were never populated.

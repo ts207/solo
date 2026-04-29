@@ -313,6 +313,22 @@ def _build_market_context(symbol: str, features: pd.DataFrame) -> pd.DataFrame:
     else:
         out["ms_liquidation_state"] = 0.0
 
+    # macro_regime: multi-month trend label based on price vs. 90-day SMA.
+    # Identifies macro bear/bull cycles that ms_trend_state (30-day window) misses.
+    # 0.0=flat, 1.0=bull (close > 90d SMA * 1.05), 2.0=bear (close < 90d SMA * 0.95)
+    # Warmup: 30 days minimum (8640 bars); full stability after 90 days (25920 bars).
+    if "close" in out.columns:
+        _macro_close = pd.to_numeric(out["close"], errors="coerce")
+        _sma_90d = _macro_close.rolling(window=25920, min_periods=8640).mean().shift(1)
+        _dev_pct = (_macro_close / _sma_90d.replace(0.0, np.nan) - 1.0)
+        _macro = pd.Series(0.0, index=out.index)
+        _macro[_dev_pct > 0.05] = 1.0
+        _macro[_dev_pct < -0.05] = 2.0
+        _macro[_sma_90d.isna()] = np.nan
+        out["macro_regime"] = _macro
+    else:
+        out["macro_regime"] = np.nan
+
     # Deduplicate columns from repeated pd.concat operations
     out = out.loc[:, ~out.columns.duplicated(keep="last")]
     out["ms_context_state_code"] = encode_context_state_code(
