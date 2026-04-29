@@ -81,3 +81,26 @@ def test_select_best_row_prefers_promoted_evaluated_metrics_over_summary():
     assert best["direction"] == "long"
     assert best["status"] == "**PROMOTED**"
     assert best["exp_bps"] == 50.0
+
+
+def test_prepare_results_applies_current_status_override():
+    df = pd.DataFrame(
+        [
+            _base_row(
+                event_type="CLIMAX_VOLUME_BAR",
+                program_id="single_event_climax_volu_20260428T212745Z_386e107171",
+                direction="long",
+                horizon="24b",
+                template_id="exhaustion_reversal",
+                t_stat=2.2495,
+                robustness_score=0.7041,
+                n_events=309,
+                q_value=0.0122,
+                after_cost_expectancy_per_trade=0.0026,
+            ),
+        ]
+    )
+
+    out = prepare_results(df)
+
+    assert out.iloc[0]["status"] == "parked: forward failed"

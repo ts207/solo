@@ -10,6 +10,42 @@ To add an observation, insert a new `### [YYYY-MM-DD] Title` block before the AU
 
 ## Observations
 
+### [2026-04-29] FALSE_BREAKOUT / bullish 48b fails governed reproduction
+
+The legacy `trend_fail_v1_2021` cell
+`FALSE_BREAKOUT / ms_trend_state=bullish / long / 48b / exhaustion_reversal / BTCUSDT`
+was compiled into the stable bounded proposal:
+`single_event_false_breakout_bullish_exhaustion_reversal_long_h48_btc_v1`.
+
+Prior cell evidence:
+- n=293, net=30.4336 bps, t=2.0898, p=0.018320, robustness=0.7045
+- q=1.0, `specificity_lift_pass=False`, specificity_lift=-40.3812 bps
+- placebo_shift_effect=98,737.6744
+- forward support was thin: 13 total forward observations across valid folds, with two empty folds
+
+Current governed rerun:
+- run_id: `single_event_false_break_20260429T052713Z_47ac6a4a04`
+- generated=1, feasible=1, metrics_rows=1, phase2_candidates_written=0
+- evaluated row: n=274, net=11.6455 bps, t_net=0.8627, p=0.194147, robustness=0.4052
+- rejection: `min_t_stat_net`
+- validation stage: total=0 because no bridge candidates existed
+
+The event surface changed but did not fully disappear. The old prepared surface
+had 943 `false_breakout_event` flags and 292 bullish false-breakout bars; the
+current governed surface has 655 `FALSE_BREAKOUT` events and 270 bullish
+false-breakout bars. The support is similar enough that the current failure is
+best read as effect degradation under the governed/current evaluation path, not
+only as event-count drift.
+
+**Decision:** Kill/park this branch. Do not validate, promote, or port
+`FALSE_BREAKOUT / ms_trend_state=bullish / exhaustion_reversal / long / 48b`.
+
+**Rule:** A candidate with q=1.0, failed specificity lift, large placebo shift,
+thin forward support, and failed governed reproduction should be retired even if
+the original bridge t-stat exceeded 2.0.
+
+---
+
 ### [2026-04-29] BAND_BREAK / ETH low_vol does not reproduce under governed event materialization
 
 The generated `stat_stretch_eth_01` cell

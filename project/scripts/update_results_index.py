@@ -44,6 +44,49 @@ SOURCE_PRIORITY = {
     "edge_cand": 3,
 }
 
+STATUS_OVERRIDES = [
+    {
+        "match": {
+            "event_type": "CLIMAX_VOLUME_BAR",
+            "direction": "long",
+            "horizon": "24b",
+            "template_id": "exhaustion_reversal",
+        },
+        "status": "parked: forward failed",
+    },
+    {
+        "match": {
+            "event_type": "PRICE_DOWN_OI_DOWN",
+            "direction": "long",
+            "horizon": "24b",
+        },
+        "status": "control: year-split pending",
+    },
+    {
+        "match": {
+            "event_type": "OVERSHOOT_AFTER_SHOCK",
+            "direction": "long",
+            "horizon": "48b",
+        },
+        "status": "monitor-only: robustness failed",
+    },
+]
+
+PARKED_FOLLOWUP_LANES = [
+    {
+        "event": "BAND_BREAK",
+        "lane": "ETHUSDT / vol_regime=low / long / 24b / mean_reversion",
+        "run_id": "single_event_band_break__20260429T051949Z_d7bff7f5e9",
+        "reason": "governed reproduction failed: t_net=0.9394, robustness=0.6691, no bridge candidates",
+    },
+    {
+        "event": "FALSE_BREAKOUT",
+        "lane": "BTCUSDT / ms_trend_state=bullish / long / 48b / exhaustion_reversal",
+        "run_id": "single_event_false_break_20260429T052713Z_47ac6a4a04",
+        "reason": "governed reproduction failed: t_net=0.8627, robustness=0.4052, no bridge candidates",
+    },
+]
+
 
 def infer_template(prog: str, existing) -> str:
     if pd.notna(existing) and str(existing) not in ("nan", "", "unknown"):
@@ -108,7 +151,27 @@ def collect_all() -> pd.DataFrame:
     return pd.DataFrame(rows)
 
 
+def _norm_value(value) -> str:
+    if pd.isna(value):
+        return ""
+    return str(value).strip().lower()
+
+
+def status_override_for_row(r) -> str | None:
+    for override in STATUS_OVERRIDES:
+        if all(
+            _norm_value(r.get(key)) == _norm_value(value)
+            for key, value in override["match"].items()
+        ):
+            return override["status"]
+    return None
+
+
 def status_for_row(r) -> str:
+    override = status_override_for_row(r)
+    if override is not None:
+        return override
+
     if bool(r.get("promoted")) and bool(r.get("_has_evaluable_metrics")):
         return "**PROMOTED**"
 
@@ -239,6 +302,19 @@ def build() -> None:
         )
 
     lines += ["", "---", ""]
+
+    if PARKED_FOLLOWUP_LANES:
+        lines += [
+            "## Parked Follow-Up Lanes",
+            "",
+            "| Event | Lane | Reproduction run | Current reason |",
+            "|-------|------|------------------|----------------|",
+        ]
+        for row in PARKED_FOLLOWUP_LANES:
+            lines.append(
+                f"| {row['event']} | {row['lane']} | `{row['run_id']}` | {row['reason']} |"
+            )
+        lines += ["", "---", ""]
 
     for event in sorted(df["event_type"].dropna().unique()):
         edf = df[df["event_type"] == event].sort_values("t", ascending=False, na_position="last")
