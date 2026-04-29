@@ -1203,6 +1203,18 @@ operators:
     default_conditioning: {}
     risk_metrics_required: []
     template_kind: expression_template
+    entry: standard_1m_vwap_entry
+    exit: standard_horizon_exit
+    labels:
+      primary: basis_zscore_delta_h
+      success_condition: basis_zscore_moves_toward_zero
+    required_contexts:
+    - unconstrained
+    forbidden_contexts:
+    - none
+    risk:
+      sizing_profile: standard_risk_v1
+      cost_model: standard_futures_v1
     feature: basis_zscore
     operator: '>'
     threshold: 1.0
@@ -1271,6 +1283,7 @@ operators:
     default_conditioning: {}
     risk_metrics_required: []
     template_kind: expression_template
+    contract_status: abstract_template_family
   carry_continuation_confirmed:
     enabled: true
     supports_contexts: true
@@ -1293,6 +1306,18 @@ operators:
     risk_metrics_required:
     - tail_risk_avoid
     template_kind: expression_template
+    entry: standard_1m_vwap_entry
+    exit: standard_horizon_exit
+    labels:
+      primary: signed_return_h
+      success_condition: post_entry_positive_drift
+    required_contexts:
+    - unconstrained
+    forbidden_contexts:
+    - none
+    risk:
+      sizing_profile: standard_risk_v1
+      cost_model: standard_futures_v1
     feature: oi_delta_1h
     operator: '>'
     threshold: 0.0
@@ -1335,6 +1360,7 @@ operators:
     risk_metrics_required:
     - tail_risk_avoid
     template_kind: expression_template
+    contract_status: abstract_template_family
     feature: oi_delta_1h
     operator: <
     threshold: 0.0
@@ -1357,6 +1383,18 @@ operators:
     default_conditioning: {}
     risk_metrics_required: []
     template_kind: expression_template
+    entry: standard_1m_vwap_entry
+    exit: standard_horizon_exit
+    labels:
+      primary: spread_convergence_h
+      success_condition: spread_moves_toward_zero
+    required_contexts:
+    - unconstrained
+    forbidden_contexts:
+    - none
+    risk:
+      sizing_profile: standard_risk_v1
+      cost_model: standard_futures_v1
     feature: cross_exchange_spread_z
     operator: '>'
     threshold: 1.5
@@ -1430,6 +1468,7 @@ operators:
     risk_metrics_required:
     - drawdown_filter
     template_kind: expression_template
+    contract_status: abstract_template_family
     feature: rv_pct_17280
     operator: '>'
     threshold: 0.8
@@ -1483,6 +1522,18 @@ operators:
     risk_metrics_required:
     - tail_risk_avoid
     template_kind: expression_template
+    entry: standard_1m_vwap_entry
+    exit: standard_horizon_exit
+    labels:
+      primary: contrarian_signed_return_h
+      success_condition: post_climax_reversal
+    required_contexts:
+    - unconstrained
+    forbidden_contexts:
+    - none
+    risk:
+      sizing_profile: standard_risk_v1
+      cost_model: standard_futures_v1
     feature: liquidation_count
     operator: '>'
     threshold: 0.0
@@ -1543,6 +1594,7 @@ operators:
     risk_metrics_required:
     - tail_risk_avoid
     template_kind: expression_template
+    contract_status: abstract_template_family
   momentum_fade:
     enabled: true
     supports_contexts: true
@@ -1850,6 +1902,7 @@ operators:
     risk_metrics_required:
     - tail_risk_avoid
     template_kind: expression_template
+    contract_status: abstract_template_family
     feature: funding_rate_scaled
     operator: '>'
     threshold: 1.0
@@ -1921,6 +1974,18 @@ operators:
     risk_metrics_required:
     - tail_risk_avoid
     template_kind: expression_template
+    entry: standard_1m_vwap_entry
+    exit: standard_horizon_exit
+    labels:
+      primary: path_acceleration_h
+      success_condition: acceleration_sustained
+    required_contexts:
+    - unconstrained
+    forbidden_contexts:
+    - none
+    risk:
+      sizing_profile: standard_risk_v1
+      cost_model: standard_futures_v1
     feature: oi_delta_1h
     operator: '>'
     threshold: 0.0
@@ -2006,6 +2071,237 @@ operators:
     feature: rv_96
     operator: '>'
     threshold: 0.0
+  basis_convergence:
+    enabled: true
+    supports_contexts: true
+    supports_directions:
+    - long
+    - short
+    supports_trigger_types:
+    - EVENT
+    operator_id: op.basis_convergence
+    operator_version: v1
+    requires_direction: false
+    side_policy: contrarian
+    label_target: basis_repair_h
+    test_spec: mean_gt_0
+    compatible_families:
+    - BASIS_FUNDING_DISLOCATION
+    - INFORMATION_DESYNC
+    - STATISTICAL_DISLOCATION
+    default_conditioning: {}
+    risk_metrics_required: []
+    template_kind: expression_template
+    entry: standard_1m_vwap_entry
+    exit: standard_horizon_exit
+    labels:
+      primary: basis_zscore_delta_h
+      success_condition: basis_zscore_moves_toward_zero
+    required_contexts:
+    - unconstrained
+    forbidden_contexts:
+    - none
+    risk:
+      sizing_profile: standard_risk_v1
+      cost_model: standard_futures_v1
+  basis_funding_convergence:
+    enabled: true
+    supports_contexts: true
+    supports_directions:
+    - long
+    - short
+    supports_trigger_types:
+    - EVENT
+    operator_id: op.basis_funding_convergence
+    operator_version: v1
+    requires_direction: false
+    side_policy: contrarian
+    label_target: basis_repair_h
+    test_spec: mean_gt_0
+    compatible_families:
+    - BASIS_FUNDING_DISLOCATION
+    default_conditioning: {}
+    risk_metrics_required: []
+    template_kind: expression_template
+    entry: standard_1m_vwap_entry
+    exit: standard_horizon_exit
+    labels:
+      primary: basis_zscore_delta_h
+      success_condition: basis_zscore_moves_toward_zero
+    required_contexts:
+    - unconstrained
+    forbidden_contexts:
+    - none
+    risk:
+      sizing_profile: standard_risk_v1
+      cost_model: standard_futures_v1
+  carry_unwind_reversal:
+    enabled: true
+    supports_contexts: true
+    supports_directions:
+    - long
+    - short
+    supports_trigger_types:
+    - EVENT
+    - SEQUENCE
+    operator_id: op.carry_unwind_reversal
+    operator_version: v1
+    requires_direction: true
+    side_policy: contrarian
+    label_target: contrarian_signed_return_h
+    test_spec: mean_gt_0
+    compatible_families:
+    - POSITIONING_EXTREMES
+    - POSITIONING_UNWIND_DELEVERAGING
+    default_conditioning: {}
+    risk_metrics_required:
+    - tail_risk_avoid
+    template_kind: expression_template
+    entry: standard_1m_vwap_entry
+    exit: standard_horizon_exit
+    labels:
+      primary: contrarian_signed_return_h
+      success_condition: post_climax_reversal
+    required_contexts:
+    - unconstrained
+    forbidden_contexts:
+    - none
+    risk:
+      sizing_profile: standard_risk_v1
+      cost_model: standard_futures_v1
+  positioning_flush_reversal:
+    enabled: true
+    supports_contexts: true
+    supports_directions:
+    - long
+    - short
+    supports_trigger_types:
+    - EVENT
+    - SEQUENCE
+    operator_id: op.positioning_flush_reversal
+    operator_version: v1
+    requires_direction: true
+    side_policy: contrarian
+    label_target: contrarian_signed_return_h
+    test_spec: mean_gt_0
+    compatible_families:
+    - POSITIONING_EXTREMES
+    - POSITIONING_UNWIND_DELEVERAGING
+    default_conditioning: {}
+    risk_metrics_required:
+    - tail_risk_avoid
+    template_kind: expression_template
+    entry: standard_1m_vwap_entry
+    exit: standard_horizon_exit
+    labels:
+      primary: contrarian_signed_return_h
+      success_condition: post_climax_reversal
+    required_contexts:
+    - unconstrained
+    forbidden_contexts:
+    - none
+    risk:
+      sizing_profile: standard_risk_v1
+      cost_model: standard_futures_v1
+  long_flush_rebound:
+    enabled: true
+    supports_contexts: true
+    supports_directions:
+    - long
+    - short
+    supports_trigger_types:
+    - EVENT
+    - SEQUENCE
+    operator_id: op.long_flush_rebound
+    operator_version: v1
+    requires_direction: true
+    side_policy: contrarian
+    label_target: contrarian_signed_return_h
+    test_spec: mean_gt_0
+    compatible_families:
+    - POSITIONING_EXTREMES
+    - FORCED_FLOW_AND_EXHAUSTION
+    default_conditioning: {}
+    risk_metrics_required:
+    - tail_risk_avoid
+    template_kind: expression_template
+    entry: standard_1m_vwap_entry
+    exit: standard_horizon_exit
+    labels:
+      primary: contrarian_signed_return_h
+      success_condition: post_climax_reversal
+    required_contexts:
+    - unconstrained
+    forbidden_contexts:
+    - none
+    risk:
+      sizing_profile: standard_risk_v1
+      cost_model: standard_futures_v1
+  cascade_continuation_until_cooldown:
+    enabled: true
+    supports_contexts: true
+    supports_directions:
+    - long
+    - short
+    supports_trigger_types:
+    - EVENT
+    - SEQUENCE
+    operator_id: op.cascade_continuation_until_cooldown
+    operator_version: v1
+    requires_direction: true
+    side_policy: directional
+    label_target: fwd_return_h
+    test_spec: mean_gt_0
+    compatible_families:
+    - POSITIONING_EXTREMES
+    default_conditioning: {}
+    risk_metrics_required:
+    - tail_risk_avoid
+    template_kind: expression_template
+    entry: standard_1m_vwap_entry
+    exit: standard_horizon_exit
+    labels:
+      primary: signed_return_h
+      success_condition: trend_continuation_confirmed
+    required_contexts:
+    - unconstrained
+    forbidden_contexts:
+    - none
+    risk:
+      sizing_profile: standard_risk_v1
+      cost_model: standard_futures_v1
+  liquidity_refill_repair:
+    enabled: true
+    supports_contexts: true
+    supports_directions:
+    - long
+    - short
+    supports_trigger_types:
+    - EVENT
+    operator_id: op.liquidity_refill_repair
+    operator_version: v1
+    requires_direction: false
+    side_policy: contrarian
+    label_target: liquidity_normalization_h
+    test_spec: mean_gt_0
+    compatible_families:
+    - LIQUIDITY_DISLOCATION
+    - LIQUIDITY_STRESS
+    default_conditioning: {}
+    risk_metrics_required: []
+    template_kind: expression_template
+    entry: standard_1m_vwap_entry
+    exit: standard_horizon_exit
+    labels:
+      primary: liquidity_normalization_h
+      success_condition: liquidity_normalization_confirmed
+    required_contexts:
+    - unconstrained
+    forbidden_contexts:
+    - none
+    risk:
+      sizing_profile: standard_risk_v1
+      cost_model: standard_futures_v1
 expression_templates:
   basis_repair:
     feature: basis_zscore

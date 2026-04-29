@@ -4,8 +4,8 @@ metadata:
   status: generated
   graph_role: runtime_read_model
   schema_version: 2
-  generated_at_utc: '2026-04-29T06:03:19Z'
-  spec_sources_digest: 9e280508ac6366f3bec2e697d62048eebfa9c2de28f8306d227f29b8d64ba7ba
+  generated_at_utc: '2026-04-29T07:34:35Z'
+  spec_sources_digest: 08c57e3d17d553ff7c98b758b676aae49161a2c42fc0c4ff39fada6256bc6f26
   notes: Compiled runtime read model. Semantic nodes are normalized for direct runtime/search
     loading.
 events:
@@ -10091,6 +10091,28 @@ states:
     context_label: ''
     spec_path: spec/states/TRENDING_STATE.yaml
 templates:
+  basis_convergence:
+    template_id: basis_convergence
+    compatible_families:
+    - BASIS_FUNDING_DISLOCATION
+    - INFORMATION_DESYNC
+    - STATISTICAL_DISLOCATION
+    template_kind: expression_template
+    side_policy: contrarian
+    label_target: basis_repair_h
+    requires_direction: false
+    supports_trigger_types:
+    - EVENT
+  basis_funding_convergence:
+    template_id: basis_funding_convergence
+    compatible_families:
+    - BASIS_FUNDING_DISLOCATION
+    template_kind: expression_template
+    side_policy: contrarian
+    label_target: basis_repair_h
+    requires_direction: false
+    supports_trigger_types:
+    - EVENT
   basis_repair:
     template_id: basis_repair
     compatible_families:
@@ -10129,6 +10151,29 @@ templates:
     template_kind: expression_template
     side_policy: directional
     label_target: signed_return_h
+    requires_direction: true
+    supports_trigger_types:
+    - EVENT
+    - SEQUENCE
+  carry_unwind_reversal:
+    template_id: carry_unwind_reversal
+    compatible_families:
+    - POSITIONING_EXTREMES
+    - POSITIONING_UNWIND_DELEVERAGING
+    template_kind: expression_template
+    side_policy: contrarian
+    label_target: contrarian_signed_return_h
+    requires_direction: true
+    supports_trigger_types:
+    - EVENT
+    - SEQUENCE
+  cascade_continuation_until_cooldown:
+    template_id: cascade_continuation_until_cooldown
+    compatible_families:
+    - POSITIONING_EXTREMES
+    template_kind: expression_template
+    side_policy: directional
+    label_target: fwd_return_h
     requires_direction: true
     supports_trigger_types:
     - EVENT
@@ -10261,6 +10306,29 @@ templates:
     template_kind: expression_template
     side_policy: directional
     label_target: fwd_return_h
+    requires_direction: true
+    supports_trigger_types:
+    - EVENT
+    - SEQUENCE
+  liquidity_refill_repair:
+    template_id: liquidity_refill_repair
+    compatible_families:
+    - LIQUIDITY_DISLOCATION
+    - LIQUIDITY_STRESS
+    template_kind: expression_template
+    side_policy: contrarian
+    label_target: liquidity_normalization_h
+    requires_direction: false
+    supports_trigger_types:
+    - EVENT
+  long_flush_rebound:
+    template_id: long_flush_rebound
+    compatible_families:
+    - POSITIONING_EXTREMES
+    - FORCED_FLOW_AND_EXHAUSTION
+    template_kind: expression_template
+    side_policy: contrarian
+    label_target: contrarian_signed_return_h
     requires_direction: true
     supports_trigger_types:
     - EVENT
@@ -10414,6 +10482,18 @@ templates:
     requires_direction: false
     supports_trigger_types:
     - EVENT
+  positioning_flush_reversal:
+    template_id: positioning_flush_reversal
+    compatible_families:
+    - POSITIONING_EXTREMES
+    - POSITIONING_UNWIND_DELEVERAGING
+    template_kind: expression_template
+    side_policy: contrarian
+    label_target: contrarian_signed_return_h
+    requires_direction: true
+    supports_trigger_types:
+    - EVENT
+    - SEQUENCE
   pullback_entry:
     template_id: pullback_entry
     compatible_families:
@@ -13286,10 +13366,14 @@ runtime:
   searchable_state_families:
   - BASIS_FUNDING_DISLOCATION
   - EXECUTION_FRICTION
+  - FORCED_FLOW_AND_EXHAUSTION
+  - INFORMATION_DESYNC
   - LIQUIDITY_DISLOCATION
   - LIQUIDITY_STRESS
+  - MICROSTRUCTURE_CONTEXT
   - POSITIONING_EXTREMES
   - POSITIONING_UNWIND_DELEVERAGING
+  - REGIME_CONTEXT
   - REGIME_TRANSITION
   - STATISTICAL_DISLOCATION
   - TEMPORAL_STRUCTURE

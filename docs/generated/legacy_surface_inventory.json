@@ -1,59 +1,57 @@
 {
   "category_counts": {
-    "code_review": 119,
+    "code_review": 127,
     "compat_supported": 11,
-    "compat_surface": 63,
-    "doc_review": 8,
-    "domain_risk_language": 2,
-    "fixture_or_regression": 113,
-    "historical_doc": 1,
+    "compat_surface": 80,
+    "doc_review": 13,
+    "domain_risk_language": 14,
+    "fixture_or_regression": 118,
     "historical_spec": 1,
     "inventory_tool": 1,
+    "legacy_detector_spec": 2,
     "policy_doc": 1,
-    "spec_review": 7,
+    "spec_review": 22,
     "status_policy": 8
   },
   "detector_summary": {
-    "alias_count": 3,
+    "alias_count": 5,
     "band_counts": {
       "composite_or_fragile": 12,
       "context_only": 5,
-      "deployable_core": 10,
-      "research_trigger": 44
+      "research_trigger": 55
     },
-    "governed_detectors": 71,
+    "governed_detectors": 72,
     "legacy_detectors": 40,
     "legacy_retired_safe": 40,
     "migration_bucket_counts": {
-      "promotion_eligible_middle_layer": 19,
-      "research_perimeter": 42,
-      "runtime_core_first": 10
+      "promotion_eligible_middle_layer": 29,
+      "research_perimeter": 43
     },
     "migration_owner_counts": {
-      "workstream_b": 42,
+      "workstream_b": 43,
       "workstream_c": 29
     },
     "migration_target_counts": {
-      "demote": 2,
-      "keep_v1": 26,
+      "demote": 3,
       "migrate_to_v2": 29,
+      "retire": 26,
       "wrap_v1": 14
     },
     "role_counts": {
       "composite": 4,
       "context": 5,
       "research_only": 1,
-      "trigger": 61
+      "trigger": 62
     },
     "runtime_non_v2": 0,
-    "runtime_v2": 10,
-    "v2_detectors": 31,
+    "runtime_v2": 0,
+    "v2_detectors": 32,
     "version_counts": {
       "v1": 40,
-      "v2": 31
+      "v2": 32
     }
   },
-  "file_count": 335,
+  "file_count": 398,
   "files": [
     {
       "category": "code_review",
@@ -116,7 +114,7 @@
           "keywords": [
             "legacy"
           ],
-          "line": 302,
+          "line": 376,
           "text": "\"legacy_heuristic_enabled\": False,"
         }
       ],
@@ -143,6 +141,24 @@
       ],
       "match_count": 1,
       "path": "project/configs/golden_certification.yaml",
+      "recommended_action": "Classify as delete_now, migrate, fixture_only, or compat_supported."
+    },
+    {
+      "category": "code_review",
+      "evidence": [
+        {
+          "keywords": [
+            "legacy"
+          ],
+          "line": 6,
+          "text": "legacy_heuristic_enabled: false"
+        }
+      ],
+      "keywords": [
+        "legacy"
+      ],
+      "match_count": 1,
+      "path": "project/configs/live_live_rehearsal_20260427_01.yaml",
       "recommended_action": "Classify as delete_now, migrate, fixture_only, or compat_supported."
     },
     {
@@ -223,14 +239,14 @@
           "keywords": [
             "stale"
           ],
-          "line": 47,
+          "line": 45,
           "text": "max_stale_data_frequency: 0.05"
         },
         {
           "keywords": [
             "stale"
           ],
-          "line": 48,
+          "line": 46,
           "text": "disable_stale_data_frequency: 0.2"
         }
       ],
@@ -280,28 +296,46 @@
           "keywords": [
             "legacy"
           ],
-          "line": 36,
+          "line": 123,
+          "text": "legacy_context_aliases:"
+        }
+      ],
+      "keywords": [
+        "legacy"
+      ],
+      "match_count": 1,
+      "path": "project/configs/registries/contexts.yaml",
+      "recommended_action": "Classify as delete_now, migrate, fixture_only, or compat_supported."
+    },
+    {
+      "category": "code_review",
+      "evidence": [
+        {
+          "keywords": [
+            "legacy"
+          ],
+          "line": 35,
           "text": "legacy_aliases: tuple[str, ...] = ()"
         },
         {
           "keywords": [
             "legacy"
           ],
-          "line": 85,
+          "line": 84,
           "text": "legacy_aliases=(\"reports/validation/{run_id}/promotion_ready_candidates.csv\",),"
         },
         {
           "keywords": [
             "legacy"
           ],
-          "line": 113,
+          "line": 112,
           "text": "legacy_aliases=(\"runs/{run_id}/manifest.json\",),"
         },
         {
           "keywords": [
             "legacy"
           ],
-          "line": 149,
+          "line": 148,
           "text": "for alias in contract.legacy_aliases:"
         }
       ],
@@ -320,7 +354,7 @@
             "compat",
             "legacy"
           ],
-          "line": 38,
+          "line": 39,
           "text": "_VALID_STRICTNESS = frozenset({\"strict\", \"transitional\", \"legacy_compatible\", \"advisory\"})"
         }
       ],
@@ -340,7 +374,7 @@
             "compat",
             "legacy"
           ],
-          "line": 9,
+          "line": 8,
           "text": "_VALID_STRICTNESS = frozenset({\"strict\", \"transitional\", \"legacy_compatible\", \"advisory\"})"
         },
         {
@@ -348,7 +382,7 @@
             "compat",
             "legacy"
           ],
-          "line": 427,
+          "line": 426,
           "text": "legacy_compatible \u2014 collects issues and returns them without raising"
         },
         {
@@ -383,7 +417,7 @@
           "keywords": [
             "legacy"
           ],
-          "line": 21,
+          "line": 23,
           "text": "is_legacy: bool = False"
         }
       ],
@@ -401,7 +435,7 @@
           "keywords": [
             "legacy"
           ],
-          "line": 51,
+          "line": 52,
           "text": "\"legacy_aliases\": list(contract.legacy_aliases),"
         }
       ],
@@ -419,14 +453,14 @@
           "keywords": [
             "stale"
           ],
-          "line": 54,
+          "line": 56,
           "text": "max_source_staleness_bars: int | None = None"
         },
         {
           "keywords": [
             "stale"
           ],
-          "line": 55,
+          "line": 57,
           "text": "max_source_staleness_timedelta: str | None = None"
         }
       ],
@@ -490,7 +524,7 @@
           "keywords": [
             "compat"
           ],
-          "line": 168,
+          "line": 167,
           "text": "Call .to_manifest_dict() to get run_manifest-compatible output."
         }
       ],
@@ -506,16 +540,34 @@
       "evidence": [
         {
           "keywords": [
+            "legacy"
+          ],
+          "line": 299,
+          "text": "#             This is the legacy behaviour and the default."
+        }
+      ],
+      "keywords": [
+        "legacy"
+      ],
+      "match_count": 1,
+      "path": "project/domain/hypotheses.py",
+      "recommended_action": "Classify as delete_now, migrate, fixture_only, or compat_supported."
+    },
+    {
+      "category": "code_review",
+      "evidence": [
+        {
+          "keywords": [
             "compat"
           ],
-          "line": 89,
+          "line": 90,
           "text": "compatible_families: tuple[str, ...]"
         },
         {
           "keywords": [
             "compat"
           ],
-          "line": 224,
+          "line": 225,
           "text": "row.setdefault(\"compatible_families\", list(spec.compatible_families))"
         }
       ],
@@ -533,7 +585,7 @@
           "keywords": [
             "legacy"
           ],
-          "line": 162,
+          "line": 163,
           "text": "metrics.get(\"execution_model_family\", \"legacy_static\")"
         }
       ],
@@ -551,7 +603,7 @@
           "keywords": [
             "stale"
           ],
-          "line": 821,
+          "line": 822,
           "text": "# co-movement instead of anchoring on stale historical episodes."
         }
       ],
@@ -569,14 +621,14 @@
           "keywords": [
             "legacy"
           ],
-          "line": 91,
+          "line": 92,
           "text": "return \"legacy_static\""
         },
         {
           "keywords": [
             "legacy"
           ],
-          "line": 97,
+          "line": 98,
           "text": "return \"legacy_static\""
         }
       ],
@@ -594,35 +646,35 @@
           "keywords": [
             "compat"
           ],
-          "line": 213,
+          "line": 225,
           "text": "# Backward compat: cost_stress_pass = 2\u00d7 result (or use the explicit cost_multiplier if provided)"
         },
         {
           "keywords": [
             "legacy"
           ],
-          "line": 215,
+          "line": 227,
           "text": "legacy_stressed_pnl = raw - cst * cost_multiplier / 10000.0"
         },
         {
           "keywords": [
             "legacy"
           ],
-          "line": 216,
+          "line": 228,
           "text": "legacy_stressed_mean = float(legacy_stressed_pnl.mean())"
         },
         {
           "keywords": [
             "legacy"
           ],
-          "line": 218,
+          "line": 230,
           "text": "float(legacy_stressed_mean / base_mean) if base_mean != 0 else 0.0"
         },
         {
           "keywords": [
             "legacy"
           ],
-          "line": 220,
+          "line": 232,
           "text": "results[\"cost_stress_sign_match\"] = bool(np.sign(legacy_stressed_mean) == base_sign)"
         }
       ],
@@ -641,7 +693,7 @@
           "keywords": [
             "legacy"
           ],
-          "line": 235,
+          "line": 272,
           "text": "\"\"\"Legacy calendar split labels kept for explicit calendar-based callers.\"\"\""
         }
       ],
@@ -659,35 +711,35 @@
           "keywords": [
             "legacy"
           ],
-          "line": 101,
+          "line": 105,
           "text": "legacy = params.get('oi_drop_th')"
         },
         {
           "keywords": [
             "legacy"
           ],
-          "line": 102,
+          "line": 106,
           "text": "if pct_value is None and legacy is not None:"
         },
         {
           "keywords": [
             "legacy"
           ],
-          "line": 104,
+          "line": 108,
           "text": "legacy_f = float(legacy)"
         },
         {
           "keywords": [
             "legacy"
           ],
-          "line": 106,
+          "line": 110,
           "text": "legacy_f = 0.0"
         },
         {
           "keywords": [
             "legacy"
           ],
-          "line": 107,
+          "line": 111,
           "text": "if abs(legacy_f) < 1.0:"
         }
       ],
@@ -705,14 +757,21 @@
           "keywords": [
             "legacy"
           ],
-          "line": 422,
+          "line": 173,
+          "text": "class _LegacyCrossVenueDesyncDetector(BasisDislocationDetector):"
+        },
+        {
+          "keywords": [
+            "legacy"
+          ],
+          "line": 418,
           "text": "# Wave 3 v2 override: preserve legacy import name while routing to v2 implementation."
         }
       ],
       "keywords": [
         "legacy"
       ],
-      "match_count": 1,
+      "match_count": 2,
       "path": "project/events/families/basis.py",
       "recommended_action": "Classify as delete_now, migrate, fixture_only, or compat_supported."
     },
@@ -723,28 +782,28 @@
           "keywords": [
             "legacy"
           ],
-          "line": 169,
+          "line": 166,
           "text": "_LEGACY_DETECTORS = {"
         },
         {
           "keywords": [
             "legacy"
           ],
-          "line": 187,
+          "line": 184,
           "text": "if event_type not in _LEGACY_DETECTORS or _has_pair_inputs(df):"
         },
         {
           "keywords": [
             "legacy"
           ],
-          "line": 189,
+          "line": 186,
           "text": "legacy_detector_cls = _LEGACY_DETECTORS[event_type]"
         },
         {
           "keywords": [
             "legacy"
           ],
-          "line": 190,
+          "line": 187,
           "text": "return legacy_detector_cls().detect(df, symbol=symbol, **params)"
         }
       ],
@@ -808,21 +867,21 @@
           "keywords": [
             "legacy"
           ],
-          "line": 250,
+          "line": 245,
           "text": "_LEGACY_DETECTORS = {"
         },
         {
           "keywords": [
             "legacy"
           ],
-          "line": 265,
+          "line": 260,
           "text": "if event_type not in _LEGACY_DETECTORS or _has_pair_inputs(df):"
         },
         {
           "keywords": [
             "legacy"
           ],
-          "line": 267,
+          "line": 262,
           "text": "return _LEGACY_DETECTORS[event_type]().detect(df, symbol=symbol, **params)"
         }
       ],
@@ -840,14 +899,14 @@
           "keywords": [
             "legacy"
           ],
-          "line": 434,
+          "line": 433,
           "text": "accepts the legacy `pairs_zscore` signal and a proxy spread z-score fallback."
         },
         {
           "keywords": [
             "compat"
           ],
-          "line": 435,
+          "line": 434,
           "text": "That keeps it compatible with older synthetic fixtures while remaining tied"
         }
       ],
@@ -1041,7 +1100,7 @@
           "keywords": [
             "compat"
           ],
-          "line": 70,
+          "line": 71,
           "text": "# making backwards\u2011incompatible changes to the detection logic or metrics."
         }
       ],
@@ -1077,35 +1136,35 @@
           "keywords": [
             "compat"
           ],
-          "line": 513,
+          "line": 512,
           "text": "compat_event_family = ("
         },
         {
           "keywords": [
             "compat"
           ],
-          "line": 522,
+          "line": 521,
           "text": "if compat_event_family and compat_event_family != primary_event_id:"
         },
         {
           "keywords": [
             "compat"
           ],
-          "line": 523,
+          "line": 522,
           "text": "raw_active_families.append(compat_event_family)"
         },
         {
           "keywords": [
             "compat"
           ],
-          "line": 573,
+          "line": 572,
           "text": "detector_contract = get_detector_contract(primary_event_id or compat_event_family)"
         },
         {
           "keywords": [
             "compat"
           ],
-          "line": 588,
+          "line": 587,
           "text": "event_family=compat_event_family,"
         }
       ],
@@ -1169,28 +1228,28 @@
           "keywords": [
             "stale"
           ],
-          "line": 395,
+          "line": 396,
           "text": "state = \"fresh\" if age_seconds is not None and age_seconds <= 180.0 else \"stale\""
         },
         {
           "keywords": [
             "stale"
           ],
-          "line": 418,
+          "line": 419,
           "text": "stale = [key for key, age in ages.items() if age is None or age > 180.0]"
         },
         {
           "keywords": [
             "stale"
           ],
-          "line": 420,
+          "line": 421,
           "text": "\"state\": \"fresh\" if ages and not stale else \"stale\" if ages else \"unavailable\","
         },
         {
           "keywords": [
             "stale"
           ],
-          "line": 423,
+          "line": 424,
           "text": "\"stale_components\": stale,"
         }
       ],
@@ -1208,28 +1267,28 @@
           "keywords": [
             "compat"
           ],
-          "line": 96,
+          "line": 97,
           "text": "compat_family = str(event_family or normalized_event_id).strip().upper() or normalized_event_id"
         },
         {
           "keywords": [
             "compat"
           ],
-          "line": 99,
+          "line": 100,
           "text": "event_family=compat_family,"
         },
         {
           "keywords": [
             "compat"
           ],
-          "line": 621,
+          "line": 622,
           "text": "compat_config = dict(detector_config or {})"
         },
         {
           "keywords": [
             "compat"
           ],
-          "line": 631,
+          "line": 632,
           "text": "detector_config=compat_config,"
         }
       ],
@@ -1272,35 +1331,35 @@
           "keywords": [
             "stale"
           ],
-          "line": 19,
+          "line": 20,
           "text": "stale_threshold_sec: float = 10.0,"
         },
         {
           "keywords": [
             "stale"
           ],
-          "line": 23,
+          "line": 24,
           "text": "self.stale_threshold_sec = stale_threshold_sec"
         },
         {
           "keywords": [
             "stale"
           ],
-          "line": 27,
-          "text": "self.status: Dict[str, str] = {}  # \"HEALTHY\" | \"STALE\" | \"DISCONNECTED\""
+          "line": 28,
+          "text": "self.status: dict[str, str] = {}  # \"HEALTHY\" | \"STALE\" | \"DISCONNECTED\""
         },
         {
           "keywords": [
             "stale"
           ],
-          "line": 49,
+          "line": 50,
           "text": "Scan all monitored streams and identify stale feeds."
         },
         {
           "keywords": [
             "stale"
           ],
-          "line": 52,
+          "line": 53,
           "text": "stale_streams = []"
         }
       ],
@@ -1318,7 +1377,7 @@
           "keywords": [
             "stale"
           ],
-          "line": 39,
+          "line": 40,
           "text": "STALE_DATA = auto()"
         }
       ],
@@ -1336,28 +1395,28 @@
           "keywords": [
             "stale"
           ],
-          "line": 101,
+          "line": 102,
           "text": "\"ticker_fresh\": \"stale_ticker\" not in self.reasons"
         },
         {
           "keywords": [
             "stale"
           ],
-          "line": 112,
+          "line": 113,
           "text": "max_ticker_stale_seconds: float,"
         },
         {
           "keywords": [
             "stale"
           ],
-          "line": 129,
+          "line": 130,
           "text": "elif ticker_age is None or ticker_age > float(max_ticker_stale_seconds):"
         },
         {
           "keywords": [
             "stale"
           ],
-          "line": 130,
+          "line": 131,
           "text": "reasons.append(\"stale_ticker\")"
         }
       ],
@@ -1375,35 +1434,35 @@
           "keywords": [
             "stale"
           ],
-          "line": 16,
+          "line": 17,
           "text": "max_stale_data_frequency: float = 0.05"
         },
         {
           "keywords": [
             "stale"
           ],
-          "line": 17,
+          "line": 18,
           "text": "disable_stale_data_frequency: float = 0.20"
         },
         {
           "keywords": [
             "stale"
           ],
-          "line": 52,
+          "line": 53,
           "text": "\"stale_data_frequency\": float(metrics.get(\"stale_data_frequency\", 0.0) or 0.0),"
         },
         {
           "keywords": [
             "stale"
           ],
-          "line": 91,
+          "line": 92,
           "text": "stale_frequency = normalized[\"stale_data_frequency\"]"
         },
         {
           "keywords": [
             "stale"
           ],
-          "line": 92,
+          "line": 93,
           "text": "if stale_frequency >= cfg.disable_stale_data_frequency:"
         }
       ],
@@ -1421,28 +1480,28 @@
           "keywords": [
             "stale"
           ],
-          "line": 20,
+          "line": 21,
           "text": "max_ticker_stale_seconds: float,"
         },
         {
           "keywords": [
             "stale"
           ],
-          "line": 26,
+          "line": 27,
           "text": "Missing book price, size, timestamp, or stale top-of-book data makes the"
         },
         {
           "keywords": [
             "stale"
           ],
-          "line": 36,
+          "line": 37,
           "text": "max_ticker_stale_seconds=max_ticker_stale_seconds,"
         },
         {
           "keywords": [
             "stale"
           ],
-          "line": 86,
+          "line": 87,
           "text": "and liquidity.age_seconds <= float(max_ticker_stale_seconds)"
         }
       ],
@@ -1460,35 +1519,35 @@
           "keywords": [
             "stale"
           ],
-          "line": 23,
+          "line": 24,
           "text": "max_ticker_stale_seconds: float = 30.0"
         },
         {
           "keywords": [
             "stale"
           ],
-          "line": 25,
+          "line": 26,
           "text": "runtime_feature_stale_after_seconds: float = 60.0"
         },
         {
           "keywords": [
             "stale"
           ],
-          "line": 58,
+          "line": 59,
           "text": "max_ticker_stale_seconds=float(config.max_ticker_stale_seconds),"
         },
         {
           "keywords": [
             "stale"
           ],
-          "line": 75,
+          "line": 76,
           "text": "max_age_seconds=float(config.runtime_feature_stale_after_seconds),"
         },
         {
           "keywords": [
             "stale"
           ],
-          "line": 78,
+          "line": 79,
           "text": "stale_reason=\"stale_funding_state\","
         }
       ],
@@ -1504,37 +1563,69 @@
       "evidence": [
         {
           "keywords": [
+            "legacy"
+          ],
+          "line": 249,
+          "text": "# Legacy summary.json in thesis dir"
+        },
+        {
+          "keywords": [
+            "legacy"
+          ],
+          "line": 250,
+          "text": "legacy_path = self.root_dir / thesis_id / \"summary.json\""
+        },
+        {
+          "keywords": [
+            "legacy"
+          ],
+          "line": 251,
+          "text": "atomic_write_json(legacy_path, summary)"
+        }
+      ],
+      "keywords": [
+        "legacy"
+      ],
+      "match_count": 3,
+      "path": "project/live/paper_ledger.py",
+      "recommended_action": "Classify as delete_now, migrate, fixture_only, or compat_supported."
+    },
+    {
+      "category": "code_review",
+      "evidence": [
+        {
+          "keywords": [
             "compat"
           ],
-          "line": 30,
+          "line": 31,
           "text": "or payload.get(\"probe_min\", 0.45)  # backward compat with old bucket key"
         },
         {
           "keywords": [
             "compat"
           ],
-          "line": 38,
+          "line": 39,
           "text": "or payload.get(\"watch_min\", 0.10)  # backward compat"
         },
         {
           "keywords": [
             "legacy"
           ],
-          "line": 52,
+          "line": 53,
           "text": "legacy_enabled = bool("
         },
         {
           "keywords": [
             "legacy"
           ],
-          "line": 53,
+          "line": 54,
           "text": "payload.get(\"legacy_heuristic_enabled\", False)"
         },
         {
           "keywords": [
             "legacy"
           ],
-          "line": 54,
+          "line": 55,
           "text": "or payload.get(\"legacy_mode\", False)"
         }
       ],
@@ -1551,37 +1642,69 @@
       "evidence": [
         {
           "keywords": [
+            "compat"
+          ],
+          "line": 3,
+          "text": "Ensures that the requested runtime mode is compatible with the deployment states of the theses."
+        },
+        {
+          "keywords": [
+            "compat"
+          ],
+          "line": 21,
+          "text": "paper_compatible = [\"paper_enabled\", \"paper_approved\", \"live_eligible\", \"live_enabled\"]"
+        },
+        {
+          "keywords": [
+            "compat"
+          ],
+          "line": 22,
+          "text": "if state not in paper_compatible:"
+        }
+      ],
+      "keywords": [
+        "compat"
+      ],
+      "match_count": 3,
+      "path": "project/live/runtime_admission.py",
+      "recommended_action": "Classify as delete_now, migrate, fixture_only, or compat_supported."
+    },
+    {
+      "category": "code_review",
+      "evidence": [
+        {
+          "keywords": [
             "stale"
           ],
-          "line": 58,
+          "line": 54,
           "text": "FUNDING_MAX_STALENESS = pd.Timedelta(hours=8)"
         },
         {
           "keywords": [
             "stale"
           ],
-          "line": 152,
+          "line": 148,
           "text": "tolerance=FUNDING_MAX_STALENESS,"
         },
         {
           "keywords": [
             "legacy"
           ],
-          "line": 308,
+          "line": 304,
           "text": "# Accept both \"funding\" (new ingest) and \"fundingRate\" (legacy ingest path)"
         },
         {
           "keywords": [
             "stale"
           ],
-          "line": 430,
+          "line": 426,
           "text": "funding_window_start = start_ts - FUNDING_MAX_STALENESS"
         },
         {
           "keywords": [
             "compat"
           ],
-          "line": 581,
+          "line": 577,
           "text": "compat_path = ("
         }
       ],
@@ -1602,7 +1725,7 @@
             "legacy"
           ],
           "line": 43,
-          "text": "legacy_paths: Tuple[str, ...] = ()"
+          "text": "legacy_paths: tuple[str, ...] = ()"
         },
         {
           "keywords": [
@@ -1634,35 +1757,35 @@
           "keywords": [
             "stale"
           ],
-          "line": 49,
+          "line": 47,
           "text": "_FUNDING_MAX_STALENESS_H = 8"
         },
         {
           "keywords": [
             "stale"
           ],
-          "line": 50,
+          "line": 48,
           "text": "_OI_MAX_STALENESS_H = 4"
         },
         {
           "keywords": [
             "legacy"
           ],
-          "line": 53,
+          "line": 51,
           "text": "5  # legacy 5m semantic baseline, converted to active timeframe via _duration_to_bars"
         },
         {
           "keywords": [
             "stale"
           ],
-          "line": 358,
+          "line": 365,
           "text": "staleness_bars = _duration_to_bars("
         },
         {
           "keywords": [
             "stale"
           ],
-          "line": 359,
+          "line": 366,
           "text": "minutes=_FUNDING_MAX_STALENESS_H * 60,"
         }
       ],
@@ -1679,9 +1802,27 @@
       "evidence": [
         {
           "keywords": [
+            "legacy"
+          ],
+          "line": 6,
+          "text": "them to partitioned Parquet files.  Unlike the legacy ``ingest_binance_um_ohlcv_1m.py``"
+        }
+      ],
+      "keywords": [
+        "legacy"
+      ],
+      "match_count": 1,
+      "path": "project/pipelines/ingest/ingest_binance_um_ohlcv.py",
+      "recommended_action": "Classify as delete_now, migrate, fixture_only, or compat_supported."
+    },
+    {
+      "category": "code_review",
+      "evidence": [
+        {
+          "keywords": [
             "compat"
           ],
-          "line": 365,
+          "line": 366,
           "text": "Backward-compatible wrapper retained for tests and older callers."
         }
       ],
@@ -1706,7 +1847,7 @@
           "keywords": [
             "compat"
           ],
-          "line": 56,
+          "line": 55,
           "text": "return read_table_auto_compat(path)"
         }
       ],
@@ -1724,7 +1865,7 @@
           "keywords": [
             "compat"
           ],
-          "line": 244,
+          "line": 247,
           "text": "\"\"\"Backward-compatible function wrapper around ExecutionRunner.\"\"\""
         }
       ],
@@ -1742,14 +1883,14 @@
           "keywords": [
             "legacy"
           ],
-          "line": 611,
+          "line": 612,
           "text": "legacy_paths=tuple("
         },
         {
           "keywords": [
             "legacy"
           ],
-          "line": 612,
+          "line": 613,
           "text": "alias.format(run_id=run_id) for alias in contract.legacy_aliases"
         },
         {
@@ -1781,7 +1922,7 @@
           "keywords": [
             "legacy"
           ],
-          "line": 195,
+          "line": 179,
           "text": "f\"legacy_conditional:{effective_behavior.get('runs_legacy_phase2_conditional', False)}\""
         }
       ],
@@ -1799,35 +1940,35 @@
           "keywords": [
             "legacy"
           ],
-          "line": 16,
+          "line": 17,
           "text": "_LEGACY_PROMOTION_DEFAULTS = {"
         },
         {
           "keywords": [
             "legacy"
           ],
-          "line": 96,
+          "line": 99,
           "text": "args, \"candidate_promotion_max_q_value\", _LEGACY_PROMOTION_DEFAULTS[\"max_q_value\"]"
         },
         {
           "keywords": [
             "legacy"
           ],
-          "line": 103,
+          "line": 106,
           "text": "args, \"candidate_promotion_min_events\", _LEGACY_PROMOTION_DEFAULTS[\"min_events\"]"
         },
         {
           "keywords": [
             "legacy"
           ],
-          "line": 110,
+          "line": 113,
           "text": "_LEGACY_PROMOTION_DEFAULTS[\"min_stability_score\"],"
         },
         {
           "keywords": [
             "legacy"
           ],
-          "line": 117,
+          "line": 120,
           "text": "_LEGACY_PROMOTION_DEFAULTS[\"min_sign_consistency\"],"
         }
       ],
@@ -1845,7 +1986,7 @@
           "keywords": [
             "legacy"
           ],
-          "line": 46,
+          "line": 47,
           "text": "overlap_group_id=f\"legacy::{intent.strategy_id}\","
         }
       ],
@@ -1956,21 +2097,21 @@
           "keywords": [
             "legacy"
           ],
-          "line": 31,
+          "line": 32,
           "text": "AUDIT_STATUS_LEGACY,"
         },
         {
           "keywords": [
             "legacy"
           ],
-          "line": 40,
-          "text": "from project.research.historical_trust import CURRENT_ARTIFACT_FILENAMES, LEGACY_ARTIFACT_FILENAMES, inspect_artifact_trust"
+          "line": 42,
+          "text": "LEGACY_ARTIFACT_FILENAMES,"
         },
         {
           "keywords": [
             "compat"
           ],
-          "line": 99,
+          "line": 102,
           "text": "compat_reuse_allowed: bool = False"
         }
       ],
@@ -2015,21 +2156,21 @@
           "keywords": [
             "stale"
           ],
-          "line": 97,
+          "line": 95,
           "text": "stale_bridge_columns = ["
         },
         {
           "keywords": [
             "stale"
           ],
-          "line": 100,
+          "line": 98,
           "text": "if stale_bridge_columns:"
         },
         {
           "keywords": [
             "stale"
           ],
-          "line": 101,
+          "line": 99,
           "text": "out = out.drop(columns=stale_bridge_columns, errors=\"ignore\")"
         }
       ],
@@ -2047,28 +2188,28 @@
           "keywords": [
             "compat"
           ],
-          "line": 65,
+          "line": 66,
           "text": "\"\"\"Backward-compatible shim for quality weight loading.\"\"\""
         },
         {
           "keywords": [
             "compat"
           ],
-          "line": 961,
+          "line": 962,
           "text": "# Phase 3.1 \u2014 trigger type (default EVENT for backward compat)"
         },
         {
           "keywords": [
             "compat"
           ],
-          "line": 1121,
+          "line": 1122,
           "text": "self._write_frontier_compat_from_ledger(df)"
         },
         {
           "keywords": [
             "compat"
           ],
-          "line": 1124,
+          "line": 1125,
           "text": "def _write_frontier_compat_from_ledger(self, df: pd.DataFrame) -> None:"
         }
       ],
@@ -2106,21 +2247,21 @@
           "keywords": [
             "compat"
           ],
-          "line": 38,
+          "line": 25,
           "text": "from project.io.parquet_compat import read_parquet_compat"
         },
         {
           "keywords": [
             "compat"
           ],
-          "line": 506,
+          "line": 500,
           "text": "return read_parquet_compat(path)"
         },
         {
           "keywords": [
             "compat"
           ],
-          "line": 614,
+          "line": 608,
           "text": "read_parquet_compat(promoted_path)"
         }
       ],
@@ -2163,35 +2304,35 @@
           "keywords": [
             "legacy"
           ],
-          "line": 8,
+          "line": 7,
           "text": "HISTORICAL_TRUST_LEGACY = \"legacy_but_interpretable\""
         },
         {
           "keywords": [
             "legacy"
           ],
-          "line": 14,
+          "line": 13,
           "text": "HISTORICAL_TRUST_LEGACY,"
         },
         {
           "keywords": [
             "legacy"
           ],
-          "line": 21,
+          "line": 20,
           "text": "HISTORICAL_TRUST_LEGACY: 1,"
         },
         {
           "keywords": [
             "compat"
           ],
-          "line": 31,
+          "line": 30,
           "text": "compat_reuse_allowed: bool"
         },
         {
           "keywords": [
             "compat"
           ],
-          "line": 39,
+          "line": 38,
           "text": "\"compat_reuse_allowed\": self.compat_reuse_allowed,"
         }
       ],
@@ -2210,28 +2351,28 @@
           "keywords": [
             "legacy"
           ],
-          "line": 37,
+          "line": 36,
           "text": "AUDIT_STATUS_LEGACY = \"legacy\""
         },
         {
           "keywords": [
             "legacy"
           ],
-          "line": 44,
+          "line": 43,
           "text": "AUDIT_STATUS_LEGACY,"
         },
         {
           "keywords": [
             "legacy"
           ],
-          "line": 197,
+          "line": 196,
           "text": "audit_status=AUDIT_STATUS_LEGACY,"
         },
         {
           "keywords": [
             "legacy"
           ],
-          "line": 283,
+          "line": 278,
           "text": "\"AUDIT_STATUS_LEGACY\","
         }
       ],
@@ -2281,28 +2422,28 @@
           "keywords": [
             "legacy"
           ],
-          "line": 33,
+          "line": 32,
           "text": "LEGACY_ARTIFACT_FILENAMES: dict[str, set[str]] = {"
         },
         {
           "keywords": [
             "legacy"
           ],
-          "line": 56,
+          "line": 55,
           "text": "def artifact_uses_legacy_filename(artifact_type: str, artifact_path: Path) -> bool:"
         },
         {
           "keywords": [
             "legacy"
           ],
-          "line": 58,
+          "line": 57,
           "text": "return name in {value.lower() for value in LEGACY_ARTIFACT_FILENAMES.get(str(artifact_type), set())}"
         },
         {
           "keywords": [
             "legacy"
           ],
-          "line": 108,
+          "line": 107,
           "text": "if artifact_uses_legacy_filename(artifact_type, path):"
         }
       ],
@@ -2442,7 +2583,7 @@
           "keywords": [
             "stale"
           ],
-          "line": 289,
+          "line": 288,
           "text": "\"type\": \"stale_run_manifest\","
         }
       ],
@@ -2467,14 +2608,14 @@
           "keywords": [
             "compat"
           ],
-          "line": 976,
+          "line": 1111,
           "text": "\"_populate_bridge_compatible_fields: neither sign_consistency nor hit_rate \""
         },
         {
           "keywords": [
             "legacy"
           ],
-          "line": 1225,
+          "line": 1360,
           "text": "* Phase 2 Legacy (t-stat) Ranking"
         }
       ],
@@ -2493,28 +2634,28 @@
           "keywords": [
             "compat"
           ],
-          "line": 131,
+          "line": 123,
           "text": "_BOOLEAN_COMPAT_GATES = {"
         },
         {
           "keywords": [
             "compat"
           ],
-          "line": 139,
-          "text": "def _restore_boolean_compat_gates(result: Dict[str, Any]) -> Dict[str, Any]:"
+          "line": 131,
+          "text": "def _restore_boolean_compat_gates(result: dict[str, Any]) -> dict[str, Any]:"
         },
         {
           "keywords": [
             "compat"
           ],
-          "line": 141,
+          "line": 133,
           "text": "for key in _BOOLEAN_COMPAT_GATES:"
         },
         {
           "keywords": [
             "compat"
           ],
-          "line": 147,
+          "line": 139,
           "text": "key: (bool_gate(value) if key in _BOOLEAN_COMPAT_GATES else value)"
         }
       ],
@@ -2532,14 +2673,14 @@
           "keywords": [
             "compat"
           ],
-          "line": 18,
+          "line": 13,
           "text": "_restore_boolean_compat_gates,"
         },
         {
           "keywords": [
             "compat"
           ],
-          "line": 578,
+          "line": 579,
           "text": "return _restore_boolean_compat_gates(result)"
         }
       ],
@@ -2575,7 +2716,7 @@
           "keywords": [
             "legacy"
           ],
-          "line": 98,
+          "line": 90,
           "text": "# Map legacy booleans to the new string contract"
         }
       ],
@@ -2593,68 +2734,44 @@
           "keywords": [
             "compat"
           ],
-          "line": 142,
+          "line": 161,
           "text": "split_compat_cache: dict[tuple[int, int], pd.DataFrame] = field(default_factory=dict)"
         },
         {
           "keywords": [
-            "compat"
+            "legacy"
           ],
-          "line": 245,
-          "text": "if key not in self.split_compat_cache:"
+          "line": 234,
+          "text": "- ``\"entry\"`` (legacy default): context is evaluated at the entry bar"
+        },
+        {
+          "keywords": [
+            "legacy"
+          ],
+          "line": 257,
+          "text": "# When context_timing=\"entry\" (default/legacy), apply context AFTER"
+        },
+        {
+          "keywords": [
+            "legacy"
+          ],
+          "line": 277,
+          "text": "# Legacy/default: shift first, then apply context at entry bar"
         },
         {
           "keywords": [
             "compat"
           ],
-          "line": 263,
-          "text": "compatible = valid & (start_codes > 0) & no_window_change"
-        },
-        {
-          "keywords": [
-            "compat"
-          ],
-          "line": 266,
-          "text": "labels.iloc[np.where(compatible & (start_codes == code))[0]] = label"
-        },
-        {
-          "keywords": [
-            "compat"
-          ],
-          "line": 267,
-          "text": "self.split_compat_cache[key] = pd.DataFrame("
+          "line": 324,
+          "text": "split for the event to be considered split-compatible."
         }
       ],
       "keywords": [
-        "compat"
+        "compat",
+        "legacy"
       ],
-      "match_count": 11,
+      "match_count": 15,
       "path": "project/research/search/evaluator.py",
-      "recommended_action": "Classify as delete_now, migrate, fixture_only, or compat_supported."
-    },
-    {
-      "category": "code_review",
-      "evidence": [
-        {
-          "keywords": [
-            "compat"
-          ],
-          "line": 164,
-          "text": "details[\"compat_event_family\"] = _event_family(spec, registry)"
-        },
-        {
-          "keywords": [
-            "compat"
-          ],
-          "line": 165,
-          "text": "details[\"family\"] = details[\"compat_event_family\"]"
-        }
-      ],
-      "keywords": [
-        "compat"
-      ],
-      "match_count": 2,
-      "path": "project/research/search/feasibility.py",
       "recommended_action": "Classify as delete_now, migrate, fixture_only, or compat_supported."
     },
     {
@@ -2771,21 +2888,21 @@
           "keywords": [
             "compat"
           ],
-          "line": 781,
+          "line": 780,
           "text": "out[\"compat_event_family\"] = ("
         },
         {
           "keywords": [
             "compat"
           ],
-          "line": 897,
+          "line": 896,
           "text": "if \"compat_event_family\" not in out.columns:"
         },
         {
           "keywords": [
             "compat"
           ],
-          "line": 898,
+          "line": 897,
           "text": "out[\"compat_event_family\"] = ("
         }
       ],
@@ -2803,7 +2920,7 @@
           "keywords": [
             "compat"
           ],
-          "line": 637,
+          "line": 636,
           "text": "\"compat_grouping_aliases\": {"
         }
       ],
@@ -2821,7 +2938,7 @@
           "keywords": [
             "compat"
           ],
-          "line": 151,
+          "line": 152,
           "text": "f\"- compat_reuse_allowed: `{bool((historical_trust or {}).get('compat_reuse_allowed', False))}`\","
         }
       ],
@@ -2839,14 +2956,14 @@
           "keywords": [
             "compat"
           ],
-          "line": 14,
+          "line": 15,
           "text": "from project.io.parquet_compat import read_parquet_compat"
         },
         {
           "keywords": [
             "compat"
           ],
-          "line": 30,
+          "line": 31,
           "text": "return read_parquet_compat(path)"
         }
       ],
@@ -2864,21 +2981,21 @@
           "keywords": [
             "legacy"
           ],
-          "line": 138,
+          "line": 135,
           "text": "legacy_tstat_threshold: float,"
         },
         {
           "keywords": [
             "legacy"
           ],
-          "line": 181,
+          "line": 178,
           "text": "out[\"gate_legacy_survivor\"] = ("
         },
         {
           "keywords": [
             "legacy"
           ],
-          "line": 184,
+          "line": 181,
           "text": "& (out[\"event_t\"] >= float(legacy_tstat_threshold))"
         }
       ],
@@ -2896,21 +3013,21 @@
           "keywords": [
             "legacy"
           ],
-          "line": 411,
+          "line": 408,
           "text": "legacy_audit_path = ("
         },
         {
           "keywords": [
             "legacy"
           ],
-          "line": 414,
+          "line": 411,
           "text": "if legacy_audit_path.exists():"
         },
         {
           "keywords": [
             "legacy"
           ],
-          "line": 415,
+          "line": 412,
           "text": "audit_path = legacy_audit_path"
         }
       ],
@@ -2967,14 +3084,14 @@
           "keywords": [
             "stale"
           ],
-          "line": 79,
-          "text": "max_feature_staleness: Optional[pd.Timedelta] = pd.Timedelta(\"1h\"),"
+          "line": 78,
+          "text": "max_feature_staleness: pd.Timedelta | None = pd.Timedelta(\"1h\"),"
         },
         {
           "keywords": [
             "stale"
           ],
-          "line": 133,
+          "line": 132,
           "text": "tolerance=max_feature_staleness,"
         },
         {
@@ -2982,7 +3099,7 @@
             "stale"
           ],
           "line": 551,
-          "text": "max_join_staleness_minutes: Optional[int] = None,"
+          "text": "max_join_staleness_minutes: int | None = None,"
         },
         {
           "keywords": [
@@ -3013,7 +3130,7 @@
           "keywords": [
             "legacy"
           ],
-          "line": 882,
+          "line": 878,
           "text": "legacy_tstat_threshold=float(args.tstat_threshold),"
         }
       ],
@@ -3071,14 +3188,14 @@
           "keywords": [
             "legacy"
           ],
-          "line": 67,
+          "line": 65,
           "text": "# Check for legacy p-value columns (if they are present but not the new ones)"
         },
         {
           "keywords": [
             "legacy"
           ],
-          "line": 71,
+          "line": 69,
           "text": "\"reason\": \"legacy_p_value_columns: p_value exists but p_value_for_fdr missing\","
         }
       ],
@@ -3165,9 +3282,34 @@
       "evidence": [
         {
           "keywords": [
+            "stale"
+          ],
+          "line": 18,
+          "text": "parser.add_argument(\"--check\", action=\"store_true\", help=\"fail if the checked-in graph is stale\")"
+        },
+        {
+          "keywords": [
+            "stale"
+          ],
+          "line": 37,
+          "text": "print(f\"Domain graph is stale: {path}\")"
+        }
+      ],
+      "keywords": [
+        "stale"
+      ],
+      "match_count": 2,
+      "path": "project/scripts/build_domain_graph.py",
+      "recommended_action": "Classify as delete_now, migrate, fixture_only, or compat_supported."
+    },
+    {
+      "category": "code_review",
+      "evidence": [
+        {
+          "keywords": [
             "legacy"
           ],
-          "line": 279,
+          "line": 280,
           "text": "f\"- Eligibility: planning=`{row['planning_eligible']}` | runtime=`{row['runtime_eligible']}` | promotion=`{row['promotion_eligible']}` | primary_anchor=`{row['primary_anchor_eligible']}` | legacy_default_executable=`{row"
         }
       ],
@@ -3201,45 +3343,117 @@
       "evidence": [
         {
           "keywords": [
+            "legacy"
+          ],
+          "line": 147,
+          "text": "# Load legacy aliases from authored source"
+        },
+        {
+          "keywords": [
+            "legacy"
+          ],
+          "line": 149,
+          "text": "legacy_aliases = {}"
+        },
+        {
+          "keywords": [
+            "legacy"
+          ],
+          "line": 154,
+          "text": "legacy_aliases = dim_doc.get(\"legacy_context_aliases\", {})"
+        },
+        {
+          "keywords": [
+            "legacy"
+          ],
+          "line": 170,
+          "text": "\"legacy_context_aliases\": legacy_aliases,"
+        }
+      ],
+      "keywords": [
+        "legacy"
+      ],
+      "match_count": 4,
+      "path": "project/scripts/build_state_registry_sidecars.py",
+      "recommended_action": "Classify as delete_now, migrate, fixture_only, or compat_supported."
+    },
+    {
+      "category": "code_review",
+      "evidence": [
+        {
+          "keywords": [
             "compat"
           ],
-          "line": 18,
-          "text": "def build_template_registry_compat_payload() -> Dict[str, Any]:"
+          "line": 20,
+          "text": "def build_template_registry_compat_payload() -> dict[str, Any]:"
         },
         {
           "keywords": [
             "compat"
           ],
-          "line": 23,
-          "text": "compat_events: Dict[str, Dict[str, Any]] = {}"
+          "line": 25,
+          "text": "compat_events: dict[str, dict[str, Any]] = {}"
         },
         {
           "keywords": [
             "compat"
           ],
-          "line": 27,
+          "line": 29,
           "text": "compat_row = dict(row)"
         },
         {
           "keywords": [
             "compat"
           ],
-          "line": 32,
+          "line": 34,
           "text": "compat_row.setdefault(\"canonical_family\", research_family)"
         },
         {
           "keywords": [
             "compat"
           ],
-          "line": 33,
+          "line": 35,
           "text": "compat_events[str(event_id).strip().upper()] = compat_row"
         }
       ],
       "keywords": [
-        "compat"
+        "compat",
+        "stale"
       ],
       "match_count": 9,
       "path": "project/scripts/build_template_registry_sidecars.py",
+      "recommended_action": "Classify as delete_now, migrate, fixture_only, or compat_supported."
+    },
+    {
+      "category": "code_review",
+      "evidence": [
+        {
+          "keywords": [
+            "stale"
+          ],
+          "line": 4,
+          "text": "Scans markdown files for forbidden/stale strings that indicate docs have drifted"
+        },
+        {
+          "keywords": [
+            "stale"
+          ],
+          "line": 33,
+          "text": "(\"live_live_<run_id>.yaml\", \"stale config name \u2014 now live_trading_<run_id>.yaml\"),"
+        },
+        {
+          "keywords": [
+            "stale"
+          ],
+          "line": 34,
+          "text": "(\"project/configs/live_live_\", \"stale config prefix \u2014 now project/configs/live_trading_\"),"
+        }
+      ],
+      "keywords": [
+        "stale"
+      ],
+      "match_count": 3,
+      "path": "project/scripts/check_docs_command_drift.py",
       "recommended_action": "Classify as delete_now, migrate, fixture_only, or compat_supported."
     },
     {
@@ -3267,7 +3481,7 @@
           "keywords": [
             "legacy"
           ],
-          "line": 130,
+          "line": 127,
           "text": "# Assert condition_str doesn't contain legacy '__' or rule template names"
         }
       ],
@@ -3317,21 +3531,21 @@
           "keywords": [
             "stale"
           ],
-          "line": 31,
+          "line": 33,
           "text": "def check_symbol(symbol: str, timeframe: str, max_staleness_bars: int) -> tuple[bool, str]:"
         },
         {
           "keywords": [
             "stale"
           ],
-          "line": 47,
+          "line": 49,
           "text": "staleness_bars = int((now - latest_ts).total_seconds() / 60 / interval_min)"
         },
         {
           "keywords": [
             "stale"
           ],
-          "line": 48,
+          "line": 50,
           "text": "ok = staleness_bars <= max_staleness_bars"
         }
       ],
@@ -3381,7 +3595,7 @@
           "keywords": [
             "stale"
           ],
-          "line": 749,
+          "line": 753,
           "text": "stale_threshold_sec=session_metadata[\"stale_threshold_sec\"],"
         }
       ],
@@ -3399,35 +3613,35 @@
           "keywords": [
             "legacy"
           ],
-          "line": 29,
+          "line": 28,
           "text": "# Priority 2: Legacy 'perf_benchmarks'"
         },
         {
           "keywords": [
             "legacy"
           ],
-          "line": 30,
+          "line": 29,
           "text": "legacy_path = root / \"reports\" / \"perf_benchmarks\" / \"history\""
         },
         {
           "keywords": [
             "legacy"
           ],
-          "line": 31,
+          "line": 30,
           "text": "if legacy_path.exists():"
         },
         {
           "keywords": [
             "legacy"
           ],
-          "line": 32,
+          "line": 31,
           "text": "reviews = list(legacy_path.glob(\"**/benchmark_review.json\"))"
         },
         {
           "keywords": [
             "legacy"
           ],
-          "line": 101,
+          "line": 100,
           "text": "# Process summaries - handle both legacy and new schemas"
         }
       ],
@@ -3463,35 +3677,35 @@
           "keywords": [
             "stale"
           ],
-          "line": 164,
+          "line": 165,
           "text": "key=\"snapshot_stale\","
         },
         {
           "keywords": [
             "stale"
           ],
-          "line": 176,
+          "line": 177,
           "text": "stale_count = int(health.get(\"stale_count\", 0) or 0)"
         },
         {
           "keywords": [
             "stale"
           ],
-          "line": 177,
+          "line": 178,
           "text": "if stale_count > 0 or str(health.get(\"freshness_status\", \"healthy\")) != \"healthy\":"
         },
         {
           "keywords": [
             "stale"
           ],
-          "line": 180,
+          "line": 181,
           "text": "key=\"stale_feeds\","
         },
         {
           "keywords": [
             "stale"
           ],
-          "line": 183,
+          "line": 184,
           "text": "message=\"One or more live data feeds are stale.\","
         }
       ],
@@ -3507,25 +3721,38 @@
       "evidence": [
         {
           "keywords": [
-            "stale"
+            "legacy"
           ],
-          "line": 26,
-          "text": "# Resolve and validate entry lags eagerly so stale same-bar configs fail before generation."
+          "line": 42,
+          "text": "legacy_mappings = _mapping(contract.get(\"legacy_event_mappings\"))"
         },
         {
           "keywords": [
             "legacy"
           ],
-          "line": 249,
-          "text": "# Support both 'entry_lag' and legacy 'entry_lags'"
+          "line": 99,
+          "text": "for legacy_event in ("
+        },
+        {
+          "keywords": [
+            "legacy"
+          ],
+          "line": 107,
+          "text": "row = _mapping(legacy_mappings.get(legacy_event))"
+        },
+        {
+          "keywords": [
+            "legacy"
+          ],
+          "line": 112,
+          "text": "f\"{legacy_event}: legacy mapping must declare requires_context_dimension\","
         }
       ],
       "keywords": [
-        "legacy",
-        "stale"
+        "legacy"
       ],
-      "match_count": 2,
-      "path": "project/spec_validation/search.py",
+      "match_count": 4,
+      "path": "project/spec_validation/directionality.py",
       "recommended_action": "Classify as delete_now, migrate, fixture_only, or compat_supported."
     },
     {
@@ -3536,7 +3763,7 @@
             "stale"
           ],
           "line": 50,
-          "text": "def _is_stale_pipeline_session(manifest: Dict[str, Any]) -> bool:"
+          "text": "def _is_stale_pipeline_session(manifest: dict[str, Any]) -> bool:"
         },
         {
           "keywords": [
@@ -3599,35 +3826,35 @@
           "keywords": [
             "legacy"
           ],
-          "line": 68,
+          "line": 67,
           "text": "# Auto-normalize legacy string conditions"
         },
         {
           "keywords": [
             "legacy"
           ],
-          "line": 71,
+          "line": 70,
           "text": "legacy_conditions = entry.get(\"conditions\", [])"
         },
         {
           "keywords": [
             "legacy"
           ],
-          "line": 72,
+          "line": 71,
           "text": "if isinstance(legacy_conditions, list):"
         },
         {
           "keywords": [
             "legacy"
           ],
-          "line": 73,
+          "line": 72,
           "text": "for cond_str in legacy_conditions:"
         },
         {
           "keywords": [
             "legacy"
           ],
-          "line": 86,
+          "line": 85,
           "text": "raise ValueError(f\"Cannot normalize legacy condition: {cond_str}\")"
         }
       ],
@@ -3645,14 +3872,14 @@
           "keywords": [
             "compat"
           ],
-          "line": 57,
+          "line": 58,
           "text": "\"compat_event_family\": spec.compat_event_family,"
         },
         {
           "keywords": [
             "compat"
           ],
-          "line": 58,
+          "line": 59,
           "text": "\"event_family\": spec.compat_event_family,"
         }
       ],
@@ -3670,14 +3897,14 @@
           "keywords": [
             "compat"
           ],
-          "line": 25,
+          "line": 24,
           "text": "def compat_event_family(self) -> str:"
         },
         {
           "keywords": [
             "compat"
           ],
-          "line": 35,
+          "line": 34,
           "text": "\"compat_event_family\": self.compat_event_family,"
         }
       ],
@@ -3695,7 +3922,7 @@
           "keywords": [
             "deprecated"
           ],
-          "line": 91,
+          "line": 90,
           "text": "message=\"The behavior of DataFrame concatenation with empty or all-NA entries is deprecated.*\","
         }
       ],
@@ -3790,35 +4017,35 @@
           "keywords": [
             "compat"
           ],
-          "line": 45,
+          "line": 44,
           "text": "compatibility_event_families: set[str]"
         },
         {
           "keywords": [
             "compat"
           ],
-          "line": 54,
+          "line": 53,
           "text": "compat_families = _normalized_tokens([context.event_family])"
         },
         {
           "keywords": [
             "compat"
           ],
-          "line": 55,
+          "line": 54,
           "text": "compat_families.update(_normalized_tokens(list(context.active_event_families or [])))"
         },
         {
           "keywords": [
             "compat"
           ],
-          "line": 56,
+          "line": 55,
           "text": "return compat_families"
         },
         {
           "keywords": [
             "compat"
           ],
-          "line": 60,
+          "line": 59,
           "text": "compat_families = _normalized_tokens([context.event_family])"
         }
       ],
@@ -3838,35 +4065,35 @@
           "keywords": [
             "compat"
           ],
-          "line": 14,
+          "line": 15,
           "text": "CompatibilityRequiredError,"
         },
         {
           "keywords": [
             "stale"
           ],
-          "line": 124,
+          "line": 127,
           "text": "stale_threshold_sec: float = 10.0,"
         },
         {
           "keywords": [
             "stale"
           ],
-          "line": 203,
+          "line": 209,
           "text": "self.health_monitor = DataHealthMonitor(stale_threshold_sec=stale_threshold_sec)"
         },
         {
           "keywords": [
             "stale"
           ],
-          "line": 217,
+          "line": 223,
           "text": "self.runtime_market_feature_stale_after_seconds = max("
         },
         {
           "keywords": [
             "stale"
           ],
-          "line": 221,
+          "line": 227,
           "text": "\"runtime_market_feature_stale_after_seconds\","
         }
       ],
@@ -3932,28 +4159,28 @@
           "keywords": [
             "not_supported"
           ],
-          "line": 102,
+          "line": 103,
           "text": "reasons.append(\"market_order_not_supported\")"
         },
         {
           "keywords": [
             "not_supported"
           ],
-          "line": 104,
+          "line": 105,
           "text": "reasons.append(\"limit_order_not_supported\")"
         },
         {
           "keywords": [
             "not_supported"
           ],
-          "line": 106,
+          "line": 107,
           "text": "reasons.append(\"reduce_only_not_supported\")"
         },
         {
           "keywords": [
             "not_supported"
           ],
-          "line": 108,
+          "line": 109,
           "text": "reasons.append(\"post_only_not_supported\")"
         }
       ],
@@ -4051,21 +4278,21 @@
           "keywords": [
             "deprecated"
           ],
-          "line": 62,
+          "line": 54,
           "text": "DEPRECATED: Now aliased to one_sided_p_from_t to ensure all directional hypotheses"
         },
         {
           "keywords": [
             "deprecated"
           ],
-          "line": 73,
+          "line": 65,
           "text": "\"two_sided_p_from_t is deprecated; use one_sided_p_from_t for directional hypotheses. \""
         },
         {
           "keywords": [
             "deprecated"
           ],
-          "line": 78,
+          "line": 70,
           "text": "_logging.getLogger(__name__).error(\"DEPRECATED CALL: %s\", _msg)"
         }
       ],
@@ -4149,35 +4376,35 @@
             "compat",
             "legacy"
           ],
-          "line": 47,
+          "line": 46,
           "text": "status=\"legacy_compat\","
         },
         {
           "keywords": [
             "legacy"
           ],
-          "line": 48,
+          "line": 47,
           "text": "description=\"Legacy discovery service \u2014 retained for smoke tests and CLI tool only. \""
         },
         {
           "keywords": [
             "compat"
           ],
-          "line": 68,
+          "line": 67,
           "text": "def build_compatibility_surfaces() -> tuple[SystemSurface, ...]:"
         },
         {
           "keywords": [
             "compat"
           ],
-          "line": 87,
+          "line": 86,
           "text": "for surface in (*build_canonical_entrypoints(), *build_compatibility_surfaces()):"
         },
         {
           "keywords": [
             "compat"
           ],
-          "line": 90,
+          "line": 89,
           "text": "if surface.status == \"compatibility\":"
         }
       ],
@@ -4223,35 +4450,35 @@
           "keywords": [
             "compat"
           ],
-          "line": 32,
+          "line": 33,
           "text": "tau, _ = _StatsCompat.kendalltau(x, y)"
         },
         {
           "keywords": [
             "compat"
           ],
-          "line": 258,
+          "line": 259,
           "text": "# NumPy 2.0 compatibility: trapz -> trapezoid"
         },
         {
           "keywords": [
             "compat"
           ],
-          "line": 389,
+          "line": 390,
           "text": "class _NormCompat:"
         },
         {
           "keywords": [
             "compat"
           ],
-          "line": 398,
+          "line": 399,
           "text": "class _TCompat:"
         },
         {
           "keywords": [
             "compat"
           ],
-          "line": 407,
+          "line": 408,
           "text": "class _StatsCompat:"
         }
       ],
@@ -4269,35 +4496,35 @@
           "keywords": [
             "compat"
           ],
-          "line": 468,
+          "line": 467,
           "text": "compatible_families=tuple("
         },
         {
           "keywords": [
             "compat"
           ],
-          "line": 469,
+          "line": 468,
           "text": "str(x).strip().upper() for x in row.get(\"compatible_families\", []) or []"
         },
         {
           "keywords": [
             "compat"
           ],
-          "line": 799,
+          "line": 798,
           "text": "\"compatible_families\": list(spec.compatible_families),"
         },
         {
           "keywords": [
             "compat"
           ],
-          "line": 1055,
+          "line": 1054,
           "text": "compatible_families=tuple("
         },
         {
           "keywords": [
             "compat"
           ],
-          "line": 1056,
+          "line": 1055,
           "text": "str(item).strip().upper() for item in row.get(\"compatible_families\", []) if str(item).strip()"
         }
       ],
@@ -4356,28 +4583,28 @@
           "keywords": [
             "compat"
           ],
-          "line": 27,
-          "text": "def load_compatibility_spec() -> Dict[str, Any]:"
+          "line": 28,
+          "text": "def load_compatibility_spec() -> dict[str, Any]:"
         },
         {
           "keywords": [
             "compat"
           ],
-          "line": 28,
+          "line": 29,
           "text": "base = load_yaml_relative(\"spec/events/compatibility.yaml\")"
         },
         {
           "keywords": [
             "compat"
           ],
-          "line": 190,
-          "text": "compat_spec: Dict[str, Any] | None = None,"
+          "line": 191,
+          "text": "compat_spec: dict[str, Any] | None = None,"
         },
         {
           "keywords": [
             "compat"
           ],
-          "line": 201,
+          "line": 202,
           "text": "compat_spec, prec_spec : dict, optional"
         }
       ],
@@ -4396,28 +4623,28 @@
             "compat",
             "legacy"
           ],
-          "line": 38,
+          "line": 39,
           "text": "# Legacy compatibility surface used by proposal warnings and a few audits. This"
         },
         {
           "keywords": [
             "legacy"
           ],
-          "line": 40,
+          "line": 41,
           "text": "LEGACY_PROXY_TIER_EVENTS: frozenset[str] = frozenset("
         },
         {
           "keywords": [
             "legacy"
           ],
-          "line": 157,
+          "line": 158,
           "text": "return set(LEGACY_PROXY_TIER_EVENTS)"
         },
         {
           "keywords": [
             "compat"
           ],
-          "line": 169,
+          "line": 170,
           "text": "f\"{event_type} canonical proxy compatibility entry.\""
         },
         {
@@ -4425,7 +4652,7 @@
             "compat",
             "legacy"
           ],
-          "line": 183,
+          "line": 184,
           "text": "\"Generated compatibility registry for legacy proxy-tier event metadata.\""
         }
       ],
@@ -4444,35 +4671,35 @@
           "keywords": [
             "deprecated"
           ],
-          "line": 30,
+          "line": 31,
           "text": "\"deprecated\","
         },
         {
           "keywords": [
             "compat"
           ],
-          "line": 102,
+          "line": 103,
           "text": "# Re-alias for backward compatibility if needed, though we should migrate"
         },
         {
           "keywords": [
             "legacy"
           ],
-          "line": 271,
+          "line": 272,
           "text": "# Extract legacy top-level keys that aren't core or unified"
         },
         {
           "keywords": [
             "legacy"
           ],
-          "line": 272,
+          "line": 273,
           "text": "legacy_parameters = {"
         },
         {
           "keywords": [
             "legacy"
           ],
-          "line": 284,
+          "line": 285,
           "text": "effective_parameters.update(legacy_parameters)"
         }
       ],
@@ -4492,14 +4719,14 @@
           "keywords": [
             "not_supported"
           ],
-          "line": 27,
+          "line": 28,
           "text": "cooldown_semantics: str = \"not_supported\""
         },
         {
           "keywords": [
             "legacy"
           ],
-          "line": 28,
+          "line": 29,
           "text": "merge_key_strategy: str = \"legacy_event_id\""
         },
         {
@@ -4507,8 +4734,15 @@
             "compat",
             "legacy"
           ],
-          "line": 159,
+          "line": 160,
           "text": "# Post-process for legacy compatibility"
+        },
+        {
+          "keywords": [
+            "compat"
+          ],
+          "line": 169,
+          "text": "\"\"\"Compatibility entrypoint required by DetectorLogicContract."
         }
       ],
       "keywords": [
@@ -4516,7 +4750,7 @@
         "legacy",
         "not_supported"
       ],
-      "match_count": 3,
+      "match_count": 4,
       "path": "project/events/detectors/base.py",
       "recommended_action": "Keep only behind explicit compatibility switches or fixture-only helpers."
     },
@@ -4528,35 +4762,35 @@
             "compat",
             "legacy"
           ],
-          "line": 158,
+          "line": 162,
           "text": "\"\"\"Compatibility wrapper for legacy callers expecting BaseEventDetector.detect().\"\"\""
         },
         {
           "keywords": [
             "legacy"
           ],
-          "line": 165,
+          "line": 169,
           "text": "legacy = events.copy()"
         },
         {
           "keywords": [
             "legacy"
           ],
-          "line": 166,
+          "line": 170,
           "text": "legacy[\"event_type\"] = legacy[\"event_name\"]"
         },
         {
           "keywords": [
             "legacy"
           ],
-          "line": 167,
+          "line": 171,
           "text": "legacy[\"symbol\"] = legacy[\"symbol\"].fillna(symbol)"
         },
         {
           "keywords": [
             "legacy"
           ],
-          "line": 168,
+          "line": 172,
           "text": "legacy[\"timestamp\"] = pd.to_datetime(legacy[\"ts_start\"], utc=True, errors=\"coerce\")"
         }
       ],
@@ -4576,7 +4810,7 @@
             "compat",
             "legacy"
           ],
-          "line": 240,
+          "line": 241,
           "text": "\"\"\"Legacy polymorphic funding detector for backward compatibility.\"\"\""
         }
       ],
@@ -4629,21 +4863,21 @@
           "keywords": [
             "compat"
           ],
-          "line": 20,
+          "line": 19,
           "text": "def _load_compatibility_aliases() -> dict[str, str]:"
         },
         {
           "keywords": [
             "compat"
           ],
-          "line": 35,
+          "line": 34,
           "text": "EVENT_ALIASES = _load_compatibility_aliases()"
         },
         {
           "keywords": [
             "compat"
           ],
-          "line": 39,
+          "line": 38,
           "text": "def compatibility_event_aliases() -> tuple[str, ...]:"
         }
       ],
@@ -4662,14 +4896,14 @@
             "compat",
             "legacy"
           ],
-          "line": 172,
+          "line": 174,
           "text": "\"\"\"Legacy polymorphic OI shock detector for backward compatibility.\"\"\""
         },
         {
           "keywords": [
             "legacy"
           ],
-          "line": 293,
+          "line": 295,
           "text": "# Fallback for legacy polymorphic detector if not registered"
         }
       ],
@@ -4735,28 +4969,28 @@
           "keywords": [
             "compat"
           ],
-          "line": 29,
+          "line": 30,
           "text": "def write_parquet_compat("
         },
         {
           "keywords": [
             "compat"
           ],
-          "line": 50,
+          "line": 51,
           "text": "def read_parquet_compat("
         },
         {
           "keywords": [
             "compat"
           ],
-          "line": 103,
+          "line": 104,
           "text": "return write_parquet_compat("
         },
         {
           "keywords": [
             "compat"
           ],
-          "line": 117,
+          "line": 118,
           "text": "return read_parquet_compat("
         }
       ],
@@ -4774,7 +5008,7 @@
           "keywords": [
             "compat"
           ],
-          "line": 12,
+          "line": 13,
           "text": "from project.io.parquet_compat import read_parquet_compat, write_parquet_compat"
         },
         {
@@ -4782,28 +5016,28 @@
             "compat",
             "legacy"
           ],
-          "line": 472,
+          "line": 481,
           "text": "`.csv` reads remain supported for backward compatibility with legacy artifacts,"
         },
         {
           "keywords": [
             "compat"
           ],
-          "line": 525,
+          "line": 534,
           "text": "frame = read_parquet_compat(resolved_path, columns=columns)"
         },
         {
           "keywords": [
             "compat"
           ],
-          "line": 565,
+          "line": 574,
           "text": "native parquet engine is unavailable, or when the compatibility toggle is set,"
         },
         {
           "keywords": [
             "compat"
           ],
-          "line": 600,
+          "line": 609,
           "text": "write_parquet_compat(df, temp_path, index=False)"
         }
       ],
@@ -4822,15 +5056,36 @@
           "keywords": [
             "compat"
           ],
-          "line": 43,
-          "text": "Early signal of regime incompatibility."
+          "line": 5,
+          "text": "from project.core.exceptions import CompatibilityRequiredError, DataIntegrityError"
+        },
+        {
+          "keywords": [
+            "compat"
+          ],
+          "line": 67,
+          "text": "except (CompatibilityRequiredError, DataIntegrityError):"
+        },
+        {
+          "keywords": [
+            "compat"
+          ],
+          "line": 146,
+          "text": "paper_compatible = [\"paper_enabled\", \"paper_approved\", \"live_eligible\", \"live_enabled\"]"
+        },
+        {
+          "keywords": [
+            "compat"
+          ],
+          "line": 147,
+          "text": "if state not in paper_compatible:"
         }
       ],
       "keywords": [
         "compat"
       ],
-      "match_count": 1,
-      "path": "project/live/decay.py",
+      "match_count": 4,
+      "path": "project/live/deploy_admission.py",
       "recommended_action": "Keep only behind explicit compatibility switches or fixture-only helpers."
     },
     {
@@ -4840,28 +5095,28 @@
           "keywords": [
             "compat"
           ],
-          "line": 42,
+          "line": 38,
           "text": "# Backwards compatible single-symbol mode"
         },
         {
           "keywords": [
             "compat"
           ],
-          "line": 173,
+          "line": 169,
           "text": "# Back-compat"
         },
         {
           "keywords": [
             "compat"
           ],
-          "line": 182,
+          "line": 178,
           "text": "# Back-compat"
         },
         {
           "keywords": [
             "compat"
           ],
-          "line": 296,
+          "line": 292,
           "text": "# Back-compat"
         },
         {
@@ -4869,7 +5124,7 @@
             "compat",
             "legacy"
           ],
-          "line": 319,
+          "line": 315,
           "text": "# legacy names (keep for downstream compatibility)"
         }
       ],
@@ -4886,36 +5141,10 @@
       "evidence": [
         {
           "keywords": [
-            "legacy"
-          ],
-          "line": 6,
-          "text": "them to partitioned Parquet files.  Unlike the legacy ``ingest_binance_um_ohlcv_1m.py``"
-        },
-        {
-          "keywords": [
-            "compat"
-          ],
-          "line": 55,
-          "text": "from project.io.http_utils import download_with_retries  # retained for backward compatibility"
-        }
-      ],
-      "keywords": [
-        "compat",
-        "legacy"
-      ],
-      "match_count": 2,
-      "path": "project/pipelines/ingest/ingest_binance_um_ohlcv.py",
-      "recommended_action": "Keep only behind explicit compatibility switches or fixture-only helpers."
-    },
-    {
-      "category": "compat_surface",
-      "evidence": [
-        {
-          "keywords": [
             "compat",
             "legacy"
           ],
-          "line": 39,
+          "line": 40,
           "text": "# Legacy per-event phase-2 stage names remain only for compatibility with"
         }
       ],
@@ -4952,54 +5181,36 @@
           "keywords": [
             "legacy"
           ],
-          "line": 8,
-          "text": "LEGACY_AGENT_PROPOSAL_FIELDS,"
-        }
-      ],
-      "keywords": [
-        "legacy"
-      ],
-      "match_count": 1,
-      "path": "project/research/agent_io/compatibility.py",
-      "recommended_action": "Keep only behind explicit compatibility switches or fixture-only helpers."
-    },
-    {
-      "category": "compat_surface",
-      "evidence": [
-        {
-          "keywords": [
-            "legacy"
-          ],
-          "line": 22,
-          "text": "STATE_ANCHOR_LEGACY_EXECUTION_ONLY,"
-        },
-        {
-          "keywords": [
-            "legacy"
-          ],
-          "line": 27,
+          "line": 24,
           "text": "# Legacy fields identification"
         },
         {
           "keywords": [
             "legacy"
           ],
-          "line": 28,
+          "line": 25,
           "text": "LEGACY_AGENT_PROPOSAL_FIELDS = ("
         },
         {
           "keywords": [
             "legacy"
           ],
-          "line": 500,
+          "line": 497,
           "text": "mixed_legacy_fields = [field for field in LEGACY_AGENT_PROPOSAL_FIELDS if field in raw]"
         },
         {
           "keywords": [
             "legacy"
           ],
-          "line": 501,
+          "line": 498,
           "text": "if mixed_legacy_fields:"
+        },
+        {
+          "keywords": [
+            "legacy"
+          ],
+          "line": 500,
+          "text": "\"single-hypothesis proposals must not include legacy AgentProposal fields: \""
         }
       ],
       "keywords": [
@@ -5007,7 +5218,7 @@
         "deprecated",
         "legacy"
       ],
-      "match_count": 61,
+      "match_count": 60,
       "path": "project/research/agent_io/proposal_schema.py",
       "recommended_action": "Keep only behind explicit compatibility switches or fixture-only helpers."
     },
@@ -5018,7 +5229,7 @@
           "keywords": [
             "compat"
           ],
-          "line": 136,
+          "line": 132,
           "text": "# Rename columns for detector compatibility"
         }
       ],
@@ -5092,7 +5303,7 @@
           "keywords": [
             "compat"
           ],
-          "line": 103,
+          "line": 104,
           "text": "_validate_instrument_compatibility(request, registries)"
         }
       ],
@@ -5110,42 +5321,28 @@
           "keywords": [
             "compat"
           ],
-          "line": 176,
+          "line": 177,
           "text": "# Check trigger type compatibility"
         },
         {
           "keywords": [
             "compat"
           ],
-          "line": 183,
+          "line": 184,
           "text": "def _validate_instrument_compatibility("
         },
         {
           "keywords": [
             "compat"
           ],
-          "line": 399,
-          "text": "# Filter hypotheses that are incompatible with the template-family contract."
-        },
-        {
-          "keywords": [
-            "compat"
-          ],
-          "line": 404,
-          "text": "incompatible_pairs: set[tuple[str, str]] = set()"
-        },
-        {
-          "keywords": [
-            "compat"
-          ],
-          "line": 407,
-          "text": "if not result.valid and \"incompatible_template_family\" in result.reasons:"
+          "line": 402,
+          "text": "# logged template-family incompatibilities; the report is consumed by"
         }
       ],
       "keywords": [
         "compat"
       ],
-      "match_count": 14,
+      "match_count": 3,
       "path": "project/research/experiment_engine_validators.py",
       "recommended_action": "Keep only behind explicit compatibility switches or fixture-only helpers."
     },
@@ -5156,21 +5353,21 @@
           "keywords": [
             "compat"
           ],
-          "line": 792,
+          "line": 793,
           "text": "# Vectorized: use scipy when present; otherwise use compatibility fallback."
         },
         {
           "keywords": [
             "compat"
           ],
-          "line": 796,
+          "line": 797,
           "text": "from project.core.stats import stats as _stats_compat"
         },
         {
           "keywords": [
             "compat"
           ],
-          "line": 798,
+          "line": 799,
           "text": "_scipy_t = _stats_compat.t"
         }
       ],
@@ -5197,7 +5394,7 @@
             "compat",
             "legacy"
           ],
-          "line": 58,
+          "line": 56,
           "text": "# Legacy Compatibility"
         }
       ],
@@ -5216,35 +5413,35 @@
           "keywords": [
             "compat"
           ],
-          "line": 810,
+          "line": 808,
           "text": "\"compat_event_family\": str(thesis.event_family or \"\").strip().upper(),"
         },
         {
           "keywords": [
             "compat"
           ],
-          "line": 1355,
+          "line": 1353,
           "text": "compatibility_mode: bool = False,"
         },
         {
           "keywords": [
             "compat"
           ],
-          "line": 1380,
+          "line": 1378,
           "text": "compatibility_mode=compatibility_mode,"
         },
         {
           "keywords": [
             "compat"
           ],
-          "line": 1397,
+          "line": 1395,
           "text": "strict=not compatibility_mode,"
         },
         {
           "keywords": [
             "compat"
           ],
-          "line": 1398,
+          "line": 1396,
           "text": "compatibility_mode=compatibility_mode,"
         }
       ],
@@ -5263,14 +5460,14 @@
             "compat",
             "legacy"
           ],
-          "line": 265,
+          "line": 264,
           "text": "# Backward compatibility aliases for legacy column names"
         },
         {
           "keywords": [
             "deprecated"
           ],
-          "line": 280,
+          "line": 279,
           "text": "[DEPRECATED] Use apply_canonical_cross_campaign_multiplicity instead."
         },
         {
@@ -5278,7 +5475,7 @@
             "compat",
             "legacy"
           ],
-          "line": 282,
+          "line": 281,
           "text": "Legacy batch cross-campaign FDR helper. Kept for backward compatibility."
         }
       ],
@@ -5298,35 +5495,35 @@
           "keywords": [
             "compat"
           ],
-          "line": 126,
+          "line": 127,
           "text": "\"\"\"Validate that a template verb is compatible with an event family.\"\"\""
         },
         {
           "keywords": [
             "compat"
           ],
-          "line": 130,
+          "line": 131,
           "text": "compatible = op.get(\"compatible_families\", [])"
         },
         {
           "keywords": [
             "compat"
           ],
-          "line": 131,
+          "line": 132,
           "text": "if isinstance(compatible, list) and compatible:"
         },
         {
           "keywords": [
             "compat"
           ],
-          "line": 132,
+          "line": 133,
           "text": "allowed = {str(x).strip().upper() for x in compatible if str(x).strip()}"
         },
         {
           "keywords": [
             "compat"
           ],
-          "line": 135,
+          "line": 136,
           "text": "f\"Template verb {template_verb} is incompatible with family {canonical_family}; \""
         }
       ],
@@ -5344,6 +5541,91 @@
       "evidence": [
         {
           "keywords": [
+            "compat"
+          ],
+          "line": 13,
+          "text": "payload = load_yaml_relative(\"spec/compatibility/event_template_matrix.yaml\")"
+        },
+        {
+          "keywords": [
+            "compat"
+          ],
+          "line": 65,
+          "text": "def validate_event_template_compatibility(spec: HypothesisSpec) -> list[str]:"
+        },
+        {
+          "keywords": [
+            "compat"
+          ],
+          "line": 87,
+          "text": "f\"event-template compatibility forbids {event_id} x {spec.template_id}\""
+        },
+        {
+          "keywords": [
+            "compat"
+          ],
+          "line": 97,
+          "text": "\"event-template compatibility requires context \""
+        },
+        {
+          "keywords": [
+            "compat"
+          ],
+          "line": 108,
+          "text": "\"event-template compatibility forbids context \""
+        }
+      ],
+      "keywords": [
+        "compat"
+      ],
+      "match_count": 5,
+      "path": "project/research/search/compatibility.py",
+      "recommended_action": "Keep only behind explicit compatibility switches or fixture-only helpers."
+    },
+    {
+      "category": "compat_surface",
+      "evidence": [
+        {
+          "keywords": [
+            "compat"
+          ],
+          "line": 14,
+          "text": "from project.research.search.compatibility import validate_event_template_compatibility"
+        },
+        {
+          "keywords": [
+            "compat"
+          ],
+          "line": 149,
+          "text": "errors = validate_event_template_compatibility(spec)"
+        },
+        {
+          "keywords": [
+            "compat"
+          ],
+          "line": 269,
+          "text": "details[\"compat_event_family\"] = _event_family(spec, registry)"
+        },
+        {
+          "keywords": [
+            "compat"
+          ],
+          "line": 270,
+          "text": "details[\"family\"] = details[\"compat_event_family\"]"
+        }
+      ],
+      "keywords": [
+        "compat"
+      ],
+      "match_count": 4,
+      "path": "project/research/search/feasibility.py",
+      "recommended_action": "Keep only behind explicit compatibility switches or fixture-only helpers."
+    },
+    {
+      "category": "compat_surface",
+      "evidence": [
+        {
+          "keywords": [
             "compat",
             "legacy"
           ],
@@ -5354,8 +5636,8 @@
           "keywords": [
             "compat"
           ],
-          "line": 17,
-          "text": "from project.core.config import get_data_root  # noqa: F401 - retained for test/plugin monkeypatch compatibility"
+          "line": 19,
+          "text": "get_data_root,  # noqa: F401 - retained for test/plugin monkeypatch compatibility"
         }
       ],
       "keywords": [
@@ -5399,35 +5681,35 @@
           "keywords": [
             "compat"
           ],
-          "line": 16,
+          "line": 17,
           "text": "CompatibilityRequiredError,"
         },
         {
           "keywords": [
             "compat"
           ],
-          "line": 417,
+          "line": 497,
           "text": "diagnostics[\"compat_mode_used\"] = False"
         },
         {
           "keywords": [
             "compat"
           ],
-          "line": 418,
+          "line": 498,
           "text": "diagnostics[\"compat_reason\"] = \"\""
         },
         {
           "keywords": [
             "compat"
           ],
-          "line": 419,
+          "line": 499,
           "text": "diagnostics[\"compat_source_artifacts\"] = []"
         },
         {
           "keywords": [
             "compat"
           ],
-          "line": 426,
+          "line": 506,
           "text": "compatibility_mode=False,"
         }
       ],
@@ -5524,7 +5806,7 @@
           "keywords": [
             "compat"
           ],
-          "line": 11,
+          "line": 17,
           "text": "CompatibilityRequiredError,"
         },
         {
@@ -5538,21 +5820,21 @@
           "keywords": [
             "compat"
           ],
-          "line": 276,
+          "line": 275,
           "text": "compatibility_mode: bool = False,"
         },
         {
           "keywords": [
             "compat"
           ],
-          "line": 289,
+          "line": 288,
           "text": "if strict and not compatibility_mode:"
         },
         {
           "keywords": [
             "compat"
           ],
-          "line": 304,
+          "line": 303,
           "text": "if strict and not compatibility_mode:"
         }
       ],
@@ -5589,35 +5871,35 @@
           "keywords": [
             "deprecated"
           ],
-          "line": 20,
+          "line": 21,
           "text": "\"deprecated\","
         },
         {
           "keywords": [
             "deprecated"
           ],
-          "line": 291,
+          "line": 292,
           "text": "if bool(payload.get(\"deprecated\", False)) or not bool(payload.get(\"active\", True)):"
         },
         {
           "keywords": [
             "legacy"
           ],
-          "line": 324,
+          "line": 325,
           "text": "legacy_top_level = {"
         },
         {
           "keywords": [
             "legacy"
           ],
-          "line": 329,
+          "line": 330,
           "text": "merged_event_params = dict(legacy_top_level)"
         },
         {
           "keywords": [
             "deprecated"
           ],
-          "line": 494,
+          "line": 525,
           "text": "if not bool(row.get(\"active\", True)) or bool(row.get(\"deprecated\", False)):"
         }
       ],
@@ -5655,35 +5937,53 @@
           "keywords": [
             "compat"
           ],
-          "line": 59,
-          "text": "events_with_templates_outside_operator_compatibility: Dict[str, Dict[str, Any]] = {}"
+          "line": 60,
+          "text": "\"Fix data coverage, event/template compatibility, or search-space feasibility first.\","
+        }
+      ],
+      "keywords": [
+        "compat"
+      ],
+      "match_count": 1,
+      "path": "project/scripts/discover_doctor.py",
+      "recommended_action": "Keep only behind explicit compatibility switches or fixture-only helpers."
+    },
+    {
+      "category": "compat_surface",
+      "evidence": [
+        {
+          "keywords": [
+            "compat"
+          ],
+          "line": 60,
+          "text": "events_with_templates_outside_operator_compatibility: dict[str, dict[str, Any]] = {}"
         },
         {
           "keywords": [
             "compat"
           ],
-          "line": 95,
+          "line": 96,
           "text": "incompatible_templates: list[str] = []"
         },
         {
           "keywords": [
             "compat"
           ],
-          "line": 98,
+          "line": 99,
           "text": "compatible_families = set(operator.compatible_families) if operator is not None else set()"
         },
         {
           "keywords": [
             "compat"
           ],
-          "line": 99,
+          "line": 100,
           "text": "if operator is not None and compatible_families and family_candidates.isdisjoint(compatible_families):"
         },
         {
           "keywords": [
             "compat"
           ],
-          "line": 100,
+          "line": 101,
           "text": "incompatible_templates.append(template_id)"
         }
       ],
@@ -5701,7 +6001,25 @@
           "keywords": [
             "compat"
           ],
-          "line": 158,
+          "line": 9,
+          "text": "matrix_path = repo_root / \"spec\" / \"compatibility\" / \"event_template_matrix.yaml\""
+        }
+      ],
+      "keywords": [
+        "compat"
+      ],
+      "match_count": 1,
+      "path": "project/scripts/find_missing_matrix_entries.py",
+      "recommended_action": "Keep only behind explicit compatibility switches or fixture-only helpers."
+    },
+    {
+      "category": "compat_surface",
+      "evidence": [
+        {
+          "keywords": [
+            "compat"
+          ],
+          "line": 157,
           "text": "\"compatibility\","
         }
       ],
@@ -5719,7 +6037,7 @@
           "keywords": [
             "compat"
           ],
-          "line": 9,
+          "line": 13,
           "text": "from project.core.exceptions import CompatibilityRequiredError"
         },
         {
@@ -5773,28 +6091,28 @@
           "keywords": [
             "compat"
           ],
-          "line": 228,
+          "line": 364,
           "text": "# 3. Template incompatibility incidents"
         },
         {
           "keywords": [
             "compat"
           ],
-          "line": 230,
-          "text": "lines += [\"## Template incompatibility warnings (estimated_hypothesis_count = 0)\", \"\"]"
+          "line": 366,
+          "text": "lines += [\"### Template incompatibility warnings (estimated_hypothesis_count = 0)\", \"\"]"
         },
         {
           "keywords": [
             "compat"
           ],
-          "line": 294,
-          "text": "## [2026-04-17] Template-family incompatibility: the silent failure"
+          "line": 430,
+          "text": "### [2026-04-17] Template-family incompatibility: the silent failure"
         },
         {
           "keywords": [
             "compat"
           ],
-          "line": 296,
+          "line": 432,
           "text": "`check_hypothesis_feasibility` drops incompatible hypotheses at plan time with no visible error."
         }
       ],
@@ -5812,7 +6130,25 @@
           "keywords": [
             "compat"
           ],
-          "line": 53,
+          "line": 91,
+          "text": "matrix_path = \"spec/compatibility/event_template_matrix.yaml\""
+        }
+      ],
+      "keywords": [
+        "compat"
+      ],
+      "match_count": 1,
+      "path": "project/spec_validation/templates.py",
+      "recommended_action": "Keep only behind explicit compatibility switches or fixture-only helpers."
+    },
+    {
+      "category": "compat_surface",
+      "evidence": [
+        {
+          "keywords": [
+            "compat"
+          ],
+          "line": 54,
           "text": "appropriate.  Unknown fields are allowed to preserve forward compatibility."
         }
       ],
@@ -5839,6 +6175,42 @@
       ],
       "match_count": 1,
       "path": "project/strategy/dsl/schema_v2.py",
+      "recommended_action": "Keep only behind explicit compatibility switches or fixture-only helpers."
+    },
+    {
+      "category": "compat_surface",
+      "evidence": [
+        {
+          "keywords": [
+            "stale"
+          ],
+          "line": 39,
+          "text": "stale:"
+        }
+      ],
+      "keywords": [
+        "stale"
+      ],
+      "match_count": 1,
+      "path": "spec/compatibility/context_template_matrix.yaml",
+      "recommended_action": "Keep only behind explicit compatibility switches or fixture-only helpers."
+    },
+    {
+      "category": "compat_surface",
+      "evidence": [
+        {
+          "keywords": [
+            "compat"
+          ],
+          "line": 5,
+          "text": "compatibility_states: [allowed, allowed_with_required_context, research_only, forbidden]"
+        }
+      ],
+      "keywords": [
+        "compat"
+      ],
+      "match_count": 1,
+      "path": "spec/compatibility/event_template_matrix.yaml",
       "recommended_action": "Keep only behind explicit compatibility switches or fixture-only helpers."
     },
     {
@@ -5937,34 +6309,13 @@
           ],
           "line": 5,
           "text": "notes: Generated compatibility registry for legacy proxy-tier event metadata."
-        },
-        {
-          "keywords": [
-            "compat"
-          ],
-          "line": 20,
-          "text": "description: FORCED_FLOW_EXHAUSTION canonical proxy compatibility entry."
-        },
-        {
-          "keywords": [
-            "compat"
-          ],
-          "line": 24,
-          "text": "description: ORDERFLOW_IMBALANCE_SHOCK canonical proxy compatibility entry."
-        },
-        {
-          "keywords": [
-            "compat"
-          ],
-          "line": 28,
-          "text": "description: SWEEP_STOPRUN canonical proxy compatibility entry."
         }
       ],
       "keywords": [
         "compat",
         "legacy"
       ],
-      "match_count": 4,
+      "match_count": 1,
       "path": "spec/events/canonical_event_registry.yaml",
       "recommended_action": "Keep only behind explicit compatibility switches or fixture-only helpers."
     },
@@ -6061,14 +6412,14 @@
           "keywords": [
             "stale"
           ],
-          "line": 1135,
+          "line": 1161,
           "text": "- Stale reference feed: spread inflation is a data artifact"
         },
         {
           "keywords": [
             "stale"
           ],
-          "line": 1144,
+          "line": 1170,
           "text": "- Single-asset shock incorrectly joined to a stale paired series"
         }
       ],
@@ -6077,7 +6428,7 @@
         "legacy",
         "stale"
       ],
-      "match_count": 6,
+      "match_count": 17,
       "path": "spec/events/event_registry_unified.yaml",
       "recommended_action": "Keep only behind explicit compatibility switches or fixture-only helpers."
     },
@@ -6097,6 +6448,24 @@
       ],
       "match_count": 1,
       "path": "spec/events/regime_routing.yaml",
+      "recommended_action": "Keep only behind explicit compatibility switches or fixture-only helpers."
+    },
+    {
+      "category": "compat_surface",
+      "evidence": [
+        {
+          "keywords": [
+            "compat"
+          ],
+          "line": 6,
+          "text": "#   compatibility metadata only."
+        }
+      ],
+      "keywords": [
+        "compat"
+      ],
+      "match_count": 1,
+      "path": "spec/grammar/family_registry.yaml",
       "recommended_action": "Keep only behind explicit compatibility switches or fixture-only helpers."
     },
     {
@@ -6188,6 +6557,204 @@
       "evidence": [
         {
           "keywords": [
+            "compat"
+          ],
+          "line": 26,
+          "text": "reason: \"Benchmark spec intentionally uses the abstract mean_reversion family for compatibility/regression coverage; not a promotion search surface.\""
+        }
+      ],
+      "keywords": [
+        "compat"
+      ],
+      "match_count": 1,
+      "path": "spec/search/search_benchmark_basis_disloc_synth.yaml",
+      "recommended_action": "Keep only behind explicit compatibility switches or fixture-only helpers."
+    },
+    {
+      "category": "compat_surface",
+      "evidence": [
+        {
+          "keywords": [
+            "compat"
+          ],
+          "line": 28,
+          "text": "reason: \"Benchmark spec intentionally uses the abstract mean_reversion family for compatibility/regression coverage; not a promotion search surface.\""
+        }
+      ],
+      "keywords": [
+        "compat"
+      ],
+      "match_count": 1,
+      "path": "spec/search/search_benchmark_execution.yaml",
+      "recommended_action": "Keep only behind explicit compatibility switches or fixture-only helpers."
+    },
+    {
+      "category": "compat_surface",
+      "evidence": [
+        {
+          "keywords": [
+            "compat"
+          ],
+          "line": 26,
+          "text": "reason: \"Benchmark spec intentionally uses the abstract mean_reversion family for compatibility/regression coverage; not a promotion search surface.\""
+        }
+      ],
+      "keywords": [
+        "compat"
+      ],
+      "match_count": 1,
+      "path": "spec/search/search_benchmark_false_breakout.yaml",
+      "recommended_action": "Keep only behind explicit compatibility switches or fixture-only helpers."
+    },
+    {
+      "category": "compat_surface",
+      "evidence": [
+        {
+          "keywords": [
+            "compat"
+          ],
+          "line": 28,
+          "text": "reason: \"Benchmark spec intentionally uses the abstract mean_reversion family for compatibility/regression coverage; not a promotion search surface.\""
+        }
+      ],
+      "keywords": [
+        "compat"
+      ],
+      "match_count": 1,
+      "path": "spec/search/search_benchmark_false_breakout_quality_boundary.yaml",
+      "recommended_action": "Keep only behind explicit compatibility switches or fixture-only helpers."
+    },
+    {
+      "category": "compat_surface",
+      "evidence": [
+        {
+          "keywords": [
+            "compat"
+          ],
+          "line": 25,
+          "text": "reason: \"Benchmark spec intentionally uses the abstract mean_reversion family for compatibility/regression coverage; not a promotion search surface.\""
+        }
+      ],
+      "keywords": [
+        "compat"
+      ],
+      "match_count": 1,
+      "path": "spec/search/search_benchmark_fnd_disloc.yaml",
+      "recommended_action": "Keep only behind explicit compatibility switches or fixture-only helpers."
+    },
+    {
+      "category": "compat_surface",
+      "evidence": [
+        {
+          "keywords": [
+            "compat"
+          ],
+          "line": 26,
+          "text": "reason: \"Benchmark spec intentionally uses the abstract mean_reversion family for compatibility/regression coverage; not a promotion search surface.\""
+        }
+      ],
+      "keywords": [
+        "compat"
+      ],
+      "match_count": 1,
+      "path": "spec/search/search_benchmark_liquidity_gap.yaml",
+      "recommended_action": "Keep only behind explicit compatibility switches or fixture-only helpers."
+    },
+    {
+      "category": "compat_surface",
+      "evidence": [
+        {
+          "keywords": [
+            "compat"
+          ],
+          "line": 24,
+          "text": "reason: \"Benchmark spec intentionally uses the abstract mean_reversion family for compatibility/regression coverage; not a promotion search surface.\""
+        }
+      ],
+      "keywords": [
+        "compat"
+      ],
+      "match_count": 1,
+      "path": "spec/search/search_benchmark_liquidity_vacuum.yaml",
+      "recommended_action": "Keep only behind explicit compatibility switches or fixture-only helpers."
+    },
+    {
+      "category": "compat_surface",
+      "evidence": [
+        {
+          "keywords": [
+            "compat"
+          ],
+          "line": 26,
+          "text": "reason: \"Benchmark spec intentionally uses the abstract mean_reversion family for compatibility/regression coverage; not a promotion search surface.\""
+        }
+      ],
+      "keywords": [
+        "compat"
+      ],
+      "match_count": 1,
+      "path": "spec/search/search_benchmark_positioning.yaml",
+      "recommended_action": "Keep only behind explicit compatibility switches or fixture-only helpers."
+    },
+    {
+      "category": "compat_surface",
+      "evidence": [
+        {
+          "keywords": [
+            "compat"
+          ],
+          "line": 28,
+          "text": "reason: \"Benchmark spec intentionally uses the abstract mean_reversion family for compatibility/regression coverage; not a promotion search surface.\""
+        }
+      ],
+      "keywords": [
+        "compat"
+      ],
+      "match_count": 1,
+      "path": "spec/search/search_benchmark_positioning_v2.yaml",
+      "recommended_action": "Keep only behind explicit compatibility switches or fixture-only helpers."
+    },
+    {
+      "category": "compat_surface",
+      "evidence": [
+        {
+          "keywords": [
+            "compat"
+          ],
+          "line": 25,
+          "text": "reason: \"Benchmark spec intentionally uses the abstract continuation family for compatibility/regression coverage; not a promotion search surface.\""
+        }
+      ],
+      "keywords": [
+        "compat"
+      ],
+      "match_count": 1,
+      "path": "spec/search/search_benchmark_vol_shock.yaml",
+      "recommended_action": "Keep only behind explicit compatibility switches or fixture-only helpers."
+    },
+    {
+      "category": "compat_surface",
+      "evidence": [
+        {
+          "keywords": [
+            "compat"
+          ],
+          "line": 26,
+          "text": "reason: \"Benchmark spec intentionally uses the abstract mean_reversion family for compatibility/regression coverage; not a promotion search surface.\""
+        }
+      ],
+      "keywords": [
+        "compat"
+      ],
+      "match_count": 1,
+      "path": "spec/search/search_benchmark_zscore_stretch_live.yaml",
+      "recommended_action": "Keep only behind explicit compatibility switches or fixture-only helpers."
+    },
+    {
+      "category": "compat_surface",
+      "evidence": [
+        {
+          "keywords": [
             "legacy"
           ],
           "line": 9,
@@ -6204,21 +6771,21 @@
           "keywords": [
             "compat"
           ],
-          "line": 1202,
+          "line": 1201,
           "text": "compatible_families:"
         },
         {
           "keywords": [
             "compat"
           ],
-          "line": 1225,
+          "line": 1224,
           "text": "compatible_families:"
         },
         {
           "keywords": [
             "compat"
           ],
-          "line": 1257,
+          "line": 1256,
           "text": "compatible_families:"
         }
       ],
@@ -6226,7 +6793,7 @@
         "compat",
         "legacy"
       ],
-      "match_count": 31,
+      "match_count": 34,
       "path": "spec/templates/event_template_registry.yaml",
       "recommended_action": "Keep only behind explicit compatibility switches or fixture-only helpers."
     },
@@ -6251,21 +6818,21 @@
           "keywords": [
             "compat"
           ],
-          "line": 1129,
+          "line": 1128,
           "text": "compatible_families:"
         },
         {
           "keywords": [
             "compat"
           ],
-          "line": 1152,
+          "line": 1151,
           "text": "compatible_families:"
         },
         {
           "keywords": [
             "compat"
           ],
-          "line": 1184,
+          "line": 1183,
           "text": "compatible_families:"
         }
       ],
@@ -6273,7 +6840,7 @@
         "compat",
         "legacy"
       ],
-      "match_count": 31,
+      "match_count": 34,
       "path": "spec/templates/registry.yaml",
       "recommended_action": "Keep only behind explicit compatibility switches or fixture-only helpers."
     },
@@ -6284,14 +6851,14 @@
           "keywords": [
             "stale"
           ],
-          "line": 55,
+          "line": 53,
           "text": "If stale, rebuild it:"
         },
         {
           "keywords": [
             "legacy"
           ],
-          "line": 80,
+          "line": 79,
           "text": "## Supported vs Legacy"
         },
         {
@@ -6299,21 +6866,21 @@
             "compat",
             "legacy"
           ],
-          "line": 84,
+          "line": 83,
           "text": "Compatibility surfaces are legacy artifact readers behind explicit switches,"
         },
         {
           "keywords": [
             "deprecated"
           ],
-          "line": 87,
+          "line": 86,
           "text": "downstream schema repair are deprecated."
         },
         {
           "keywords": [
             "blocked until"
           ],
-          "line": 96,
+          "line": 95,
           "text": "`EXECUTE=1` is blocked until the offline parquet execution gate is repaired."
         }
       ],
@@ -6361,35 +6928,35 @@
           "keywords": [
             "legacy"
           ],
-          "line": 129,
+          "line": 131,
           "text": "Canonical proposal loading rejects legacy proposal formats. Legacy and single-hypothesis normalization helpers still exist, but `load_operator_proposal()` accepts only the structured hypothesis path."
         },
         {
           "keywords": [
             "deprecated"
           ],
-          "line": 139,
+          "line": 141,
           "text": "State anchors are deprecated as primary anchors and are rejected on the structured execution path. Feature-crossing anchors can be normalized but are not currently accepted by strict structured execution."
         },
         {
           "keywords": [
             "compat"
           ],
-          "line": 181,
+          "line": 183,
           "text": "- Instrument compatibility."
         },
         {
           "keywords": [
             "compat"
           ],
-          "line": 185,
+          "line": 187,
           "text": "- Event/template family compatibility."
         },
         {
           "keywords": [
             "compat"
           ],
-          "line": 187,
+          "line": 189,
           "text": "Incompatible event/template hypotheses are dropped before evaluation. Always inspect:"
         }
       ],
@@ -6400,24 +6967,6 @@
       ],
       "match_count": 6,
       "path": "docs/lifecycle/discover.md",
-      "recommended_action": "Review for stale guidance; either update, mark historical, or remove."
-    },
-    {
-      "category": "doc_review",
-      "evidence": [
-        {
-          "keywords": [
-            "compat"
-          ],
-          "line": 17,
-          "text": "not mark it compatible with `POSITIONING_EXTREMES`, the family used by the two"
-        }
-      ],
-      "keywords": [
-        "compat"
-      ],
-      "match_count": 1,
-      "path": "docs/lifecycle/funding-template-discovery-2023-2025.md",
       "recommended_action": "Review for stale guidance; either update, mark historical, or remove."
     },
     {
@@ -6476,23 +7025,41 @@
       "evidence": [
         {
           "keywords": [
+            "compat"
+          ],
+          "line": 146,
+          "text": "| `validated_plan.json` has `estimated_hypothesis_count == 0` | Inspect event/template compatibility; use `explain-empty` |"
+        }
+      ],
+      "keywords": [
+        "compat"
+      ],
+      "match_count": 1,
+      "path": "docs/operator/discover-edge.md",
+      "recommended_action": "Review for stale guidance; either update, mark historical, or remove."
+    },
+    {
+      "category": "doc_review",
+      "evidence": [
+        {
+          "keywords": [
             "stale"
           ],
-          "line": 21,
+          "line": 20,
           "text": "If the domain graph is stale:"
         },
         {
           "keywords": [
             "compat"
           ],
-          "line": 70,
+          "line": 69,
           "text": "- event/template compatibility is invalid"
         },
         {
           "keywords": [
             "compat"
           ],
-          "line": 255,
+          "line": 254,
           "text": "- check event/template compatibility"
         }
       ],
@@ -6502,6 +7069,32 @@
       ],
       "match_count": 3,
       "path": "docs/operator/runbook.md",
+      "recommended_action": "Review for stale guidance; either update, mark historical, or remove."
+    },
+    {
+      "category": "doc_review",
+      "evidence": [
+        {
+          "keywords": [
+            "legacy"
+          ],
+          "line": 257,
+          "text": "- `project/research/search/feasibility.py` returns `FeasibilityReport`; `validate_agent_request` raises `FeasibilityError` if surviving < `min_feasible`. Both paths covered (experiment-config and legacy proposal)."
+        },
+        {
+          "keywords": [
+            "compat"
+          ],
+          "line": 444,
+          "text": "- Backwards-compat: keep `t_stat_net` and `q_value` as informational columns for one release."
+        }
+      ],
+      "keywords": [
+        "compat",
+        "legacy"
+      ],
+      "match_count": 2,
+      "path": "docs/plans/plan.md",
       "recommended_action": "Review for stale guidance; either update, mark historical, or remove."
     },
     {
@@ -6597,6 +7190,150 @@
       "recommended_action": "Review for stale guidance; either update, mark historical, or remove."
     },
     {
+      "category": "doc_review",
+      "evidence": [
+        {
+          "keywords": [
+            "legacy"
+          ],
+          "line": 15,
+          "text": "The legacy `trend_fail_v1_2021` cell"
+        },
+        {
+          "keywords": [
+            "stale"
+          ],
+          "line": 75,
+          "text": "from the old scoreboard. Treat the old row as stale cell-scoreboard evidence"
+        },
+        {
+          "keywords": [
+            "compat"
+          ],
+          "line": 125,
+          "text": "Global lake rebuilt (72 files: BTC 2022-2024, ETH 2022-2024). FALSE_BREAKOUT template also fixed (TREND_STRUCTURE family; `false_breakout_reversal` + `continuation` replace the incompatible `mean_reversion` + `exhaustion"
+        },
+        {
+          "keywords": [
+            "compat"
+          ],
+          "line": 179,
+          "text": "SLIPPAGE_SPIKE_EVENT (EXECUTION_FRICTION family) was run with `mean_reversion` template \u2014 incompatible per the registry (EXECUTION_FRICTION only supports `slippage_aware_filter` + `tail_risk_avoid`). The result: t=2.99, "
+        },
+        {
+          "keywords": [
+            "compat"
+          ],
+          "line": 181,
+          "text": "High t with low robustness on an incompatible template is the fingerprint of a mismatch artifact. The `mean_reversion` feature (rv_pct_17280 threshold) is orthogonal to execution friction events, so the cell is testing n"
+        }
+      ],
+      "keywords": [
+        "compat",
+        "legacy",
+        "stale"
+      ],
+      "match_count": 8,
+      "path": "docs/research/reflections.md",
+      "recommended_action": "Review for stale guidance; either update, mark historical, or remove."
+    },
+    {
+      "category": "doc_review",
+      "evidence": [
+        {
+          "keywords": [
+            "legacy"
+          ],
+          "line": 8,
+          "text": "1. **Import Realignment:** We will fix the redirection of key functions that moved to `project/core` but are still being imported from legacy locations (research/engine)."
+        },
+        {
+          "keywords": [
+            "legacy"
+          ],
+          "line": 40,
+          "text": "git commit -am \"refactor: realign core imports from legacy locations\""
+        }
+      ],
+      "keywords": [
+        "legacy"
+      ],
+      "match_count": 2,
+      "path": "docs/superpowers/plans/2026-04-24-tech-debt-cleanup-phase3.md",
+      "recommended_action": "Review for stale guidance; either update, mark historical, or remove."
+    },
+    {
+      "category": "doc_review",
+      "evidence": [
+        {
+          "keywords": [
+            "compat"
+          ],
+          "line": 9,
+          "text": "- **Admission Hardening:** Remove `paper_only` from simulation-compatible states (strict ladder)."
+        },
+        {
+          "keywords": [
+            "compat"
+          ],
+          "line": 40,
+          "text": "- [ ] **Step 1: Remove `paper_only` from simulation-compatible states in `deploy_admission.py`**"
+        },
+        {
+          "keywords": [
+            "compat"
+          ],
+          "line": 44,
+          "text": "paper_compatible = [\"paper_enabled\", \"paper_approved\", \"live_eligible\", \"live_enabled\"] # Removed paper_only"
+        },
+        {
+          "keywords": [
+            "compat"
+          ],
+          "line": 45,
+          "text": "if state not in paper_compatible:"
+        },
+        {
+          "keywords": [
+            "compat"
+          ],
+          "line": 49,
+          "text": "- [ ] **Step 2: Remove `paper_only` from simulation-compatible states in `runtime_admission.py`**"
+        }
+      ],
+      "keywords": [
+        "compat"
+      ],
+      "match_count": 7,
+      "path": "docs/superpowers/plans/2026-04-27-sprint1-final-hardening.md",
+      "recommended_action": "Review for stale guidance; either update, mark historical, or remove."
+    },
+    {
+      "category": "doc_review",
+      "evidence": [
+        {
+          "keywords": [
+            "compat"
+          ],
+          "line": 119,
+          "text": "paper_compatible = [\"paper_enabled\", \"paper_approved\", \"live_eligible\", \"live_enabled\", \"paper_only\"]"
+        },
+        {
+          "keywords": [
+            "compat"
+          ],
+          "line": 120,
+          "text": "if state not in paper_compatible:"
+        }
+      ],
+      "keywords": [
+        "compat"
+      ],
+      "match_count": 2,
+      "path": "docs/superpowers/plans/2026-04-27-sprint1-remediation.md",
+      "recommended_action": "Review for stale guidance; either update, mark historical, or remove."
+    },
+    {
       "category": "domain_risk_language",
       "evidence": [
         {
@@ -6637,6 +7374,236 @@
       ],
       "match_count": 1,
       "path": "spec/events/CROSS_VENUE_DESYNC.yaml",
+      "recommended_action": "Keep; this describes stale market data risk, not stale repository surface."
+    },
+    {
+      "category": "domain_risk_language",
+      "evidence": [
+        {
+          "keywords": [
+            "stale"
+          ],
+          "line": 52,
+          "text": "- 'stale_funding: funding timestamp unavailable or stale'"
+        }
+      ],
+      "keywords": [
+        "stale"
+      ],
+      "match_count": 1,
+      "path": "spec/events/FUNDING_FLIP_TO_NEGATIVE.yaml",
+      "recommended_action": "Keep; this describes stale market data risk, not stale repository surface."
+    },
+    {
+      "category": "domain_risk_language",
+      "evidence": [
+        {
+          "keywords": [
+            "stale"
+          ],
+          "line": 52,
+          "text": "- 'stale_funding: funding timestamp unavailable or stale'"
+        }
+      ],
+      "keywords": [
+        "stale"
+      ],
+      "match_count": 1,
+      "path": "spec/events/FUNDING_FLIP_TO_POSITIVE.yaml",
+      "recommended_action": "Keep; this describes stale market data risk, not stale repository surface."
+    },
+    {
+      "category": "domain_risk_language",
+      "evidence": [
+        {
+          "keywords": [
+            "stale"
+          ],
+          "line": 52,
+          "text": "- 'stale_funding: funding timestamp unavailable or stale'"
+        }
+      ],
+      "keywords": [
+        "stale"
+      ],
+      "match_count": 1,
+      "path": "spec/events/FUNDING_NEG_EXTREME_ONSET.yaml",
+      "recommended_action": "Keep; this describes stale market data risk, not stale repository surface."
+    },
+    {
+      "category": "domain_risk_language",
+      "evidence": [
+        {
+          "keywords": [
+            "stale"
+          ],
+          "line": 52,
+          "text": "- 'stale_funding: funding timestamp unavailable or stale'"
+        }
+      ],
+      "keywords": [
+        "stale"
+      ],
+      "match_count": 1,
+      "path": "spec/events/FUNDING_NEG_NORMALIZATION.yaml",
+      "recommended_action": "Keep; this describes stale market data risk, not stale repository surface."
+    },
+    {
+      "category": "domain_risk_language",
+      "evidence": [
+        {
+          "keywords": [
+            "stale"
+          ],
+          "line": 52,
+          "text": "- 'stale_funding: funding timestamp unavailable or stale'"
+        }
+      ],
+      "keywords": [
+        "stale"
+      ],
+      "match_count": 1,
+      "path": "spec/events/FUNDING_NEG_PERSISTENCE.yaml",
+      "recommended_action": "Keep; this describes stale market data risk, not stale repository surface."
+    },
+    {
+      "category": "domain_risk_language",
+      "evidence": [
+        {
+          "keywords": [
+            "stale"
+          ],
+          "line": 52,
+          "text": "- 'stale_funding: funding timestamp unavailable or stale'"
+        }
+      ],
+      "keywords": [
+        "stale"
+      ],
+      "match_count": 1,
+      "path": "spec/events/FUNDING_POS_EXTREME_ONSET.yaml",
+      "recommended_action": "Keep; this describes stale market data risk, not stale repository surface."
+    },
+    {
+      "category": "domain_risk_language",
+      "evidence": [
+        {
+          "keywords": [
+            "stale"
+          ],
+          "line": 52,
+          "text": "- 'stale_funding: funding timestamp unavailable or stale'"
+        }
+      ],
+      "keywords": [
+        "stale"
+      ],
+      "match_count": 1,
+      "path": "spec/events/FUNDING_POS_NORMALIZATION.yaml",
+      "recommended_action": "Keep; this describes stale market data risk, not stale repository surface."
+    },
+    {
+      "category": "domain_risk_language",
+      "evidence": [
+        {
+          "keywords": [
+            "stale"
+          ],
+          "line": 52,
+          "text": "- 'stale_funding: funding timestamp unavailable or stale'"
+        }
+      ],
+      "keywords": [
+        "stale"
+      ],
+      "match_count": 1,
+      "path": "spec/events/FUNDING_POS_PERSISTENCE.yaml",
+      "recommended_action": "Keep; this describes stale market data risk, not stale repository surface."
+    },
+    {
+      "category": "domain_risk_language",
+      "evidence": [
+        {
+          "keywords": [
+            "stale"
+          ],
+          "line": 51,
+          "text": "- 'stale_open_interest: OI unavailable or stale'"
+        }
+      ],
+      "keywords": [
+        "stale"
+      ],
+      "match_count": 1,
+      "path": "spec/events/PRICE_DOWN_OI_UP.yaml",
+      "recommended_action": "Keep; this describes stale market data risk, not stale repository surface."
+    },
+    {
+      "category": "domain_risk_language",
+      "evidence": [
+        {
+          "keywords": [
+            "stale"
+          ],
+          "line": 51,
+          "text": "- 'stale_open_interest: OI unavailable or stale'"
+        }
+      ],
+      "keywords": [
+        "stale"
+      ],
+      "match_count": 1,
+      "path": "spec/events/PRICE_UP_OI_DOWN.yaml",
+      "recommended_action": "Keep; this describes stale market data risk, not stale repository surface."
+    },
+    {
+      "category": "domain_risk_language",
+      "evidence": [
+        {
+          "keywords": [
+            "stale"
+          ],
+          "line": 51,
+          "text": "- 'stale_open_interest: OI unavailable or stale'"
+        }
+      ],
+      "keywords": [
+        "stale"
+      ],
+      "match_count": 1,
+      "path": "spec/events/PRICE_UP_OI_UP.yaml",
+      "recommended_action": "Keep; this describes stale market data risk, not stale repository surface."
+    },
+    {
+      "category": "domain_risk_language",
+      "evidence": [
+        {
+          "keywords": [
+            "stale"
+          ],
+          "line": 8,
+          "text": "max_stale_bars: 1"
+        },
+        {
+          "keywords": [
+            "stale"
+          ],
+          "line": 12,
+          "text": "- state: DATA_STALE_STATE"
+        },
+        {
+          "keywords": [
+            "stale"
+          ],
+          "line": 22,
+          "text": "- data_quality.max_stale_bars"
+        }
+      ],
+      "keywords": [
+        "stale"
+      ],
+      "match_count": 3,
+      "path": "spec/events/event_data_quality_contract.yaml",
       "recommended_action": "Keep; this describes stale market data risk, not stale repository surface."
     },
     {
@@ -6860,7 +7827,7 @@
         "legacy",
         "stale"
       ],
-      "match_count": 6,
+      "match_count": 7,
       "path": "project/tests/domain/test_compiled_registry.py",
       "recommended_action": "Keep only while it protects canonical behavior or old artifact fixtures."
     },
@@ -6871,7 +7838,7 @@
           "keywords": [
             "compat"
           ],
-          "line": 179,
+          "line": 183,
           "text": "assert registry.get_operator(\"templ\").compatible_families == (\"FAM\",)"
         }
       ],
@@ -6946,7 +7913,7 @@
           "keywords": [
             "legacy"
           ],
-          "line": 133,
+          "line": 134,
           "text": "def test_run_engine_drops_legacy_alias_columns("
         }
       ],
@@ -7171,14 +8138,14 @@
           "keywords": [
             "legacy"
           ],
-          "line": 30,
+          "line": 31,
           "text": "is_legacy_event_type,"
         },
         {
           "keywords": [
             "legacy"
           ],
-          "line": 787,
+          "line": 788,
           "text": "assert is_legacy_event_type(\"BASIS_SNAPBACK\")"
         }
       ],
@@ -7221,28 +8188,28 @@
           "keywords": [
             "legacy"
           ],
-          "line": 25,
+          "line": 24,
           "text": "def test_legacy_detectors_are_retired_safe():"
         },
         {
           "keywords": [
             "legacy"
           ],
-          "line": 27,
+          "line": 26,
           "text": "legacy = [row for row in rows if row[\"event_version\"] != \"v2\"]"
         },
         {
           "keywords": [
             "legacy"
           ],
-          "line": 28,
+          "line": 27,
           "text": "assert legacy"
         },
         {
           "keywords": [
             "legacy"
           ],
-          "line": 29,
+          "line": 28,
           "text": "assert all(not row[\"runtime_default\"] for row in legacy)"
         }
       ],
@@ -7301,14 +8268,14 @@
           "keywords": [
             "compat"
           ],
-          "line": 68,
+          "line": 67,
           "text": "def test_default_planning_event_set_excludes_hybridized_compatibility_events() -> None:"
         },
         {
           "keywords": [
             "legacy"
           ],
-          "line": 81,
+          "line": 80,
           "text": "def test_default_planning_ignores_legacy_default_executable_input() -> None:"
         }
       ],
@@ -7363,14 +8330,14 @@
           "keywords": [
             "stale"
           ],
-          "line": 30,
+          "line": 32,
           "text": "# Staleness: 2h."
         },
         {
           "keywords": [
             "stale"
           ],
-          "line": 50,
+          "line": 52,
           "text": "aligned = align_funding_to_bars(bars, funding, max_staleness=pd.Timedelta(\"2h\"))"
         }
       ],
@@ -7379,6 +8346,24 @@
       ],
       "match_count": 2,
       "path": "project/tests/features/test_alignment_robustness.py",
+      "recommended_action": "Keep only while it protects canonical behavior or old artifact fixtures."
+    },
+    {
+      "category": "fixture_or_regression",
+      "evidence": [
+        {
+          "keywords": [
+            "compat"
+          ],
+          "line": 79,
+          "text": "# Force one event near the train/validation boundary to test split compat"
+        }
+      ],
+      "keywords": [
+        "compat"
+      ],
+      "match_count": 1,
+      "path": "project/tests/fixtures/result_harness.py",
       "recommended_action": "Keep only while it protects canonical behavior or old artifact fixtures."
     },
     {
@@ -7709,7 +8694,7 @@
           "keywords": [
             "stale"
           ],
-          "line": 35,
+          "line": 34,
           "text": "freshness_policy={\"allowed_staleness_classes\": [\"fresh\"]},"
         }
       ],
@@ -7823,7 +8808,7 @@
           "keywords": [
             "stale"
           ],
-          "line": 10,
+          "line": 8,
           "text": "FUNDING_MAX_STALENESS,"
         },
         {
@@ -7838,7 +8823,7 @@
             "stale"
           ],
           "line": 95,
-          "text": "assert FUNDING_MAX_STALENESS == pd.Timedelta(\"8h\")"
+          "text": "assert pd.Timedelta(\"8h\") == FUNDING_MAX_STALENESS"
         }
       ],
       "keywords": [
@@ -7912,7 +8897,7 @@
           "keywords": [
             "stale"
           ],
-          "line": 122,
+          "line": 123,
           "text": "def test_merge_optional_oi_respects_staleness_tolerance(monkeypatch):"
         }
       ],
@@ -8002,7 +8987,7 @@
           "keywords": [
             "legacy"
           ],
-          "line": 224,
+          "line": 223,
           "text": "def test_ignores_legacy_nested_search_engine_path(self, tmp_path):"
         }
       ],
@@ -8020,35 +9005,35 @@
           "keywords": [
             "legacy"
           ],
-          "line": 27,
+          "line": 37,
           "text": "_LEGACY_PASS_FAIL_GATES = {"
         },
         {
           "keywords": [
             "legacy"
           ],
-          "line": 35,
+          "line": 45,
           "text": "def _legacy_gate_value(value):"
         },
         {
           "keywords": [
             "legacy"
           ],
-          "line": 43,
+          "line": 53,
           "text": "for key in _LEGACY_PASS_FAIL_GATES:"
         },
         {
           "keywords": [
             "legacy"
           ],
-          "line": 45,
+          "line": 55,
           "text": "result[key] = _legacy_gate_value(result[key])"
         },
         {
           "keywords": [
             "legacy"
           ],
-          "line": 49,
+          "line": 59,
           "text": "key: (_legacy_gate_value(value) if key in _LEGACY_PASS_FAIL_GATES else value)"
         }
       ],
@@ -8067,35 +9052,35 @@
           "keywords": [
             "legacy"
           ],
-          "line": 27,
+          "line": 29,
           "text": "_LEGACY_PASS_FAIL_GATES = {"
         },
         {
           "keywords": [
             "legacy"
           ],
-          "line": 35,
+          "line": 37,
           "text": "def _legacy_gate_value(value):"
         },
         {
           "keywords": [
             "legacy"
           ],
-          "line": 43,
+          "line": 45,
           "text": "for key in _LEGACY_PASS_FAIL_GATES:"
         },
         {
           "keywords": [
             "legacy"
           ],
-          "line": 45,
+          "line": 47,
           "text": "result[key] = _legacy_gate_value(result[key])"
         },
         {
           "keywords": [
             "legacy"
           ],
-          "line": 49,
+          "line": 51,
           "text": "key: (_legacy_gate_value(value) if key in _LEGACY_PASS_FAIL_GATES else value)"
         }
       ],
@@ -8157,35 +9142,35 @@
           "keywords": [
             "legacy"
           ],
-          "line": 77,
+          "line": 78,
           "text": "legacy_tstat_threshold=2.0,"
         },
         {
           "keywords": [
             "legacy"
           ],
-          "line": 90,
+          "line": 91,
           "text": "# legacy still has at least one candidate and differs from robust gate."
         },
         {
           "keywords": [
             "legacy"
           ],
-          "line": 91,
+          "line": 92,
           "text": "legacy = out[out[\"gate_legacy_survivor\"]]"
         },
         {
           "keywords": [
             "legacy"
           ],
-          "line": 92,
+          "line": 93,
           "text": "assert len(legacy) >= 1"
         },
         {
           "keywords": [
             "legacy"
           ],
-          "line": 93,
+          "line": 94,
           "text": "assert len(legacy) >= len(survivors)"
         }
       ],
@@ -8203,7 +9188,7 @@
           "keywords": [
             "compat"
           ],
-          "line": 38,
+          "line": 39,
           "text": "def test_cli_help_hides_operator_compatibility_surface(monkeypatch, capsys):"
         },
         {
@@ -8211,7 +9196,7 @@
             "compat",
             "legacy"
           ],
-          "line": 66,
+          "line": 67,
           "text": "def test_cli_discover_plan_delegates_without_legacy_compatibility(monkeypatch):"
         },
         {
@@ -8219,7 +9204,7 @@
             "compat",
             "legacy"
           ],
-          "line": 94,
+          "line": 95,
           "text": "def test_cli_discover_plan_rejects_legacy_compatibility_flag(monkeypatch, capsys):"
         },
         {
@@ -8227,7 +9212,7 @@
             "compat",
             "legacy"
           ],
-          "line": 105,
+          "line": 106,
           "text": "\"--legacy_compatibility\","
         },
         {
@@ -8235,7 +9220,7 @@
             "compat",
             "legacy"
           ],
-          "line": 115,
+          "line": 116,
           "text": "assert \"unrecognized arguments: --legacy_compatibility 1\" in err"
         }
       ],
@@ -8300,7 +9285,7 @@
           "keywords": [
             "compat"
           ],
-          "line": 138,
+          "line": 142,
           "text": "def test_validate_template_compatibility(registry_root, tmp_path):"
         }
       ],
@@ -8375,7 +9360,7 @@
           "keywords": [
             "legacy"
           ],
-          "line": 28,
+          "line": 25,
           "text": "is_legacy=specs[0].is_legacy,"
         }
       ],
@@ -8393,35 +9378,35 @@
           "keywords": [
             "compat"
           ],
-          "line": 131,
+          "line": 125,
           "text": "class TestBackwardCompatibility:"
         },
         {
           "keywords": [
             "compat"
           ],
-          "line": 132,
+          "line": 126,
           "text": "\"\"\"Verify backward compatibility with existing 5m paths.\"\"\""
         },
         {
           "keywords": [
             "legacy"
           ],
-          "line": 134,
+          "line": 128,
           "text": "def test_legacy_5m_stage_still_works(self):"
         },
         {
           "keywords": [
             "legacy"
           ],
-          "line": 135,
+          "line": 129,
           "text": "\"\"\"Legacy 5m stage names without explicit timeframe work.\"\"\""
         },
         {
           "keywords": [
             "legacy"
           ],
-          "line": 140,
+          "line": 134,
           "text": "def test_legacy_spot_5m_stage(self):"
         }
       ],
@@ -8440,14 +9425,14 @@
           "keywords": [
             "compat"
           ],
-          "line": 278,
+          "line": 272,
           "text": "compatibility_mode=True,"
         },
         {
           "keywords": [
             "legacy"
           ],
-          "line": 784,
+          "line": 780,
           "text": "assert \"legacy_but_interpretable\" in result.diagnostics[\"error\"]"
         }
       ],
@@ -8532,35 +9517,35 @@
           "keywords": [
             "legacy"
           ],
-          "line": 11,
+          "line": 12,
           "text": "def _legacy_payload() -> dict:"
         },
         {
           "keywords": [
             "legacy"
           ],
-          "line": 13,
+          "line": 14,
           "text": "\"program_id\": \"legacy_program\","
         },
         {
           "keywords": [
             "legacy"
           ],
-          "line": 77,
+          "line": 78,
           "text": "assert detect_operator_proposal_format(_legacy_payload()) == \"legacy\""
         },
         {
           "keywords": [
             "legacy"
           ],
-          "line": 86,
+          "line": 87,
           "text": "def test_load_normalized_from_legacy() -> None:"
         },
         {
           "keywords": [
             "legacy"
           ],
-          "line": 87,
+          "line": 88,
           "text": "proposal = load_normalized_operator_proposal(_legacy_payload())"
         }
       ],
@@ -8631,14 +9616,14 @@
           "keywords": [
             "deprecated"
           ],
-          "line": 92,
+          "line": 93,
           "text": "def test_deprecated_state_anchor_emits_warning() -> None:"
         },
         {
           "keywords": [
             "deprecated"
           ],
-          "line": 96,
+          "line": 97,
           "text": "assert any(w.code == DEPRECATED_STATE_ANCHOR for w in warnings)"
         }
       ],
@@ -8731,7 +9716,7 @@
           "keywords": [
             "deprecated"
           ],
-          "line": 42,
+          "line": 43,
           "text": "assert any(w.code == DEPRECATED_STATE_ANCHOR for w in warnings)"
         }
       ],
@@ -8832,7 +9817,7 @@
           "keywords": [
             "legacy"
           ],
-          "line": 6,
+          "line": 5,
           "text": "def test_load_campaign_contract_from_legacy_payload():"
         }
       ],
@@ -8857,7 +9842,7 @@
           "keywords": [
             "compat"
           ],
-          "line": 561,
+          "line": 579,
           "text": "def test_promotion_compatible_columns_preserved(self):"
         }
       ],
@@ -8927,9 +9912,27 @@
       "evidence": [
         {
           "keywords": [
+            "legacy"
+          ],
+          "line": 5,
+          "text": "- context_timing=\"entry\"   evaluates context at the entry bar (legacy default)"
+        }
+      ],
+      "keywords": [
+        "legacy"
+      ],
+      "match_count": 1,
+      "path": "project/tests/research/test_context_timing.py",
+      "recommended_action": "Keep only while it protects canonical behavior or old artifact fixtures."
+    },
+    {
+      "category": "fixture_or_regression",
+      "evidence": [
+        {
+          "keywords": [
             "compat"
           ],
-          "line": 254,
+          "line": 253,
           "text": "class TestBackwardCompatibility:"
         }
       ],
@@ -8947,7 +9950,7 @@
           "keywords": [
             "legacy"
           ],
-          "line": 91,
+          "line": 94,
           "text": "def test_legacy_sort_path_remains_deterministic_without_is_discovery() -> None:"
         }
       ],
@@ -8965,7 +9968,50 @@
           "keywords": [
             "compat"
           ],
-          "line": 500,
+          "line": 2,
+          "text": "Tests for Phase 1.1: entry_lag double-count in split compatibility."
+        },
+        {
+          "keywords": [
+            "compat"
+          ],
+          "line": 68,
+          "text": "class TestSplitCompatibilityWindow:"
+        }
+      ],
+      "keywords": [
+        "compat"
+      ],
+      "match_count": 2,
+      "path": "project/tests/research/test_entry_lag_split_compat.py",
+      "recommended_action": "Keep only while it protects canonical behavior or old artifact fixtures."
+    },
+    {
+      "category": "fixture_or_regression",
+      "evidence": [
+        {
+          "keywords": [
+            "compat"
+          ],
+          "line": 18,
+          "text": "assert any(\"compatibility forbids\" in error for error in errors)"
+        }
+      ],
+      "keywords": [
+        "compat"
+      ],
+      "match_count": 1,
+      "path": "project/tests/research/test_event_template_compatibility.py",
+      "recommended_action": "Keep only while it protects canonical behavior or old artifact fixtures."
+    },
+    {
+      "category": "fixture_or_regression",
+      "evidence": [
+        {
+          "keywords": [
+            "compat"
+          ],
+          "line": 550,
           "text": "def test_final_candidates_promotion_compatible(self):"
         }
       ],
@@ -8983,42 +10029,42 @@
           "keywords": [
             "legacy"
           ],
-          "line": 22,
+          "line": 20,
           "text": "HISTORICAL_TRUST_LEGACY,"
         },
         {
           "keywords": [
             "legacy"
           ],
-          "line": 29,
-          "text": "AUDIT_STATUS_LEGACY,"
-        },
-        {
-          "keywords": [
-            "legacy"
-          ],
-          "line": 118,
+          "line": 114,
           "text": "assert result.rows[0].historical_trust_status == HISTORICAL_TRUST_LEGACY"
         },
         {
           "keywords": [
             "legacy"
           ],
-          "line": 140,
+          "line": 136,
           "text": "\"run_id\": \"legacy_run\","
         },
         {
           "keywords": [
             "legacy"
           ],
-          "line": 141,
+          "line": 137,
           "text": "\"candidate_id\": \"cand_legacy\","
+        },
+        {
+          "keywords": [
+            "legacy"
+          ],
+          "line": 138,
+          "text": "\"hypothesis_id\": \"hyp_legacy\","
         }
       ],
       "keywords": [
         "legacy"
       ],
-      "match_count": 10,
+      "match_count": 9,
       "path": "project/tests/research/test_historical_artifact_audit_integration.py",
       "recommended_action": "Keep only while it protects canonical behavior or old artifact fixtures."
     },
@@ -9029,7 +10075,7 @@
           "keywords": [
             "compat"
           ],
-          "line": 160,
+          "line": 158,
           "text": "assert contract_payload[\"contracts\"][0][\"compat_event_family\"] == \"VOL_SHOCK\""
         }
       ],
@@ -9074,7 +10120,7 @@
             "compat",
             "legacy"
           ],
-          "line": 320,
+          "line": 317,
           "text": "class TestLegacyArtifactCompatibility:"
         },
         {
@@ -9082,7 +10128,7 @@
             "compat",
             "legacy"
           ],
-          "line": 321,
+          "line": 318,
           "text": "\"\"\"Test backward compatibility with legacy artifacts.\"\"\""
         }
       ],
@@ -9101,28 +10147,28 @@
           "keywords": [
             "compat"
           ],
-          "line": 407,
+          "line": 408,
           "text": "assert metrics.loc[0, \"invalid_reason\"] == \"no_split_compatible_events\""
         },
         {
           "keywords": [
             "compat"
           ],
-          "line": 417,
+          "line": 418,
           "text": "incompatible = HypothesisSpec("
         },
         {
           "keywords": [
             "compat"
           ],
-          "line": 431,
+          "line": 432,
           "text": "evaluate_hypothesis_batch([incompatible, valid], features, min_sample_size=1)"
         },
         {
           "keywords": [
             "compat"
           ],
-          "line": 434,
+          "line": 435,
           "text": "assert \"incompatible_template_family\" not in caplog.text"
         }
       ],
@@ -9172,14 +10218,14 @@
           "keywords": [
             "legacy"
           ],
-          "line": 43,
+          "line": 42,
           "text": "# Scan help output for forbidden legacy terms where they should be canonical"
         },
         {
           "keywords": [
             "legacy"
           ],
-          "line": 44,
+          "line": 43,
           "text": "# We allow them in legacy command help but not in canonical ones."
         }
       ],
@@ -9197,35 +10243,35 @@
           "keywords": [
             "legacy"
           ],
-          "line": 10,
+          "line": 8,
           "text": "AUDIT_STATUS_LEGACY,"
         },
         {
           "keywords": [
             "legacy"
           ],
-          "line": 33,
+          "line": 31,
           "text": "assert AUDIT_STATUS_LEGACY == \"legacy\""
         },
         {
           "keywords": [
             "legacy"
           ],
-          "line": 179,
+          "line": 177,
           "text": "audit_status=AUDIT_STATUS_LEGACY,"
         },
         {
           "keywords": [
             "legacy"
           ],
-          "line": 212,
+          "line": 210,
           "text": "audit_status=AUDIT_STATUS_LEGACY,"
         },
         {
           "keywords": [
             "legacy"
           ],
-          "line": 222,
+          "line": 220,
           "text": "assert stamped[\"audit_status\"] == AUDIT_STATUS_LEGACY"
         }
       ],
@@ -9261,21 +10307,21 @@
           "keywords": [
             "compat"
           ],
-          "line": 7,
+          "line": 5,
           "text": "from project.core.exceptions import CompatibilityRequiredError"
         },
         {
           "keywords": [
             "legacy"
           ],
-          "line": 96,
+          "line": 94,
           "text": "def test_strict_validation_bundle_rejects_legacy_without_promotion_ready_candidates(tmp_path):"
         },
         {
           "keywords": [
             "legacy"
           ],
-          "line": 97,
+          "line": 95,
           "text": "run_id = \"legacy_validation_run\""
         },
         {
@@ -9283,7 +10329,7 @@
             "compat",
             "legacy"
           ],
-          "line": 106,
+          "line": 104,
           "text": "with pytest.raises(CompatibilityRequiredError, match=\"legacy_but_interpretable\"):"
         }
       ],
@@ -9352,7 +10398,7 @@
           "keywords": [
             "legacy"
           ],
-          "line": 24,
+          "line": 25,
           "text": "\"\"\"The legacy oos_validation_pass signal must not silently pass."
         }
       ],
@@ -9370,21 +10416,21 @@
           "keywords": [
             "legacy"
           ],
-          "line": 61,
+          "line": 59,
           "text": "def test_audit_flags_legacy_p_value_without_fdr_column():"
         },
         {
           "keywords": [
             "legacy"
           ],
-          "line": 75,
+          "line": 73,
           "text": "legacy = [f for f in findings if \"legacy_p_value_columns\" in f.get(\"reason\", \"\")]"
         },
         {
           "keywords": [
             "legacy"
           ],
-          "line": 76,
+          "line": 74,
           "text": "assert len(legacy) >= 1"
         }
       ],
@@ -9484,7 +10530,7 @@
           "keywords": [
             "compat"
           ],
-          "line": 5,
+          "line": 6,
           "text": "build_template_registry_compat_payload,"
         },
         {
@@ -9618,6 +10664,24 @@
       "evidence": [
         {
           "keywords": [
+            "legacy"
+          ],
+          "line": 47,
+          "text": "def test_load_results_keeps_legacy_evaluation_schema(tmp_path, monkeypatch):"
+        }
+      ],
+      "keywords": [
+        "legacy"
+      ],
+      "match_count": 1,
+      "path": "project/tests/scripts/test_update_reflections.py",
+      "recommended_action": "Keep only while it protects canonical behavior or old artifact fixtures."
+    },
+    {
+      "category": "fixture_or_regression",
+      "evidence": [
+        {
+          "keywords": [
             "stale"
           ],
           "line": 53,
@@ -9704,35 +10768,35 @@
           "keywords": [
             "compat"
           ],
-          "line": 7,
+          "line": 6,
           "text": "COMPAT_FILE = SPEC_DIR / \"compatibility.yaml\""
         },
         {
           "keywords": [
             "compat"
           ],
-          "line": 11,
+          "line": 10,
           "text": "def test_compatibility_yaml_exists():"
         },
         {
           "keywords": [
             "compat"
           ],
-          "line": 12,
+          "line": 11,
           "text": "assert COMPAT_FILE.exists()"
         },
         {
           "keywords": [
             "compat"
           ],
-          "line": 19,
+          "line": 18,
           "text": "def test_compatibility_yaml_valid():"
         },
         {
           "keywords": [
             "compat"
           ],
-          "line": 20,
+          "line": 19,
           "text": "data = yaml.safe_load(COMPAT_FILE.read_text())"
         }
       ],
@@ -9793,14 +10857,14 @@
           "keywords": [
             "legacy"
           ],
-          "line": 292,
+          "line": 295,
           "text": "def test_legacy_wrapper_namespaces_removed() -> None:"
         },
         {
           "keywords": [
             "compat"
           ],
-          "line": 293,
+          "line": 296,
           "text": "\"\"\"Compatibility wrapper namespaces should be deleted once canonical imports exist.\"\"\""
         },
         {
@@ -9808,21 +10872,21 @@
             "compat",
             "legacy"
           ],
-          "line": 303,
+          "line": 306,
           "text": "\"Architectural Violation: legacy compatibility surfaces should be removed, found \""
         },
         {
           "keywords": [
             "compat"
           ],
-          "line": 405,
+          "line": 408,
           "text": "def test_phase2_helper_imports_use_research_compat():"
         },
         {
           "keywords": [
             "compat"
           ],
-          "line": 441,
+          "line": 444,
           "text": "def test_promotion_helper_imports_use_research_compat():"
         }
       ],
@@ -9848,28 +10912,28 @@
           "keywords": [
             "legacy"
           ],
-          "line": 104,
+          "line": 106,
           "text": "The legacy format was previously mapped to 'all' but is now strictly rejected."
         },
         {
           "keywords": [
             "legacy"
           ],
-          "line": 128,
+          "line": 130,
           "text": "def test_condition_routing_never_returns_legacy_all_prefix(self):"
         },
         {
           "keywords": [
             "legacy"
           ],
-          "line": 130,
+          "line": 132,
           "text": "_condition_routing must never return an 'all__<name>' legacy format."
         },
         {
           "keywords": [
             "legacy"
           ],
-          "line": 131,
+          "line": 133,
           "text": "Note: '__BLOCKED__' is the strict-mode sentinel (not a legacy format) and is excluded."
         }
       ],
@@ -9888,7 +10952,7 @@
             "compat",
             "legacy"
           ],
-          "line": 110,
+          "line": 109,
           "text": "def test_regime_family_legacy_shape_compatibility():"
         }
       ],
@@ -9907,35 +10971,35 @@
           "keywords": [
             "stale"
           ],
-          "line": 28,
+          "line": 26,
           "text": "stale_threshold_seconds=3600,"
         },
         {
           "keywords": [
             "stale"
           ],
-          "line": 43,
+          "line": 41,
           "text": "stale_threshold_seconds=3600,"
         },
         {
           "keywords": [
             "stale"
           ],
-          "line": 68,
+          "line": 66,
           "text": "stale_threshold_seconds=3600,"
         },
         {
           "keywords": [
             "stale"
           ],
-          "line": 78,
+          "line": 76,
           "text": "stale_threshold_seconds=3600,"
         },
         {
           "keywords": [
             "stale"
           ],
-          "line": 101,
+          "line": 99,
           "text": "stale_threshold_seconds=3600,"
         }
       ],
@@ -10011,35 +11075,35 @@
           "keywords": [
             "stale"
           ],
-          "line": 220,
+          "line": 219,
           "text": "class TestJoinStalenessTolerance:"
         },
         {
           "keywords": [
             "stale"
           ],
-          "line": 221,
+          "line": 220,
           "text": "def test_stale_event_does_not_join_when_tolerance_applied(self):"
         },
         {
           "keywords": [
             "stale"
           ],
-          "line": 223,
+          "line": 222,
           "text": "stale_event = features[\"timestamp\"].max() + pd.Timedelta(hours=3)"
         },
         {
           "keywords": [
             "stale"
           ],
-          "line": 224,
+          "line": 223,
           "text": "events = pd.DataFrame({\"timestamp\": [stale_event]})"
         },
         {
           "keywords": [
             "stale"
           ],
-          "line": 229,
+          "line": 228,
           "text": "max_feature_staleness=pd.Timedelta(\"1h\"),"
         }
       ],
@@ -10049,31 +11113,6 @@
       "match_count": 9,
       "path": "project/tests/test_validate_event_quality_join_rate.py",
       "recommended_action": "Keep only while it protects canonical behavior or old artifact fixtures."
-    },
-    {
-      "category": "historical_doc",
-      "evidence": [
-        {
-          "keywords": [
-            "blocked until"
-          ],
-          "line": 19,
-          "text": "Still blocked until a Phase B bridge survivor is clear:"
-        },
-        {
-          "keywords": [
-            "blocked until"
-          ],
-          "line": 93,
-          "text": "Blocked until proposal/runtime support is explicit:"
-        }
-      ],
-      "keywords": [
-        "blocked until"
-      ],
-      "match_count": 2,
-      "path": "docs/lifecycle/liquidation-exhaustion-matrix.md",
-      "recommended_action": "Mark as historical; do not teach as current operator guidance."
     },
     {
       "category": "historical_spec",
@@ -10151,6 +11190,49 @@
       "recommended_action": "Keep; this generator necessarily contains legacy/stale classification keywords."
     },
     {
+      "category": "legacy_detector_spec",
+      "evidence": [
+        {
+          "keywords": [
+            "legacy"
+          ],
+          "line": 5,
+          "text": "description: Polymorphic liquidity shock detector (legacy). Dispatches to Direct or"
+        },
+        {
+          "keywords": [
+            "legacy"
+          ],
+          "line": 66,
+          "text": "summary: Polymorphic liquidity shock detector (legacy). Dispatches to Direct or"
+        }
+      ],
+      "keywords": [
+        "legacy"
+      ],
+      "match_count": 2,
+      "path": "spec/events/LIQUIDITY_SHOCK.yaml",
+      "recommended_action": "Retain only as historical audit input or migrate to governed v2."
+    },
+    {
+      "category": "legacy_detector_spec",
+      "evidence": [
+        {
+          "keywords": [
+            "legacy"
+          ],
+          "line": 68,
+          "text": "legacy_event_mappings:"
+        }
+      ],
+      "keywords": [
+        "legacy"
+      ],
+      "match_count": 1,
+      "path": "spec/events/event_directionality_contract.yaml",
+      "recommended_action": "Retain only as historical audit input or migrate to governed v2."
+    },
+    {
       "category": "policy_doc",
       "evidence": [
         {
@@ -10164,7 +11246,7 @@
           "keywords": [
             "compat"
           ],
-          "line": 35,
+          "line": 36,
           "text": "## Compatibility"
         },
         {
@@ -10172,7 +11254,7 @@
             "compat",
             "legacy"
           ],
-          "line": 37,
+          "line": 38,
           "text": "- Legacy artifact readers in `project.artifacts.compat`, only when callers pass"
         },
         {
@@ -10180,14 +11262,14 @@
             "compat",
             "legacy"
           ],
-          "line": 38,
+          "line": 39,
           "text": "an explicit compatibility switch such as `allow_legacy=True`."
         },
         {
           "keywords": [
             "legacy"
           ],
-          "line": 39,
+          "line": 40,
           "text": "- Explicit heuristic live detector mode. It requires `legacy_heuristic_enabled=true`; it is not a default."
         }
       ],
@@ -10244,6 +11326,32 @@
           "keywords": [
             "stale"
           ],
+          "line": 147,
+          "text": "stale:"
+        },
+        {
+          "keywords": [
+            "legacy"
+          ],
+          "line": 163,
+          "text": "legacy_context_aliases:"
+        }
+      ],
+      "keywords": [
+        "legacy",
+        "stale"
+      ],
+      "match_count": 2,
+      "path": "spec/contexts/context_dimension_registry.yaml",
+      "recommended_action": "Classify as active contract, historical spec, or delete candidate."
+    },
+    {
+      "category": "spec_review",
+      "evidence": [
+        {
+          "keywords": [
+            "stale"
+          ],
           "line": 917,
           "text": "- Stale reference feed: spread inflation is a data artifact"
         },
@@ -10263,24 +11371,24 @@
         },
         {
           "keywords": [
-            "compat"
+            "stale"
           ],
-          "line": 8917,
-          "text": "compatible_families:"
+          "line": 2344,
+          "text": "- 'stale_funding: funding timestamp unavailable or stale'"
         },
         {
           "keywords": [
-            "compat"
+            "stale"
           ],
-          "line": 8927,
-          "text": "compatible_families:"
+          "line": 2443,
+          "text": "- 'stale_funding: funding timestamp unavailable or stale'"
         }
       ],
       "keywords": [
         "compat",
         "stale"
       ],
-      "match_count": 39,
+      "match_count": 53,
       "path": "spec/domain/domain_graph.yaml",
       "recommended_action": "Classify as active contract, historical spec, or delete candidate."
     },
@@ -10355,6 +11463,247 @@
           "keywords": [
             "legacy"
           ],
+          "line": 4,
+          "text": "bullish trend state, test whether the legacy exhaustion_reversal long edge"
+        },
+        {
+          "keywords": [
+            "legacy"
+          ],
+          "line": 71,
+          "text": "stop_if_template_contract_rejects_exact_legacy_branch: true"
+        }
+      ],
+      "keywords": [
+        "legacy"
+      ],
+      "match_count": 2,
+      "path": "spec/proposals/single_event_false_breakout_bullish_exhaustion_reversal_long_h48_btc_v1.yaml",
+      "recommended_action": "Classify as active contract, historical spec, or delete candidate."
+    },
+    {
+      "category": "spec_review",
+      "evidence": [
+        {
+          "keywords": [
+            "legacy"
+          ],
+          "line": 61,
+          "text": "reason: legacy_disabled_research_surface"
+        }
+      ],
+      "keywords": [
+        "legacy"
+      ],
+      "match_count": 1,
+      "path": "spec/search/funding_template_discovery_btc_2023_2025_v1.yaml",
+      "recommended_action": "Classify as active contract, historical spec, or delete candidate."
+    },
+    {
+      "category": "spec_review",
+      "evidence": [
+        {
+          "keywords": [
+            "legacy"
+          ],
+          "line": 54,
+          "text": "reason: legacy_disabled_research_surface"
+        }
+      ],
+      "keywords": [
+        "legacy"
+      ],
+      "match_count": 1,
+      "path": "spec/search/sequence_funding_persistence_oi_confirm_btc_h48_2025_v1.yaml",
+      "recommended_action": "Classify as active contract, historical spec, or delete candidate."
+    },
+    {
+      "category": "spec_review",
+      "evidence": [
+        {
+          "keywords": [
+            "legacy"
+          ],
+          "line": 56,
+          "text": "reason: legacy_disabled_research_surface"
+        }
+      ],
+      "keywords": [
+        "legacy"
+      ],
+      "match_count": 1,
+      "path": "spec/search/single_event_climax_volume_funding_neg_exhaustion_reversal_btc_h24_v1.yaml",
+      "recommended_action": "Classify as active contract, historical spec, or delete candidate."
+    },
+    {
+      "category": "spec_review",
+      "evidence": [
+        {
+          "keywords": [
+            "legacy"
+          ],
+          "line": 56,
+          "text": "reason: legacy_edge_cell_reproduction_exact_template"
+        }
+      ],
+      "keywords": [
+        "legacy"
+      ],
+      "match_count": 1,
+      "path": "spec/search/single_event_false_breakout_bullish_exhaustion_reversal_btc_h48_v1.yaml",
+      "recommended_action": "Classify as active contract, historical spec, or delete candidate."
+    },
+    {
+      "category": "spec_review",
+      "evidence": [
+        {
+          "keywords": [
+            "legacy"
+          ],
+          "line": 56,
+          "text": "reason: legacy_disabled_research_surface"
+        }
+      ],
+      "keywords": [
+        "legacy"
+      ],
+      "match_count": 1,
+      "path": "spec/search/single_event_funding_continuation_btc_h24_h48_v1.yaml",
+      "recommended_action": "Classify as active contract, historical spec, or delete candidate."
+    },
+    {
+      "category": "spec_review",
+      "evidence": [
+        {
+          "keywords": [
+            "legacy"
+          ],
+          "line": 53,
+          "text": "reason: legacy_disabled_research_surface"
+        }
+      ],
+      "keywords": [
+        "legacy"
+      ],
+      "match_count": 1,
+      "path": "spec/search/single_event_liquidation_exhaustion_low_vol_continuation_h05_v1.yaml",
+      "recommended_action": "Classify as active contract, historical spec, or delete candidate."
+    },
+    {
+      "category": "spec_review",
+      "evidence": [
+        {
+          "keywords": [
+            "legacy"
+          ],
+          "line": 54,
+          "text": "reason: legacy_disabled_research_surface"
+        }
+      ],
+      "keywords": [
+        "legacy"
+      ],
+      "match_count": 1,
+      "path": "spec/search/single_event_liquidation_exhaustion_low_vol_continuation_h24_v1.yaml",
+      "recommended_action": "Classify as active contract, historical spec, or delete candidate."
+    },
+    {
+      "category": "spec_review",
+      "evidence": [
+        {
+          "keywords": [
+            "legacy"
+          ],
+          "line": 53,
+          "text": "reason: legacy_disabled_research_surface"
+        }
+      ],
+      "keywords": [
+        "legacy"
+      ],
+      "match_count": 1,
+      "path": "spec/search/single_event_liquidation_exhaustion_low_vol_exhaustion_reversal_h05_v1.yaml",
+      "recommended_action": "Classify as active contract, historical spec, or delete candidate."
+    },
+    {
+      "category": "spec_review",
+      "evidence": [
+        {
+          "keywords": [
+            "legacy"
+          ],
+          "line": 53,
+          "text": "reason: legacy_disabled_research_surface"
+        }
+      ],
+      "keywords": [
+        "legacy"
+      ],
+      "match_count": 1,
+      "path": "spec/search/single_event_liquidation_exhaustion_low_vol_exhaustion_reversal_h24_v1.yaml",
+      "recommended_action": "Classify as active contract, historical spec, or delete candidate."
+    },
+    {
+      "category": "spec_review",
+      "evidence": [
+        {
+          "keywords": [
+            "legacy"
+          ],
+          "line": 53,
+          "text": "reason: legacy_disabled_research_surface"
+        }
+      ],
+      "keywords": [
+        "legacy"
+      ],
+      "match_count": 1,
+      "path": "spec/search/single_event_liquidation_exhaustion_low_vol_mean_reversion_h05_v1.yaml",
+      "recommended_action": "Classify as active contract, historical spec, or delete candidate."
+    },
+    {
+      "category": "spec_review",
+      "evidence": [
+        {
+          "keywords": [
+            "legacy"
+          ],
+          "line": 53,
+          "text": "reason: legacy_disabled_research_surface"
+        }
+      ],
+      "keywords": [
+        "legacy"
+      ],
+      "match_count": 1,
+      "path": "spec/search/single_event_liquidation_exhaustion_low_vol_mean_reversion_h24_v1.yaml",
+      "recommended_action": "Classify as active contract, historical spec, or delete candidate."
+    },
+    {
+      "category": "spec_review",
+      "evidence": [
+        {
+          "keywords": [
+            "legacy"
+          ],
+          "line": 56,
+          "text": "reason: legacy_disabled_research_surface"
+        }
+      ],
+      "keywords": [
+        "legacy"
+      ],
+      "match_count": 1,
+      "path": "spec/search/single_event_liquidation_exhaustion_reversal_bounce_v1.yaml",
+      "recommended_action": "Classify as active contract, historical spec, or delete candidate."
+    },
+    {
+      "category": "spec_review",
+      "evidence": [
+        {
+          "keywords": [
+            "legacy"
+          ],
           "line": 104,
           "text": "mode: hierarchical   # \"hierarchical\" (STABLE) | \"flat\" (legacy fallback)"
         }
@@ -10364,6 +11713,24 @@
       ],
       "match_count": 1,
       "path": "spec/search_space.yaml",
+      "recommended_action": "Classify as active contract, historical spec, or delete candidate."
+    },
+    {
+      "category": "spec_review",
+      "evidence": [
+        {
+          "keywords": [
+            "stale"
+          ],
+          "line": 8,
+          "text": "- stale"
+        }
+      ],
+      "keywords": [
+        "stale"
+      ],
+      "match_count": 1,
+      "path": "spec/states/data_quality_state.yaml",
       "recommended_action": "Classify as active contract, historical spec, or delete candidate."
     },
     {
@@ -10391,14 +11758,14 @@
           "keywords": [
             "deprecated"
           ],
-          "line": 40,
+          "line": 39,
           "text": "\"deprecated\","
         },
         {
           "keywords": [
             "legacy"
           ],
-          "line": 42,
+          "line": 41,
           "text": "\"legacy heuristic renamed to explicit proxy taxonomy\","
         }
       ],
@@ -10435,14 +11802,14 @@
           "keywords": [
             "deprecated"
           ],
-          "line": 100,
+          "line": 101,
           "text": "if str(row.get(\"deprecated\", False)).strip().lower() == \"true\":"
         },
         {
           "keywords": [
             "deprecated"
           ],
-          "line": 101,
+          "line": 102,
           "text": "return \"deprecated\""
         }
       ],
@@ -10460,14 +11827,14 @@
           "keywords": [
             "deprecated"
           ],
-          "line": 19,
+          "line": 20,
           "text": "\"deprecated\","
         },
         {
           "keywords": [
             "legacy"
           ],
-          "line": 96,
+          "line": 97,
           "text": "block_reason = \"legacy_v1_retired\""
         }
       ],
@@ -10486,14 +11853,14 @@
           "keywords": [
             "legacy"
           ],
-          "line": 63,
+          "line": 89,
           "text": "\"list_legacy_detectors\","
         },
         {
           "keywords": [
             "legacy"
           ],
-          "line": 133,
+          "line": 138,
           "text": "_LEGACY_REGISTRY_PATH = PROJECT_ROOT.parent / \"spec\" / \"events\" / \"registry.yaml\""
         },
         {
@@ -10514,7 +11881,7 @@
           "keywords": [
             "legacy"
           ],
-          "line": 532,
+          "line": 550,
           "text": "def list_legacy_detectors() -> list[DetectorContract]:"
         }
       ],
@@ -10551,7 +11918,7 @@
           "keywords": [
             "deprecated"
           ],
-          "line": 88,
+          "line": 91,
           "text": "\"deprecated\","
         }
       ],
@@ -10569,21 +11936,21 @@
           "keywords": [
             "legacy"
           ],
-          "line": 73,
+          "line": 74,
           "text": "Falls back to treating all string-format events as active (legacy docs)."
         },
         {
           "keywords": [
             "legacy"
           ],
-          "line": 86,
+          "line": 87,
           "text": "# Legacy: plain string = treat as active"
         },
         {
           "keywords": [
             "deprecated"
           ],
-          "line": 188,
+          "line": 189,
           "text": "if bool(doc.get(\"deprecated\", False)) or not bool(doc.get(\"active\", True)):"
         }
       ],
@@ -10597,12 +11964,12 @@
     }
   ],
   "keyword_counts": {
-    "blocked until": 6,
-    "compat": 679,
+    "blocked until": 4,
+    "compat": 722,
     "deprecated": 56,
-    "legacy": 629,
+    "legacy": 667,
     "not_supported": 10,
-    "stale": 328
+    "stale": 375
   },
   "legacy_detector_count": 40,
   "legacy_detectors": [
@@ -10928,6 +12295,6 @@
     }
   ],
   "legacy_detectors_retired_safe": 40,
-  "match_count": 1631,
+  "match_count": 1757,
   "schema_version": "legacy_surface_inventory_v1"
 }

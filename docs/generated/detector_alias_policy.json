@@ -18,6 +18,24 @@
     "scope": "load_time_compatibility"
   },
   {
+    "alias": "PRICE_DOWN_OI_DOWN",
+    "canonical_event_type": "OI_SPIKE_NEGATIVE",
+    "planning_identity": false,
+    "promotion_identity": false,
+    "reason": "",
+    "runtime_identity": false,
+    "scope": "runtime_identity"
+  },
+  {
+    "alias": "PRICE_UP_OI_DOWN",
+    "canonical_event_type": "OI_SPIKE_NEGATIVE",
+    "planning_identity": false,
+    "promotion_identity": false,
+    "reason": "",
+    "runtime_identity": false,
+    "scope": "runtime_identity"
+  },
+  {
     "alias": "VOL_REGIME_SHIFT",
     "canonical_event_type": "VOL_REGIME_SHIFT_EVENT",
     "planning_identity": false,

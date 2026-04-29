@@ -5,15 +5,13 @@
     "deployable_core": 1
   },
   "by_search_role": {
-    "diagnostic": 86,
+    "diagnostic": 87,
     "confirm": 7,
-    "context": 4,
-    "primary_trigger": 1
+    "context": 4
   },
   "by_promotion_role": {
-    "ineligible": 90,
-    "requires_composite": 7,
-    "eligible": 1
+    "ineligible": 91,
+    "requires_composite": 7
   },
   "by_runtime_role": {
     "observer": 87,
@@ -801,8 +799,8 @@
       "id": "price_down_oi_down_core",
       "event_type": "PRICE_DOWN_OI_DOWN",
       "detector_band": "deployable_core",
-      "search_role": "primary_trigger",
-      "promotion_role": "eligible",
+      "search_role": "diagnostic",
+      "promotion_role": "ineligible",
       "runtime_role": "observer"
     }
   ]

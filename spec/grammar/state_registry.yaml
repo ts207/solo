@@ -6,9 +6,28 @@ metadata:
   generated_notice: GENERATED FILE - DO NOT EDIT
   generated_from: spec/states/*.yaml
 regimes:
+  basis_phase:
+  - neutral
+  - positive_dislocation
+  - negative_dislocation
+  - widening
+  - converging
+  - normalized
   carry_state:
   - funding_neg
   - funding_pos
+  data_quality_state:
+  - ok
+  - degraded
+  - stale
+  - missing_required_feature
+  - synthetic_only
+  execution_friction:
+  - low
+  - normal
+  - elevated
+  - severe
+  - blocked
   forced_flow_phase:
   - none
   - pre_cascade
@@ -59,9 +78,33 @@ regimes:
   - price_up_oi_down
   - price_down_oi_up
   - price_down_oi_down
+  temporal_phase:
+  - normal
+  - session_open
+  - session_close
+  - pre_funding_timestamp
+  - post_funding_timestamp
+  - pre_news
+  - post_news
+  trend_phase:
+  - uptrend
+  - downtrend
+  - chop
+  - compression
+  - breakout
+  - retest
+  - exhaustion
+  - transition
   trend_structure:
   - trend
   - chop
+  vol_phase:
+  - compressed
+  - normal
+  - expanding
+  - shock
+  - aftershock
+  - decaying
   vol_regime:
   - low
   - high

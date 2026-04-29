@@ -13,13 +13,13 @@ identity:
   subtype: price_down_oi_down
   phase: unwind
   evidence_mode: direct
-  layer: canonical
+  layer: research_placeholder
   disposition: rename
   asset_scope: single_asset
   venue_scope: single_venue
 role:
-  detector_role: trigger
-  trade_role: primary_trigger
+  detector_role: observer
+  trade_role: diagnostic
   state_role: none
   guard_role: none
 directionality:
@@ -30,7 +30,7 @@ directionality:
 context_requirements:
   price_oi_quadrant: price_down_oi_down
 runtime:
-  enabled: true
+  enabled: false
   detector: OISpikeNegativeDetector
   signal_column: oi_spike_neg_event
   events_file: oi_shock_events.parquet
@@ -45,13 +45,3 @@ interaction:
   suppressed_by: []
 routing: {}
 
-governance:
-  tier: A
-  operational_role: trigger
-  deployment_disposition: primary_trigger_candidate
-  runtime_category: active_runtime_event
-  event_kind: market_event
-  default_executable: true
-  promotion_eligible: true
-  runtime_default: true
-  detector_band: deployable_core

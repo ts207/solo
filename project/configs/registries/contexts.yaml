@@ -7,6 +7,14 @@ metadata:
   - spec/contexts/context_dimension_registry.yaml
   generated_notice: GENERATED FILE - DO NOT EDIT
 context_dimensions:
+  basis_phase:
+    allowed_values:
+    - neutral
+    - positive_dislocation
+    - negative_dislocation
+    - widening
+    - converging
+    - normalized
   carry_state:
     allowed_values:
     - funding_neg
@@ -14,6 +22,20 @@ context_dimensions:
     mapping:
       funding_neg: FUNDING_NEGATIVE
       funding_pos: FUNDING_POSITIVE
+  data_quality_state:
+    allowed_values:
+    - ok
+    - degraded
+    - stale
+    - missing_required_feature
+    - synthetic_only
+  execution_friction:
+    allowed_values:
+    - low
+    - normal
+    - elevated
+    - severe
+    - blocked
   forced_flow_phase:
     allowed_values:
     - none
@@ -106,6 +128,25 @@ context_dimensions:
     - price_down_oi_down
     mapping:
       price_down_oi_down: MS_LIQUIDATION_STATE
+  temporal_phase:
+    allowed_values:
+    - normal
+    - session_open
+    - session_close
+    - pre_funding_timestamp
+    - post_funding_timestamp
+    - pre_news
+    - post_news
+  trend_phase:
+    allowed_values:
+    - uptrend
+    - downtrend
+    - chop
+    - compression
+    - breakout
+    - retest
+    - exhaustion
+    - transition
   trend_structure:
     allowed_values:
     - trend
@@ -113,6 +154,14 @@ context_dimensions:
     mapping:
       trend: TRENDING_STATE
       chop: CHOP_STATE
+  vol_phase:
+    allowed_values:
+    - compressed
+    - normal
+    - expanding
+    - shock
+    - aftershock
+    - decaying
   vol_regime:
     allowed_values:
     - low

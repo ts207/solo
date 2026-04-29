@@ -189,3 +189,15 @@ state_families:
   TEMPORAL_STRUCTURE:
     description: "Time-of-day or session-based states."
     searchable: true
+  INFORMATION_DESYNC:
+    description: "Persistent cross-venue basis or price dislocations."
+    searchable: true
+  REGIME_CONTEXT:
+    description: "Broad trending, choppy, or regime-based market states."
+    searchable: true
+  FORCED_FLOW_AND_EXHAUSTION:
+    description: "States of trend exhaustion, climax, or post-climax drift."
+    searchable: true
+  MICROSTRUCTURE_CONTEXT:
+    description: "States derived from microstructure signals (OI, funding, liq)."
+    searchable: true

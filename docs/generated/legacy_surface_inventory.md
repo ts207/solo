@@ -4,8 +4,8 @@ Generated from repo source and governance artifacts. Do not edit by hand.
 
 ## Summary
 
-- Files with legacy/stale markers: **335**
-- Total marker hits: **1631**
+- Files with legacy/stale markers: **398**
+- Total marker hits: **1757**
 - Legacy detectors: **40**
 - Legacy detectors retired-safe: **40**
 
@@ -13,17 +13,17 @@ Generated from repo source and governance artifacts. Do not edit by hand.
 
 | Category | Files |
 |---|---:|
-| `code_review` | 119 |
+| `code_review` | 127 |
 | `compat_supported` | 11 |
-| `compat_surface` | 63 |
-| `doc_review` | 8 |
-| `domain_risk_language` | 2 |
-| `fixture_or_regression` | 113 |
-| `historical_doc` | 1 |
+| `compat_surface` | 80 |
+| `doc_review` | 13 |
+| `domain_risk_language` | 14 |
+| `fixture_or_regression` | 118 |
 | `historical_spec` | 1 |
 | `inventory_tool` | 1 |
+| `legacy_detector_spec` | 2 |
 | `policy_doc` | 1 |
-| `spec_review` | 7 |
+| `spec_review` | 22 |
 | `status_policy` | 8 |
 
 ## Files
@@ -35,10 +35,12 @@ Generated from repo source and governance artifacts. Do not edit by hand.
 | `code_review` | `project/artifacts/discovery.py` | 1 | Classify as delete_now, migrate, fixture_only, or compat_supported. |
 | `code_review` | `project/cli.py` | 1 | Classify as delete_now, migrate, fixture_only, or compat_supported. |
 | `code_review` | `project/configs/golden_certification.yaml` | 1 | Classify as delete_now, migrate, fixture_only, or compat_supported. |
+| `code_review` | `project/configs/live_live_rehearsal_20260427_01.yaml` | 1 | Classify as delete_now, migrate, fixture_only, or compat_supported. |
 | `code_review` | `project/configs/live_paper.yaml` | 3 | Classify as delete_now, migrate, fixture_only, or compat_supported. |
 | `code_review` | `project/configs/live_paper_btc_thesis_v1.yaml` | 3 | Classify as delete_now, migrate, fixture_only, or compat_supported. |
 | `code_review` | `project/configs/live_paper_bybit_oi_spike_neg.yaml` | 3 | Classify as delete_now, migrate, fixture_only, or compat_supported. |
 | `code_review` | `project/configs/live_production.yaml` | 3 | Classify as delete_now, migrate, fixture_only, or compat_supported. |
+| `code_review` | `project/configs/registries/contexts.yaml` | 1 | Classify as delete_now, migrate, fixture_only, or compat_supported. |
 | `code_review` | `project/contracts/artifacts.py` | 4 | Classify as delete_now, migrate, fixture_only, or compat_supported. |
 | `code_review` | `project/contracts/pipeline_registry.py` | 1 | Classify as delete_now, migrate, fixture_only, or compat_supported. |
 | `code_review` | `project/contracts/schemas.py` | 4 | Classify as delete_now, migrate, fixture_only, or compat_supported. |
@@ -47,6 +49,7 @@ Generated from repo source and governance artifacts. Do not edit by hand.
 | `code_review` | `project/contracts/temporal_contracts.py` | 2 | Classify as delete_now, migrate, fixture_only, or compat_supported. |
 | `code_review` | `project/core/audited_join.py` | 11 | Classify as delete_now, migrate, fixture_only, or compat_supported. |
 | `code_review` | `project/core/evaluation_guard.py` | 1 | Classify as delete_now, migrate, fixture_only, or compat_supported. |
+| `code_review` | `project/domain/hypotheses.py` | 1 | Classify as delete_now, migrate, fixture_only, or compat_supported. |
 | `code_review` | `project/domain/models.py` | 2 | Classify as delete_now, migrate, fixture_only, or compat_supported. |
 | `code_review` | `project/engine/artifacts.py` | 1 | Classify as delete_now, migrate, fixture_only, or compat_supported. |
 | `code_review` | `project/engine/risk_allocator.py` | 1 | Classify as delete_now, migrate, fixture_only, or compat_supported. |
@@ -54,7 +57,7 @@ Generated from repo source and governance artifacts. Do not edit by hand.
 | `code_review` | `project/eval/robustness.py` | 9 | Classify as delete_now, migrate, fixture_only, or compat_supported. |
 | `code_review` | `project/eval/splits.py` | 1 | Classify as delete_now, migrate, fixture_only, or compat_supported. |
 | `code_review` | `project/events/detectors/liquidation_base.py` | 7 | Classify as delete_now, migrate, fixture_only, or compat_supported. |
-| `code_review` | `project/events/families/basis.py` | 1 | Classify as delete_now, migrate, fixture_only, or compat_supported. |
+| `code_review` | `project/events/families/basis.py` | 2 | Classify as delete_now, migrate, fixture_only, or compat_supported. |
 | `code_review` | `project/events/families/desync.py` | 4 | Classify as delete_now, migrate, fixture_only, or compat_supported. |
 | `code_review` | `project/events/families/liquidation.py` | 7 | Classify as delete_now, migrate, fixture_only, or compat_supported. |
 | `code_review` | `project/events/families/regime.py` | 3 | Classify as delete_now, migrate, fixture_only, or compat_supported. |
@@ -77,10 +80,13 @@ Generated from repo source and governance artifacts. Do not edit by hand.
 | `code_review` | `project/live/live_quality_gate.py` | 9 | Classify as delete_now, migrate, fixture_only, or compat_supported. |
 | `code_review` | `project/live/market_state.py` | 4 | Classify as delete_now, migrate, fixture_only, or compat_supported. |
 | `code_review` | `project/live/market_state_builder.py` | 9 | Classify as delete_now, migrate, fixture_only, or compat_supported. |
+| `code_review` | `project/live/paper_ledger.py` | 3 | Classify as delete_now, migrate, fixture_only, or compat_supported. |
 | `code_review` | `project/live/policy.py` | 11 | Classify as delete_now, migrate, fixture_only, or compat_supported. |
+| `code_review` | `project/live/runtime_admission.py` | 3 | Classify as delete_now, migrate, fixture_only, or compat_supported. |
 | `code_review` | `project/pipelines/clean/build_cleaned_bars.py` | 9 | Classify as delete_now, migrate, fixture_only, or compat_supported. |
 | `code_review` | `project/pipelines/execution_plan.py` | 3 | Classify as delete_now, migrate, fixture_only, or compat_supported. |
 | `code_review` | `project/pipelines/features/build_features.py` | 18 | Classify as delete_now, migrate, fixture_only, or compat_supported. |
+| `code_review` | `project/pipelines/ingest/ingest_binance_um_ohlcv.py` | 1 | Classify as delete_now, migrate, fixture_only, or compat_supported. |
 | `code_review` | `project/pipelines/ingest/ingest_binance_um_open_interest_hist.py` | 1 | Classify as delete_now, migrate, fixture_only, or compat_supported. |
 | `code_review` | `project/pipelines/pipeline_defaults.py` | 2 | Classify as delete_now, migrate, fixture_only, or compat_supported. |
 | `code_review` | `project/pipelines/pipeline_execution.py` | 1 | Classify as delete_now, migrate, fixture_only, or compat_supported. |
@@ -112,8 +118,7 @@ Generated from repo source and governance artifacts. Do not edit by hand.
 | `code_review` | `project/research/promotion/promotion_decisions.py` | 2 | Classify as delete_now, migrate, fixture_only, or compat_supported. |
 | `code_review` | `project/research/reports/operator_reporting.py` | 1 | Classify as delete_now, migrate, fixture_only, or compat_supported. |
 | `code_review` | `project/research/research_core.py` | 1 | Classify as delete_now, migrate, fixture_only, or compat_supported. |
-| `code_review` | `project/research/search/evaluator.py` | 11 | Classify as delete_now, migrate, fixture_only, or compat_supported. |
-| `code_review` | `project/research/search/feasibility.py` | 2 | Classify as delete_now, migrate, fixture_only, or compat_supported. |
+| `code_review` | `project/research/search/evaluator.py` | 15 | Classify as delete_now, migrate, fixture_only, or compat_supported. |
 | `code_review` | `project/research/search/hierarchical_search.py` | 1 | Classify as delete_now, migrate, fixture_only, or compat_supported. |
 | `code_review` | `project/research/search/validation.py` | 1 | Classify as delete_now, migrate, fixture_only, or compat_supported. |
 | `code_review` | `project/research/search_intelligence.py` | 22 | Classify as delete_now, migrate, fixture_only, or compat_supported. |
@@ -131,9 +136,12 @@ Generated from repo source and governance artifacts. Do not edit by hand.
 | `code_review` | `project/scripts/audit_historical_stat_integrity.py` | 4 | Classify as delete_now, migrate, fixture_only, or compat_supported. |
 | `code_review` | `project/scripts/build_architecture_metrics.py` | 2 | Classify as delete_now, migrate, fixture_only, or compat_supported. |
 | `code_review` | `project/scripts/build_detector_governance_artifacts.py` | 6 | Classify as delete_now, migrate, fixture_only, or compat_supported. |
+| `code_review` | `project/scripts/build_domain_graph.py` | 2 | Classify as delete_now, migrate, fixture_only, or compat_supported. |
 | `code_review` | `project/scripts/build_event_contract_reference.py` | 1 | Classify as delete_now, migrate, fixture_only, or compat_supported. |
 | `code_review` | `project/scripts/build_repo_metrics.py` | 1 | Classify as delete_now, migrate, fixture_only, or compat_supported. |
+| `code_review` | `project/scripts/build_state_registry_sidecars.py` | 4 | Classify as delete_now, migrate, fixture_only, or compat_supported. |
 | `code_review` | `project/scripts/build_template_registry_sidecars.py` | 9 | Classify as delete_now, migrate, fixture_only, or compat_supported. |
+| `code_review` | `project/scripts/check_docs_command_drift.py` | 3 | Classify as delete_now, migrate, fixture_only, or compat_supported. |
 | `code_review` | `project/scripts/check_domain_graph_freshness.py` | 1 | Classify as delete_now, migrate, fixture_only, or compat_supported. |
 | `code_review` | `project/scripts/debug/run_condition_certification.py` | 1 | Classify as delete_now, migrate, fixture_only, or compat_supported. |
 | `code_review` | `project/scripts/materialize_historical_exchange_replay_fixture.py` | 1 | Classify as delete_now, migrate, fixture_only, or compat_supported. |
@@ -143,7 +151,7 @@ Generated from repo source and governance artifacts. Do not edit by hand.
 | `code_review` | `project/scripts/show_benchmark_review.py` | 6 | Classify as delete_now, migrate, fixture_only, or compat_supported. |
 | `code_review` | `project/scripts/show_promotion_readiness.py` | 1 | Classify as delete_now, migrate, fixture_only, or compat_supported. |
 | `code_review` | `project/scripts/watch_live_runtime_alerts.py` | 7 | Classify as delete_now, migrate, fixture_only, or compat_supported. |
-| `code_review` | `project/spec_validation/search.py` | 2 | Classify as delete_now, migrate, fixture_only, or compat_supported. |
+| `code_review` | `project/spec_validation/directionality.py` | 4 | Classify as delete_now, migrate, fixture_only, or compat_supported. |
 | `code_review` | `project/specs/manifest.py` | 8 | Classify as delete_now, migrate, fixture_only, or compat_supported. |
 | `code_review` | `project/strategy/dsl/contract_v1.py` | 1 | Classify as delete_now, migrate, fixture_only, or compat_supported. |
 | `code_review` | `project/strategy/dsl/normalize.py` | 5 | Classify as delete_now, migrate, fixture_only, or compat_supported. |
@@ -169,7 +177,7 @@ Generated from repo source and governance artifacts. Do not edit by hand.
 | `compat_surface` | `project/events/arbitration.py` | 10 | Keep only behind explicit compatibility switches or fixture-only helpers. |
 | `compat_surface` | `project/events/canonical_registry_sidecars.py` | 5 | Keep only behind explicit compatibility switches or fixture-only helpers. |
 | `compat_surface` | `project/events/config.py` | 14 | Keep only behind explicit compatibility switches or fixture-only helpers. |
-| `compat_surface` | `project/events/detectors/base.py` | 3 | Keep only behind explicit compatibility switches or fixture-only helpers. |
+| `compat_surface` | `project/events/detectors/base.py` | 4 | Keep only behind explicit compatibility switches or fixture-only helpers. |
 | `compat_surface` | `project/events/detectors/base_v2.py` | 16 | Keep only behind explicit compatibility switches or fixture-only helpers. |
 | `compat_surface` | `project/events/detectors/funding.py` | 1 | Keep only behind explicit compatibility switches or fixture-only helpers. |
 | `compat_surface` | `project/events/detectors/liquidity.py` | 3 | Keep only behind explicit compatibility switches or fixture-only helpers. |
@@ -178,22 +186,22 @@ Generated from repo source and governance artifacts. Do not edit by hand.
 | `compat_surface` | `project/events/policy.py` | 6 | Keep only behind explicit compatibility switches or fixture-only helpers. |
 | `compat_surface` | `project/io/parquet_compat.py` | 4 | Keep only behind explicit compatibility switches or fixture-only helpers. |
 | `compat_surface` | `project/io/utils.py` | 6 | Keep only behind explicit compatibility switches or fixture-only helpers. |
-| `compat_surface` | `project/live/decay.py` | 1 | Keep only behind explicit compatibility switches or fixture-only helpers. |
+| `compat_surface` | `project/live/deploy_admission.py` | 4 | Keep only behind explicit compatibility switches or fixture-only helpers. |
 | `compat_surface` | `project/pipelines/alpha_bundle/build_alpha_signals_v2.py` | 5 | Keep only behind explicit compatibility switches or fixture-only helpers. |
-| `compat_surface` | `project/pipelines/ingest/ingest_binance_um_ohlcv.py` | 2 | Keep only behind explicit compatibility switches or fixture-only helpers. |
 | `compat_surface` | `project/pipelines/planner.py` | 1 | Keep only behind explicit compatibility switches or fixture-only helpers. |
 | `compat_surface` | `project/portfolio/engine.py` | 1 | Keep only behind explicit compatibility switches or fixture-only helpers. |
-| `compat_surface` | `project/research/agent_io/compatibility.py` | 1 | Keep only behind explicit compatibility switches or fixture-only helpers. |
-| `compat_surface` | `project/research/agent_io/proposal_schema.py` | 61 | Keep only behind explicit compatibility switches or fixture-only helpers. |
+| `compat_surface` | `project/research/agent_io/proposal_schema.py` | 60 | Keep only behind explicit compatibility switches or fixture-only helpers. |
 | `compat_surface` | `project/research/analyze_events.py` | 1 | Keep only behind explicit compatibility switches or fixture-only helpers. |
 | `compat_surface` | `project/research/discovery.py` | 8 | Keep only behind explicit compatibility switches or fixture-only helpers. |
 | `compat_surface` | `project/research/experiment_engine.py` | 2 | Keep only behind explicit compatibility switches or fixture-only helpers. |
-| `compat_surface` | `project/research/experiment_engine_validators.py` | 14 | Keep only behind explicit compatibility switches or fixture-only helpers. |
+| `compat_surface` | `project/research/experiment_engine_validators.py` | 3 | Keep only behind explicit compatibility switches or fixture-only helpers. |
 | `compat_surface` | `project/research/helpers/estimation_kernels.py` | 3 | Keep only behind explicit compatibility switches or fixture-only helpers. |
 | `compat_surface` | `project/research/helpers/shrinkage.py` | 2 | Keep only behind explicit compatibility switches or fixture-only helpers. |
 | `compat_surface` | `project/research/live_export.py` | 7 | Keep only behind explicit compatibility switches or fixture-only helpers. |
 | `compat_surface` | `project/research/multiplicity.py` | 3 | Keep only behind explicit compatibility switches or fixture-only helpers. |
 | `compat_surface` | `project/research/phase2.py` | 13 | Keep only behind explicit compatibility switches or fixture-only helpers. |
+| `compat_surface` | `project/research/search/compatibility.py` | 5 | Keep only behind explicit compatibility switches or fixture-only helpers. |
+| `compat_surface` | `project/research/search/feasibility.py` | 4 | Keep only behind explicit compatibility switches or fixture-only helpers. |
 | `compat_surface` | `project/research/services/candidate_discovery_service.py` | 2 | Keep only behind explicit compatibility switches or fixture-only helpers. |
 | `compat_surface` | `project/research/services/pathing.py` | 2 | Keep only behind explicit compatibility switches or fixture-only helpers. |
 | `compat_surface` | `project/research/services/promotion_service.py` | 8 | Keep only behind explicit compatibility switches or fixture-only helpers. |
@@ -203,42 +211,76 @@ Generated from repo source and governance artifacts. Do not edit by hand.
 | `compat_surface` | `project/runtime/invariants.py` | 1 | Keep only behind explicit compatibility switches or fixture-only helpers. |
 | `compat_surface` | `project/scripts/build_unified_event_registry.py` | 11 | Keep only behind explicit compatibility switches or fixture-only helpers. |
 | `compat_surface` | `project/scripts/debug/replay_r6_late.py` | 1 | Keep only behind explicit compatibility switches or fixture-only helpers. |
+| `compat_surface` | `project/scripts/discover_doctor.py` | 1 | Keep only behind explicit compatibility switches or fixture-only helpers. |
 | `compat_surface` | `project/scripts/event_template_semantics_audit.py` | 17 | Keep only behind explicit compatibility switches or fixture-only helpers. |
+| `compat_surface` | `project/scripts/find_missing_matrix_entries.py` | 1 | Keep only behind explicit compatibility switches or fixture-only helpers. |
 | `compat_surface` | `project/scripts/pipeline_governance.py` | 1 | Keep only behind explicit compatibility switches or fixture-only helpers. |
 | `compat_surface` | `project/scripts/run_certification_workflow.py` | 6 | Keep only behind explicit compatibility switches or fixture-only helpers. |
 | `compat_surface` | `project/scripts/update_reflections.py` | 5 | Keep only behind explicit compatibility switches or fixture-only helpers. |
+| `compat_surface` | `project/spec_validation/templates.py` | 1 | Keep only behind explicit compatibility switches or fixture-only helpers. |
 | `compat_surface` | `project/specs/schema_validation.py` | 1 | Keep only behind explicit compatibility switches or fixture-only helpers. |
 | `compat_surface` | `project/strategy/dsl/schema_v2.py` | 1 | Keep only behind explicit compatibility switches or fixture-only helpers. |
+| `compat_surface` | `spec/compatibility/context_template_matrix.yaml` | 1 | Keep only behind explicit compatibility switches or fixture-only helpers. |
+| `compat_surface` | `spec/compatibility/event_template_matrix.yaml` | 1 | Keep only behind explicit compatibility switches or fixture-only helpers. |
 | `compat_surface` | `spec/discovery/expanded_v2/README.md` | 1 | Keep only behind explicit compatibility switches or fixture-only helpers. |
 | `compat_surface` | `spec/discovery/multiyear_v1/README.md` | 1 | Keep only behind explicit compatibility switches or fixture-only helpers. |
 | `compat_surface` | `spec/events/LIQUIDITY_STRESS_PROXY.yaml` | 2 | Keep only behind explicit compatibility switches or fixture-only helpers. |
 | `compat_surface` | `spec/events/WICK_REVERSAL_PROXY.yaml` | 2 | Keep only behind explicit compatibility switches or fixture-only helpers. |
-| `compat_surface` | `spec/events/canonical_event_registry.yaml` | 4 | Keep only behind explicit compatibility switches or fixture-only helpers. |
+| `compat_surface` | `spec/events/canonical_event_registry.yaml` | 1 | Keep only behind explicit compatibility switches or fixture-only helpers. |
 | `compat_surface` | `spec/events/compatibility.yaml` | 1 | Keep only behind explicit compatibility switches or fixture-only helpers. |
 | `compat_surface` | `spec/events/event_alias_policy.yaml` | 6 | Keep only behind explicit compatibility switches or fixture-only helpers. |
-| `compat_surface` | `spec/events/event_registry_unified.yaml` | 6 | Keep only behind explicit compatibility switches or fixture-only helpers. |
+| `compat_surface` | `spec/events/event_registry_unified.yaml` | 17 | Keep only behind explicit compatibility switches or fixture-only helpers. |
 | `compat_surface` | `spec/events/regime_routing.yaml` | 1 | Keep only behind explicit compatibility switches or fixture-only helpers. |
+| `compat_surface` | `spec/grammar/family_registry.yaml` | 1 | Keep only behind explicit compatibility switches or fixture-only helpers. |
 | `compat_surface` | `spec/hypotheses/lift_state_conditioned_v1.yaml` | 1 | Keep only behind explicit compatibility switches or fixture-only helpers. |
 | `compat_surface` | `spec/multiplicity/taxonomy.yaml` | 12 | Keep only behind explicit compatibility switches or fixture-only helpers. |
 | `compat_surface` | `spec/regimes/registry.yaml` | 1 | Keep only behind explicit compatibility switches or fixture-only helpers. |
-| `compat_surface` | `spec/templates/event_template_registry.yaml` | 31 | Keep only behind explicit compatibility switches or fixture-only helpers. |
-| `compat_surface` | `spec/templates/registry.yaml` | 31 | Keep only behind explicit compatibility switches or fixture-only helpers. |
+| `compat_surface` | `spec/search/search_benchmark_basis_disloc_synth.yaml` | 1 | Keep only behind explicit compatibility switches or fixture-only helpers. |
+| `compat_surface` | `spec/search/search_benchmark_execution.yaml` | 1 | Keep only behind explicit compatibility switches or fixture-only helpers. |
+| `compat_surface` | `spec/search/search_benchmark_false_breakout.yaml` | 1 | Keep only behind explicit compatibility switches or fixture-only helpers. |
+| `compat_surface` | `spec/search/search_benchmark_false_breakout_quality_boundary.yaml` | 1 | Keep only behind explicit compatibility switches or fixture-only helpers. |
+| `compat_surface` | `spec/search/search_benchmark_fnd_disloc.yaml` | 1 | Keep only behind explicit compatibility switches or fixture-only helpers. |
+| `compat_surface` | `spec/search/search_benchmark_liquidity_gap.yaml` | 1 | Keep only behind explicit compatibility switches or fixture-only helpers. |
+| `compat_surface` | `spec/search/search_benchmark_liquidity_vacuum.yaml` | 1 | Keep only behind explicit compatibility switches or fixture-only helpers. |
+| `compat_surface` | `spec/search/search_benchmark_positioning.yaml` | 1 | Keep only behind explicit compatibility switches or fixture-only helpers. |
+| `compat_surface` | `spec/search/search_benchmark_positioning_v2.yaml` | 1 | Keep only behind explicit compatibility switches or fixture-only helpers. |
+| `compat_surface` | `spec/search/search_benchmark_vol_shock.yaml` | 1 | Keep only behind explicit compatibility switches or fixture-only helpers. |
+| `compat_surface` | `spec/search/search_benchmark_zscore_stretch_live.yaml` | 1 | Keep only behind explicit compatibility switches or fixture-only helpers. |
+| `compat_surface` | `spec/templates/event_template_registry.yaml` | 34 | Keep only behind explicit compatibility switches or fixture-only helpers. |
+| `compat_surface` | `spec/templates/registry.yaml` | 34 | Keep only behind explicit compatibility switches or fixture-only helpers. |
 | `doc_review` | `docs/README.md` | 5 | Review for stale guidance; either update, mark historical, or remove. |
 | `doc_review` | `docs/lifecycle/deploy.md` | 2 | Review for stale guidance; either update, mark historical, or remove. |
 | `doc_review` | `docs/lifecycle/discover.md` | 6 | Review for stale guidance; either update, mark historical, or remove. |
-| `doc_review` | `docs/lifecycle/funding-template-discovery-2023-2025.md` | 1 | Review for stale guidance; either update, mark historical, or remove. |
 | `doc_review` | `docs/lifecycle/overview.md` | 6 | Review for stale guidance; either update, mark historical, or remove. |
+| `doc_review` | `docs/operator/discover-edge.md` | 1 | Review for stale guidance; either update, mark historical, or remove. |
 | `doc_review` | `docs/operator/runbook.md` | 3 | Review for stale guidance; either update, mark historical, or remove. |
+| `doc_review` | `docs/plans/plan.md` | 2 | Review for stale guidance; either update, mark historical, or remove. |
 | `doc_review` | `docs/reference/architecture.md` | 4 | Review for stale guidance; either update, mark historical, or remove. |
 | `doc_review` | `docs/reference/specs-and-domain.md` | 9 | Review for stale guidance; either update, mark historical, or remove. |
+| `doc_review` | `docs/research/reflections.md` | 8 | Review for stale guidance; either update, mark historical, or remove. |
+| `doc_review` | `docs/superpowers/plans/2026-04-24-tech-debt-cleanup-phase3.md` | 2 | Review for stale guidance; either update, mark historical, or remove. |
+| `doc_review` | `docs/superpowers/plans/2026-04-27-sprint1-final-hardening.md` | 7 | Review for stale guidance; either update, mark historical, or remove. |
+| `doc_review` | `docs/superpowers/plans/2026-04-27-sprint1-remediation.md` | 2 | Review for stale guidance; either update, mark historical, or remove. |
 | `domain_risk_language` | `spec/events/CROSS_ASSET_DESYNC_EVENT.yaml` | 2 | Keep; this describes stale market data risk, not stale repository surface. |
 | `domain_risk_language` | `spec/events/CROSS_VENUE_DESYNC.yaml` | 1 | Keep; this describes stale market data risk, not stale repository surface. |
+| `domain_risk_language` | `spec/events/FUNDING_FLIP_TO_NEGATIVE.yaml` | 1 | Keep; this describes stale market data risk, not stale repository surface. |
+| `domain_risk_language` | `spec/events/FUNDING_FLIP_TO_POSITIVE.yaml` | 1 | Keep; this describes stale market data risk, not stale repository surface. |
+| `domain_risk_language` | `spec/events/FUNDING_NEG_EXTREME_ONSET.yaml` | 1 | Keep; this describes stale market data risk, not stale repository surface. |
+| `domain_risk_language` | `spec/events/FUNDING_NEG_NORMALIZATION.yaml` | 1 | Keep; this describes stale market data risk, not stale repository surface. |
+| `domain_risk_language` | `spec/events/FUNDING_NEG_PERSISTENCE.yaml` | 1 | Keep; this describes stale market data risk, not stale repository surface. |
+| `domain_risk_language` | `spec/events/FUNDING_POS_EXTREME_ONSET.yaml` | 1 | Keep; this describes stale market data risk, not stale repository surface. |
+| `domain_risk_language` | `spec/events/FUNDING_POS_NORMALIZATION.yaml` | 1 | Keep; this describes stale market data risk, not stale repository surface. |
+| `domain_risk_language` | `spec/events/FUNDING_POS_PERSISTENCE.yaml` | 1 | Keep; this describes stale market data risk, not stale repository surface. |
+| `domain_risk_language` | `spec/events/PRICE_DOWN_OI_UP.yaml` | 1 | Keep; this describes stale market data risk, not stale repository surface. |
+| `domain_risk_language` | `spec/events/PRICE_UP_OI_DOWN.yaml` | 1 | Keep; this describes stale market data risk, not stale repository surface. |
+| `domain_risk_language` | `spec/events/PRICE_UP_OI_UP.yaml` | 1 | Keep; this describes stale market data risk, not stale repository surface. |
+| `domain_risk_language` | `spec/events/event_data_quality_contract.yaml` | 3 | Keep; this describes stale market data risk, not stale repository surface. |
 | `fixture_or_regression` | `project/tests/artifacts/test_artifact_catalog_paths.py` | 14 | Keep only while it protects canonical behavior or old artifact fixtures. |
 | `fixture_or_regression` | `project/tests/contracts/test_docs_governance_artifacts.py` | 7 | Keep only while it protects canonical behavior or old artifact fixtures. |
 | `fixture_or_regression` | `project/tests/contracts/test_live_trade_context_contract.py` | 1 | Keep only while it protects canonical behavior or old artifact fixtures. |
 | `fixture_or_regression` | `project/tests/contracts/test_promoted_thesis_contract.py` | 1 | Keep only while it protects canonical behavior or old artifact fixtures. |
 | `fixture_or_regression` | `project/tests/contracts/test_system_map_contract.py` | 5 | Keep only while it protects canonical behavior or old artifact fixtures. |
-| `fixture_or_regression` | `project/tests/domain/test_compiled_registry.py` | 6 | Keep only while it protects canonical behavior or old artifact fixtures. |
+| `fixture_or_regression` | `project/tests/domain/test_compiled_registry.py` | 7 | Keep only while it protects canonical behavior or old artifact fixtures. |
 | `fixture_or_regression` | `project/tests/domain/test_coverage_boost_domain.py` | 1 | Keep only while it protects canonical behavior or old artifact fixtures. |
 | `fixture_or_regression` | `project/tests/engine/test_adaptive_vol_estimator.py` | 1 | Keep only while it protects canonical behavior or old artifact fixtures. |
 | `fixture_or_regression` | `project/tests/engine/test_context_assembler.py` | 4 | Keep only while it protects canonical behavior or old artifact fixtures. |
@@ -257,6 +299,7 @@ Generated from repo source and governance artifacts. Do not edit by hand.
 | `fixture_or_regression` | `project/tests/events/test_event_ontology_mapping.py` | 1 | Keep only while it protects canonical behavior or old artifact fixtures. |
 | `fixture_or_regression` | `project/tests/events/test_registry_loader.py` | 1 | Keep only while it protects canonical behavior or old artifact fixtures. |
 | `fixture_or_regression` | `project/tests/features/test_alignment_robustness.py` | 2 | Keep only while it protects canonical behavior or old artifact fixtures. |
+| `fixture_or_regression` | `project/tests/fixtures/result_harness.py` | 1 | Keep only while it protects canonical behavior or old artifact fixtures. |
 | `fixture_or_regression` | `project/tests/live/test_context_builder.py` | 3 | Keep only while it protects canonical behavior or old artifact fixtures. |
 | `fixture_or_regression` | `project/tests/live/test_event_detector_adapters.py` | 6 | Keep only while it protects canonical behavior or old artifact fixtures. |
 | `fixture_or_regression` | `project/tests/live/test_execution_attribution_v2.py` | 2 | Keep only while it protects canonical behavior or old artifact fixtures. |
@@ -309,10 +352,13 @@ Generated from repo source and governance artifacts. Do not edit by hand.
 | `fixture_or_regression` | `project/tests/research/test_cli_stages.py` | 1 | Keep only while it protects canonical behavior or old artifact fixtures. |
 | `fixture_or_regression` | `project/tests/research/test_concept_ledger.py` | 1 | Keep only while it protects canonical behavior or old artifact fixtures. |
 | `fixture_or_regression` | `project/tests/research/test_context_label_canonicalization.py` | 1 | Keep only while it protects canonical behavior or old artifact fixtures. |
+| `fixture_or_regression` | `project/tests/research/test_context_timing.py` | 1 | Keep only while it protects canonical behavior or old artifact fixtures. |
 | `fixture_or_regression` | `project/tests/research/test_cross_campaign_multiplicity.py` | 1 | Keep only while it protects canonical behavior or old artifact fixtures. |
 | `fixture_or_regression` | `project/tests/research/test_discovery_stabilization_defaults.py` | 1 | Keep only while it protects canonical behavior or old artifact fixtures. |
+| `fixture_or_regression` | `project/tests/research/test_entry_lag_split_compat.py` | 2 | Keep only while it protects canonical behavior or old artifact fixtures. |
+| `fixture_or_regression` | `project/tests/research/test_event_template_compatibility.py` | 1 | Keep only while it protects canonical behavior or old artifact fixtures. |
 | `fixture_or_regression` | `project/tests/research/test_hierarchical_search.py` | 1 | Keep only while it protects canonical behavior or old artifact fixtures. |
-| `fixture_or_regression` | `project/tests/research/test_historical_artifact_audit_integration.py` | 10 | Keep only while it protects canonical behavior or old artifact fixtures. |
+| `fixture_or_regression` | `project/tests/research/test_historical_artifact_audit_integration.py` | 9 | Keep only while it protects canonical behavior or old artifact fixtures. |
 | `fixture_or_regression` | `project/tests/research/test_live_export.py` | 1 | Keep only while it protects canonical behavior or old artifact fixtures. |
 | `fixture_or_regression` | `project/tests/research/test_live_export_governance.py` | 1 | Keep only while it protects canonical behavior or old artifact fixtures. |
 | `fixture_or_regression` | `project/tests/research/test_search_burden_propagation.py` | 3 | Keep only while it protects canonical behavior or old artifact fixtures. |
@@ -333,6 +379,7 @@ Generated from repo source and governance artifacts. Do not edit by hand.
 | `fixture_or_regression` | `project/tests/scripts/test_event_template_semantics_audit.py` | 2 | Keep only while it protects canonical behavior or old artifact fixtures. |
 | `fixture_or_regression` | `project/tests/scripts/test_run_live_engine.py` | 6 | Keep only while it protects canonical behavior or old artifact fixtures. |
 | `fixture_or_regression` | `project/tests/scripts/test_run_researcher_verification.py` | 1 | Keep only while it protects canonical behavior or old artifact fixtures. |
+| `fixture_or_regression` | `project/tests/scripts/test_update_reflections.py` | 1 | Keep only while it protects canonical behavior or old artifact fixtures. |
 | `fixture_or_regression` | `project/tests/scripts/test_watch_live_runtime_alerts.py` | 10 | Keep only while it protects canonical behavior or old artifact fixtures. |
 | `fixture_or_regression` | `project/tests/smoke/test_certification_workflow.py` | 1 | Keep only while it protects canonical behavior or old artifact fixtures. |
 | `fixture_or_regression` | `project/tests/spec_validation/test_registry_consistency.py` | 1 | Keep only while it protects canonical behavior or old artifact fixtures. |
@@ -346,16 +393,32 @@ Generated from repo source and governance artifacts. Do not edit by hand.
 | `fixture_or_regression` | `project/tests/test_phase2_condition_routing.py` | 2 | Keep only while it protects canonical behavior or old artifact fixtures. |
 | `fixture_or_regression` | `project/tests/test_phase2_output_schema.py` | 3 | Keep only while it protects canonical behavior or old artifact fixtures. |
 | `fixture_or_regression` | `project/tests/test_validate_event_quality_join_rate.py` | 9 | Keep only while it protects canonical behavior or old artifact fixtures. |
-| `historical_doc` | `docs/lifecycle/liquidation-exhaustion-matrix.md` | 2 | Mark as historical; do not teach as current operator guidance. |
 | `historical_spec` | `spec/multiplicity/families.yaml` | 1 | Keep as read-only cutover input only while a drift check depends on it. |
 | `inventory_tool` | `project/scripts/build_legacy_surface_inventory.py` | 35 | Keep; this generator necessarily contains legacy/stale classification keywords. |
+| `legacy_detector_spec` | `spec/events/LIQUIDITY_SHOCK.yaml` | 2 | Retain only as historical audit input or migrate to governed v2. |
+| `legacy_detector_spec` | `spec/events/event_directionality_contract.yaml` | 1 | Retain only as historical audit input or migrate to governed v2. |
 | `policy_doc` | `docs/reference/supported-path.md` | 8 | Keep as canonical supported/compat/deprecated policy. |
 | `spec_review` | `spec/campaigns/campaign_contract_v1.yaml` | 1 | Classify as active contract, historical spec, or delete candidate. |
 | `spec_review` | `spec/campaigns/funding_template_discovery_btc_2023_2025_v1_experiment.yaml` | 1 | Classify as active contract, historical spec, or delete candidate. |
-| `spec_review` | `spec/domain/domain_graph.yaml` | 39 | Classify as active contract, historical spec, or delete candidate. |
+| `spec_review` | `spec/contexts/context_dimension_registry.yaml` | 2 | Classify as active contract, historical spec, or delete candidate. |
+| `spec_review` | `spec/domain/domain_graph.yaml` | 53 | Classify as active contract, historical spec, or delete candidate. |
 | `spec_review` | `spec/hypotheses/template_verb_lexicon.yaml` | 28 | Classify as active contract, historical spec, or delete candidate. |
 | `spec_review` | `spec/proposals/funding_persistence_oi_confirm_long_h48_btc_2025_v1.yaml` | 1 | Classify as active contract, historical spec, or delete candidate. |
+| `spec_review` | `spec/proposals/single_event_false_breakout_bullish_exhaustion_reversal_long_h48_btc_v1.yaml` | 2 | Classify as active contract, historical spec, or delete candidate. |
+| `spec_review` | `spec/search/funding_template_discovery_btc_2023_2025_v1.yaml` | 1 | Classify as active contract, historical spec, or delete candidate. |
+| `spec_review` | `spec/search/sequence_funding_persistence_oi_confirm_btc_h48_2025_v1.yaml` | 1 | Classify as active contract, historical spec, or delete candidate. |
+| `spec_review` | `spec/search/single_event_climax_volume_funding_neg_exhaustion_reversal_btc_h24_v1.yaml` | 1 | Classify as active contract, historical spec, or delete candidate. |
+| `spec_review` | `spec/search/single_event_false_breakout_bullish_exhaustion_reversal_btc_h48_v1.yaml` | 1 | Classify as active contract, historical spec, or delete candidate. |
+| `spec_review` | `spec/search/single_event_funding_continuation_btc_h24_h48_v1.yaml` | 1 | Classify as active contract, historical spec, or delete candidate. |
+| `spec_review` | `spec/search/single_event_liquidation_exhaustion_low_vol_continuation_h05_v1.yaml` | 1 | Classify as active contract, historical spec, or delete candidate. |
+| `spec_review` | `spec/search/single_event_liquidation_exhaustion_low_vol_continuation_h24_v1.yaml` | 1 | Classify as active contract, historical spec, or delete candidate. |
+| `spec_review` | `spec/search/single_event_liquidation_exhaustion_low_vol_exhaustion_reversal_h05_v1.yaml` | 1 | Classify as active contract, historical spec, or delete candidate. |
+| `spec_review` | `spec/search/single_event_liquidation_exhaustion_low_vol_exhaustion_reversal_h24_v1.yaml` | 1 | Classify as active contract, historical spec, or delete candidate. |
+| `spec_review` | `spec/search/single_event_liquidation_exhaustion_low_vol_mean_reversion_h05_v1.yaml` | 1 | Classify as active contract, historical spec, or delete candidate. |
+| `spec_review` | `spec/search/single_event_liquidation_exhaustion_low_vol_mean_reversion_h24_v1.yaml` | 1 | Classify as active contract, historical spec, or delete candidate. |
+| `spec_review` | `spec/search/single_event_liquidation_exhaustion_reversal_bounce_v1.yaml` | 1 | Classify as active contract, historical spec, or delete candidate. |
 | `spec_review` | `spec/search_space.yaml` | 1 | Classify as active contract, historical spec, or delete candidate. |
+| `spec_review` | `spec/states/data_quality_state.yaml` | 1 | Classify as active contract, historical spec, or delete candidate. |
 | `spec_review` | `spec/theses/thesis_registry.yaml` | 1 | Classify as active contract, historical spec, or delete candidate. |
 | `status_policy` | `project/events/canonical_audit.py` | 2 | Keep if it only defines, reads, or audits active lifecycle/status vocabulary. |
 | `status_policy` | `project/events/detector_contract.py` | 1 | Keep if it only defines, reads, or audits active lifecycle/status vocabulary. |

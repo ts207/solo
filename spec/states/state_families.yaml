@@ -15,6 +15,15 @@ defaults:
     - crypto
     tags: []
 context_dimensions:
+  basis_phase:
+    allowed_values:
+    - neutral
+    - positive_dislocation
+    - negative_dislocation
+    - widening
+    - converging
+    - normalized
+    mapping: {}
   carry_state:
     allowed_values:
     - funding_neg
@@ -22,6 +31,22 @@ context_dimensions:
     mapping:
       funding_neg: FUNDING_NEGATIVE
       funding_pos: FUNDING_POSITIVE
+  data_quality_state:
+    allowed_values:
+    - ok
+    - degraded
+    - stale
+    - missing_required_feature
+    - synthetic_only
+    mapping: {}
+  execution_friction:
+    allowed_values:
+    - low
+    - normal
+    - elevated
+    - severe
+    - blocked
+    mapping: {}
   forced_flow_phase:
     allowed_values:
     - none
@@ -114,6 +139,27 @@ context_dimensions:
     - price_down_oi_down
     mapping:
       price_down_oi_down: MS_LIQUIDATION_STATE
+  temporal_phase:
+    allowed_values:
+    - normal
+    - session_open
+    - session_close
+    - pre_funding_timestamp
+    - post_funding_timestamp
+    - pre_news
+    - post_news
+    mapping: {}
+  trend_phase:
+    allowed_values:
+    - uptrend
+    - downtrend
+    - chop
+    - compression
+    - breakout
+    - retest
+    - exhaustion
+    - transition
+    mapping: {}
   trend_structure:
     allowed_values:
     - trend
@@ -121,6 +167,15 @@ context_dimensions:
     mapping:
       trend: TRENDING_STATE
       chop: CHOP_STATE
+  vol_phase:
+    allowed_values:
+    - compressed
+    - normal
+    - expanding
+    - shock
+    - aftershock
+    - decaying
+    mapping: {}
   vol_regime:
     allowed_values:
     - low
@@ -129,6 +184,19 @@ context_dimensions:
       low: LOW_VOL_REGIME
       high: HIGH_VOL_REGIME
 state_families:
+- name: basis_phase
+  allowed_values:
+  - neutral
+  - positive_dislocation
+  - negative_dislocation
+  - widening
+  - converging
+  - normalized
+  source_feature: basis_zscore
+  canonical_metrics:
+  - basis_zscore
+  update_cadence: 5m
+  acceptance_test_id: BASIS_PHASE_STABILITY_V1
 - name: carry_state
   allowed_values:
   - funding_neg
@@ -141,6 +209,31 @@ state_families:
   - 0.1
   update_cadence: 8h
   acceptance_test_id: CARRY_STABILITY_V1
+- name: data_quality_state
+  allowed_values:
+  - ok
+  - degraded
+  - stale
+  - missing_required_feature
+  - synthetic_only
+  source_feature: data_quality_score
+  canonical_metrics:
+  - data_quality_score
+  update_cadence: 5m
+  acceptance_test_id: DATA_QUALITY_STATE_STABILITY_V1
+- name: execution_friction
+  allowed_values:
+  - low
+  - normal
+  - elevated
+  - severe
+  - blocked
+  source_feature: spread_bps
+  canonical_metrics:
+  - spread_bps
+  - slippage_bps
+  update_cadence: 5m
+  acceptance_test_id: EXECUTION_FRICTION_STABILITY_V1
 - name: forced_flow_phase
   allowed_values:
   - none
@@ -209,11 +302,53 @@ state_families:
   - price_down_oi_up
   - price_down_oi_down
   source_feature: price_oi_quadrant
+- name: temporal_phase
+  allowed_values:
+  - normal
+  - session_open
+  - session_close
+  - pre_funding_timestamp
+  - post_funding_timestamp
+  - pre_news
+  - post_news
+  source_feature: timestamp
+  canonical_metrics:
+  - timestamp
+  update_cadence: 5m
+  acceptance_test_id: TEMPORAL_PHASE_STABILITY_V1
+- name: trend_phase
+  allowed_values:
+  - uptrend
+  - downtrend
+  - chop
+  - compression
+  - breakout
+  - retest
+  - exhaustion
+  - transition
+  source_feature: trend_return_96
+  canonical_metrics:
+  - trend_return_96
+  update_cadence: 5m
+  acceptance_test_id: TREND_PHASE_STABILITY_V1
 - name: trend_structure
   allowed_values:
   - trend
   - chop
   source_feature: trend_structure
+- name: vol_phase
+  allowed_values:
+  - compressed
+  - normal
+  - expanding
+  - shock
+  - aftershock
+  - decaying
+  source_feature: rv_pct_17280
+  canonical_metrics:
+  - rv_pct_17280
+  update_cadence: 5m
+  acceptance_test_id: VOL_PHASE_STABILITY_V1
 - name: vol_regime
   allowed_values:
   - low

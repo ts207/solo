@@ -162,15 +162,13 @@ def _iter_context_dimension_rows() -> Iterable[tuple[Path, dict[str, Any]]]:
         if not state_name:
             continue
         mapping = row.get("mapping", {})
-        if not isinstance(mapping, dict) or not mapping:
+        if not isinstance(mapping, dict):
             continue
         normalized_mapping = {
             str(label).strip(): str(state_id).strip().upper()
             for label, state_id in mapping.items()
             if str(label).strip() and str(state_id).strip()
         }
-        if not normalized_mapping:
-            continue
         allowed_values = row.get("allowed_values", list(normalized_mapping.keys()))
         if not isinstance(allowed_values, list):
             allowed_values = list(normalized_mapping.keys())
