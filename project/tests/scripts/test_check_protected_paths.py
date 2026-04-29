@@ -13,9 +13,9 @@ def test_get_violations_with_direct_match():
     assert violations == ["project/configs/live_production.yaml"]
 
 def test_get_violations_with_glob_match():
-    modified = ["project/configs/live_live_run1.yaml", "README.md"]
+    modified = ["project/configs/live_trading_run1.yaml", "README.md"]
     violations = get_violations(modified)
-    assert violations == ["project/configs/live_live_run1.yaml"]
+    assert violations == ["project/configs/live_trading_run1.yaml"]
 
 def test_get_violations_with_prefix_match():
     modified = ["data/live/theses/run_123/promoted_theses.json"]

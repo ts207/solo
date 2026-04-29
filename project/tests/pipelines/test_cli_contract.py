@@ -361,7 +361,7 @@ def test_cli_deploy_bind_config_defaults_to_project_configs_and_emits_single_the
     )
 
     default_config_dir = PROJECT_ROOT / "configs"
-    config_path = default_config_dir / f"live_paper_{run_id}.yaml"
+    config_path = default_config_dir / f"live_monitor_{run_id}.yaml"
     try:
         if config_path.exists():
             config_path.unlink()
@@ -499,7 +499,7 @@ def test_cli_deploy_bind_config_does_not_inject_synthetic_microstructure_default
     )
 
     assert cli.main() == 0
-    payload = yaml.safe_load((out_dir / f"live_paper_{run_id}.yaml").read_text())
+    payload = yaml.safe_load((out_dir / f"live_monitor_{run_id}.yaml").read_text())
     strategy_runtime = payload["strategy_runtime"]
     assert "default_depth_usd" not in strategy_runtime
     assert "default_tob_coverage" not in strategy_runtime

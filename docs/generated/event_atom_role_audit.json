@@ -1,22 +1,22 @@
 {
-  "total_atoms": 87,
+  "total_atoms": 89,
   "by_detector_band": {
-    "": 86,
+    "": 88,
     "deployable_core": 1
   },
   "by_search_role": {
-    "diagnostic": 75,
+    "diagnostic": 77,
     "confirm": 7,
     "context": 4,
     "primary_trigger": 1
   },
   "by_promotion_role": {
-    "ineligible": 79,
+    "ineligible": 81,
     "requires_composite": 7,
     "eligible": 1
   },
   "by_runtime_role": {
-    "observer": 76,
+    "observer": 78,
     "unavailable": 7,
     "guard": 4
   },
@@ -704,6 +704,22 @@
     {
       "id": "vol_shock_probe",
       "event_type": "VOL_SHOCK",
+      "detector_band": "",
+      "search_role": "diagnostic",
+      "promotion_role": "ineligible",
+      "runtime_role": "observer"
+    },
+    {
+      "id": "vol_shock_probe",
+      "event_type": "VOL_SHOCK",
+      "detector_band": "",
+      "search_role": "diagnostic",
+      "promotion_role": "ineligible",
+      "runtime_role": "observer"
+    },
+    {
+      "id": "funding_persistence_probe",
+      "event_type": "FUNDING_PERSISTENCE_TRIGGER",
       "detector_band": "",
       "search_role": "diagnostic",
       "promotion_role": "ineligible",
