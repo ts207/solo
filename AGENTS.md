@@ -35,6 +35,25 @@ The repository enforces a strict package dependency DAG. Key rules:
 
 ---
 
+## 5. Protected Artifact Write Policy
+
+AI agents are FORBIDDEN from modifying the following paths without an explicit user directive. These paths represent governed state, production configurations, or sensitive credentials.
+
+**Protected Paths:**
+- `data/live/theses/**` (Governed research output)
+- `data/reports/approval/**` (Certification artifacts)
+- `project/configs/live_live_*.yaml` (Production binding configs)
+- `project/configs/live_production.yaml` (Production environment config)
+- `deploy/systemd/*.service` (Systemd units)
+- `.env*` and `deploy/env/*.env` (Credentials and environment variables)
+
+**Enforcement:**
+- Agents MUST run `make agent-check` before finalizing any PR or major change.
+- `make agent-check` includes a `check-protected-paths` step that fails if any of these files are modified.
+- To override, the user must explicitly acknowledge and perform the write or authorize the agent for a specific task.
+
+---
+
 ## Agent Checklists
 
 ### New Edge Discovery

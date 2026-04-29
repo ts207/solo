@@ -1,0 +1,72 @@
+program_id: single_event_false_breakout_bullish_exhaustion_reversal_long_h48_btc_v1
+description: >
+  Bounded BTC reproduction branch: when FALSE_BREAKOUT fires on BTCUSDT under
+  bullish trend state, test whether the legacy exhaustion_reversal long edge
+  persists over the next 48 bars after standard costs.
+start: "2022-01-01"
+end: "2024-12-31"
+symbols:
+  - BTCUSDT
+timeframe: 5m
+instrument_classes:
+  - crypto
+objective_name: retail_profitability
+promotion_profile: disabled
+search_spec:
+  path: spec/search/single_event_false_breakout_bullish_exhaustion_reversal_btc_h48_v1.yaml
+avoid_region_keys: []
+contexts:
+  ms_trend_state:
+    - bullish
+hypothesis:
+  anchor:
+    type: event
+    event_id: FALSE_BREAKOUT
+  filters:
+    contexts:
+      ms_trend_state:
+        - bullish
+  sampling_policy:
+    mode: episodic
+    entry_lag_bars: 1
+    overlap_policy: suppress
+  template:
+    id: exhaustion_reversal
+  direction: long
+  horizon_bars: 48
+artifacts:
+  matrix_phase: trend_failure_false_breakout_bullish_validation
+  matrix_run: FALSE_BREAKOUT_BULLISH_H48_BTC_V1
+  parent_readout: docs/research/dataset_calibration_2026-04-28.md
+  source_scoreboard_run_id: trend_fail_v1_2021
+  source_cell_id: false_breakout_failure::bullish_trend::ms_trend_state-bullish::long::48b::exhaustion_reversal
+  mechanism_statement: >
+    A failed breakout inside a bullish short-term trend may mark a localized
+    exhaustion pocket where the failed impulse reverts over a 48-bar horizon.
+  research_question: >
+    Does the BTCUSDT FALSE_BREAKOUT exhaustion_reversal long edge under
+    ms_trend_state=bullish survive as a bounded 48-bar branch without adding
+    symbols, horizons, contexts, or templates?
+  calibration_evidence:
+    source_n_events: 293
+    source_net_mean_bps: 30.4336
+    source_t_stat: 2.0898
+    source_p_value: 0.018320
+    source_q_value: 1.0
+    source_robustness_score: 0.7045
+    source_forward_n: 13
+    source_forward_net_mean_bps: 62.1457
+    source_forward_t_stat: 0.8141
+    source_specificity_lift_bps: -40.3812
+    source_specificity_lift_pass: false
+    source_placebo_shift_effect: 98737.6744
+  decision_rules:
+    min_events: 100
+    kill_if_events_below: 50
+    require_positive_post_cost_expectancy: true
+    require_positive_year_folds: true
+    require_validation_before_promotion: true
+    no_extra_contexts_in_first_branch: true
+    no_extra_horizons_in_first_branch: true
+    stop_if_template_contract_rejects_exact_legacy_branch: true
+version: 1
