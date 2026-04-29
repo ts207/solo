@@ -107,6 +107,39 @@ def test_context_state_mask_uses_required_feature_key_when_dimension_column_miss
     assert mask.tolist() == [False, True]
 
 
+def test_context_state_mask_matches_materialized_phase_labels() -> None:
+    frame = pd.DataFrame(
+        {
+            "forced_flow_phase": ["none", "cooldown", "refill"],
+            "liquidity_phase": ["normal", "thin", "recovered"],
+            "oi_phase": ["neutral", "flush", "expansion"],
+            "price_oi_quadrant": ["price_up_oi_up", "price_down_oi_down", "price_up_oi_down"],
+        }
+    )
+
+    forced_flow = SimpleNamespace(
+        dimension="forced_flow_phase",
+        values=("cooldown", "refill"),
+        required_feature_key="",
+    )
+    liquidity = SimpleNamespace(
+        dimension="liquidity_phase",
+        values=("refill", "recovered"),
+        required_feature_key="",
+    )
+    oi = SimpleNamespace(dimension="oi_phase", values=("flush",), required_feature_key="")
+    price_oi = SimpleNamespace(
+        dimension="price_oi_quadrant",
+        values=("price_down_oi_down",),
+        required_feature_key="",
+    )
+
+    assert _context_state_mask(frame, forced_flow).tolist() == [False, True, True]
+    assert _context_state_mask(frame, liquidity).tolist() == [False, False, True]
+    assert _context_state_mask(frame, oi).tolist() == [False, True, False]
+    assert _context_state_mask(frame, price_oi).tolist() == [False, True, False]
+
+
 def test_load_registry_rejects_context_values_outside_authoritative_registry(tmp_path: Path) -> None:
     _write_minimal_discovery_spec(tmp_path, context_values=["invalid_trend"])
 

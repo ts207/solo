@@ -167,6 +167,16 @@ def _build_market_context(symbol: str, features: pd.DataFrame) -> pd.DataFrame:
         features["funding_rate_scaled"] = features["funding_rate_scaled"].fillna(0.0)
 
     out = _normalize_utc_timestamp_column(features, frame_name=f"{symbol}_features")
+    close = pd.to_numeric(out.get("close", pd.Series(np.nan, index=out.index)), errors="coerce")
+    if "close_perp" not in out.columns:
+        out["close_perp"] = close
+    else:
+        out["close_perp"] = pd.to_numeric(out["close_perp"], errors="coerce").where(
+            pd.to_numeric(out["close_perp"], errors="coerce").notna(),
+            close,
+        )
+    if "close_spot" not in out.columns and "spot_close" in out.columns:
+        out["close_spot"] = pd.to_numeric(out["spot_close"], errors="coerce")
 
     # funding_rate_bps
     out["funding_rate_bps"] = out["funding_rate_scaled"] * 10_000.0
@@ -192,6 +202,15 @@ def _build_market_context(symbol: str, features: pd.DataFrame) -> pd.DataFrame:
     out["funding_persistence_state"] = (
         pd.to_numeric(out.get("fp_active", 0.0), errors="coerce").fillna(0.0) > 0
     ).astype(float)
+    funding_positive = out["funding_rate_scaled"] > 0
+    funding_negative = out["funding_rate_scaled"] < 0
+    funding_persistent = out["funding_persistence_state"] > 0
+    funding_extreme = pd.to_numeric(out.get("ms_funding_state", 0.0), errors="coerce").fillna(0.0) >= 2.0
+    out["funding_phase"] = "neutral"
+    out.loc[funding_positive & funding_extreme, "funding_phase"] = "positive_onset"
+    out.loc[funding_negative & funding_extreme, "funding_phase"] = "negative_onset"
+    out.loc[funding_positive & funding_persistent, "funding_phase"] = "positive_persistent"
+    out.loc[funding_negative & funding_persistent, "funding_phase"] = "negative_persistent"
 
     # vol regime: use rv_96 percentile if available, else rv_pct_17280
     if "rv_pct_17280" in out.columns:
@@ -242,15 +261,17 @@ def _build_market_context(symbol: str, features: pd.DataFrame) -> pd.DataFrame:
 
     # refill_lag_state: oi_delta negative (de-risking)
     if "oi_delta_1h" in out.columns:
-        oi_probs = calculate_ms_oi_probabilities(pd.to_numeric(out["oi_delta_1h"], errors="coerce"))
+        oi_delta = pd.to_numeric(out["oi_delta_1h"], errors="coerce").fillna(0.0)
+        oi_probs = calculate_ms_oi_probabilities(oi_delta)
         out = pd.concat([out, oi_probs], axis=1)
-        out["refill_lag_state"] = (out["oi_delta_1h"] < 0).astype(float)
+        out["refill_lag_state"] = (oi_delta < 0).astype(float)
         out["deleveraging_state"] = (
-            out["oi_delta_1h"] < -out["oi_notional"].abs() * _CROWDING_OI_DELTA_PCT
+            oi_delta < -out["oi_notional"].abs() * _CROWDING_OI_DELTA_PCT
             if "oi_notional" in out.columns
-            else out["oi_delta_1h"] < 0
+            else oi_delta < 0
         ).astype(float)
     else:
+        oi_delta = pd.Series(0.0, index=out.index, dtype=float)
         out["ms_oi_state"] = np.nan
         out["prob_oi_decel"] = np.nan
         out["prob_oi_stable"] = np.nan
@@ -328,6 +349,41 @@ def _build_market_context(symbol: str, features: pd.DataFrame) -> pd.DataFrame:
         out["macro_regime"] = _macro
     else:
         out["macro_regime"] = np.nan
+
+    liquidation_active = pd.to_numeric(out["ms_liquidation_state"], errors="coerce").fillna(0.0) > 0
+    recent_liquidation = (
+        liquidation_active.astype(float).rolling(48, min_periods=1).max().shift(1).fillna(0.0) > 0
+    )
+    refill_active = pd.to_numeric(out["refill_lag_state"], errors="coerce").fillna(0.0) > 0
+    low_liquidity = pd.to_numeric(out["low_liquidity_state"], errors="coerce").fillna(0.0) > 0
+
+    out["forced_flow_phase"] = "none"
+    out.loc[liquidation_active, "forced_flow_phase"] = "cascade"
+    out.loc[recent_liquidation & ~liquidation_active, "forced_flow_phase"] = "cooldown"
+    out.loc[refill_active & ~liquidation_active & ~recent_liquidation, "forced_flow_phase"] = "refill"
+
+    out["liquidity_phase"] = "normal"
+    out.loc[low_liquidity, "liquidity_phase"] = "thin"
+    out.loc[liquidation_active, "liquidity_phase"] = "collapse"
+    out.loc[refill_active & ~liquidation_active, "liquidity_phase"] = "refill"
+    out.loc[recent_liquidation & ~low_liquidity & ~refill_active & ~liquidation_active, "liquidity_phase"] = "recovered"
+
+    out["liquidity_regime"] = "refill"
+    out.loc[low_liquidity, "liquidity_regime"] = "low"
+    out.loc[~low_liquidity & ~refill_active, "liquidity_regime"] = "refill"
+
+    out["oi_phase"] = "neutral"
+    out.loc[oi_delta > 0, "oi_phase"] = "expansion"
+    out.loc[oi_delta < 0, "oi_phase"] = "flush"
+
+    close_delta = close.diff().fillna(0.0)
+    out["price_oi_quadrant"] = "price_up_oi_up"
+    out.loc[(close_delta >= 0) & (oi_delta < 0), "price_oi_quadrant"] = "price_up_oi_down"
+    out.loc[(close_delta < 0) & (oi_delta >= 0), "price_oi_quadrant"] = "price_down_oi_up"
+    out.loc[(close_delta < 0) & (oi_delta < 0), "price_oi_quadrant"] = "price_down_oi_down"
+
+    out["funding_regime"] = "normalizing"
+    out.loc[pd.to_numeric(out["crowding_state"], errors="coerce").fillna(0.0) > 0, "funding_regime"] = "crowded"
 
     # Deduplicate columns from repeated pd.concat operations
     out = out.loc[:, ~out.columns.duplicated(keep="last")]

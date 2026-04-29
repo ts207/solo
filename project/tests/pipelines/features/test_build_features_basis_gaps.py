@@ -42,6 +42,9 @@ def test_basis_features_keep_nan_when_spot_is_missing(monkeypatch):
     assert pd.isna(out.loc[1, "basis_zscore"])
     assert pd.isna(out.loc[2, "basis_zscore"])
     assert out.loc[0, "basis_spot_coverage"] == 1.0 / 3.0
+    assert out["close_perp"].tolist() == [100.0, 101.0, 102.0]
+    assert out.loc[0, "close_spot"] == 100.0
+    assert pd.isna(out.loc[1, "close_spot"])
 
 
 def test_spread_zscore_uses_spread_bps_not_basis(monkeypatch):
@@ -71,6 +74,8 @@ def test_spread_zscore_uses_spread_bps_not_basis(monkeypatch):
     assert out["basis_bps"].fillna(0.0).abs().max() == 0.0
     assert out["basis_zscore"].fillna(0.0).abs().max() == 0.0
     assert out["spread_zscore"].fillna(0.0).abs().max() > 0.0
+    assert {"close_perp", "close_spot"}.issubset(out.columns)
+    assert out["close_spot"].notna().all()
 
 
 def test_basis_spot_coverage_counts_exact_spot_bars_only(monkeypatch):

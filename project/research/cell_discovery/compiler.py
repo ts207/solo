@@ -8,6 +8,7 @@ from typing import Any
 import pandas as pd
 import yaml
 
+from project.domain.compiled_registry import get_domain_registry
 from project.domain.hypotheses import HypothesisSpec, TriggerSpec
 from project.io.utils import atomic_write_json, atomic_write_text, write_parquet
 from project.research.cell_discovery.models import (
@@ -32,16 +33,74 @@ def _source_cell_id(
     source_context_cell: str,
     hyp: HypothesisSpec,
 ) -> str:
+    filter_id = str(hyp.filter_template_id or "").strip()
     return "::".join(
-        [
+        part
+        for part in [
             atom.atom_id,
             source_context_cell,
             _context_label(dict(hyp.context or {})),
             hyp.direction,
             str(hyp.horizon),
             str(hyp.template_id),
+            f"filter-{filter_id}" if filter_id else "",
         ]
+        if part
     )
+
+
+def _template_partitions(atom: EventAtom) -> tuple[list[str], list[dict[str, Any]]]:
+    registry = get_domain_registry()
+    expression_templates: list[str] = []
+    filter_template_ids: list[str] = []
+    for raw in atom.templates:
+        template = str(raw).strip()
+        if not template:
+            continue
+        if registry.is_filter_template(template):
+            filter_template_ids.append(template)
+            continue
+        if registry.is_execution_template(template):
+            continue
+        expression_templates.append(template)
+
+    available_filters = {
+        str(row.get("name", "")).strip(): row
+        for row in registry.family_filter_templates(atom.event_family)
+        if str(row.get("name", "")).strip()
+    }
+    filter_templates: list[dict[str, Any]] = []
+    for template in filter_template_ids:
+        row = available_filters.get(template)
+        if row is None:
+            operator = registry.get_operator(template)
+            raw = operator.raw if operator is not None and isinstance(operator.raw, dict) else {}
+            if {"feature", "operator", "threshold"}.issubset(raw.keys()):
+                row = {
+                    "name": template,
+                    "feature": raw["feature"],
+                    "operator": raw["operator"],
+                    "threshold": float(raw["threshold"]),
+                }
+            else:
+                registry_filters = registry.template_registry_payload.get("filter_templates", {})
+                sidecar = (
+                    registry_filters.get(template, {})
+                    if isinstance(registry_filters, dict)
+                    else {}
+                )
+                if isinstance(sidecar, dict) and {"feature", "operator", "threshold"}.issubset(
+                    sidecar.keys()
+                ):
+                    row = {
+                        "name": template,
+                        "feature": sidecar["feature"],
+                        "operator": sidecar["operator"],
+                        "threshold": float(sidecar["threshold"]),
+                    }
+        if row is not None:
+            filter_templates.append(row)
+    return expression_templates, filter_templates
 
 
 def _hypotheses_for_atom(atom: EventAtom, cell: ContextCell | None) -> list[HypothesisSpec]:
@@ -51,7 +110,8 @@ def _hypotheses_for_atom(atom: EventAtom, cell: ContextCell | None) -> list[Hypo
     else:
         contexts = [{cell.dimension: value} for value in cell.values]
     out: list[HypothesisSpec] = []
-    for template in atom.templates:
+    expression_templates, filter_templates = _template_partitions(atom)
+    for template in expression_templates:
         for horizon in atom.horizons:
             for direction in atom.directions:
                 for context in contexts:
@@ -65,6 +125,23 @@ def _hypotheses_for_atom(atom: EventAtom, cell: ContextCell | None) -> list[Hypo
                             entry_lag=1,
                         )
                     )
+                    for filter_template in filter_templates:
+                        out.append(
+                            HypothesisSpec(
+                                trigger=TriggerSpec.event(atom.event_type),
+                                direction=direction,
+                                horizon=horizon,
+                                template_id=template,
+                                context=context,
+                                feature_condition=TriggerSpec.feature_predicate(
+                                    feature=str(filter_template["feature"]),
+                                    operator=str(filter_template["operator"]),
+                                    threshold=float(filter_template["threshold"]),
+                                ),
+                                filter_template_id=str(filter_template["name"]),
+                                entry_lag=1,
+                            )
+                        )
     return out
 
 
@@ -98,6 +175,7 @@ def _lineage_rows(registry: DiscoveryRegistry) -> list[dict[str, Any]]:
                         "direction": hyp.direction,
                         "horizon": hyp.horizon,
                         "template": hyp.template_id,
+                        "filter_template": hyp.filter_template_id or "",
                         "context_cell": cell.cell_id if cell is not None else "unconditional",
                         "context_json": json.dumps(context, sort_keys=True),
                         "context_dimension_count": len(context),
@@ -138,6 +216,17 @@ def _compile_search_spec(registry: DiscoveryRegistry, lineage: pd.DataFrame) -> 
     horizons = sorted(set(lineage["horizon"].astype(str))) if not lineage.empty else []
     directions = sorted(set(lineage["direction"].astype(str))) if not lineage.empty else []
     templates = sorted(set(lineage["template"].astype(str))) if not lineage.empty else []
+    filter_templates = (
+        sorted(
+            {
+                str(value).strip()
+                for value in lineage.get("filter_template", pd.Series(dtype="object")).dropna()
+                if str(value).strip()
+            }
+        )
+        if not lineage.empty
+        else []
+    )
     doc: dict[str, Any] = {
         "version": 1,
         "kind": "search_space",
@@ -156,7 +245,7 @@ def _compile_search_spec(registry: DiscoveryRegistry, lineage: pd.DataFrame) -> 
         "entry_lag": 1,
         "cost_profiles": ["standard"],
         "expression_templates": templates,
-        "filter_templates": [],
+        "filter_templates": filter_templates,
         "execution_templates": [],
         "contexts": contexts,
         "include_sequences": False,

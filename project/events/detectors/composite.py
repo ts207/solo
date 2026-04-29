@@ -14,6 +14,10 @@ class CompositeDetector(BaseEventDetector):
     combination: str = "all"
     min_spacing: int = 1
 
+    def compute_signal(self, df: pd.DataFrame) -> pd.Series:
+        features = self.prepare_features(df)
+        return self.compute_intensity(df, features=features)
+
     def compute_raw_mask(
         self, df: pd.DataFrame, *, features: Mapping[str, pd.Series], **params: Any
     ) -> pd.Series:

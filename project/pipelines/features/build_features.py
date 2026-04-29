@@ -174,7 +174,7 @@ def _rolling_percentile(series: pd.Series, window: int = 96) -> pd.Series:
 def _duration_to_bars(*, minutes: int, timeframe: str, min_bars: int = 1) -> int:
     tf = normalize_timeframe(timeframe)
     tf_minutes = timeframe_to_minutes(tf)
-    return max(min_bars, int(math.ceil(minutes / tf_minutes)))
+    return max(min_bars, math.ceil(minutes / tf_minutes))
 
 
 def _revision_lag_minutes(n: int, timeframe: str = "5m") -> int:
@@ -212,8 +212,8 @@ def _load_spot_close_reference(
                 df = read_parquet(files)
                 if "timestamp" in df.columns and "close" in df.columns:
                     return df[["timestamp", "close"]].rename(columns={"close": "spot_close"})
-        except Exception:
-            pass
+        except Exception as exc:
+            logging.debug("failed to load run-scoped spot close reference: %s", exc)
 
     # Fallback: try loading from raw spot OHLCV data
     raw_candidates = [
@@ -228,8 +228,8 @@ def _load_spot_close_reference(
                 df = read_parquet(files)
                 if "timestamp" in df.columns and "close" in df.columns:
                     return df[["timestamp", "close"]].rename(columns={"close": "spot_close"})
-        except Exception:
-            pass
+        except Exception as exc:
+            logging.debug("failed to load raw spot close reference: %s", exc)
 
     return pd.DataFrame(columns=["timestamp", "spot_close"])
 
@@ -245,6 +245,7 @@ def _add_basis_features(
     out = frame.copy()
     out["timestamp"] = pd.to_datetime(out["timestamp"], utc=True)
     spot = _load_spot_close_reference(symbol, run_id, data_root, timeframe=timeframe)
+    out["close_perp"] = pd.to_numeric(out.get("close", pd.Series(np.nan, index=out.index)), errors="coerce")
 
     if not spot.empty and "timestamp" in spot.columns and "spot_close" in spot.columns:
         spot = spot.copy()
@@ -259,6 +260,7 @@ def _add_basis_features(
         out.loc[valid.values, "basis_bps"] = (
             (merged.loc[valid, "close"] / merged.loc[valid, "spot_close"] - 1.0) * 10_000.0
         ).values
+        out["close_spot"] = pd.to_numeric(out["spot_close"], errors="coerce")
         # PIT safety: lag basis_bps by 1 bar so downstream consumers only see prior-bar values
         out["basis_bps"] = out["basis_bps"].shift(1)
     else:
@@ -271,6 +273,7 @@ def _add_basis_features(
         out["basis_bps"] = ((close_series / ema_close.replace(0.0, np.nan)) - 1.0) * 10_000.0
         out["basis_spot_coverage"] = 0.0
         out["spot_close"] = np.nan
+        out["close_spot"] = np.nan
 
     zscore_window = _duration_to_bars(
         minutes=_ZSCORE_WINDOW * _BASE_WINDOW_MINUTES,
@@ -980,8 +983,10 @@ def main() -> int:
                         feature_dataset_dir_name(feature_schema_version),
                     )
                     if existing_symbol_root.exists():
-                        for existing_path in list_parquet_files(existing_symbol_root):
-                            outputs.append({"path": str(existing_path), "rows": 0})
+                        outputs.extend(
+                            {"path": str(existing_path), "rows": 0}
+                            for existing_path in list_parquet_files(existing_symbol_root)
+                        )
                     outputs.append({"path": str(report_path), "rows": 1})
                     stats["symbols"][symbol] = {
                         "rows": 0,

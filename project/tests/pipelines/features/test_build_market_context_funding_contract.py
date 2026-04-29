@@ -27,6 +27,7 @@ def _feature_frame() -> pd.DataFrame:
             "rv_pct_17280": [0.2, 0.4, 0.6, 0.8],
             "range_96": [2.0, 2.0, 2.0, 2.0],
             "range_med_2880": [4.0, 4.0, 4.0, 4.0],
+            "spot_close": [99.9, 100.9, 100.4, 101.4],
         }
     )
 
@@ -143,11 +144,29 @@ def test_build_market_context_materializes_canonical_state_columns():
         "prob_spread_wide",
         "ms_spread_confidence",
         "ms_spread_entropy",
+        "close_perp",
+        "close_spot",
+        "forced_flow_phase",
+        "funding_phase",
+        "funding_regime",
+        "liquidity_phase",
+        "liquidity_regime",
+        "oi_phase",
+        "price_oi_quadrant",
     }
     assert expected_state_cols.issubset(set(out.columns))
     assert out["ms_context_state_code"].notna().all()
     assert out["vol_regime_code"].equals(out["ms_vol_state"])
     assert out["carry_state"].tolist() == ["funding_pos", "funding_neg", "funding_pos", "funding_neg"]
+    assert out["close_perp"].tolist() == pytest.approx(features["close"].tolist())
+    assert out["close_spot"].tolist() == pytest.approx(features["spot_close"].tolist())
+    assert "price_down_oi_down" in set(out["price_oi_quadrant"])
+    assert set(out["forced_flow_phase"]).issubset({"none", "cascade", "cooldown", "refill"})
+    assert set(out["funding_phase"]).issubset(
+        {"neutral", "positive_onset", "negative_onset", "positive_persistent", "negative_persistent"}
+    )
+    assert set(out["liquidity_phase"]).issubset({"normal", "thin", "collapse", "refill", "recovered"})
+    assert set(out["oi_phase"]).issubset({"neutral", "expansion", "flush"})
 
     probability_columns = [
         ["prob_vol_low", "prob_vol_mid", "prob_vol_high", "prob_vol_shock"],

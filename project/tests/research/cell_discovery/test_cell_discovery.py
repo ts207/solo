@@ -130,6 +130,30 @@ def test_cell_compiler_writes_search_spec_and_lineage(tmp_path: Path) -> None:
     assert lineage["source_cell_id"].is_unique
 
 
+def test_cell_compiler_separates_filter_templates_from_expression_templates(
+    tmp_path: Path,
+) -> None:
+    registry = load_registry("spec/discovery/tier2_basis_funding_runtime_v1")
+    compiled = compile_cells(
+        registry=registry,
+        run_id="UNIT_CELL_FILTER_TEMPLATE_COMPILE",
+        data_root=tmp_path,
+        symbols=["BTCUSDT"],
+        timeframe="5m",
+        start="2021-01-01",
+        end="2021-02-01",
+    )
+
+    search_doc = yaml.safe_load(compiled.search_spec_path.read_text())
+    assert "tail_risk_avoid" not in search_doc["expression_templates"]
+    assert "tail_risk_avoid" in search_doc["filter_templates"]
+
+    lineage = read_parquet([compiled.lineage_path])
+    filtered = lineage[lineage["filter_template"] == "tail_risk_avoid"]
+    assert not filtered.empty
+    assert filtered["source_cell_id"].is_unique
+
+
 def test_compiler_lineage_is_atom_specific_for_mixed_authored_surface(tmp_path: Path) -> None:
     registry = DiscoveryRegistry(
         event_atoms=(

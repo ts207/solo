@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import functools
+import logging
 import sys
 from pathlib import Path
 
@@ -9,6 +10,11 @@ import pandas as pd
 import project.events.event_flags as _event_flags_mod
 from project import PROJECT_ROOT
 from project.core.config import get_data_root
+from project.events.detector_contract import (
+    DetectorContract,
+    DetectorContractError,
+    NormalizedDetectorMetadata,
+)
 from project.events.event_diagnostics import (
     build_event_feature_frame,
     calibrate_event_thresholds,
@@ -199,13 +205,6 @@ def list_events_by_family(family: str) -> list[dict]:
     event_ids = registry.get_event_ids_for_family(family)
     rows = [registry.event_row(eid) for eid in event_ids]
     return [r for r in rows if r]
-
-from project.events.detector_contract import (
-    DetectorContract,
-    DetectorContractError,
-    NormalizedDetectorMetadata,
-)
-
 
 def _normalize_role(row: dict) -> str:
     role = str(row.get("operational_role") or row.get("role") or "trigger").strip().lower()
@@ -423,7 +422,21 @@ def get_detector_contract(event_name: str) -> DetectorContract:
     params = _parameters(row)
     _, detector_metadata = _registered_detector_metadata(canonical_name, row)
     role = detector_metadata.role
-    aliases = tuple(str(alias).strip().upper() for alias in row.get("aliases", []) if str(alias).strip())
+    requested_name = str(event_name).strip().upper()
+    aliases = {str(alias).strip().upper() for alias in row.get("aliases", []) if str(alias).strip()}
+    if requested_name and requested_name != canonical_name:
+        aliases.add(requested_name)
+    try:
+        from project.events.event_aliases import event_alias_policy_rows
+
+        aliases.update(
+            str(alias_row["alias"]).strip().upper()
+            for alias_row in event_alias_policy_rows()
+            if str(alias_row.get("canonical_event_type", "")).strip().upper() == canonical_name
+        )
+    except Exception as exc:
+        logging.debug("failed to load event alias policy rows: %s", exc)
+    aliases_tuple = tuple(sorted(alias for alias in aliases if alias))
     templates = tuple(str(item).strip() for item in row.get("templates", []) if str(item).strip())
     horizons = tuple(str(item).strip() for item in row.get("horizons", []) if str(item).strip())
     required_columns = detector_metadata.required_columns
@@ -484,7 +497,7 @@ def get_detector_contract(event_name: str) -> DetectorContract:
             supports_confidence=detector_metadata.supports_confidence,
             supports_severity=detector_metadata.supports_severity,
             supports_quality_flag=detector_metadata.supports_quality_flag,
-            aliases=aliases,
+            aliases=aliases_tuple,
             notes=str(row.get("notes", "")).strip(),
         )
     except Exception as exc:
@@ -543,22 +556,20 @@ def list_v2_detectors() -> list[DetectorContract]:
 
 
 def build_detector_eligibility_matrix_rows() -> list[dict[str, object]]:
-    rows: list[dict[str, object]] = []
-    for contract in list_governed_detectors():
-        rows.append(
-            {
-                "event_name": contract.event_name,
-                "event_version": contract.event_version,
-                "role": contract.role,
-                "detector_band": contract.detector_band,
-                "maturity": contract.maturity,
-                "planning": contract.planning_default,
-                "promotion": contract.promotion_eligible,
-                "runtime": contract.runtime_default,
-                "anchor": contract.primary_anchor_eligible,
-            }
-        )
-    return rows
+    return [
+        {
+            "event_name": contract.event_name,
+            "event_version": contract.event_version,
+            "role": contract.role,
+            "detector_band": contract.detector_band,
+            "maturity": contract.maturity,
+            "planning": contract.planning_default,
+            "promotion": contract.promotion_eligible,
+            "runtime": contract.runtime_default,
+            "anchor": contract.primary_anchor_eligible,
+        }
+        for contract in list_governed_detectors()
+    ]
 
 
 def _migration_policy_for_contract(contract: DetectorContract) -> dict[str, str]:
@@ -641,34 +652,32 @@ def build_detector_migration_ledger_rows() -> list[dict[str, object]]:
 
 
 def build_detector_version_inventory_rows() -> list[dict[str, object]]:
-    rows: list[dict[str, object]] = []
-    for contract in list_governed_detectors():
-        rows.append(
-            {
-                "event_name": contract.event_name,
-                "event_version": contract.event_version,
-                "role": contract.role,
-                "maturity": contract.maturity,
-                "detector_band": contract.detector_band,
-                "planning_default": contract.planning_default,
-                "runtime_default": contract.runtime_default,
-                "promotion_eligible": contract.promotion_eligible,
-                "primary_anchor_eligible": contract.primary_anchor_eligible,
-                "context_only": contract.context_only,
-                "composite": contract.composite,
-                "research_only": contract.research_only,
-                "supports_confidence": contract.supports_confidence,
-                "supports_severity": contract.supports_severity,
-                "supports_quality_flag": contract.supports_quality_flag,
-                "emits_quality_flag": contract.emits_quality_flag,
-                "cooldown_semantics": contract.cooldown_semantics,
-                "merge_key_strategy": contract.merge_key_strategy,
-                "threshold_schema_version": contract.threshold_schema_version,
-                "calibration_mode": contract.calibration_mode,
-                "legacy_retired_safe": contract.event_version != "v2"
-                and not contract.runtime_default
-                and not contract.promotion_eligible
-                and not contract.primary_anchor_eligible,
-            }
-        )
-    return rows
+    return [
+        {
+            "event_name": contract.event_name,
+            "event_version": contract.event_version,
+            "role": contract.role,
+            "maturity": contract.maturity,
+            "detector_band": contract.detector_band,
+            "planning_default": contract.planning_default,
+            "runtime_default": contract.runtime_default,
+            "promotion_eligible": contract.promotion_eligible,
+            "primary_anchor_eligible": contract.primary_anchor_eligible,
+            "context_only": contract.context_only,
+            "composite": contract.composite,
+            "research_only": contract.research_only,
+            "supports_confidence": contract.supports_confidence,
+            "supports_severity": contract.supports_severity,
+            "supports_quality_flag": contract.supports_quality_flag,
+            "emits_quality_flag": contract.emits_quality_flag,
+            "cooldown_semantics": contract.cooldown_semantics,
+            "merge_key_strategy": contract.merge_key_strategy,
+            "threshold_schema_version": contract.threshold_schema_version,
+            "calibration_mode": contract.calibration_mode,
+            "legacy_retired_safe": contract.event_version != "v2"
+            and not contract.runtime_default
+            and not contract.promotion_eligible
+            and not contract.primary_anchor_eligible,
+        }
+        for contract in list_governed_detectors()
+    ]
