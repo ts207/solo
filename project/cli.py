@@ -358,9 +358,9 @@ def _run_deploy_bind_config(args: argparse.Namespace) -> int:
     mode_label = str(args.profile or "").strip().lower() or (
         "paper"
         if runtime_mode == "simulation"
-        else "live"
+        else "trading"
         if runtime_mode == "trading"
-        else "paper"
+        else "monitor"
     )
     filename = (
         f"live_{mode_label}_{args.run_id}.yaml"
@@ -593,7 +593,7 @@ def build_parser() -> argparse.ArgumentParser:
     bind_config.add_argument("--monitor_report")
     bind_config.add_argument("--out_dir", default=str(DEFAULT_CONFIG_OUTPUT_DIR))
     bind_config.add_argument("--runtime_mode", default="monitor_only")
-    bind_config.add_argument("--profile", choices=["paper", "monitor", "production"], default=None)
+    bind_config.add_argument("--profile", choices=["paper", "monitor", "trading", "production"], default=None)
     bind_config.add_argument(
         "--config_template",
         choices=["run_id", "profile"],

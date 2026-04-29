@@ -2,6 +2,59 @@
 
 This file establishes the operating contract and safety boundaries for AI agents (Claude Code, Gemini CLI, etc.) working in the Edge repository.
 
+Generic agent policy lives here. Claude Code-specific implementation notes live in `CLAUDE.md`.
+
+---
+
+## Mission
+
+Operate Edge as a governed crypto research-to-runtime repo. Prioritize reproducibility, artifact lineage, and runtime safety.
+
+## Default check
+
+Run after any code, spec, docs, or lifecycle change:
+
+```bash
+make agent-check
+```
+
+---
+
+## Allowed by default
+
+- Read source, specs, docs, and generated reports.
+- Create bounded proposal YAML.
+- Run `discover`, `validate`, `promote`, and `deploy` inspection commands in non-live modes.
+- Update docs, source, and tests within the declared task scope.
+- Regenerate generated docs through their owning scripts.
+
+## Human approval required
+
+- `runtime_mode=trading`
+- `edge deploy live-run`
+- Editing `data/live/theses/**`
+- Editing `data/reports/approval/**`
+- Changing cap profiles
+- Setting or using production credentials
+- Deleting run data or report artifacts
+- Modifying `.env*`
+- Broadening symbols, horizons, or templates as a rescue tactic
+
+## Forbidden
+
+- Commit or print API keys or secrets.
+- Treat discovery or promotion output as live approval.
+- Manually edit generated docs (files under `docs/generated/`).
+- Modify protected live artifacts unless explicitly authorized.
+
+## Required loop
+
+1. State objective.
+2. Identify relevant files.
+3. Make the smallest coherent change.
+4. Run `make agent-check`.
+5. Summarize changed files, checks run, remaining risks, and next safe command.
+
 ---
 
 ## Agent Operating Contract
@@ -42,7 +95,7 @@ AI agents are FORBIDDEN from modifying the following paths without an explicit u
 **Protected Paths:**
 - `data/live/theses/**` (Governed research output)
 - `data/reports/approval/**` (Certification artifacts)
-- `project/configs/live_live_*.yaml` (Production binding configs)
+- `project/configs/live_trading_*.yaml` (Production binding configs)
 - `project/configs/live_production.yaml` (Production environment config)
 - `deploy/systemd/*.service` (Systemd units)
 - `.env*` and `deploy/env/*.env` (Credentials and environment variables)
@@ -83,3 +136,4 @@ Includes:
 2. `check-hygiene` (Lint + Formatting)
 3. `check-registry-sync` (Spec vs Code sync)
 4. `check-domain-graph` (Freshness check)
+5. `check-protected-paths` (Protected artifact write policy)

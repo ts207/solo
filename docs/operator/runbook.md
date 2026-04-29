@@ -4,10 +4,9 @@ This runbook is the shortest safe path from a proposal to a paper runtime launch
 
 ## Preconditions
 
-Use the repo virtualenv:
+Use the repo virtualenv (from the repo root):
 
 ```bash
-cd /home/irene/Edge
 PYTHONPATH=. ./.venv/bin/python -m project.cli --help
 ```
 

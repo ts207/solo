@@ -2,12 +2,53 @@
 
 This runbook describes the exact artifact sequence and command flow required to transition a thesis from `paper_approved` to the **Tiny-Live Pilot** (real capital with strictly capped risk).
 
+---
+
+## AI-agent boundary
+
+An AI agent operating in this repo **may**:
+
+- Inspect `data/reports/validation/<run_id>/forward_confirmation.json`.
+- Inspect `data/reports/paper/<thesis_id>/paper_quality_summary.json`.
+- Inspect `data/live/theses/<run_id>/promoted_theses.json` (read-only).
+- Run `edge deploy inspect --run_id <run_id>`.
+- Run `edge deploy status --run_id <run_id>`.
+- Prepare and report a readiness checklist.
+
+An AI agent **must not**:
+
+- Create or edit `data/reports/approval/<thesis_id>/live_approval.json`.
+- Edit `data/live/theses/**` in any way.
+- Set or use production API credentials.
+- Run `edge deploy live-run`.
+- Set `runtime_mode=trading` unless explicitly authorized in writing by the operator.
+
+All steps below that write to protected paths are **human-only procedures**.
+
+---
+
 ## Prerequisites
 
-1.  **Paper Run Complete**: The thesis must have been running in `simulation` mode.
-2.  **Sufficient Samples**: At least 30 paper trades are required.
-3.  **Positive Performance**: The paper run must show positive net expectancy and hit rate > 0.50.
-4.  **OOS Replay Passed**: The `forward-confirm` command must have been executed for a held-out window.
+1. **Paper Run Complete**: The thesis must have been running in `simulation` mode.
+2. **Sufficient Samples**: At least 30 paper trades are required.
+3. **Positive Performance**: The paper run must show positive net expectancy and hit rate > 0.50.
+4. **OOS Replay Passed**: The `forward-confirm` command must have been executed for a held-out window.
+
+---
+
+## Human-only checklist
+
+Before launching tiny-live, a human operator must confirm each item:
+
+| Check | Artifact | Criterion |
+| :--- | :--- | :--- |
+| Forward confirmation passed | `data/reports/validation/<run_id>/forward_confirmation.json` | `metrics.status == success`, `mean_return_net_bps > 0`, `t_stat_net > 0` |
+| Paper gate passed | `data/reports/paper/<thesis_id>/paper_quality_summary.json` | `paper_gate_ready: true`, `trade_count >= 30`, `mean_net_bps > 0` |
+| Live approval exists | `data/reports/approval/<thesis_id>/live_approval.json` | File present, `risk_acknowledgement: true` |
+| Risk acknowledgement | Live approval JSON | `risk_acknowledgement: true` |
+| Cap profile within tiny_live_v1 | Thesis JSON + live approval | `max_notional <= 50.0` |
+| Live config manually inspected | `project/configs/live_trading_<run_id>.yaml` | `runtime_mode: trading`, correct `thesis_run_id` |
+| Production credentials loaded outside repo | Environment | Not in any tracked file |
 
 ---
 
@@ -46,9 +87,9 @@ Verify the summary metrics:
 
 ---
 
-## 3. Create Live Approval Artifact
+## 3. Create Live Approval Artifact *(human only)*
 
-Explicit operator approval is required to enable real capital. This artifact must be created manually or via a signing script.
+Explicit operator approval is required to enable real capital. This artifact must be created manually or via a signing script. **AI agents must not create or modify this file.**
 
 **Artifact Path**: `data/reports/approval/<thesis_id>/live_approval.json`
 
@@ -69,15 +110,15 @@ Explicit operator approval is required to enable real capital. This artifact mus
 
 ---
 
-## 4. Update Thesis Cap Profile
+## 4. Update Thesis Cap Profile *(human only)*
 
-The thesis artifact itself must be updated to reflect the tiny-live limits. The `deploy_admission` gate will verify that these caps do not exceed the approved `tiny_live_v1` limits.
+The thesis artifact itself must be updated to reflect the tiny-live limits. The `deploy_admission` gate will verify that these caps do not exceed the approved `tiny_live_v1` limits. **AI agents must not edit this file.**
 
 **File**: `data/live/theses/<run_id>/promoted_theses.json`
 
 Find your thesis in the `theses` list and update:
-1.  `deployment_state`: Set to `"live_enabled"`.
-2.  `cap_profile`:
+1. `deployment_state`: Set to `"live_enabled"`.
+2. `cap_profile`:
     ```json
     "cap_profile": {
       "max_notional": 50.0,
@@ -101,6 +142,8 @@ edge deploy bind-config \
   --data_root data
 ```
 
+This produces `project/configs/live_trading_<run_id>.yaml`.
+
 **Stop if**: The command fails with a `PermissionError`. This indicates one of the gates (OOS, Paper, or Approval) has failed. Common reasons:
 - `live_approval.json` missing or mismatching `thesis_id`.
 - `risk_acknowledgement` is false.
@@ -109,16 +152,16 @@ edge deploy bind-config \
 
 ---
 
-## 6. Launch Tiny-Live Runtime
+## 6. Launch Tiny-Live Runtime *(human only)*
 
-Once the config is bound, launch the engine in production mode.
+Once the config is bound, launch the engine in production mode. **AI agents must not run this command.**
 
 ```bash
 export EDGE_ENVIRONMENT=production
 export EDGE_VENUE=bybit
 export EDGE_LIVE_CONFIG=project/configs/live_trading_<run_id>.yaml
 export EDGE_LIVE_SNAPSHOT_PATH=artifacts/live_state_trading_<run_id>.json
-# REAL CREDENTIALS REQUIRED
+# REAL CREDENTIALS REQUIRED — load outside the repo, never commit
 export EDGE_BYBIT_API_KEY=<real_key>
 export EDGE_BYBIT_API_SECRET=<real_secret>
 
@@ -133,7 +176,8 @@ edge deploy live-run --config project/configs/live_trading_<run_id>.yaml
 
 | Artifact | Location | Responsibility |
 | :--- | :--- | :--- |
-| **Thesis** | `data/live/theses/<run_id>/promoted_theses.json` | Must be `live_enabled` with tiny caps |
+| **Thesis** | `data/live/theses/<run_id>/promoted_theses.json` | Must be `live_enabled` with tiny caps — **human edit** |
 | **OOS Confirm** | `data/reports/validation/<run_id>/forward_confirmation.json` | Must have positive OOS replay metrics |
 | **Paper Summary** | `data/reports/paper/<thesis_id>/paper_quality_summary.json` | Must be `paper_gate_ready: true` |
-| **Live Approval** | `data/reports/approval/<thesis_id>/live_approval.json` | Must have `risk_acknowledgement: true` |
+| **Live Approval** | `data/reports/approval/<thesis_id>/live_approval.json` | Must have `risk_acknowledgement: true` — **human only** |
+| **Live Config** | `project/configs/live_trading_<run_id>.yaml` | Generated by `bind-config`; inspect before use |

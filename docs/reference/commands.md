@@ -29,11 +29,16 @@ edge discover plan --proposal spec/proposals/canonical_event_hypothesis.yaml
 edge discover run --proposal spec/proposals/canonical_event_hypothesis.yaml
 edge discover run --proposal spec/proposals/other.yaml --run_id <existing_run_id>
 edge discover list-artifacts --run_id <run_id>
+edge discover summarize --run_id <run_id>
+edge discover explain-empty --run_id <run_id>
+edge discover funnel --run_id <run_id>
 ```
 
 Cell-first discovery:
 
 ```bash
+edge discover cells coverage-audit
+edge discover cells spec-audit --spec_dir <surface>
 edge discover cells verify-data --run_id <run_id> --symbols BTCUSDT --start 2024-01-01 --end 2025-12-31
 edge discover cells plan --run_id <run_id> --symbols BTCUSDT --start 2024-01-01 --end 2025-12-31
 edge discover cells run --run_id <run_id> --symbols BTCUSDT --start 2024-01-01 --end 2025-12-31
@@ -62,6 +67,10 @@ These trigger commands are experimental proposal-generation lanes, not the canon
 ```bash
 edge validate run --run_id <run_id>
 edge validate specs
+edge validate forward-confirm \
+  --run_id <run_id> \
+  --window <start>/<end> \
+  --proposal <proposal.yaml>
 ```
 
 ## Promote
@@ -77,15 +86,24 @@ edge promote export --run_id <run_id>
 ```bash
 edge deploy export --run_id <run_id>
 edge deploy bind-config --run_id <run_id>
+edge deploy bind-config --run_id <run_id> --runtime_mode monitor_only
+edge deploy bind-config --run_id <run_id> --runtime_mode simulation
+edge deploy bind-config --run_id <run_id> --runtime_mode trading
 edge deploy inspect --run_id <run_id>
-edge deploy inspect --run_id <run_id> --config project/configs/live_paper_<run_id>.yaml
+edge deploy inspect-thesis --run_id <run_id>
+edge deploy list-theses
 edge deploy paper-run --config project/configs/live_paper_<run_id>.yaml
-edge deploy live-run --config project/configs/live_live_<run_id>.yaml
+edge deploy live-run --config project/configs/live_trading_<run_id>.yaml
 edge deploy status --run_id <run_id>
 edge deploy status --run_id <run_id> --config project/configs/live_paper_<run_id>.yaml
 ```
 
 `edge deploy paper` is not a current subcommand. Use `paper-run`.
+
+Config naming convention:
+- `monitor_only` → `project/configs/live_monitor_<run_id>.yaml`
+- `simulation`   → `project/configs/live_paper_<run_id>.yaml`
+- `trading`      → `project/configs/live_trading_<run_id>.yaml`
 
 ## Make Targets
 
@@ -95,13 +113,22 @@ Lifecycle:
 make first-edge RUN_ID=<run_id> DATA_ROOT=<lake> START=<start> END=<end>
 make discover RUN_ID=<run_id> START=<start> END=<end> [DATA_ROOT=...]
 make discover-proposal PROPOSAL=spec/proposals/...yaml RUN_ID=<run_id>
+make discover-doctor RUN_ID=<run_id> [DATA_ROOT=...]
+make summarize RUN_ID=<run_id> [DATA_ROOT=...]
+make summarize-proposal RUN_ID=<run_id> [DATA_ROOT=...] [TOP_K=10]
+make explain-empty RUN_ID=<run_id> [DATA_ROOT=...]
+make funnel RUN_ID=<run_id> [DATA_ROOT=...]
+make forward-confirm RUN_ID=<run_id> WINDOW=<start>/<end> [DATA_ROOT=...] [PROPOSAL=...]
 make validate RUN_ID=<run_id>
 make promote RUN_ID=<run_id> SYMBOLS=BTCUSDT
 make export RUN_ID=<run_id>
-make bind-config RUN_ID=<run_id>
+make bind-config RUN_ID=<run_id> RUNTIME_MODE=monitor_only
+make bind-config RUN_ID=<run_id> RUNTIME_MODE=simulation
+make bind-config RUN_ID=<run_id> RUNTIME_MODE=trading
 make paper-run CONFIG=project/configs/live_paper_<run_id>.yaml
-make live-run CONFIG=project/configs/live_live_<run_id>.yaml
-make deploy-status RUN_ID=<run_id> CONFIG=project/configs/live_paper_<run_id>.yaml
+make live-run CONFIG=project/configs/live_trading_<run_id>.yaml
+make deploy-status RUN_ID=<run_id> [CONFIG=project/configs/live_paper_<run_id>.yaml]
+make list-theses [DATA_ROOT=...]
 make benchmark-supported-path EXECUTE=0
 make benchmark-supported-path EXECUTE=1 OFFLINE_PARQUET_EXECUTION_FIXED=1
 ```
@@ -112,12 +139,24 @@ Maintenance:
 make check-hygiene
 make governance
 make minimum-green-gate
+make agent-check
+make check-protected-paths
+make check-docs
+make registries
+make check-spec-sync
+make check-registry-sync
+make domain-graph
+make check-domain-graph
 ```
 
 ## Direct Python Entrypoints
 
 ```bash
 PYTHONPATH=. ./.venv/bin/python -m project.cli --help
+PYTHONPATH=. ./.venv/bin/python -m project.cli discover --help
+PYTHONPATH=. ./.venv/bin/python -m project.cli validate --help
+PYTHONPATH=. ./.venv/bin/python -m project.cli promote --help
+PYTHONPATH=. ./.venv/bin/python -m project.cli deploy --help
 PYTHONPATH=. ./.venv/bin/python -m project.pipelines.run_all --help
 PYTHONPATH=. ./.venv/bin/python project/scripts/run_live_engine.py --help
 PYTHONPATH=. ./.venv/bin/python project/scripts/certify_paper_startup.py
@@ -188,19 +227,6 @@ If thesis-overlap artifacts are needed:
 ```bash
 THESIS_RUN_ID=<run_id> ./project/scripts/regenerate_artifacts.sh
 ```
-
-## ChatGPT App Surface
-
-```bash
-edge-chatgpt-app backlog
-edge-chatgpt-app blueprint
-edge-chatgpt-app widget
-edge-chatgpt-app tools
-edge-chatgpt-app status
-edge-chatgpt-app serve --host 127.0.0.1 --port 8000 --path /mcp
-```
-
-The app surface should wrap proposal, dashboard, reporting, and operator actions. It should not redefine proposal policy or promotion logic.
 
 ## Documentation and Governance Refresh
 

@@ -31,7 +31,7 @@ MONITOR_REPORT ?=
 	deploy-paper check-domain-graph domain-graph check-registry-sync benchmark-supported-path \
 	discover-cells-verify discover-cells-plan discover-cells-run \
 	check-hygiene clean clean-runtime clean-run-data clean-all-data clean-hygiene \
-	governance minimum-green-gate discover-doctor agent-check check-protected-paths
+	governance minimum-green-gate discover-doctor agent-check check-protected-paths check-docs
 
 help:
 	@printf '%s\n' \
@@ -48,9 +48,11 @@ help:
 	  '  make validate RUN_ID=<run_id> [DATA_ROOT=...]' \
 	  '  make promote RUN_ID=<run_id> SYMBOLS=BTCUSDT,ETHUSDT [OUT_DIR=...]' \
 	  '  make export RUN_ID=<run_id> [DATA_ROOT=...]' \
-	  '  make bind-config RUN_ID=<run_id> [OUT_DIR=project/configs] [RUNTIME_MODE=monitor_only] [SYMBOLS=...] [DATA_ROOT=...]' \
+	  '  make bind-config RUN_ID=<run_id> RUNTIME_MODE=monitor_only [OUT_DIR=project/configs] [SYMBOLS=...] [DATA_ROOT=...]' \
+	  '  make bind-config RUN_ID=<run_id> RUNTIME_MODE=simulation [OUT_DIR=project/configs] [SYMBOLS=...] [DATA_ROOT=...]' \
+	  '  make bind-config RUN_ID=<run_id> RUNTIME_MODE=trading [OUT_DIR=project/configs] [SYMBOLS=...] [DATA_ROOT=...]' \
 	  '  make paper-run CONFIG=project/configs/live_paper_<run_id>.yaml' \
-	  '  make live-run CONFIG=project/configs/live_live_<run_id>.yaml' \
+	  '  make live-run CONFIG=project/configs/live_trading_<run_id>.yaml' \
 	  '  make deploy-status RUN_ID=<run_id> [CONFIG=project/configs/live_paper_<run_id>.yaml] [DATA_ROOT=...]' \
 	  '  make list-theses [DATA_ROOT=...]' \
 	  '' \
@@ -217,6 +219,10 @@ agent-check: minimum-green-gate check-hygiene check-registry-sync check-domain-g
 
 check-protected-paths:
 	@PYTHONPATH=$(PYTHONPATH) $(PYTHON) project/scripts/check_protected_paths.py
+
+check-docs:
+	@PYTHONPATH=$(PYTHONPATH) $(PYTHON) project/scripts/check_markdown_links.py
+	@PYTHONPATH=$(PYTHONPATH) $(PYTHON) project/scripts/check_docs_command_drift.py
 
 discover-cells-verify:
 	@test -n "$(RUN_ID)" || (echo 'RUN_ID is required' >&2; exit 2)

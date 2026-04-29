@@ -1,22 +1,22 @@
 {
-  "total_atoms": 85,
+  "total_atoms": 87,
   "by_detector_band": {
-    "": 84,
+    "": 86,
     "deployable_core": 1
   },
   "by_search_role": {
-    "diagnostic": 73,
+    "diagnostic": 75,
     "confirm": 7,
     "context": 4,
     "primary_trigger": 1
   },
   "by_promotion_role": {
-    "ineligible": 77,
+    "ineligible": 79,
     "requires_composite": 7,
     "eligible": 1
   },
   "by_runtime_role": {
-    "observer": 74,
+    "observer": 76,
     "unavailable": 7,
     "guard": 4
   },
@@ -182,6 +182,14 @@
       "runtime_role": "observer"
     },
     {
+      "id": "band_break_high_vol_reversion",
+      "event_type": "BAND_BREAK",
+      "detector_band": "",
+      "search_role": "diagnostic",
+      "promotion_role": "ineligible",
+      "runtime_role": "observer"
+    },
+    {
       "id": "liquidation_cascade_positioning",
       "event_type": "LIQUIDATION_CASCADE",
       "detector_band": "",
@@ -232,6 +240,14 @@
     {
       "id": "post_deleveraging_rebound_positioning",
       "event_type": "POST_DELEVERAGING_REBOUND",
+      "detector_band": "",
+      "search_role": "diagnostic",
+      "promotion_role": "ineligible",
+      "runtime_role": "observer"
+    },
+    {
+      "id": "climax_volume_funding_neg_exhaustion",
+      "event_type": "CLIMAX_VOLUME_BAR",
       "detector_band": "",
       "search_role": "diagnostic",
       "promotion_role": "ineligible",

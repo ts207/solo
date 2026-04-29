@@ -1,6 +1,7 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+This file provides Claude Code-specific implementation notes for the Edge repository.
+Generic agent policy (mission, allowed actions, forbidden actions, required loop) lives in `AGENTS.md`.
 
 ---
 
@@ -152,7 +153,7 @@ data/
 The live engine runs from `project/scripts/run_live_engine.py`. Required env vars:
 
 ```bash
-export EDGE_ENVIRONMENT=paper         # or live
+export EDGE_ENVIRONMENT=paper         # or production
 export EDGE_VENUE=binance             # or bybit
 export EDGE_LIVE_CONFIG=<path>        # bound config yaml
 export EDGE_LIVE_SNAPSHOT_PATH=<path> # state snapshot json
@@ -161,7 +162,9 @@ export EDGE_LIVE_SNAPSHOT_PATH=<path> # state snapshot json
 
 Startup certification (no credentials needed): `PYTHONPATH=. python3 project/scripts/certify_paper_startup.py`
 
-## Current research state
+---
+
+## Historical research notes
 
 ### Confirmed green as of 2026-04-27
 

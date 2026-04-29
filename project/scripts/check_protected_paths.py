@@ -7,7 +7,7 @@ import os
 PROTECTED_GLOBS = [
     "data/live/theses/*",
     "data/reports/approval/*",
-    "project/configs/live_live_*.yaml",
+    "project/configs/live_trading_*.yaml",
     "project/configs/live_production.yaml",
     "deploy/systemd/*.service",
     ".env*",

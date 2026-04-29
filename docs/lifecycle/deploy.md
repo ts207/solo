@@ -25,7 +25,7 @@ The root Makefile keeps config binding and runtime launch separate:
 make export RUN_ID=<run_id>
 make bind-config RUN_ID=<run_id>
 make paper-run CONFIG=project/configs/live_paper_<run_id>.yaml
-make live-run CONFIG=project/configs/live_live_<run_id>.yaml
+make live-run CONFIG=project/configs/live_trading_<run_id>.yaml
 make deploy-status RUN_ID=<run_id> CONFIG=project/configs/live_paper_<run_id>.yaml
 ```
 

@@ -4,22 +4,20 @@ This docset describes the current authored operator and developer model for Edge
 
 Generated inventories under `docs/generated/` are not part of this replacement docset. If a future change needs generated audit artifacts, regenerate them from their owning scripts instead of editing them by hand.
 
-## Reading Order
+## Reading Guide
 
-1. [Lifecycle Overview](lifecycle/overview.md)
-2. [Discover](lifecycle/discover.md)
-3. [Validate](lifecycle/validate.md)
-4. [Promote](lifecycle/promote.md)
-5. [Deploy](lifecycle/deploy.md)
-6. [Operator Quickstart](operator/quickstart.md)
-7. [Edge Cell Discovery](lifecycle/edge-cell-discovery.md)
-8. [Liquidation Exhaustion Matrix](lifecycle/liquidation-exhaustion-matrix.md)
-9. [Operator Runbook](operator/runbook.md)
-10. [Supported Path](reference/supported-path.md)
-11. [Architecture Reference](reference/architecture.md)
-12. [Command Reference](reference/commands.md)
-13. [Specs and Domain Reference](reference/specs-and-domain.md)
-14. [Data and Artifacts Reference](reference/data-and-artifacts.md)
+| Task | Read |
+|---|---|
+| First clone | `README.md` |
+| Discover edge | `docs/operator/discover-edge.md` |
+| Diagnose empty discovery | `docs/lifecycle/discover.md` |
+| Validate / promote | `docs/lifecycle/validate.md`, `docs/lifecycle/promote.md` |
+| Paper runtime | `docs/operator/quickstart.md`, `docs/operator/runbook.md` |
+| Tiny-live pilot | `docs/operator/tiny_live_runbook.md` |
+| AI-agent operation | `AGENTS.md`, `CLAUDE.md` |
+| Exact commands | `docs/reference/commands.md` |
+| Architecture | `docs/reference/architecture.md` |
+| Data and artifacts | `docs/reference/data-and-artifacts.md` |
 
 ## Project Model
 
@@ -72,7 +70,7 @@ edge promote export --run_id <run_id>
 edge deploy export --run_id <run_id>
 edge deploy bind-config --run_id <run_id>
 edge deploy paper-run --config project/configs/live_paper_<run_id>.yaml
-edge deploy live-run --config project/configs/live_live_<run_id>.yaml
+edge deploy live-run --config project/configs/live_trading_<run_id>.yaml
 edge deploy status --run_id <run_id>
 ```
 
