@@ -262,7 +262,13 @@ def _add_basis_features(
         # PIT safety: lag basis_bps by 1 bar so downstream consumers only see prior-bar values
         out["basis_bps"] = out["basis_bps"].shift(1)
     else:
-        out["basis_bps"] = np.nan
+        # No spot data — proxy basis_bps as deviation of close from its 8h EMA (in bps).
+        # This varies every bar and captures intraday premium/discount vs. trend anchor.
+        # The EMA is a reasonable fair-value proxy in the absence of a cross-venue spot feed.
+        close_series = pd.to_numeric(out.get("close", pd.Series(np.nan, index=out.index)), errors="coerce")
+        ema_span = _duration_to_bars(minutes=_ZSCORE_WINDOW * _BASE_WINDOW_MINUTES, timeframe=timeframe, min_bars=2)
+        ema_close = close_series.ewm(span=ema_span, min_periods=2).mean().shift(1)
+        out["basis_bps"] = ((close_series / ema_close.replace(0.0, np.nan)) - 1.0) * 10_000.0
         out["basis_spot_coverage"] = 0.0
         out["spot_close"] = np.nan
 
@@ -680,6 +686,17 @@ def _ensure_feature_contract_columns(frame: pd.DataFrame, *, timeframe: str) -> 
     out["ms_imbalance_24"] = calculate_imbalance(buy_volume, sell_volume, window=24).shift(1)
     if "imbalance" not in out.columns:
         out["imbalance"] = out["ms_imbalance_24"]
+
+    # When taker volume is unavailable (all-zero taker_base_volume produces imbalance=0 everywhere),
+    # substitute a tick-rule directional proxy: rolling mean of sign(close_change).
+    # Range: -1 (persistent selling) to +1 (persistent buying). PIT-safe via shift(1).
+    _imbalance_numeric = pd.to_numeric(out["imbalance"], errors="coerce")
+    if _imbalance_numeric.abs().max() < 1e-9:
+        _close = pd.to_numeric(out["close"], errors="coerce")
+        _tick = np.sign(_close.diff()).fillna(0.0)
+        _tick_imbalance = _tick.rolling(24, min_periods=4).mean().shift(1).fillna(0.0)
+        out["imbalance"] = _tick_imbalance
+        out["ms_imbalance_24"] = _tick_imbalance
 
     # PIT safety verification: ensure key indicators that should be lagged are indeed shifted.
     # This is a defensive check to prevent look-ahead bias during feature evolution.
