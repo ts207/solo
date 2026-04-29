@@ -10,6 +10,41 @@ To add an observation, insert a new `### [YYYY-MM-DD] Title` block before the AU
 
 ## Observations
 
+### [2026-04-29] BAND_BREAK / ETH low_vol does not reproduce under governed event materialization
+
+The generated `stat_stretch_eth_01` cell
+`BAND_BREAK / vol_regime=low / long / 24b / mean_reversion / ETHUSDT` was
+compiled into a stable bounded proposal:
+`single_event_band_break_low_vol_mean_reversion_long_h24_eth_v1`.
+
+Prior cell-scoreboard evidence:
+- n=1,938, net=11.0064 bps, t=3.2765, q=0.003153, robustness=0.7029
+- source run: `stat_stretch_eth_01`
+
+Current governed rerun:
+- run_id: `single_event_band_break__20260429T051949Z_d7bff7f5e9`
+- generated=1, feasible=1, metrics_rows=1, phase2_candidates_written=0
+- evaluated row: n=374, net=6.0258 bps, t_net=0.9394, p=0.173775, robustness=0.6691
+- rejection: `min_t_stat_net`
+- validation stage: total=0, validated=0, rejected=0, inconclusive=0 because no bridge candidates existed
+
+The discrepancy is event-surface drift, not a missing artifact. The old
+`stat_stretch_eth_01` prepared feature surface exposed 10,858 `band_break_event`
+flags and 2,109 `band_break_event & vol_regime=low` bars. The current governed
+detector materialized 1,719 `BAND_BREAK` events and 475 low-vol event bars. The
+sample collapse reduced the effect from a deploy-like discovery row to a
+sub-threshold governed result.
+
+**Decision:** Do not validate, promote, or port this BAND_BREAK ETH low-vol lane
+from the old scoreboard. Treat the old row as stale cell-scoreboard evidence
+until the event-surface difference is explicitly reconciled.
+
+**Rule:** Any generated edge-cell result must be re-run through current governed
+event materialization before being used as validation evidence. A large change in
+`band_break_event` count invalidates old t-stat comparisons.
+
+---
+
 ### [2026-04-29] CLIMAX_VOLUME_BAR / funding_neg fails forward confirmation
 
 The bounded BTC validation branch was replayed with the frozen proposal:

@@ -31,7 +31,7 @@ MONITOR_REPORT ?=
 	deploy-paper check-domain-graph domain-graph check-registry-sync benchmark-supported-path \
 	discover-cells-verify discover-cells-plan discover-cells-run \
 	check-hygiene clean clean-runtime clean-run-data clean-all-data clean-hygiene \
-	governance minimum-green-gate discover-doctor
+	governance minimum-green-gate discover-doctor agent-check
 
 help:
 	@printf '%s\n' \
@@ -63,6 +63,7 @@ help:
 	  '  make domain-graph' \
 	  '  make governance' \
 	  '  make minimum-green-gate' \
+	  '  make agent-check' \
 	  '  make benchmark-supported-path EXECUTE=0|1 [DATA_ROOT=...] [RUNTIME_MAX_ROWS=500]' \
 	  '  make discover-cells-verify RUN_ID=<run_id> START=<start> END=<end> [SPEC_DIR=spec/discovery]' \
 	  '  make discover-cells-plan   RUN_ID=<run_id> START=<start> END=<end> [SPEC_DIR=spec/discovery/expanded_v2]' \
@@ -210,6 +211,8 @@ minimum-green-gate:
 	@PYTHONPATH=$(PYTHONPATH) $(PYTHON) -m pytest -q -s project/tests/live/test_paper_ledger_runtime_init.py
 	@PYTHONPATH=$(PYTHONPATH) $(PYTHON) -m pytest -q -s project/tests/validate/test_forward_confirm_oos.py
 	@PYTHONPATH=$(PYTHONPATH) $(PYTHON) -m pytest -q -s project/tests/promote/test_paper_gate.py
+
+agent-check: minimum-green-gate check-hygiene check-registry-sync check-domain-graph
 
 discover-cells-verify:
 	@test -n "$(RUN_ID)" || (echo 'RUN_ID is required' >&2; exit 2)
