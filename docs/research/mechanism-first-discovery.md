@@ -7,7 +7,8 @@ consideration.
 ## Research Loop
 
 1. Select one active mechanism from `spec/mechanisms/registry.yaml`.
-2. Compile one to three bounded proposals from the mechanism spec.
+2. Compile one to three bounded proposals from the mechanism spec after required
+   upstream evidence gates pass.
 3. Run mechanism preflight before discovery.
 4. Run discovery and `discover-doctor`.
 5. Record search burden and refresh the results index.
@@ -96,12 +97,20 @@ regime thesis, or move to a stronger forced-flow observable such as `OI_FLUSH`.
 funding and crowded perpetual positioning create unwind or squeeze pressure that
 resolves as reversal or continuation after a stress trigger.
 
-The first bounded seed is:
+Funding-squeeze proposals are gated on event-lift evidence. The compiler may
+emit a proposal only when a matching `event_lift.json` report has:
 
-- `FUNDING_EXTREME`, `carry_state=funding_neg`, `vol_regime=high`,
-  `exhaustion_reversal`, long, 24 bars.
+- `decision == advance_to_mechanism_proposal`
+- `promotion_eligible == true`
+- `audit_only == false`
+- `scorecard_decision == allow_event_lift`
 
-Compile only this first seed before any broader funding search:
+Audit-only, parked, scorecard-blocked, or otherwise non-promotable event-lift
+reports are hard rejections. The compile tuple must match the event-lift report
+on `mechanism_id`, `event_id`, `regime_id`, `symbol`, `direction`, and
+`horizon_bars`.
+
+Compile from a specific passing event-lift run:
 
 ```bash
 PYTHONPATH=. python3 project/scripts/compile_mechanism_proposals.py \
@@ -110,7 +119,20 @@ PYTHONPATH=. python3 project/scripts/compile_mechanism_proposals.py \
   --start 2022-01-01 \
   --end 2024-12-31 \
   --data-root data \
-  --limit 1
+  --limit 1 \
+  --require-event-lift-pass \
+  --event-lift-run-id <event_lift_run_id> \
+  --regime-id 'vol_regime=high+carry_state=funding_neg' \
+  --event-id FUNDING_EXTREME_ONSET \
+  --direction long \
+  --horizon-bars 24 \
+  --template-id exhaustion_reversal
 ```
+
+If `--event-lift-run-id` is omitted, the compiler searches
+`data/reports/event_lift/*/event_lift.json` for the latest matching non-audit
+passing event-lift result. If the mechanism has multiple allowed templates,
+`--template-id` is required; this keeps template choice explicit instead of
+encoding narrative assumptions in the compiler.
 
 Do not reuse failed forced-flow evidence as support.

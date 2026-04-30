@@ -9,6 +9,7 @@ from typing import Any
 
 import yaml
 
+from project.research.event_lift import parse_regime_id
 from project.research.mechanisms import (
     CandidateHypothesis,
     MechanismSpec,
@@ -16,13 +17,20 @@ from project.research.mechanisms import (
     validate_candidate_against_mechanism,
     validate_mechanism_spec,
 )
+from project.research.proposal_evidence import (
+    EventLiftEvidence,
+    event_lift_bool,
+    event_lift_is_passing,
+    event_lift_not_promotable_message,
+    find_event_lift_evidence,
+)
 
 DEFAULT_TIMEFRAME = "5m"
 DEFAULT_OBJECTIVE = "retail_profitability"
 DEFAULT_PROMOTION_PROFILE = "research"
-FUNDING_SQUEEZE_EVENT_LIFT_BLOCK_MESSAGE = (
-    "no passing event_lift report found for funding_squeeze; "
-    "run regime baselines and event lift first"
+EVENT_LIFT_TUPLE_REQUIRED_MESSAGE = (
+    "--event-id, --regime-id, --direction, and --horizon-bars are required "
+    "with --require-event-lift-pass"
 )
 
 
@@ -81,6 +89,74 @@ def _mechanism_seeds(mechanism_id: str, symbol: str) -> list[dict[str, Any]]:
     raise ValueError(f"No seeded compiler is defined for {mechanism_id}")
 
 
+def _no_passing_event_lift_message(
+    *,
+    mechanism_id: str,
+    event_id: str,
+    regime_id: str,
+    symbol: str,
+    direction: str,
+    horizon_bars: int,
+) -> str:
+    return (
+        "no passing event_lift report found for "
+        f"mechanism={mechanism_id} event={event_id} regime={regime_id} "
+        f"symbol={symbol} direction={direction} horizon_bars={int(horizon_bars)}"
+    )
+
+
+def _display_artifact_path(path: Path) -> str:
+    try:
+        return str(path.resolve().relative_to(Path.cwd().resolve()))
+    except ValueError:
+        return str(path)
+
+
+def _select_template_id(mechanism: MechanismSpec, template_id: str | None) -> str:
+    if template_id:
+        if template_id not in mechanism.allowed_templates:
+            raise ValueError(f"--template-id {template_id} is not allowed by {mechanism.mechanism_id}")
+        return template_id
+    if len(mechanism.allowed_templates) != 1:
+        raise ValueError("--template-id is required when mechanism has multiple allowed templates")
+    return mechanism.allowed_templates[0]
+
+
+def event_lift_seed(
+    *,
+    mechanism: MechanismSpec,
+    symbol: str,
+    evidence: EventLiftEvidence,
+    template_id: str,
+) -> dict[str, Any]:
+    row = evidence.row
+    event_id = str(row["event_id"])
+    direction = str(row["direction"]).lower()
+    horizon_bars = int(row["horizon_bars"])
+    symbol_slug = _symbol_slug(symbol)
+    program_id = f"{mechanism.mechanism_id}_{event_id.lower()}_{direction}_h{horizon_bars}_{symbol_slug}"
+    return {
+        "program_id": program_id,
+        "filename": f"{program_id}.yaml",
+        "description": f"Mechanism-gated proposal from passing event_lift run {row['run_id']}.",
+        "event_id": event_id,
+        "contexts": parse_regime_id(str(row["regime_id"])),
+        "template_id": template_id,
+        "direction": direction,
+        "horizon_bars": horizon_bars,
+        "event_lift": {
+            "run_id": row["run_id"],
+            "decision": row["decision"],
+            "classification": row["classification"],
+            "promotion_eligible": event_lift_bool(row["promotion_eligible"]),
+            "audit_only": event_lift_bool(row["audit_only"]),
+            "regime_id": row["regime_id"],
+            "event_id": event_id,
+        },
+        "event_lift_path": _display_artifact_path(evidence.path),
+    }
+
+
 def proposal_payload_from_seed(
     seed: dict[str, Any],
     *,
@@ -93,7 +169,14 @@ def proposal_payload_from_seed(
 ) -> dict[str, Any]:
     contexts = dict(seed["contexts"])
     search_spec = {"path": str(search_spec_path)} if search_spec_path is not None else {}
-    return {
+    artifacts = {
+        "mechanism_id": mechanism.mechanism_id,
+        "mechanism_version": mechanism.version,
+        "compiler": "compile_mechanism_proposals.py",
+    }
+    if seed.get("event_lift_path"):
+        artifacts["event_lift_path"] = seed["event_lift_path"]
+    payload = {
         "program_id": seed["program_id"],
         "description": seed["description"],
         "run_mode": "research",
@@ -133,13 +216,12 @@ def proposal_payload_from_seed(
         },
         "required_falsification": list(mechanism.required_falsification),
         "forbidden_rescue_actions": list(mechanism.forbidden_rescue_actions),
-        "artifacts": {
-            "mechanism_id": mechanism.mechanism_id,
-            "mechanism_version": mechanism.version,
-            "compiler": "compile_mechanism_proposals.py",
-        },
+        "artifacts": artifacts,
         "version": 1,
     }
+    if seed.get("event_lift"):
+        payload["evidence"] = {"event_lift": dict(seed["event_lift"])}
+    return payload
 
 
 def search_spec_payload_from_seed(
@@ -218,6 +300,13 @@ def compile_mechanism_proposals(
     data_root: Path,
     limit: int = 3,
     output_dir: Path | None = None,
+    require_event_lift_pass: bool = False,
+    event_lift_run_id: str | None = None,
+    regime_id: str | None = None,
+    event_id: str | None = None,
+    direction: str | None = None,
+    horizon_bars: int | None = None,
+    template_id: str | None = None,
 ) -> list[Path]:
     if limit < 1:
         raise ValueError("--limit must be >= 1")
@@ -228,8 +317,45 @@ def compile_mechanism_proposals(
         details = "; ".join(issue.detail for issue in spec_issues if issue.status == "fail")
         raise ValueError(f"Mechanism spec is invalid: {details}")
 
-    if mechanism.mechanism_id == "funding_squeeze":
-        raise ValueError(FUNDING_SQUEEZE_EVENT_LIFT_BLOCK_MESSAGE)
+    gate_required = require_event_lift_pass or mechanism.mechanism_id == "funding_squeeze"
+    seeds: list[dict[str, Any]]
+    if gate_required:
+        if not (event_id and regime_id and direction and horizon_bars):
+            raise ValueError(EVENT_LIFT_TUPLE_REQUIRED_MESSAGE)
+        evidence = find_event_lift_evidence(
+            data_root=data_root,
+            mechanism_id=mechanism.mechanism_id,
+            event_id=event_id,
+            regime_id=regime_id,
+            symbol=symbol,
+            direction=direction,
+            horizon_bars=horizon_bars,
+            event_lift_run_id=event_lift_run_id,
+        )
+        if evidence is None:
+            raise ValueError(
+                _no_passing_event_lift_message(
+                    mechanism_id=mechanism.mechanism_id,
+                    event_id=event_id,
+                    regime_id=regime_id,
+                    symbol=symbol,
+                    direction=direction,
+                    horizon_bars=horizon_bars,
+                )
+            )
+        if not event_lift_is_passing(evidence.row):
+            raise ValueError(event_lift_not_promotable_message(evidence.row))
+        selected_template_id = _select_template_id(mechanism, template_id)
+        seeds = [
+            event_lift_seed(
+                mechanism=mechanism,
+                symbol=symbol,
+                evidence=evidence,
+                template_id=selected_template_id,
+            )
+        ]
+    else:
+        seeds = _mechanism_seeds(mechanism.mechanism_id, symbol)
 
     out_dir = output_dir or (
         data_root
@@ -243,15 +369,8 @@ def compile_mechanism_proposals(
     search_spec_dir.mkdir(parents=True, exist_ok=True)
 
     written: list[Path] = []
-    for seed in _mechanism_seeds(mechanism.mechanism_id, symbol)[:limit]:
+    for seed in seeds[:limit]:
         search_spec_path = search_spec_dir / seed["filename"].replace(".yaml", "_search.yaml")
-        search_spec_path.write_text(
-            yaml.safe_dump(
-                search_spec_payload_from_seed(seed, symbol=symbol, mechanism=mechanism),
-                sort_keys=False,
-            ),
-            encoding="utf-8",
-        )
         payload = proposal_payload_from_seed(
             seed,
             mechanism=mechanism,
@@ -266,6 +385,13 @@ def compile_mechanism_proposals(
             failed = [check.detail for check in preflight.checks if check.status == "fail"]
             raise ValueError(f"Generated proposal violates mechanism: {'; '.join(failed)}")
 
+        search_spec_path.write_text(
+            yaml.safe_dump(
+                search_spec_payload_from_seed(seed, symbol=symbol, mechanism=mechanism),
+                sort_keys=False,
+            ),
+            encoding="utf-8",
+        )
         path = out_dir / seed["filename"]
         path.write_text(yaml.safe_dump(payload, sort_keys=False), encoding="utf-8")
         written.append(path)
@@ -281,6 +407,13 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--data-root", default="data")
     parser.add_argument("--limit", type=int, default=3)
     parser.add_argument("--output-dir")
+    parser.add_argument("--require-event-lift-pass", action="store_true")
+    parser.add_argument("--event-lift-run-id")
+    parser.add_argument("--regime-id")
+    parser.add_argument("--event-id")
+    parser.add_argument("--direction", choices=("long", "short"))
+    parser.add_argument("--horizon-bars", type=int)
+    parser.add_argument("--template-id")
     args = parser.parse_args(argv)
 
     try:
@@ -292,6 +425,13 @@ def main(argv: list[str] | None = None) -> int:
             data_root=Path(args.data_root),
             limit=args.limit,
             output_dir=Path(args.output_dir) if args.output_dir else None,
+            require_event_lift_pass=args.require_event_lift_pass,
+            event_lift_run_id=args.event_lift_run_id,
+            regime_id=args.regime_id,
+            event_id=args.event_id,
+            direction=args.direction,
+            horizon_bars=args.horizon_bars,
+            template_id=args.template_id,
         )
     except ValueError as exc:
         print(f"fail: {exc}")
