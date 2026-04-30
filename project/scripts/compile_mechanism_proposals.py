@@ -33,14 +33,14 @@ def _forced_flow_seeds(symbol: str) -> list[dict[str, Any]]:
     slug = _symbol_slug(symbol)
     return [
         {
-            "program_id": f"forced_flow_price_down_oi_down_highvol_h24_{slug}",
-            "filename": f"forced_flow_price_down_oi_down_highvol_long_h24_{slug}.yaml",
+            "program_id": f"forced_flow_oi_flush_highvol_h24_{slug}",
+            "filename": f"forced_flow_oi_flush_highvol_long_h24_{slug}.yaml",
             "description": (
-                "Forced-flow reversal test for PRICE_DOWN_OI_DOWN in high-volatility context."
+                "Forced-flow reversal test for OI_FLUSH in high-volatility context."
             ),
-            "event_id": "PRICE_DOWN_OI_DOWN",
+            "event_id": "OI_FLUSH",
             "contexts": {"vol_regime": ["high"]},
-            "template_id": "mean_reversion",
+            "template_id": "exhaustion_reversal",
             "direction": "long",
             "horizon_bars": 24,
         },

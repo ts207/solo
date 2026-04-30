@@ -50,7 +50,7 @@ Preflight a proposal before discovery:
 
 ```bash
 PYTHONPATH=. python3 project/scripts/mechanism_preflight.py \
-  --proposal data/reports/mechanisms/forced_flow_reversal/generated_proposals/forced_flow_price_down_oi_down_highvol_long_h24_btc.yaml
+  --proposal data/reports/mechanisms/forced_flow_reversal/generated_proposals/forced_flow_oi_flush_highvol_long_h24_btc.yaml
 ```
 
 Passing preflight classifies a proposal as `mechanism_backed`. A proposal with no
@@ -67,7 +67,7 @@ reversal.
 
 Allowed Wave 1 seeds are deliberately narrow:
 
-- `PRICE_DOWN_OI_DOWN`, `vol_regime=high`, `mean_reversion`, long, 24 bars.
+- `OI_FLUSH`, `vol_regime=high`, `exhaustion_reversal`, long, 24 bars.
 - `CLIMAX_VOLUME_BAR`, `carry_state=funding_neg`, `exhaustion_reversal`, long, 24 bars.
 - `LIQUIDATION_EXHAUSTION_REVERSAL`, `vol_regime=high`, `exhaustion_reversal`,
   long, 24 bars.
@@ -80,7 +80,6 @@ confirmation.
 ## PRICE_DOWN_OI_DOWN Handling
 
 `PRICE_DOWN_OI_DOWN` is a forced-flow clue, not a deployable edge. Its current
-status should remain parked/review until specificity controls and post-discovery
-falsification exist. If controls fail or the evidence remains a 2022 artifact,
-kill it. If controls pass and non-2022 evidence is acceptable, keep it only as a
-regime-conditional research candidate.
+status is parked as `context_proxy_and_year_pnl_concentration_2022`. Do not keep
+iterating on this event formulation. Reopen only under a new ex-ante crisis/high-vol
+regime thesis, or move to a stronger forced-flow observable such as `OI_FLUSH`.

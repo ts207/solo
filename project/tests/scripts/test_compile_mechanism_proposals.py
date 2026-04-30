@@ -18,7 +18,7 @@ def test_compile_forced_flow_proposals_is_bounded_and_mechanism_valid(tmp_path):
 
     assert len(paths) == 3
     assert [path.name for path in paths] == [
-        "forced_flow_price_down_oi_down_highvol_long_h24_btc.yaml",
+        "forced_flow_oi_flush_highvol_long_h24_btc.yaml",
         "forced_flow_climax_volume_funding_neg_long_h24_btc.yaml",
         "forced_flow_liquidation_exhaustion_highvol_long_h24_btc.yaml",
     ]
@@ -50,4 +50,4 @@ def test_compile_limit_prevents_cartesian_expansion(tmp_path):
     )
 
     assert len(paths) == 1
-    assert paths[0].name == "forced_flow_price_down_oi_down_highvol_long_h24_eth.yaml"
+    assert paths[0].name == "forced_flow_oi_flush_highvol_long_h24_eth.yaml"
