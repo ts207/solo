@@ -1,0 +1,44 @@
+mechanism_id: spot_perp_basis_arbitrage
+version: 1
+status: draft
+priority: high
+claim: >
+  Extreme dislocations between the Binance Spot index and Bybit Perp instrument represent 
+  transient venue-specific liquidations or forced flow that revert quickly as cross-exchange 
+  arbitrageurs step in to collapse the premium/discount.
+forced_actor:
+  - uninformed_retail
+  - liquidation_engine
+observable_pressure:
+  required:
+    - basis_bps
+    - basis_zscore
+    - spread_bps
+    - volume
+candidate_events:
+  - CLIMAX_VOLUME_BAR
+allowed_templates:
+  - exhaustion_reversal
+  - momentum_continuation
+allowed_directions:
+  - long
+  - short
+allowed_horizons_bars:
+  - 12
+  - 24
+  - 48
+allowed_contexts:
+  preferred:
+    - vol_regime=high
+required_falsification:
+  - forward_confirmation
+  - "The gross basis convergence fails to overcome the two-leg execution cost (spread * 2 + fees)"
+  - "The basis expands persistently due to structural holding costs (funding/carry) rather than transient flow"
+  - "The reversion is asymmetric, occurring only when the perp is at a premium but not discount"
+kill_conditions:
+  - "Gross edge is positive but net edge is negative due to high execution costs"
+allowed_rescue_actions: []
+forbidden_rescue_actions:
+  - promote_without_forward_confirmation
+  - "Using the legacy EMA proxy basis instead of the true cross-venue spot-perp basis"
+  - "Assuming maker-maker execution where the arb leg explicitly requires taking liquidity on at least one venue to hedge"

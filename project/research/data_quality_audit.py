@@ -51,7 +51,7 @@ FIELD_EXPECTATIONS = {
     "volume": {"kind": "continuous", "allow_zero_heavy": False},
     "order_book": {"kind": "object_or_proxy", "allow_zero_heavy": False},
 }
-KNOWN_PROXY_FIELDS = {"basis_zscore"}
+KNOWN_PROXY_FIELDS = set()
 
 MECHANISM_REQUIRED_OBSERVABLES = {
     "funding_squeeze": [

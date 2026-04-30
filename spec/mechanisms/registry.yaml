@@ -36,3 +36,9 @@ mechanisms:
     priority: medium
     status: draft
     deploy_relevance: false
+
+  spot_perp_basis_arbitrage:
+    path: spec/mechanisms/spot_perp_basis_arbitrage.yaml
+    priority: high
+    status: draft
+    deploy_relevance: true
