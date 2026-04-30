@@ -20,6 +20,10 @@ from project.research.mechanisms import (
 DEFAULT_TIMEFRAME = "5m"
 DEFAULT_OBJECTIVE = "retail_profitability"
 DEFAULT_PROMOTION_PROFILE = "research"
+FUNDING_SQUEEZE_EVENT_LIFT_BLOCK_MESSAGE = (
+    "no passing event_lift report found for funding_squeeze; "
+    "run regime baselines and event lift first"
+)
 
 
 def _symbol_slug(symbol: str) -> str:
@@ -71,29 +75,9 @@ def _forced_flow_seeds(symbol: str) -> list[dict[str, Any]]:
     ]
 
 
-def _funding_squeeze_seeds(symbol: str) -> list[dict[str, Any]]:
-    slug = _symbol_slug(symbol)
-    return [
-        {
-            "program_id": f"funding_squeeze_funding_extreme_neg_highvol_h24_{slug}",
-            "filename": f"funding_squeeze_funding_extreme_neg_highvol_long_h24_{slug}.yaml",
-            "description": (
-                "Funding-squeeze test for FUNDING_EXTREME under negative carry and high volatility."
-            ),
-            "event_id": "FUNDING_EXTREME",
-            "contexts": {"carry_state": ["funding_neg"], "vol_regime": ["high"]},
-            "template_id": "exhaustion_reversal",
-            "direction": "long",
-            "horizon_bars": 24,
-        },
-    ]
-
-
 def _mechanism_seeds(mechanism_id: str, symbol: str) -> list[dict[str, Any]]:
     if mechanism_id == "forced_flow_reversal":
         return _forced_flow_seeds(symbol)
-    if mechanism_id == "funding_squeeze":
-        return _funding_squeeze_seeds(symbol)
     raise ValueError(f"No seeded compiler is defined for {mechanism_id}")
 
 
@@ -244,6 +228,9 @@ def compile_mechanism_proposals(
         details = "; ".join(issue.detail for issue in spec_issues if issue.status == "fail")
         raise ValueError(f"Mechanism spec is invalid: {details}")
 
+    if mechanism.mechanism_id == "funding_squeeze":
+        raise ValueError(FUNDING_SQUEEZE_EVENT_LIFT_BLOCK_MESSAGE)
+
     out_dir = output_dir or (
         data_root
         / "reports"
@@ -296,15 +283,19 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--output-dir")
     args = parser.parse_args(argv)
 
-    paths = compile_mechanism_proposals(
-        mechanism_id=args.mechanism,
-        symbol=args.symbol,
-        start=args.start,
-        end=args.end,
-        data_root=Path(args.data_root),
-        limit=args.limit,
-        output_dir=Path(args.output_dir) if args.output_dir else None,
-    )
+    try:
+        paths = compile_mechanism_proposals(
+            mechanism_id=args.mechanism,
+            symbol=args.symbol,
+            start=args.start,
+            end=args.end,
+            data_root=Path(args.data_root),
+            limit=args.limit,
+            output_dir=Path(args.output_dir) if args.output_dir else None,
+        )
+    except ValueError as exc:
+        print(f"fail: {exc}")
+        return 1
     for path in paths:
         print(path)
     return 0

@@ -81,13 +81,21 @@ def test_funding_squeeze_mechanism_spec_validates_cleanly():
 
     assert [issue for issue in issues if issue.status == "fail"] == []
     assert mechanism.status == "active"
-    assert "FUNDING_EXTREME" in mechanism.candidate_events
+    assert "FUNDING_EXTREME" not in mechanism.candidate_events
+    assert "FUNDING_EXTREME_ONSET" in mechanism.candidate_events
     assert "continuation" in mechanism.allowed_templates
     assert "short" in mechanism.allowed_directions
     assert "forward_confirmation" in mechanism.required_falsification
 
 
-def test_funding_squeeze_candidate_fails_until_event_is_registry_valid():
+def test_funding_squeeze_spec_does_not_use_unregistered_active_event():
+    mechanism = load_mechanism("funding_squeeze")
+
+    assert "FUNDING_EXTREME" not in mechanism.candidate_events
+    assert "FUNDING_EXTREME" in mechanism.raw["draft_events"]
+
+
+def test_funding_squeeze_candidate_fails_for_draft_event_anchor():
     mechanism = load_mechanism("funding_squeeze")
     payload = _candidate_payload()
     payload["hypothesis"]["anchor"]["event_id"] = "FUNDING_EXTREME"
@@ -108,9 +116,12 @@ def test_funding_squeeze_candidate_fails_until_event_is_registry_valid():
 
     assert report.status == "fail"
     assert report.classification == "mechanism_violation"
-    check = {item.id: item for item in report.checks}["event_in_authoritative_registry"]
-    assert check.status == "fail"
-    assert check.detail == "FUNDING_EXTREME is not in the authoritative registry"
+    checks = {item.id: item for item in report.checks}
+    assert checks["event_in_authoritative_registry"].status == "fail"
+    assert checks["event_in_authoritative_registry"].detail == (
+        "FUNDING_EXTREME is not in the authoritative registry"
+    )
+    assert checks["event_allowed"].status == "fail"
 
 
 def test_candidate_passes_when_tuple_and_controls_match_mechanism():

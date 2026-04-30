@@ -24,7 +24,7 @@ def test_mechanism_preflight_passes_generated_proposal(tmp_path):
     assert "make discover-proposal" in report.next_safe_command
 
 
-def test_mechanism_preflight_rejects_generated_funding_squeeze_until_event_repaired(tmp_path):
+def test_preflight_rejects_funding_extreme_even_if_present_in_draft_events(tmp_path):
     proposal = tmp_path / "funding_squeeze_invalid_event.yaml"
     proposal.write_text(
         yaml.safe_dump(
@@ -74,8 +74,11 @@ def test_mechanism_preflight_rejects_generated_funding_squeeze_until_event_repai
     assert report.status == "fail"
     assert report.classification == "mechanism_violation"
     assert report.mechanism_id == "funding_squeeze"
-    check = {item.id: item for item in report.checks}["event_in_authoritative_registry"]
-    assert check.detail == "FUNDING_EXTREME is not in the authoritative registry"
+    checks = {item.id: item for item in report.checks}
+    assert checks["event_in_authoritative_registry"].detail == (
+        "FUNDING_EXTREME is not in the authoritative registry"
+    )
+    assert checks["event_allowed"].status == "fail"
 
 
 def test_mechanism_preflight_marks_missing_mechanism_as_scouting(tmp_path):

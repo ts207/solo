@@ -25,6 +25,18 @@ def test_update_regime_event_inventory_writes_outputs(tmp_path):
     event_payload = json.loads((out_dir / "event_inventory.json").read_text(encoding="utf-8"))
     rows = {row["id"]: row for row in event_payload["rows"]}
     assert rows["FUNDING_EXTREME"]["classification"] == "invalid_unregistered"
+    assert rows["FUNDING_EXTREME"]["active_candidate_event"] is False
+    assert rows["FUNDING_EXTREME"]["draft_event"] is True
+
+    mechanism_payload = json.loads(
+        (out_dir / "mechanism_inventory.json").read_text(encoding="utf-8")
+    )
+    mechanisms = {row["id"]: row for row in mechanism_payload["rows"]}
+    assert mechanisms["funding_squeeze"]["active_invalid_event_count"] == 0
+    assert (
+        mechanisms["funding_squeeze"]["recommended_action"]
+        == "baseline_and_event_lift_before_proposal"
+    )
 
     df = pd.read_parquet(out_dir / "regime_event_inventory.parquet")
     assert not df.empty

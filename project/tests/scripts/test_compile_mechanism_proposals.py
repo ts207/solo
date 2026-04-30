@@ -4,7 +4,11 @@ import pytest
 import yaml
 
 from project.research.mechanisms import CandidateHypothesis, load_mechanism
-from project.scripts.compile_mechanism_proposals import compile_mechanism_proposals
+from project.scripts.compile_mechanism_proposals import (
+    FUNDING_SQUEEZE_EVENT_LIFT_BLOCK_MESSAGE,
+    compile_mechanism_proposals,
+    main,
+)
 
 
 def test_compile_forced_flow_proposals_is_bounded_and_mechanism_valid(tmp_path):
@@ -54,8 +58,8 @@ def test_compile_limit_prevents_cartesian_expansion(tmp_path):
     assert paths[0].name == "forced_flow_oi_flush_highvol_long_h24_eth.yaml"
 
 
-def test_compile_funding_squeeze_refuses_invalid_unregistered_seed(tmp_path):
-    with pytest.raises(ValueError, match="FUNDING_EXTREME is not in the authoritative registry"):
+def test_compile_funding_squeeze_fails_without_event_lift_pass(tmp_path):
+    with pytest.raises(ValueError, match=FUNDING_SQUEEZE_EVENT_LIFT_BLOCK_MESSAGE):
         compile_mechanism_proposals(
             mechanism_id="funding_squeeze",
             symbol="BTCUSDT",
@@ -64,3 +68,42 @@ def test_compile_funding_squeeze_refuses_invalid_unregistered_seed(tmp_path):
             data_root=tmp_path,
             limit=1,
         )
+
+
+def test_compile_mechanism_proposals_does_not_emit_funding_extreme(tmp_path):
+    out_dir = tmp_path / "generated"
+
+    with pytest.raises(ValueError, match=FUNDING_SQUEEZE_EVENT_LIFT_BLOCK_MESSAGE):
+        compile_mechanism_proposals(
+            mechanism_id="funding_squeeze",
+            symbol="BTCUSDT",
+            start="2022-01-01",
+            end="2024-12-31",
+            data_root=tmp_path,
+            output_dir=out_dir,
+            limit=1,
+        )
+
+    assert not out_dir.exists()
+
+
+def test_compile_funding_squeeze_cli_reports_event_lift_gate(tmp_path, capsys):
+    rc = main(
+        [
+            "--mechanism",
+            "funding_squeeze",
+            "--symbol",
+            "BTCUSDT",
+            "--start",
+            "2022-01-01",
+            "--end",
+            "2024-12-31",
+            "--data-root",
+            str(tmp_path),
+            "--limit",
+            "1",
+        ]
+    )
+
+    assert rc == 1
+    assert capsys.readouterr().out.strip() == f"fail: {FUNDING_SQUEEZE_EVENT_LIFT_BLOCK_MESSAGE}"

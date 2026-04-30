@@ -35,6 +35,11 @@ EVENT_INVENTORY_COLUMNS = [
     "materialized_event_file_known",
     "features_required",
     "known_data_risk",
+    "active_candidate_event",
+    "conditional_registered_event",
+    "draft_event",
+    "active_invalid_event_count",
+    "conditional_maybe_not_materialized_event_count",
     "tested_count",
     "surviving_candidate_count",
     "parked_count",
@@ -228,6 +233,11 @@ def _empty_inventory_row(item_id: str, kind: str) -> dict[str, Any]:
         "materialized_event_file_known": False,
         "features_required": [],
         "known_data_risk": "",
+        "active_candidate_event": False,
+        "conditional_registered_event": False,
+        "draft_event": False,
+        "active_invalid_event_count": 0,
+        "conditional_maybe_not_materialized_event_count": 0,
         "tested_count": 0,
         "surviving_candidate_count": 0,
         "parked_count": 0,
@@ -338,10 +348,36 @@ def _ledger_stats_by_event(root: Path) -> dict[str, dict[str, Any]]:
     }
 
 
+def _mechanism_event_roles(root: Path) -> dict[str, dict[str, set[str]]]:
+    roles: dict[str, dict[str, set[str]]] = defaultdict(
+        lambda: {
+            "active_candidate_event": set(),
+            "conditional_registered_event": set(),
+            "draft_event": set(),
+        }
+    )
+    for path in (root / "spec" / "mechanisms").glob("*.yaml"):
+        if path.name == "registry.yaml":
+            continue
+        try:
+            payload = _load_yaml(path)
+        except (OSError, ValueError, yaml.YAMLError):
+            continue
+        mechanism_id = str(payload.get("mechanism_id") or path.stem).strip()
+        for event_id in _as_str_list(payload.get("candidate_events")):
+            roles[_event_token(event_id)]["active_candidate_event"].add(mechanism_id)
+        for event_id in _as_str_list(payload.get("conditional_registered_events")):
+            roles[_event_token(event_id)]["conditional_registered_event"].add(mechanism_id)
+        for event_id in _as_str_list(payload.get("draft_events")):
+            roles[_event_token(event_id)]["draft_event"].add(mechanism_id)
+    return roles
+
+
 def build_event_inventory(root: Path = REPO_ROOT) -> list[dict[str, Any]]:
     events = load_authoritative_event_registry(root / "spec" / "events" / "event_registry_unified.yaml")
     detector_ids = _load_registered_detector_ids()
     ledger_stats = _ledger_stats_by_event(root)
+    event_roles = _mechanism_event_roles(root)
 
     ids = set(events)
     for path in (root / "spec" / "mechanisms").glob("*.yaml"):
@@ -360,6 +396,14 @@ def build_event_inventory(root: Path = REPO_ROOT) -> list[dict[str, Any]]:
     for event_id in sorted(item for item in ids if item):
         raw = events.get(event_id)
         row = _empty_inventory_row(event_id, "event")
+        roles = event_roles.get(event_id, {})
+        row.update(
+            {
+                "active_candidate_event": bool(roles.get("active_candidate_event")),
+                "conditional_registered_event": bool(roles.get("conditional_registered_event")),
+                "draft_event": bool(roles.get("draft_event")),
+            }
+        )
         row.update(ledger_stats.get(event_id, {}))
         if raw is not None:
             row.update(
@@ -441,6 +485,7 @@ def build_state_inventory(root: Path = REPO_ROOT) -> list[dict[str, Any]]:
 
 def build_mechanism_inventory(root: Path = REPO_ROOT) -> list[dict[str, Any]]:
     registry = _load_yaml(root / "spec" / "mechanisms" / "registry.yaml")
+    events = load_authoritative_event_registry(root / "spec" / "events" / "event_registry_unified.yaml")
     rows: list[dict[str, Any]] = []
     for mechanism_id, raw_entry in (registry.get("mechanisms") or {}).items():
         if not isinstance(raw_entry, dict):
@@ -448,6 +493,24 @@ def build_mechanism_inventory(root: Path = REPO_ROOT) -> list[dict[str, Any]]:
         path = root / str(raw_entry.get("path") or "")
         payload = _load_yaml(path) if path.exists() else {}
         status = str(raw_entry.get("status") or payload.get("status") or "").strip().lower()
+        candidate_events = [_event_token(item) for item in _as_str_list(payload.get("candidate_events"))]
+        conditional_events = [
+            _event_token(item)
+            for item in _as_str_list(payload.get("conditional_registered_events"))
+        ]
+        active_invalid_count = sum(1 for event_id in candidate_events if event_id not in events)
+        conditional_maybe_count = 0
+        for event_id in conditional_events:
+            event_row = events.get(event_id)
+            if event_row is None:
+                continue
+            classification, _action = classify_event_row(
+                event_id,
+                event_row,
+                python_detector_registered=False,
+            )
+            if classification == "registered_maybe_not_materialized":
+                conditional_maybe_count += 1
         row = _empty_inventory_row(str(mechanism_id), "mechanism")
         row.update(
             {
@@ -462,7 +525,11 @@ def build_mechanism_inventory(root: Path = REPO_ROOT) -> list[dict[str, Any]]:
                 else "paused_mechanism"
                 if status in {"paused", "pause"}
                 else "draft_mechanism",
-                "recommended_action": "require_registry_baseline_lift_before_proposal"
+                "active_invalid_event_count": active_invalid_count,
+                "conditional_maybe_not_materialized_event_count": conditional_maybe_count,
+                "recommended_action": "baseline_and_event_lift_before_proposal"
+                if str(mechanism_id) == "funding_squeeze" and status == "active"
+                else "require_registry_baseline_lift_before_proposal"
                 if status == "active"
                 else "do_not_compile_active_proposals",
             }

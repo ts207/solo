@@ -19,9 +19,12 @@ def test_event_inventory_classifies_funding_events():
     assert rows["FUNDING_EXTREME"]["registered_unified"] is False
     assert rows["FUNDING_EXTREME"]["classification"] == "invalid_unregistered"
     assert rows["FUNDING_EXTREME"]["recommended_action"] == "replace_with_registered_event"
+    assert rows["FUNDING_EXTREME"]["active_candidate_event"] is False
+    assert rows["FUNDING_EXTREME"]["draft_event"] is True
 
     assert rows["FUNDING_EXTREME_ONSET"]["registered_unified"] is True
     assert rows["FUNDING_EXTREME_ONSET"]["classification"] == "registered_executable"
+    assert rows["FUNDING_EXTREME_ONSET"]["active_candidate_event"] is True
     assert (
         rows["FUNDING_EXTREME_ONSET"]["recommended_action"]
         == "eligible_for_baseline_or_event_lift"
@@ -46,3 +49,12 @@ def test_combined_inventory_has_stable_columns():
 
     assert list(df.columns) == EVENT_INVENTORY_COLUMNS
     assert {"event", "context_dimension", "state", "mechanism"}.issubset(set(df["kind"]))
+
+
+def test_funding_squeeze_inventory_has_no_active_invalid_events():
+    df = build_regime_event_inventory()
+    row = df[(df["kind"] == "mechanism") & (df["id"] == "funding_squeeze")].iloc[0]
+
+    assert row["active_invalid_event_count"] == 0
+    assert row["conditional_maybe_not_materialized_event_count"] > 0
+    assert row["recommended_action"] == "baseline_and_event_lift_before_proposal"
