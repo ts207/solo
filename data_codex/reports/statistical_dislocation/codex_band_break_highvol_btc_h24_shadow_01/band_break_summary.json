@@ -1,0 +1,6 @@
+{
+  "run_id": "codex_band_break_highvol_btc_h24_shadow_01",
+  "event_type": "BAND_BREAK",
+  "rows": 1858,
+  "events_file": "/home/irene/Edge/data_codex/reports/statistical_dislocation/codex_band_break_highvol_btc_h24_shadow_01/statistical_dislocation_events.parquet"
+}

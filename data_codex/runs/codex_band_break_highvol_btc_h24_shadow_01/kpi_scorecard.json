@@ -1,0 +1,52 @@
+{
+  "completeness": "partial",
+  "source": {
+    "name": "edge_candidates",
+    "path": "data_codex/reports/edge_candidates/codex_band_break_highvol_btc_h24_shadow_01/edge_candidates_normalized.parquet"
+  },
+  "metrics": {
+    "net_expectancy_bps": {
+      "value": null,
+      "column": "bridge_validation_stressed_after_cost_bps",
+      "aggregation": "mean",
+      "sample_size": 0
+    },
+    "oos_sign_consistency": {
+      "value": null,
+      "column": "",
+      "aggregation": "mean",
+      "sample_size": 0
+    },
+    "turnover_proxy_mean": {
+      "value": null,
+      "column": "turnover_proxy_mean",
+      "aggregation": "mean",
+      "sample_size": 0
+    },
+    "trade_count": {
+      "value": null,
+      "column": "n_events",
+      "aggregation": "sum",
+      "sample_size": 0
+    },
+    "max_drawdown_pct": {
+      "value": null,
+      "column": "",
+      "aggregation": "min",
+      "sample_size": 0
+    },
+    "win_rate": {
+      "value": null,
+      "column": "",
+      "aggregation": "mean_bool_rate",
+      "sample_size": 0
+    },
+    "edge_score": {
+      "value": null,
+      "column": "edge_score",
+      "aggregation": "mean",
+      "sample_size": 0
+    }
+  },
+  "generated_at": "2026-04-30T19:46:34.345090+00:00"
+}

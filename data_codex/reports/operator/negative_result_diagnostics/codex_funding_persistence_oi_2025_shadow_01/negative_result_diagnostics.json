@@ -1,0 +1,11 @@
+{
+  "diagnosis": "no_effect",
+  "primary_fail_gate": "",
+  "program_id": "",
+  "rationale": "The run finished without enough evidence to support the hypothesis.",
+  "recommended_next_action": "kill_or_reframe_hypothesis",
+  "run_id": "codex_funding_persistence_oi_2025_shadow_01",
+  "sample_size": null,
+  "schema_version": "negative_result_diagnostics_v1",
+  "top_candidate_label": ""
+}

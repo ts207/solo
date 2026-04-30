@@ -1,0 +1,81 @@
+{
+  "latest_run_id": "codex_band_break_highvol_btc_h24_shadow_01",
+  "program_id": "single_event_band_break_high_vol_mean_reversion_long_h24_btc_v1",
+  "repeated_fail_regions": [],
+  "schema_version": "campaign_memory_rollup_v1",
+  "top_contexts": [
+    {
+      "avg_after_cost_expectancy": -9.2913,
+      "avg_q_value": 0.90429325,
+      "avg_stressed_after_cost_expectancy": NaN,
+      "context_hash": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+      "context_json": "{}",
+      "dominant_fail_gate": "",
+      "last_tested_at": "",
+      "median_after_cost_expectancy": -9.2913,
+      "median_stressed_after_cost_expectancy": NaN,
+      "positive_after_cost_rate": 0.0,
+      "positive_stressed_after_cost_rate": 0.0,
+      "promotion_rate": 0.0,
+      "recent_after_cost_expectancy": -9.2913,
+      "recent_stressed_after_cost_expectancy": NaN,
+      "runs_tested": 1,
+      "statistical_pass_rate": 0.0,
+      "times_evaluated": 1,
+      "times_promoted": 0,
+      "tradable_rate": 0.0
+    }
+  ],
+  "top_events": [
+    {
+      "avg_after_cost_expectancy": -9.2913,
+      "avg_q_value": 0.90429325,
+      "avg_stressed_after_cost_expectancy": NaN,
+      "dominant_fail_gate": "",
+      "event_type": "BAND_BREAK",
+      "last_tested_at": "",
+      "median_after_cost_expectancy": -9.2913,
+      "median_stressed_after_cost_expectancy": NaN,
+      "positive_after_cost_rate": 0.0,
+      "positive_stressed_after_cost_rate": 0.0,
+      "promotion_rate": 0.0,
+      "recent_after_cost_expectancy": -9.2913,
+      "recent_stressed_after_cost_expectancy": NaN,
+      "runs_tested": 1,
+      "statistical_pass_rate": 0.0,
+      "times_evaluated": 1,
+      "times_promoted": 0,
+      "tradable_rate": 0.0
+    }
+  ],
+  "top_templates": [
+    {
+      "avg_after_cost_expectancy": -9.2913,
+      "avg_q_value": 0.90429325,
+      "avg_stressed_after_cost_expectancy": NaN,
+      "dominant_fail_gate": "",
+      "last_tested_at": "",
+      "median_after_cost_expectancy": -9.2913,
+      "median_stressed_after_cost_expectancy": NaN,
+      "positive_after_cost_rate": 0.0,
+      "positive_stressed_after_cost_rate": 0.0,
+      "promotion_rate": 0.0,
+      "recent_after_cost_expectancy": -9.2913,
+      "recent_stressed_after_cost_expectancy": NaN,
+      "runs_tested": 1,
+      "statistical_pass_rate": 0.0,
+      "template_id": "mean_reversion",
+      "times_evaluated": 1,
+      "times_promoted": 0,
+      "tradable_rate": 0.0
+    }
+  ],
+  "totals": {
+    "failure_rows": 0,
+    "reflection_rows": 1,
+    "superseded_region_rows": 0,
+    "tested_region_rows": 1,
+    "unique_region_count": 1
+  },
+  "unresolved_repairs": []
+}

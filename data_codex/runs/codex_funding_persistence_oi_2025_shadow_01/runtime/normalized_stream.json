@@ -1,0 +1,10 @@
+{
+  "event_count": 0,
+  "event_source_path": "",
+  "normalization_issue_count": 0,
+  "normalization_issue_examples": [],
+  "normalized_event_count": 0,
+  "normalized_events_path": "/home/irene/Edge/data_codex/runs/codex_funding_persistence_oi_2025_shadow_01/runtime/normalized_events.parquet",
+  "run_id": "codex_funding_persistence_oi_2025_shadow_01",
+  "status": "no_runtime_events"
+}

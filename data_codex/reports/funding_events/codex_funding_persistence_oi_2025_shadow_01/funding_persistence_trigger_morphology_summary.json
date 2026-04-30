@@ -1,0 +1,18 @@
+{
+  "n_symbols": 1,
+  "symbols": [
+    "BTCUSDT"
+  ],
+  "by_symbol": {
+    "BTCUSDT": {
+      "n_events": 3608,
+      "pre_event_drift_bps": 0.7396590813235898,
+      "event_bar_move_bps": 0.0951061395640689,
+      "post_event_return_bps": 0.45330661921849985,
+      "intensity_mean": 0.040624999999999994,
+      "intensity_p90": 0.07708333333333343,
+      "avg_duration_bars": null
+    }
+  },
+  "n_events": 3608
+}

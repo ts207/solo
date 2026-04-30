@@ -1,0 +1,146 @@
+{
+  "config": {
+    "min_bridge_tradable_candidates": 1,
+    "min_edge_candidates": 1,
+    "min_promoted_candidates": 1,
+    "min_robust_survivors": 1,
+    "require_expectancy_exists": true
+  },
+  "decision": "KEEP_RESEARCH",
+  "failure_reasons": [
+    "edge candidates below threshold (0 < 1)",
+    "promoted edge candidates below threshold (0 < 1)",
+    "bridge-tradable candidates below threshold (0 < 1)",
+    "expectancy_exists is false",
+    "robust survivors below threshold (0 < 1)"
+  ],
+  "gates": [
+    {
+      "name": "edge_candidates_generated",
+      "note": "",
+      "observed": 0,
+      "passed": false,
+      "threshold": 1
+    },
+    {
+      "name": "promoted_edge_candidates",
+      "note": "",
+      "observed": 0,
+      "passed": false,
+      "threshold": 1
+    },
+    {
+      "name": "bridge_tradable_candidates",
+      "note": "",
+      "observed": 0,
+      "passed": false,
+      "threshold": 1
+    },
+    {
+      "name": "expectancy_exists",
+      "note": "",
+      "observed": false,
+      "passed": false,
+      "threshold": true
+    },
+    {
+      "name": "robust_survivor_count",
+      "note": "definition=unknown",
+      "observed": 0,
+      "passed": false,
+      "threshold": 1
+    },
+    {
+      "name": "capital_slot_pressure_over_limit_count",
+      "note": "",
+      "observed": 0,
+      "passed": true,
+      "threshold": 0
+    },
+    {
+      "name": "capital_leverage_over_budget_count",
+      "note": "",
+      "observed": 0,
+      "passed": true,
+      "threshold": 0
+    }
+  ],
+  "inputs": {
+    "expectancy": "/home/irene/Edge/data_codex/reports/expectancy/codex_funding_persistence_oi_2025_shadow_01/conditional_expectancy.json",
+    "robustness": "/home/irene/Edge/data_codex/reports/expectancy/codex_funding_persistence_oi_2025_shadow_01/conditional_expectancy_robustness.json"
+  },
+  "metrics": {
+    "bridge_tradable_candidates": 0,
+    "bridge_tradable_promoted": 0,
+    "edge_candidate_promoted": 0,
+    "edge_candidate_rows": 0,
+    "expectancy_exists": false,
+    "robust_survivor_count": 0
+  },
+  "release_signoff": {
+    "decision": "BLOCK_RELEASE",
+    "failure_reasons": [
+      "checklist_promote_decision failed",
+      "kpi_trade_count failed",
+      "kpi_oos_sign_consistency failed",
+      "retail_net_expectancy_bps failed"
+    ],
+    "gates": [
+      {
+        "name": "checklist_promote_decision",
+        "note": "",
+        "observed": "KEEP_RESEARCH",
+        "passed": false,
+        "threshold": "PROMOTE"
+      },
+      {
+        "name": "kpi_trade_count",
+        "note": "",
+        "observed": 0.0,
+        "passed": false,
+        "threshold": 150.0
+      },
+      {
+        "name": "kpi_oos_sign_consistency",
+        "note": "",
+        "observed": 0.0,
+        "passed": false,
+        "threshold": 0.67
+      },
+      {
+        "name": "kpi_max_drawdown_pct",
+        "note": "",
+        "observed": 0.0,
+        "passed": true,
+        "threshold": 0.2
+      },
+      {
+        "name": "retail_net_expectancy_bps",
+        "note": "",
+        "observed": 0.0,
+        "passed": false,
+        "threshold": 4.0
+      },
+      {
+        "name": "retail_turnover_proxy_mean",
+        "note": "",
+        "observed": 0.0,
+        "passed": true,
+        "threshold": 4.0
+      },
+      {
+        "name": "override_audit_clean",
+        "note": "",
+        "observed": 0,
+        "passed": true,
+        "threshold": 0
+      }
+    ],
+    "override_audit": {
+      "non_production_override_count": 0,
+      "non_production_overrides": []
+    },
+    "run_id": "codex_funding_persistence_oi_2025_shadow_01"
+  },
+  "run_id": "codex_funding_persistence_oi_2025_shadow_01"
+}

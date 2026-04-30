@@ -1,0 +1,52 @@
+program_id: edge_cell_ffbf_v1_explore_basis_disloc_bullish_trend_ms_trend_state_bullish_short_12b_exhaustion_reversal_ethusdt_v1
+description: 'Cell-origin thesis from ffbf_v1_explore: BASIS_DISLOC short over 12
+  bars.'
+start: '2023-01-01'
+end: '2025-12-31'
+symbols:
+- ETHUSDT
+timeframe: 5m
+instrument_classes:
+- crypto
+objective_name: retail_profitability
+promotion_profile: research
+search_spec:
+  path: data/reports/phase2/ffbf_v1_explore/generated/generated_edge_cell_search_space.yaml
+avoid_region_keys: []
+hypothesis:
+  anchor:
+    type: event
+    event_id: BASIS_DISLOC
+  filters:
+    contexts:
+      ms_trend_state:
+      - bullish
+  sampling_policy:
+    mode: episodic
+    entry_lag_bars: 1
+    overlap_policy: suppress
+  template:
+    id: exhaustion_reversal
+  direction: short
+  horizon_bars: 12
+artifacts:
+  source_discovery_mode: edge_cells
+  source_cell_id: basis_disloc::bullish_trend::ms_trend_state-bullish::short::12b::exhaustion_reversal
+  source_scoreboard_run_id: ffbf_v1_explore
+  source_event_atom: basis_disloc
+  source_context_cell: bullish_trend
+  source_contrast_lift_bps: 19.6308
+  source_rank_score: 0.5866097000000001
+  source_redundancy_cluster_id: c0032
+  source_context_executability_class: runtime
+  source_experiment_path: data/reports/phase2/ffbf_v1_explore/generated/generated_edge_cell_experiment.json
+  source_search_spec_path: data/reports/phase2/ffbf_v1_explore/generated/generated_edge_cell_search_space.yaml
+  source_lineage_path: data/reports/phase2/ffbf_v1_explore/generated/edge_cell_lineage.parquet
+  context_translation: runtime_executable
+  context_routing:
+  - dimension: ms_trend_state
+    value: bullish
+    condition_name: ms_trend_state_bullish
+    routed_condition: ms_trend_state_1.0
+    routing_source: runtime
+version: 1

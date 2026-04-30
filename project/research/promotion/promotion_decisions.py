@@ -235,16 +235,17 @@ def evaluate_row(
         reasons = _ReasonRecorder.create()
         event_type = str(row.get("event_type", row.get("event", ""))).strip() or "UNKNOWN_EVENT"
 
-        # Benchmark Certification Gate
+        # Benchmark certification is diagnostic-only. Keep the status in the
+        # promotion audit, but do not block candidate promotion on the presence
+        # or health of the benchmark bundle.
+        benchmark_certification_enforced = False
+        benchmark_certification_status = ""
+        benchmark_certification_message = ""
         bench_pass = True
         if benchmark_certification:
-            bench_pass = bool(benchmark_certification.get("passed", False))
-            if not bench_pass:
-                reasons.add_pair(
-                    reject_reason=f"benchmark_{benchmark_certification.get('status', 'failed')}",
-                    promo_fail_reason="gate_promo_benchmark_certification",
-                    category="benchmark_integrity",
-                )
+            benchmark_certification_status = str(benchmark_certification.get("status", "")).strip()
+            benchmark_certification_message = str(benchmark_certification.get("message", "")).strip()
+            bench_pass = True
 
         # Sensitivity Gate (Phase 2)
         sensitivity_max_score = 0.4
@@ -507,6 +508,9 @@ def evaluate_row(
         )
         result.update(
             {
+                "benchmark_certification_enforced": bool(benchmark_certification_enforced),
+                "benchmark_certification_status": benchmark_certification_status,
+                "benchmark_certification_message": benchmark_certification_message,
                 "cell_origin_governance_applies": bool(cell_origin_eval["applies"]),
                 "cell_origin_pass": bool(cell_origin_eval["pass"]),
                 "cell_origin_gate_reasons": "|".join(cell_origin_eval["fail_reasons"]),

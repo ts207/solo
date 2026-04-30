@@ -1,0 +1,33 @@
+version: 1
+program_id: ffbf_c01_confirm
+description: "Frozen top candidate from ffbf_v1_explore: BTCUSDT OI_FLUSH long continuation in positive_persistent funding"
+start: '2023-01-01'
+end: '2025-12-31'
+symbols:
+- BTCUSDT
+timeframe: 5m
+instrument_classes:
+- crypto
+objective_name: retail_profitability
+promotion_profile: research
+hypothesis:
+  anchor:
+    type: event
+    event_id: OI_FLUSH
+  filters:
+    contexts:
+      funding_phase:
+      - positive_persistent
+  sampling_policy:
+    mode: episodic
+    entry_lag_bars: 1
+    overlap_policy: suppress
+  template:
+    id: continuation
+  direction: long
+  horizon_bars: 48
+artifacts:
+  source_discovery_mode: edge_cells
+  source_cell_id: "oi_flush::positive_funding::funding_phase-positive_persistent::long::48b::continuation"
+  source_scoreboard_run_id: ffbf_v1_explore
+  source_candidate_id: "BTCUSDT::cand_c2479346152569a7"

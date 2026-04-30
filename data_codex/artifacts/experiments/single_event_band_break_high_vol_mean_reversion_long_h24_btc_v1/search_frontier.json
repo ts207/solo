@@ -1,0 +1,49 @@
+{
+  "candidate_next_moves": [
+    "explore untested canonical regimes: ['LIQUIDATION_CASCADE', 'BASIS_FUNDING_DISLOCATION', 'CROSS_ASSET_DESYNCHRONIZATION']",
+    "complete coverage for regime: STATISTICAL_STRETCH_OVERSHOOT"
+  ],
+  "canonical_regime_event_fanout": {
+    "BASIS_FUNDING_DISLOCATION": [
+      "BASIS_DISLOC",
+      "CROSS_VENUE_DESYNC",
+      "FND_DISLOC",
+      "FUNDING_EXTREME_ONSET",
+      "FUNDING_FLIP",
+      "FUNDING_FLIP_TO_NEGATIVE",
+      "FUNDING_FLIP_TO_POSITIVE",
+      "FUNDING_NEG_EXTREME_ONSET",
+      "FUNDING_NEG_NORMALIZATION",
+      "FUNDING_NEG_PERSISTENCE",
+      "FUNDING_NORMALIZATION_TRIGGER",
+      "FUNDING_PERSISTENCE_TRIGGER",
+      "FUNDING_POS_EXTREME_ONSET",
+      "FUNDING_POS_NORMALIZATION",
+      "FUNDING_POS_PERSISTENCE",
+      "SPOT_PERP_BASIS_SHOCK"
+    ],
+    "CROSS_ASSET_DESYNCHRONIZATION": [
+      "CROSS_ASSET_DESYNC_EVENT",
+      "INDEX_COMPONENT_DIVERGENCE",
+      "LEAD_LAG_BREAK"
+    ],
+    "LIQUIDATION_CASCADE": [
+      "LIQUIDATION_CASCADE",
+      "LIQUIDATION_CASCADE_PROXY"
+    ]
+  },
+  "exhausted_events_to_avoid": [],
+  "partially_explored_families": {
+    "STATISTICAL_DISLOCATION": "1/7"
+  },
+  "partially_explored_regimes": {
+    "STATISTICAL_STRETCH_OVERSHOOT": "1/4"
+  },
+  "untested_canonical_regimes": [
+    "LIQUIDATION_CASCADE",
+    "BASIS_FUNDING_DISLOCATION",
+    "CROSS_ASSET_DESYNCHRONIZATION"
+  ],
+  "untested_events": [],
+  "untested_registry_events": []
+}

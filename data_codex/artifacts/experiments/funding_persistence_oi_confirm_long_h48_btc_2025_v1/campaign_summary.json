@@ -1,0 +1,51 @@
+{
+  "metrics": {
+    "evaluated_share": 1.0,
+    "promotion_rate": 0.0,
+    "status_counts": {
+      "evaluated": 1
+    },
+    "total_regions": 1,
+    "total_runs": 1
+  },
+  "program_id": "funding_persistence_oi_confirm_long_h48_btc_2025_v1",
+  "top_performing_regions": [],
+  "win_rates": {
+    "by_canonical_regime": {},
+    "by_direction": {
+      "long": {
+        "avg_after_cost_expectancy": -19.0737,
+        "promotion_rate": 0.0,
+        "sample": 1
+      }
+    },
+    "by_event_type": {
+      "SEQUENCE_SEQ_0341C248F99A": {
+        "avg_after_cost_expectancy": -19.0737,
+        "promotion_rate": 0.0,
+        "sample": 1
+      }
+    },
+    "by_horizon": {
+      "48b": {
+        "avg_after_cost_expectancy": -19.0737,
+        "promotion_rate": 0.0,
+        "sample": 1
+      }
+    },
+    "by_template": {
+      "continuation": {
+        "avg_after_cost_expectancy": -19.0737,
+        "promotion_rate": 0.0,
+        "sample": 1
+      }
+    },
+    "by_trigger_type": {
+      "SEQUENCE": {
+        "avg_after_cost_expectancy": -19.0737,
+        "promotion_rate": 0.0,
+        "sample": 1
+      }
+    }
+  }
+}

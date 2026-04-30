@@ -1,0 +1,29 @@
+{
+  "capacity_diagnostics": {
+    "events_per_day": 0.0,
+    "min_events_per_day": 0.0,
+    "pass": false,
+    "symbol_coverage": {
+      "BTCUSDT": 0.0
+    }
+  },
+  "horizons": [
+    4,
+    16,
+    96
+  ],
+  "run_id": "codex_band_break_highvol_btc_h24_shadow_01",
+  "skip_reason": "expectancy_analysis_reported_no_evidence",
+  "skipped": true,
+  "stability_diagnostics": {
+    "neighborhood_supported": false,
+    "pass": false,
+    "performance_decay": 1.0,
+    "rank_consistency": 0.0,
+    "scenarios": []
+  },
+  "survivors": [],
+  "symbols": [
+    "BTCUSDT"
+  ]
+}

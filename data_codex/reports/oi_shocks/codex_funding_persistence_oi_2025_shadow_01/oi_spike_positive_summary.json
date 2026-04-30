@@ -1,0 +1,6 @@
+{
+  "run_id": "codex_funding_persistence_oi_2025_shadow_01",
+  "event_type": "OI_SPIKE_POSITIVE",
+  "rows": 169,
+  "events_file": "/home/irene/Edge/data_codex/reports/oi_shocks/codex_funding_persistence_oi_2025_shadow_01/oi_shock_events.parquet"
+}

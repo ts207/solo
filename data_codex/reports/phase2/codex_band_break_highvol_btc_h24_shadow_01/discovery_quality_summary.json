@@ -1,0 +1,67 @@
+{
+  "by_event_family": {
+    "BAND_BREAK": {
+      "bridge_evaluable": 0,
+      "bridge_pass_val": 0,
+      "compiled_bases": 0,
+      "compiled_overlays": 0,
+      "gate_pass_count": 0,
+      "gate_pass_rate": 0.0,
+      "overlay_kill_by_missing_base_count": 0,
+      "phase2_candidates": 0,
+      "phase2_gate_all_pass": 0,
+      "top_failure_reasons": [
+        {
+          "count": 1,
+          "reason": "min_t_stat_net"
+        }
+      ],
+      "total_candidates": 1,
+      "wf_survivors": 0,
+      "wf_tested": 0
+    }
+  },
+  "by_primary_event_id": {
+    "BAND_BREAK": {
+      "bridge_evaluable": 0,
+      "bridge_pass_val": 0,
+      "compiled_bases": 0,
+      "compiled_overlays": 0,
+      "gate_pass_count": 0,
+      "gate_pass_rate": 0.0,
+      "overlay_kill_by_missing_base_count": 0,
+      "phase2_candidates": 0,
+      "phase2_gate_all_pass": 0,
+      "top_failure_reasons": [
+        {
+          "count": 1,
+          "reason": "min_t_stat_net"
+        }
+      ],
+      "total_candidates": 1,
+      "wf_survivors": 0,
+      "wf_tested": 0
+    }
+  },
+  "event_families": [
+    "BAND_BREAK"
+  ],
+  "gate_pass_count": 0,
+  "gate_pass_rate": 0.0,
+  "generated_at": "2026-04-30T19:46:07.665521+00:00",
+  "phase2_root": "/home/irene/Edge/data_codex/reports/phase2/codex_band_break_highvol_btc_h24_shadow_01",
+  "primary_event_ids": [
+    "BAND_BREAK"
+  ],
+  "run_id": "codex_band_break_highvol_btc_h24_shadow_01",
+  "source_files": {
+    "BAND_BREAK": "/home/irene/Edge/data_codex/reports/phase2/codex_band_break_highvol_btc_h24_shadow_01/hypotheses/BTCUSDT/evaluated_hypotheses.parquet"
+  },
+  "top_fail_reasons": [
+    {
+      "count": 1,
+      "reason": "min_t_stat_net"
+    }
+  ],
+  "total_candidates": 1
+}

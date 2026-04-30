@@ -1,0 +1,43 @@
+{
+  "diagnostic_flags": {
+    "all_bridge_pass_zero": true
+  },
+  "families": {
+    "BAND_BREAK": {
+      "bridge_evaluable": 0,
+      "bridge_pass_val": 0,
+      "compiled_bases": 0,
+      "compiled_overlays": 0,
+      "overlay_kill_by_missing_base_count": 0,
+      "phase2_candidates": 0,
+      "phase2_gate_all_pass": 0,
+      "top_failure_reasons": [
+        {
+          "count": 1,
+          "reason": "min_t_stat_net"
+        }
+      ],
+      "wf_survivors": 0,
+      "wf_tested": 0
+    }
+  },
+  "generated_at": "2026-04-30T19:46:07.665521+00:00",
+  "run_id": "codex_band_break_highvol_btc_h24_shadow_01",
+  "top_failure_reasons": [
+    {
+      "count": 1,
+      "reason": "min_t_stat_net"
+    }
+  ],
+  "totals": {
+    "bridge_evaluable": 0,
+    "bridge_pass_val": 0,
+    "compiled_bases": 0,
+    "compiled_overlays": 0,
+    "overlay_kill_by_missing_base_count": 0,
+    "phase2_candidates": 0,
+    "phase2_gate_all_pass": 0,
+    "wf_survivors": 0,
+    "wf_tested": 0
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "baseline_id": "default",
+  "edge_count_total": 0,
+  "history_observations_total": 0,
+  "new_observations": 0,
+  "no_promotion_observations": true,
+  "paths": {
+    "baseline_observations_path": "/home/irene/Edge/data_codex/runs/history_baselines/default/edge_observations.parquet",
+    "baseline_registry_path": "/home/irene/Edge/data_codex/runs/history_baselines/default/edge_registry.parquet",
+    "candidate_observations_path": "/home/irene/Edge/data_codex/runs/history_candidates/codex_funding_persistence_oi_2025_shadow_01/edge_observations.parquet",
+    "candidate_registry_path": "/home/irene/Edge/data_codex/runs/history_candidates/codex_funding_persistence_oi_2025_shadow_01/edge_registry.parquet",
+    "promoted_baseline_observations_path": "",
+    "promoted_baseline_registry_path": "",
+    "promoted_candidates_path": "/home/irene/Edge/data_codex/reports/promotions/codex_funding_persistence_oi_2025_shadow_01/promoted_candidates.parquet",
+    "promotion_audit_path": "/home/irene/Edge/data_codex/reports/promotions/codex_funding_persistence_oi_2025_shadow_01/promotion_statistical_audit.parquet",
+    "promotion_capital_footprint_path": "/home/irene/Edge/data_codex/reports/promotions/codex_funding_persistence_oi_2025_shadow_01/promotion_capital_footprint.parquet",
+    "run_snapshot_path": "/home/irene/Edge/data_codex/runs/codex_funding_persistence_oi_2025_shadow_01/research/edge_registry.parquet"
+  },
+  "promoted_baseline_id": "",
+  "run_id": "codex_funding_persistence_oi_2025_shadow_01"
+}

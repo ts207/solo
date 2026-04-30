@@ -1,0 +1,51 @@
+{
+  "metrics": {
+    "evaluated_share": 1.0,
+    "promotion_rate": 0.0,
+    "status_counts": {
+      "evaluated": 1
+    },
+    "total_regions": 1,
+    "total_runs": 1
+  },
+  "program_id": "single_event_band_break_high_vol_mean_reversion_long_h24_btc_v1",
+  "top_performing_regions": [],
+  "win_rates": {
+    "by_canonical_regime": {},
+    "by_direction": {
+      "long": {
+        "avg_after_cost_expectancy": -9.2913,
+        "promotion_rate": 0.0,
+        "sample": 1
+      }
+    },
+    "by_event_type": {
+      "BAND_BREAK": {
+        "avg_after_cost_expectancy": -9.2913,
+        "promotion_rate": 0.0,
+        "sample": 1
+      }
+    },
+    "by_horizon": {
+      "24b": {
+        "avg_after_cost_expectancy": -9.2913,
+        "promotion_rate": 0.0,
+        "sample": 1
+      }
+    },
+    "by_template": {
+      "mean_reversion": {
+        "avg_after_cost_expectancy": -9.2913,
+        "promotion_rate": 0.0,
+        "sample": 1
+      }
+    },
+    "by_trigger_type": {
+      "EVENT": {
+        "avg_after_cost_expectancy": -9.2913,
+        "promotion_rate": 0.0,
+        "sample": 1
+      }
+    }
+  }
+}

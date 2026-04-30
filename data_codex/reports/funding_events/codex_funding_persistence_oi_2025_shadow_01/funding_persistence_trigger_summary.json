@@ -1,0 +1,6 @@
+{
+  "run_id": "codex_funding_persistence_oi_2025_shadow_01",
+  "event_type": "FUNDING_PERSISTENCE_TRIGGER",
+  "rows": 3608,
+  "events_file": "/home/irene/Edge/data_codex/reports/funding_events/codex_funding_persistence_oi_2025_shadow_01/funding_episode_events.parquet"
+}

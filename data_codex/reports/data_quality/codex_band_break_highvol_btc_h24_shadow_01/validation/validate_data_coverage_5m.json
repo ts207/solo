@@ -1,0 +1,34 @@
+{
+  "failure_count": 0,
+  "run_id": "codex_band_break_highvol_btc_h24_shadow_01",
+  "schema_version": "data_quality_validation_v1",
+  "symbols": {
+    "BTCUSDT": {
+      "coerced_value_count": 0,
+      "duplicate_timestamp_count": 0,
+      "failures": [],
+      "gap_pct": 0.0,
+      "gap_ratio": 0.0,
+      "max_gap_len": 0,
+      "max_timestamp_gap_bars": 0,
+      "missing_ratio": 0.0,
+      "outlier_ratio": 0.0003474519847396842,
+      "rows": 559584,
+      "status": "success",
+      "timestamp_gap_count": 0,
+      "warnings": []
+    }
+  },
+  "thresholds": {
+    "max_duplicate_timestamps": 0,
+    "max_gap_pct": 0.05,
+    "max_missing_ratio": 0.01,
+    "max_outlier_ratio": 0.01,
+    "warn_duplicate_timestamps": null,
+    "warn_gap_pct": null,
+    "warn_missing_ratio": null,
+    "warn_outlier_ratio": null
+  },
+  "timeframe": "5m",
+  "warning_count": 0
+}

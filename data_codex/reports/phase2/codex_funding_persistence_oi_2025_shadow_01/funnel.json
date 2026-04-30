@@ -1,0 +1,23 @@
+{
+  "cost_survival_passed": 0,
+  "drops_by_reason": {
+    "dropped:t_net": 1
+  },
+  "examples_dropped": {
+    "dropped:t_net": [
+      "hyp_eaa443dc6c13db6a726e"
+    ]
+  },
+  "feasible": 1,
+  "generated": 1,
+  "mean_net_passed": 0,
+  "phase2_candidates_written": 0,
+  "program_id": "funding_persistence_oi_confirm_long_h48_btc_2025_v1",
+  "promoted_deploy": 0,
+  "promoted_research": 0,
+  "q_passed": 0,
+  "robust_passed": 0,
+  "run_id": "codex_funding_persistence_oi_2025_shadow_01",
+  "t_gross_passed": 0,
+  "t_net_passed": 0
+}

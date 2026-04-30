@@ -1,0 +1,45 @@
+{
+  "candidate_next_moves": [
+    "explore untested canonical regimes: ['LIQUIDATION_CASCADE', 'STATISTICAL_STRETCH_OVERSHOOT', 'BASIS_FUNDING_DISLOCATION']"
+  ],
+  "canonical_regime_event_fanout": {
+    "BASIS_FUNDING_DISLOCATION": [
+      "BASIS_DISLOC",
+      "CROSS_VENUE_DESYNC",
+      "FND_DISLOC",
+      "FUNDING_EXTREME_ONSET",
+      "FUNDING_FLIP",
+      "FUNDING_FLIP_TO_NEGATIVE",
+      "FUNDING_FLIP_TO_POSITIVE",
+      "FUNDING_NEG_EXTREME_ONSET",
+      "FUNDING_NEG_NORMALIZATION",
+      "FUNDING_NEG_PERSISTENCE",
+      "FUNDING_NORMALIZATION_TRIGGER",
+      "FUNDING_PERSISTENCE_TRIGGER",
+      "FUNDING_POS_EXTREME_ONSET",
+      "FUNDING_POS_NORMALIZATION",
+      "FUNDING_POS_PERSISTENCE",
+      "SPOT_PERP_BASIS_SHOCK"
+    ],
+    "LIQUIDATION_CASCADE": [
+      "LIQUIDATION_CASCADE",
+      "LIQUIDATION_CASCADE_PROXY"
+    ],
+    "STATISTICAL_STRETCH_OVERSHOOT": [
+      "BAND_BREAK",
+      "GAP_OVERSHOOT",
+      "OVERSHOOT_AFTER_SHOCK",
+      "ZSCORE_STRETCH"
+    ]
+  },
+  "exhausted_events_to_avoid": [],
+  "partially_explored_families": {},
+  "partially_explored_regimes": {},
+  "untested_canonical_regimes": [
+    "LIQUIDATION_CASCADE",
+    "STATISTICAL_STRETCH_OVERSHOOT",
+    "BASIS_FUNDING_DISLOCATION"
+  ],
+  "untested_events": [],
+  "untested_registry_events": []
+}

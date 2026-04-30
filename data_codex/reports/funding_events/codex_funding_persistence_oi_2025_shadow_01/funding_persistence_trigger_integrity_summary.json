@@ -1,0 +1,35 @@
+{
+  "n_symbols": 1,
+  "symbols": [
+    "BTCUSDT"
+  ],
+  "by_symbol": {
+    "BTCUSDT": {
+      "n_events": 3608,
+      "cluster_rate": 0.875,
+      "avg_inter_event_seconds": 8687.690601607985,
+      "events_per_month": {
+        "2025-01": 240,
+        "2025-02": 248,
+        "2025-03": 360,
+        "2025-04": 344,
+        "2025-05": 328,
+        "2025-06": 344,
+        "2025-07": 160,
+        "2025-08": 216,
+        "2025-09": 312,
+        "2025-10": 344,
+        "2025-11": 368,
+        "2025-12": 344
+      },
+      "events_by_asset": {},
+      "events_by_type": {
+        "FUNDING_PERSISTENCE_TRIGGER": 3608
+      },
+      "warmup_discard_count": 0,
+      "missing_feature_rejection_count": 0,
+      "pit_ok": true
+    }
+  },
+  "n_events": 3608
+}

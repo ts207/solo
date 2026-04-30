@@ -1,0 +1,91 @@
+program_id: single_event_band_break_high_vol_mean_reversion_long_h24_btc_v1
+run_mode: research
+description: ''
+objective_name: retail_profitability
+promotion_profile: research
+instrument_scope:
+  instrument_classes:
+  - crypto
+  symbols:
+  - BTCUSDT
+  timeframe: 5m
+  start: '2022-01-01'
+  end: '2024-12-31'
+trigger_space:
+  allowed_trigger_types:
+  - EVENT
+  events:
+    include:
+    - BAND_BREAK
+  canonical_regimes: []
+  subtypes: []
+  phases: []
+  evidence_modes: []
+  tiers: []
+  operational_roles: []
+  deployment_dispositions: []
+  states: {}
+  sequences: {}
+  transitions: {}
+  feature_predicates: {}
+  interactions: {}
+templates:
+  include:
+  - mean_reversion
+evaluation:
+  horizons_bars:
+  - 24
+  directions:
+  - long
+  entry_lags:
+  - 1
+contexts:
+  include:
+    vol_regime:
+    - high
+avoid_region_keys: []
+search_control:
+  max_hypotheses_total: 1000
+  max_hypotheses_per_template: 250
+  max_hypotheses_per_event_family: 300
+  random_seed: 42
+promotion:
+  enabled: true
+  track: standard
+  multiplicity_scope: program_id
+artifacts:
+  matrix_phase: raw_eaw_band_break_high_vol_validation
+  matrix_run: BAND_BREAK_HIGHVOL_H24_BTC_V1
+  parent_readout: docs/research/raw_eaw_calibration_2026-04-28.md
+  prior_phase2_readout: docs/research/dataset_calibration_2026-04-28.md
+  mechanism_statement: 'High realized volatility marks a statistical-dislocation pocket
+    where a band escape is more likely to mean-revert than continue.
+
+    '
+  research_question: 'Does the BTCUSDT BAND_BREAK mean_reversion long edge under vol_regime=high
+    survive as a bounded 24-bar branch without adding symbols, horizons, contexts,
+    or templates?
+
+    '
+  calibration_evidence:
+    raw_detector_lookback_window: 288
+    raw_detector_band_z_threshold: 3.0
+    raw_event_sparsification_bars: 12
+    btc_high_vol_n: 469
+    btc_high_vol_mean_bps: 16.69
+    btc_high_vol_t_stat: 2.981
+    btc_high_vol_hit_rate: 0.544
+    btc_low_vol_n: 516
+    btc_low_vol_mean_bps: 3.74
+    btc_low_vol_t_stat: 1.082
+    btc_low_vol_hit_rate: 0.514
+  decision_rules:
+    min_events: 100
+    kill_if_events_below: 50
+    require_positive_post_cost_expectancy: true
+    require_positive_year_folds: true
+    require_validation_before_promotion: true
+    no_eth_port_until_btc_validates: true
+    no_extra_contexts_in_first_branch: true
+    no_extra_horizons_in_first_branch: true
+bounded: null

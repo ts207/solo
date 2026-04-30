@@ -1,0 +1,111 @@
+{
+  "artifact_paths": {
+    "funnel": "data_codex/reports/phase2/codex_band_break_highvol_btc_h24_shadow_01/funnel.json"
+  },
+  "bridge_candidates_rows": 0,
+  "discovery_profile": "standard",
+  "event_flag_columns_merged": 225,
+  "event_flag_rows": 315361,
+  "feasible_hypotheses": 1,
+  "feature_columns": 425,
+  "feature_rows": 315361,
+  "gate_funnel": {
+    "bridge_candidate_universe": 1,
+    "cost_survival_passed": 0,
+    "feasible": 1,
+    "generated": 1,
+    "mean_net_passed": 0,
+    "metrics_emitted": 1,
+    "pass_after_cost_positive": 0,
+    "pass_after_cost_stressed_positive": 0,
+    "pass_cost_p95_survival": 0,
+    "pass_min_sample_size": 1,
+    "pass_multiplicity": 0,
+    "pass_oos_validation": 0,
+    "pass_regime_stable": 0,
+    "phase2_candidates_written": 0,
+    "phase2_final": 0,
+    "q_passed": 0,
+    "robust_passed": 0,
+    "t_gross_passed": 0,
+    "t_net_passed": 0,
+    "valid_metrics": 1
+  },
+  "hypotheses_generated": 1,
+  "metrics_rows": 1,
+  "min_n": 30,
+  "min_t_stat": 2.0,
+  "multiplicity_discoveries": 0,
+  "primary_symbol": "BTCUSDT",
+  "rejected_by_min_n": 0,
+  "rejected_by_min_t_stat": 1,
+  "rejected_hypotheses": 1,
+  "rejected_invalid_metrics": 0,
+  "rejection_reason_counts": {
+    "min_t_stat_net": 1
+  },
+  "run_id": "codex_band_break_highvol_btc_h24_shadow_01",
+  "search_budget": null,
+  "search_spec": "spec/search/single_event_band_break_high_vol_mean_reversion_btc_h24_v1.yaml",
+  "symbol_diagnostics": [
+    {
+      "bridge_candidates_rows": 0,
+      "discovery_profile": "standard",
+      "event_flag_columns_merged": 225,
+      "event_flag_rows": 315361,
+      "feasible_hypotheses": 1,
+      "feature_columns": 425,
+      "feature_rows": 315361,
+      "gate_funnel": {
+        "bridge_candidate_universe": 1,
+        "cost_survival_passed": 0,
+        "feasible": 1,
+        "generated": 1,
+        "mean_net_passed": 0,
+        "metrics_emitted": 1,
+        "pass_after_cost_positive": 0,
+        "pass_after_cost_stressed_positive": 0,
+        "pass_cost_p95_survival": 0,
+        "pass_min_sample_size": 1,
+        "pass_multiplicity": 0,
+        "pass_oos_validation": 0,
+        "pass_regime_stable": 0,
+        "phase2_candidates_written": 0,
+        "phase2_final": 0,
+        "q_passed": 0,
+        "robust_passed": 0,
+        "t_gross_passed": 0,
+        "t_net_passed": 0,
+        "valid_metrics": 1
+      },
+      "hypotheses_generated": 1,
+      "metrics_rows": 1,
+      "min_n": 30,
+      "min_t_stat": 2.0,
+      "multiplicity_discoveries": 0,
+      "primary_symbol": "BTCUSDT",
+      "rejected_by_min_n": 0,
+      "rejected_by_min_t_stat": 1,
+      "rejected_hypotheses": 1,
+      "rejected_invalid_metrics": 0,
+      "rejection_reason_counts": {
+        "min_t_stat_net": 1
+      },
+      "run_id": "codex_band_break_highvol_btc_h24_shadow_01",
+      "search_budget": null,
+      "search_spec": "spec/search/single_event_band_break_high_vol_mean_reversion_btc_h24_v1.yaml",
+      "symbols_requested": [
+        "BTCUSDT"
+      ],
+      "timeframe": "5m",
+      "use_context_quality": true,
+      "valid_metrics_rows": 1
+    }
+  ],
+  "symbols_requested": [
+    "BTCUSDT"
+  ],
+  "timeframe": "5m",
+  "use_context_quality": true,
+  "valid_metrics_rows": 1
+}

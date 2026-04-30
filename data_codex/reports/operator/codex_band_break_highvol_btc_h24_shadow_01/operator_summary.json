@@ -1,0 +1,66 @@
+{
+  "baseline_run_id": "",
+  "branch_depth": 0,
+  "branch_id": "",
+  "campaign_id": "",
+  "candidate_count": 0,
+  "changed_field": "",
+  "cycle_number": 0,
+  "date_range": "",
+  "decision": "",
+  "entry_lag_scope": [],
+  "event_scope": [],
+  "experiment_type": "discovery",
+  "frozen_fields": [],
+  "historical_trust": {
+    "artifact_count": 1,
+    "artifact_paths": [
+      "data_codex/runs/codex_band_break_highvol_btc_h24_shadow_01/run_manifest.json"
+    ],
+    "artifact_types": [
+      "run_manifest"
+    ],
+    "canonical_reuse_allowed": true,
+    "compat_reuse_allowed": true,
+    "error_count": 0,
+    "errors": [],
+    "historical_trust_reason": "current_run_manifest",
+    "historical_trust_status": "trusted_under_current_rules",
+    "run_id": "codex_band_break_highvol_btc_h24_shadow_01",
+    "schema_version": "historical_trust_summary_v1",
+    "trust_status_counts": {
+      "legacy_but_interpretable": 0,
+      "requires_revalidation": 0,
+      "trusted_under_current_rules": 1
+    }
+  },
+  "horizon_scope": [],
+  "market_findings": "{\"candidate_count\":0,\"positive_after_cost_candidates\":0,\"primary_fail_gate\":\"\",\"promoted_count\":0,\"summary\":\"no_signal\",\"top_event\":\"\",\"tradable_candidates\":0}",
+  "mechanical_outcome": "warning_only",
+  "mutation_type": "",
+  "parent_run_id": "",
+  "primary_fail_gate": "",
+  "program_id": "",
+  "promoted_count": 0,
+  "proposal_id": "",
+  "recommended_next_action": "hold",
+  "recommended_next_experiment": "{\"event_type\":\"\",\"primary_fail_gate\":\"\",\"promotion_profile\":\"research\",\"reason\":\"hold\",\"symbols\":\"['BTCUSDT']\"}",
+  "run_id": "codex_band_break_highvol_btc_h24_shadow_01",
+  "run_status": "success",
+  "schema_version": "operator_summary_v1",
+  "statistical_outcome": "no_signal",
+  "symbol_scope": [
+    "BTCUSDT"
+  ],
+  "system_findings": "{\"anomaly_count\":1,\"completed_stage_count\":21,\"failed_stage\":\"\",\"missing_artifacts\":[],\"planned_stage_count\":21,\"run_status\":\"success\",\"summary\":\"warning_only\",\"warning_stage_count\":3}",
+  "template_scope": [],
+  "terminal_status": "completed_with_contract_warnings",
+  "top_candidate": {
+    "label": "",
+    "metric_name": "",
+    "metric_value": null,
+    "primary_fail_gate": "",
+    "source": "none"
+  },
+  "verdict": "KEEP_RESEARCH"
+}

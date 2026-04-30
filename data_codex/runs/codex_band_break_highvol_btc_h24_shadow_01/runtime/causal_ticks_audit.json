@@ -1,0 +1,25 @@
+{
+  "causal_ticks_path": "/home/irene/Edge/data_codex/runs/codex_band_break_highvol_btc_h24_shadow_01/runtime/causal_ticks.parquet",
+  "firewall_violation_count": 0,
+  "firewall_violation_examples": [],
+  "firewall_violations_by_type": {
+    "exec_state_forbidden": 0,
+    "invalid_firewall_spec": 0,
+    "provenance_forbidden": 0,
+    "unknown_role": 0
+  },
+  "max_observed_lag_us": 0,
+  "normalized_event_count": 0,
+  "replay_digest": "",
+  "run_id": "codex_band_break_highvol_btc_h24_shadow_01",
+  "status": "no_runtime_events",
+  "tick_count": 0,
+  "watermark_violation_count": 0,
+  "watermark_violation_examples": [],
+  "watermark_violations_by_type": {
+    "decision_before_watermark": 0,
+    "future_event_time": 0,
+    "unknown_lane": 0,
+    "watermark_monotonicity": 0
+  }
+}

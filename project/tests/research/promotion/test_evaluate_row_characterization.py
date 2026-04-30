@@ -34,7 +34,7 @@ def _base_kwargs():
 
 def _passing_row():
     return {
-        "event_type": "LIQUIDATION_CASCADE",
+        "event_type": "OI_SPIKE",
         "n_events": 50,
         "q_value": 0.01,
         "event_is_descriptive": False,
@@ -84,6 +84,44 @@ def test_evaluate_row_characterization_pass_case():
     assert "reject_reason" in result
     assert "gate_promo_statistical" in result
     assert "gate_promo_timeframe_consensus" in result
+
+
+def test_research_promotion_treats_missing_benchmark_certification_as_advisory():
+    row = _passing_row()
+    kwargs = _base_kwargs()
+    kwargs["promotion_profile"] = "research"
+    kwargs["benchmark_certification"] = {
+        "passed": False,
+        "status": "missing",
+        "message": "Benchmark review not found",
+    }
+
+    result = evaluate_row(row=deepcopy(row), **kwargs)
+
+    assert result["promotion_decision"] == "promoted", f"Result: {result}"
+    assert result["gate_promo_benchmark_certification"] == "pass"
+    assert result["benchmark_certification_enforced"] is False
+    assert result["benchmark_certification_status"] == "missing"
+    assert "benchmark_missing" not in result["reject_reason"]
+
+
+def test_deploy_promotion_treats_missing_benchmark_certification_as_advisory():
+    row = _passing_row()
+    row["run_mode"] = "deploy"
+    kwargs = _base_kwargs()
+    kwargs["promotion_profile"] = "deploy"
+    kwargs["benchmark_certification"] = {
+        "passed": False,
+        "status": "missing",
+        "message": "Benchmark review not found",
+    }
+
+    result = evaluate_row(row=deepcopy(row), **kwargs)
+
+    assert result["gate_promo_benchmark_certification"] == "pass"
+    assert result["benchmark_certification_enforced"] is False
+    assert result["benchmark_certification_status"] == "missing"
+    assert "benchmark_missing" not in result["reject_reason"]
 
 
 def test_evaluate_row_characterization_dsr_failure():

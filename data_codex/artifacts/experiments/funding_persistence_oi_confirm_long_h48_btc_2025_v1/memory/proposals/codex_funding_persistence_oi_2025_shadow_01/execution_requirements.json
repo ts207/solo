@@ -1,0 +1,9 @@
+{
+  "detectors": [
+    "EventSequenceDetector",
+    "FundingPersistenceDetector",
+    "OISpikePositiveDetector"
+  ],
+  "features": [],
+  "state_engines": []
+}

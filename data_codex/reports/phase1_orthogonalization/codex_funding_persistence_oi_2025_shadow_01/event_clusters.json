@@ -1,0 +1,18 @@
+{
+  "run_id": "codex_funding_persistence_oi_2025_shadow_01",
+  "correlation_threshold": 0.85,
+  "total_events": 2,
+  "total_clusters": 2,
+  "event_to_centroid": {
+    "OI_SPIKE_POSITIVE": "OI_SPIKE_POSITIVE",
+    "FUNDING_PERSISTENCE_TRIGGER": "FUNDING_PERSISTENCE_TRIGGER"
+  },
+  "cluster_members": {
+    "OI_SPIKE_POSITIVE": [
+      "OI_SPIKE_POSITIVE"
+    ],
+    "FUNDING_PERSISTENCE_TRIGGER": [
+      "FUNDING_PERSISTENCE_TRIGGER"
+    ]
+  }
+}

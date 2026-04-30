@@ -1,0 +1,7 @@
+{
+  "detectors": [
+    "BandBreakDetector"
+  ],
+  "features": [],
+  "state_engines": []
+}

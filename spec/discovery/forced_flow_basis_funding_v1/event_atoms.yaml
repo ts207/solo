@@ -1,0 +1,65 @@
+version: edge_cells_v2
+event_atoms:
+- id: spot_perp_basis_shock
+  event_family: basis
+  event_type: SPOT_PERP_BASIS_SHOCK
+  directions: [long, short]
+  templates: [mean_reversion, exhaustion_reversal, continuation, volatility_expansion_follow, slippage_aware_filter]
+  horizons: [12b, 24b, 48b]
+  search_role: candidate
+- id: basis_disloc
+  event_family: basis
+  event_type: BASIS_DISLOC
+  directions: [long, short]
+  templates: [mean_reversion, exhaustion_reversal, continuation, volatility_expansion_follow, slippage_aware_filter]
+  horizons: [12b, 24b, 48b]
+  search_role: candidate
+- id: fnd_disloc
+  event_family: funding
+  event_type: FND_DISLOC
+  directions: [long, short]
+  templates: [mean_reversion, exhaustion_reversal, continuation, volatility_expansion_follow, slippage_aware_filter]
+  horizons: [12b, 24b, 48b]
+  search_role: candidate
+- id: vol_spike
+  event_family: volatility
+  event_type: VOL_SPIKE
+  directions: [long, short]
+  templates: [mean_reversion, exhaustion_reversal, continuation, volatility_expansion_follow, slippage_aware_filter]
+  horizons: [12b, 24b, 48b]
+  search_role: candidate
+- id: vol_shock
+  event_family: volatility
+  event_type: VOL_SHOCK
+  directions: [long, short]
+  templates: [mean_reversion, exhaustion_reversal, continuation, volatility_expansion_follow, slippage_aware_filter]
+  horizons: [12b, 24b, 48b]
+  search_role: candidate
+- id: liquidity_shock
+  event_family: liquidity
+  event_type: LIQUIDITY_SHOCK
+  directions: [long, short]
+  templates: [mean_reversion, exhaustion_reversal, continuation, volatility_expansion_follow, slippage_aware_filter]
+  horizons: [12b, 24b, 48b]
+  search_role: candidate
+- id: oi_flush
+  event_family: oi
+  event_type: OI_FLUSH
+  directions: [long, short]
+  templates: [mean_reversion, exhaustion_reversal, continuation, volatility_expansion_follow, slippage_aware_filter]
+  horizons: [12b, 24b, 48b]
+  search_role: candidate
+- id: funding_extreme_onset
+  event_family: funding
+  event_type: FUNDING_EXTREME_ONSET
+  directions: [long, short]
+  templates: [mean_reversion, exhaustion_reversal, continuation, volatility_expansion_follow, slippage_aware_filter]
+  horizons: [12b, 24b, 48b]
+  search_role: candidate
+- id: funding_flip
+  event_family: funding
+  event_type: FUNDING_FLIP
+  directions: [long, short]
+  templates: [mean_reversion, exhaustion_reversal, continuation, volatility_expansion_follow, slippage_aware_filter]
+  horizons: [12b, 24b, 48b]
+  search_role: candidate

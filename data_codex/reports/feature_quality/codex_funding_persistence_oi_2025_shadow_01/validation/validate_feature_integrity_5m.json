@@ -1,0 +1,385 @@
+{
+  "fail_on_issues": 0,
+  "nan_threshold": 0.05,
+  "run_id": "codex_funding_persistence_oi_2025_shadow_01",
+  "schema_version": "feature_integrity_report_v1",
+  "status": "warning",
+  "symbols": {
+    "BTCUSDT": {
+      "bars": [
+        "Column 'taker_base_volume' is constant."
+      ],
+      "feature_quality_summary": {
+        "constant_features": 10,
+        "feature_count": 50,
+        "features_with_nulls": 15,
+        "features_with_outliers": 17,
+        "per_feature": {
+          "ask_depth_usd": {
+            "constant_rate": 0.0,
+            "dependency_missing_fallback_rate": 0.0,
+            "name": "ask_depth_usd",
+            "null_rate": 9.538981046044661e-06,
+            "outlier_rate": 0.001192384004884005
+          },
+          "basis_bps": {
+            "constant_rate": 0.0,
+            "dependency_missing_fallback_rate": 0.0,
+            "name": "basis_bps",
+            "null_rate": 9.538981046044661e-06,
+            "outlier_rate": 3.8156288156288156e-05
+          },
+          "basis_spot_coverage": {
+            "constant_rate": 1.0,
+            "dependency_missing_fallback_rate": 0.0,
+            "name": "basis_spot_coverage",
+            "null_rate": 0.0,
+            "outlier_rate": 0.0
+          },
+          "basis_zscore": {
+            "constant_rate": 0.0,
+            "dependency_missing_fallback_rate": 0.0,
+            "name": "basis_zscore",
+            "null_rate": 2.8616943138133985e-05,
+            "outlier_rate": 8.585328627301345e-05
+          },
+          "bid_depth_usd": {
+            "constant_rate": 0.0,
+            "dependency_missing_fallback_rate": 0.0,
+            "name": "bid_depth_usd",
+            "null_rate": 9.538981046044661e-06,
+            "outlier_rate": 0.001192384004884005
+          },
+          "close": {
+            "constant_rate": 0.0,
+            "dependency_missing_fallback_rate": 0.0,
+            "name": "close",
+            "null_rate": 0.0,
+            "outlier_rate": 0.0
+          },
+          "close_perp": {
+            "constant_rate": 0.0,
+            "dependency_missing_fallback_rate": 0.0,
+            "name": "close_perp",
+            "null_rate": 0.0,
+            "outlier_rate": 0.0
+          },
+          "close_spot": {
+            "constant_rate": 0.0,
+            "dependency_missing_fallback_rate": 0.0,
+            "name": "close_spot",
+            "null_rate": 0.0,
+            "outlier_rate": 0.0
+          },
+          "cross_exchange_spread_z": {
+            "constant_rate": 0.0,
+            "dependency_missing_fallback_rate": 0.0,
+            "name": "cross_exchange_spread_z",
+            "null_rate": 2.8616943138133985e-05,
+            "outlier_rate": 8.585328627301345e-05
+          },
+          "depth_usd": {
+            "constant_rate": 0.0,
+            "dependency_missing_fallback_rate": 0.0,
+            "name": "depth_usd",
+            "null_rate": 9.538981046044661e-06,
+            "outlier_rate": 0.001192384004884005
+          },
+          "funding_abs": {
+            "constant_rate": 0.0,
+            "dependency_missing_fallback_rate": 0.0,
+            "name": "funding_abs",
+            "null_rate": 9.538981046044661e-06,
+            "outlier_rate": 0.0009157509157509158
+          },
+          "funding_abs_pct": {
+            "constant_rate": 0.0,
+            "dependency_missing_fallback_rate": 0.0,
+            "name": "funding_abs_pct",
+            "null_rate": 0.0,
+            "outlier_rate": 0.0
+          },
+          "funding_missing": {
+            "constant_rate": 1.0,
+            "dependency_missing_fallback_rate": 0.0,
+            "name": "funding_missing",
+            "null_rate": 0.0,
+            "outlier_rate": 0.0
+          },
+          "funding_rate": {
+            "constant_rate": 0.0,
+            "dependency_missing_fallback_rate": 0.0,
+            "name": "funding_rate",
+            "null_rate": 0.0,
+            "outlier_rate": 0.0
+          },
+          "funding_rate_feature": {
+            "constant_rate": 0.0,
+            "dependency_missing_fallback_rate": 0.0,
+            "name": "funding_rate_feature",
+            "null_rate": 0.0,
+            "outlier_rate": 0.0
+          },
+          "funding_rate_realized": {
+            "constant_rate": 0.0,
+            "dependency_missing_fallback_rate": 0.0,
+            "name": "funding_rate_realized",
+            "null_rate": 0.0,
+            "outlier_rate": 0.004130378792937339
+          },
+          "funding_rate_scaled": {
+            "constant_rate": 0.0,
+            "dependency_missing_fallback_rate": 0.0,
+            "name": "funding_rate_scaled",
+            "null_rate": 0.0,
+            "outlier_rate": 0.0
+          },
+          "gap_len": {
+            "constant_rate": 1.0,
+            "dependency_missing_fallback_rate": 0.0,
+            "name": "gap_len",
+            "null_rate": 0.0,
+            "outlier_rate": 0.0
+          },
+          "high": {
+            "constant_rate": 0.0,
+            "dependency_missing_fallback_rate": 0.0,
+            "name": "high",
+            "null_rate": 0.0,
+            "outlier_rate": 0.0
+          },
+          "high_96": {
+            "constant_rate": 0.0,
+            "dependency_missing_fallback_rate": 0.0,
+            "name": "high_96",
+            "null_rate": 9.538981046044661e-06,
+            "outlier_rate": 0.0
+          },
+          "imbalance": {
+            "constant_rate": 0.0,
+            "dependency_missing_fallback_rate": 0.0,
+            "name": "imbalance",
+            "null_rate": 0.0,
+            "outlier_rate": 0.0
+          },
+          "is_gap": {
+            "constant_rate": 1.0,
+            "dependency_missing_fallback_rate": 0.0,
+            "name": "is_gap",
+            "null_rate": 0.0,
+            "outlier_rate": 0.0
+          },
+          "liquidation_count": {
+            "constant_rate": 1.0,
+            "dependency_missing_fallback_rate": 0.0,
+            "name": "liquidation_count",
+            "null_rate": 0.0,
+            "outlier_rate": 0.0
+          },
+          "liquidation_notional": {
+            "constant_rate": 1.0,
+            "dependency_missing_fallback_rate": 0.0,
+            "name": "liquidation_notional",
+            "null_rate": 0.0,
+            "outlier_rate": 0.0
+          },
+          "logret_1": {
+            "constant_rate": 0.0,
+            "dependency_missing_fallback_rate": 0.0,
+            "name": "logret_1",
+            "null_rate": 9.538981046044661e-06,
+            "outlier_rate": 0.0003624847374847375
+          },
+          "low": {
+            "constant_rate": 0.0,
+            "dependency_missing_fallback_rate": 0.0,
+            "name": "low",
+            "null_rate": 0.0,
+            "outlier_rate": 0.0
+          },
+          "low_96": {
+            "constant_rate": 0.0,
+            "dependency_missing_fallback_rate": 0.0,
+            "name": "low_96",
+            "null_rate": 9.538981046044661e-06,
+            "outlier_rate": 0.0
+          },
+          "micro_depth_depletion": {
+            "constant_rate": 0.0,
+            "dependency_missing_fallback_rate": 0.0,
+            "name": "micro_depth_depletion",
+            "null_rate": 0.0,
+            "outlier_rate": 0.0010397489340188682
+          },
+          "month": {
+            "constant_rate": 0.0,
+            "dependency_missing_fallback_rate": 0.0,
+            "name": "month",
+            "null_rate": 0.0,
+            "outlier_rate": 0.0
+          },
+          "ms_imbalance_24": {
+            "constant_rate": 0.0,
+            "dependency_missing_fallback_rate": 0.0,
+            "name": "ms_imbalance_24",
+            "null_rate": 0.0,
+            "outlier_rate": 0.0
+          },
+          "ms_oi_confidence": {
+            "constant_rate": 0.0,
+            "dependency_missing_fallback_rate": 0.0,
+            "name": "ms_oi_confidence",
+            "null_rate": 0.0,
+            "outlier_rate": 0.0
+          },
+          "ms_oi_entropy": {
+            "constant_rate": 0.0,
+            "dependency_missing_fallback_rate": 0.0,
+            "name": "ms_oi_entropy",
+            "null_rate": 0.0,
+            "outlier_rate": 0.0
+          },
+          "ms_oi_state": {
+            "constant_rate": 0.0,
+            "dependency_missing_fallback_rate": 0.0,
+            "name": "ms_oi_state",
+            "null_rate": 0.0,
+            "outlier_rate": 0.0
+          },
+          "oi_delta_1h": {
+            "constant_rate": 0.0,
+            "dependency_missing_fallback_rate": 0.0,
+            "name": "oi_delta_1h",
+            "null_rate": 0.0,
+            "outlier_rate": 0.00017170165882880392
+          },
+          "oi_notional": {
+            "constant_rate": 0.0,
+            "dependency_missing_fallback_rate": 0.0,
+            "name": "oi_notional",
+            "null_rate": 0.0,
+            "outlier_rate": 0.0
+          },
+          "open": {
+            "constant_rate": 0.0,
+            "dependency_missing_fallback_rate": 0.0,
+            "name": "open",
+            "null_rate": 0.0,
+            "outlier_rate": 0.0
+          },
+          "quote_volume": {
+            "constant_rate": 0.0,
+            "dependency_missing_fallback_rate": 0.0,
+            "name": "quote_volume",
+            "null_rate": 0.0,
+            "outlier_rate": 0.0011923726307555827
+          },
+          "range_96": {
+            "constant_rate": 0.0,
+            "dependency_missing_fallback_rate": 0.0,
+            "name": "range_96",
+            "null_rate": 0.0,
+            "outlier_rate": 0.0008489693130979748
+          },
+          "range_med_2880": {
+            "constant_rate": 0.0,
+            "dependency_missing_fallback_rate": 0.0,
+            "name": "range_med_2880",
+            "null_rate": 0.0,
+            "outlier_rate": 0.0
+          },
+          "revision_lag_bars": {
+            "constant_rate": 1.0,
+            "dependency_missing_fallback_rate": 0.0,
+            "name": "revision_lag_bars",
+            "null_rate": 0.0,
+            "outlier_rate": 0.0
+          },
+          "revision_lag_minutes": {
+            "constant_rate": 1.0,
+            "dependency_missing_fallback_rate": 0.0,
+            "name": "revision_lag_minutes",
+            "null_rate": 0.0,
+            "outlier_rate": 0.0
+          },
+          "rv_96": {
+            "constant_rate": 0.0,
+            "dependency_missing_fallback_rate": 0.0,
+            "name": "rv_96",
+            "null_rate": 8.585082941440196e-05,
+            "outlier_rate": 0.0009158208043959399
+          },
+          "rv_pct_17280": {
+            "constant_rate": 0.0,
+            "dependency_missing_fallback_rate": 0.0,
+            "name": "rv_pct_17280",
+            "null_rate": 0.00016216267778275924,
+            "outlier_rate": 0.0
+          },
+          "rv_percentile_24h": {
+            "constant_rate": 0.0,
+            "dependency_missing_fallback_rate": 0.0,
+            "name": "rv_percentile_24h",
+            "null_rate": 0.00550399206356777,
+            "outlier_rate": 0.0
+          },
+          "spot_close": {
+            "constant_rate": 0.0,
+            "dependency_missing_fallback_rate": 0.0,
+            "name": "spot_close",
+            "null_rate": 0.0,
+            "outlier_rate": 0.0
+          },
+          "spread_bps": {
+            "constant_rate": 0.0,
+            "dependency_missing_fallback_rate": 0.0,
+            "name": "spread_bps",
+            "null_rate": 9.538981046044661e-06,
+            "outlier_rate": 0.0006009615384615385
+          },
+          "spread_zscore": {
+            "constant_rate": 0.0,
+            "dependency_missing_fallback_rate": 0.0,
+            "name": "spread_zscore",
+            "null_rate": 2.8616943138133985e-05,
+            "outlier_rate": 0.00055327673375942
+          },
+          "taker_base_volume": {
+            "constant_rate": 1.0,
+            "dependency_missing_fallback_rate": 0.0,
+            "name": "taker_base_volume",
+            "null_rate": 0.0,
+            "outlier_rate": 0.0
+          },
+          "volume": {
+            "constant_rate": 0.0,
+            "dependency_missing_fallback_rate": 0.0,
+            "name": "volume",
+            "null_rate": 0.0,
+            "outlier_rate": 0.001154216706571404
+          },
+          "year": {
+            "constant_rate": 1.0,
+            "dependency_missing_fallback_rate": 0.0,
+            "name": "year",
+            "null_rate": 0.0,
+            "outlier_rate": 0.0
+          }
+        }
+      },
+      "features": [
+        "Column 'taker_base_volume' is constant.",
+        "Column 'year' is constant.",
+        "Column 'basis_spot_coverage' is constant.",
+        "Drift detected in 'month': KS p-value = 0.0000",
+        "Drift detected in 'close_perp': KS p-value = 0.0000",
+        "Drift detected in 'close_spot': KS p-value = 0.0000",
+        "Drift detected in 'high_96': KS p-value = 0.0000",
+        "Drift detected in 'low_96': KS p-value = 0.0000",
+        "Drift detected in 'range_med_2880': KS p-value = 0.0000"
+      ]
+    }
+  },
+  "timeframe": "5m",
+  "z_threshold": 10.0
+}

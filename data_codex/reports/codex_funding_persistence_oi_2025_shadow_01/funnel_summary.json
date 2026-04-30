@@ -1,0 +1,43 @@
+{
+  "diagnostic_flags": {
+    "all_bridge_pass_zero": true
+  },
+  "families": {
+    "SEQ_0341C248F99A": {
+      "bridge_evaluable": 0,
+      "bridge_pass_val": 0,
+      "compiled_bases": 0,
+      "compiled_overlays": 0,
+      "overlay_kill_by_missing_base_count": 0,
+      "phase2_candidates": 0,
+      "phase2_gate_all_pass": 0,
+      "top_failure_reasons": [
+        {
+          "count": 1,
+          "reason": "min_t_stat_net"
+        }
+      ],
+      "wf_survivors": 0,
+      "wf_tested": 0
+    }
+  },
+  "generated_at": "2026-04-30T19:42:25.967860+00:00",
+  "run_id": "codex_funding_persistence_oi_2025_shadow_01",
+  "top_failure_reasons": [
+    {
+      "count": 1,
+      "reason": "min_t_stat_net"
+    }
+  ],
+  "totals": {
+    "bridge_evaluable": 0,
+    "bridge_pass_val": 0,
+    "compiled_bases": 0,
+    "compiled_overlays": 0,
+    "overlay_kill_by_missing_base_count": 0,
+    "phase2_candidates": 0,
+    "phase2_gate_all_pass": 0,
+    "wf_survivors": 0,
+    "wf_tested": 0
+  }
+}

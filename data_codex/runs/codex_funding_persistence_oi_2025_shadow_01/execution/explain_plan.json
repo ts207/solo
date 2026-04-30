@@ -1,0 +1,1134 @@
+{
+  "artifact_obligations": [
+    {
+      "contract_id": "discovery_phase2_candidates",
+      "expected_path": "reports/phase2/codex_funding_persistence_oi_2025_shadow_01/phase2_candidates.parquet",
+      "legacy_paths": [],
+      "producer_stage_family": "phase2_discovery",
+      "producing_stage_names": [
+        "phase2_search_engine",
+        "summarize_discovery_quality",
+        "finalize_experiment"
+      ],
+      "required": true,
+      "schema_id": "phase2_candidates",
+      "schema_version": "phase5_schema_v1",
+      "strictness": "strict"
+    },
+    {
+      "contract_id": "run_manifest",
+      "expected_path": "runs/codex_funding_persistence_oi_2025_shadow_01/run_manifest.json",
+      "legacy_paths": [
+        "runs/codex_funding_persistence_oi_2025_shadow_01/manifest.json"
+      ],
+      "producer_stage_family": "run_orchestration",
+      "producing_stage_names": [
+        "run_manifest"
+      ],
+      "required": true,
+      "schema_id": "run_manifest",
+      "schema_version": "run_manifest_v1",
+      "strictness": "strict"
+    }
+  ],
+  "experiment_config": "data_codex/artifacts/experiments/funding_persistence_oi_confirm_long_h48_btc_2025_v1/memory/proposals/codex_funding_persistence_oi_2025_shadow_01/experiment.yaml",
+  "planned_at": "2026-04-30T19:41:23.585694+00:00",
+  "raw_args": {
+    "allow_constant_funding": 0,
+    "allow_funding_timestamp_rounding": 0,
+    "allow_ontology_hash_mismatch": 0,
+    "analyzer_symbol_workers": 1,
+    "auto_continue_on_keep_research": 0,
+    "bridge_candidate_mask": "auto",
+    "bridge_edge_cost_k": 2.0,
+    "bridge_embargo_days": 1,
+    "bridge_min_validation_trades": 20,
+    "bridge_stressed_cost_multiplier": 1.5,
+    "bridge_train_frac": 0.6,
+    "bridge_validation_frac": 0.2,
+    "campaign_memory_avoid_top_k": 5,
+    "campaign_memory_exhausted_failure_threshold": 3,
+    "campaign_memory_exploit_top_k": 3,
+    "campaign_memory_frontier_repair_top_k": 2,
+    "campaign_memory_frontier_untested_top_k": 3,
+    "campaign_memory_promising_top_k": 5,
+    "campaign_memory_repair_top_k": 5,
+    "candidate_promotion_allow_missing_negative_controls": 0,
+    "candidate_promotion_max_negative_control_pass_rate": 0.1,
+    "candidate_promotion_max_q_value": null,
+    "candidate_promotion_min_cost_survival_ratio": 0.5,
+    "candidate_promotion_min_events": 20,
+    "candidate_promotion_min_sign_consistency": 0.6,
+    "candidate_promotion_min_stability_score": 0.6,
+    "candidate_promotion_min_tob_coverage": 0.6,
+    "candidate_promotion_profile": "auto",
+    "candidate_promotion_require_hypothesis_audit": 1,
+    "ci_fail_on_non_production_overrides": 0,
+    "concept": "",
+    "config": [],
+    "contexts": {
+      "include": {}
+    },
+    "cost_bps": null,
+    "determinism_replay_checks": 0,
+    "directions": null,
+    "discovery_mode": "search",
+    "discovery_profile": "standard",
+    "dry_run": 0,
+    "emit_run_hash": 0,
+    "enable_cross_venue_spot_pipeline": 0,
+    "enable_event_stage_cache": 1,
+    "end": "2025-12-31",
+    "entry_lags": null,
+    "event_parameter_overrides": {},
+    "events": null,
+    "experiment_config": "data_codex/artifacts/experiments/funding_persistence_oi_confirm_long_h48_btc_2025_v1/memory/proposals/codex_funding_persistence_oi_2025_shadow_01/experiment.yaml",
+    "feature_schema_version": "",
+    "fees_bps": null,
+    "funding_scale": "auto",
+    "horizons": null,
+    "hypothesis_datasets": "auto",
+    "hypothesis_max_fused": 24,
+    "market_context_workers": 1,
+    "max_analyzer_workers": 8,
+    "mode": "research",
+    "naive_max_drawdown": 1.0,
+    "naive_min_expectancy_after_cost": 0.0,
+    "naive_min_trades": 20,
+    "objective_name": "retail_profitability",
+    "objective_spec": null,
+    "offline_cleaned_root": "",
+    "offline_mode": 0,
+    "oms_replay_checks": 0,
+    "ontology_consistency_fail_on_missing": 1,
+    "override": [],
+    "performance_mode": 0,
+    "phase2_cost_calibration_mode": "static",
+    "phase2_cost_min_tob_coverage": 0.6,
+    "phase2_cost_tob_tolerance_minutes": 10,
+    "phase2_delay_grid_bars": "0,4,8,16,30",
+    "phase2_ess_max_lag": 24,
+    "phase2_event_type": "all",
+    "phase2_gate_profile": "auto",
+    "phase2_gate_profile_resolved": "auto",
+    "phase2_max_actions": 9,
+    "phase2_max_conditions": 20,
+    "phase2_min_delay_positive_ratio": 0.6,
+    "phase2_min_delay_robustness_score": 0.6,
+    "phase2_min_ess": 150.0,
+    "phase2_min_regime_stable_splits": 2,
+    "phase2_min_test_n_obs": null,
+    "phase2_min_total_n_obs": null,
+    "phase2_min_validation_n_obs": null,
+    "phase2_multiplicity_k": 1.0,
+    "phase2_parallel_workers": 1,
+    "phase2_parameter_curvature_max_penalty": 0.5,
+    "phase2_require_phase1_pass": 1,
+    "phase2_shift_labels_k": 0,
+    "plan_only": 0,
+    "program_id": "funding_persistence_oi_confirm_long_h48_btc_2025_v1",
+    "promotion_allow_fallback_evidence": 0,
+    "promotion_profile": "research",
+    "registry_root": "project/configs/registries",
+    "research_compare_baseline_run_id": "",
+    "research_compare_drift_mode": "warn",
+    "research_compare_max_edge_after_cost_positive_validation_count_delta_abs": 2.0,
+    "research_compare_max_edge_candidate_count_delta_abs": 2.0,
+    "research_compare_max_edge_median_expectancy_bps_delta_abs": 0.25,
+    "research_compare_max_edge_median_resolved_cost_bps_delta_abs": 0.25,
+    "research_compare_max_edge_tradable_count_delta_abs": 2.0,
+    "research_compare_max_phase2_candidate_count_delta_abs": 10.0,
+    "research_compare_max_phase2_survivor_count_delta_abs": 2.0,
+    "research_compare_max_phase2_survivor_estimate_bps_drop": 3.0,
+    "research_compare_max_phase2_survivor_q_value_increase": 0.05,
+    "research_compare_max_phase2_zero_eval_rows_increase": 0.0,
+    "research_compare_max_promotion_promoted_count_delta_abs": 2.0,
+    "research_compare_max_reject_reason_shift_abs": 3.0,
+    "resume_from_failed_stage": 0,
+    "retail_profile": "",
+    "retail_profiles_spec": null,
+    "run_bridge_eval_phase2": 1,
+    "run_campaign_memory_update": 1,
+    "run_candidate_promotion": 0,
+    "run_discovery_quality_summary": 1,
+    "run_edge_candidate_universe": 1,
+    "run_edge_registry_update": 1,
+    "run_expectancy_analysis": 1,
+    "run_expectancy_robustness": 1,
+    "run_id": "codex_funding_persistence_oi_2025_shadow_01",
+    "run_ingest_liquidation_snapshot": 0,
+    "run_ingest_open_interest_hist": 0,
+    "run_interaction_lift": 0,
+    "run_naive_entry_eval": 1,
+    "run_ontology_consistency_audit": 1,
+    "run_phase2_conditional": 1,
+    "run_profitable_selector": 0,
+    "run_promotion_audit": 1,
+    "run_recommendations_checklist": 1,
+    "run_strategy_blueprint_compiler": 0,
+    "run_strategy_builder": 1,
+    "runtime_invariants_mode": "audit",
+    "runtime_max_events": 250000,
+    "search_budget": null,
+    "search_min_n": 30,
+    "search_spec": "spec/search/sequence_funding_persistence_oi_confirm_btc_h48_2025_v1.yaml",
+    "seed": 42,
+    "sequence_max_gap": null,
+    "skip_ingest_funding": 0,
+    "skip_ingest_ohlcv": 0,
+    "skip_ingest_spot_ohlcv": 0,
+    "slippage_bps": null,
+    "smoke": 0,
+    "start": "2025-01-01",
+    "strategy_blueprint_allow_fallback": 0,
+    "strategy_blueprint_allow_naive_entry_fail": 0,
+    "strategy_blueprint_allow_non_executable_conditions": 0,
+    "strategy_blueprint_ignore_checklist": 0,
+    "strategy_blueprint_max_per_event": 5,
+    "strategy_blueprint_min_events_floor": 20,
+    "strategy_builder_allow_missing_candidate_detail": 0,
+    "strategy_builder_allow_non_promoted": 0,
+    "strategy_builder_enable_fractional_allocation": 1,
+    "strategy_builder_ignore_checklist": 0,
+    "strategy_builder_include_alpha_bundle": 1,
+    "strategy_builder_max_candidates": 20,
+    "strategy_builder_top_k_per_event": 2,
+    "strict_recommendations_checklist": 0,
+    "symbols": "BTCUSDT",
+    "templates": {
+      "include": [
+        "continuation"
+      ]
+    },
+    "timeframes": "5m"
+  },
+  "registry_root": "project/configs/registries",
+  "run_id": "codex_funding_persistence_oi_2025_shadow_01",
+  "run_mode": "research",
+  "stages": [
+    {
+      "artifact_external_inputs": [
+        "clean.perp.*",
+        "raw.perp.funding_5m",
+        "raw.perp.liquidations",
+        "raw.perp.open_interest"
+      ],
+      "artifact_inputs": [
+        "clean.perp.*"
+      ],
+      "artifact_optional_inputs": [
+        "raw.perp.funding_5m",
+        "raw.perp.liquidations",
+        "raw.perp.open_interest"
+      ],
+      "artifact_outputs": [
+        "features.perp.v2"
+      ],
+      "base_args": [
+        "--run_id",
+        "codex_funding_persistence_oi_2025_shadow_01",
+        "--symbols",
+        "BTCUSDT",
+        "--timeframe",
+        "5m",
+        "--start",
+        "2025-01-01",
+        "--end",
+        "2025-12-31",
+        "--feature_schema_version",
+        ""
+      ],
+      "notes": "",
+      "owner_service": "project.pipelines.stages.core",
+      "reason_code": "selected",
+      "required_artifact_contract_ids": [],
+      "script_path": "/home/irene/Edge/project/pipelines/features/build_features.py",
+      "stage_family": "core",
+      "stage_instance_id": "build_features_5m",
+      "stage_name": "build_features_5m"
+    },
+    {
+      "artifact_external_inputs": [
+        "clean.perp.*"
+      ],
+      "artifact_inputs": [
+        "clean.perp.*"
+      ],
+      "artifact_optional_inputs": [],
+      "artifact_outputs": [
+        "metadata.universe_snapshots"
+      ],
+      "base_args": [
+        "--run_id",
+        "codex_funding_persistence_oi_2025_shadow_01",
+        "--symbols",
+        "BTCUSDT",
+        "--market",
+        "perp",
+        "--timeframe",
+        "5m",
+        "--force",
+        "0"
+      ],
+      "notes": "",
+      "owner_service": "project.pipelines.stages.core",
+      "reason_code": "selected",
+      "required_artifact_contract_ids": [],
+      "script_path": "/home/irene/Edge/project/pipelines/ingest/build_universe_snapshots.py",
+      "stage_family": "core",
+      "stage_instance_id": "build_universe_snapshots",
+      "stage_name": "build_universe_snapshots"
+    },
+    {
+      "artifact_external_inputs": [
+        "features.perp.v2"
+      ],
+      "artifact_inputs": [
+        "features.perp.v2"
+      ],
+      "artifact_optional_inputs": [],
+      "artifact_outputs": [
+        "context.market_state"
+      ],
+      "base_args": [
+        "--run_id",
+        "codex_funding_persistence_oi_2025_shadow_01",
+        "--symbols",
+        "BTCUSDT",
+        "--timeframe",
+        "5m",
+        "--start",
+        "2025-01-01",
+        "--end",
+        "2025-12-31"
+      ],
+      "notes": "",
+      "owner_service": "project.pipelines.stages.core",
+      "reason_code": "selected",
+      "required_artifact_contract_ids": [],
+      "script_path": "/home/irene/Edge/project/pipelines/features/build_market_context.py",
+      "stage_family": "core",
+      "stage_instance_id": "build_market_context_5m",
+      "stage_name": "build_market_context_5m"
+    },
+    {
+      "artifact_external_inputs": [
+        "features.perp.v2"
+      ],
+      "artifact_inputs": [
+        "features.perp.v2"
+      ],
+      "artifact_optional_inputs": [],
+      "artifact_outputs": [
+        "context.microstructure"
+      ],
+      "base_args": [
+        "--run_id",
+        "codex_funding_persistence_oi_2025_shadow_01",
+        "--symbols",
+        "BTCUSDT",
+        "--timeframe",
+        "5m",
+        "--start",
+        "2025-01-01",
+        "--end",
+        "2025-12-31"
+      ],
+      "notes": "",
+      "owner_service": "project.pipelines.stages.core",
+      "reason_code": "selected",
+      "required_artifact_contract_ids": [],
+      "script_path": "/home/irene/Edge/project/pipelines/features/build_microstructure_rollup.py",
+      "stage_family": "core",
+      "stage_instance_id": "build_microstructure_rollup_5m",
+      "stage_name": "build_microstructure_rollup_5m"
+    },
+    {
+      "artifact_external_inputs": [],
+      "artifact_inputs": [
+        "features.perp.v2"
+      ],
+      "artifact_optional_inputs": [],
+      "artifact_outputs": [],
+      "base_args": [
+        "--run_id",
+        "codex_funding_persistence_oi_2025_shadow_01",
+        "--symbols",
+        "BTCUSDT",
+        "--timeframe",
+        "5m",
+        "--fail_on_issues",
+        "0"
+      ],
+      "notes": "",
+      "owner_service": "project.pipelines.stages.core",
+      "reason_code": "selected",
+      "required_artifact_contract_ids": [],
+      "script_path": "/home/irene/Edge/project/pipelines/clean/validate_feature_integrity.py",
+      "stage_family": "core",
+      "stage_instance_id": "validate_feature_integrity_5m",
+      "stage_name": "validate_feature_integrity_5m"
+    },
+    {
+      "artifact_external_inputs": [],
+      "artifact_inputs": [
+        "clean.perp.*"
+      ],
+      "artifact_optional_inputs": [],
+      "artifact_outputs": [],
+      "base_args": [
+        "--run_id",
+        "codex_funding_persistence_oi_2025_shadow_01",
+        "--symbols",
+        "BTCUSDT",
+        "--timeframe",
+        "5m",
+        "--max_gap_pct",
+        "0.05"
+      ],
+      "notes": "",
+      "owner_service": "project.pipelines.stages.core",
+      "reason_code": "selected",
+      "required_artifact_contract_ids": [],
+      "script_path": "/home/irene/Edge/project/pipelines/clean/validate_data_coverage.py",
+      "stage_family": "core",
+      "stage_instance_id": "validate_data_coverage_5m",
+      "stage_name": "validate_data_coverage_5m"
+    },
+    {
+      "artifact_external_inputs": [],
+      "artifact_inputs": [
+        "metadata.universe_snapshots"
+      ],
+      "artifact_optional_inputs": [],
+      "artifact_outputs": [
+        "runtime.normalized_stream"
+      ],
+      "base_args": [
+        "--run_id",
+        "codex_funding_persistence_oi_2025_shadow_01",
+        "--max_events",
+        "250000"
+      ],
+      "notes": "",
+      "owner_service": "project.pipelines.stages.core",
+      "reason_code": "selected",
+      "required_artifact_contract_ids": [],
+      "script_path": "/home/irene/Edge/project/pipelines/runtime/build_normalized_replay_stream.py",
+      "stage_family": "runtime_invariants",
+      "stage_instance_id": "build_normalized_replay_stream",
+      "stage_name": "build_normalized_replay_stream"
+    },
+    {
+      "artifact_external_inputs": [],
+      "artifact_inputs": [
+        "runtime.normalized_stream"
+      ],
+      "artifact_optional_inputs": [],
+      "artifact_outputs": [
+        "runtime.causal_ticks"
+      ],
+      "base_args": [
+        "--run_id",
+        "codex_funding_persistence_oi_2025_shadow_01"
+      ],
+      "notes": "",
+      "owner_service": "project.pipelines.stages.core",
+      "reason_code": "selected",
+      "required_artifact_contract_ids": [],
+      "script_path": "/home/irene/Edge/project/pipelines/runtime/run_causal_lane_ticks.py",
+      "stage_family": "runtime_invariants",
+      "stage_instance_id": "run_causal_lane_ticks",
+      "stage_name": "run_causal_lane_ticks"
+    },
+    {
+      "artifact_external_inputs": [
+        "features.perp.v2",
+        "context.market_state",
+        "context.microstructure"
+      ],
+      "artifact_inputs": [],
+      "artifact_optional_inputs": [
+        "features.perp.v2",
+        "context.market_state",
+        "context.microstructure"
+      ],
+      "artifact_outputs": [
+        "phase1.events.FUNDING_PERSISTENCE_TRIGGER"
+      ],
+      "base_args": [
+        "--run_id",
+        "codex_funding_persistence_oi_2025_shadow_01",
+        "--symbols",
+        "BTCUSDT",
+        "--event_type",
+        "FUNDING_PERSISTENCE_TRIGGER",
+        "--timeframe",
+        "5m",
+        "--event_type",
+        "FUNDING_PERSISTENCE_TRIGGER",
+        "--merge_gap_bars",
+        "1",
+        "--cooldown_bars",
+        "0",
+        "--anchor_rule",
+        "max_intensity",
+        "--min_occurrences",
+        "0",
+        "--synthetic_coverage",
+        "covered",
+        "--research_family",
+        "POSITIONING_EXTREMES",
+        "--trigger",
+        "Detector triggers on funding persistence trigger pattern",
+        "--confirmation",
+        "Post-detection price action confirms signal validity",
+        "--expected_behavior",
+        "{\"disabled_regimes\": [\"Low liquidity regime: OI/vol signals unreliable\"], \"holding_horizon_bars\": \"4-24\", \"invalidation_conditions\": [\"Position unwinds within expected horizon\", \"Funding reverses sign\"]}",
+        "--cluster_id",
+        "funding_crowding",
+        "--funding_pct_window",
+        "2880",
+        "--extreme_pct",
+        "95.0",
+        "--accel_pct",
+        "95.0",
+        "--accel_lookback",
+        "32",
+        "--persistence_pct",
+        "85.0",
+        "--persistence_bars",
+        "12",
+        "--normalization_pct",
+        "50.0",
+        "--normalization_lookback",
+        "96",
+        "--min_event_spacing",
+        "576",
+        "--min_spacing",
+        "576",
+        "--event_lookahead",
+        "96",
+        "--liquidation_abs_return",
+        "0.03",
+        "--drawdown_abs_return",
+        "0.03",
+        "--vol_burst_quantile",
+        "0.9",
+        "--htf_window",
+        "384",
+        "--htf_lookback",
+        "96",
+        "--pre_window",
+        "96",
+        "--post_window",
+        "96",
+        "--baseline_samples_per_event",
+        "3",
+        "--baseline_seed",
+        "7",
+        "--vol_auc_horizon",
+        "8",
+        "--liq_auc_horizon",
+        "96",
+        "--phase_tolerance_bars",
+        "16",
+        "--crossover_confirm_bars",
+        "4",
+        "--auc_bootstrap_iters",
+        "2000",
+        "--accel_quantile",
+        "0.995",
+        "--accel_persistence_intervals",
+        "2",
+        "--accel_near_zero_cutoff",
+        "5",
+        "--persistence_norm_horizon",
+        "96",
+        "--interaction_min_rows_per_year",
+        "150",
+        "--min_hazard_events",
+        "50"
+      ],
+      "notes": "",
+      "owner_service": "project.research.analyze_events",
+      "reason_code": "selected",
+      "required_artifact_contract_ids": [],
+      "script_path": "/home/irene/Edge/project/research/analyze_events.py",
+      "stage_family": "phase1_analysis",
+      "stage_instance_id": "analyze_events__FUNDING_PERSISTENCE_TRIGGER_5m",
+      "stage_name": "analyze_events__FUNDING_PERSISTENCE_TRIGGER_5m"
+    },
+    {
+      "artifact_external_inputs": [
+        "phase1.events.*"
+      ],
+      "artifact_inputs": [],
+      "artifact_optional_inputs": [
+        "phase1.events.*"
+      ],
+      "artifact_outputs": [
+        "phase2.event_registry.FUNDING_PERSISTENCE_TRIGGER"
+      ],
+      "base_args": [
+        "--run_id",
+        "codex_funding_persistence_oi_2025_shadow_01",
+        "--symbols",
+        "BTCUSDT",
+        "--event_type",
+        "FUNDING_PERSISTENCE_TRIGGER",
+        "--timeframe",
+        "5m"
+      ],
+      "notes": "",
+      "owner_service": "project.research.build_event_registry",
+      "reason_code": "selected",
+      "required_artifact_contract_ids": [],
+      "script_path": "/home/irene/Edge/project/research/build_event_registry.py",
+      "stage_family": "phase2_event_registry",
+      "stage_instance_id": "build_event_registry__FUNDING_PERSISTENCE_TRIGGER_5m",
+      "stage_name": "build_event_registry__FUNDING_PERSISTENCE_TRIGGER_5m"
+    },
+    {
+      "artifact_external_inputs": [
+        "phase2.event_registry.FUNDING_PERSISTENCE_TRIGGER"
+      ],
+      "artifact_inputs": [
+        "phase2.event_registry.FUNDING_PERSISTENCE_TRIGGER"
+      ],
+      "artifact_optional_inputs": [],
+      "artifact_outputs": [
+        "phase2.event_episodes.FUNDING_PERSISTENCE_TRIGGER"
+      ],
+      "base_args": [
+        "--run_id",
+        "codex_funding_persistence_oi_2025_shadow_01",
+        "--timeframe",
+        "5m",
+        "--event_type",
+        "FUNDING_PERSISTENCE_TRIGGER",
+        "--merge_gap_bars",
+        "1",
+        "--cooldown_bars",
+        "0",
+        "--anchor_rule",
+        "max_intensity",
+        "--min_occurrences",
+        "0"
+      ],
+      "notes": "",
+      "owner_service": "project.research.build_event_registry",
+      "reason_code": "selected",
+      "required_artifact_contract_ids": [],
+      "script_path": "/home/irene/Edge/project/research/canonicalize_event_episodes.py",
+      "stage_family": "phase2_event_registry",
+      "stage_instance_id": "canonicalize_event_episodes__FUNDING_PERSISTENCE_TRIGGER_5m",
+      "stage_name": "canonicalize_event_episodes__FUNDING_PERSISTENCE_TRIGGER_5m"
+    },
+    {
+      "artifact_external_inputs": [
+        "features.perp.v2",
+        "context.market_state",
+        "context.microstructure"
+      ],
+      "artifact_inputs": [],
+      "artifact_optional_inputs": [
+        "features.perp.v2",
+        "context.market_state",
+        "context.microstructure"
+      ],
+      "artifact_outputs": [
+        "phase1.events.OI_SPIKE_POSITIVE"
+      ],
+      "base_args": [
+        "--run_id",
+        "codex_funding_persistence_oi_2025_shadow_01",
+        "--symbols",
+        "BTCUSDT",
+        "--event_type",
+        "OI_SPIKE_POSITIVE",
+        "--timeframe",
+        "5m",
+        "--event_type",
+        "OI_SPIKE_POSITIVE",
+        "--merge_gap_bars",
+        "1",
+        "--cooldown_bars",
+        "0",
+        "--anchor_rule",
+        "max_intensity",
+        "--min_occurrences",
+        "0",
+        "--synthetic_coverage",
+        "covered",
+        "--research_family",
+        "POSITIONING_EXTREMES",
+        "--trigger",
+        "Detector triggers on oi spike positive pattern",
+        "--confirmation",
+        "Post-detection price action confirms signal validity",
+        "--expected_behavior",
+        "{\"disabled_regimes\": [\"Low liquidity regime: OI/vol signals unreliable\"], \"holding_horizon_bars\": \"4-24\", \"invalidation_conditions\": [\"Position unwinds within expected horizon\", \"Funding reverses sign\"]}",
+        "--cluster_id",
+        "oi_dynamic",
+        "--oi_window",
+        "96",
+        "--spike_z_th",
+        "2.5",
+        "--flush_pct_th",
+        "-0.005"
+      ],
+      "notes": "",
+      "owner_service": "project.research.analyze_events",
+      "reason_code": "selected",
+      "required_artifact_contract_ids": [],
+      "script_path": "/home/irene/Edge/project/research/analyze_events.py",
+      "stage_family": "phase1_analysis",
+      "stage_instance_id": "analyze_events__OI_SPIKE_POSITIVE_5m",
+      "stage_name": "analyze_events__OI_SPIKE_POSITIVE_5m"
+    },
+    {
+      "artifact_external_inputs": [
+        "phase1.events.*"
+      ],
+      "artifact_inputs": [],
+      "artifact_optional_inputs": [
+        "phase1.events.*"
+      ],
+      "artifact_outputs": [
+        "phase2.event_registry.OI_SPIKE_POSITIVE"
+      ],
+      "base_args": [
+        "--run_id",
+        "codex_funding_persistence_oi_2025_shadow_01",
+        "--symbols",
+        "BTCUSDT",
+        "--event_type",
+        "OI_SPIKE_POSITIVE",
+        "--timeframe",
+        "5m"
+      ],
+      "notes": "",
+      "owner_service": "project.research.build_event_registry",
+      "reason_code": "selected",
+      "required_artifact_contract_ids": [],
+      "script_path": "/home/irene/Edge/project/research/build_event_registry.py",
+      "stage_family": "phase2_event_registry",
+      "stage_instance_id": "build_event_registry__OI_SPIKE_POSITIVE_5m",
+      "stage_name": "build_event_registry__OI_SPIKE_POSITIVE_5m"
+    },
+    {
+      "artifact_external_inputs": [
+        "phase2.event_registry.OI_SPIKE_POSITIVE"
+      ],
+      "artifact_inputs": [
+        "phase2.event_registry.OI_SPIKE_POSITIVE"
+      ],
+      "artifact_optional_inputs": [],
+      "artifact_outputs": [
+        "phase2.event_episodes.OI_SPIKE_POSITIVE"
+      ],
+      "base_args": [
+        "--run_id",
+        "codex_funding_persistence_oi_2025_shadow_01",
+        "--timeframe",
+        "5m",
+        "--event_type",
+        "OI_SPIKE_POSITIVE",
+        "--merge_gap_bars",
+        "1",
+        "--cooldown_bars",
+        "0",
+        "--anchor_rule",
+        "max_intensity",
+        "--min_occurrences",
+        "0"
+      ],
+      "notes": "",
+      "owner_service": "project.research.build_event_registry",
+      "reason_code": "selected",
+      "required_artifact_contract_ids": [],
+      "script_path": "/home/irene/Edge/project/research/canonicalize_event_episodes.py",
+      "stage_family": "phase2_event_registry",
+      "stage_instance_id": "canonicalize_event_episodes__OI_SPIKE_POSITIVE_5m",
+      "stage_name": "canonicalize_event_episodes__OI_SPIKE_POSITIVE_5m"
+    },
+    {
+      "artifact_external_inputs": [],
+      "artifact_inputs": [],
+      "artifact_optional_inputs": [
+        "phase1.events.*"
+      ],
+      "artifact_outputs": [
+        "phase1.correlation_clustering"
+      ],
+      "base_args": [
+        "--run_id",
+        "codex_funding_persistence_oi_2025_shadow_01",
+        "--symbols",
+        "BTCUSDT",
+        "--correlation_threshold",
+        "0.85"
+      ],
+      "notes": "",
+      "owner_service": "project.research.analyze_events",
+      "reason_code": "selected",
+      "required_artifact_contract_ids": [],
+      "script_path": "/home/irene/Edge/project/research/phase1_correlation_clustering.py",
+      "stage_family": "phase1_analysis",
+      "stage_instance_id": "phase1_correlation_clustering",
+      "stage_name": "phase1_correlation_clustering"
+    },
+    {
+      "artifact_external_inputs": [
+        "features.perp.v2"
+      ],
+      "artifact_inputs": [
+        "features.perp.v2"
+      ],
+      "artifact_optional_inputs": [],
+      "artifact_outputs": [
+        "phase2.candidates.search"
+      ],
+      "base_args": [
+        "--run_id",
+        "codex_funding_persistence_oi_2025_shadow_01",
+        "--symbols",
+        "BTCUSDT",
+        "--data_root",
+        "data_codex",
+        "--timeframe",
+        "5m",
+        "--discovery_profile",
+        "standard",
+        "--gate_profile",
+        "auto",
+        "--search_spec",
+        "spec/search/sequence_funding_persistence_oi_confirm_btc_h48_2025_v1.yaml",
+        "--phase2_event_type",
+        "all",
+        "--min_n",
+        "30",
+        "--registry_root",
+        "project/configs/registries",
+        "--experiment_config",
+        "data_codex/artifacts/experiments/funding_persistence_oi_confirm_long_h48_btc_2025_v1/memory/proposals/codex_funding_persistence_oi_2025_shadow_01/experiment.yaml",
+        "--program_id",
+        "funding_persistence_oi_confirm_long_h48_btc_2025_v1"
+      ],
+      "notes": "",
+      "owner_service": "project.research.phase2_search_engine",
+      "reason_code": "selected",
+      "required_artifact_contract_ids": [
+        "discovery_phase2_candidates"
+      ],
+      "script_path": "/home/irene/Edge/project/research/phase2_search_engine.py",
+      "stage_family": "phase2_discovery",
+      "stage_instance_id": "phase2_search_engine",
+      "stage_name": "phase2_search_engine"
+    },
+    {
+      "artifact_external_inputs": [],
+      "artifact_inputs": [
+        "phase2.candidates.*"
+      ],
+      "artifact_optional_inputs": [
+        "phase2.bridge_summary.*"
+      ],
+      "artifact_outputs": [
+        "phase2.discovery_quality_summary"
+      ],
+      "base_args": [
+        "--run_id",
+        "codex_funding_persistence_oi_2025_shadow_01"
+      ],
+      "notes": "",
+      "owner_service": "project.research.phase2_search_engine",
+      "reason_code": "selected",
+      "required_artifact_contract_ids": [
+        "discovery_phase2_candidates"
+      ],
+      "script_path": "/home/irene/Edge/project/research/summarize_discovery_quality.py",
+      "stage_family": "phase2_discovery",
+      "stage_instance_id": "summarize_discovery_quality",
+      "stage_name": "summarize_discovery_quality"
+    },
+    {
+      "artifact_external_inputs": [
+        "phase2.candidates.*",
+        "phase2.bridge_metrics.*"
+      ],
+      "artifact_inputs": [
+        "phase2.candidates.*"
+      ],
+      "artifact_optional_inputs": [
+        "phase2.bridge_metrics.*"
+      ],
+      "artifact_outputs": [
+        "edge_candidates.normalized"
+      ],
+      "base_args": [
+        "--run_id",
+        "codex_funding_persistence_oi_2025_shadow_01",
+        "--symbols",
+        "BTCUSDT"
+      ],
+      "notes": "",
+      "owner_service": "project.research.services.promotion_service",
+      "reason_code": "selected",
+      "required_artifact_contract_ids": [
+        "promoted_theses",
+        "live_thesis_index"
+      ],
+      "script_path": "/home/irene/Edge/project/research/export_edge_candidates.py",
+      "stage_family": "promotion",
+      "stage_instance_id": "export_edge_candidates",
+      "stage_name": "export_edge_candidates"
+    },
+    {
+      "artifact_external_inputs": [
+        "promotion.audit",
+        "promotion.promoted_candidates"
+      ],
+      "artifact_inputs": [
+        "promotion.audit",
+        "promotion.promoted_candidates"
+      ],
+      "artifact_optional_inputs": [],
+      "artifact_outputs": [
+        "history.candidate.edge_observations",
+        "history.candidate.edge_registry",
+        "edge_registry.snapshot"
+      ],
+      "base_args": [
+        "--run_id",
+        "codex_funding_persistence_oi_2025_shadow_01"
+      ],
+      "notes": "",
+      "owner_service": "project.research.services.promotion_service",
+      "reason_code": "selected",
+      "required_artifact_contract_ids": [
+        "promoted_theses",
+        "live_thesis_index"
+      ],
+      "script_path": "/home/irene/Edge/project/research/update_edge_registry.py",
+      "stage_family": "promotion",
+      "stage_instance_id": "update_edge_registry",
+      "stage_name": "update_edge_registry"
+    },
+    {
+      "artifact_external_inputs": [
+        "edge_candidates.normalized",
+        "promotion.audit",
+        "history.candidate.edge_registry",
+        "phase2.discovery_quality_summary"
+      ],
+      "artifact_inputs": [],
+      "artifact_optional_inputs": [
+        "edge_candidates.normalized",
+        "promotion.audit",
+        "history.candidate.edge_registry",
+        "phase2.discovery_quality_summary"
+      ],
+      "artifact_outputs": [
+        "experiment.memory.tested_regions",
+        "experiment.memory.reflections",
+        "experiment.memory.failures"
+      ],
+      "base_args": [
+        "--run_id",
+        "codex_funding_persistence_oi_2025_shadow_01",
+        "--program_id",
+        "funding_persistence_oi_confirm_long_h48_btc_2025_v1",
+        "--data_root",
+        "data_codex",
+        "--registry_root",
+        "project/configs/registries",
+        "--promising_top_k",
+        "5",
+        "--avoid_top_k",
+        "5",
+        "--repair_top_k",
+        "5",
+        "--exploit_top_k",
+        "3",
+        "--frontier_untested_top_k",
+        "3",
+        "--frontier_repair_top_k",
+        "2",
+        "--exhausted_failure_threshold",
+        "3"
+      ],
+      "notes": "",
+      "owner_service": "project.research.services.promotion_service",
+      "reason_code": "selected",
+      "required_artifact_contract_ids": [
+        "promoted_theses",
+        "live_thesis_index"
+      ],
+      "script_path": "/home/irene/Edge/project/research/update_campaign_memory.py",
+      "stage_family": "promotion",
+      "stage_instance_id": "update_campaign_memory",
+      "stage_name": "update_campaign_memory"
+    },
+    {
+      "artifact_external_inputs": [
+        "history.candidate.edge_registry"
+      ],
+      "artifact_inputs": [
+        "history.candidate.edge_registry"
+      ],
+      "artifact_optional_inputs": [],
+      "artifact_outputs": [
+        "research.expectancy_analysis"
+      ],
+      "base_args": [
+        "--run_id",
+        "codex_funding_persistence_oi_2025_shadow_01",
+        "--symbols",
+        "BTCUSDT",
+        "--retail_profile",
+        "capital_constrained"
+      ],
+      "notes": "",
+      "owner_service": "project.research.analyze_events",
+      "reason_code": "selected",
+      "required_artifact_contract_ids": [],
+      "script_path": "/home/irene/Edge/project/research/analyze_conditional_expectancy.py",
+      "stage_family": "phase1_analysis",
+      "stage_instance_id": "analyze_conditional_expectancy",
+      "stage_name": "analyze_conditional_expectancy"
+    },
+    {
+      "artifact_external_inputs": [],
+      "artifact_inputs": [
+        "research.expectancy_analysis"
+      ],
+      "artifact_optional_inputs": [],
+      "artifact_outputs": [
+        "research.expectancy_traps"
+      ],
+      "base_args": [
+        "--run_id",
+        "codex_funding_persistence_oi_2025_shadow_01",
+        "--symbols",
+        "BTCUSDT",
+        "--gate_profile",
+        "discovery",
+        "--retail_profile",
+        "capital_constrained"
+      ],
+      "notes": "",
+      "owner_service": "project.research.services.reporting_service",
+      "reason_code": "selected",
+      "required_artifact_contract_ids": [],
+      "script_path": "/home/irene/Edge/project/research/validate_expectancy_traps.py",
+      "stage_family": "research_quality",
+      "stage_instance_id": "validate_expectancy_traps",
+      "stage_name": "validate_expectancy_traps"
+    },
+    {
+      "artifact_external_inputs": [],
+      "artifact_inputs": [
+        "research.expectancy_traps"
+      ],
+      "artifact_optional_inputs": [],
+      "artifact_outputs": [
+        "research.recommendations_checklist"
+      ],
+      "base_args": [
+        "--run_id",
+        "codex_funding_persistence_oi_2025_shadow_01",
+        "--gate_profile",
+        "discovery",
+        "--retail_profile",
+        "capital_constrained"
+      ],
+      "notes": "",
+      "owner_service": "project.research.services.reporting_service",
+      "reason_code": "selected",
+      "required_artifact_contract_ids": [],
+      "script_path": "/home/irene/Edge/project/research/generate_recommendations_checklist.py",
+      "stage_family": "research_quality",
+      "stage_instance_id": "generate_recommendations_checklist",
+      "stage_name": "generate_recommendations_checklist"
+    },
+    {
+      "artifact_external_inputs": [],
+      "artifact_inputs": [],
+      "artifact_optional_inputs": [
+        "phase2.candidates.*"
+      ],
+      "artifact_outputs": [
+        "experiment.tested_ledger"
+      ],
+      "base_args": [
+        "--run_id",
+        "codex_funding_persistence_oi_2025_shadow_01",
+        "--program_id",
+        "funding_persistence_oi_confirm_long_h48_btc_2025_v1",
+        "--data_root",
+        "data_codex"
+      ],
+      "notes": "",
+      "owner_service": "project.research.phase2_search_engine",
+      "reason_code": "selected",
+      "required_artifact_contract_ids": [
+        "discovery_phase2_candidates"
+      ],
+      "script_path": "/home/irene/Edge/project/research/finalize_experiment.py",
+      "stage_family": "phase2_discovery",
+      "stage_instance_id": "finalize_experiment",
+      "stage_name": "finalize_experiment"
+    },
+    {
+      "artifact_external_inputs": [],
+      "artifact_inputs": [],
+      "artifact_optional_inputs": [],
+      "artifact_outputs": [],
+      "base_args": [],
+      "notes": "local cleaned bars satisfy the contract; stage skipped (source=/home/irene/offline-data/cleaned_bars)",
+      "owner_service": "project.pipelines.stages.core",
+      "reason_code": "skipped",
+      "required_artifact_contract_ids": [],
+      "script_path": "/home/irene/Edge/project/pipelines/clean/build_cleaned_bars.py",
+      "stage_family": "core",
+      "stage_instance_id": "build_cleaned_5m",
+      "stage_name": "build_cleaned_5m"
+    },
+    {
+      "artifact_external_inputs": [],
+      "artifact_inputs": [],
+      "artifact_optional_inputs": [],
+      "artifact_outputs": [],
+      "base_args": [],
+      "notes": "local cleaned bars satisfy the contract; stage skipped (source=/home/irene/offline-data/cleaned_bars)",
+      "owner_service": "project.pipelines.stages.ingest",
+      "reason_code": "skipped",
+      "required_artifact_contract_ids": [],
+      "script_path": "/home/irene/Edge/project/pipelines/ingest/ingest_bybit_derivatives_ohlcv.py",
+      "stage_family": "ingest",
+      "stage_instance_id": "ingest_bybit_derivatives_ohlcv_5m",
+      "stage_name": "ingest_bybit_derivatives_ohlcv_5m"
+    },
+    {
+      "artifact_external_inputs": [],
+      "artifact_inputs": [],
+      "artifact_optional_inputs": [],
+      "artifact_outputs": [],
+      "base_args": [],
+      "notes": "local cleaned bars satisfy perp feature prerequisites; funding ingest skipped (source=/home/irene/offline-data/cleaned_bars)",
+      "owner_service": "project.pipelines.stages.ingest",
+      "reason_code": "skipped",
+      "required_artifact_contract_ids": [],
+      "script_path": "/home/irene/Edge/project/pipelines/ingest/ingest_bybit_derivatives_funding.py",
+      "stage_family": "ingest",
+      "stage_instance_id": "ingest_bybit_derivatives_funding",
+      "stage_name": "ingest_bybit_derivatives_funding"
+    }
+  ],
+  "symbols": [
+    "BTCUSDT"
+  ],
+  "timeframe": "5m"
+}

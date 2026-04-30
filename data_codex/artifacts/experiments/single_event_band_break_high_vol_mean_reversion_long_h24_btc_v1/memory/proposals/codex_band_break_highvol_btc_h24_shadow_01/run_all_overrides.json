@@ -1,0 +1,11 @@
+{
+  "discovery_profile": "standard",
+  "mode": "research",
+  "objective_name": "retail_profitability",
+  "phase2_gate_profile": "auto",
+  "program_id": "single_event_band_break_high_vol_mean_reversion_long_h24_btc_v1",
+  "promotion_profile": "research",
+  "run_candidate_promotion": 0,
+  "search_spec": "spec/search/single_event_band_break_high_vol_mean_reversion_btc_h24_v1.yaml",
+  "symbols": "BTCUSDT"
+}

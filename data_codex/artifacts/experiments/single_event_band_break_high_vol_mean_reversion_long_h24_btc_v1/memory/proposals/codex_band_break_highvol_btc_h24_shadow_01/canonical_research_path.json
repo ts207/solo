@@ -1,0 +1,28 @@
+{
+  "canonical_discovery_module": "project.research.phase2_search_engine",
+  "canonical_discovery_stage": "phase2_search_engine",
+  "canonical_research_path_version": "v1",
+  "canonical_stage_sequence": [
+    "ingest",
+    "clean",
+    "features",
+    "build_market_context",
+    "analyze_events",
+    "phase2_search_engine",
+    "promote_candidates",
+    "finalize_experiment"
+  ],
+  "dry_run": false,
+  "experiment_config_path": "data_codex/artifacts/experiments/single_event_band_break_high_vol_mean_reversion_long_h24_btc_v1/memory/proposals/codex_band_break_highvol_btc_h24_shadow_01/experiment.yaml",
+  "legacy_compat_modules": [
+    "project.research.candidate_discovery",
+    "project.research.discovery"
+  ],
+  "legacy_compat_used": false,
+  "plan_only": false,
+  "proposal_path": "data_codex/artifacts/experiments/single_event_band_break_high_vol_mean_reversion_long_h24_btc_v1/memory/proposals/codex_band_break_highvol_btc_h24_shadow_01/single_event_band_break_high_vol_mean_reversion_long_h24_btc_v1.yaml",
+  "run_all_overrides_path": "data_codex/artifacts/experiments/single_event_band_break_high_vol_mean_reversion_long_h24_btc_v1/memory/proposals/codex_band_break_highvol_btc_h24_shadow_01/run_all_overrides.json",
+  "run_id": "codex_band_break_highvol_btc_h24_shadow_01",
+  "stage": "discover",
+  "used_module": "project.research.agent_io.execute_proposal"
+}

@@ -1,0 +1,18 @@
+{
+  "program_id": "funding_persistence_oi_confirm_long_h48_btc_2025_v1",
+  "estimated_hypothesis_count": 1,
+  "required_detectors": [
+    "EventSequenceDetector",
+    "FundingPersistenceDetector",
+    "OISpikePositiveDetector"
+  ],
+  "required_features": [],
+  "required_states": [],
+  "feasibility_summary": {
+    "generated": 1,
+    "feasible": 1,
+    "dropped": 0,
+    "counts_by_reason": {},
+    "examples": {}
+  }
+}

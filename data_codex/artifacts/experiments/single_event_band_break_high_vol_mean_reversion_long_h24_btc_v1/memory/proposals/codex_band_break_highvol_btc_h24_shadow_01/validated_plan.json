@@ -1,0 +1,16 @@
+{
+  "program_id": "single_event_band_break_high_vol_mean_reversion_long_h24_btc_v1",
+  "estimated_hypothesis_count": 1,
+  "required_detectors": [
+    "BandBreakDetector"
+  ],
+  "required_features": [],
+  "required_states": [],
+  "feasibility_summary": {
+    "generated": 1,
+    "feasible": 1,
+    "dropped": 0,
+    "counts_by_reason": {},
+    "examples": {}
+  }
+}

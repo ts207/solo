@@ -1,0 +1,14 @@
+{
+  "run_id": "codex_band_break_highvol_btc_h24_shadow_01",
+  "correlation_threshold": 0.85,
+  "total_events": 1,
+  "total_clusters": 1,
+  "event_to_centroid": {
+    "BAND_BREAK": "BAND_BREAK"
+  },
+  "cluster_members": {
+    "BAND_BREAK": [
+      "BAND_BREAK"
+    ]
+  }
+}

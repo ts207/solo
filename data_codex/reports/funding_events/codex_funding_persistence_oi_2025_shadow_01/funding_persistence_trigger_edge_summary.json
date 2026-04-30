@@ -1,0 +1,15 @@
+{
+  "n_symbols": 1,
+  "symbols": [
+    "BTCUSDT"
+  ],
+  "by_symbol": {
+    "BTCUSDT": {
+      "n_events": 3608,
+      "cost_bps": 0.0,
+      "best_horizon_bars": 5,
+      "best_net_mean_bps": 1.3441860473534317
+    }
+  },
+  "n_events": 3608
+}

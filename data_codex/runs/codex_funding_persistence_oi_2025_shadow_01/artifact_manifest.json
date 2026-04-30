@@ -1,0 +1,423 @@
+{
+  "artifact_count": 104,
+  "artifacts": [
+    {
+      "path": "reports/context_quality/codex_funding_persistence_oi_2025_shadow_01/perp/BTCUSDT/5m/context_quality_report_v1.json",
+      "size_bytes": 5468
+    },
+    {
+      "path": "reports/data_quality/codex_funding_persistence_oi_2025_shadow_01/validation/validate_data_coverage_5m.json",
+      "size_bytes": 866
+    },
+    {
+      "path": "reports/edge_candidates/codex_funding_persistence_oi_2025_shadow_01/edge_candidates_normalized.json",
+      "size_bytes": 4
+    },
+    {
+      "path": "reports/edge_candidates/codex_funding_persistence_oi_2025_shadow_01/edge_candidates_normalized.parquet",
+      "size_bytes": 45209
+    },
+    {
+      "path": "reports/expectancy/codex_funding_persistence_oi_2025_shadow_01/conditional_expectancy.json",
+      "size_bytes": 560
+    },
+    {
+      "path": "reports/expectancy/codex_funding_persistence_oi_2025_shadow_01/conditional_expectancy_robustness.json",
+      "size_bytes": 568
+    },
+    {
+      "path": "reports/feature_quality/codex_funding_persistence_oi_2025_shadow_01/perp/BTCUSDT/5m/feature_quality_feature_schema_v2.json",
+      "size_bytes": 10879
+    },
+    {
+      "path": "reports/feature_quality/codex_funding_persistence_oi_2025_shadow_01/validation/validate_feature_integrity_5m.json",
+      "size_bytes": 12961
+    },
+    {
+      "path": "reports/funding_events/codex_funding_persistence_oi_2025_shadow_01/funding_episode_events.parquet",
+      "size_bytes": 2036257
+    },
+    {
+      "path": "reports/funding_events/codex_funding_persistence_oi_2025_shadow_01/funding_episode_events.parquet.lock",
+      "size_bytes": 0
+    },
+    {
+      "path": "reports/funding_events/codex_funding_persistence_oi_2025_shadow_01/funding_persistence_trigger_edge_events.parquet",
+      "size_bytes": 2322375
+    },
+    {
+      "path": "reports/funding_events/codex_funding_persistence_oi_2025_shadow_01/funding_persistence_trigger_edge_horizons.parquet",
+      "size_bytes": 7162
+    },
+    {
+      "path": "reports/funding_events/codex_funding_persistence_oi_2025_shadow_01/funding_persistence_trigger_edge_summary.json",
+      "size_bytes": 242
+    },
+    {
+      "path": "reports/funding_events/codex_funding_persistence_oi_2025_shadow_01/funding_persistence_trigger_integrity_events.parquet",
+      "size_bytes": 2036257
+    },
+    {
+      "path": "reports/funding_events/codex_funding_persistence_oi_2025_shadow_01/funding_persistence_trigger_integrity_summary.json",
+      "size_bytes": 754
+    },
+    {
+      "path": "reports/funding_events/codex_funding_persistence_oi_2025_shadow_01/funding_persistence_trigger_morphology_events.parquet",
+      "size_bytes": 2217695
+    },
+    {
+      "path": "reports/funding_events/codex_funding_persistence_oi_2025_shadow_01/funding_persistence_trigger_morphology_summary.json",
+      "size_bytes": 414
+    },
+    {
+      "path": "reports/funding_events/codex_funding_persistence_oi_2025_shadow_01/funding_persistence_trigger_stability_events.parquet",
+      "size_bytes": 2322375
+    },
+    {
+      "path": "reports/funding_events/codex_funding_persistence_oi_2025_shadow_01/funding_persistence_trigger_stability_summary.json",
+      "size_bytes": 268
+    },
+    {
+      "path": "reports/funding_events/codex_funding_persistence_oi_2025_shadow_01/funding_persistence_trigger_summary.json",
+      "size_bytes": 270
+    },
+    {
+      "path": "reports/microstructure/codex_funding_persistence_oi_2025_shadow_01/microstructure_rollup.parquet",
+      "size_bytes": 4729
+    },
+    {
+      "path": "reports/oi_shocks/codex_funding_persistence_oi_2025_shadow_01/oi_shock_events.parquet",
+      "size_bytes": 238872
+    },
+    {
+      "path": "reports/oi_shocks/codex_funding_persistence_oi_2025_shadow_01/oi_shock_events.parquet.lock",
+      "size_bytes": 0
+    },
+    {
+      "path": "reports/oi_shocks/codex_funding_persistence_oi_2025_shadow_01/oi_spike_positive_edge_events.parquet",
+      "size_bytes": 257619
+    },
+    {
+      "path": "reports/oi_shocks/codex_funding_persistence_oi_2025_shadow_01/oi_spike_positive_edge_horizons.parquet",
+      "size_bytes": 7162
+    },
+    {
+      "path": "reports/oi_shocks/codex_funding_persistence_oi_2025_shadow_01/oi_spike_positive_edge_summary.json",
+      "size_bytes": 242
+    },
+    {
+      "path": "reports/oi_shocks/codex_funding_persistence_oi_2025_shadow_01/oi_spike_positive_integrity_events.parquet",
+      "size_bytes": 238872
+    },
+    {
+      "path": "reports/oi_shocks/codex_funding_persistence_oi_2025_shadow_01/oi_spike_positive_integrity_summary.json",
+      "size_bytes": 742
+    },
+    {
+      "path": "reports/oi_shocks/codex_funding_persistence_oi_2025_shadow_01/oi_spike_positive_morphology_events.parquet",
+      "size_bytes": 251146
+    },
+    {
+      "path": "reports/oi_shocks/codex_funding_persistence_oi_2025_shadow_01/oi_spike_positive_morphology_summary.json",
+      "size_bytes": 406
+    },
+    {
+      "path": "reports/oi_shocks/codex_funding_persistence_oi_2025_shadow_01/oi_spike_positive_stability_events.parquet",
+      "size_bytes": 257619
+    },
+    {
+      "path": "reports/oi_shocks/codex_funding_persistence_oi_2025_shadow_01/oi_spike_positive_stability_summary.json",
+      "size_bytes": 265
+    },
+    {
+      "path": "reports/oi_shocks/codex_funding_persistence_oi_2025_shadow_01/oi_spike_positive_summary.json",
+      "size_bytes": 247
+    },
+    {
+      "path": "reports/phase1_orthogonalization/codex_funding_persistence_oi_2025_shadow_01/event_clusters.json",
+      "size_bytes": 446
+    },
+    {
+      "path": "reports/phase2/codex_funding_persistence_oi_2025_shadow_01/discovery_quality_summary.json",
+      "size_bytes": 1751
+    },
+    {
+      "path": "reports/phase2/codex_funding_persistence_oi_2025_shadow_01/funnel.json",
+      "size_bytes": 529
+    },
+    {
+      "path": "reports/phase2/codex_funding_persistence_oi_2025_shadow_01/hypotheses/BTCUSDT/evaluated_hypotheses.parquet",
+      "size_bytes": 40945
+    },
+    {
+      "path": "reports/phase2/codex_funding_persistence_oi_2025_shadow_01/hypotheses/BTCUSDT/gate_failures.parquet",
+      "size_bytes": 42652
+    },
+    {
+      "path": "reports/phase2/codex_funding_persistence_oi_2025_shadow_01/phase2_candidate_fold_metrics.parquet",
+      "size_bytes": 7112
+    },
+    {
+      "path": "reports/phase2/codex_funding_persistence_oi_2025_shadow_01/phase2_candidates.parquet",
+      "size_bytes": 8333
+    },
+    {
+      "path": "reports/phase2/codex_funding_persistence_oi_2025_shadow_01/phase2_diagnostics.json",
+      "size_bytes": 3221
+    },
+    {
+      "path": "reports/phase2/codex_funding_persistence_oi_2025_shadow_01/regime_conditional_candidates.parquet",
+      "size_bytes": 6833
+    },
+    {
+      "path": "reports/phase2/codex_funding_persistence_oi_2025_shadow_01/search_burden_summary.json",
+      "size_bytes": 466
+    },
+    {
+      "path": "reports/phase2/codex_funding_persistence_oi_2025_shadow_01/search_burden_summary.md",
+      "size_bytes": 494
+    },
+    {
+      "path": "reports/universe/codex_funding_persistence_oi_2025_shadow_01/5m/universe_membership.json",
+      "size_bytes": 3026
+    },
+    {
+      "path": "reports/universe/codex_funding_persistence_oi_2025_shadow_01/5m/universe_membership.md",
+      "size_bytes": 191
+    },
+    {
+      "path": "runs/codex_funding_persistence_oi_2025_shadow_01/analyze_conditional_expectancy.json",
+      "size_bytes": 62370
+    },
+    {
+      "path": "runs/codex_funding_persistence_oi_2025_shadow_01/analyze_conditional_expectancy.log",
+      "size_bytes": 140
+    },
+    {
+      "path": "runs/codex_funding_persistence_oi_2025_shadow_01/analyze_events__FUNDING_PERSISTENCE_TRIGGER_5m.json",
+      "size_bytes": 61778
+    },
+    {
+      "path": "runs/codex_funding_persistence_oi_2025_shadow_01/analyze_events__FUNDING_PERSISTENCE_TRIGGER_5m.log",
+      "size_bytes": 177
+    },
+    {
+      "path": "runs/codex_funding_persistence_oi_2025_shadow_01/analyze_events__OI_SPIKE_POSITIVE_5m.json",
+      "size_bytes": 61702
+    },
+    {
+      "path": "runs/codex_funding_persistence_oi_2025_shadow_01/analyze_events__OI_SPIKE_POSITIVE_5m.log",
+      "size_bytes": 154
+    },
+    {
+      "path": "runs/codex_funding_persistence_oi_2025_shadow_01/build_event_registry__FUNDING_PERSISTENCE_TRIGGER_5m.json",
+      "size_bytes": 63700
+    },
+    {
+      "path": "runs/codex_funding_persistence_oi_2025_shadow_01/build_event_registry__FUNDING_PERSISTENCE_TRIGGER_5m.log",
+      "size_bytes": 1358
+    },
+    {
+      "path": "runs/codex_funding_persistence_oi_2025_shadow_01/build_event_registry__OI_SPIKE_POSITIVE_5m.json",
+      "size_bytes": 63681
+    },
+    {
+      "path": "runs/codex_funding_persistence_oi_2025_shadow_01/build_event_registry__OI_SPIKE_POSITIVE_5m.log",
+      "size_bytes": 1308
+    },
+    {
+      "path": "runs/codex_funding_persistence_oi_2025_shadow_01/build_features_5m.json",
+      "size_bytes": 82341
+    },
+    {
+      "path": "runs/codex_funding_persistence_oi_2025_shadow_01/build_features_5m.log",
+      "size_bytes": 3252
+    },
+    {
+      "path": "runs/codex_funding_persistence_oi_2025_shadow_01/build_market_context_5m.json",
+      "size_bytes": 75245
+    },
+    {
+      "path": "runs/codex_funding_persistence_oi_2025_shadow_01/build_market_context_5m.log",
+      "size_bytes": 3036
+    },
+    {
+      "path": "runs/codex_funding_persistence_oi_2025_shadow_01/build_microstructure_rollup_5m.json",
+      "size_bytes": 61313
+    },
+    {
+      "path": "runs/codex_funding_persistence_oi_2025_shadow_01/build_microstructure_rollup_5m.log",
+      "size_bytes": 0
+    },
+    {
+      "path": "runs/codex_funding_persistence_oi_2025_shadow_01/build_normalized_replay_stream.json",
+      "size_bytes": 61986
+    },
+    {
+      "path": "runs/codex_funding_persistence_oi_2025_shadow_01/build_normalized_replay_stream.log",
+      "size_bytes": 0
+    },
+    {
+      "path": "runs/codex_funding_persistence_oi_2025_shadow_01/build_universe_snapshots.json",
+      "size_bytes": 65613
+    },
+    {
+      "path": "runs/codex_funding_persistence_oi_2025_shadow_01/build_universe_snapshots.log",
+      "size_bytes": 0
+    },
+    {
+      "path": "runs/codex_funding_persistence_oi_2025_shadow_01/canonicalize_event_episodes__FUNDING_PERSISTENCE_TRIGGER_5m.json",
+      "size_bytes": 61808
+    },
+    {
+      "path": "runs/codex_funding_persistence_oi_2025_shadow_01/canonicalize_event_episodes__FUNDING_PERSISTENCE_TRIGGER_5m.log",
+      "size_bytes": 0
+    },
+    {
+      "path": "runs/codex_funding_persistence_oi_2025_shadow_01/canonicalize_event_episodes__OI_SPIKE_POSITIVE_5m.json",
+      "size_bytes": 61788
+    },
+    {
+      "path": "runs/codex_funding_persistence_oi_2025_shadow_01/canonicalize_event_episodes__OI_SPIKE_POSITIVE_5m.log",
+      "size_bytes": 0
+    },
+    {
+      "path": "runs/codex_funding_persistence_oi_2025_shadow_01/effective_config.json",
+      "size_bytes": 10954
+    },
+    {
+      "path": "runs/codex_funding_persistence_oi_2025_shadow_01/export_edge_candidates.json",
+      "size_bytes": 61223
+    },
+    {
+      "path": "runs/codex_funding_persistence_oi_2025_shadow_01/export_edge_candidates.log",
+      "size_bytes": 96
+    },
+    {
+      "path": "runs/codex_funding_persistence_oi_2025_shadow_01/finalize_experiment.json",
+      "size_bytes": 61979
+    },
+    {
+      "path": "runs/codex_funding_persistence_oi_2025_shadow_01/finalize_experiment.log",
+      "size_bytes": 172
+    },
+    {
+      "path": "runs/codex_funding_persistence_oi_2025_shadow_01/generate_recommendations_checklist.json",
+      "size_bytes": 64145
+    },
+    {
+      "path": "runs/codex_funding_persistence_oi_2025_shadow_01/generate_recommendations_checklist.log",
+      "size_bytes": 146
+    },
+    {
+      "path": "runs/codex_funding_persistence_oi_2025_shadow_01/phase1_correlation_clustering.json",
+      "size_bytes": 61407
+    },
+    {
+      "path": "runs/codex_funding_persistence_oi_2025_shadow_01/phase1_correlation_clustering.log",
+      "size_bytes": 171
+    },
+    {
+      "path": "runs/codex_funding_persistence_oi_2025_shadow_01/phase2_search_engine.json",
+      "size_bytes": 63317
+    },
+    {
+      "path": "runs/codex_funding_persistence_oi_2025_shadow_01/phase2_search_engine.log",
+      "size_bytes": 1798
+    },
+    {
+      "path": "runs/codex_funding_persistence_oi_2025_shadow_01/research/edge_registry.parquet",
+      "size_bytes": 12972
+    },
+    {
+      "path": "runs/codex_funding_persistence_oi_2025_shadow_01/research/edge_registry_summary.json",
+      "size_bytes": 1514
+    },
+    {
+      "path": "runs/codex_funding_persistence_oi_2025_shadow_01/research_checklist/checklist.json",
+      "size_bytes": 3641
+    },
+    {
+      "path": "runs/codex_funding_persistence_oi_2025_shadow_01/research_checklist/release_signoff.json",
+      "size_bytes": 1384
+    },
+    {
+      "path": "runs/codex_funding_persistence_oi_2025_shadow_01/run_causal_lane_ticks.json",
+      "size_bytes": 62518
+    },
+    {
+      "path": "runs/codex_funding_persistence_oi_2025_shadow_01/run_causal_lane_ticks.log",
+      "size_bytes": 0
+    },
+    {
+      "path": "runs/codex_funding_persistence_oi_2025_shadow_01/run_manifest.json",
+      "size_bytes": 71244
+    },
+    {
+      "path": "runs/codex_funding_persistence_oi_2025_shadow_01/runtime/causal_ticks.parquet",
+      "size_bytes": 976
+    },
+    {
+      "path": "runs/codex_funding_persistence_oi_2025_shadow_01/runtime/causal_ticks_audit.json",
+      "size_bytes": 785
+    },
+    {
+      "path": "runs/codex_funding_persistence_oi_2025_shadow_01/runtime/normalized_events.parquet",
+      "size_bytes": 976
+    },
+    {
+      "path": "runs/codex_funding_persistence_oi_2025_shadow_01/runtime/normalized_stream.json",
+      "size_bytes": 386
+    },
+    {
+      "path": "runs/codex_funding_persistence_oi_2025_shadow_01/summarize_discovery_quality.json",
+      "size_bytes": 62308
+    },
+    {
+      "path": "runs/codex_funding_persistence_oi_2025_shadow_01/summarize_discovery_quality.log",
+      "size_bytes": 313
+    },
+    {
+      "path": "runs/codex_funding_persistence_oi_2025_shadow_01/update_campaign_memory.json",
+      "size_bytes": 63440
+    },
+    {
+      "path": "runs/codex_funding_persistence_oi_2025_shadow_01/update_campaign_memory.log",
+      "size_bytes": 141
+    },
+    {
+      "path": "runs/codex_funding_persistence_oi_2025_shadow_01/update_edge_registry.json",
+      "size_bytes": 62290
+    },
+    {
+      "path": "runs/codex_funding_persistence_oi_2025_shadow_01/update_edge_registry.log",
+      "size_bytes": 0
+    },
+    {
+      "path": "runs/codex_funding_persistence_oi_2025_shadow_01/validate_data_coverage_5m.json",
+      "size_bytes": 61989
+    },
+    {
+      "path": "runs/codex_funding_persistence_oi_2025_shadow_01/validate_data_coverage_5m.log",
+      "size_bytes": 0
+    },
+    {
+      "path": "runs/codex_funding_persistence_oi_2025_shadow_01/validate_expectancy_traps.json",
+      "size_bytes": 62737
+    },
+    {
+      "path": "runs/codex_funding_persistence_oi_2025_shadow_01/validate_expectancy_traps.log",
+      "size_bytes": 136
+    },
+    {
+      "path": "runs/codex_funding_persistence_oi_2025_shadow_01/validate_feature_integrity_5m.json",
+      "size_bytes": 74851
+    },
+    {
+      "path": "runs/codex_funding_persistence_oi_2025_shadow_01/validate_feature_integrity_5m.log",
+      "size_bytes": 239
+    }
+  ],
+  "catalog_hash": "sha256:e6d641048f1cb5c55e4beedaf4479419db24aa9a82336b111a1c19d5ebcc0b0c",
+  "run_id": "codex_funding_persistence_oi_2025_shadow_01"
+}

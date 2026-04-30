@@ -1,0 +1,227 @@
+{
+  "actual_stage_count": 21,
+  "artifact_results": [
+    {
+      "actual_path": "data_codex/reports/phase2/codex_band_break_highvol_btc_h24_shadow_01/phase2_candidates.parquet",
+      "contract_id": "discovery_phase2_candidates",
+      "expected_path": "reports/phase2/codex_band_break_highvol_btc_h24_shadow_01/phase2_candidates.parquet",
+      "notes": "",
+      "producer_stage_family": "phase2_discovery",
+      "required": true,
+      "schema_id": "phase2_candidates",
+      "schema_version": "phase5_schema_v1",
+      "status": "conformant",
+      "strictness": "strict"
+    },
+    {
+      "actual_path": "data_codex/runs/codex_band_break_highvol_btc_h24_shadow_01/run_manifest.json",
+      "contract_id": "run_manifest",
+      "expected_path": "runs/codex_band_break_highvol_btc_h24_shadow_01/run_manifest.json",
+      "notes": "",
+      "producer_stage_family": "run_orchestration",
+      "required": true,
+      "schema_id": "run_manifest",
+      "schema_version": "run_manifest_v1",
+      "status": "conformant",
+      "strictness": "strict"
+    }
+  ],
+  "final_status": "success",
+  "plan_stage_count": 24,
+  "results": [
+    {
+      "actual_outcome": "success",
+      "duration_sec": 13.415,
+      "notes": "",
+      "planned_reason_code": "selected",
+      "stage_instance_id": "build_features_5m",
+      "stage_name": "build_features_5m"
+    },
+    {
+      "actual_outcome": "success",
+      "duration_sec": 6.138,
+      "notes": "",
+      "planned_reason_code": "selected",
+      "stage_instance_id": "build_universe_snapshots",
+      "stage_name": "build_universe_snapshots"
+    },
+    {
+      "actual_outcome": "success",
+      "duration_sec": 20.952,
+      "notes": "",
+      "planned_reason_code": "selected",
+      "stage_instance_id": "build_market_context_5m",
+      "stage_name": "build_market_context_5m"
+    },
+    {
+      "actual_outcome": "success",
+      "duration_sec": 5.446,
+      "notes": "",
+      "planned_reason_code": "selected",
+      "stage_instance_id": "build_microstructure_rollup_5m",
+      "stage_name": "build_microstructure_rollup_5m"
+    },
+    {
+      "actual_outcome": "success",
+      "duration_sec": 8.121,
+      "notes": "",
+      "planned_reason_code": "selected",
+      "stage_instance_id": "validate_feature_integrity_5m",
+      "stage_name": "validate_feature_integrity_5m"
+    },
+    {
+      "actual_outcome": "success",
+      "duration_sec": 6.096,
+      "notes": "",
+      "planned_reason_code": "selected",
+      "stage_instance_id": "validate_data_coverage_5m",
+      "stage_name": "validate_data_coverage_5m"
+    },
+    {
+      "actual_outcome": "success",
+      "duration_sec": 5.11,
+      "notes": "",
+      "planned_reason_code": "selected",
+      "stage_instance_id": "build_normalized_replay_stream",
+      "stage_name": "build_normalized_replay_stream"
+    },
+    {
+      "actual_outcome": "success",
+      "duration_sec": 5.28,
+      "notes": "",
+      "planned_reason_code": "selected",
+      "stage_instance_id": "run_causal_lane_ticks",
+      "stage_name": "run_causal_lane_ticks"
+    },
+    {
+      "actual_outcome": "success",
+      "duration_sec": 10.084,
+      "notes": "",
+      "planned_reason_code": "selected",
+      "stage_instance_id": "analyze_events__BAND_BREAK_5m",
+      "stage_name": "analyze_events__BAND_BREAK_5m"
+    },
+    {
+      "actual_outcome": "success",
+      "duration_sec": 6.715,
+      "notes": "",
+      "planned_reason_code": "selected",
+      "stage_instance_id": "build_event_registry__BAND_BREAK_5m",
+      "stage_name": "build_event_registry__BAND_BREAK_5m"
+    },
+    {
+      "actual_outcome": "success",
+      "duration_sec": 11.988,
+      "notes": "",
+      "planned_reason_code": "selected",
+      "stage_instance_id": "canonicalize_event_episodes__BAND_BREAK_5m",
+      "stage_name": "canonicalize_event_episodes__BAND_BREAK_5m"
+    },
+    {
+      "actual_outcome": "success",
+      "duration_sec": 6.518,
+      "notes": "",
+      "planned_reason_code": "selected",
+      "stage_instance_id": "phase1_correlation_clustering",
+      "stage_name": "phase1_correlation_clustering"
+    },
+    {
+      "actual_outcome": "success",
+      "duration_sec": 21.388,
+      "notes": "",
+      "planned_reason_code": "selected",
+      "stage_instance_id": "phase2_search_engine",
+      "stage_name": "phase2_search_engine"
+    },
+    {
+      "actual_outcome": "success",
+      "duration_sec": 5.266,
+      "notes": "",
+      "planned_reason_code": "selected",
+      "stage_instance_id": "summarize_discovery_quality",
+      "stage_name": "summarize_discovery_quality"
+    },
+    {
+      "actual_outcome": "success",
+      "duration_sec": 5.504,
+      "notes": "",
+      "planned_reason_code": "selected",
+      "stage_instance_id": "export_edge_candidates",
+      "stage_name": "export_edge_candidates"
+    },
+    {
+      "actual_outcome": "success",
+      "duration_sec": 5.334,
+      "notes": "",
+      "planned_reason_code": "selected",
+      "stage_instance_id": "update_edge_registry",
+      "stage_name": "update_edge_registry"
+    },
+    {
+      "actual_outcome": "success",
+      "duration_sec": 8.994,
+      "notes": "",
+      "planned_reason_code": "selected",
+      "stage_instance_id": "update_campaign_memory",
+      "stage_name": "update_campaign_memory"
+    },
+    {
+      "actual_outcome": "success",
+      "duration_sec": 4.925,
+      "notes": "",
+      "planned_reason_code": "selected",
+      "stage_instance_id": "analyze_conditional_expectancy",
+      "stage_name": "analyze_conditional_expectancy"
+    },
+    {
+      "actual_outcome": "success",
+      "duration_sec": 5.47,
+      "notes": "",
+      "planned_reason_code": "selected",
+      "stage_instance_id": "validate_expectancy_traps",
+      "stage_name": "validate_expectancy_traps"
+    },
+    {
+      "actual_outcome": "success",
+      "duration_sec": 5.32,
+      "notes": "",
+      "planned_reason_code": "selected",
+      "stage_instance_id": "generate_recommendations_checklist",
+      "stage_name": "generate_recommendations_checklist"
+    },
+    {
+      "actual_outcome": "success",
+      "duration_sec": 5.242,
+      "notes": "",
+      "planned_reason_code": "selected",
+      "stage_instance_id": "finalize_experiment",
+      "stage_name": "finalize_experiment"
+    },
+    {
+      "actual_outcome": "skipped",
+      "duration_sec": 0.0,
+      "notes": "",
+      "planned_reason_code": "skipped",
+      "stage_instance_id": "build_cleaned_5m",
+      "stage_name": "build_cleaned_5m"
+    },
+    {
+      "actual_outcome": "skipped",
+      "duration_sec": 0.0,
+      "notes": "",
+      "planned_reason_code": "skipped",
+      "stage_instance_id": "ingest_bybit_derivatives_ohlcv_5m",
+      "stage_name": "ingest_bybit_derivatives_ohlcv_5m"
+    },
+    {
+      "actual_outcome": "skipped",
+      "duration_sec": 0.0,
+      "notes": "",
+      "planned_reason_code": "skipped",
+      "stage_instance_id": "ingest_bybit_derivatives_funding",
+      "stage_name": "ingest_bybit_derivatives_funding"
+    }
+  ],
+  "run_id": "codex_band_break_highvol_btc_h24_shadow_01",
+  "verified_at": "2026-04-30T19:46:34Z"
+}
