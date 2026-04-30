@@ -32,6 +32,29 @@ CORE_V1_REGIMES: tuple[dict[str, str], ...] = (
     {"ms_trend_state": "chop"},
 )
 
+FUNDING_SQUEEZE_POSITIONING_V1_REGIMES: tuple[dict[str, str], ...] = (
+    {
+        "carry_state": "funding_neg",
+        "vol_regime": "high",
+        "oi_phase": "expansion",
+        "price_oi_quadrant": "price_down_oi_up",
+    },
+    {"funding_phase": "negative_persistent", "oi_phase": "expansion"},
+    {"funding_phase": "negative_onset", "oi_phase": "expansion"},
+    {"funding_regime": "crowded", "oi_phase": "expansion"},
+    {"carry_state": "funding_neg", "oi_phase": "expansion", "ms_trend_state": "bearish"},
+)
+
+FUNDING_SQUEEZE_POSITIONING_V1_PROPOSAL_ELIGIBLE: tuple[bool, ...] = (
+    True,
+    False,
+    False,
+    False,
+    False,
+)
+
+SUPPORTED_REGIME_MATRICES = {"core_v1", "funding_squeeze_positioning_v1"}
+
 FORBIDDEN_LOOKAHEAD_TOKENS = (
     "rebound_confirmed",
     "recovered",
@@ -46,6 +69,8 @@ ROW_COLUMNS = [
     "run_id",
     "matrix_id",
     "regime_id",
+    "proposal_path_eligible",
+    "regime_role",
     "filters",
     "symbol",
     "direction",
@@ -91,6 +116,30 @@ def regime_id(filters: dict[str, str]) -> str:
 
 def core_v1_matrix() -> list[dict[str, str]]:
     return [dict(item) for item in CORE_V1_REGIMES]
+
+
+def funding_squeeze_positioning_v1_matrix() -> list[dict[str, str]]:
+    return [dict(item) for item in FUNDING_SQUEEZE_POSITIONING_V1_REGIMES]
+
+
+def regime_matrix(matrix_id: str) -> list[dict[str, str]]:
+    if matrix_id == "core_v1":
+        return core_v1_matrix()
+    if matrix_id == "funding_squeeze_positioning_v1":
+        return funding_squeeze_positioning_v1_matrix()
+    raise ValueError(f"Unsupported matrix_id: {matrix_id}")
+
+
+def proposal_path_eligible_for_matrix(matrix_id: str, index: int) -> bool:
+    if matrix_id == "funding_squeeze_positioning_v1":
+        return bool(FUNDING_SQUEEZE_POSITIONING_V1_PROPOSAL_ELIGIBLE[index])
+    return True
+
+
+def regime_role_for_matrix(matrix_id: str, index: int) -> str:
+    if matrix_id == "funding_squeeze_positioning_v1":
+        return "primary" if proposal_path_eligible_for_matrix(matrix_id, index) else "diagnostic"
+    return "primary"
 
 
 def validate_regime_filters(filters: dict[str, str]) -> None:
@@ -332,6 +381,8 @@ def _empty_row(
     direction: str,
     horizon_bars: int,
     reason: str,
+    proposal_path_eligible: bool = True,
+    regime_role: str = "primary",
 ) -> dict[str, Any]:
     classification, decision, final_reason = classify_baseline(
         n=0,
@@ -348,6 +399,8 @@ def _empty_row(
         "run_id": request.run_id,
         "matrix_id": request.matrix_id,
         "regime_id": regime_id(filters),
+        "proposal_path_eligible": bool(proposal_path_eligible),
+        "regime_role": str(regime_role),
         "filters": dict(filters),
         "symbol": symbol,
         "direction": direction,
@@ -382,6 +435,8 @@ def evaluate_regime_baseline(
     symbol: str,
     direction: str,
     horizon_bars: int,
+    proposal_path_eligible: bool = True,
+    regime_role: str = "primary",
 ) -> dict[str, Any]:
     validate_regime_filters(filters)
     if features.empty:
@@ -392,6 +447,8 @@ def evaluate_regime_baseline(
             direction=direction,
             horizon_bars=horizon_bars,
             reason="missing prices",
+            proposal_path_eligible=proposal_path_eligible,
+            regime_role=regime_role,
         )
     if "close" not in features.columns:
         return _empty_row(
@@ -401,6 +458,8 @@ def evaluate_regime_baseline(
             direction=direction,
             horizon_bars=horizon_bars,
             reason="missing prices",
+            proposal_path_eligible=proposal_path_eligible,
+            regime_role=regime_role,
         )
     mask, context_reason = _context_mask(features, filters)
     if mask is None:
@@ -411,6 +470,8 @@ def evaluate_regime_baseline(
             direction=direction,
             horizon_bars=horizon_bars,
             reason=context_reason,
+            proposal_path_eligible=proposal_path_eligible,
+            regime_role=regime_role,
         )
     costs, cost_source = _cost_series(features)
     if costs is None:
@@ -421,6 +482,8 @@ def evaluate_regime_baseline(
             direction=direction,
             horizon_bars=horizon_bars,
             reason="missing cost fields",
+            proposal_path_eligible=proposal_path_eligible,
+            regime_role=regime_role,
         )
 
     working = features.copy()
@@ -466,6 +529,8 @@ def evaluate_regime_baseline(
         "run_id": request.run_id,
         "matrix_id": request.matrix_id,
         "regime_id": regime_id(filters),
+        "proposal_path_eligible": bool(proposal_path_eligible),
+        "regime_role": str(regime_role),
         "filters": dict(filters),
         "symbol": symbol,
         "direction": direction,
@@ -493,12 +558,18 @@ def evaluate_regime_baseline(
 
 
 def build_search_burden(request: RegimeBaselineRequest, num_regimes: int) -> dict[str, Any]:
+    proposal_path_eligible_regimes = sum(
+        1
+        for index in range(num_regimes)
+        if proposal_path_eligible_for_matrix(request.matrix_id, index)
+    )
     return {
         "schema_version": SEARCH_BURDEN_SCHEMA_VERSION,
         "run_id": request.run_id,
         "matrix_id": request.matrix_id,
         "predeclared": True,
         "num_regimes": int(num_regimes),
+        "proposal_path_eligible_regimes": int(proposal_path_eligible_regimes),
         "num_symbols": len(request.symbols),
         "num_directions": len(request.directions),
         "num_horizons": len(request.horizons),
@@ -507,9 +578,7 @@ def build_search_burden(request: RegimeBaselineRequest, num_regimes: int) -> dic
 
 
 def run_regime_baselines(request: RegimeBaselineRequest) -> tuple[pd.DataFrame, dict[str, Any], str | None]:
-    if request.matrix_id != "core_v1":
-        raise ValueError(f"Unsupported matrix_id: {request.matrix_id}")
-    matrix = core_v1_matrix()
+    matrix = regime_matrix(request.matrix_id)
     source_run_id = request.source_run_id or discover_market_context_run(
         request.data_root,
         symbols=request.symbols,
@@ -528,8 +597,10 @@ def run_regime_baselines(request: RegimeBaselineRequest) -> tuple[pd.DataFrame, 
     }
 
     rows: list[dict[str, Any]] = []
-    for filters in matrix:
+    for index, filters in enumerate(matrix):
         validate_regime_filters(filters)
+        proposal_path_eligible = proposal_path_eligible_for_matrix(request.matrix_id, index)
+        regime_role = regime_role_for_matrix(request.matrix_id, index)
         for symbol in request.symbols:
             features = features_by_symbol[symbol]
             missing_reason = "missing prices" if features.empty else ""
@@ -544,6 +615,8 @@ def run_regime_baselines(request: RegimeBaselineRequest) -> tuple[pd.DataFrame, 
                                 direction=direction,
                                 horizon_bars=horizon,
                                 reason=missing_reason,
+                                proposal_path_eligible=proposal_path_eligible,
+                                regime_role=regime_role,
                             )
                         )
                     else:
@@ -555,6 +628,8 @@ def run_regime_baselines(request: RegimeBaselineRequest) -> tuple[pd.DataFrame, 
                                 symbol=symbol,
                                 direction=direction,
                                 horizon_bars=horizon,
+                                proposal_path_eligible=proposal_path_eligible,
+                                regime_role=regime_role,
                             )
                         )
     df = pd.DataFrame(rows, columns=ROW_COLUMNS)

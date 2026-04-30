@@ -29,6 +29,9 @@ NEXT_ACTION = {
     "insufficient_support": "repair_context_or_price_cost_data",
 }
 
+DIAGNOSTIC_ONLY_DECISION = "diagnostic_only"
+DIAGNOSTIC_ONLY_NEXT_ACTION = "primary_regime_must_pass_before_event_lift"
+
 DECISION = {
     "stable_positive": "allow_event_lift",
     "year_conditional": "require_variant",
@@ -42,6 +45,7 @@ ROW_COLUMNS = [
     "source_run_ids",
     "matrix_id",
     "regime_id",
+    "proposal_path_eligible",
     "candidate_baseline_count",
     "stable_positive_count",
     "year_conditional_count",
@@ -202,6 +206,11 @@ def build_regime_scorecard(df: pd.DataFrame) -> pd.DataFrame:
         return pd.DataFrame(columns=ROW_COLUMNS)
     rows: list[dict[str, Any]] = []
     for (matrix_id, regime_id), group in df.groupby(["matrix_id", "regime_id"], dropna=False):
+        proposal_path_eligible = (
+            bool(group["proposal_path_eligible"].fillna(True).astype(bool).any())
+            if "proposal_path_eligible" in group.columns
+            else True
+        )
         counts = {
             "stable_positive": int((group["classification"] == "stable_positive").sum()),
             "year_conditional": int((group["classification"] == "year_conditional").sum()),
@@ -210,6 +219,9 @@ def build_regime_scorecard(df: pd.DataFrame) -> pd.DataFrame:
             "insufficient_support": int((group["classification"] == "insufficient_support").sum()),
         }
         classification, decision, next_action = classify_regime_scorecard(counts)
+        if not proposal_path_eligible and decision == "allow_event_lift":
+            decision = DIAGNOSTIC_ONLY_DECISION
+            next_action = DIAGNOSTIC_ONLY_NEXT_ACTION
         best = best_baseline_row(group)
         rows.append(
             {
@@ -217,6 +229,7 @@ def build_regime_scorecard(df: pd.DataFrame) -> pd.DataFrame:
                 "source_run_ids": sorted({str(item) for item in group["run_id"].dropna().unique()}),
                 "matrix_id": str(matrix_id),
                 "regime_id": str(regime_id),
+                "proposal_path_eligible": proposal_path_eligible,
                 "candidate_baseline_count": len(group),
                 "stable_positive_count": counts["stable_positive"],
                 "year_conditional_count": counts["year_conditional"],
@@ -283,7 +296,8 @@ def write_regime_scorecard_markdown(df: pd.DataFrame, *, output_dir: Path) -> No
             "- "
             f"{row['matrix_id']} {row['regime_id']}: {row['classification']} "
             f"decision={row['decision']} best={row['best_symbol']}/"
-            f"{row['best_direction']}/h{row['best_horizon_bars']}"
+            f"{row['best_direction']}/h{row['best_horizon_bars']} "
+            f"proposal_path_eligible={row['proposal_path_eligible']}"
         )
     (output_dir / "regime_scorecard.md").write_text("\n".join(lines) + "\n", encoding="utf-8")
 

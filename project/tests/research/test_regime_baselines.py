@@ -7,10 +7,13 @@ import pytest
 
 from project.research.regime_baselines import (
     CORE_V1_REGIMES,
+    FUNDING_SQUEEZE_POSITIONING_V1_REGIMES,
     RegimeBaselineRequest,
     build_search_burden,
     core_v1_matrix,
     evaluate_regime_baseline,
+    funding_squeeze_positioning_v1_matrix,
+    proposal_path_eligible_for_matrix,
     regime_id,
     run_regime_baselines,
     validate_regime_filters,
@@ -26,6 +29,10 @@ def _feature_frame(n: int = 180, *, drift: float = 1.0) -> pd.DataFrame:
             "close": close,
             "vol_regime": ["high"] * n,
             "carry_state": ["funding_neg"] * n,
+            "oi_phase": ["expansion"] * n,
+            "price_oi_quadrant": ["price_down_oi_up"] * n,
+            "funding_phase": ["negative_persistent"] * n,
+            "funding_regime": ["crowded"] * n,
             "ms_trend_state": [1.0] * n,
             "spread_bps": [1.0] * n,
         }
@@ -119,6 +126,7 @@ def test_build_search_burden_counts_full_matrix():
         "matrix_id": "core_v1",
         "predeclared": True,
         "num_regimes": 9,
+        "proposal_path_eligible_regimes": 9,
         "num_symbols": 2,
         "num_directions": 2,
         "num_horizons": 3,
@@ -141,3 +149,46 @@ def test_run_regime_baselines_emits_full_grid_without_data(tmp_path):
     assert len(df) == 108
     assert burden["num_tests"] == 108
     assert set(df["classification"]) == {"insufficient_support"}
+
+
+def test_funding_squeeze_positioning_matrix_is_predeclared_and_narrow():
+    matrix = funding_squeeze_positioning_v1_matrix()
+
+    assert matrix == [dict(item) for item in FUNDING_SQUEEZE_POSITIONING_V1_REGIMES]
+    assert matrix[0] == {
+        "carry_state": "funding_neg",
+        "vol_regime": "high",
+        "oi_phase": "expansion",
+        "price_oi_quadrant": "price_down_oi_up",
+    }
+    assert [proposal_path_eligible_for_matrix("funding_squeeze_positioning_v1", i) for i in range(len(matrix))] == [
+        True,
+        False,
+        False,
+        False,
+        False,
+    ]
+    for filters in matrix:
+        validate_regime_filters(filters)
+
+
+def test_run_funding_squeeze_positioning_matrix_marks_only_primary_proposal_eligible(tmp_path):
+    request = RegimeBaselineRequest(
+        run_id="positioning_run",
+        matrix_id="funding_squeeze_positioning_v1",
+        symbols=("BTCUSDT",),
+        horizons=(24,),
+        data_root=tmp_path,
+    )
+
+    df, burden, source_run_id = run_regime_baselines(request)
+
+    assert source_run_id is None
+    assert len(df) == 10
+    assert burden["num_regimes"] == 5
+    assert burden["proposal_path_eligible_regimes"] == 1
+    proposal_flags = df.groupby("regime_id")["proposal_path_eligible"].first().to_dict()
+    assert proposal_flags[
+        "carry_state=funding_neg+vol_regime=high+oi_phase=expansion+price_oi_quadrant=price_down_oi_up"
+    ] is True
+    assert sum(1 for value in proposal_flags.values() if value) == 1

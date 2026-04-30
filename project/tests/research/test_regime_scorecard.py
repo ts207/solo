@@ -22,6 +22,7 @@ def _row(
     t_stat_net: float | None = None,
     max_year_pnl_share: float | None = None,
     effective_n: int = 0,
+    proposal_path_eligible: bool = True,
 ) -> dict:
     return {
         "run_id": run_id,
@@ -35,6 +36,7 @@ def _row(
         "t_stat_net": t_stat_net,
         "max_year_pnl_share": max_year_pnl_share,
         "effective_n": effective_n,
+        "proposal_path_eligible": proposal_path_eligible,
     }
 
 
@@ -95,6 +97,7 @@ def test_build_regime_scorecard_counts_and_selects_best_row():
     assert row["negative_count"] == 1
     assert row["classification"] == "stable_positive"
     assert row["decision"] == "allow_event_lift"
+    assert row["proposal_path_eligible"] is True
     assert row["best_symbol"] == "ETHUSDT"
     assert row["best_direction"] == "short"
     assert row["best_horizon_bars"] == 48
@@ -130,6 +133,30 @@ def test_best_row_numeric_tiebreaks_are_deterministic():
 
     assert row["best_symbol"] == "BTCUSDT"
     assert row["best_max_year_pnl_share"] == 0.4
+
+
+def test_diagnostic_regime_cannot_allow_event_lift_even_if_stable_positive():
+    df = pd.DataFrame(
+        [
+            _row(
+                matrix_id="funding_squeeze_positioning_v1",
+                regime_id="funding_phase=negative_persistent+oi_phase=expansion",
+                classification="stable_positive",
+                mean_net_bps=5.0,
+                t_stat_net=2.0,
+                max_year_pnl_share=0.3,
+                effective_n=100,
+                proposal_path_eligible=False,
+            )
+        ]
+    )
+
+    row = build_regime_scorecard(df).iloc[0].to_dict()
+
+    assert row["classification"] == "stable_positive"
+    assert row["decision"] == "diagnostic_only"
+    assert row["next_action"] == "primary_regime_must_pass_before_event_lift"
+    assert row["proposal_path_eligible"] is False
 
 
 def test_select_baseline_result_paths_prefers_latest_per_matrix(tmp_path):

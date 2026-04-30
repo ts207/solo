@@ -32,6 +32,9 @@ Outputs:
 Decision propagation is strict:
 
 - Any `stable_positive` row allows event lift.
+- For matrices with diagnostic rows, `stable_positive` only allows event lift
+  when `proposal_path_eligible=true`. Diagnostic rows are emitted for
+  interpretation but produce `diagnostic_only`, not `allow_event_lift`.
 - Otherwise, any `year_conditional` row requires an ex-ante variant.
 - Otherwise, any `unstable` row is monitor-only.
 - A regime is `negative` only when all measured rows are sufficiently supported
