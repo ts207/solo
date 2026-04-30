@@ -96,8 +96,21 @@ regime thesis, or move to a stronger forced-flow observable such as `OI_FLUSH`.
 funding and crowded perpetual positioning create unwind or squeeze pressure that
 resolves as reversal or continuation after a stress trigger.
 
-Allowed initial observables should remain bounded to funding and positioning
-pressure, such as `FUNDING_EXTREME`, `FUNDING_FLIP`, `OI_SPIKE_POSITIVE`,
-`OI_SPIKE_NEGATIVE`, or `CLIMAX_VOLUME_BAR`, with explicit carry/funding or
-high-volatility context. Add proposal seeds only after the mechanism spec passes
-preflight and without reusing failed forced-flow evidence as support.
+The first bounded seed is:
+
+- `FUNDING_EXTREME`, `carry_state=funding_neg`, `vol_regime=high`,
+  `exhaustion_reversal`, long, 24 bars.
+
+Compile only this first seed before any broader funding search:
+
+```bash
+PYTHONPATH=. python3 project/scripts/compile_mechanism_proposals.py \
+  --mechanism funding_squeeze \
+  --symbol BTCUSDT \
+  --start 2022-01-01 \
+  --end 2024-12-31 \
+  --data-root data \
+  --limit 1
+```
+
+Do not reuse failed forced-flow evidence as support.

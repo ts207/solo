@@ -24,6 +24,23 @@ def test_mechanism_preflight_passes_generated_proposal(tmp_path):
     assert "make discover-proposal" in report.next_safe_command
 
 
+def test_mechanism_preflight_passes_generated_funding_squeeze_proposal(tmp_path):
+    proposal = compile_mechanism_proposals(
+        mechanism_id="funding_squeeze",
+        symbol="BTCUSDT",
+        start="2022-01-01",
+        end="2024-12-31",
+        data_root=tmp_path,
+        limit=1,
+    )[0]
+
+    report = build_preflight_report(proposal)
+
+    assert report.status == "pass"
+    assert report.classification == "mechanism_backed"
+    assert report.mechanism_id == "funding_squeeze"
+
+
 def test_mechanism_preflight_marks_missing_mechanism_as_scouting(tmp_path):
     proposal = tmp_path / "scouting.yaml"
     proposal.write_text(

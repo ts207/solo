@@ -71,6 +71,32 @@ def _forced_flow_seeds(symbol: str) -> list[dict[str, Any]]:
     ]
 
 
+def _funding_squeeze_seeds(symbol: str) -> list[dict[str, Any]]:
+    slug = _symbol_slug(symbol)
+    return [
+        {
+            "program_id": f"funding_squeeze_funding_extreme_neg_highvol_h24_{slug}",
+            "filename": f"funding_squeeze_funding_extreme_neg_highvol_long_h24_{slug}.yaml",
+            "description": (
+                "Funding-squeeze test for FUNDING_EXTREME under negative carry and high volatility."
+            ),
+            "event_id": "FUNDING_EXTREME",
+            "contexts": {"carry_state": ["funding_neg"], "vol_regime": ["high"]},
+            "template_id": "exhaustion_reversal",
+            "direction": "long",
+            "horizon_bars": 24,
+        },
+    ]
+
+
+def _mechanism_seeds(mechanism_id: str, symbol: str) -> list[dict[str, Any]]:
+    if mechanism_id == "forced_flow_reversal":
+        return _forced_flow_seeds(symbol)
+    if mechanism_id == "funding_squeeze":
+        return _funding_squeeze_seeds(symbol)
+    raise ValueError(f"No seeded compiler is defined for {mechanism_id}")
+
+
 def proposal_payload_from_seed(
     seed: dict[str, Any],
     *,
@@ -218,11 +244,6 @@ def compile_mechanism_proposals(
         details = "; ".join(issue.detail for issue in spec_issues if issue.status == "fail")
         raise ValueError(f"Mechanism spec is invalid: {details}")
 
-    if mechanism.mechanism_id != "forced_flow_reversal":
-        raise ValueError(
-            "Only forced_flow_reversal has a seeded compiler in Wave 1; draft mechanisms are registry-only"
-        )
-
     out_dir = output_dir or (
         data_root
         / "reports"
@@ -235,7 +256,7 @@ def compile_mechanism_proposals(
     search_spec_dir.mkdir(parents=True, exist_ok=True)
 
     written: list[Path] = []
-    for seed in _forced_flow_seeds(symbol)[:limit]:
+    for seed in _mechanism_seeds(mechanism.mechanism_id, symbol)[:limit]:
         search_spec_path = search_spec_dir / seed["filename"].replace(".yaml", "_search.yaml")
         search_spec_path.write_text(
             yaml.safe_dump(
