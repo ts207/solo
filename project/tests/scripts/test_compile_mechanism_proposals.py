@@ -25,10 +25,16 @@ def test_compile_forced_flow_proposals_is_bounded_and_mechanism_valid(tmp_path):
     for path in paths:
         assert path.exists()
         payload = yaml.safe_load(path.read_text(encoding="utf-8"))
+        search_spec_path = path.parent / "search_specs" / path.name.replace(".yaml", "_search.yaml")
+        search_spec = yaml.safe_load(search_spec_path.read_text(encoding="utf-8"))
         mechanism = load_mechanism(payload["mechanism"]["id"])
         candidate = CandidateHypothesis.from_proposal_payload(payload)
         assert candidate.horizon_bars == 24
         assert candidate.direction == "long"
+        assert payload["search_spec"]["path"] == str(search_spec_path)
+        assert search_spec["triggers"]["events"] == [candidate.event_id]
+        assert search_spec["expression_templates"] == [candidate.template_id]
+        assert search_spec["template_policy"]["generic_templates_allowed"] is True
         assert set(mechanism.required_falsification) <= set(payload["required_falsification"])
         assert set(mechanism.forbidden_rescue_actions) <= set(payload["forbidden_rescue_actions"])
 

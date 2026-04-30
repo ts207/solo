@@ -1,7 +1,7 @@
 # All Results - Edge Discovery Project
 
 *Auto-generated. Do not edit manually - rerun `project/scripts/update_results_index.py`.*
-*689 indexed rows across 42 events.*
+*692 indexed rows across 42 events.*
 *Decision fields come from discover-doctor plus `docs/research/decisions.yaml`.*
 *`year_split_event_support_pass` means event support is not dominated by one year; it is not PnL stability unless per-event returns are available.*
 
@@ -460,64 +460,67 @@
 | OVERSHOOT_AFTER_SHOCK | BTCUSDT |  | long | 48 | mean_reversion | 3576 | 3576 | 0.00 | 0.0 | 11 | parked_candidate | monitor | `stat_stretch_02` |
 | OVERSHOOT_AFTER_SHOCK | BTCUSDT |  | long | 48 | mean_reversion | 3576 | 3576 | 0.00 | 0.0 | 11 | parked_candidate | monitor | `stat_stretch_03` |
 | OVERSHOOT_AFTER_SHOCK |  |  | long | 72 | mean_reversion | 233 | 233 | 1.33 | 20.6 | 1 | review_only | review | `stat_stretch_04` |
-| PRICE_DOWN_OI_DOWN | BTCUSDT |  | long | 12 | mean_reversion | 78 | 78 | 1.55 | 23.1 | 28 | review_only | review | `supported_path_20260427T000843Z_price_down...` |
-| PRICE_DOWN_OI_DOWN | BTCUSDT |  | long | 12 | mean_reversion | 78 | 78 | 1.55 | 23.1 | 28 | review_only | review | `supported_path_20260427T001141Z_price_down...` |
-| PRICE_DOWN_OI_DOWN | BTCUSDT |  | long | 12 | mean_reversion | 78 | 78 | 1.55 | 23.1 | 28 | review_only | review | `supported_path_20260427T001217Z_price_down...` |
-| PRICE_DOWN_OI_DOWN | BTCUSDT |  | long | 12 | mean_reversion | 78 | 78 | 1.55 | 23.1 | 28 | review_only | review | `supported_path_20260427T001344Z_price_down...` |
-| PRICE_DOWN_OI_DOWN | BTCUSDT |  | long | 12 | mean_reversion | 38 | 38 | 1.45 | 23.6 | 28 | killed_candidate | kill | `supported_path_20260426T200321Z_price_down...` |
-| PRICE_DOWN_OI_DOWN | BTCUSDT |  | long | 12 | mean_reversion | 149 | 149 | 0.71 | 6.0 | 28 | killed_candidate | kill | `supported_path_20260426T195830Z_price_down...` |
-| PRICE_DOWN_OI_DOWN | BTCUSDT |  | long | 12 | mean_reversion | 149 | 149 | 0.00 | 0.0 | 28 | review_only | review | `supported_path_20260426T194523Z_price_down...` |
-| PRICE_DOWN_OI_DOWN |  |  | long | 24 | mean_reversion | 79 | 79 | 2.35 | 42.0 | 13 | parked_candidate | park | `supported_path_20260427T002214Z_price_down...` |
-| PRICE_DOWN_OI_DOWN |  |  | long | 24 | mean_reversion | 79 | 79 | 2.35 | 42.0 | 13 | parked_candidate | park | `supported_path_20260427T015253Z_price_down...` |
-| PRICE_DOWN_OI_DOWN |  |  | long | 24 | mean_reversion | 79 | 79 | 2.35 | 42.0 | 13 | parked_candidate | park | `supported_path_20260427T015937Z_price_down...` |
-| PRICE_DOWN_OI_DOWN |  |  | long | 24 | mean_reversion | 79 | 79 | 2.35 | 42.0 | 13 | parked_candidate | park | `supported_path_20260427T075010Z_price_down...` |
-| PRICE_DOWN_OI_DOWN |  |  | long | 24 | mean_reversion | 79 | 79 | 2.35 | 42.0 | 13 | parked_candidate | park | `supported_path_20260427T080041Z_price_down...` |
-| PRICE_DOWN_OI_DOWN |  |  | long | 24 | mean_reversion | 79 | 79 | 2.35 | 42.0 | 13 | parked_candidate | park | `supported_path_20260427T080250Z_price_down...` |
-| PRICE_DOWN_OI_DOWN |  |  | long | 24 | mean_reversion | 79 | 79 | 2.35 | 42.0 | 13 | parked_candidate | park | `supported_path_20260427T080951Z_price_down...` |
-| PRICE_DOWN_OI_DOWN |  |  | long | 24 | mean_reversion | 79 | 79 | 2.35 | 42.0 | 13 | parked_candidate | park | `supported_path_20260427T081501Z_price_down...` |
-| PRICE_DOWN_OI_DOWN |  |  | long | 24 | mean_reversion | 79 | 79 | 2.35 | 42.0 | 13 | parked_candidate | park | `supported_path_20260427T082809Z_price_down...` |
-| PRICE_DOWN_OI_DOWN |  |  | long | 24 | mean_reversion | 79 | 79 | 2.35 | 42.0 | 13 | parked_candidate | park | `supported_path_20260427T084014Z_price_down...` |
-| PRICE_DOWN_OI_DOWN |  |  | long | 24 | mean_reversion | 79 | 79 | 2.35 | 42.0 | 13 | parked_candidate | park | `supported_path_20260427T084420Z_price_down...` |
-| PRICE_DOWN_OI_DOWN |  |  | long | 24 | mean_reversion | 79 | 79 | 2.35 | 42.0 | 13 | parked_candidate | park | `supported_path_20260427T090041Z_price_down...` |
-| PRICE_DOWN_OI_DOWN |  |  | long | 24 | mean_reversion | 79 | 79 | 2.35 | 42.0 | 13 | parked_candidate | park | `supported_path_20260427T092736Z_price_down...` |
-| PRICE_DOWN_OI_DOWN |  |  | long | 24 | mean_reversion | 79 | 79 | 2.35 | 42.0 | 13 | parked_candidate | park | `supported_path_20260427T180610Z_price_down...` |
-| PRICE_DOWN_OI_DOWN | BTCUSDT |  | long | 24 | mean_reversion | 79 | 79 | 2.35 | 42.0 | 28 | parked_candidate | park | `supported_path_20260427T001920Z_price_down...` |
-| PRICE_DOWN_OI_DOWN | BTCUSDT |  | long | 24 | mean_reversion | 79 | 79 | 2.35 | 42.0 | 28 | parked_candidate | park | `supported_path_20260427T002214Z_price_down...` |
-| PRICE_DOWN_OI_DOWN | BTCUSDT |  | long | 24 | mean_reversion | 79 | 79 | 2.35 | 42.0 | 28 | parked_candidate | park | `supported_path_20260427T015253Z_price_down...` |
-| PRICE_DOWN_OI_DOWN | BTCUSDT |  | long | 24 | mean_reversion | 79 | 79 | 2.35 | 42.0 | 28 | parked_candidate | park | `supported_path_20260427T015937Z_price_down...` |
-| PRICE_DOWN_OI_DOWN | BTCUSDT |  | long | 24 | mean_reversion | 79 | 79 | 2.35 | 42.0 | 28 | parked_candidate | park | `supported_path_20260427T075010Z_price_down...` |
-| PRICE_DOWN_OI_DOWN | BTCUSDT |  | long | 24 | mean_reversion | 79 | 79 | 2.35 | 42.0 | 28 | parked_candidate | park | `supported_path_20260427T080041Z_price_down...` |
-| PRICE_DOWN_OI_DOWN | BTCUSDT |  | long | 24 | mean_reversion | 79 | 79 | 2.35 | 42.0 | 28 | parked_candidate | park | `supported_path_20260427T080250Z_price_down...` |
-| PRICE_DOWN_OI_DOWN | BTCUSDT |  | long | 24 | mean_reversion | 79 | 79 | 2.35 | 42.0 | 28 | parked_candidate | park | `supported_path_20260427T080951Z_price_down...` |
-| PRICE_DOWN_OI_DOWN | BTCUSDT |  | long | 24 | mean_reversion | 79 | 79 | 2.35 | 42.0 | 28 | parked_candidate | park | `supported_path_20260427T081501Z_price_down...` |
-| PRICE_DOWN_OI_DOWN | BTCUSDT |  | long | 24 | mean_reversion | 79 | 79 | 2.35 | 42.0 | 28 | parked_candidate | park | `supported_path_20260427T082809Z_price_down...` |
-| PRICE_DOWN_OI_DOWN | BTCUSDT |  | long | 24 | mean_reversion | 79 | 79 | 2.35 | 42.0 | 28 | parked_candidate | park | `supported_path_20260427T084014Z_price_down...` |
-| PRICE_DOWN_OI_DOWN | BTCUSDT |  | long | 24 | mean_reversion | 79 | 79 | 2.35 | 42.0 | 28 | parked_candidate | park | `supported_path_20260427T084420Z_price_down...` |
-| PRICE_DOWN_OI_DOWN | BTCUSDT |  | long | 24 | mean_reversion | 79 | 79 | 2.35 | 42.0 | 28 | parked_candidate | park | `supported_path_20260427T090041Z_price_down...` |
-| PRICE_DOWN_OI_DOWN | BTCUSDT |  | long | 24 | mean_reversion | 79 | 79 | 2.35 | 42.0 | 28 | parked_candidate | park | `supported_path_20260427T092736Z_price_down...` |
-| PRICE_DOWN_OI_DOWN | BTCUSDT |  | long | 24 | mean_reversion | 79 | 79 | 2.35 | 42.0 | 28 | parked_candidate | park | `supported_path_20260427T180610Z_price_down...` |
-| PRICE_DOWN_OI_DOWN | BTCUSDT |  | long | 24 |  | 79 | 79 | 2.35 | 42.0 | 28 | parked_candidate | park | `supported_path_20260427T001920Z_price_down...` |
-| PRICE_DOWN_OI_DOWN | BTCUSDT |  | long | 24 |  | 79 | 79 | 2.35 | 42.0 | 28 | parked_candidate | park | `supported_path_20260427T002214Z_price_down...` |
-| PRICE_DOWN_OI_DOWN | BTCUSDT |  | long | 24 |  | 79 | 79 | 2.35 | 42.0 | 28 | parked_candidate | park | `supported_path_20260427T015253Z_price_down...` |
-| PRICE_DOWN_OI_DOWN | BTCUSDT |  | long | 24 |  | 79 | 79 | 2.35 | 42.0 | 28 | parked_candidate | park | `supported_path_20260427T015937Z_price_down...` |
-| PRICE_DOWN_OI_DOWN | BTCUSDT |  | long | 24 |  | 79 | 79 | 2.35 | 42.0 | 28 | parked_candidate | park | `supported_path_20260427T075010Z_price_down...` |
-| PRICE_DOWN_OI_DOWN | BTCUSDT |  | long | 24 |  | 79 | 79 | 2.35 | 42.0 | 28 | parked_candidate | park | `supported_path_20260427T080041Z_price_down...` |
-| PRICE_DOWN_OI_DOWN | BTCUSDT |  | long | 24 |  | 79 | 79 | 2.35 | 42.0 | 28 | parked_candidate | park | `supported_path_20260427T080250Z_price_down...` |
-| PRICE_DOWN_OI_DOWN | BTCUSDT |  | long | 24 |  | 79 | 79 | 2.35 | 42.0 | 28 | parked_candidate | park | `supported_path_20260427T080951Z_price_down...` |
-| PRICE_DOWN_OI_DOWN | BTCUSDT |  | long | 24 |  | 79 | 79 | 2.35 | 42.0 | 28 | parked_candidate | park | `supported_path_20260427T081501Z_price_down...` |
-| PRICE_DOWN_OI_DOWN | BTCUSDT |  | long | 24 |  | 79 | 79 | 2.35 | 42.0 | 28 | parked_candidate | park | `supported_path_20260427T082809Z_price_down...` |
-| PRICE_DOWN_OI_DOWN | BTCUSDT |  | long | 24 |  | 79 | 79 | 2.35 | 42.0 | 28 | parked_candidate | park | `supported_path_20260427T084014Z_price_down...` |
-| PRICE_DOWN_OI_DOWN | BTCUSDT |  | long | 24 |  | 79 | 79 | 2.35 | 42.0 | 28 | parked_candidate | park | `supported_path_20260427T084420Z_price_down...` |
-| PRICE_DOWN_OI_DOWN | BTCUSDT |  | long | 24 |  | 79 | 79 | 2.35 | 42.0 | 28 | parked_candidate | park | `supported_path_20260427T090041Z_price_down...` |
-| PRICE_DOWN_OI_DOWN | BTCUSDT |  | long | 24 |  | 79 | 79 | 2.35 | 42.0 | 28 | parked_candidate | park | `supported_path_20260427T092736Z_price_down...` |
-| PRICE_DOWN_OI_DOWN | BTCUSDT |  | long | 24 |  | 79 | 79 | 2.35 | 42.0 | 28 | parked_candidate | park | `supported_path_20260427T180610Z_price_down...` |
-| PRICE_DOWN_OI_DOWN | BTCUSDT |  | long | 24 | mean_reversion | 78 | 78 | 2.02 | 40.4 | 28 | parked_candidate | park | `supported_path_20260427T000843Z_price_down...` |
-| PRICE_DOWN_OI_DOWN | BTCUSDT |  | long | 24 | mean_reversion | 78 | 78 | 2.02 | 40.4 | 28 | parked_candidate | park | `supported_path_20260427T001141Z_price_down...` |
-| PRICE_DOWN_OI_DOWN | BTCUSDT |  | long | 24 | mean_reversion | 78 | 78 | 2.02 | 40.4 | 28 | parked_candidate | park | `supported_path_20260427T001217Z_price_down...` |
-| PRICE_DOWN_OI_DOWN | BTCUSDT |  | long | 24 | mean_reversion | 78 | 78 | 2.02 | 40.4 | 28 | parked_candidate | park | `supported_path_20260427T001344Z_price_down...` |
-| PRICE_DOWN_OI_DOWN | BTCUSDT |  | long | 24 | mean_reversion | 38 | 38 | 1.87 | 38.6 | 28 | parked_candidate | park | `supported_path_20260426T200321Z_price_down...` |
-| PRICE_DOWN_OI_DOWN | BTCUSDT |  | long | 24 | mean_reversion | 149 | 149 | 0.67 | 6.4 | 28 | parked_candidate | park | `supported_path_20260426T195830Z_price_down...` |
-| PRICE_DOWN_OI_DOWN | BTCUSDT |  | long | 24 | mean_reversion | 149 | 149 | 0.00 | 0.0 | 28 | parked_candidate | park | `supported_path_20260426T194523Z_price_down...` |
+| PRICE_DOWN_OI_DOWN | BTCUSDT |  | long | 12 | mean_reversion | 78 | 78 | 1.55 | 23.1 | 29 | review_only | review | `supported_path_20260427T000843Z_price_down...` |
+| PRICE_DOWN_OI_DOWN | BTCUSDT |  | long | 12 | mean_reversion | 78 | 78 | 1.55 | 23.1 | 29 | review_only | review | `supported_path_20260427T001141Z_price_down...` |
+| PRICE_DOWN_OI_DOWN | BTCUSDT |  | long | 12 | mean_reversion | 78 | 78 | 1.55 | 23.1 | 29 | review_only | review | `supported_path_20260427T001217Z_price_down...` |
+| PRICE_DOWN_OI_DOWN | BTCUSDT |  | long | 12 | mean_reversion | 78 | 78 | 1.55 | 23.1 | 29 | review_only | review | `supported_path_20260427T001344Z_price_down...` |
+| PRICE_DOWN_OI_DOWN | BTCUSDT |  | long | 12 | mean_reversion | 38 | 38 | 1.45 | 23.6 | 29 | killed_candidate | kill | `supported_path_20260426T200321Z_price_down...` |
+| PRICE_DOWN_OI_DOWN | BTCUSDT |  | long | 12 | mean_reversion | 149 | 149 | 0.71 | 6.0 | 29 | killed_candidate | kill | `supported_path_20260426T195830Z_price_down...` |
+| PRICE_DOWN_OI_DOWN | BTCUSDT |  | long | 12 | mean_reversion | 149 | 149 | 0.00 | 0.0 | 29 | review_only | review | `supported_path_20260426T194523Z_price_down...` |
+| PRICE_DOWN_OI_DOWN |  |  | long | 24 | mean_reversion | 79 | 79 | 2.35 | 42.0 | 14 | parked_candidate | park | `supported_path_20260427T002214Z_price_down...` |
+| PRICE_DOWN_OI_DOWN |  |  | long | 24 | mean_reversion | 79 | 79 | 2.35 | 42.0 | 14 | parked_candidate | park | `supported_path_20260427T015253Z_price_down...` |
+| PRICE_DOWN_OI_DOWN |  |  | long | 24 | mean_reversion | 79 | 79 | 2.35 | 42.0 | 14 | parked_candidate | park | `supported_path_20260427T015937Z_price_down...` |
+| PRICE_DOWN_OI_DOWN |  |  | long | 24 | mean_reversion | 79 | 79 | 2.35 | 42.0 | 14 | parked_candidate | park | `supported_path_20260427T075010Z_price_down...` |
+| PRICE_DOWN_OI_DOWN |  |  | long | 24 | mean_reversion | 79 | 79 | 2.35 | 42.0 | 14 | parked_candidate | park | `supported_path_20260427T080041Z_price_down...` |
+| PRICE_DOWN_OI_DOWN |  |  | long | 24 | mean_reversion | 79 | 79 | 2.35 | 42.0 | 14 | parked_candidate | park | `supported_path_20260427T080250Z_price_down...` |
+| PRICE_DOWN_OI_DOWN |  |  | long | 24 | mean_reversion | 79 | 79 | 2.35 | 42.0 | 14 | parked_candidate | park | `supported_path_20260427T080951Z_price_down...` |
+| PRICE_DOWN_OI_DOWN |  |  | long | 24 | mean_reversion | 79 | 79 | 2.35 | 42.0 | 14 | parked_candidate | park | `supported_path_20260427T081501Z_price_down...` |
+| PRICE_DOWN_OI_DOWN |  |  | long | 24 | mean_reversion | 79 | 79 | 2.35 | 42.0 | 14 | parked_candidate | park | `supported_path_20260427T082809Z_price_down...` |
+| PRICE_DOWN_OI_DOWN |  |  | long | 24 | mean_reversion | 79 | 79 | 2.35 | 42.0 | 14 | parked_candidate | park | `supported_path_20260427T084014Z_price_down...` |
+| PRICE_DOWN_OI_DOWN |  |  | long | 24 | mean_reversion | 79 | 79 | 2.35 | 42.0 | 14 | parked_candidate | park | `supported_path_20260427T084420Z_price_down...` |
+| PRICE_DOWN_OI_DOWN |  |  | long | 24 | mean_reversion | 79 | 79 | 2.35 | 42.0 | 14 | parked_candidate | park | `supported_path_20260427T090041Z_price_down...` |
+| PRICE_DOWN_OI_DOWN |  |  | long | 24 | mean_reversion | 79 | 79 | 2.35 | 42.0 | 14 | parked_candidate | park | `supported_path_20260427T092736Z_price_down...` |
+| PRICE_DOWN_OI_DOWN |  |  | long | 24 | mean_reversion | 79 | 79 | 2.35 | 42.0 | 14 | parked_candidate | park | `supported_path_20260427T180610Z_price_down...` |
+| PRICE_DOWN_OI_DOWN |  |  | long | 24 | mean_reversion | 79 | 79 | 2.35 | 42.0 | 14 | parked_candidate | park | `mechanism_forced_flow_price_down_oi_down_h...` |
+| PRICE_DOWN_OI_DOWN | BTCUSDT |  | long | 24 | mean_reversion | 79 | 79 | 2.35 | 42.0 | 29 | parked_candidate | park | `mechanism_forced_flow_price_down_oi_down_h...` |
+| PRICE_DOWN_OI_DOWN | BTCUSDT |  | long | 24 | mean_reversion | 79 | 79 | 2.35 | 42.0 | 29 | parked_candidate | park | `supported_path_20260427T001920Z_price_down...` |
+| PRICE_DOWN_OI_DOWN | BTCUSDT |  | long | 24 | mean_reversion | 79 | 79 | 2.35 | 42.0 | 29 | parked_candidate | park | `supported_path_20260427T002214Z_price_down...` |
+| PRICE_DOWN_OI_DOWN | BTCUSDT |  | long | 24 | mean_reversion | 79 | 79 | 2.35 | 42.0 | 29 | parked_candidate | park | `supported_path_20260427T015253Z_price_down...` |
+| PRICE_DOWN_OI_DOWN | BTCUSDT |  | long | 24 | mean_reversion | 79 | 79 | 2.35 | 42.0 | 29 | parked_candidate | park | `supported_path_20260427T015937Z_price_down...` |
+| PRICE_DOWN_OI_DOWN | BTCUSDT |  | long | 24 | mean_reversion | 79 | 79 | 2.35 | 42.0 | 29 | parked_candidate | park | `supported_path_20260427T075010Z_price_down...` |
+| PRICE_DOWN_OI_DOWN | BTCUSDT |  | long | 24 | mean_reversion | 79 | 79 | 2.35 | 42.0 | 29 | parked_candidate | park | `supported_path_20260427T080041Z_price_down...` |
+| PRICE_DOWN_OI_DOWN | BTCUSDT |  | long | 24 | mean_reversion | 79 | 79 | 2.35 | 42.0 | 29 | parked_candidate | park | `supported_path_20260427T080250Z_price_down...` |
+| PRICE_DOWN_OI_DOWN | BTCUSDT |  | long | 24 | mean_reversion | 79 | 79 | 2.35 | 42.0 | 29 | parked_candidate | park | `supported_path_20260427T080951Z_price_down...` |
+| PRICE_DOWN_OI_DOWN | BTCUSDT |  | long | 24 | mean_reversion | 79 | 79 | 2.35 | 42.0 | 29 | parked_candidate | park | `supported_path_20260427T081501Z_price_down...` |
+| PRICE_DOWN_OI_DOWN | BTCUSDT |  | long | 24 | mean_reversion | 79 | 79 | 2.35 | 42.0 | 29 | parked_candidate | park | `supported_path_20260427T082809Z_price_down...` |
+| PRICE_DOWN_OI_DOWN | BTCUSDT |  | long | 24 | mean_reversion | 79 | 79 | 2.35 | 42.0 | 29 | parked_candidate | park | `supported_path_20260427T084014Z_price_down...` |
+| PRICE_DOWN_OI_DOWN | BTCUSDT |  | long | 24 | mean_reversion | 79 | 79 | 2.35 | 42.0 | 29 | parked_candidate | park | `supported_path_20260427T084420Z_price_down...` |
+| PRICE_DOWN_OI_DOWN | BTCUSDT |  | long | 24 | mean_reversion | 79 | 79 | 2.35 | 42.0 | 29 | parked_candidate | park | `supported_path_20260427T090041Z_price_down...` |
+| PRICE_DOWN_OI_DOWN | BTCUSDT |  | long | 24 | mean_reversion | 79 | 79 | 2.35 | 42.0 | 29 | parked_candidate | park | `supported_path_20260427T092736Z_price_down...` |
+| PRICE_DOWN_OI_DOWN | BTCUSDT |  | long | 24 | mean_reversion | 79 | 79 | 2.35 | 42.0 | 29 | parked_candidate | park | `supported_path_20260427T180610Z_price_down...` |
+| PRICE_DOWN_OI_DOWN | BTCUSDT |  | long | 24 | exhaustion_reversal | 79 | 79 | 2.35 | 42.0 | 0 | parked_candidate | park | `mechanism_forced_flow_price_down_oi_down_h...` |
+| PRICE_DOWN_OI_DOWN | BTCUSDT |  | long | 24 |  | 79 | 79 | 2.35 | 42.0 | 29 | parked_candidate | park | `supported_path_20260427T001920Z_price_down...` |
+| PRICE_DOWN_OI_DOWN | BTCUSDT |  | long | 24 |  | 79 | 79 | 2.35 | 42.0 | 29 | parked_candidate | park | `supported_path_20260427T002214Z_price_down...` |
+| PRICE_DOWN_OI_DOWN | BTCUSDT |  | long | 24 |  | 79 | 79 | 2.35 | 42.0 | 29 | parked_candidate | park | `supported_path_20260427T015253Z_price_down...` |
+| PRICE_DOWN_OI_DOWN | BTCUSDT |  | long | 24 |  | 79 | 79 | 2.35 | 42.0 | 29 | parked_candidate | park | `supported_path_20260427T015937Z_price_down...` |
+| PRICE_DOWN_OI_DOWN | BTCUSDT |  | long | 24 |  | 79 | 79 | 2.35 | 42.0 | 29 | parked_candidate | park | `supported_path_20260427T075010Z_price_down...` |
+| PRICE_DOWN_OI_DOWN | BTCUSDT |  | long | 24 |  | 79 | 79 | 2.35 | 42.0 | 29 | parked_candidate | park | `supported_path_20260427T080041Z_price_down...` |
+| PRICE_DOWN_OI_DOWN | BTCUSDT |  | long | 24 |  | 79 | 79 | 2.35 | 42.0 | 29 | parked_candidate | park | `supported_path_20260427T080250Z_price_down...` |
+| PRICE_DOWN_OI_DOWN | BTCUSDT |  | long | 24 |  | 79 | 79 | 2.35 | 42.0 | 29 | parked_candidate | park | `supported_path_20260427T080951Z_price_down...` |
+| PRICE_DOWN_OI_DOWN | BTCUSDT |  | long | 24 |  | 79 | 79 | 2.35 | 42.0 | 29 | parked_candidate | park | `supported_path_20260427T081501Z_price_down...` |
+| PRICE_DOWN_OI_DOWN | BTCUSDT |  | long | 24 |  | 79 | 79 | 2.35 | 42.0 | 29 | parked_candidate | park | `supported_path_20260427T082809Z_price_down...` |
+| PRICE_DOWN_OI_DOWN | BTCUSDT |  | long | 24 |  | 79 | 79 | 2.35 | 42.0 | 29 | parked_candidate | park | `supported_path_20260427T084014Z_price_down...` |
+| PRICE_DOWN_OI_DOWN | BTCUSDT |  | long | 24 |  | 79 | 79 | 2.35 | 42.0 | 29 | parked_candidate | park | `supported_path_20260427T084420Z_price_down...` |
+| PRICE_DOWN_OI_DOWN | BTCUSDT |  | long | 24 |  | 79 | 79 | 2.35 | 42.0 | 29 | parked_candidate | park | `supported_path_20260427T090041Z_price_down...` |
+| PRICE_DOWN_OI_DOWN | BTCUSDT |  | long | 24 |  | 79 | 79 | 2.35 | 42.0 | 29 | parked_candidate | park | `supported_path_20260427T092736Z_price_down...` |
+| PRICE_DOWN_OI_DOWN | BTCUSDT |  | long | 24 |  | 79 | 79 | 2.35 | 42.0 | 29 | parked_candidate | park | `supported_path_20260427T180610Z_price_down...` |
+| PRICE_DOWN_OI_DOWN | BTCUSDT |  | long | 24 | mean_reversion | 78 | 78 | 2.02 | 40.4 | 29 | parked_candidate | park | `supported_path_20260427T000843Z_price_down...` |
+| PRICE_DOWN_OI_DOWN | BTCUSDT |  | long | 24 | mean_reversion | 78 | 78 | 2.02 | 40.4 | 29 | parked_candidate | park | `supported_path_20260427T001141Z_price_down...` |
+| PRICE_DOWN_OI_DOWN | BTCUSDT |  | long | 24 | mean_reversion | 78 | 78 | 2.02 | 40.4 | 29 | parked_candidate | park | `supported_path_20260427T001217Z_price_down...` |
+| PRICE_DOWN_OI_DOWN | BTCUSDT |  | long | 24 | mean_reversion | 78 | 78 | 2.02 | 40.4 | 29 | parked_candidate | park | `supported_path_20260427T001344Z_price_down...` |
+| PRICE_DOWN_OI_DOWN | BTCUSDT |  | long | 24 | mean_reversion | 38 | 38 | 1.87 | 38.6 | 29 | parked_candidate | park | `supported_path_20260426T200321Z_price_down...` |
+| PRICE_DOWN_OI_DOWN | BTCUSDT |  | long | 24 | mean_reversion | 149 | 149 | 0.67 | 6.4 | 29 | parked_candidate | park | `supported_path_20260426T195830Z_price_down...` |
+| PRICE_DOWN_OI_DOWN | BTCUSDT |  | long | 24 | mean_reversion | 149 | 149 | 0.00 | 0.0 | 29 | parked_candidate | park | `supported_path_20260426T194523Z_price_down...` |
 | PRICE_VOL_IMBALANCE_PROXY | BTCUSDT |  | long | 12 | mean_reversion | 396 | 396 | 1.22 | 6.6 | 1 | review_only | review | `liq_proxy_01` |
 | PRICE_VOL_IMBALANCE_PROXY | BTCUSDT |  | long | 12 | continuation | 594 | 594 | 0.51 | 1.9 | 1 | review_only | review | `liq_proxy_01` |
 | PRICE_VOL_IMBALANCE_PROXY | BTCUSDT |  | long | 24 | mean_reversion | 469 | 469 | 0.97 | 6.6 | 2 | review_only | review | `liq_proxy_01` |

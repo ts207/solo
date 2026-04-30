@@ -78,9 +78,11 @@ def proposal_payload_from_seed(
     symbol: str,
     start: str,
     end: str,
+    search_spec_path: Path | None = None,
     timeframe: str = DEFAULT_TIMEFRAME,
 ) -> dict[str, Any]:
     contexts = dict(seed["contexts"])
+    search_spec = {"path": str(search_spec_path)} if search_spec_path is not None else {}
     return {
         "program_id": seed["program_id"],
         "description": seed["description"],
@@ -97,7 +99,7 @@ def proposal_payload_from_seed(
         "start": str(start),
         "end": str(end),
         "instrument_classes": ["crypto"],
-        "search_spec": {},
+        "search_spec": search_spec,
         "avoid_region_keys": [],
         "contexts": contexts,
         "hypothesis": {
@@ -127,6 +129,73 @@ def proposal_payload_from_seed(
             "compiler": "compile_mechanism_proposals.py",
         },
         "version": 1,
+    }
+
+
+def search_spec_payload_from_seed(
+    seed: dict[str, Any],
+    *,
+    symbol: str,
+    mechanism: MechanismSpec,
+) -> dict[str, Any]:
+    return {
+        "version": 1,
+        "kind": "search_space",
+        "metadata": {
+            "phase": f"mechanism_{mechanism.mechanism_id}",
+            "description": seed["description"],
+            "search_tier": "single_event_context",
+            "default_symbols": [symbol],
+        },
+        "triggers": {
+            "events": [seed["event_id"]],
+        },
+        "horizons": [f"{int(seed['horizon_bars'])}b"],
+        "directions": [seed["direction"]],
+        "entry_lag": 1,
+        "cost_profiles": ["standard"],
+        "expression_templates": [seed["template_id"]],
+        "filter_templates": [],
+        "execution_templates": [],
+        "include_sequences": False,
+        "include_interactions": False,
+        "contexts": dict(seed["contexts"]),
+        "discovery_search": {
+            "mode": "flat",
+            "trigger_viability": {
+                "enabled": True,
+                "max_templates": 1,
+                "max_horizons": 1,
+                "max_entry_lags": 1,
+                "allow_both_directions": False,
+                "top_k_triggers": None,
+                "min_stage_score": 0.0,
+            },
+            "template_refinement": {
+                "enabled": False,
+                "top_k_templates_per_trigger": 1,
+                "min_stage_score": 0.0,
+            },
+            "execution_refinement": {
+                "enabled": False,
+                "top_k_shapes_per_template": 1,
+                "min_stage_score": 0.0,
+            },
+            "context_refinement": {
+                "enabled": False,
+                "max_context_dims": 1,
+                "top_k_contexts_per_candidate": 1,
+                "require_unconditional_baseline": True,
+                "min_context_gain": 0.0,
+            },
+        },
+        "discovery_selection": {
+            "mode": "off",
+        },
+        "template_policy": {
+            "generic_templates_allowed": True,
+            "reason": f"mechanism_backed_single_event_context_{mechanism.mechanism_id}",
+        },
     }
 
 
@@ -162,15 +231,26 @@ def compile_mechanism_proposals(
         / "generated_proposals"
     )
     out_dir.mkdir(parents=True, exist_ok=True)
+    search_spec_dir = out_dir / "search_specs"
+    search_spec_dir.mkdir(parents=True, exist_ok=True)
 
     written: list[Path] = []
     for seed in _forced_flow_seeds(symbol)[:limit]:
+        search_spec_path = search_spec_dir / seed["filename"].replace(".yaml", "_search.yaml")
+        search_spec_path.write_text(
+            yaml.safe_dump(
+                search_spec_payload_from_seed(seed, symbol=symbol, mechanism=mechanism),
+                sort_keys=False,
+            ),
+            encoding="utf-8",
+        )
         payload = proposal_payload_from_seed(
             seed,
             mechanism=mechanism,
             symbol=symbol,
             start=start,
             end=end,
+            search_spec_path=search_spec_path,
         )
         candidate = CandidateHypothesis.from_proposal_payload(payload)
         preflight = validate_candidate_against_mechanism(candidate, mechanism)
