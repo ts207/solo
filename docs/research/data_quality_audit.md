@@ -78,6 +78,19 @@ Deterministic classifications:
 `liquidation_notional` is event-sparse and may legitimately be zero-heavy. A
 high zero ratio alone does not make it synthetic.
 
+## Market-Context Repair Notes
+
+`rv_percentile_24h` is a canonical market-context observable for volatility
+compression/release checks. New market-context builds materialize it directly
+when available from `build_features`; older feature runs may only contain
+`rv_pct_17280`. In that case `build_market_context.py` materializes
+`rv_percentile_24h` as a normalized 0-1 percentile alias from `rv_pct_17280`.
+
+This repair is deterministic and PIT-safe because it uses the already lagged
+realized-volatility percentile generated upstream. It does not repair fields
+that require unavailable order-book or depth feeds, including `market_depth`,
+`slippage_bps`, and `order_book`.
+
 ## Funding Cadence
 
 `funding_rate_scaled` and `funding_abs_pct` are `stepwise_cadence` fields. The

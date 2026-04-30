@@ -88,6 +88,14 @@ def _normalize_percentile_scale(series: pd.Series) -> pd.Series:
     return out
 
 
+def _normalize_percentile_fraction(series: pd.Series) -> pd.Series:
+    out = pd.to_numeric(series, errors="coerce").astype(float)
+    non_null = out.dropna()
+    if not non_null.empty and float(non_null.abs().max()) > 1.0:
+        out = out / 100.0
+    return out.clip(lower=0.0, upper=1.0)
+
+
 def _normalize_utc_timestamp_column(
     frame: pd.DataFrame,
     *,
@@ -214,6 +222,8 @@ def _build_market_context(symbol: str, features: pd.DataFrame) -> pd.DataFrame:
 
     # vol regime: use rv_96 percentile if available, else rv_pct_17280
     if "rv_pct_17280" in out.columns:
+        if "rv_percentile_24h" not in out.columns:
+            out["rv_percentile_24h"] = _normalize_percentile_fraction(out["rv_pct_17280"])
         rv_pct = _normalize_percentile_scale(out["rv_pct_17280"])
         vol_probs = calculate_ms_vol_probabilities(rv_pct)
         out = pd.concat([out, vol_probs], axis=1)
@@ -236,7 +246,8 @@ def _build_market_context(symbol: str, features: pd.DataFrame) -> pd.DataFrame:
 
     out["vol_phase"] = "normal"
     if "rv_percentile_24h" in out.columns:
-        rv_24h = pd.to_numeric(out["rv_percentile_24h"], errors="coerce")
+        rv_24h = _normalize_percentile_fraction(out["rv_percentile_24h"])
+        out["rv_percentile_24h"] = rv_24h
         out.loc[rv_24h <= 0.20, "vol_phase"] = "compressed"
         out.loc[rv_24h >= 0.80, "vol_phase"] = "expanding"
     out.loc[out["high_vol_regime"] > 0, "vol_phase"] = "shock"

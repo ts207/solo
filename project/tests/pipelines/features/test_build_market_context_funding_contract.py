@@ -96,6 +96,7 @@ def test_build_market_context_materializes_canonical_state_columns():
         "refill_lag_state",
         "aftershock_state",
         "compression_state_flag",
+        "rv_percentile_24h",
         "vol_regime",
         "vol_regime_code",
         "carry_state",
@@ -157,6 +158,7 @@ def test_build_market_context_materializes_canonical_state_columns():
     assert expected_state_cols.issubset(set(out.columns))
     assert out["ms_context_state_code"].notna().all()
     assert out["vol_regime_code"].equals(out["ms_vol_state"])
+    assert out["rv_percentile_24h"].tolist() == pytest.approx([0.2, 0.4, 0.6, 0.8])
     assert out["carry_state"].tolist() == ["funding_pos", "funding_neg", "funding_pos", "funding_neg"]
     assert out["close_perp"].tolist() == pytest.approx(features["close"].tolist())
     assert out["close_spot"].tolist() == pytest.approx(features["spot_close"].tolist())
@@ -180,6 +182,28 @@ def test_build_market_context_materializes_canonical_state_columns():
         valid = out[cols].dropna()
         assert not valid.empty
         assert (valid.sum(axis=1) - 1.0).abs().max() < 1e-6
+
+
+def test_build_market_context_preserves_existing_rv_percentile_24h_fraction():
+    features = _feature_frame()
+    features["funding_rate_scaled"] = [0.0002, -0.0002, 0.0003, -0.0003]
+    features["rv_percentile_24h"] = [0.1, 0.3, 0.85, 1.0]
+
+    out = build_market_context._build_market_context(symbol="BTCUSDT", features=features)
+
+    assert out["rv_percentile_24h"].tolist() == pytest.approx([0.1, 0.3, 0.85, 1.0])
+    assert out["vol_phase"].tolist() == ["compressed", "normal", "expanding", "shock"]
+
+
+def test_build_market_context_normalizes_existing_rv_percentile_24h_percent_scale():
+    features = _feature_frame()
+    features["funding_rate_scaled"] = [0.0002, -0.0002, 0.0003, -0.0003]
+    features["rv_percentile_24h"] = [10.0, 30.0, 85.0, 100.0]
+
+    out = build_market_context._build_market_context(symbol="BTCUSDT", features=features)
+
+    assert out["rv_percentile_24h"].tolist() == pytest.approx([0.1, 0.3, 0.85, 1.0])
+    assert out["vol_phase"].tolist() == ["compressed", "normal", "expanding", "shock"]
 
 
 def test_build_market_context_normalizes_timestamp_dtypes_before_merge():
