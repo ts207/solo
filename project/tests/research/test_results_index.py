@@ -38,6 +38,9 @@ def test_normalize_result_row_hides_expectancy_without_evaluable_metrics():
     assert row["evidence_class"] == "review_only"
     assert row["decision"] == "review"
     assert row["decision_reason"] == "not_evaluated"
+    assert row["methodology_epoch"] == "pre_mechanism"
+    assert row["active_research_candidate"] is False
+    assert row["archive_reason"] == "pre_mechanism_methodology"
 
 
 def test_normalize_result_row_marks_local_bridge_as_validate_ready():
@@ -201,8 +204,16 @@ def test_writers_emit_json_parquet_and_markdown(tmp_path: Path):
                 "decision": "validate",
                 "decision_reason": "bridge_candidates_present",
                 "next_safe_command": "make validate RUN_ID=run",
+                "required_falsification": [],
                 "forbidden_rescue_actions": ["loosen_gates"],
                 "manual_decision": False,
+                "methodology_epoch": "pre_mechanism",
+                "mechanism_id": "",
+                "mechanism_version": "",
+                "mechanism_preflight_status": "",
+                "mechanism_classification": "",
+                "active_research_candidate": False,
+                "archive_reason": "pre_mechanism_methodology",
                 "nearby_attempt_count": 3,
                 "governed_reproduction_status": "pass",
                 "governed_reproduction_decision": "review",
@@ -229,6 +240,8 @@ def test_writers_emit_json_parquet_and_markdown(tmp_path: Path):
     payload = json.loads(json_path.read_text(encoding="utf-8"))
     assert payload["schema_version"] == "results_index_v1"
     assert payload["rows"][0]["forbidden_rescue_actions"] == ["loosen_gates"]
+    assert payload["rows"][0]["required_falsification"] == []
+    assert payload["rows"][0]["methodology_epoch"] == "pre_mechanism"
     assert payload["rows"][0]["nearby_attempt_count"] == 3
     assert payload["rows"][0]["governed_reproduction_status"] == "pass"
     assert payload["rows"][0]["year_split_status"] == "pass"
@@ -237,6 +250,76 @@ def test_writers_emit_json_parquet_and_markdown(tmp_path: Path):
     md = md_path.read_text(encoding="utf-8")
     assert "TEST_EVENT" in md
     assert "year_split_event_support_pass" in md
+
+
+def test_attach_methodology_provenance_marks_mechanism_backed_row_active():
+    rows = [
+        {
+            "run_id": "run_mech",
+            "evidence_class": "validate_ready",
+            "decision": "validate",
+            "forbidden_rescue_actions": [],
+            "required_falsification": [],
+        }
+    ]
+    metadata = {
+        "run_mech": {
+            "methodology_epoch": "mechanism_backed",
+            "mechanism_id": "forced_flow_reversal",
+            "mechanism_version": "v1",
+            "mechanism_preflight_status": "pass",
+            "mechanism_classification": "mechanism_backed",
+            "required_falsification": ["governed_reproduction"],
+            "forbidden_rescue_actions": ["change_horizon_after_failure"],
+        }
+    }
+
+    out = results_index.attach_active_research_flags(
+        results_index.attach_methodology_provenance(rows, metadata)
+    )
+
+    assert out[0]["methodology_epoch"] == "mechanism_backed"
+    assert out[0]["mechanism_id"] == "forced_flow_reversal"
+    assert out[0]["mechanism_preflight_status"] == "pass"
+    assert out[0]["mechanism_classification"] == "mechanism_backed"
+    assert out[0]["active_research_candidate"] is True
+    assert out[0]["archive_reason"] == ""
+    assert out[0]["required_falsification"] == ["governed_reproduction"]
+
+
+def test_broad_manual_decision_does_not_override_mechanism_backed_row():
+    row = {
+        "run_id": "run_mech",
+        "methodology_epoch": "mechanism_backed",
+        "event_id": "PRICE_DOWN_OI_DOWN",
+        "direction": "long",
+        "horizon_bars": 24,
+        "template_id": "mean_reversion",
+        "evidence_class": "validate_ready",
+        "decision": "validate",
+        "decision_reason": "bridge_candidates_present",
+        "next_safe_command": "make validate RUN_ID=run_mech",
+        "forbidden_rescue_actions": ["change_horizon_after_failure"],
+        "manual_decision": False,
+    }
+    decisions = [
+        {
+            "match": {
+                "event_id": "PRICE_DOWN_OI_DOWN",
+                "direction": "long",
+                "horizon_bars": 24,
+            },
+            "decision": "park",
+            "evidence_class": "parked_candidate",
+            "decision_reason": "pre_mechanism_specificity_pending",
+        }
+    ]
+
+    out = results_index.attach_manual_decisions([row], decisions)
+
+    assert out[0]["decision"] == "validate"
+    assert out[0]["evidence_class"] == "validate_ready"
+    assert out[0]["manual_decision"] is False
 
 
 def test_attach_search_ledger_counts_reads_exact_surface_match(tmp_path: Path):
@@ -337,6 +420,39 @@ def test_attach_year_split_reports_preserves_manual_decision(tmp_path: Path):
     assert out[0]["decision_reason"] == "year_split_pending"
 
 
+def test_attach_year_split_reports_parks_year_conditional_candidate(tmp_path: Path):
+    reports_root = tmp_path / "regime"
+    run_dir = reports_root / "run"
+    run_dir.mkdir(parents=True)
+    (run_dir / "cand_year_split.json").write_text(
+        json.dumps(
+            {
+                "run_id": "run",
+                "status": "fail",
+                "classification": "year_conditional",
+                "decision": "park",
+                "reason": "year_pnl_concentration",
+            }
+        ),
+        encoding="utf-8",
+    )
+    rows = [
+        {
+            "run_id": "run",
+            "manual_decision": False,
+            "decision": "review",
+            "decision_reason": "governed_reproduction_passed",
+        }
+    ]
+
+    out = results_index.attach_year_split_reports(rows, reports_root)
+
+    assert out[0]["year_split_status"] == "fail"
+    assert out[0]["year_split_classification"] == "year_conditional"
+    assert out[0]["decision"] == "park"
+    assert out[0]["decision_reason"] == "year_pnl_concentration"
+
+
 def test_attach_specificity_reports_records_status_without_overriding_manual(
     tmp_path: Path,
 ) -> None:
@@ -373,3 +489,38 @@ def test_attach_specificity_reports_records_status_without_overriding_manual(
     assert out[0]["specificity_classification"] == "insufficient_trace_data"
     assert out[0]["decision"] == "review"
     assert out[0]["decision_reason"] == "year_split_passed_specificity_pending"
+
+
+def test_attach_specificity_reports_preserves_prior_park_decision(tmp_path: Path) -> None:
+    reports_root = tmp_path / "specificity"
+    run_dir = reports_root / "run"
+    run_dir.mkdir(parents=True)
+    (run_dir / "cand_specificity.json").write_text(
+        json.dumps(
+            {
+                "run_id": "run",
+                "candidate_id": "cand",
+                "status": "review",
+                "classification": "insufficient_trace_data",
+                "decision": "review",
+                "reason": "specificity controls unavailable",
+            }
+        ),
+        encoding="utf-8",
+    )
+    rows = [
+        {
+            "run_id": "run",
+            "candidate_id": "cand",
+            "manual_decision": False,
+            "decision": "park",
+            "decision_reason": "year_pnl_concentration",
+        }
+    ]
+
+    out = results_index.attach_specificity_reports(rows, reports_root)
+
+    assert out[0]["specificity_status"] == "review"
+    assert out[0]["specificity_classification"] == "insufficient_trace_data"
+    assert out[0]["decision"] == "park"
+    assert out[0]["decision_reason"] == "year_pnl_concentration"

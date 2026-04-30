@@ -11,6 +11,11 @@ from typing import Any
 import pandas as pd
 import yaml
 
+from project.research.mechanisms import (
+    CandidateHypothesis,
+    load_mechanism,
+    validate_candidate_against_mechanism,
+)
 from project.scripts.discover_doctor import build_discover_doctor_report
 
 warnings.filterwarnings("ignore")
@@ -27,6 +32,13 @@ RESULT_COLUMNS = [
     "run_id",
     "program_id",
     "candidate_id",
+    "methodology_epoch",
+    "mechanism_id",
+    "mechanism_version",
+    "mechanism_preflight_status",
+    "mechanism_classification",
+    "active_research_candidate",
+    "archive_reason",
     "event_id",
     "template_id",
     "context",
@@ -43,6 +55,7 @@ RESULT_COLUMNS = [
     "decision",
     "decision_reason",
     "next_safe_command",
+    "required_falsification",
     "forbidden_rescue_actions",
     "manual_decision",
     "nearby_attempt_count",
@@ -128,6 +141,96 @@ def _to_int(value: Any) -> int | None:
 
 def _round(value: float | None, digits: int) -> float | None:
     return None if value is None else round(float(value), digits)
+
+
+def _load_yaml(path: Path) -> dict[str, Any]:
+    try:
+        payload = yaml.safe_load(path.read_text(encoding="utf-8"))
+    except (OSError, yaml.YAMLError, TypeError, ValueError):
+        return {}
+    return payload if isinstance(payload, dict) else {}
+
+
+def _resolve_path(root: Path, path_value: Any) -> Path:
+    path = Path(str(path_value or ""))
+    return path if path.is_absolute() else root / path
+
+
+def _mechanism_id_from_payload(payload: dict[str, Any]) -> str:
+    mechanism = payload.get("mechanism")
+    if isinstance(mechanism, dict):
+        return str(mechanism.get("id") or mechanism.get("mechanism_id") or "").strip()
+    artifacts = payload.get("artifacts")
+    if isinstance(artifacts, dict):
+        return str(artifacts.get("mechanism_id") or "").strip()
+    return str(payload.get("mechanism_id") or "").strip()
+
+
+def _mechanism_version_from_payload(payload: dict[str, Any]) -> str:
+    mechanism = payload.get("mechanism")
+    if isinstance(mechanism, dict):
+        return str(mechanism.get("version") or "").strip()
+    artifacts = payload.get("artifacts")
+    if isinstance(artifacts, dict):
+        return str(artifacts.get("mechanism_version") or "").strip()
+    return str(payload.get("mechanism_version") or "").strip()
+
+
+def _preflight_metadata_from_payload(
+    payload: dict[str, Any],
+    proposal_path: str = "",
+) -> dict[str, Any]:
+    mechanism_id = _mechanism_id_from_payload(payload)
+    if not mechanism_id:
+        return {}
+    mechanism_version = _mechanism_version_from_payload(payload)
+    try:
+        mechanism = load_mechanism(mechanism_id)
+        candidate = CandidateHypothesis.from_proposal_payload(payload)
+        report = validate_candidate_against_mechanism(
+            candidate,
+            mechanism,
+            proposal_path=proposal_path,
+        )
+        return {
+            "methodology_epoch": "mechanism_backed",
+            "mechanism_id": mechanism.mechanism_id,
+            "mechanism_version": mechanism_version or mechanism.version,
+            "mechanism_preflight_status": report.status,
+            "mechanism_classification": report.classification,
+            "required_falsification": list(report.required_falsification),
+            "forbidden_rescue_actions": list(report.forbidden_rescue_actions),
+        }
+    except Exception:
+        return {
+            "methodology_epoch": "mechanism_backed",
+            "mechanism_id": mechanism_id,
+            "mechanism_version": mechanism_version,
+            "mechanism_preflight_status": "fail",
+            "mechanism_classification": "invalid_mechanism",
+            "required_falsification": list(payload.get("required_falsification") or []),
+            "forbidden_rescue_actions": list(payload.get("forbidden_rescue_actions") or []),
+        }
+
+
+def collect_mechanism_metadata(root: Path = ROOT) -> dict[str, dict[str, Any]]:
+    metadata: dict[str, dict[str, Any]] = {}
+    for path in sorted(root.glob("data/artifacts/experiments/*/memory/proposals.parquet")):
+        try:
+            df = pd.read_parquet(path)
+        except Exception as exc:
+            warnings.warn(f"Could not read proposal memory from {path}: {exc}", stacklevel=2)
+            continue
+        for _, row in df.iterrows():
+            run_id = str(row.get("run_id", "") or "")
+            proposal_path = _resolve_path(root, row.get("proposal_path"))
+            if not run_id or not proposal_path.exists():
+                continue
+            payload = _load_yaml(proposal_path)
+            mechanism_meta = _preflight_metadata_from_payload(payload, str(proposal_path))
+            if mechanism_meta:
+                metadata[run_id] = mechanism_meta
+    return metadata
 
 
 def _horizon_bars(value: Any) -> int | None:
@@ -275,6 +378,13 @@ def normalize_result_row(row: dict[str, Any]) -> dict[str, Any]:
         "run_id": str(row.get("run_id", "") or ""),
         "program_id": program_id,
         "candidate_id": "",
+        "methodology_epoch": "pre_mechanism",
+        "mechanism_id": "",
+        "mechanism_version": "",
+        "mechanism_preflight_status": "",
+        "mechanism_classification": "",
+        "active_research_candidate": False,
+        "archive_reason": "pre_mechanism_methodology",
         "event_id": _event_from_row(row),
         "template_id": infer_template(program_id, _first_present(row, ["template_id", "template"])),
         "context": _context_from_row(row),
@@ -289,6 +399,7 @@ def normalize_result_row(row: dict[str, Any]) -> dict[str, Any]:
         "mean_return_net_bps": _round(_mean_return_net_bps(row), 4),
         "q_value": _round(_to_float(_first_present(row, ["q_value", "p_value_for_fdr"])), 6),
         "robustness_score": _round(_to_float(row.get("robustness_score")), 4),
+        "required_falsification": [],
         "forbidden_rescue_actions": [],
         "manual_decision": False,
         "nearby_attempt_count": 0,
@@ -412,6 +523,12 @@ def attach_manual_decisions(
             match = decision.get("match", {})
             if not isinstance(match, dict) or not _matches(row, match):
                 continue
+            if (
+                row.get("methodology_epoch") == "mechanism_backed"
+                and "run_id" not in match
+                and decision.get("applies_to_methodology_epoch") != "mechanism_backed"
+            ):
+                continue
             matched_ids.add(idx)
             row["evidence_class"] = str(decision.get("evidence_class", row["evidence_class"]))
             row["decision"] = str(decision.get("decision", row["decision"]))
@@ -449,6 +566,7 @@ def attach_manual_decisions(
                 "next_safe_command": str(
                     decision.get("next_safe_command", manual_row["next_safe_command"])
                 ),
+                "required_falsification": list(decision.get("required_falsification", []) or []),
                 "forbidden_rescue_actions": list(
                     decision.get("forbidden_rescue_actions", []) or []
                 ),
@@ -457,6 +575,64 @@ def attach_manual_decisions(
         )
         out.append(manual_row)
 
+    return out
+
+
+def attach_methodology_provenance(
+    rows: list[dict[str, Any]],
+    mechanism_metadata: dict[str, dict[str, Any]],
+) -> list[dict[str, Any]]:
+    out: list[dict[str, Any]] = []
+    for row in rows:
+        updated = dict(row)
+        run_id = str(updated.get("run_id", "") or "")
+        metadata = mechanism_metadata.get(run_id)
+        if metadata:
+            updated["methodology_epoch"] = "mechanism_backed"
+            updated["mechanism_id"] = str(metadata.get("mechanism_id", "") or "")
+            updated["mechanism_version"] = str(metadata.get("mechanism_version", "") or "")
+            updated["mechanism_preflight_status"] = str(
+                metadata.get("mechanism_preflight_status", "") or ""
+            )
+            updated["mechanism_classification"] = str(
+                metadata.get("mechanism_classification", "") or ""
+            )
+            updated["archive_reason"] = ""
+            updated["required_falsification"] = list(metadata.get("required_falsification") or [])
+            if metadata.get("forbidden_rescue_actions"):
+                updated["forbidden_rescue_actions"] = list(
+                    metadata.get("forbidden_rescue_actions") or []
+                )
+        else:
+            updated.setdefault("methodology_epoch", "pre_mechanism")
+            updated.setdefault("archive_reason", "pre_mechanism_methodology")
+            if not updated.get("methodology_epoch"):
+                updated["methodology_epoch"] = "pre_mechanism"
+            if not updated.get("archive_reason"):
+                updated["archive_reason"] = "pre_mechanism_methodology"
+        out.append(updated)
+    return out
+
+
+def attach_active_research_flags(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    terminal_decisions = {"kill", "park", "archive"}
+    terminal_classes = {"killed_candidate", "parked_candidate", "historical_result"}
+    out: list[dict[str, Any]] = []
+    for row in rows:
+        updated = dict(row)
+        methodology_epoch = str(updated.get("methodology_epoch", "") or "")
+        preflight_status = str(updated.get("mechanism_preflight_status", "") or "")
+        decision = str(updated.get("decision", "") or "")
+        evidence_class = str(updated.get("evidence_class", "") or "")
+        updated["active_research_candidate"] = (
+            methodology_epoch == "mechanism_backed"
+            and preflight_status == "pass"
+            and decision not in terminal_decisions
+            and evidence_class not in terminal_classes
+        )
+        if methodology_epoch == "pre_mechanism":
+            updated["archive_reason"] = updated.get("archive_reason") or "pre_mechanism_methodology"
+        out.append(updated)
     return out
 
 
@@ -631,7 +807,7 @@ def attach_year_split_reports(
                 classification = str(report.get("classification", "") or "")
                 decision = str(report.get("decision", "") or "")
                 if classification == "year_conditional":
-                    updated["decision"] = "monitor"
+                    updated["decision"] = decision if decision in {"park", "kill"} else "park"
                     updated["decision_reason"] = str(report.get("reason", "") or "")
                 elif decision in {"review", "monitor", "park", "kill"}:
                     updated["decision"] = decision
@@ -671,7 +847,10 @@ def attach_specificity_reports(
             updated["specificity_classification"] = str(report.get("classification", "") or "")
             updated["specificity_reason"] = str(report.get("reason", "") or "")
             updated["specificity_decision"] = str(report.get("decision", "") or "")
-            if not bool(updated.get("manual_decision")):
+            if not bool(updated.get("manual_decision")) and updated.get("decision") not in {
+                "park",
+                "kill",
+            }:
                 decision = str(report.get("decision", "") or "")
                 classification = str(report.get("classification", "") or "")
                 if classification == "insufficient_trace_data":
@@ -698,7 +877,11 @@ def _clean_records(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
                 value = None if column in {"horizon_bars", "n_obs", "event_count"} else ""
             if column == "forbidden_rescue_actions":
                 value = list(value or [])
+            if column == "required_falsification":
+                value = list(value or [])
             if column == "manual_decision":
+                value = bool(value) if not _is_missing(value) else False
+            if column == "active_research_candidate":
                 value = bool(value) if not _is_missing(value) else False
             if column == "nearby_attempt_count":
                 value = _to_int(value) or 0
@@ -710,7 +893,9 @@ def _clean_records(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
 def build_results_index(root: Path = ROOT, decisions_path: Path = DECISIONS_PATH) -> pd.DataFrame:
     normalized = [normalize_result_row(row) for row in collect_result_rows(root)]
     normalized = [row for row in normalized if row.get("event_id")]
-    with_doctor = attach_doctor_status(normalized, root=root)
+    mechanism_metadata = collect_mechanism_metadata(root)
+    with_initial_provenance = attach_methodology_provenance(normalized, mechanism_metadata)
+    with_doctor = attach_doctor_status(with_initial_provenance, root=root)
     with_manual = attach_manual_decisions(with_doctor, load_manual_decisions(decisions_path))
     with_search_counts = attach_search_ledger_counts(
         _dedupe_rows(with_manual),
@@ -728,7 +913,9 @@ def build_results_index(root: Path = ROOT, decisions_path: Path = DECISIONS_PATH
         with_year_split,
         root / "data" / "reports" / "specificity",
     )
-    rows = _clean_records(with_specificity)
+    with_final_provenance = attach_methodology_provenance(with_specificity, mechanism_metadata)
+    with_active_flags = attach_active_research_flags(with_final_provenance)
+    rows = _clean_records(with_active_flags)
     return pd.DataFrame(rows, columns=RESULT_COLUMNS).sort_values(
         ["event_id", "direction", "horizon_bars", "t_stat_net"],
         ascending=[True, True, True, False],
@@ -816,11 +1003,31 @@ def render_results_markdown(df: pd.DataFrame) -> str:
                 f"{row.get('decision_reason', '')} |"
             )
 
+    lines.extend(["", "## Active Mechanism-Backed Candidates", ""])
+    lines.extend(
+        [
+            "| Mechanism | Event | Symbol | Context | Dir | Horizon | Template | Evidence | Decision | Run |",
+            "|---|---|---|---|---|---:|---|---|---|---|",
+        ]
+    )
+    active_df = df[df["active_research_candidate"]] if not df.empty else df
+    for _, row in active_df.iterrows():
+        run_id = str(row.get("run_id", "") or "")
+        if len(run_id) > 42:
+            run_id = run_id[:42] + "..."
+        lines.append(
+            f"| {row.get('mechanism_id', '')} | {row.get('event_id', '')} | "
+            f"{row.get('symbol', '')} | {row.get('context', '')} | "
+            f"{row.get('direction', '')} | {_fmt(row.get('horizon_bars'), '{:.0f}')} | "
+            f"{row.get('template_id', '')} | {row.get('evidence_class', '')} | "
+            f"{row.get('decision', '')} | `{run_id}` |"
+        )
+
     lines.extend(["", "## Full Index", ""])
     lines.extend(
         [
-            "| Event | Symbol | Context | Dir | Horizon | Template | n | events | t | net bps | nearby | Evidence | Decision | Run |",
-            "|---|---|---|---|---:|---|---:|---:|---:|---:|---:|---|---|---|",
+            "| Epoch | Mechanism | Active | Event | Symbol | Context | Dir | Horizon | Template | n | events | t | net bps | nearby | Evidence | Decision | Run |",
+            "|---|---|---|---|---|---|---|---:|---|---:|---:|---:|---:|---:|---|---|---|",
         ]
     )
     for _, row in df.iterrows():
@@ -828,7 +1035,9 @@ def render_results_markdown(df: pd.DataFrame) -> str:
         if len(run_id) > 42:
             run_id = run_id[:42] + "..."
         lines.append(
-            f"| {row.get('event_id', '')} | {row.get('symbol', '')} | {row.get('context', '')} | "
+            f"| {row.get('methodology_epoch', '')} | {row.get('mechanism_id', '')} | "
+            f"{row.get('active_research_candidate', '')} | "
+            f"{row.get('event_id', '')} | {row.get('symbol', '')} | {row.get('context', '')} | "
             f"{row.get('direction', '')} | {_fmt(row.get('horizon_bars'), '{:.0f}')} | "
             f"{row.get('template_id', '')} | {_fmt(row.get('n_obs'), '{:.0f}')} | "
             f"{_fmt(row.get('event_count'), '{:.0f}')} | {_fmt(row.get('t_stat_net'), '{:.2f}')} | "

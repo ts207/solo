@@ -83,7 +83,8 @@ def test_year_split_marks_year_conditional_when_event_support_concentrates(
 
     assert report["status"] == "fail"
     assert report["classification"] == "year_conditional"
-    assert report["decision"] == "monitor"
+    assert report["decision"] == "park"
+    assert report["reason"] == "year_pnl_concentration"
     assert report["concentration"]["max_event_share"] == 0.75
 
 

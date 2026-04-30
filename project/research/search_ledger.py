@@ -21,6 +21,13 @@ SEARCH_LEDGER_COLUMNS = [
     "run_id",
     "program_id",
     "proposal_hash",
+    "methodology_epoch",
+    "mechanism_id",
+    "mechanism_version",
+    "mechanism_preflight_status",
+    "mechanism_classification",
+    "active_research_candidate",
+    "archive_reason",
     "event_id",
     "template_id",
     "context",
@@ -39,7 +46,9 @@ SEARCH_LEDGER_COLUMNS = [
     "evidence_class",
     "decision",
     "decision_reason",
+    "required_falsification",
     "nearby_attempt_count",
+    "forbidden_rescue_actions",
 ]
 
 
@@ -209,6 +218,7 @@ def _normalize_ledger_row(
     row: dict[str, Any],
     plan_metadata: dict[str, dict[str, Any]],
     proposal_metadata: dict[str, dict[str, Any]],
+    mechanism_metadata: dict[str, dict[str, Any]],
 ) -> dict[str, Any]:
     run_id = str(row.get("run_id", "") or "")
     plan = plan_metadata.get(run_id, {})
@@ -216,11 +226,45 @@ def _normalize_ledger_row(
     program_id = str(
         row.get("program_id", "") or proposal.get("program_id") or plan.get("program_id") or ""
     )
+    mechanism = mechanism_metadata.get(run_id, {})
+    methodology_epoch = str(
+        row.get("methodology_epoch", "") or mechanism.get("methodology_epoch") or "pre_mechanism"
+    )
+    evidence_class = str(row.get("evidence_class", "") or "")
+    decision = str(row.get("decision", "") or "")
+    active_research_candidate = (
+        methodology_epoch == "mechanism_backed"
+        and str(mechanism.get("mechanism_preflight_status", "") or "") == "pass"
+        and evidence_class not in {"killed_candidate", "parked_candidate", "historical_result"}
+        and decision not in {"kill", "park", "archive"}
+    )
     return {
         "run_id": run_id,
         "program_id": program_id,
         "proposal_hash": str(
             proposal.get("proposal_hash") or _sha256_text(f"{program_id}:{run_id}")
+        ),
+        "methodology_epoch": methodology_epoch,
+        "mechanism_id": str(row.get("mechanism_id", "") or mechanism.get("mechanism_id", "") or ""),
+        "mechanism_version": str(
+            row.get("mechanism_version", "") or mechanism.get("mechanism_version", "") or ""
+        ),
+        "mechanism_preflight_status": str(
+            row.get("mechanism_preflight_status", "")
+            or mechanism.get("mechanism_preflight_status", "")
+            or ""
+        ),
+        "mechanism_classification": str(
+            row.get("mechanism_classification", "")
+            or mechanism.get("mechanism_classification", "")
+            or ""
+        ),
+        "active_research_candidate": bool(
+            row.get("active_research_candidate", active_research_candidate)
+        ),
+        "archive_reason": str(
+            row.get("archive_reason", "")
+            or ("" if methodology_epoch == "mechanism_backed" else "pre_mechanism_methodology")
         ),
         "event_id": str(row.get("event_id", "") or ""),
         "template_id": str(row.get("template_id", "") or ""),
@@ -237,10 +281,18 @@ def _normalize_ledger_row(
         "t_stat_net": _to_float(row.get("t_stat_net")),
         "q_value": _to_float(row.get("q_value")),
         "robustness_score": _to_float(row.get("robustness_score")),
-        "evidence_class": str(row.get("evidence_class", "") or ""),
-        "decision": str(row.get("decision", "") or ""),
+        "evidence_class": evidence_class,
+        "decision": decision,
         "decision_reason": str(row.get("decision_reason", "") or ""),
+        "required_falsification": list(
+            row.get("required_falsification") or mechanism.get("required_falsification") or []
+        ),
         "nearby_attempt_count": 0,
+        "forbidden_rescue_actions": list(
+            row.get("forbidden_rescue_actions")
+            or mechanism.get("forbidden_rescue_actions")
+            or []
+        ),
     }
 
 
@@ -282,8 +334,9 @@ def attach_nearby_attempt_counts(df: pd.DataFrame) -> pd.DataFrame:
 def build_search_ledger(root: Path = ROOT) -> pd.DataFrame:
     plan_metadata = collect_validated_plan_metadata(root)
     proposal_metadata = collect_proposal_metadata(root)
+    mechanism_metadata = results_index.collect_mechanism_metadata(root)
     rows = [
-        _normalize_ledger_row(row, plan_metadata, proposal_metadata)
+        _normalize_ledger_row(row, plan_metadata, proposal_metadata, mechanism_metadata)
         for row in collect_search_rows(root)
         if row.get("event_id")
     ]

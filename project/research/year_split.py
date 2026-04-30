@@ -242,8 +242,8 @@ def _classify(
         return (
             "fail",
             "year_conditional",
-            "monitor",
-            "one year supplies more than 50% of event or PnL support",
+            "park",
+            "year_pnl_concentration",
             checks,
         )
     if concentration.get("return_stats_available"):
@@ -288,7 +288,7 @@ def build_year_split_report(
     if status == "pass" and classification == "general_candidate":
         next_safe_command = "Run specificity v1 before validation or promotion."
     elif classification == "year_conditional":
-        next_safe_command = "Keep monitor-only unless an ex-ante regime thesis is declared."
+        next_safe_command = "Park unless an ex-ante regime thesis is declared before retesting."
     else:
         next_safe_command = "Inspect source artifacts before continuing."
 
