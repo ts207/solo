@@ -1,0 +1,92 @@
+mechanism_id: forced_flow_reversal
+version: v1
+status: active
+priority: high
+
+claim: >
+  Forced deleveraging creates temporary directional price pressure. When price
+  falls while open interest also falls, leveraged positions may be closing
+  rather than new shorts entering. In high-volatility or negative-carry regimes,
+  the end of forced flow can create short-horizon mean reversion.
+
+forced_actor:
+  - leveraged_longs
+  - stop_loss_sellers
+  - liquidation_flow
+
+observable_pressure:
+  required:
+    - price_down
+    - open_interest_down
+  supportive:
+    - volatility_high
+    - funding_negative
+    - spread_widening
+    - liquidation_proxy
+    - volume_climax
+
+candidate_events:
+  - PRICE_DOWN_OI_DOWN
+  - OI_FLUSH
+  - CLIMAX_VOLUME_BAR
+  - LIQUIDATION_EXHAUSTION_REVERSAL
+  - POST_DELEVERAGING_REBOUND
+
+allowed_templates:
+  - mean_reversion
+  - exhaustion_reversal
+
+allowed_directions:
+  - long
+
+allowed_horizons_bars:
+  - 12
+  - 24
+  - 48
+
+allowed_contexts:
+  preferred:
+    - VOL_REGIME=HIGH
+    - CARRY_STATE=FUNDING_NEG
+  allowed:
+    - MS_TREND_STATE=BEARISH
+    - MS_TREND_STATE=CHOP
+  forbidden:
+    - VOL_REGIME=LOW
+
+required_falsification:
+  - governed_reproduction
+  - search_burden
+  - candidate_traces
+  - year_pnl_split
+  - event_only_control
+  - context_only_control
+  - opposite_direction_control
+  - entry_lag_sensitivity
+  - cost_stress
+  - forward_confirmation
+
+kill_conditions:
+  - governed_reproduction_failed
+  - forward_confirmation_failed
+  - pnl_concentrated_in_one_year_without_ex_ante_regime
+  - event_only_performs_as_well_as_event_plus_context
+  - context_only_performs_as_well_as_event_plus_context
+  - opposite_direction_passes
+  - current_event_surface_drift_unexplained
+  - two_x_cost_flips_expectancy_negative
+
+allowed_rescue_actions:
+  - define_new_ex_ante_regime
+  - improve_observable_data_quality
+  - fix_detector_materialization_bug
+  - add_true_liquidation_or_depth_data
+
+forbidden_rescue_actions:
+  - drop_bad_years_after_result
+  - change_horizon_after_failure
+  - change_context_after_failure
+  - loosen_gates
+  - add_symbols_after_failure
+  - promote_without_specificity
+  - promote_without_forward_confirmation

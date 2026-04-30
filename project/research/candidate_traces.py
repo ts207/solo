@@ -122,6 +122,40 @@ def _candidate_frame(data_root: Path, run_id: str) -> pd.DataFrame:
     return _read_table(_phase2_dir(data_root, run_id) / "phase2_candidates.parquet")
 
 
+def _evaluated_hypotheses_frame(data_root: Path, run_id: str) -> pd.DataFrame:
+    frames = []
+    for path in sorted((_phase2_dir(data_root, run_id) / "hypotheses").glob("*/evaluated_hypotheses.parquet")):
+        frame = _read_table(path)
+        if not frame.empty:
+            frames.append(frame)
+    return pd.concat(frames, ignore_index=True) if frames else pd.DataFrame()
+
+
+def _evaluation_results_frame(data_root: Path, run_id: str) -> pd.DataFrame:
+    pattern = str(data_root / "artifacts" / "experiments" / "*" / run_id / "evaluation_results.parquet")
+    frames = [_read_table(Path(path)) for path in sorted(glob.glob(pattern))]
+    valid = [frame for frame in frames if not frame.empty]
+    return pd.concat(valid, ignore_index=True) if valid else pd.DataFrame()
+
+
+def _select_metadata_row(df: pd.DataFrame, ids: set[str]) -> dict[str, Any]:
+    if df.empty:
+        return {}
+    selected = df.copy()
+    masks = []
+    for column in ("candidate_id", "hypothesis_id", "strategy_id"):
+        if column in selected.columns:
+            masks.append(selected[column].map(lambda value: any(_ids_match(value, item) for item in ids)))
+    if masks:
+        mask = masks[0]
+        for next_mask in masks[1:]:
+            mask = mask | next_mask
+        matched = selected[mask].copy()
+        if not matched.empty:
+            selected = matched
+    return selected.iloc[0].to_dict()
+
+
 def _select_candidate(
     data_root: Path,
     run_id: str,
@@ -169,6 +203,13 @@ def _candidate_profile(
     candidate_id: str,
 ) -> tuple[dict[str, Any], set[str]]:
     candidate, ids = _select_candidate(data_root, run_id, candidate_id)
+    for supplement in (
+        _select_metadata_row(_evaluated_hypotheses_frame(data_root, run_id), ids),
+        _select_metadata_row(_evaluation_results_frame(data_root, run_id), ids),
+    ):
+        for key, value in supplement.items():
+            if results_index._is_missing(candidate.get(key)) and not results_index._is_missing(value):
+                candidate[key] = value
     context_key, context_value = _candidate_context(candidate)
     profile = {
         "run_id": run_id,

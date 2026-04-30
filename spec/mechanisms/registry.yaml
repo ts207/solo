@@ -1,0 +1,38 @@
+version: mechanism_registry_v1
+
+mechanisms:
+  forced_flow_reversal:
+    path: spec/mechanisms/forced_flow_reversal.yaml
+    priority: high
+    status: active
+    deploy_relevance: true
+
+  funding_squeeze:
+    path: spec/mechanisms/funding_squeeze.yaml
+    priority: high
+    status: draft
+    deploy_relevance: true
+
+  liquidation_exhaustion_rebound:
+    path: spec/mechanisms/liquidation_exhaustion_rebound.yaml
+    priority: high
+    status: draft
+    deploy_relevance: true
+
+  liquidity_vacuum:
+    path: spec/mechanisms/liquidity_vacuum.yaml
+    priority: medium
+    status: draft
+    deploy_relevance: true
+
+  stop_run_reversal:
+    path: spec/mechanisms/stop_run_reversal.yaml
+    priority: medium
+    status: draft
+    deploy_relevance: true
+
+  volatility_compression_release:
+    path: spec/mechanisms/volatility_compression_release.yaml
+    priority: medium
+    status: draft
+    deploy_relevance: false

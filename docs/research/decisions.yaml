@@ -19,15 +19,18 @@ decisions:
       event_id: PRICE_DOWN_OI_DOWN
       direction: long
       horizon_bars: 24
-    decision: review
-    evidence_class: review_only
-    decision_reason: specificity_insufficient_trace_data
-    next_safe_command: Inspect pipeline trace generation for specificity control traces before validation.
+    evidence_class: parked_candidate
+    decision: park
+    decision_reason: year_conditional_pnl_concentration_2022_specificity_controls_missing
+    next_safe_command: Candidate parked; use autopsy before choosing specificity infrastructure or the next candidate.
     forbidden_rescue_actions:
+      - drop_2022_without_ex_ante_regime_rule
+      - drop_2023_2024_to_preserve_pnl
       - change_horizon
-      - drop_bad_years
+      - change_context
       - loosen_gates
-      - add_symbols_without_mechanism
+      - promote_without_specificity_controls
+      - promote_without_forward_confirmation
 
   - match:
       event_id: OVERSHOOT_AFTER_SHOCK
