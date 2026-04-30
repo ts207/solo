@@ -1,0 +1,26 @@
+{
+  "data_quality_blocked_fields": [],
+  "data_quality_decision": "paper_blocked",
+  "data_quality_proxy_fields": [
+    "basis_zscore"
+  ],
+  "data_quality_source_path": "data/reports/data_quality_audit/data_quality_audit_cadence_20260430T095737Z/mechanism_data_quality.json",
+  "decision": "park",
+  "event_lift_passing_count": 0,
+  "generated_at": "2026-04-30T10:03:08Z",
+  "mechanism_id": "funding_squeeze",
+  "mechanism_status": "active",
+  "paper_allowed": false,
+  "proposal_allowed": false,
+  "reason": "data is research-usable but regimes are directionally negative; paper remains blocked by proxy basis_zscore",
+  "regime_decision_summary": {
+    "allow_event_lift": 0,
+    "reject_directional": 9
+  },
+  "schema_version": "research_decision_snapshot_v1",
+  "valid_next_paths": [
+    "Define a new ex-ante regime matrix, not a new event.",
+    "Repair or replace basis_zscore if papering funding_squeeze becomes relevant.",
+    "Move to another mechanism only after its data-quality status is acceptable."
+  ]
+}
