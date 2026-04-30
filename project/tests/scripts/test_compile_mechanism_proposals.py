@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import pytest
 import yaml
 
 from project.research.mechanisms import CandidateHypothesis, load_mechanism
@@ -53,30 +54,13 @@ def test_compile_limit_prevents_cartesian_expansion(tmp_path):
     assert paths[0].name == "forced_flow_oi_flush_highvol_long_h24_eth.yaml"
 
 
-def test_compile_funding_squeeze_seed_is_bounded_and_mechanism_valid(tmp_path):
-    paths = compile_mechanism_proposals(
-        mechanism_id="funding_squeeze",
-        symbol="BTCUSDT",
-        start="2022-01-01",
-        end="2024-12-31",
-        data_root=tmp_path,
-        limit=1,
-    )
-
-    assert len(paths) == 1
-    assert paths[0].name == "funding_squeeze_funding_extreme_neg_highvol_long_h24_btc.yaml"
-    payload = yaml.safe_load(paths[0].read_text(encoding="utf-8"))
-    search_spec_path = paths[0].parent / "search_specs" / paths[0].name.replace(".yaml", "_search.yaml")
-    search_spec = yaml.safe_load(search_spec_path.read_text(encoding="utf-8"))
-    mechanism = load_mechanism(payload["mechanism"]["id"])
-    candidate = CandidateHypothesis.from_proposal_payload(payload)
-    assert payload["mechanism"]["id"] == "funding_squeeze"
-    assert candidate.event_id == "FUNDING_EXTREME"
-    assert candidate.template_id == "exhaustion_reversal"
-    assert candidate.direction == "long"
-    assert candidate.horizon_bars == 24
-    assert payload["contexts"] == {"carry_state": ["funding_neg"], "vol_regime": ["high"]}
-    assert search_spec["contexts"] == payload["contexts"]
-    assert search_spec["triggers"]["events"] == ["FUNDING_EXTREME"]
-    assert set(mechanism.required_falsification) <= set(payload["required_falsification"])
-    assert set(mechanism.forbidden_rescue_actions) <= set(payload["forbidden_rescue_actions"])
+def test_compile_funding_squeeze_refuses_invalid_unregistered_seed(tmp_path):
+    with pytest.raises(ValueError, match="FUNDING_EXTREME is not in the authoritative registry"):
+        compile_mechanism_proposals(
+            mechanism_id="funding_squeeze",
+            symbol="BTCUSDT",
+            start="2022-01-01",
+            end="2024-12-31",
+            data_root=tmp_path,
+            limit=1,
+        )

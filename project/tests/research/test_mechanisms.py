@@ -87,7 +87,7 @@ def test_funding_squeeze_mechanism_spec_validates_cleanly():
     assert "forward_confirmation" in mechanism.required_falsification
 
 
-def test_funding_squeeze_candidate_passes_when_tuple_matches_mechanism():
+def test_funding_squeeze_candidate_fails_until_event_is_registry_valid():
     mechanism = load_mechanism("funding_squeeze")
     payload = _candidate_payload()
     payload["hypothesis"]["anchor"]["event_id"] = "FUNDING_EXTREME"
@@ -106,8 +106,11 @@ def test_funding_squeeze_candidate_passes_when_tuple_matches_mechanism():
 
     report = validate_candidate_against_mechanism(candidate, mechanism)
 
-    assert report.status == "pass"
-    assert report.classification == "mechanism_backed"
+    assert report.status == "fail"
+    assert report.classification == "mechanism_violation"
+    check = {item.id: item for item in report.checks}["event_in_authoritative_registry"]
+    assert check.status == "fail"
+    assert check.detail == "FUNDING_EXTREME is not in the authoritative registry"
 
 
 def test_candidate_passes_when_tuple_and_controls_match_mechanism():
@@ -119,6 +122,12 @@ def test_candidate_passes_when_tuple_and_controls_match_mechanism():
     assert report.status == "pass"
     assert report.classification == "mechanism_backed"
     assert {check.id: check.status for check in report.checks}["event_allowed"] == "pass"
+    assert {check.id: check.status for check in report.checks}[
+        "event_in_authoritative_registry"
+    ] == "pass"
+    assert {check.id: check.status for check in report.checks}[
+        "template_in_template_registry"
+    ] == "pass"
 
 
 def test_candidate_fails_for_forbidden_context():
@@ -132,6 +141,34 @@ def test_candidate_fails_for_forbidden_context():
     assert report.status == "fail"
     assert report.classification == "mechanism_violation"
     assert {check.id: check.status for check in report.checks}["context_forbidden"] == "fail"
+
+
+def test_candidate_canonicalizes_display_context_tokens():
+    mechanism = load_mechanism("forced_flow_reversal")
+    payload = _candidate_payload()
+    payload["hypothesis"]["filters"]["contexts"] = {"VOL_REGIME": ["HIGH"]}
+    candidate = CandidateHypothesis.from_proposal_payload(payload)
+
+    report = validate_candidate_against_mechanism(candidate, mechanism)
+
+    checks = [item for item in report.checks if item.id == "context_canonicalized"]
+    assert checks
+    assert checks[0].detail == "VOL_REGIME=HIGH canonicalized to vol_regime=high"
+    assert {check.id: check.status for check in report.checks}["context_value_allowed"] == "pass"
+
+
+def test_candidate_fails_for_invalid_context_value():
+    mechanism = load_mechanism("forced_flow_reversal")
+    payload = _candidate_payload()
+    payload["hypothesis"]["filters"]["contexts"] = {"carry_state": ["funding_negative"]}
+    candidate = CandidateHypothesis.from_proposal_payload(payload)
+
+    report = validate_candidate_against_mechanism(candidate, mechanism)
+
+    check = {item.id: item for item in report.checks}["context_value_allowed"]
+    assert report.status == "fail"
+    assert check.status == "fail"
+    assert "carry_state=funding_negative" in check.detail
 
 
 def test_candidate_fails_when_required_falsification_missing():

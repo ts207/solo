@@ -2,10 +2,18 @@ from __future__ import annotations
 
 import json
 from dataclasses import dataclass, field
+from functools import lru_cache
 from pathlib import Path
 from typing import Any
 
 import yaml
+
+from project.research.regime_event_inventory import (
+    ContextRegistry,
+    load_authoritative_event_registry,
+    load_context_registry,
+    load_template_ids,
+)
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 DEFAULT_REGISTRY_PATH = REPO_ROOT / "spec" / "mechanisms" / "registry.yaml"
@@ -69,14 +77,44 @@ def _parse_context_token(value: Any) -> tuple[str, str]:
     return _normalize_token(key), _normalize_token(raw_value)
 
 
-def _normalize_context_map(contexts: dict[str, Any] | None) -> dict[str, list[str]]:
+def _normalize_context_map_with_canonicalizations(
+    contexts: dict[str, Any] | None,
+) -> tuple[dict[str, list[str]], list[str]]:
     normalized: dict[str, list[str]] = {}
+    canonicalizations: list[str] = []
     for raw_key, raw_values in (contexts or {}).items():
         key = _normalize_token(raw_key)
         values = _as_str_list(raw_values)
         if key and values:
-            normalized[key] = [_normalize_token(value) for value in values]
-    return normalized
+            normalized_values: list[str] = []
+            for value in values:
+                canonical_value = _normalize_token(value)
+                normalized_values.append(canonical_value)
+                raw_label = f"{str(raw_key).strip()}={str(value).strip()}"
+                canonical_label = f"{key}={canonical_value}"
+                if raw_label != canonical_label:
+                    canonicalizations.append(f"{raw_label} canonicalized to {canonical_label}")
+            normalized[key] = normalized_values
+    return normalized, canonicalizations
+
+
+def _normalize_context_map(contexts: dict[str, Any] | None) -> dict[str, list[str]]:
+    return _normalize_context_map_with_canonicalizations(contexts)[0]
+
+
+@lru_cache(maxsize=1)
+def _authoritative_events() -> dict[str, dict[str, Any]]:
+    return load_authoritative_event_registry()
+
+
+@lru_cache(maxsize=1)
+def _template_ids() -> set[str]:
+    return load_template_ids()
+
+
+@lru_cache(maxsize=1)
+def _context_registry() -> ContextRegistry:
+    return load_context_registry()
 
 
 @dataclass(frozen=True)
@@ -191,6 +229,7 @@ class CandidateHypothesis:
     required_falsification: list[str] = field(default_factory=list)
     forbidden_rescue_actions: list[str] = field(default_factory=list)
     context_justification: str = ""
+    context_canonicalizations: list[str] = field(default_factory=list)
 
     @classmethod
     def from_proposal_payload(cls, payload: dict[str, Any]) -> CandidateHypothesis:
@@ -206,12 +245,15 @@ class CandidateHypothesis:
         if contexts is None:
             contexts = payload.get("contexts")
         artifacts = payload.get("artifacts") or {}
+        normalized_contexts, context_canonicalizations = _normalize_context_map_with_canonicalizations(
+            contexts if isinstance(contexts, dict) else {}
+        )
         return cls(
             event_id=str(anchor.get("event_id", "") or "").strip().upper(),
             template_id=str(template.get("id", "") or "").strip(),
             direction=str(hypothesis.get("direction", "") or "").strip().lower(),
             horizon_bars=int(hypothesis.get("horizon_bars", 0) or 0),
-            contexts=_normalize_context_map(contexts if isinstance(contexts, dict) else {}),
+            contexts=normalized_contexts,
             required_falsification=_as_str_list(payload.get("required_falsification")),
             forbidden_rescue_actions=_as_str_list(payload.get("forbidden_rescue_actions")),
             context_justification=str(
@@ -219,6 +261,7 @@ class CandidateHypothesis:
                 or artifacts.get("mechanism_context_justification")
                 or ""
             ).strip(),
+            context_canonicalizations=context_canonicalizations,
         )
 
     def to_dict(self) -> dict[str, Any]:
@@ -231,6 +274,7 @@ class CandidateHypothesis:
             "required_falsification": list(self.required_falsification),
             "forbidden_rescue_actions": list(self.forbidden_rescue_actions),
             "context_justification": self.context_justification,
+            "context_canonicalizations": list(self.context_canonicalizations),
         }
 
 
@@ -353,6 +397,116 @@ def _record_check(checks: list[MechanismIssue], check_id: str, passed: bool, det
     checks.append(MechanismIssue(id=check_id, status="pass" if passed else "fail", detail=detail))
 
 
+def _check_authoritative_event(
+    checks: list[MechanismIssue],
+    candidate: CandidateHypothesis,
+) -> None:
+    event_row = _authoritative_events().get(candidate.event_id)
+    if event_row is None:
+        checks.append(
+            MechanismIssue(
+                id="event_in_authoritative_registry",
+                status="fail",
+                detail=f"{candidate.event_id} is not in the authoritative registry",
+            )
+        )
+        checks.append(
+            MechanismIssue(
+                id="event_executable_or_research_only_declared",
+                status="fail",
+                detail=f"{candidate.event_id} cannot be executable because it is unregistered",
+            )
+        )
+        return
+
+    checks.append(
+        MechanismIssue(
+            id="event_in_authoritative_registry",
+            status="pass",
+            detail=f"{candidate.event_id} is in the authoritative registry",
+        )
+    )
+    executable = bool(event_row.get("default_executable"))
+    research_only = bool(event_row.get("research_only"))
+    checks.append(
+        MechanismIssue(
+            id="event_executable_or_research_only_declared",
+            status="pass" if executable or research_only else "fail",
+            detail=f"{candidate.event_id} is executable or explicitly research-only"
+            if executable or research_only
+            else f"{candidate.event_id} is registered but not executable or research-only",
+        )
+    )
+
+
+def _check_template_registry(
+    checks: list[MechanismIssue],
+    candidate: CandidateHypothesis,
+) -> None:
+    _record_check(
+        checks,
+        "template_in_template_registry",
+        candidate.template_id in _template_ids(),
+        f"{candidate.template_id} is in the template registry"
+        if candidate.template_id in _template_ids()
+        else f"{candidate.template_id} is not in the template registry",
+    )
+
+
+def _check_context_registry(
+    checks: list[MechanismIssue],
+    candidate: CandidateHypothesis,
+) -> None:
+    registry = _context_registry()
+    checks.extend(
+        MechanismIssue(id="context_canonicalized", status="pass", detail=detail)
+        for detail in candidate.context_canonicalizations
+    )
+
+    unknown_dimensions: list[str] = []
+    invalid_values: list[str] = []
+    unmaterializable_dimensions: list[str] = []
+    for dimension, values in candidate.contexts.items():
+        if not registry.has_dimension(dimension):
+            unknown_dimensions.append(dimension)
+            continue
+        if not registry.is_materializable(dimension):
+            unmaterializable_dimensions.append(dimension)
+        invalid_values.extend(
+            f"{dimension}={value}"
+            for value in values
+            if not registry.is_value_allowed(dimension, value)
+        )
+
+    _record_check(
+        checks,
+        "context_dimension_known",
+        not unknown_dimensions,
+        "All context dimensions are known"
+        if not unknown_dimensions
+        else f"Unknown context dimensions: {', '.join(sorted(set(unknown_dimensions)))}",
+    )
+    _record_check(
+        checks,
+        "context_value_allowed",
+        not invalid_values,
+        "All context values are registry-allowed"
+        if not invalid_values
+        else f"Invalid context values: {', '.join(sorted(set(invalid_values)))}",
+    )
+    _record_check(
+        checks,
+        "context_materializable",
+        not unmaterializable_dimensions,
+        "All context dimensions are materializable"
+        if not unmaterializable_dimensions
+        else (
+            "Context dimensions are known but not materializable: "
+            f"{', '.join(sorted(set(unmaterializable_dimensions)))}"
+        ),
+    )
+
+
 def validate_candidate_against_mechanism(
     candidate: CandidateHypothesis,
     mechanism: MechanismSpec,
@@ -364,6 +518,10 @@ def validate_candidate_against_mechanism(
     spec_issues = validate_mechanism_spec(mechanism)
     checks.extend(spec_issues)
     spec_ok = not any(issue.status == "fail" for issue in spec_issues)
+
+    _check_authoritative_event(checks, candidate)
+    _check_template_registry(checks, candidate)
+    _check_context_registry(checks, candidate)
 
     _record_check(
         checks,
