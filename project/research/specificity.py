@@ -255,7 +255,25 @@ def _trace_paths(data_root: Path, run_id: str) -> list[Path]:
     return expanded
 
 
-def _load_trace_frame(data_root: Path, run_id: str) -> pd.DataFrame:
+def _control_trace_path(data_root: Path, run_id: str, candidate_id: str | None) -> Path | None:
+    if not candidate_id:
+        return None
+    path = (
+        data_root
+        / "reports"
+        / "candidate_traces"
+        / run_id
+        / f"{_safe_name(candidate_id)}_control_traces.parquet"
+    )
+    return path if path.exists() else None
+
+
+def _load_trace_frame(data_root: Path, run_id: str, candidate_id: str | None = None) -> pd.DataFrame:
+    control_path = _control_trace_path(data_root, run_id, candidate_id)
+    if control_path is not None:
+        frame = _read_table(control_path)
+        return frame.assign(_source_trace_file=str(control_path)) if not frame.empty else frame
+
     frames = []
     for path in _trace_paths(data_root, run_id):
         if not path.exists():
@@ -326,7 +344,10 @@ def _annotate_trace_frame(frame: pd.DataFrame, candidate: dict[str, Any], ids: s
     horizon = _column_values(out, ("horizon_bars", "horizon", "horizon_label")).map(_horizon_bars)
     out["_horizon_bars"] = horizon
     out["_entry_lag_bars"] = _column_values(out, ("entry_lag_bars", "entry_lag")).map(_to_int)
-    out["_specificity_test"] = _column_values(out, ("specificity_test", "test_case", "variant"))
+    out["_specificity_test"] = _column_values(
+        out,
+        ("control_type", "specificity_test", "test_case", "variant"),
+    )
     if "_source_trace_file" in out.columns:
         candidate_trace_source = out["_source_trace_file"].astype(str).str.contains(
             "/candidate_traces/", regex=False
@@ -427,6 +448,22 @@ def _trace_tests(frame: pd.DataFrame, candidate: dict[str, Any], ids: set[str]) 
     return tests, {"trace_data_available": True, "return_column": return_col}
 
 
+def _control_means(tests: dict[str, Any]) -> dict[str, Any]:
+    means = {
+        "base_mean_net_bps": tests.get("base", {}).get("mean_return_net_bps"),
+        "event_only_mean_net_bps": tests.get("event_only", {}).get("mean_return_net_bps"),
+        "context_only_mean_net_bps": tests.get("context_only", {}).get("mean_return_net_bps"),
+        "opposite_direction_mean_net_bps": tests.get("opposite_direction", {}).get("mean_return_net_bps"),
+    }
+    for row in tests.get("entry_lag_sensitivity", []):
+        lag = row.get("entry_lag_bars")
+        if lag is not None:
+            means[f"lag_{int(lag)}_mean_net_bps"] = row.get("mean_return_net_bps")
+    for lag in (0, 1, 2, 3):
+        means.setdefault(f"lag_{lag}_mean_net_bps", None)
+    return means
+
+
 def _aggregate_base(candidate: dict[str, Any]) -> dict[str, Any]:
     return {
         "event_count": candidate.get("event_count"),
@@ -479,12 +516,16 @@ def _classify(tests: dict[str, Any], meta: dict[str, Any], candidate: dict[str, 
         "base_vs_context_only_bps": _round(base_vs_context),
         "pass": bool(lift_pass),
     }
+    if base_vs_event is not None and base_vs_event <= 0.0:
+        return "fail", "event_not_context_specific", "park", "base does not beat event-only control", specificity_lift
+    if base_vs_context is not None and base_vs_context <= 0.0:
+        return "fail", "context_proxy", "park", "base does not beat context-only control", specificity_lift
     if not lift_pass:
         return "fail", "context_proxy", "park", "base does not beat event-only and context-only controls", specificity_lift
-    if opposite_mean is not None and base_mean is not None and opposite_mean >= base_mean:
-        return "fail", "direction_ambiguous", "park", "opposite direction performs comparably to base", specificity_lift
+    if opposite_mean is not None and base_mean is not None and opposite_mean > 0.0 and opposite_mean >= (base_mean * 0.5):
+        return "fail", "direction_ambiguous", "kill", "opposite direction also produces positive returns", specificity_lift
 
-    base_lag = candidate.get("entry_lag_bars")
+    base_lag = 0
     lag_rows = tests.get("entry_lag_sensitivity", [])
     if base_lag is not None:
         lag_means = {
@@ -495,7 +536,7 @@ def _classify(tests: dict[str, Any], meta: dict[str, Any], candidate: dict[str, 
         if lag_means and base_lag in lag_means:
             best_lag = max(lag_means, key=lambda lag: lag_means[lag])
             if best_lag != int(base_lag) and lag_means[best_lag] >= lag_means[int(base_lag)]:
-                return "fail", "timing_ambiguous", "park", "entry-lag sensitivity is not anchored on the candidate lag", specificity_lift
+                return "fail", "timing_ambiguous", "kill", "entry-lag sensitivity improves after delay", specificity_lift
 
     return "pass", "event_specific", "advance", "base beats event-only, context-only, and opposite-direction controls", specificity_lift
 
@@ -505,7 +546,8 @@ def build_specificity_report(
 ) -> dict[str, Any]:
     resolved_data_root = _data_root(data_root)
     candidate, ids = _candidate_profile(resolved_data_root, run_id, candidate_id)
-    tests, trace_meta = _trace_tests(_load_trace_frame(resolved_data_root, run_id), candidate, ids)
+    traces = _load_trace_frame(resolved_data_root, run_id, candidate_id)
+    tests, trace_meta = _trace_tests(traces, candidate, ids)
     if not tests:
         tests = {
             "base": _aggregate_base(candidate),
@@ -535,6 +577,7 @@ def build_specificity_report(
         "status": status,
         "classification": classification,
         "tests": tests,
+        "control_means": _control_means(tests),
         "specificity_lift": specificity_lift,
         "decision": decision,
         "reason": reason,

@@ -524,3 +524,42 @@ def test_attach_specificity_reports_preserves_prior_park_decision(tmp_path: Path
     assert out[0]["specificity_classification"] == "insufficient_trace_data"
     assert out[0]["decision"] == "park"
     assert out[0]["decision_reason"] == "year_pnl_concentration"
+
+
+def test_attach_specificity_reports_combines_context_proxy_with_year_failure(
+    tmp_path: Path,
+) -> None:
+    reports_root = tmp_path / "specificity"
+    run_dir = reports_root / "run"
+    run_dir.mkdir(parents=True)
+    (run_dir / "cand_specificity.json").write_text(
+        json.dumps(
+            {
+                "run_id": "run",
+                "candidate_id": "cand",
+                "status": "fail",
+                "classification": "context_proxy",
+                "decision": "park",
+                "reason": "base does not beat context-only control",
+                "next_safe_command": "Park candidate unless a new bounded mechanism explains the failed control.",
+            }
+        ),
+        encoding="utf-8",
+    )
+    rows = [
+        {
+            "run_id": "run",
+            "candidate_id": "cand",
+            "manual_decision": False,
+            "decision": "park",
+            "decision_reason": "year_pnl_concentration",
+            "year_split_classification": "year_conditional",
+        }
+    ]
+
+    out = results_index.attach_specificity_reports(rows, reports_root)
+
+    assert out[0]["specificity_status"] == "fail"
+    assert out[0]["specificity_classification"] == "context_proxy"
+    assert out[0]["decision"] == "park"
+    assert out[0]["decision_reason"] == "context_proxy_and_year_pnl_concentration_2022"

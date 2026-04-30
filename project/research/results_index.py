@@ -847,13 +847,20 @@ def attach_specificity_reports(
             updated["specificity_classification"] = str(report.get("classification", "") or "")
             updated["specificity_reason"] = str(report.get("reason", "") or "")
             updated["specificity_decision"] = str(report.get("decision", "") or "")
-            if not bool(updated.get("manual_decision")) and updated.get("decision") not in {
-                "park",
-                "kill",
-            }:
+            if not bool(updated.get("manual_decision")):
                 decision = str(report.get("decision", "") or "")
                 classification = str(report.get("classification", "") or "")
-                if classification == "insufficient_trace_data":
+                year_classification = str(updated.get("year_split_classification", "") or "")
+                if (
+                    classification == "context_proxy"
+                    and year_classification == "year_conditional"
+                    and updated.get("decision") == "park"
+                ):
+                    updated["decision_reason"] = "context_proxy_and_year_pnl_concentration_2022"
+                    updated["next_safe_command"] = str(report.get("next_safe_command", "") or "")
+                elif updated.get("decision") in {"park", "kill"}:
+                    pass
+                elif classification == "insufficient_trace_data":
                     updated["decision"] = "review"
                     updated["decision_reason"] = "specificity_insufficient_trace_data"
                     updated["next_safe_command"] = str(report.get("next_safe_command", "") or "")

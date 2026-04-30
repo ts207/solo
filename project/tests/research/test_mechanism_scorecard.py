@@ -25,9 +25,10 @@ def _write_results(root: Path) -> None:
             "symbol": "BTCUSDT",
             "evidence_class": "validate_ready",
             "decision": "park",
-            "decision_reason": "year_pnl_concentration",
+            "decision_reason": "context_proxy_and_year_pnl_concentration_2022",
             "year_split_reason": "year_pnl_concentration",
-            "specificity_classification": "insufficient_trace_data",
+            "year_split_classification": "year_conditional",
+            "specificity_classification": "context_proxy",
             "t_stat_net": 2.3456,
         },
         {
@@ -45,9 +46,10 @@ def _write_results(root: Path) -> None:
             "symbol": "BTCUSDT",
             "evidence_class": "validate_ready",
             "decision": "park",
-            "decision_reason": "year_pnl_concentration",
+            "decision_reason": "context_proxy_and_year_pnl_concentration_2022",
             "year_split_reason": "year_pnl_concentration",
-            "specificity_classification": "insufficient_trace_data",
+            "year_split_classification": "year_conditional",
+            "specificity_classification": "context_proxy",
             "t_stat_net": 2.3456,
         },
         {
@@ -101,9 +103,11 @@ def test_mechanism_scorecard_summarizes_parked_forced_flow_candidate(tmp_path: P
     assert row["killed_count"] == 0
     assert row["best_candidate_id"] == "BTCUSDT::cand_7d1d9583bddcf985"
     assert row["best_candidate_decision"] == "park"
-    assert row["main_failure_reason"] == "year_pnl_concentration_2022"
-    assert row["data_quality_blocker"] == "specificity_controls_missing"
-    assert "build control traces" in row["next_research_action"]
+    assert row["main_failure_reason"] == "context_proxy_and_year_pnl_concentration_2022"
+    assert row["data_quality_blocker"] == ""
+    assert row["next_research_action"] == (
+        "stop this candidate; only reopen under a new ex-ante crisis/high-vol regime thesis"
+    )
 
 
 def test_mechanism_scorecard_writers_emit_json_parquet_and_markdown(tmp_path: Path):

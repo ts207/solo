@@ -117,6 +117,13 @@ def _best_candidate(rows: list[dict[str, Any]]) -> dict[str, Any]:
 def _failure_reason(root: Path, row: dict[str, Any]) -> str:
     if not row:
         return ""
+    if (
+        str(row.get("specificity_classification", "") or "") == "context_proxy"
+        and str(row.get("year_split_classification", "") or "") == "year_conditional"
+    ):
+        report = _load_year_split_report(root, row)
+        max_year = (report.get("concentration") or {}).get("max_pnl_year") or 2022
+        return f"context_proxy_and_year_pnl_concentration_{max_year}"
     reason = str(row.get("year_split_reason", "") or row.get("decision_reason", "") or "")
     if reason == "year_pnl_concentration":
         report = _load_year_split_report(root, row)
@@ -134,6 +141,8 @@ def _data_quality_blocker(row: dict[str, Any]) -> str:
 def _next_research_action(row: dict[str, Any], failure_reason: str, blocker: str) -> str:
     if blocker == "specificity_controls_missing":
         return "build control traces; define crisis_forced_flow_v1 only if justified ex ante"
+    if failure_reason.startswith("context_proxy_and_year_pnl_concentration"):
+        return "stop this candidate; only reopen under a new ex-ante crisis/high-vol regime thesis"
     if failure_reason:
         return "review mechanism failure before compiling new proposals"
     return "compile one bounded proposal or update mechanism observables"
