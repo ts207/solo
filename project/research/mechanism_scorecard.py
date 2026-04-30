@@ -35,6 +35,8 @@ SCORECARD_COLUMNS = [
     "best_candidate_id",
     "best_run_id",
     "best_candidate_decision",
+    "best_candidate_autopsy_path",
+    "failed_candidate_autopsy_paths",
     "main_failure_reason",
     "failure_reasons",
     "failure_reason_counts",
@@ -152,6 +154,30 @@ def _failure_reason_counts(reasons: list[str]) -> dict[str, int]:
     return dict(sorted(counts.items()))
 
 
+def _safe_candidate_name(candidate_id: str) -> str:
+    return re.sub(r"[^A-Za-z0-9_.-]+", "_", candidate_id).strip("_") or "candidate"
+
+
+def _autopsy_path(root: Path, row: dict[str, Any]) -> str:
+    run_id = str(row.get("run_id", "") or "")
+    candidate_id = str(row.get("candidate_id", "") or "")
+    if not run_id or not candidate_id:
+        return ""
+    path = root / "data" / "reports" / "autopsy" / run_id / f"{_safe_candidate_name(candidate_id)}_autopsy.json"
+    return str(path) if path.exists() else ""
+
+
+def _failed_candidate_autopsy_paths(root: Path, rows: list[dict[str, Any]]) -> list[str]:
+    paths = []
+    for row in rows:
+        if str(row.get("decision", "") or "") not in {"park", "kill"}:
+            continue
+        path = _autopsy_path(root, row)
+        if path:
+            paths.append(path)
+    return paths
+
+
 def _surviving_candidate_count(rows: list[dict[str, Any]]) -> int:
     return sum(
         1
@@ -248,6 +274,8 @@ def build_mechanism_scorecard(root: Path = ROOT) -> pd.DataFrame:
                 "best_candidate_id": str(best.get("candidate_id", "") or ""),
                 "best_run_id": str(best.get("run_id", "") or ""),
                 "best_candidate_decision": str(best.get("decision", "") or ""),
+                "best_candidate_autopsy_path": _autopsy_path(root, best),
+                "failed_candidate_autopsy_paths": _failed_candidate_autopsy_paths(root, candidates),
                 "main_failure_reason": failure_reason,
                 "failure_reasons": failure_reasons,
                 "failure_reason_counts": failure_counts,
@@ -286,8 +314,8 @@ def render_scorecard_markdown(df: pd.DataFrame) -> str:
         "",
         "*Auto-generated. Do not edit manually - rerun `project/scripts/update_mechanism_scorecard.py`.*",
         "",
-        "| Mechanism | State | Candidates | Surviving | Parked | Killed | Best Candidate | Decision | Main Failure | Failures | Blocker | Next Action |",
-        "|---|---|---:|---:|---:|---:|---|---|---|---|---|---|",
+        "| Mechanism | State | Candidates | Surviving | Parked | Killed | Best Candidate | Decision | Autopsy | Main Failure | Failures | Blocker | Next Action |",
+        "|---|---|---:|---:|---:|---:|---|---|---|---|---|---|---|",
     ]
     for _, row in df.iterrows():
         lines.append(
@@ -295,7 +323,8 @@ def render_scorecard_markdown(df: pd.DataFrame) -> str:
             f"{int(row.get('candidate_count') or 0)} | {int(row.get('surviving_candidate_count') or 0)} | "
             f"{int(row.get('parked_count') or 0)} | {int(row.get('killed_count') or 0)} | "
             f"{row.get('best_candidate_id', '')} | "
-            f"{row.get('best_candidate_decision', '')} | {row.get('main_failure_reason', '')} | "
+            f"{row.get('best_candidate_decision', '')} | {row.get('best_candidate_autopsy_path', '')} | "
+            f"{row.get('main_failure_reason', '')} | "
             f"{json.dumps(row.get('failure_reason_counts', {}) or {}, sort_keys=True)} | "
             f"{row.get('data_quality_blocker', '')} | {row.get('next_research_action', '')} |"
         )

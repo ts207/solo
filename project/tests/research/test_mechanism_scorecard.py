@@ -103,9 +103,21 @@ def _write_year_split(root: Path) -> None:
     )
 
 
+def _write_autopsies(root: Path) -> None:
+    for run_id, candidate_id in (
+        ("run_mech", "BTCUSDT::cand_7d1d9583bddcf985"),
+        ("run_oi_flush", "hyp_oi_flush"),
+    ):
+        safe = candidate_id.replace("::", "_")
+        path = root / "data" / "reports" / "autopsy" / run_id / f"{safe}_autopsy.json"
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(json.dumps({"candidate_id": candidate_id}), encoding="utf-8")
+
+
 def test_mechanism_scorecard_summarizes_parked_forced_flow_candidate(tmp_path: Path):
     _write_results(tmp_path)
     _write_year_split(tmp_path)
+    _write_autopsies(tmp_path)
 
     df = mechanism_scorecard.build_mechanism_scorecard(tmp_path)
     row = df[df["mechanism_id"] == "forced_flow_reversal"].iloc[0]
@@ -118,6 +130,10 @@ def test_mechanism_scorecard_summarizes_parked_forced_flow_candidate(tmp_path: P
     assert row["killed_count"] == 1
     assert row["best_candidate_id"] == "BTCUSDT::cand_7d1d9583bddcf985"
     assert row["best_candidate_decision"] == "park"
+    assert row["best_candidate_autopsy_path"].endswith(
+        "run_mech/BTCUSDT_cand_7d1d9583bddcf985_autopsy.json"
+    )
+    assert len(row["failed_candidate_autopsy_paths"]) == 2
     assert row["main_failure_reason"] == "no_confirmed_event_specific_forced_flow_candidate"
     assert row["failure_reasons"] == [
         "context_proxy_and_year_pnl_concentration_2022",
@@ -136,6 +152,7 @@ def test_mechanism_scorecard_summarizes_parked_forced_flow_candidate(tmp_path: P
 def test_mechanism_scorecard_writers_emit_json_parquet_and_markdown(tmp_path: Path):
     _write_results(tmp_path)
     _write_year_split(tmp_path)
+    _write_autopsies(tmp_path)
 
     df = mechanism_scorecard.build_mechanism_scorecard(tmp_path)
     json_path = tmp_path / "scorecard.json"

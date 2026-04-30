@@ -84,3 +84,6 @@ def test_run_candidate_autopsy_script_writes_reports(monkeypatch, tmp_path: Path
     assert exit_code == 0
     assert (base / "cand_autopsy.json").exists()
     assert (base / "cand_autopsy.md").exists()
+    payload = json.loads((base / "cand_autopsy.json").read_text(encoding="utf-8"))
+    assert payload["schema_version"] == "candidate_autopsy_v1"
+    assert payload["decision"] == "park"
