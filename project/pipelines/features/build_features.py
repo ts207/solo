@@ -31,6 +31,7 @@ from project.features.context_states import (
 from project.features.microstructure import (
     calculate_imbalance,
 )
+from project.features.vol_regime import calculate_rv_percentile_24h
 from project.io.utils import (
     choose_partition_dir,
     ensure_dir,
@@ -791,6 +792,11 @@ def build_features(
 
     out["rv_96"] = out["logret_1"].rolling(rv_window, min_periods=rv_min_periods).std().shift(1)
     out["rv_pct_17280"] = _rolling_percentile(out["rv_96"], window=rv_pct_window).shift(1)
+    
+    rv_24h_window = _duration_to_bars(minutes=24 * 60, timeframe=tf, min_bars=2)
+    rv_24h_lookback = _duration_to_bars(minutes=24 * 60, timeframe=tf, min_bars=2)
+    out["rv_percentile_24h"] = calculate_rv_percentile_24h(out["close"], window=rv_24h_window, lookback=rv_24h_lookback)
+
     out["high_96"] = out["high"].rolling(rv_window, min_periods=1).max().shift(1)
     out["low_96"] = out["low"].rolling(rv_window, min_periods=1).min().shift(1)
     out["range_96"] = (out["high_96"] / out["low_96"].replace(0.0, np.nan) - 1.0).fillna(0.0)
