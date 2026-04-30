@@ -387,6 +387,50 @@ def test_attach_governed_reproduction_reports_preserves_manual_decision(tmp_path
     assert out[0]["decision_reason"] == "year_split_pending"
 
 
+def test_attach_governed_reproduction_reports_normalizes_negative_t_stat_kill(
+    tmp_path: Path,
+) -> None:
+    reports_root = tmp_path / "reproduction"
+    run_dir = reports_root / "run"
+    run_dir.mkdir(parents=True)
+    (run_dir / "governed_reproduction.json").write_text(
+        json.dumps(
+            {
+                "reproduction_run_id": "run",
+                "status": "fail",
+                "decision": "kill",
+                "reason": "current governed reproduction failed one or more falsification checks",
+                "blocking_checks": [
+                    {
+                        "id": "t_stat_above_research_floor",
+                        "status": "fail",
+                        "detail": "t_stat_net=-2.0964; floor=1.0",
+                    }
+                ],
+                "reproduction": {"t_stat_net": -2.0964},
+            }
+        ),
+        encoding="utf-8",
+    )
+    rows = [
+        {
+            "run_id": "run",
+            "manual_decision": False,
+            "decision": "review",
+            "decision_reason": "bridge_candidates_present",
+        }
+    ]
+
+    out = results_index.attach_governed_reproduction_reports(rows, reports_root)
+
+    assert out[0]["governed_reproduction_status"] == "fail"
+    assert out[0]["governed_reproduction_decision"] == "kill"
+    assert out[0]["governed_reproduction_reason"] == "governed_reproduction_negative_t_stat"
+    assert out[0]["evidence_class"] == "killed_candidate"
+    assert out[0]["decision"] == "kill"
+    assert out[0]["decision_reason"] == "governed_reproduction_negative_t_stat"
+
+
 def test_attach_year_split_reports_preserves_manual_decision(tmp_path: Path):
     reports_root = tmp_path / "regime"
     run_dir = reports_root / "run"

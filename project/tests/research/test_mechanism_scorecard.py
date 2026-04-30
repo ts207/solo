@@ -53,12 +53,25 @@ def _write_results(root: Path) -> None:
             "t_stat_net": 2.3456,
         },
         {
-            "run_id": "old_run",
-            "candidate_id": "old_cand",
-            "methodology_epoch": "pre_mechanism",
-            "mechanism_id": "",
-            "event_id": "PRICE_DOWN_OI_DOWN",
-            "decision": "park",
+            "run_id": "run_oi_flush",
+            "candidate_id": "hyp_oi_flush",
+            "methodology_epoch": "mechanism_backed",
+            "mechanism_id": "forced_flow_reversal",
+            "mechanism_version": "v1",
+            "mechanism_preflight_status": "pass",
+            "mechanism_classification": "mechanism_backed",
+            "event_id": "OI_FLUSH",
+            "context": "VOL_REGIME=HIGH",
+            "direction": "long",
+            "horizon_bars": 24,
+            "symbol": "BTCUSDT",
+            "evidence_class": "killed_candidate",
+            "decision": "kill",
+            "decision_reason": "governed_reproduction_negative_t_stat",
+            "governed_reproduction_status": "fail",
+            "governed_reproduction_decision": "kill",
+            "governed_reproduction_reason": "governed_reproduction_negative_t_stat",
+            "t_stat_net": -2.0964,
         },
     ]
     (results_dir / "results_index.json").write_text(
@@ -98,15 +111,25 @@ def test_mechanism_scorecard_summarizes_parked_forced_flow_candidate(tmp_path: P
     row = df[df["mechanism_id"] == "forced_flow_reversal"].iloc[0]
 
     assert row["status"] == "active"
-    assert row["candidate_count"] == 1
+    assert row["mechanism_state"] == "active_no_surviving_candidate"
+    assert row["candidate_count"] == 2
+    assert row["surviving_candidate_count"] == 0
     assert row["parked_count"] == 1
-    assert row["killed_count"] == 0
+    assert row["killed_count"] == 1
     assert row["best_candidate_id"] == "BTCUSDT::cand_7d1d9583bddcf985"
     assert row["best_candidate_decision"] == "park"
-    assert row["main_failure_reason"] == "context_proxy_and_year_pnl_concentration_2022"
+    assert row["main_failure_reason"] == "no_confirmed_event_specific_forced_flow_candidate"
+    assert row["failure_reasons"] == [
+        "context_proxy_and_year_pnl_concentration_2022",
+        "governed_reproduction_negative_t_stat",
+    ]
+    assert row["failure_reason_counts"] == {
+        "context_proxy_and_year_pnl_concentration_2022": 1,
+        "governed_reproduction_negative_t_stat": 1,
+    }
     assert row["data_quality_blocker"] == ""
     assert row["next_research_action"] == (
-        "stop this candidate; only reopen under a new ex-ante crisis/high-vol regime thesis"
+        "test only a stronger forced-flow observable or define crisis/high-vol regime thesis before retesting"
     )
 
 
@@ -129,4 +152,6 @@ def test_mechanism_scorecard_writers_emit_json_parquet_and_markdown(tmp_path: Pa
         row["mechanism_id"] == "forced_flow_reversal" for row in payload["mechanisms"]
     )
     assert parquet_path.exists()
-    assert "forced_flow_reversal" in md_path.read_text(encoding="utf-8")
+    rendered = md_path.read_text(encoding="utf-8")
+    assert "forced_flow_reversal" in rendered
+    assert "governed_reproduction_negative_t_stat" in rendered

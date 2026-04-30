@@ -1,7 +1,7 @@
 # All Results - Edge Discovery Project
 
 *Auto-generated. Do not edit manually - rerun `project/scripts/update_results_index.py`.*
-*692 indexed rows across 42 events.*
+*694 indexed rows across 42 events.*
 *Decision fields come from discover-doctor plus `docs/research/decisions.yaml`.*
 *`year_split_event_support_pass` means event support is not dominated by one year; it is not PnL stability unless per-event returns are available.*
 
@@ -29,7 +29,7 @@
 | LIQUIDITY_STRESS_DIRECT | long | 12 | continuation | 0.00 | 0.000 | 1.0000 | 0.0 | review_only | review | below_bridge_gate |
 | LIQUIDITY_STRESS_PROXY | long | 12 | continuation | 0.00 | 0.000 | 1.0000 | 0.0 | review_only | review | below_bridge_gate |
 | MOMENTUM_DIVERGENCE_TRIGGER | short | 24 | exhaustion_reversal | 2.15 | 0.351 | 0.0157 | 47.7 | candidate_signal | review | local_discovery_signal |
-| OI_FLUSH | short | 48 | exhaustion_reversal | 1.28 | 0.374 | 0.1011 | 9.6 | review_only | review | below_bridge_gate |
+| OI_FLUSH | long | 24 | exhaustion_reversal | -2.10 | 0.061 | 0.9820 | -25.9 | killed_candidate | kill | governed_reproduction_negative_t_stat |
 | OI_SPIKE_NEGATIVE | long | 12 | convexity_capture | 0.00 | 0.000 | 1.0000 | 0.0 | review_only | review | below_bridge_gate |
 | OI_SPIKE_POSITIVE | long | 12 | convexity_capture | 0.00 | 0.000 | 1.0000 | 0.0 | review_only | review | below_bridge_gate |
 | OVERSHOOT_AFTER_SHOCK | long | 48 | mean_reversion | 2.91 | 0.453 | 0.0018 | 37.0 | parked_candidate | monitor | robustness_failed_monitor_only |
@@ -414,12 +414,14 @@
 | pre_mechanism |  | False | MOMENTUM_DIVERGENCE_TRIGGER | BTCUSDT |  | short | 48 | exhaustion_reversal | 210 | 210 | 1.01 | 10.1 | 5 | review_only | review | `trend_fail_v1_01` |
 | pre_mechanism |  | False | MOMENTUM_DIVERGENCE_TRIGGER | BTCUSDT |  | short | 48 | exhaustion_reversal | 210 | 210 | 1.01 | 10.1 | 5 | review_only | review | `trend_failure_01` |
 | pre_mechanism |  | False | MOMENTUM_DIVERGENCE_TRIGGER | ETHUSDT |  | short | 48 | exhaustion_reversal | 153 | 153 | 0.07 | 1.7 | 1 | review_only | review | `trend_fail_v1_eth` |
-| pre_mechanism |  | False | OI_FLUSH | BTCUSDT |  | long | 12 | exhaustion_reversal | 3429 | 3429 | 1.08 | 3.5 | 3 | review_only | review | `liq_positioning_postfix_20260429` |
-| pre_mechanism |  | False | OI_FLUSH | BTCUSDT |  | long | 12 | exhaustion_reversal | 3429 | 3429 | 1.08 | 3.5 | 3 | review_only | review | `liq_pos_01` |
-| pre_mechanism |  | False | OI_FLUSH | BTCUSDT |  | long | 24 | exhaustion_reversal | 3383 | 3383 | 1.04 | 4.4 | 5 | review_only | review | `liq_positioning_postfix_20260429` |
-| pre_mechanism |  | False | OI_FLUSH | BTCUSDT |  | long | 24 | exhaustion_reversal | 3429 | 3429 | 1.03 | 4.3 | 5 | review_only | review | `liq_pos_01` |
-| pre_mechanism |  | False | OI_FLUSH | BTCUSDT |  | long | 48 | exhaustion_reversal | 1437 | 1437 | 0.91 | 6.6 | 3 | review_only | review | `liq_positioning_postfix_20260429` |
-| pre_mechanism |  | False | OI_FLUSH | BTCUSDT |  | long | 48 | exhaustion_reversal | 3427 | 3427 | 0.29 | 1.6 | 3 | review_only | review | `liq_pos_01` |
+| pre_mechanism |  | False | OI_FLUSH | BTCUSDT |  | long | 12 | exhaustion_reversal | 3429 | 3429 | 1.08 | 3.5 | 4 | review_only | review | `liq_positioning_postfix_20260429` |
+| pre_mechanism |  | False | OI_FLUSH | BTCUSDT |  | long | 12 | exhaustion_reversal | 3429 | 3429 | 1.08 | 3.5 | 4 | review_only | review | `liq_pos_01` |
+| pre_mechanism |  | False | OI_FLUSH | BTCUSDT |  | long | 24 | exhaustion_reversal | 3383 | 3383 | 1.04 | 4.4 | 6 | review_only | review | `liq_positioning_postfix_20260429` |
+| pre_mechanism |  | False | OI_FLUSH | BTCUSDT |  | long | 24 | exhaustion_reversal | 3429 | 3429 | 1.03 | 4.3 | 6 | review_only | review | `liq_pos_01` |
+| mechanism_backed | forced_flow_reversal | False | OI_FLUSH |  |  | long | 24 | exhaustion_reversal | 72 | 72 | -2.10 | -25.9 | 0 | killed_candidate | kill | `mechanism_forced_flow_oi_flush_h24_btc_202...` |
+| mechanism_backed | forced_flow_reversal | False | OI_FLUSH | BTCUSDT |  | long | 24 | exhaustion_reversal | 72 | 72 | -2.10 | -25.9 | 6 | killed_candidate | kill | `mechanism_forced_flow_oi_flush_h24_btc_202...` |
+| pre_mechanism |  | False | OI_FLUSH | BTCUSDT |  | long | 48 | exhaustion_reversal | 1437 | 1437 | 0.91 | 6.6 | 4 | review_only | review | `liq_positioning_postfix_20260429` |
+| pre_mechanism |  | False | OI_FLUSH | BTCUSDT |  | long | 48 | exhaustion_reversal | 3427 | 3427 | 0.29 | 1.6 | 4 | review_only | review | `liq_pos_01` |
 | pre_mechanism |  | False | OI_FLUSH | BTCUSDT |  | short | 12 | exhaustion_reversal | 604 | 604 | 0.62 | 2.6 | 3 | review_only | review | `liq_pos_01` |
 | pre_mechanism |  | False | OI_FLUSH | BTCUSDT |  | short | 12 | exhaustion_reversal | 992 | 992 | -0.56 | -2.6 | 3 | review_only | review | `liq_positioning_postfix_20260429` |
 | pre_mechanism |  | False | OI_FLUSH | BTCUSDT |  | short | 24 | exhaustion_reversal | 604 | 604 | 0.16 | 0.8 | 5 | review_only | review | `liq_pos_01` |

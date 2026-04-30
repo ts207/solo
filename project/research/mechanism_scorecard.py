@@ -19,9 +19,11 @@ SCORECARD_MD = ROOT / "docs" / "research" / "mechanism_scorecard.md"
 
 SCORECARD_COLUMNS = [
     "mechanism_id",
+    "mechanism_state",
     "status",
     "priority",
     "candidate_count",
+    "surviving_candidate_count",
     "scouting_count",
     "candidate_signal_count",
     "reproduced_signal_count",
@@ -34,6 +36,8 @@ SCORECARD_COLUMNS = [
     "best_run_id",
     "best_candidate_decision",
     "main_failure_reason",
+    "failure_reasons",
+    "failure_reason_counts",
     "data_quality_blocker",
     "next_research_action",
 ]
@@ -132,15 +136,66 @@ def _failure_reason(root: Path, row: dict[str, Any]) -> str:
     return reason
 
 
+def _failure_reasons(root: Path, rows: list[dict[str, Any]]) -> list[str]:
+    reasons = []
+    for row in rows:
+        reason = _failure_reason(root, row)
+        if reason and str(row.get("decision", "") or "") in {"park", "kill"}:
+            reasons.append(reason)
+    return reasons
+
+
+def _failure_reason_counts(reasons: list[str]) -> dict[str, int]:
+    counts: dict[str, int] = {}
+    for reason in reasons:
+        counts[reason] = counts.get(reason, 0) + 1
+    return dict(sorted(counts.items()))
+
+
+def _surviving_candidate_count(rows: list[dict[str, Any]]) -> int:
+    return sum(
+        1
+        for row in rows
+        if str(row.get("decision", "") or "") not in {"park", "kill", "archive"}
+        and str(row.get("evidence_class", "") or "")
+        not in {"killed_candidate", "parked_candidate", "historical_result", "review_only"}
+    )
+
+
+def _mechanism_state(entry_status: str, candidates: list[dict[str, Any]], surviving_count: int) -> str:
+    if not candidates:
+        return str(entry_status or "")
+    if surviving_count <= 0:
+        return "active_no_surviving_candidate" if entry_status == "active" else f"{entry_status}_no_surviving_candidate"
+    return str(entry_status or "")
+
+
 def _data_quality_blocker(row: dict[str, Any]) -> str:
     if str(row.get("specificity_classification", "") or "") == "insufficient_trace_data":
         return "specificity_controls_missing"
     return ""
 
 
-def _next_research_action(row: dict[str, Any], failure_reason: str, blocker: str) -> str:
+def _main_failure_reason(failure_counts: dict[str, int], best_failure_reason: str) -> str:
+    if len(failure_counts) > 1:
+        return "no_confirmed_event_specific_forced_flow_candidate"
+    if failure_counts:
+        return next(iter(failure_counts))
+    return best_failure_reason
+
+
+def _next_research_action(
+    row: dict[str, Any],
+    failure_reason: str,
+    blocker: str,
+    *,
+    surviving_count: int = 0,
+    failure_counts: dict[str, int] | None = None,
+) -> str:
     if blocker == "specificity_controls_missing":
         return "build control traces; define crisis_forced_flow_v1 only if justified ex ante"
+    if failure_counts and len(failure_counts) > 1 and surviving_count <= 0:
+        return "test only a stronger forced-flow observable or define crisis/high-vol regime thesis before retesting"
     if failure_reason.startswith("context_proxy_and_year_pnl_concentration"):
         return "stop this candidate; only reopen under a new ex-ante crisis/high-vol regime thesis"
     if failure_reason:
@@ -165,14 +220,20 @@ def build_mechanism_scorecard(root: Path = ROOT) -> pd.DataFrame:
     for mechanism_id, entry in registry.mechanisms.items():
         candidates = by_mechanism.get(mechanism_id, [])
         best = _best_candidate(candidates)
-        failure_reason = _failure_reason(root, best)
+        best_failure_reason = _failure_reason(root, best)
+        failure_reasons = _failure_reasons(root, candidates)
+        failure_counts = _failure_reason_counts(failure_reasons)
+        failure_reason = _main_failure_reason(failure_counts, best_failure_reason)
+        surviving_count = _surviving_candidate_count(candidates)
         blocker = _data_quality_blocker(best)
         scorecard_rows.append(
             {
                 "mechanism_id": mechanism_id,
+                "mechanism_state": _mechanism_state(entry.status, candidates, surviving_count),
                 "status": entry.status,
                 "priority": entry.priority,
                 "candidate_count": len(candidates),
+                "surviving_candidate_count": surviving_count,
                 "scouting_count": 0,
                 **{
                     column: sum(
@@ -188,8 +249,16 @@ def build_mechanism_scorecard(root: Path = ROOT) -> pd.DataFrame:
                 "best_run_id": str(best.get("run_id", "") or ""),
                 "best_candidate_decision": str(best.get("decision", "") or ""),
                 "main_failure_reason": failure_reason,
+                "failure_reasons": failure_reasons,
+                "failure_reason_counts": failure_counts,
                 "data_quality_blocker": blocker,
-                "next_research_action": _next_research_action(best, failure_reason, blocker),
+                "next_research_action": _next_research_action(
+                    best,
+                    failure_reason,
+                    blocker,
+                    surviving_count=surviving_count,
+                    failure_counts=failure_counts,
+                ),
             }
         )
     return pd.DataFrame(scorecard_rows, columns=SCORECARD_COLUMNS)
@@ -217,15 +286,17 @@ def render_scorecard_markdown(df: pd.DataFrame) -> str:
         "",
         "*Auto-generated. Do not edit manually - rerun `project/scripts/update_mechanism_scorecard.py`.*",
         "",
-        "| Mechanism | Status | Candidates | Parked | Killed | Best Candidate | Decision | Main Failure | Blocker | Next Action |",
-        "|---|---|---:|---:|---:|---|---|---|---|---|",
+        "| Mechanism | State | Candidates | Surviving | Parked | Killed | Best Candidate | Decision | Main Failure | Failures | Blocker | Next Action |",
+        "|---|---|---:|---:|---:|---:|---|---|---|---|---|---|",
     ]
     for _, row in df.iterrows():
         lines.append(
-            f"| {row.get('mechanism_id', '')} | {row.get('status', '')} | "
-            f"{int(row.get('candidate_count') or 0)} | {int(row.get('parked_count') or 0)} | "
-            f"{int(row.get('killed_count') or 0)} | {row.get('best_candidate_id', '')} | "
+            f"| {row.get('mechanism_id', '')} | {row.get('mechanism_state', row.get('status', ''))} | "
+            f"{int(row.get('candidate_count') or 0)} | {int(row.get('surviving_candidate_count') or 0)} | "
+            f"{int(row.get('parked_count') or 0)} | {int(row.get('killed_count') or 0)} | "
+            f"{row.get('best_candidate_id', '')} | "
             f"{row.get('best_candidate_decision', '')} | {row.get('main_failure_reason', '')} | "
+            f"{json.dumps(row.get('failure_reason_counts', {}) or {}, sort_keys=True)} | "
             f"{row.get('data_quality_blocker', '')} | {row.get('next_research_action', '')} |"
         )
     lines.append("")

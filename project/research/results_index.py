@@ -763,9 +763,10 @@ def attach_governed_reproduction_reports(
         updated = dict(row)
         report = reports.get(str(updated.get("run_id", "") or ""))
         if report is not None:
+            normalized_reason = _governed_reproduction_decision_reason(report)
             updated["governed_reproduction_status"] = str(report.get("status", "") or "")
             updated["governed_reproduction_decision"] = str(report.get("decision", "") or "")
-            updated["governed_reproduction_reason"] = str(report.get("reason", "") or "")
+            updated["governed_reproduction_reason"] = normalized_reason
             if not bool(updated.get("manual_decision")):
                 decision = str(report.get("decision", "") or "")
                 status = str(report.get("status", "") or "")
@@ -774,9 +775,35 @@ def attach_governed_reproduction_reports(
                     updated["decision_reason"] = "governed_reproduction_passed_pending_next_gate"
                 elif decision in {"review", "park", "kill"}:
                     updated["decision"] = decision
-                    updated["decision_reason"] = str(report.get("reason", "") or "")
+                    updated["decision_reason"] = normalized_reason
+                    if decision == "kill":
+                        updated["evidence_class"] = "killed_candidate"
+                    elif decision == "park":
+                        updated["evidence_class"] = "parked_candidate"
         out.append(updated)
     return out
+
+
+def _governed_reproduction_decision_reason(report: dict[str, Any]) -> str:
+    decision = str(report.get("decision", "") or "")
+    status = str(report.get("status", "") or "")
+    if status == "fail" and decision == "kill":
+        checks = report.get("blocking_checks", [])
+        if isinstance(checks, list):
+            failed_ids = {
+                str(check.get("id", "") or "")
+                for check in checks
+                if isinstance(check, dict) and str(check.get("status", "") or "") == "fail"
+            }
+            if "t_stat_above_research_floor" in failed_ids:
+                return "governed_reproduction_negative_t_stat"
+        reproduction = report.get("reproduction", {})
+        if isinstance(reproduction, dict):
+            t_stat = _to_float(reproduction.get("t_stat_net"))
+            if t_stat is not None and t_stat < 0.0:
+                return "governed_reproduction_negative_t_stat"
+        return "governed_reproduction_failed"
+    return str(report.get("reason", "") or "")
 
 
 def attach_year_split_reports(
