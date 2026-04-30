@@ -44,6 +44,17 @@ def main(argv: list[str] | None = None) -> int:
         event_source_run_id=args.event_source_run_id,
         allow_nonviable_regime_audit=bool(args.allow_nonviable_regime_audit),
     )
+
+    readiness_path = data_root / "reports" / "mechanism_readiness" / "mechanism_readiness.json"
+    if readiness_path.exists():
+        import json
+        with open(readiness_path) as f:
+            readiness_rows = json.load(f).get("rows", [])
+        for row in readiness_rows:
+            if row["mechanism_id"] == args.mechanism_id and row.get("readiness") == "remain_parked":
+                print(f"fail: Mechanism {args.mechanism_id} is explicitly parked. Event lift evaluation is blocked.")
+                return 1
+
     try:
         result = run_event_lift(request)
     except EventLiftGateError as exc:

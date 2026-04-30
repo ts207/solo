@@ -317,6 +317,15 @@ def compile_mechanism_proposals(
         details = "; ".join(issue.detail for issue in spec_issues if issue.status == "fail")
         raise ValueError(f"Mechanism spec is invalid: {details}")
 
+    readiness_path = data_root / "reports" / "mechanism_readiness" / "mechanism_readiness.json"
+    if readiness_path.exists():
+        import json
+        with open(readiness_path) as f:
+            readiness_rows = json.load(f).get("rows", [])
+        for row in readiness_rows:
+            if row["mechanism_id"] == mechanism_id and row.get("readiness") == "remain_parked":
+                raise ValueError(f"Mechanism {mechanism_id} is explicitly parked. Proposal compilation is blocked.")
+
     gate_required = require_event_lift_pass or mechanism.mechanism_id == "funding_squeeze"
     seeds: list[dict[str, Any]]
     if gate_required:
