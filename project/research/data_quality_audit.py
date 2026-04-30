@@ -42,7 +42,7 @@ FIELD_EXPECTATIONS = {
     "oi_notional": {"kind": "continuous", "allow_zero_heavy": False},
     "oi_delta_1h": {"kind": "continuous", "allow_zero_heavy": True},
     "rv_96": {"kind": "continuous", "allow_zero_heavy": False},
-    "rv_percentile_24h": {"kind": "bounded", "allow_zero_heavy": False},
+    "rv_percentile_24h": {"kind": "bounded", "allow_zero_heavy": False, "allow_sticky": True},
     "spread_bps": {"kind": "continuous", "allow_zero_heavy": False},
     "slippage_bps": {"kind": "continuous", "allow_zero_heavy": True},
     "market_depth": {"kind": "continuous", "allow_zero_heavy": False},
@@ -406,7 +406,7 @@ def classify_field(
         else:
             classification = "real"
             reason = "field is stepwise on expected funding cadence"
-    elif (stale_ratio is not None and stale_ratio >= MAX_STALE_RATIO) or last_materially_old:
+    elif (stale_ratio is not None and stale_ratio >= (MAX_STALE_RATIO * 4.0 if expectation.get("allow_sticky", False) else MAX_STALE_RATIO)) or last_materially_old:
         classification = "stale"
         reason = "field is stale relative to market_context history"
     elif field in proxy_fields or expectation["kind"] == "object_or_proxy":

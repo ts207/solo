@@ -28,6 +28,13 @@ def main():
         for r in scorecard_rows
     )
     
+    vol_compression_failed = any(
+        r["matrix_id"] == "volatility_compression_release_v1" 
+        and r.get("proposal_path_eligible") 
+        and r.get("classification") == "negative"
+        for r in scorecard_rows
+    )
+    
     results = []
     
     for row in inventory:
@@ -44,6 +51,8 @@ def main():
         if mech_id == "forced_flow_reversal" and forced_flow_failed:
             prior_state = "parked"
         elif mech_id == "funding_squeeze":
+            prior_state = "parked"
+        elif mech_id == "volatility_compression_release" and vol_compression_failed:
             prior_state = "parked"
             
         readiness = ""

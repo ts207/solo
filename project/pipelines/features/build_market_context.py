@@ -234,6 +234,13 @@ def _build_market_context(symbol: str, features: pd.DataFrame) -> pd.DataFrame:
         out["high_vol_regime"] = 0.0
         out["low_vol_regime"] = 0.0
 
+    out["vol_phase"] = "normal"
+    if "rv_percentile_24h" in out.columns:
+        rv_24h = pd.to_numeric(out["rv_percentile_24h"], errors="coerce")
+        out.loc[rv_24h <= 0.20, "vol_phase"] = "compressed"
+        out.loc[rv_24h >= 0.80, "vol_phase"] = "expanding"
+    out.loc[out["high_vol_regime"] > 0, "vol_phase"] = "shock"
+
     # spread_elevated_state
     if "spread_zscore" in out.columns:
         spread_z = pd.to_numeric(out["spread_zscore"], errors="coerce").astype(float)
@@ -247,6 +254,10 @@ def _build_market_context(symbol: str, features: pd.DataFrame) -> pd.DataFrame:
         out["ms_spread_confidence"] = np.nan
         out["ms_spread_entropy"] = np.nan
         out["spread_elevated_state"] = 0.0
+
+    out["execution_friction"] = "normal"
+    if "spread_elevated_state" in out.columns:
+        out.loc[out["spread_elevated_state"] > 0, "execution_friction"] = "elevated"
 
     quote_volume = pd.to_numeric(
         out.get(

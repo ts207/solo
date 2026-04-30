@@ -67,15 +67,30 @@ FORCED_FLOW_CRISIS_V1_PROPOSAL_ELIGIBLE: tuple[bool, ...] = (
     False,
 )
 
+VOLATILITY_COMPRESSION_RELEASE_V1_REGIMES: tuple[dict[str, str], ...] = (
+    {
+        "vol_phase": "compressed",
+        "execution_friction": "normal",
+        "liquidity_phase": "normal",
+        "high_vol_regime": "0.0",
+    },
+)
+
+VOLATILITY_COMPRESSION_RELEASE_V1_PROPOSAL_ELIGIBLE: tuple[bool, ...] = (
+    True,
+)
+
 REGIME_MATRIX_DEFINITIONS: dict[str, tuple[dict[str, str], ...]] = {
     "core_v1": CORE_V1_REGIMES,
     "funding_squeeze_positioning_v1": FUNDING_SQUEEZE_POSITIONING_V1_REGIMES,
     "forced_flow_crisis_v1": FORCED_FLOW_CRISIS_V1_REGIMES,
+    "volatility_compression_release_v1": VOLATILITY_COMPRESSION_RELEASE_V1_REGIMES,
 }
 
 REGIME_MATRIX_PROPOSAL_ELIGIBILITY: dict[str, tuple[bool, ...]] = {
     "funding_squeeze_positioning_v1": FUNDING_SQUEEZE_POSITIONING_V1_PROPOSAL_ELIGIBLE,
     "forced_flow_crisis_v1": FORCED_FLOW_CRISIS_V1_PROPOSAL_ELIGIBLE,
+    "volatility_compression_release_v1": VOLATILITY_COMPRESSION_RELEASE_V1_PROPOSAL_ELIGIBLE,
 }
 
 SUPPORTED_REGIME_MATRICES = set(REGIME_MATRIX_DEFINITIONS)
@@ -149,6 +164,10 @@ def funding_squeeze_positioning_v1_matrix() -> list[dict[str, str]]:
 
 def forced_flow_crisis_v1_matrix() -> list[dict[str, str]]:
     return [dict(item) for item in FORCED_FLOW_CRISIS_V1_REGIMES]
+
+
+def volatility_compression_release_v1_matrix() -> list[dict[str, str]]:
+    return [dict(item) for item in VOLATILITY_COMPRESSION_RELEASE_V1_REGIMES]
 
 
 def regime_matrix(matrix_id: str) -> list[dict[str, str]]:
