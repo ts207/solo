@@ -37,6 +37,7 @@ SCORECARD_COLUMNS = [
     "best_candidate_decision",
     "best_candidate_autopsy_path",
     "failed_candidate_autopsy_paths",
+    "mechanism_decision_path",
     "main_failure_reason",
     "failure_reasons",
     "failure_reason_counts",
@@ -178,6 +179,11 @@ def _failed_candidate_autopsy_paths(root: Path, rows: list[dict[str, Any]]) -> l
     return paths
 
 
+def _mechanism_decision_path(root: Path, mechanism_id: str) -> str:
+    path = root / "data" / "reports" / "mechanisms" / mechanism_id / "decision.json"
+    return str(path) if path.exists() else ""
+
+
 def _surviving_candidate_count(rows: list[dict[str, Any]]) -> int:
     return sum(
         1
@@ -276,6 +282,7 @@ def build_mechanism_scorecard(root: Path = ROOT) -> pd.DataFrame:
                 "best_candidate_decision": str(best.get("decision", "") or ""),
                 "best_candidate_autopsy_path": _autopsy_path(root, best),
                 "failed_candidate_autopsy_paths": _failed_candidate_autopsy_paths(root, candidates),
+                "mechanism_decision_path": _mechanism_decision_path(root, mechanism_id),
                 "main_failure_reason": failure_reason,
                 "failure_reasons": failure_reasons,
                 "failure_reason_counts": failure_counts,
@@ -314,8 +321,8 @@ def render_scorecard_markdown(df: pd.DataFrame) -> str:
         "",
         "*Auto-generated. Do not edit manually - rerun `project/scripts/update_mechanism_scorecard.py`.*",
         "",
-        "| Mechanism | State | Candidates | Surviving | Parked | Killed | Best Candidate | Decision | Autopsy | Main Failure | Failures | Blocker | Next Action |",
-        "|---|---|---:|---:|---:|---:|---|---|---|---|---|---|---|",
+        "| Mechanism | State | Candidates | Surviving | Parked | Killed | Best Candidate | Decision | Autopsy | Mechanism Decision | Main Failure | Failures | Blocker | Next Action |",
+        "|---|---|---:|---:|---:|---:|---|---|---|---|---|---|---|---|",
     ]
     for _, row in df.iterrows():
         lines.append(
@@ -324,6 +331,7 @@ def render_scorecard_markdown(df: pd.DataFrame) -> str:
             f"{int(row.get('parked_count') or 0)} | {int(row.get('killed_count') or 0)} | "
             f"{row.get('best_candidate_id', '')} | "
             f"{row.get('best_candidate_decision', '')} | {row.get('best_candidate_autopsy_path', '')} | "
+            f"{row.get('mechanism_decision_path', '')} | "
             f"{row.get('main_failure_reason', '')} | "
             f"{json.dumps(row.get('failure_reason_counts', {}) or {}, sort_keys=True)} | "
             f"{row.get('data_quality_blocker', '')} | {row.get('next_research_action', '')} |"

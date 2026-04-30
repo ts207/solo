@@ -114,10 +114,17 @@ def _write_autopsies(root: Path) -> None:
         path.write_text(json.dumps({"candidate_id": candidate_id}), encoding="utf-8")
 
 
+def _write_decision(root: Path) -> None:
+    path = root / "data" / "reports" / "mechanisms" / "forced_flow_reversal" / "decision.json"
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps({"decision": "pause"}), encoding="utf-8")
+
+
 def test_mechanism_scorecard_summarizes_parked_forced_flow_candidate(tmp_path: Path):
     _write_results(tmp_path)
     _write_year_split(tmp_path)
     _write_autopsies(tmp_path)
+    _write_decision(tmp_path)
 
     df = mechanism_scorecard.build_mechanism_scorecard(tmp_path)
     row = df[df["mechanism_id"] == "forced_flow_reversal"].iloc[0]
@@ -134,6 +141,7 @@ def test_mechanism_scorecard_summarizes_parked_forced_flow_candidate(tmp_path: P
         "run_mech/BTCUSDT_cand_7d1d9583bddcf985_autopsy.json"
     )
     assert len(row["failed_candidate_autopsy_paths"]) == 2
+    assert row["mechanism_decision_path"].endswith("forced_flow_reversal/decision.json")
     assert row["main_failure_reason"] == "no_confirmed_event_specific_forced_flow_candidate"
     assert row["failure_reasons"] == [
         "context_proxy_and_year_pnl_concentration_2022",
@@ -153,6 +161,7 @@ def test_mechanism_scorecard_writers_emit_json_parquet_and_markdown(tmp_path: Pa
     _write_results(tmp_path)
     _write_year_split(tmp_path)
     _write_autopsies(tmp_path)
+    _write_decision(tmp_path)
 
     df = mechanism_scorecard.build_mechanism_scorecard(tmp_path)
     json_path = tmp_path / "scorecard.json"
@@ -171,4 +180,5 @@ def test_mechanism_scorecard_writers_emit_json_parquet_and_markdown(tmp_path: Pa
     assert parquet_path.exists()
     rendered = md_path.read_text(encoding="utf-8")
     assert "forced_flow_reversal" in rendered
+    assert "decision.json" in rendered
     assert "governed_reproduction_negative_t_stat" in rendered
