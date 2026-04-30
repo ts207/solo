@@ -1,0 +1,81 @@
+mechanism_id: funding_squeeze
+version: v1
+status: active
+priority: high
+
+claim: >
+  Extreme funding and crowded perpetual positioning can create forced unwind
+  or squeeze dynamics. The tradeable effect depends on whether positioning
+  pressure resolves by reversal or continuation after a stress trigger.
+
+forced_actor:
+  - crowded_perp_longs
+  - crowded_perp_shorts
+  - funding_payers
+  - leveraged_momentum_traders
+
+observable_pressure:
+  required:
+    - funding_extreme
+    - open_interest_elevated_or_changing
+  supportive:
+    - volatility_high
+    - price_extension
+    - volume_climax
+    - basis_dislocation
+
+candidate_events:
+  - FUNDING_EXTREME
+  - FUNDING_FLIP
+  - OI_SPIKE_POSITIVE
+  - OI_SPIKE_NEGATIVE
+  - CLIMAX_VOLUME_BAR
+
+allowed_templates:
+  - mean_reversion
+  - exhaustion_reversal
+  - continuation
+
+allowed_directions:
+  - long
+  - short
+
+allowed_horizons_bars:
+  - 12
+  - 24
+  - 48
+
+allowed_contexts:
+  preferred:
+    - CARRY_STATE=FUNDING_NEG
+    - CARRY_STATE=FUNDING_POS
+    - VOL_REGIME=HIGH
+  forbidden: []
+
+required_falsification:
+  - governed_reproduction
+  - search_burden
+  - candidate_traces
+  - year_pnl_split
+  - event_only_control
+  - context_only_control
+  - opposite_direction_control
+  - entry_lag_sensitivity
+  - cost_stress
+  - forward_confirmation
+
+kill_conditions:
+  - governed_reproduction_failed
+  - context_only_performs_as_well_as_event_plus_context
+  - opposite_direction_passes
+  - pnl_concentrated_in_one_year_without_ex_ante_regime
+  - forward_confirmation_failed
+  - two_x_cost_flips_expectancy_negative
+
+forbidden_rescue_actions:
+  - drop_bad_years_after_result
+  - change_horizon_after_failure
+  - switch_direction_after_failure
+  - loosen_gates
+  - add_symbols_after_failure
+  - promote_without_forward_confirmation

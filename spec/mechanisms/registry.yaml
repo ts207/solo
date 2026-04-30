@@ -10,7 +10,7 @@ mechanisms:
   funding_squeeze:
     path: spec/mechanisms/funding_squeeze.yaml
     priority: high
-    status: draft
+    status: active
     deploy_relevance: true
 
   liquidation_exhaustion_rebound:

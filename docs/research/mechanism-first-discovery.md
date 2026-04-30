@@ -61,9 +61,15 @@ mutated.
 
 ## Forced-Flow Reversal
 
-`forced_flow_reversal` is the first active mechanism. It tests whether forced
+`forced_flow_reversal` was the first active mechanism. It tests whether forced
 deleveraging creates temporary downside pressure followed by short-horizon
 reversal.
+
+Current mechanism decision: `pause`. `PRICE_DOWN_OI_DOWN` is parked as
+`context_proxy_and_year_pnl_concentration_2022`, and `OI_FLUSH` is killed as
+`governed_reproduction_negative_t_stat`. Do not keep testing nearby forced-flow
+variants unless there is a new ex-ante crisis/high-vol thesis, a stronger
+liquidation/deleveraging observable, or a material data-quality upgrade.
 
 Allowed Wave 1 seeds are deliberately narrow:
 
@@ -83,3 +89,15 @@ confirmation.
 status is parked as `context_proxy_and_year_pnl_concentration_2022`. Do not keep
 iterating on this event formulation. Reopen only under a new ex-ante crisis/high-vol
 regime thesis, or move to a stronger forced-flow observable such as `OI_FLUSH`.
+
+## Funding Squeeze
+
+`funding_squeeze` is the next active mechanism family. It tests whether extreme
+funding and crowded perpetual positioning create unwind or squeeze pressure that
+resolves as reversal or continuation after a stress trigger.
+
+Allowed initial observables should remain bounded to funding and positioning
+pressure, such as `FUNDING_EXTREME`, `FUNDING_FLIP`, `OI_SPIKE_POSITIVE`,
+`OI_SPIKE_NEGATIVE`, or `CLIMAX_VOLUME_BAR`, with explicit carry/funding or
+high-volatility context. Add proposal seeds only after the mechanism spec passes
+preflight and without reusing failed forced-flow evidence as support.
