@@ -72,6 +72,17 @@ Current mechanism decision: `pause`. `PRICE_DOWN_OI_DOWN` is parked as
 variants unless there is a new ex-ante crisis/high-vol thesis, a stronger
 liquidation/deleveraging observable, or a material data-quality upgrade.
 
+The ex-ante crisis/high-vol reopen path is represented by the
+`forced_flow_crisis_v1` regime matrix:
+
+- primary: `vol_regime=high+carry_state=funding_neg+ms_trend_state=bearish`
+- diagnostics: high-vol bearish, negative-carry bearish, and high-vol
+  negative-carry rows.
+
+The primary row must classify `stable_positive` before any forced-flow event-lift
+or proposal work is allowed. A negative primary row keeps `forced_flow_reversal`
+parked.
+
 Allowed Wave 1 seeds are deliberately narrow:
 
 - `OI_FLUSH`, `vol_regime=high`, `exhaustion_reversal`, long, 24 bars.

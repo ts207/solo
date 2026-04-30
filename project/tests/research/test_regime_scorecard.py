@@ -139,8 +139,8 @@ def test_diagnostic_regime_cannot_allow_event_lift_even_if_stable_positive():
     df = pd.DataFrame(
         [
             _row(
-                matrix_id="funding_squeeze_positioning_v1",
-                regime_id="funding_phase=negative_persistent+oi_phase=expansion",
+                matrix_id="forced_flow_crisis_v1",
+                regime_id="vol_regime=high+ms_trend_state=bearish",
                 classification="stable_positive",
                 mean_net_bps=5.0,
                 t_stat_net=2.0,

@@ -53,7 +53,32 @@ FUNDING_SQUEEZE_POSITIONING_V1_PROPOSAL_ELIGIBLE: tuple[bool, ...] = (
     False,
 )
 
-SUPPORTED_REGIME_MATRICES = {"core_v1", "funding_squeeze_positioning_v1"}
+FORCED_FLOW_CRISIS_V1_REGIMES: tuple[dict[str, str], ...] = (
+    {"vol_regime": "high", "carry_state": "funding_neg", "ms_trend_state": "bearish"},
+    {"vol_regime": "high", "ms_trend_state": "bearish"},
+    {"carry_state": "funding_neg", "ms_trend_state": "bearish"},
+    {"vol_regime": "high", "carry_state": "funding_neg"},
+)
+
+FORCED_FLOW_CRISIS_V1_PROPOSAL_ELIGIBLE: tuple[bool, ...] = (
+    True,
+    False,
+    False,
+    False,
+)
+
+REGIME_MATRIX_DEFINITIONS: dict[str, tuple[dict[str, str], ...]] = {
+    "core_v1": CORE_V1_REGIMES,
+    "funding_squeeze_positioning_v1": FUNDING_SQUEEZE_POSITIONING_V1_REGIMES,
+    "forced_flow_crisis_v1": FORCED_FLOW_CRISIS_V1_REGIMES,
+}
+
+REGIME_MATRIX_PROPOSAL_ELIGIBILITY: dict[str, tuple[bool, ...]] = {
+    "funding_squeeze_positioning_v1": FUNDING_SQUEEZE_POSITIONING_V1_PROPOSAL_ELIGIBLE,
+    "forced_flow_crisis_v1": FORCED_FLOW_CRISIS_V1_PROPOSAL_ELIGIBLE,
+}
+
+SUPPORTED_REGIME_MATRICES = set(REGIME_MATRIX_DEFINITIONS)
 
 FORBIDDEN_LOOKAHEAD_TOKENS = (
     "rebound_confirmed",
@@ -122,22 +147,26 @@ def funding_squeeze_positioning_v1_matrix() -> list[dict[str, str]]:
     return [dict(item) for item in FUNDING_SQUEEZE_POSITIONING_V1_REGIMES]
 
 
+def forced_flow_crisis_v1_matrix() -> list[dict[str, str]]:
+    return [dict(item) for item in FORCED_FLOW_CRISIS_V1_REGIMES]
+
+
 def regime_matrix(matrix_id: str) -> list[dict[str, str]]:
-    if matrix_id == "core_v1":
-        return core_v1_matrix()
-    if matrix_id == "funding_squeeze_positioning_v1":
-        return funding_squeeze_positioning_v1_matrix()
-    raise ValueError(f"Unsupported matrix_id: {matrix_id}")
+    try:
+        return [dict(item) for item in REGIME_MATRIX_DEFINITIONS[matrix_id]]
+    except KeyError as exc:
+        raise ValueError(f"Unsupported matrix_id: {matrix_id}") from exc
 
 
 def proposal_path_eligible_for_matrix(matrix_id: str, index: int) -> bool:
-    if matrix_id == "funding_squeeze_positioning_v1":
-        return bool(FUNDING_SQUEEZE_POSITIONING_V1_PROPOSAL_ELIGIBLE[index])
+    eligibility = REGIME_MATRIX_PROPOSAL_ELIGIBILITY.get(matrix_id)
+    if eligibility is not None:
+        return bool(eligibility[index])
     return True
 
 
 def regime_role_for_matrix(matrix_id: str, index: int) -> str:
-    if matrix_id == "funding_squeeze_positioning_v1":
+    if matrix_id in REGIME_MATRIX_PROPOSAL_ELIGIBILITY:
         return "primary" if proposal_path_eligible_for_matrix(matrix_id, index) else "diagnostic"
     return "primary"
 

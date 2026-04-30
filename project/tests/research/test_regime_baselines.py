@@ -7,11 +7,13 @@ import pytest
 
 from project.research.regime_baselines import (
     CORE_V1_REGIMES,
+    FORCED_FLOW_CRISIS_V1_REGIMES,
     FUNDING_SQUEEZE_POSITIONING_V1_REGIMES,
     RegimeBaselineRequest,
     build_search_burden,
     core_v1_matrix,
     evaluate_regime_baseline,
+    forced_flow_crisis_v1_matrix,
     funding_squeeze_positioning_v1_matrix,
     proposal_path_eligible_for_matrix,
     regime_id,
@@ -191,4 +193,43 @@ def test_run_funding_squeeze_positioning_matrix_marks_only_primary_proposal_elig
     assert proposal_flags[
         "carry_state=funding_neg+vol_regime=high+oi_phase=expansion+price_oi_quadrant=price_down_oi_up"
     ] is True
+    assert sum(1 for value in proposal_flags.values() if value) == 1
+
+
+def test_forced_flow_crisis_matrix_is_predeclared_and_narrow():
+    matrix = forced_flow_crisis_v1_matrix()
+
+    assert matrix == [dict(item) for item in FORCED_FLOW_CRISIS_V1_REGIMES]
+    assert matrix[0] == {
+        "vol_regime": "high",
+        "carry_state": "funding_neg",
+        "ms_trend_state": "bearish",
+    }
+    assert [proposal_path_eligible_for_matrix("forced_flow_crisis_v1", i) for i in range(len(matrix))] == [
+        True,
+        False,
+        False,
+        False,
+    ]
+    for filters in matrix:
+        validate_regime_filters(filters)
+
+
+def test_run_forced_flow_crisis_matrix_marks_only_primary_proposal_eligible(tmp_path):
+    request = RegimeBaselineRequest(
+        run_id="forced_flow_crisis_run",
+        matrix_id="forced_flow_crisis_v1",
+        symbols=("BTCUSDT", "ETHUSDT"),
+        horizons=(24,),
+        data_root=tmp_path,
+    )
+
+    df, burden, source_run_id = run_regime_baselines(request)
+
+    assert source_run_id is None
+    assert len(df) == 16
+    assert burden["num_regimes"] == 4
+    assert burden["proposal_path_eligible_regimes"] == 1
+    proposal_flags = df.groupby("regime_id")["proposal_path_eligible"].first().to_dict()
+    assert proposal_flags["vol_regime=high+carry_state=funding_neg+ms_trend_state=bearish"] is True
     assert sum(1 for value in proposal_flags.values() if value) == 1

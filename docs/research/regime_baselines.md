@@ -38,6 +38,26 @@ Only the primary row can open the proposal/event-lift path. Diagnostic rows are
 recorded for interpretation but cannot produce an `allow_event_lift` scorecard
 decision.
 
+The forced-flow crisis matrix is `forced_flow_crisis_v1`. It tests the allowed
+reopen condition for `forced_flow_reversal`: forced-flow reversal should only be
+reopened if a new ex-ante crisis/high-vol regime has stable positive baseline
+behavior before event-specific lift is tested.
+
+Rows:
+
+- primary, proposal-path eligible:
+  `vol_regime=high+carry_state=funding_neg+ms_trend_state=bearish`
+- diagnostic only:
+  `vol_regime=high+ms_trend_state=bearish`
+- diagnostic only:
+  `carry_state=funding_neg+ms_trend_state=bearish`
+- diagnostic only:
+  `vol_regime=high+carry_state=funding_neg`
+
+Only the primary row can open the forced-flow event-lift path. If the primary
+row is not `stable_positive`, keep `forced_flow_reversal` parked and do not test
+nearby forced-flow events as a rescue tactic.
+
 The engine uses registry-native lowercase filters only and excludes labels that
 could imply future confirmation, including `post_*`, `normalized`, `cooldown`,
 `refill`, `recovered`, and `rebound_confirmed`.
@@ -63,6 +83,19 @@ RUN_ID=regime_baselines_funding_positioning_$(date -u +%Y%m%dT%H%M%SZ)
 PYTHONPATH=. .venv/bin/python project/scripts/run_regime_baselines.py \
   --run-id "$RUN_ID" \
   --matrix-id funding_squeeze_positioning_v1 \
+  --symbols BTCUSDT,ETHUSDT \
+  --horizons 24 \
+  --data-root data
+```
+
+Forced-flow crisis run:
+
+```bash
+RUN_ID=regime_baselines_forced_flow_crisis_$(date -u +%Y%m%dT%H%M%SZ)
+
+PYTHONPATH=. .venv/bin/python project/scripts/run_regime_baselines.py \
+  --run-id "$RUN_ID" \
+  --matrix-id forced_flow_crisis_v1 \
   --symbols BTCUSDT,ETHUSDT \
   --horizons 24 \
   --data-root data
