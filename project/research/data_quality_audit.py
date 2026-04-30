@@ -27,8 +27,18 @@ CONSTANT_SYNTHETIC_RATIO = 0.95
 MATERIALLY_OLDER_FRACTION = 0.20
 
 FIELD_EXPECTATIONS = {
-    "funding_rate_scaled": {"kind": "continuous", "allow_zero_heavy": False},
-    "funding_abs_pct": {"kind": "continuous", "allow_zero_heavy": False},
+    "funding_rate_scaled": {
+        "kind": "stepwise_cadence",
+        "allow_zero_heavy": False,
+        "expected_update_gap_hours": 8.0,
+        "max_update_gap_multiplier": 2.5,
+    },
+    "funding_abs_pct": {
+        "kind": "stepwise_cadence",
+        "allow_zero_heavy": False,
+        "expected_update_gap_hours": 8.0,
+        "max_update_gap_multiplier": 2.5,
+    },
     "oi_notional": {"kind": "continuous", "allow_zero_heavy": False},
     "oi_delta_1h": {"kind": "continuous", "allow_zero_heavy": True},
     "rv_96": {"kind": "continuous", "allow_zero_heavy": False},
@@ -104,6 +114,13 @@ FIELD_COLUMNS = [
     "first_timestamp",
     "last_timestamp",
     "history_days",
+    "cadence_aware",
+    "expected_update_gap_hours",
+    "median_update_gap_hours",
+    "p95_update_gap_hours",
+    "last_update_gap_hours",
+    "funding_adjusted_stale_ratio",
+    "valid_stepwise_cadence",
     "classification",
     "reason",
 ]
@@ -199,6 +216,66 @@ def _stale_ratio(series: pd.Series, *, allow_zero_heavy: bool) -> float | None:
     return float(values.eq(values.shift()).iloc[1:].sum() / (len(values) - 1))
 
 
+def _funding_adjusted_stale_metrics(
+    frame: pd.DataFrame,
+    field: str,
+    *,
+    expected_update_gap_hours: float = 8.0,
+    max_update_gap_multiplier: float = 2.5,
+) -> dict[str, float | bool | None]:
+    empty = {
+        "cadence_aware": True,
+        "expected_update_gap_hours": expected_update_gap_hours,
+        "median_update_gap_hours": None,
+        "p95_update_gap_hours": None,
+        "last_update_gap_hours": None,
+        "funding_adjusted_stale_ratio": None,
+        "valid_stepwise_cadence": False,
+    }
+    if frame.empty or "timestamp" not in frame.columns or field not in frame.columns:
+        return empty
+
+    subset = frame[["timestamp", field]].copy()
+    subset["timestamp"] = pd.to_datetime(subset["timestamp"], utc=True, errors="coerce")
+    subset[field] = pd.to_numeric(subset[field], errors="coerce")
+    subset = subset.dropna(subset=["timestamp", field]).sort_values("timestamp")
+    if subset.empty:
+        return empty
+
+    if "funding_event_ts" in frame.columns:
+        event_ts = pd.to_datetime(frame["funding_event_ts"], utc=True, errors="coerce").dropna()
+        updates = event_ts.drop_duplicates().sort_values().reset_index(drop=True)
+    else:
+        changed = subset[field].ne(subset[field].shift())
+        updates = subset.loc[changed, "timestamp"].reset_index(drop=True)
+    if len(updates) <= 1:
+        empty["funding_adjusted_stale_ratio"] = 1.0
+        return empty
+
+    gaps = updates.diff().dropna().dt.total_seconds() / 3600.0
+    median_gap = float(gaps.median())
+    p95_gap = float(gaps.quantile(0.95))
+    dataset_last = pd.Timestamp(subset["timestamp"].max())
+    last_update = pd.Timestamp(updates.iloc[-1])
+    last_update_gap = float((dataset_last - last_update).total_seconds() / 3600.0)
+    median_limit = expected_update_gap_hours * 1.5
+    max_limit = expected_update_gap_hours * max_update_gap_multiplier
+    valid = bool(
+        median_gap <= median_limit
+        and p95_gap <= max_limit
+        and last_update_gap <= max_limit
+    )
+    return {
+        "cadence_aware": True,
+        "expected_update_gap_hours": expected_update_gap_hours,
+        "median_update_gap_hours": median_gap,
+        "p95_update_gap_hours": p95_gap,
+        "last_update_gap_hours": last_update_gap,
+        "funding_adjusted_stale_ratio": 0.0 if valid else 1.0,
+        "valid_stepwise_cadence": valid,
+    }
+
+
 def _history_days(first_timestamp: pd.Timestamp | None, last_timestamp: pd.Timestamp | None) -> float | None:
     if first_timestamp is None or last_timestamp is None:
         return None
@@ -232,6 +309,16 @@ def classify_field(
     expectation = FIELD_EXPECTATIONS[field]
     proxy_fields = proxy_fields or set()
     dataset_last = _latest_dataset_timestamp(frame)
+    cadence_aware = expectation.get("kind") == "stepwise_cadence"
+    empty_cadence = {
+        "cadence_aware": bool(cadence_aware),
+        "expected_update_gap_hours": expectation.get("expected_update_gap_hours"),
+        "median_update_gap_hours": None,
+        "p95_update_gap_hours": None,
+        "last_update_gap_hours": None,
+        "funding_adjusted_stale_ratio": None,
+        "valid_stepwise_cadence": False,
+    }
     if frame.empty or field not in frame.columns:
         return {
             "schema_version": SCHEMA_VERSION,
@@ -250,6 +337,7 @@ def classify_field(
             "first_timestamp": None,
             "last_timestamp": None,
             "history_days": None,
+            **empty_cadence,
             "classification": "missing",
             "reason": "field is absent from market_context" if field not in frame.columns else "market_context has no rows",
         }
@@ -262,6 +350,16 @@ def classify_field(
     distinct_count = _distinct_count(series)
     zero_ratio = _zero_ratio(series)
     stale_ratio = _stale_ratio(series, allow_zero_heavy=bool(expectation["allow_zero_heavy"]))
+    cadence_metrics = (
+        _funding_adjusted_stale_metrics(
+            frame,
+            field,
+            expected_update_gap_hours=float(expectation.get("expected_update_gap_hours", 8.0)),
+            max_update_gap_multiplier=float(expectation.get("max_update_gap_multiplier", 2.5)),
+        )
+        if cadence_aware
+        else empty_cadence
+    )
 
     valid_frame = frame.loc[series.notna()].copy()
     if "timestamp" in valid_frame.columns and not valid_frame.empty:
@@ -301,6 +399,13 @@ def classify_field(
     elif _field_source_marked_synthetic(field) or implausibly_low_distinct or constant_default_filled:
         classification = "synthetic"
         reason = "field appears synthetic or default-filled"
+    elif cadence_aware and bool(cadence_metrics["valid_stepwise_cadence"]):
+        if field in proxy_fields:
+            classification = "proxy"
+            reason = "field is stepwise on expected funding cadence but marked as proxy"
+        else:
+            classification = "real"
+            reason = "field is stepwise on expected funding cadence"
     elif (stale_ratio is not None and stale_ratio >= MAX_STALE_RATIO) or last_materially_old:
         classification = "stale"
         reason = "field is stale relative to market_context history"
@@ -331,6 +436,7 @@ def classify_field(
         "first_timestamp": _timestamp(first_ts),
         "last_timestamp": _timestamp(last_ts),
         "history_days": history_days,
+        **cadence_metrics,
         "classification": classification,
         "reason": reason,
     }

@@ -66,14 +66,45 @@ Deterministic classifications:
   distinct count for continuous fields, or constant/default-filled values over
   at least 95% of non-null rows.
 - `stale`: repeated unchanged values above threshold or field updates materially
-  stop before the dataset end.
+  stop before the dataset end. Funding fields use cadence-aware stale checks
+  because eight-hour funding values are expected to repeat across 5m rows.
 - `proxy`: registry, inventory, or expectation metadata marks the field as proxy
   or derived approximation.
 - `real`: coverage at least 80%, history at least 180 days, stale ratio below
-  20%, and not synthetic.
+  20%, and not synthetic. For cadence-aware funding fields, high raw stale ratio
+  is allowed when value-change timestamps remain consistent with expected
+  funding cadence.
 
 `liquidation_notional` is event-sparse and may legitimately be zero-heavy. A
 high zero ratio alone does not make it synthetic.
+
+## Funding Cadence
+
+`funding_rate_scaled` and `funding_abs_pct` are `stepwise_cadence` fields. The
+audit records extra row metadata so readers can see why repeated bar values did
+or did not block the field:
+
+- `cadence_aware`
+- `expected_update_gap_hours`
+- `median_update_gap_hours`
+- `p95_update_gap_hours`
+- `last_update_gap_hours`
+- `funding_adjusted_stale_ratio`
+- `valid_stepwise_cadence`
+
+When `funding_event_ts` is present, the audit uses that materialized source
+timestamp as the update clock. Otherwise it falls back to timestamps where the
+field value changes. This avoids treating repeated equal funding prints as
+missing updates.
+
+A funding field is treated as cadence-valid when:
+
+- median update gap is at most `expected_update_gap_hours * 1.5`
+- p95 update gap is at most `expected_update_gap_hours * 2.5`
+- last update gap is at most `expected_update_gap_hours * 2.5`
+
+When these cadence checks pass, the field can classify as `real` despite a high
+raw repeated-value `stale_ratio`.
 
 ## Mechanism Decisions
 

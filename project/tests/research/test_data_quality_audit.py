@@ -41,9 +41,27 @@ def _row(field: str, classification: str) -> dict:
         "first_timestamp": "2023-01-01T00:00:00+00:00",
         "last_timestamp": "2023-07-01T00:00:00+00:00",
         "history_days": 181.0,
+        "cadence_aware": field in {"funding_rate_scaled", "funding_abs_pct"},
+        "expected_update_gap_hours": 8.0 if field in {"funding_rate_scaled", "funding_abs_pct"} else None,
+        "median_update_gap_hours": None,
+        "p95_update_gap_hours": None,
+        "last_update_gap_hours": None,
+        "funding_adjusted_stale_ratio": None,
+        "valid_stepwise_cadence": False,
         "classification": classification,
         "reason": classification,
     }
+
+
+def _funding_stepwise_frame(field: str, *, days: int = 181) -> pd.DataFrame:
+    timestamps = pd.date_range(
+        pd.Timestamp("2023-01-01", tz="UTC"),
+        pd.Timestamp("2023-01-01", tz="UTC") + pd.Timedelta(days=days),
+        freq="5min",
+    )
+    update_index = (pd.Series(range(len(timestamps))) // 96).astype(float)
+    values = ((update_index % 9) + 1) / 10_000.0
+    return pd.DataFrame({"timestamp": timestamps, field: values})
 
 
 def test_classifies_missing_field():
@@ -116,6 +134,98 @@ def test_classifies_real_field_with_good_coverage():
     assert row["coverage_ratio"] == 1.0
 
 
+def test_funding_rate_scaled_valid_stepwise_is_not_stale():
+    row = classify_field(
+        _funding_stepwise_frame("funding_rate_scaled"),
+        run_id="audit",
+        source_run_id="source",
+        symbol="BTCUSDT",
+        timeframe="5m",
+        field="funding_rate_scaled",
+    )
+
+    assert row["classification"] == "real"
+    assert row["cadence_aware"] is True
+    assert row["valid_stepwise_cadence"] is True
+    assert row["stale_ratio"] > 0.90
+    assert row["funding_adjusted_stale_ratio"] == 0.0
+    assert row["median_update_gap_hours"] == 8.0
+
+
+def test_funding_rate_scaled_uses_funding_event_timestamp_cadence():
+    frame = _funding_stepwise_frame("funding_rate_scaled")
+    event_ts = pd.date_range(frame["timestamp"].min(), frame["timestamp"].max(), freq="8h")
+    frame["funding_event_ts"] = pd.Series(event_ts).reindex(frame.index).ffill().to_numpy()
+    frame["funding_rate_scaled"] = (pd.Series(range(len(frame))) // 288).astype(float)
+
+    row = classify_field(
+        frame,
+        run_id="audit",
+        source_run_id="source",
+        symbol="BTCUSDT",
+        timeframe="5m",
+        field="funding_rate_scaled",
+    )
+
+    assert row["classification"] == "real"
+    assert row["valid_stepwise_cadence"] is True
+    assert row["p95_update_gap_hours"] == 8.0
+
+
+def test_funding_abs_pct_valid_stepwise_is_not_stale():
+    row = classify_field(
+        _funding_stepwise_frame("funding_abs_pct"),
+        run_id="audit",
+        source_run_id="source",
+        symbol="BTCUSDT",
+        timeframe="5m",
+        field="funding_abs_pct",
+    )
+
+    assert row["classification"] == "real"
+    assert row["valid_stepwise_cadence"] is True
+    assert row["funding_adjusted_stale_ratio"] == 0.0
+
+
+def test_funding_rate_scaled_true_stale_when_update_gap_exceeds_cadence():
+    frame = _funding_stepwise_frame("funding_rate_scaled")
+    stale_start = frame["timestamp"].max() - pd.Timedelta(days=2)
+    frame.loc[frame["timestamp"] >= stale_start, "funding_rate_scaled"] = 0.001
+
+    row = classify_field(
+        frame,
+        run_id="audit",
+        source_run_id="source",
+        symbol="BTCUSDT",
+        timeframe="5m",
+        field="funding_rate_scaled",
+    )
+
+    assert row["classification"] == "stale"
+    assert row["valid_stepwise_cadence"] is False
+    assert row["last_update_gap_hours"] > 20.0
+
+
+def test_non_funding_field_still_stale_on_high_repetition():
+    timestamps = pd.date_range(
+        pd.Timestamp("2023-01-01", tz="UTC"),
+        pd.Timestamp("2023-01-01", tz="UTC") + pd.Timedelta(days=181),
+        freq="5min",
+    )
+    values = (pd.Series(range(len(timestamps))) // 96).astype(float)
+    row = classify_field(
+        pd.DataFrame({"timestamp": timestamps, "volume": values}),
+        run_id="audit",
+        source_run_id="source",
+        symbol="BTCUSDT",
+        timeframe="5m",
+        field="volume",
+    )
+
+    assert row["classification"] == "stale"
+    assert row["cadence_aware"] is False
+
+
 def test_mechanism_data_blocked_when_core_observable_missing():
     rows = [
         _row(field, "real")
@@ -153,4 +263,25 @@ def test_mechanism_paper_blocked_when_core_observable_proxy():
 
     funding = next(item for item in payload["mechanisms"] if item["mechanism_id"] == "funding_squeeze")
     assert funding["data_quality_decision"] == "paper_blocked"
+    assert funding["proxy_fields"] == ["basis_zscore"]
+
+
+def test_mechanism_no_longer_data_blocked_by_valid_stepwise_funding_fields():
+    rows = [
+        _row(field, "real")
+        for field in [
+            "funding_rate_scaled",
+            "funding_abs_pct",
+            "oi_notional",
+            "rv_96",
+            "basis_zscore",
+            "volume",
+        ]
+    ]
+    rows[4] = _row("basis_zscore", "proxy")
+    payload = build_mechanism_data_quality(pd.DataFrame(rows, columns=FIELD_COLUMNS), run_id="audit")
+
+    funding = next(item for item in payload["mechanisms"] if item["mechanism_id"] == "funding_squeeze")
+    assert funding["data_quality_decision"] == "paper_blocked"
+    assert funding["blocked_fields"] == []
     assert funding["proxy_fields"] == ["basis_zscore"]
