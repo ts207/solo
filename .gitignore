@@ -33,6 +33,7 @@ data/runs/*
 
 # Alternate local data roots
 .data/
+.data_trash/
 data-local/
 
 # Local run outputs
