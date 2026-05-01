@@ -4,8 +4,8 @@ metadata:
   status: generated
   graph_role: runtime_read_model
   schema_version: 2
-  generated_at_utc: '2026-04-30T18:47:39Z'
-  spec_sources_digest: a50a222b1e8a6f8ec31ce1fde653b7572b47c8dfeec83d76ca1bd2dffc183fe4
+  generated_at_utc: '2026-04-30T22:11:17Z'
+  spec_sources_digest: 43284031183e122c3566cb2c4641576d1a02c2be2f2061d3dda68ea495c3ad98
   notes: Compiled runtime read model. Semantic nodes are normalized for direct runtime/search
     loading.
 events:
@@ -4707,7 +4707,7 @@ events:
     detector_band: ''
     planning_eligible: false
     runtime_eligible: false
-    promotion_eligible: false
+    promotion_eligible: true
     primary_anchor_eligible: false
     enabled: true
     detector_name: OIFlushDetector

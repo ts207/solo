@@ -4330,7 +4330,7 @@ events:
     detector_band: ''
     planning_eligible: false
     runtime_eligible: false
-    promotion_eligible: false
+    promotion_eligible: true
     primary_anchor_eligible: false
     enabled: true
     detector_name: OIFlushDetector

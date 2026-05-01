@@ -1,6 +1,6 @@
 version: 1
-program_id: ffbf_c01_confirm
-description: "Frozen top candidate from ffbf_v1_explore: BTCUSDT OI_FLUSH long continuation in positive_persistent funding"
+program_id: ffbf_c01_confirm_narrow_v2
+description: "Narrow confirmatory rerun for BTCUSDT OI_FLUSH long continuation"
 start: '2023-01-01'
 end: '2025-12-31'
 symbols:
@@ -10,7 +10,13 @@ instrument_classes:
 - crypto
 objective_name: retail_profitability
 promotion_profile: research
+discovery_profile: exploratory
+search_spec:
+  path: spec/productive_search.yaml
 require_hypothesis_audit: false
+template_policy:
+  generic_templates_allowed: true
+  reason: "Confirming top candidate from ffbf_v1_explore which used abstract continuation template"
 hypothesis:
   anchor:
     type: event
@@ -26,6 +32,7 @@ hypothesis:
   template:
     id: continuation
   direction: long
+  # Narrowed to a single horizon to reduce multiplicity burden
   horizon_bars: 48
 artifacts:
   source_discovery_mode: direct

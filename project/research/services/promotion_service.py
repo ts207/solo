@@ -1011,6 +1011,28 @@ def execute_promotion(config: PromotionConfig) -> PromotionServiceResult:
             diagnostics=diagnostics,
             promotion_summary=summary_rows,
         )
+
+        # Sprint 11: Record why live export might be empty despite research promotion
+        research_promoted_count = int(diagnostics.get("tier_counts", {}).get("research_promoted", 0))
+        if promoted_df.empty and research_promoted_count > 0:
+            failed_gates_all = []
+            if not audit_df.empty:
+                for gate_list in audit_df.get("failed_gate_list", pd.Series(dtype=str)).dropna():
+                    failed_gates_all.extend([g.strip() for g in str(gate_list).split("|") if g.strip()])
+
+            from collections import Counter
+            gate_counts = Counter(failed_gates_all)
+            diagnostics["no_live_thesis_export_reason"] = "failed_governed_deployment_gates"
+            diagnostics["failed_deployment_gates"] = dict(gate_counts)
+            diagnostics["research_promoted_candidates_count"] = research_promoted_count
+            logging.info(
+                "No paper/live theses exported for run %s: %d candidates were research_promoted but "
+                "failed governed deployment gates: %s",
+                config.run_id,
+                research_promoted_count,
+                dict(gate_counts),
+            )
+
         from project.research.live_export import export_promoted_theses_for_run
 
         thesis_export = export_promoted_theses_for_run(
@@ -1033,18 +1055,10 @@ def execute_promotion(config: PromotionConfig) -> PromotionServiceResult:
             if thesis_export.contract_md_path
             else "",
         }
-        diagnostics["promotion_lineage_audit"] = _write_promotion_lineage_audit(
-            out_dir=out_dir,
-            run_id=config.run_id,
-            evidence_bundles=evidence_bundles,
-            promoted_df=promoted_df,
-            live_export_diagnostics=diagnostics.get("live_thesis_export"),
-        )
         diagnostics["historical_trust"] = build_run_historical_trust_summary(
             run_id=config.run_id,
             data_root=get_data_root(),
         )
-        atomic_write_json(out_dir / "promotion_diagnostics.json", diagnostics)
         diagnostics["promotion_lineage_audit"] = _write_promotion_lineage_audit(
             out_dir=out_dir,
             run_id=config.run_id,
@@ -1053,6 +1067,7 @@ def execute_promotion(config: PromotionConfig) -> PromotionServiceResult:
             live_export_diagnostics=diagnostics.get("live_thesis_export"),
             historical_trust=diagnostics.get("historical_trust"),
         )
+        atomic_write_json(out_dir / "promotion_diagnostics.json", diagnostics)
         canonical_path_path = persist_canonical_pipeline_artifact(
             out_dir,
             run_id=config.run_id,
