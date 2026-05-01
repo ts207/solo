@@ -355,9 +355,14 @@ def get_tool_definition(name: str, *, profile: str = "operator") -> ToolDefiniti
 
 
 def get_tool_catalog(profile: str = "operator") -> tuple[ToolDefinition, ...]:
+    import os
     normalized = str(profile or "operator").strip().lower()
     if normalized == "operator":
-        return TOOL_CATALOG
+        catalog = list(TOOL_CATALOG)
+        # Filter out admin-only tools unless explicitly enabled
+        if os.environ.get("EDGE_ENABLE_ADMIN_TOOLS") != "1":
+            catalog = [t for t in catalog if t.name != "edge_invoke_operator"]
+        return tuple(catalog)
     if normalized == "repo":
         return REPO_TOOL_CATALOG
     raise ValueError(f"Unknown ChatGPT app profile: {profile}")

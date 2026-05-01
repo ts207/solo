@@ -99,6 +99,25 @@ class CompareRunsInput(BaseModel):
     )
 
 
+class DiscoverRunConfirmations(BaseModel):
+    understands_writes_artifacts: bool = Field(
+        default=False,
+        description="Acknowledge that this run will write durable artifacts to the data root.",
+    )
+    no_live_trading: bool = Field(
+        default=False,
+        description="Confirm that this run is for research/paper purposes only and will not be used for live trading without further promotion.",
+    )
+    no_threshold_relaxation: bool = Field(
+        default=False,
+        description="Confirm that no safety thresholds or validation gates are being relaxed for this run.",
+    )
+    no_posthoc_rescue: bool = Field(
+        default=False,
+        description="Acknowledge that failed candidates will not be 'rescued' or manually promoted if they miss gates.",
+    )
+
+
 class DiscoverRunInput(BaseModel):
     proposal: str = Field(
         description=(
@@ -123,6 +142,10 @@ class DiscoverRunInput(BaseModel):
         default=False,
         description="If true, run the bounded proposal check path before executing.",
     )
+    confirmations: DiscoverRunConfirmations = Field(
+        default_factory=DiscoverRunConfirmations,
+        description="Required operator confirmations for discovery runs.",
+    )
 
 
 class ValidateRunInput(BaseModel):
@@ -136,6 +159,25 @@ class ValidateRunInput(BaseModel):
         ge=30,
         le=3600,
         description="Maximum seconds to wait for the validation pipeline before returning a timeout result.",
+    )
+
+
+class PromoteRunConfirmations(BaseModel):
+    canonical_validation_passed: bool = Field(
+        default=False,
+        description="Confirm that the Stage 2 validation run passed with canonical settings.",
+    )
+    promotion_gates_must_hold: bool = Field(
+        default=False,
+        description="Acknowledge that promotion gates will be strictly enforced and cannot be bypassed.",
+    )
+    do_not_export_rejected_candidates: bool = Field(
+        default=False,
+        description="Confirm that candidates rejected by gates must not be exported to the live thesis batch.",
+    )
+    confirm_governed_write: bool = Field(
+        default=False,
+        description="Explicit confirmation to write governed promotion artifacts to the live/theses directory.",
     )
 
 
@@ -157,6 +199,10 @@ class PromoteRunInput(BaseModel):
         ge=30,
         le=3600,
         description="Maximum seconds to wait for the promotion pipeline.",
+    )
+    confirmations: PromoteRunConfirmations = Field(
+        default_factory=PromoteRunConfirmations,
+        description="Required operator confirmations for promotion runs.",
     )
 
 

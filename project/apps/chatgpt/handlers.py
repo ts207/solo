@@ -857,6 +857,10 @@ def preflight_proposal(
     out_dir: str | None = None,
     json_output: str | None = None,
 ) -> dict[str, Any]:
+    if out_dir:
+        _handler_utils.guard_mutation_path(out_dir)
+    if json_output:
+        _handler_utils.guard_mutation_path(json_output)
     with _scratch_dir(out_dir) as scratch_dir:
         return run_preflight(
             proposal_path=proposal,
@@ -874,6 +878,8 @@ def explain_proposal_summary(
     data_root: str | None = None,
     out_dir: str | None = None,
 ) -> dict[str, Any]:
+    if out_dir:
+        _handler_utils.guard_mutation_path(out_dir)
     with _scratch_dir(out_dir) as scratch_dir:
         return explain_proposal(
             proposal_path=proposal,
@@ -890,6 +896,8 @@ def lint_proposal_summary(
     data_root: str | None = None,
     out_dir: str | None = None,
 ) -> dict[str, Any]:
+    if out_dir:
+        _handler_utils.guard_mutation_path(out_dir)
     with _scratch_dir(out_dir) as scratch_dir:
         return lint_proposal(
             proposal_path=proposal,
@@ -908,6 +916,8 @@ def preview_plan(
     include_experiment_config: bool = True,
 ) -> dict[str, Any]:
     del data_root
+    if out_dir:
+        _handler_utils.guard_mutation_path(out_dir)
     with _scratch_dir(out_dir) as scratch_dir:
         translated = translate_and_validate_proposal(
             proposal,
@@ -1051,20 +1061,46 @@ def discover_run(
     run_id: str | None = None,
     data_root: str | None = None,
     check: bool = False,
+    confirmations: Any | None = None,
 ) -> dict[str, Any]:
     """Execute Stage 1 discovery for a proposal YAML file."""
     from project import discover  # lazy import — heavy pipeline deps
 
-    resolved_data_root = _path_or_none(data_root)
-    result = discover.run(
-        proposal,
-        registry_root=Path(registry_root),
-        data_root=resolved_data_root,
-        run_id=run_id,
-        plan_only=False,
-        dry_run=False,
-        check=check,
-    )
+    # Enforce confirmations
+    conf = confirmations or {}
+    if hasattr(conf, "model_dump"):
+        conf = conf.model_dump()
+
+    required = [
+        "understands_writes_artifacts",
+        "no_live_trading",
+        "no_threshold_relaxation",
+        "no_posthoc_rescue",
+    ]
+    missing = [req for req in required if not conf.get(req)]
+    if missing:
+        return {
+            "status": "blocked",
+            "message": f"Discovery blocked. Missing required operator confirmations: {', '.join(missing)}",
+            "next_safe_command": "Please provide all required confirmations in the tool input.",
+        }
+
+    _handler_utils.check_app_mode({"proposal": proposal, "run_id": run_id})
+    resolved_data_root = _resolve_data_root(data_root)
+
+    # Use a generic run_id if not provided so we can lock it
+    resolved_run_id = run_id or f"disc_{dt.datetime.now().strftime('%Y%m%d_%H%M%S')}"
+
+    with _handler_utils.RunLock(resolved_run_id, resolved_data_root):
+        result = discover.run(
+            proposal,
+            registry_root=Path(registry_root),
+            data_root=resolved_data_root,
+            run_id=resolved_run_id,
+            plan_only=False,
+            dry_run=False,
+            check=check,
+        )
     return _clean_value(result)
 
 
@@ -1079,11 +1115,16 @@ def validate_run(
 
     from project import validate  # lazy import
 
-    resolved_data_root = _path_or_none(data_root)
+    _handler_utils.check_app_mode({"run_id": run_id})
+    resolved_data_root = _resolve_data_root(data_root)
     normalized_timeout = min(max(int(timeout_sec), 30), 3600)
 
+    def _run() -> dict[str, Any]:
+        with _handler_utils.RunLock(run_id, resolved_data_root):
+            return validate.run(run_id, data_root=resolved_data_root)
+
     with concurrent.futures.ThreadPoolExecutor(max_workers=1) as pool:
-        future = pool.submit(validate.run, run_id, data_root=resolved_data_root)
+        future = pool.submit(_run)
         try:
             result = future.result(timeout=normalized_timeout)
             return _clean_value(result) if isinstance(result, dict) else {"status": "complete", "raw": str(result)}
@@ -1110,21 +1151,45 @@ def promote_run(
     retail_profile: str = "capital_constrained",
     data_root: str | None = None,
     timeout_sec: int = 300,
+    confirmations: Any | None = None,
 ) -> dict[str, Any]:
     """Execute Stage 3 promotion for a validated discovery run."""
     import concurrent.futures
 
     from project import promote  # lazy import
 
+    # Enforce confirmations
+    conf = confirmations or {}
+    if hasattr(conf, "model_dump"):
+        conf = conf.model_dump()
+
+    required = [
+        "canonical_validation_passed",
+        "promotion_gates_must_hold",
+        "do_not_export_rejected_candidates",
+        "confirm_governed_write",
+    ]
+    missing = [req for req in required if not conf.get(req)]
+    if missing:
+        return {
+            "status": "blocked",
+            "run_id": run_id,
+            "message": f"Promotion blocked. Missing required operator confirmations: {', '.join(missing)}",
+            "next_safe_command": "Please provide all required confirmations in the tool input.",
+        }
+
+    _handler_utils.check_app_mode({"run_id": run_id, "symbols": symbols})
+    resolved_data_root = _resolve_data_root(data_root)
     normalized_timeout = min(max(int(timeout_sec), 30), 3600)
 
     def _run() -> dict[str, Any]:
-        result = promote.run(
-            run_id=run_id,
-            symbols=symbols,
-            retail_profile=retail_profile,
-            out_dir=None,
-        )
+        with _handler_utils.RunLock(run_id, resolved_data_root):
+            result = promote.run(
+                run_id=run_id,
+                symbols=symbols,
+                retail_profile=retail_profile,
+                out_dir=None,
+            )
         exit_code = getattr(result, "exit_code", 0) or 0
         thesis_count = getattr(result, "thesis_count", None)
         output_path = getattr(result, "output_path", None)

@@ -205,6 +205,102 @@ def _normalize_limit(value: Any) -> int:
     return max(1, min(24, normalized))
 
 
+@contextmanager
+def RunLock(run_id: str, data_root: Path) -> Iterator[None]:
+    """Prevent concurrent mutations of the same run."""
+    lock_dir = data_root / "locks"
+    lock_dir.mkdir(parents=True, exist_ok=True)
+    lock_path = lock_dir / f"{run_id}.lock"
+
+    if lock_path.exists():
+        # Check if the lock is stale (older than 2 hours)
+        try:
+            mtime = lock_path.stat().st_mtime
+            import time
+            if time.time() - mtime < 7200:
+                raise RuntimeError(f"Run {run_id} is currently locked by another process.")
+            _LOG.warning("Removing stale lock for run %s", run_id)
+            lock_path.unlink(missing_ok=True)
+        except Exception as exc:
+            raise RuntimeError(f"Run {run_id} is locked and could not verify lock age: {exc}") from exc
+
+    try:
+        lock_path.touch(exist_ok=False)
+        yield
+    finally:
+        lock_path.unlink(missing_ok=True)
+
+
+def guard_mutation_path(path: Path | str) -> None:
+    """Ensure the path is in the allowed list for mutations."""
+    resolved = Path(path).resolve()
+    repo_root = _repo_root().resolve()
+
+    # Protected paths that should never be written to by this app
+    blocked_patterns = [
+        "data/live/theses",
+        "data/reports/approval",
+        "project/configs/live_trading_",
+        "project/configs/live_production.yaml",
+        ".env",
+        "deploy/env/",
+        "deploy/systemd/",
+    ]
+
+    for pattern in blocked_patterns:
+        if pattern in str(resolved.relative_to(repo_root) if resolved.is_relative_to(repo_root) else resolved):
+            # Special case: promotion service is allowed to write to data/live/theses
+            # but we want to block generic file writes there.
+            # In this context, we'll be conservative.
+            raise PermissionError(f"Mutation blocked for protected path: {path}")
+
+    # Allowed roots
+    allowed_roots = [
+        repo_root / "data" / "reports",
+        repo_root / "data" / "artifacts",
+        repo_root / "data" / "runs",
+        repo_root / "project" / "configs" / "live_monitor_",
+        repo_root / "project" / "configs" / "live_paper_",
+    ]
+
+    is_allowed = False
+    for root in allowed_roots:
+        if resolved.is_relative_to(root):
+            is_allowed = True
+            break
+
+    if not is_allowed:
+        # We also allow writing to /tmp or scratch dirs
+        if str(resolved).startswith("/tmp") or "edge_chatgpt_" in str(resolved):
+            is_allowed = True
+
+    if not is_allowed:
+        raise PermissionError(f"Mutation blocked for unauthorized path: {path}")
+
+
+def check_app_mode(command_context: dict[str, Any] | None = None) -> None:
+    """Ensure the app is not running in a restricted mode (e.g. no live trading)."""
+    import os
+    mode = os.environ.get("EDGE_CHATGPT_APP_MODE", "paper_only")
+
+    if mode == "read_only":
+        raise PermissionError("App is in read-only mode. Mutations are disabled.")
+
+    # Block specific forbidden patterns in context or environment
+    forbidden = [
+        "trading",
+        "live-run",
+        "production",
+        "EDGE_BINANCE_API_KEY",
+        "EDGE_BYBIT_API_KEY",
+    ]
+
+    context_str = str(command_context or "").lower()
+    for pattern in forbidden:
+        if pattern.lower() in context_str:
+            raise PermissionError(f"Command contains forbidden pattern for this app profile: {pattern}")
+
+
 def _parse_json_like(value: Any) -> Any:
     if isinstance(value, str):
         text = value.strip()
