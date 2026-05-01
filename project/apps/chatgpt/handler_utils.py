@@ -261,6 +261,7 @@ def guard_mutation_path(path: Path | str) -> None:
         repo_root / "data" / "runs",
         repo_root / "project" / "configs" / "live_monitor_",
         repo_root / "project" / "configs" / "live_paper_",
+        repo_root / "project" / "configs" / "proposals",
     ]
 
     is_allowed = False

@@ -871,6 +871,36 @@ def preflight_proposal(
         )
 
 
+def write_proposal(
+    *,
+    proposal_content: str,
+    filename: str,
+    directory: str = "project/configs/proposals",
+) -> dict[str, Any]:
+    """Write proposal content to a file in the allowed proposal directory."""
+    _handler_utils.check_app_mode({"filename": filename})
+    repo_root = _handler_utils._repo_root()
+    
+    # Resolve and normalize path
+    dest_dir = repo_root / directory.strip("/")
+    dest_path = (dest_dir / filename).resolve()
+    
+    # Guard the path
+    _handler_utils.guard_mutation_path(dest_path)
+    
+    # Ensure directory exists
+    dest_path.parent.mkdir(parents=True, exist_ok=True)
+    
+    # Write content
+    dest_path.write_text(proposal_content, encoding="utf-8")
+    
+    return {
+        "status": "success",
+        "path": str(dest_path.relative_to(repo_root)),
+        "bytes_written": len(proposal_content.encode("utf-8")),
+    }
+
+
 def explain_proposal_summary(
     *,
     proposal: str,

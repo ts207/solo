@@ -18,6 +18,7 @@ from project.apps.chatgpt.schemas import (
     ProposalLintInput,
     ProposalPreflightInput,
     ProposalPreviewInput,
+    ProposalWriteInput,
     RegimeReportInput,
     RenderOperatorSummaryInput,
     RunDiagnosticsInput,
@@ -51,6 +52,23 @@ TOOL_CATALOG: tuple[ToolDefinition, ...] = (
             destructive=False,
             open_world=False,
             justification="Writes a temporary artifact root probe and may create local scratch directories during validation.",
+        ),
+    ),
+    ToolDefinition(
+        name="edge_write_proposal",
+        title="Write Edge proposal",
+        description="Write a research proposal YAML or JSON to disk. Use this to save a generated proposal before issuing a discovery run with edge_discover_run.",
+        handler="project.apps.chatgpt.handlers.write_proposal",
+        input_model=_schema(ProposalWriteInput),
+        input_schema=_json_schema(ProposalWriteInput),
+        invoking_text="Writing proposal",
+        invoked_text="Proposal saved",
+        category="mutation",
+        hints=ToolHints(
+            read_only=False,
+            destructive=False,
+            open_world=False,
+            justification="Writes a new proposal file to the configured project proposal directory.",
         ),
     ),
     ToolDefinition(
@@ -377,7 +395,8 @@ def get_profile_metadata(profile: str = "operator") -> dict[str, str]:
             "version": "0.1.0",
             "description": "ChatGPT app scaffolding for Edge operator workflows.",
             "instructions": (
-                "Edge is a bounded crypto research operator surface. Use the proposal tools to inspect or issue bounded runs. "
+                "Edge is a bounded crypto research operator surface. Use the proposal tools to inspect, write, or issue bounded runs. "
+                "The end-to-end research cycle is: 1. Inspect repo/runs, 2. Write proposal (edge_write_proposal), 3. Preflight (edge_preflight_proposal), 4. Run discovery (edge_discover_run). "
                 "Prefer report tools for existing runs, and use the render tool only after a data tool has returned compact structured content."
             ),
         }

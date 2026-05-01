@@ -43,6 +43,19 @@ class ProposalPreflightInput(ProposalRequestBase):
     )
 
 
+class ProposalWriteInput(BaseModel):
+    proposal_content: str = Field(
+        description="Full YAML or JSON content of the research proposal."
+    )
+    filename: str = Field(
+        description="Target filename (e.g. 'my_proposal.yaml'). Must be repo-relative or just the basename."
+    )
+    directory: str = Field(
+        default="project/configs/proposals",
+        description="Target directory inside the repository.",
+    )
+
+
 class ProposalIssueInput(BaseModel):
     proposal: str = Field(description="Path to a proposal YAML or JSON file.")
     registry_root: str = Field(

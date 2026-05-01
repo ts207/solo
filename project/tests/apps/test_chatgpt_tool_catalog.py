@@ -49,8 +49,8 @@ def test_compare_runs_schema_has_max_six_runs() -> None:
     assert schema["properties"]["run_ids"]["maxItems"] == 6
 
 
-def test_catalog_has_18_tools() -> None:
-    assert len(TOOL_CATALOG) == 18
+def test_catalog_has_19_tools() -> None:
+    assert len(TOOL_CATALOG) == 19
 
 
 def test_new_stage_tools_exist() -> None:
