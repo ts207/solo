@@ -1,21 +1,24 @@
 {
-  "total_atoms": 98,
+  "total_atoms": 108,
   "by_detector_band": {
-    "": 97,
-    "deployable_core": 1
+    "": 106,
+    "deployable_core": 2
   },
   "by_search_role": {
-    "diagnostic": 87,
+    "diagnostic": 88,
     "confirm": 7,
+    "candidate": 9,
     "context": 4
   },
   "by_promotion_role": {
-    "ineligible": 91,
-    "requires_composite": 7
+    "ineligible": 92,
+    "requires_composite": 7,
+    "null": 9
   },
   "by_runtime_role": {
-    "observer": 87,
+    "observer": 88,
     "unavailable": 7,
+    "null": 9,
     "guard": 4
   },
   "atoms": [
@@ -508,6 +511,78 @@
       "runtime_role": "observer"
     },
     {
+      "id": "spot_perp_basis_shock",
+      "event_type": "SPOT_PERP_BASIS_SHOCK",
+      "detector_band": "",
+      "search_role": "candidate",
+      "promotion_role": null,
+      "runtime_role": null
+    },
+    {
+      "id": "basis_disloc",
+      "event_type": "BASIS_DISLOC",
+      "detector_band": "",
+      "search_role": "candidate",
+      "promotion_role": null,
+      "runtime_role": null
+    },
+    {
+      "id": "fnd_disloc",
+      "event_type": "FND_DISLOC",
+      "detector_band": "",
+      "search_role": "candidate",
+      "promotion_role": null,
+      "runtime_role": null
+    },
+    {
+      "id": "vol_spike",
+      "event_type": "VOL_SPIKE",
+      "detector_band": "",
+      "search_role": "candidate",
+      "promotion_role": null,
+      "runtime_role": null
+    },
+    {
+      "id": "vol_shock",
+      "event_type": "VOL_SHOCK",
+      "detector_band": "",
+      "search_role": "candidate",
+      "promotion_role": null,
+      "runtime_role": null
+    },
+    {
+      "id": "liquidity_shock",
+      "event_type": "LIQUIDITY_SHOCK",
+      "detector_band": "",
+      "search_role": "candidate",
+      "promotion_role": null,
+      "runtime_role": null
+    },
+    {
+      "id": "oi_flush",
+      "event_type": "OI_FLUSH",
+      "detector_band": "",
+      "search_role": "candidate",
+      "promotion_role": null,
+      "runtime_role": null
+    },
+    {
+      "id": "funding_extreme_onset",
+      "event_type": "FUNDING_EXTREME_ONSET",
+      "detector_band": "",
+      "search_role": "candidate",
+      "promotion_role": null,
+      "runtime_role": null
+    },
+    {
+      "id": "funding_flip",
+      "event_type": "FUNDING_FLIP",
+      "detector_band": "",
+      "search_role": "candidate",
+      "promotion_role": null,
+      "runtime_role": null
+    },
+    {
       "id": "vol_cluster_shift_transition",
       "event_type": "VOL_CLUSTER_SHIFT",
       "detector_band": "",
@@ -775,6 +850,14 @@
       "id": "vol_shock_probe",
       "event_type": "VOL_SHOCK",
       "detector_band": "",
+      "search_role": "diagnostic",
+      "promotion_role": "ineligible",
+      "runtime_role": "observer"
+    },
+    {
+      "id": "price_down_oi_down_core",
+      "event_type": "PRICE_DOWN_OI_DOWN",
+      "detector_band": "deployable_core",
       "search_role": "diagnostic",
       "promotion_role": "ineligible",
       "runtime_role": "observer"
