@@ -24,11 +24,12 @@ class PerThesisCap:
 
 @dataclass(frozen=True)
 class RuntimeRiskCaps:
-    max_gross_exposure: float = 1_000_000.0
-    max_symbol_exposure: float = 250_000.0
-    max_family_exposure: float = 500_000.0
-    max_active_theses: int = 20
-    max_order_notional: float = 50_000.0  # hard per-order ceiling (all theses)
+    # Safe-by-default: meaningful paper/trading exposure must come from an explicit cap profile.
+    max_gross_exposure: float = 0.0
+    max_symbol_exposure: float = 0.0
+    max_family_exposure: float = 0.0
+    max_active_theses: int = 0
+    max_order_notional: float = 0.0  # hard per-order ceiling (all theses)
     max_daily_loss: float = 0.0  # global daily loss limit (0 = no limit)
     reject_on_breach: bool = True  # If False, clip to cap
     slippage_budget_bps: float = 0.0  # 0 disables execution-quality slippage scaling

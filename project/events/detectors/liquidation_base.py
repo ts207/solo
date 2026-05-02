@@ -130,6 +130,12 @@ class LiquidationCascadeDetectorV2(EpisodeBaseDetectorV2):
         oi_notional = pd.to_numeric(df['oi_notional'], errors='coerce').astype(float)
         close = pd.to_numeric(df['close'], errors='coerce').astype(float)
         low = pd.to_numeric(df['low'], errors='coerce').astype(float)
+        funding_rate = pd.to_numeric(df.get('funding_rate', pd.Series(np.nan, index=df.index)), errors='coerce').astype(float)
+        signed_move_bps = close.pct_change() * 10000.0
+        oi_delta_fraction = oi_delta / oi_notional.replace(0.0, np.nan)
+        cascade_side = pd.Series('ambiguous', index=df.index, dtype=object)
+        cascade_side = cascade_side.mask((signed_move_bps < 0) & (funding_rate > 0), 'longs_liquidated')
+        cascade_side = cascade_side.mask((signed_move_bps > 0) & (funding_rate < 0), 'shorts_liquidated')
         liq_abs_floor = self._resolve_liq_abs_floor(params, liq)
         return {
             'liquidation_notional': liq,
@@ -138,6 +144,10 @@ class LiquidationCascadeDetectorV2(EpisodeBaseDetectorV2):
             'liq_abs_floor': liq_abs_floor,
             'oi_delta_1h': oi_delta,
             'oi_notional': oi_notional,
+            'oi_delta_fraction': oi_delta_fraction,
+            'funding_rate': funding_rate,
+            'signed_move_bps': signed_move_bps,
+            'cascade_side': cascade_side,
             'close': close,
             'low': low,
         }
@@ -172,7 +182,38 @@ class LiquidationCascadeDetectorV2(EpisodeBaseDetectorV2):
         return 0.9
 
     def compute_metadata(self, idx: int, features: Mapping[str, pd.Series], **params: Any) -> Mapping[str, Any]:
-        return {'event_semantics': 'cascade_episode'}
+        funding = features.get('funding_rate')
+        funding_value = float(np.nan_to_num(funding.iloc[idx], nan=np.nan)) if funding is not None else float('nan')
+        oi_fraction = features.get('oi_delta_fraction')
+        oi_fraction_value = float(np.nan_to_num(oi_fraction.iloc[idx], nan=np.nan)) if oi_fraction is not None else float('nan')
+        missing_inputs: list[str] = []
+        if funding is None or pd.isna(funding.iloc[idx]):
+            missing_inputs.append('funding_rate')
+        if pd.isna(features['oi_delta_1h'].iloc[idx]):
+            missing_inputs.append('oi_delta_1h')
+        if pd.isna(features['oi_notional'].iloc[idx]):
+            missing_inputs.append('oi_notional')
+        return {
+            'event_semantics': 'cascade_episode',
+            'detector_family': 'liquidation',
+            'directionality': 'cascade_side',
+            'cascade_side': str(features.get('cascade_side', pd.Series('ambiguous', index=features['close'].index)).iloc[idx]),
+            'signed_move_bps': float(np.nan_to_num(features['signed_move_bps'].iloc[idx], nan=0.0)),
+            'liquidation_notional': float(np.nan_to_num(features['liquidation_notional'].iloc[idx], nan=0.0)),
+            'oi_delta_1h': float(np.nan_to_num(features['oi_delta_1h'].iloc[idx], nan=0.0)),
+            'oi_notional': float(np.nan_to_num(features['oi_notional'].iloc[idx], nan=0.0)),
+            'oi_delta_fraction': oi_fraction_value,
+            'funding_rate': funding_value,
+            'signal_context': {
+                'cascade_side': str(features.get('cascade_side', pd.Series('ambiguous', index=features['close'].index)).iloc[idx]),
+                'oi_delta_fraction': oi_fraction_value,
+                'funding_rate': funding_value,
+            },
+            'execution_context': {},
+            'context_columns_missing': missing_inputs,
+            'context_defaulted': [],
+            'context_quality': 'degraded' if missing_inputs else 'ok',
+        }
 
     def build_event(self, *, idx: int, ts_start: pd.Timestamp, ts_end: pd.Timestamp, intensity: float, features: Mapping[str, pd.Series], params: dict, detector_metadata: Mapping[str, Any] | None = None, merge_key: str | None = None, cooldown_until: pd.Timestamp | None = None):
         metadata = dict(detector_metadata or {})

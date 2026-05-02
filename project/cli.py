@@ -34,8 +34,135 @@ def _emit_json(payload: Any) -> None:
     print(json.dumps(payload, indent=2, sort_keys=True, default=str))
 
 
+def _run_data_preflight(args: argparse.Namespace) -> int:
+    from project.research.data_preflight import build_data_preflight_report
+
+    payload = build_data_preflight_report(
+        proposal_path=args.proposal,
+        data_root=_path_or_none(args.data_root),
+        strict_columns=bool(getattr(args, "strict_columns", False)),
+    )
+    _emit_json(payload)
+    return 0 if payload.get("status") == "pass" else 1
+
+
+def _run_run_status(args: argparse.Namespace) -> int:
+    from project.research.run_diagnostics import build_run_status_report
+
+    _emit_json(
+        build_run_status_report(
+            run_id=args.run_id,
+            data_root=_path_or_none(args.data_root),
+            top_k=int(args.top_k),
+        )
+    )
+    return 0
+
+
+def _run_explain_rejection(args: argparse.Namespace) -> int:
+    from project.research.run_diagnostics import build_rejection_explanation
+
+    _emit_json(
+        build_rejection_explanation(
+            run_id=args.run_id,
+            data_root=_path_or_none(args.data_root),
+            top_k=int(args.top_k),
+        )
+    )
+    return 0
+
+
+def _run_run_context_audit(args: argparse.Namespace) -> int:
+    from project.research.context_audit import build_context_audit_report
+
+    _emit_json(
+        build_context_audit_report(
+            run_id=args.run_id,
+            data_root=_path_or_none(args.data_root),
+            write=bool(getattr(args, "write", False)),
+        )
+    )
+    return 0
+
+
+def _run_hypothesis_check(args: argparse.Namespace) -> int:
+    from project.research.predeclared import validate_predeclared_hypotheses
+
+    payload = validate_predeclared_hypotheses(args.registry)
+    _emit_json(payload)
+    return 0 if payload.get("status") == "pass" else 1
+
+
+
+def _run_run_id_new(args: argparse.Namespace) -> int:
+    from project.core.run_id import new_run_id
+
+    print(new_run_id(prefix=args.prefix))
+    return 0
+
+
+def _run_repo_lock_check(args: argparse.Namespace) -> int:
+    from project.core.dependency_lock import build_dependency_lock_report
+
+    payload = build_dependency_lock_report(project_root=Path(args.project_root))
+    _emit_json(payload)
+    return 0 if payload.get("status") == "pass" else 1
+
+
+def _run_hypothesis_proposal_check(args: argparse.Namespace) -> int:
+    from project.research.predeclared import check_proposal_against_registry
+
+    payload = check_proposal_against_registry(
+        registry_path=args.registry,
+        proposal_path=args.proposal,
+        hypothesis_id=getattr(args, "hypothesis_id", None),
+    )
+    _emit_json(payload)
+    return 0 if payload.get("status") == "pass" else 1
+
+
+def _split_csv(value: str | None) -> list[str]:
+    if not value:
+        return []
+    return [item.strip() for item in value.split(",") if item.strip()]
+
+
+def _split_int_csv(value: str | None) -> list[int]:
+    out: list[int] = []
+    for item in _split_csv(value):
+        out.append(int(item))
+    return out
+
+
+def _run_campaign_multiplicity_append(args: argparse.Namespace) -> int:
+    from project.research.multiplicity_ledger import append_multiplicity_record, build_multiplicity_record
+
+    record = build_multiplicity_record(
+        campaign_id=args.campaign_id,
+        run_id=args.run_id,
+        proposal_path=args.proposal,
+        symbols=_split_csv(args.symbols),
+        horizons=_split_int_csv(args.horizons),
+        directions=_split_csv(args.directions),
+        filters=_split_csv(args.filters),
+        templates=_split_csv(args.templates),
+    )
+    payload = append_multiplicity_record(args.ledger, record)
+    _emit_json(payload)
+    return 0
+
+
+def _run_campaign_multiplicity_report(args: argparse.Namespace) -> int:
+    from project.research.multiplicity_ledger import build_multiplicity_report
+
+    payload = build_multiplicity_report(args.ledger, campaign_id=getattr(args, "campaign_id", None))
+    _emit_json(payload)
+    return 0 if payload.get("status") != "missing" else 1
+
+
 def _run_discover(args: argparse.Namespace) -> int:
     from project import discover
+    from project.core.run_guard import assert_run_id_available
 
     kwargs: dict[str, Any] = {
         "registry_root": Path(args.registry_root),
@@ -48,6 +175,14 @@ def _run_discover(args: argparse.Namespace) -> int:
     promotion_profile = str(getattr(args, "promotion_profile", "") or "").strip().lower()
     if promotion_profile:
         kwargs["promotion_profile"] = promotion_profile
+
+    if args.discover_action == "run":
+        assert_run_id_available(
+            run_id=args.run_id,
+            data_root=args.data_root,
+            stages=["discovery"],
+            overwrite=bool(getattr(args, "overwrite", False)),
+        )
 
     result = discover.run(args.proposal, **kwargs)
     if isinstance(result, dict):
@@ -71,7 +206,16 @@ def _run_discover_list_artifacts(args: argparse.Namespace) -> int:
 
 
 def _run_discover_cells(args: argparse.Namespace) -> int:
+    from project.core.run_guard import assert_run_id_available
     from project.research.cell_discovery.cells_cli import run_from_namespace
+
+    if str(getattr(args, "cells_action", "") or "") == "run":
+        assert_run_id_available(
+            run_id=getattr(args, "run_id", None),
+            data_root=getattr(args, "data_root", None),
+            stages=["discovery"],
+            overwrite=bool(getattr(args, "overwrite", False)),
+        )
 
     result = run_from_namespace(args)
     _emit_json(result)
@@ -217,6 +361,14 @@ def _run_proposal_inspect(args: argparse.Namespace) -> int:
 
 def _run_validate(args: argparse.Namespace) -> int:
     from project import run as run_validation
+    from project.core.run_guard import assert_run_id_available
+
+    assert_run_id_available(
+        run_id=args.run_id,
+        data_root=args.data_root,
+        stages=["validation"],
+        overwrite=bool(getattr(args, "overwrite", False)),
+    )
 
     result = run_validation(args.run_id, data_root=_path_or_none(args.data_root))
     _emit_json(result)
@@ -249,6 +401,14 @@ def _run_validate_forward_confirm(args: argparse.Namespace) -> int:
 
 def _run_promote(args: argparse.Namespace) -> int:
     from project import promote
+    from project.core.run_guard import assert_run_id_available
+
+    assert_run_id_available(
+        run_id=args.run_id,
+        data_root=None,
+        stages=["promotion", "thesis"],
+        overwrite=bool(getattr(args, "overwrite", False)),
+    )
 
     result = promote.run(
         run_id=args.run_id,
@@ -446,6 +606,81 @@ def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="edge")
     sub = parser.add_subparsers(dest="command")
 
+    data = sub.add_parser("data", help="data coverage and preflight utilities")
+    data_sub = data.add_subparsers(dest="data_action")
+    preflight = data_sub.add_parser("preflight")
+    preflight.add_argument("--proposal", required=True)
+    preflight.add_argument("--data_root")
+    preflight.add_argument("--strict_columns", action="store_true")
+    preflight.set_defaults(func=_run_data_preflight)
+
+
+    run_id = sub.add_parser("run-id", help="run identifier utilities")
+    run_id_sub = run_id.add_subparsers(dest="run_id_action")
+    run_id_new = run_id_sub.add_parser("new")
+    run_id_new.add_argument("--prefix", required=True)
+    run_id_new.set_defaults(func=_run_run_id_new)
+
+    repo = sub.add_parser("repo", help="repository hygiene utilities")
+    repo_sub = repo.add_subparsers(dest="repo_action")
+    lock_check = repo_sub.add_parser("lock-check")
+    lock_check.add_argument("--project_root", default=".")
+    lock_check.set_defaults(func=_run_repo_lock_check)
+
+    run_cmd = sub.add_parser("run", help="run diagnostics and status")
+    run_sub = run_cmd.add_subparsers(dest="run_action")
+    run_status = run_sub.add_parser("status")
+    run_status.add_argument("--run_id", required=True)
+    run_status.add_argument("--data_root")
+    run_status.add_argument("--top_k", type=int, default=10)
+    run_status.set_defaults(func=_run_run_status)
+    context_audit = run_sub.add_parser("context-audit")
+    context_audit.add_argument("--run_id", required=True)
+    context_audit.add_argument("--data_root")
+    context_audit.add_argument("--write", action="store_true")
+    context_audit.set_defaults(func=_run_run_context_audit)
+
+    hypothesis = sub.add_parser("hypothesis", help="predeclared hypothesis registry utilities")
+    hypothesis_sub = hypothesis.add_subparsers(dest="hypothesis_action")
+    hypothesis_check = hypothesis_sub.add_parser("check")
+    hypothesis_check.add_argument("--registry", default="research/predeclared_hypotheses.yaml")
+    hypothesis_check.set_defaults(func=_run_hypothesis_check)
+
+    proposal_check = hypothesis_sub.add_parser("proposal-check")
+    proposal_check.add_argument("--registry", default="research/predeclared_hypotheses.yaml")
+    proposal_check.add_argument("--proposal", required=True)
+    proposal_check.add_argument("--hypothesis_id")
+    proposal_check.set_defaults(func=_run_hypothesis_proposal_check)
+
+
+    campaign = sub.add_parser("campaign", help="campaign-level research utilities")
+    campaign_sub = campaign.add_subparsers(dest="campaign_action")
+    multiplicity = campaign_sub.add_parser("multiplicity")
+    multiplicity_sub = multiplicity.add_subparsers(dest="multiplicity_action")
+    multiplicity_append = multiplicity_sub.add_parser("append")
+    multiplicity_append.add_argument("--ledger", default="research/multiplicity_ledger.jsonl")
+    multiplicity_append.add_argument("--campaign_id", required=True)
+    multiplicity_append.add_argument("--run_id", required=True)
+    multiplicity_append.add_argument("--proposal", required=True)
+    multiplicity_append.add_argument("--symbols", default="")
+    multiplicity_append.add_argument("--horizons", default="")
+    multiplicity_append.add_argument("--directions", default="")
+    multiplicity_append.add_argument("--filters", default="")
+    multiplicity_append.add_argument("--templates", default="")
+    multiplicity_append.set_defaults(func=_run_campaign_multiplicity_append)
+    multiplicity_report = multiplicity_sub.add_parser("report")
+    multiplicity_report.add_argument("--ledger", default="research/multiplicity_ledger.jsonl")
+    multiplicity_report.add_argument("--campaign_id")
+    multiplicity_report.set_defaults(func=_run_campaign_multiplicity_report)
+
+    explain = sub.add_parser("explain", help="explain run outcomes and failures")
+    explain_sub = explain.add_subparsers(dest="explain_action")
+    rejection = explain_sub.add_parser("rejection")
+    rejection.add_argument("--run_id", required=True)
+    rejection.add_argument("--data_root")
+    rejection.add_argument("--top_k", type=int, default=10)
+    rejection.set_defaults(func=_run_explain_rejection)
+
     discover = sub.add_parser("discover", help="canonical discovery stage")
     discover_sub = discover.add_subparsers(dest="discover_action")
     for action in ("plan", "run"):
@@ -461,6 +696,7 @@ def build_parser() -> argparse.ArgumentParser:
         )
         stage.add_argument("--dry_run", action="store_true")
         stage.add_argument("--check", action="store_true")
+        stage.add_argument("--overwrite", action="store_true", help="Allow replacing existing artifacts for this run_id.")
         stage.set_defaults(func=_run_discover, discover_action=action)
     list_artifacts = discover_sub.add_parser("list-artifacts")
     list_artifacts.add_argument("--run_id", required=True)
@@ -501,6 +737,7 @@ def build_parser() -> argparse.ArgumentParser:
     for action in ("verify-data", "plan", "run"):
         cell_parser = cells_sub.add_parser(action)
         _add_cell_common_args(cell_parser)
+        cell_parser.add_argument("--overwrite", action="store_true", help="Allow replacing existing artifacts for this run_id.")
         cell_parser.set_defaults(func=_run_discover_cells, cells_action=action)
     summarize = cells_sub.add_parser("summarize")
     summarize.add_argument("--run_id", required=True)
@@ -550,6 +787,7 @@ def build_parser() -> argparse.ArgumentParser:
     validate_run = validate_sub.add_parser("run")
     validate_run.add_argument("--run_id", required=True)
     validate_run.add_argument("--data_root")
+    validate_run.add_argument("--overwrite", action="store_true", help="Allow replacing existing validation artifacts for this run_id.")
     validate_run.set_defaults(func=_run_validate)
     validate_specs = validate_sub.add_parser("specs")
     validate_specs.add_argument("--root", default=".")
@@ -574,6 +812,7 @@ def build_parser() -> argparse.ArgumentParser:
         "--promotion_profile", choices=["auto", "research", "deploy"], default="auto"
     )
     promote_run.add_argument("--require_forward_confirmation", type=int, default=None)
+    promote_run.add_argument("--overwrite", action="store_true", help="Allow replacing existing promotion/thesis artifacts for this run_id.")
     promote_run.set_defaults(func=_run_promote)
     promote_export = promote_sub.add_parser("export")
     promote_export.add_argument("--run_id", required=True)
@@ -645,7 +884,11 @@ def main(argv: list[str] | None = None) -> int:
     if not hasattr(args, "func"):
         parser.print_help()
         return 0
-    return int(args.func(args))
+    try:
+        return int(args.func(args))
+    except FileExistsError as exc:
+        _emit_json({"status": "error", "message": str(exc)})
+        return 1
 
 
 if __name__ == "__main__":

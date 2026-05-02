@@ -31,3 +31,6 @@ pytest-xdist==3.6.1
 coverage==7.6.1
 execnet==2.1.1
 nodeenv==1.9.1
+websockets==16.0
+networkx==3.6.1
+mcp==1.16.0

@@ -20,6 +20,27 @@ def _ewma_z(series: pd.Series, span: int = 288) -> pd.Series:
     return (pd.to_numeric(series, errors='coerce') - ewma) / scale
 
 
+
+def _series_or_nan(df: pd.DataFrame, column: str) -> pd.Series:
+    return pd.to_numeric(df.get(column, pd.Series(np.nan, index=df.index)), errors="coerce")
+
+
+def _present_columns(df: pd.DataFrame, columns: tuple[str, ...]) -> list[str]:
+    return [column for column in columns if column in df.columns]
+
+
+def _missing_columns(df: pd.DataFrame, columns: tuple[str, ...]) -> list[str]:
+    return [column for column in columns if column not in df.columns]
+
+
+def _context_quality(*, missing: list[str], defaulted: list[str]) -> str:
+    if defaulted:
+        return "defaulted"
+    if missing:
+        return "degraded"
+    return "ok"
+
+
 class VolatilityBaseDetectorV2(BaseDetectorV2):
     required_columns = ('timestamp', 'close', 'rv_96', 'range_96', 'range_med_2880')
 
@@ -73,12 +94,26 @@ class VolSpikeDetectorV2(VolatilityBaseDetectorV2):
             quantile=float(params.get('quantile', 0.97)),
             floor=float(params.get('expansion_z_threshold', 2.0)) * vol_factor.clip(0.8, 1.5),
         )
+        context_columns = ('ms_vol_state', 'ms_vol_confidence', 'ms_vol_entropy')
+        context_present = _present_columns(df, context_columns)
+        context_missing = _missing_columns(df, context_columns)
         return {
             'rv_z': rv_z,
             'dynamic_threshold': dynamic_threshold,
             'vol_factor': vol_factor,
             'canonical_high_vol': canonical_high_vol,
             'close': pd.to_numeric(df['close'], errors='coerce'),
+            'signed_move_bps': pd.to_numeric(df['close'], errors='coerce').pct_change() * 10000.0,
+            'ms_vol_state': _series_or_nan(df, 'ms_vol_state'),
+            'ms_vol_confidence': _series_or_nan(df, 'ms_vol_confidence'),
+            'ms_vol_entropy': _series_or_nan(df, 'ms_vol_entropy'),
+            'spread_bps': _series_or_nan(df, 'spread_bps'),
+            'depth_usd': _series_or_nan(df, 'depth_usd'),
+            'expected_cost_bps': _series_or_nan(df, 'expected_cost_bps'),
+            'context_columns_present': context_present,
+            'context_columns_missing': context_missing,
+            'context_defaulted': [],
+            'context_quality': _context_quality(missing=context_missing, defaulted=[]),
         }
 
     def compute_raw_mask(self, df: pd.DataFrame, *, features: Mapping[str, pd.Series], **params: Any) -> pd.Series:
@@ -89,6 +124,30 @@ class VolSpikeDetectorV2(VolatilityBaseDetectorV2):
 
     def compute_intensity(self, df: pd.DataFrame, *, features: Mapping[str, pd.Series], **params: Any) -> pd.Series:
         return (features['rv_z'] / features['dynamic_threshold'].replace(0.0, np.nan)).replace([np.inf, -np.inf], np.nan)
+
+
+    def compute_metadata(self, idx: int, features: Mapping[str, pd.Series], **params: Any) -> Mapping[str, Any]:
+        meta = dict(super().compute_metadata(idx, features, **params))
+        meta['event_semantics'] = 'volatility_spike'
+        meta['detector_family'] = 'volatility'
+        meta['directionality'] = 'signed_move'
+        meta['signed_move_bps'] = float(np.nan_to_num(features['signed_move_bps'].iloc[idx], nan=0.0))
+        meta['rv_ratio'] = float(np.nan_to_num((features['rv_z'] / features['dynamic_threshold'].replace(0.0, np.nan)).iloc[idx], nan=0.0))
+        meta['signal_context'] = {
+            'ms_vol_state': float(np.nan_to_num(features['ms_vol_state'].iloc[idx], nan=np.nan)),
+            'ms_vol_confidence': float(np.nan_to_num(features['ms_vol_confidence'].iloc[idx], nan=np.nan)),
+            'ms_vol_entropy': float(np.nan_to_num(features['ms_vol_entropy'].iloc[idx], nan=np.nan)),
+        }
+        meta['execution_context'] = {
+            'spread_bps': float(np.nan_to_num(features['spread_bps'].iloc[idx], nan=np.nan)),
+            'depth_usd': float(np.nan_to_num(features['depth_usd'].iloc[idx], nan=np.nan)),
+            'expected_cost_bps': float(np.nan_to_num(features['expected_cost_bps'].iloc[idx], nan=np.nan)),
+        }
+        meta['context_columns_present'] = list(features.get('context_columns_present', []))
+        meta['context_columns_missing'] = list(features.get('context_columns_missing', []))
+        meta['context_defaulted'] = list(features.get('context_defaulted', []))
+        meta['context_quality'] = str(features.get('context_quality', 'ok'))
+        return meta
 
 
 class VolShockDetectorV2(VolatilityBaseDetectorV2):
@@ -105,8 +164,13 @@ class VolShockDetectorV2(VolatilityBaseDetectorV2):
             quantile=float(params.get('quantile', 0.985)),
             floor=float(params.get('shock_z_threshold', 2.25)) * vol_factor.clip(0.8, 1.8),
         )
-        bar_move_bps = close.pct_change().abs() * 10000.0
+        signed_move_bps = close.pct_change() * 10000.0
+        bar_move_bps = signed_move_bps.abs()
         move_threshold = bar_move_bps.shift(1).rolling(window=288, min_periods=24).quantile(float(params.get('move_quantile', 0.95))).fillna(float(params.get('move_floor_bps', 25.0)))
+        context_columns = ('ms_vol_state', 'ms_vol_confidence', 'ms_vol_entropy')
+        context_present = _present_columns(df, context_columns)
+        context_missing = _missing_columns(df, context_columns)
+        context_defaulted = ['ms_vol_state'] if 'ms_vol_state' not in df.columns else []
         canonical_high_vol = state_at_least(
             df,
             'ms_vol_state',
@@ -119,9 +183,22 @@ class VolShockDetectorV2(VolatilityBaseDetectorV2):
             'rv_z': rv_z,
             'dynamic_threshold': dynamic_threshold,
             'vol_factor': vol_factor,
+            'signed_move_bps': signed_move_bps,
             'bar_move_bps': bar_move_bps,
             'move_threshold': move_threshold,
+            'rv_ratio': rv_z / dynamic_threshold.replace(0.0, np.nan),
+            'move_ratio': bar_move_bps / move_threshold.replace(0.0, np.nan),
             'canonical_high_vol': canonical_high_vol,
+            'ms_vol_state': _series_or_nan(df, 'ms_vol_state'),
+            'ms_vol_confidence': _series_or_nan(df, 'ms_vol_confidence'),
+            'ms_vol_entropy': _series_or_nan(df, 'ms_vol_entropy'),
+            'spread_bps': _series_or_nan(df, 'spread_bps'),
+            'depth_usd': _series_or_nan(df, 'depth_usd'),
+            'expected_cost_bps': _series_or_nan(df, 'expected_cost_bps'),
+            'context_columns_present': context_present,
+            'context_columns_missing': context_missing,
+            'context_defaulted': context_defaulted,
+            'context_quality': _context_quality(missing=context_missing, defaulted=context_defaulted),
         }
 
     def compute_raw_mask(self, df: pd.DataFrame, *, features: Mapping[str, pd.Series], **params: Any) -> pd.Series:
@@ -139,7 +216,27 @@ class VolShockDetectorV2(VolatilityBaseDetectorV2):
     def compute_metadata(self, idx: int, features: Mapping[str, pd.Series], **params: Any) -> Mapping[str, Any]:
         meta = dict(super().compute_metadata(idx, features, **params))
         meta['event_semantics'] = 'shock_onset_only'
+        meta['detector_family'] = 'volatility'
+        meta['directionality'] = 'signed_move'
+        meta['signed_move_bps'] = float(np.nan_to_num(features['signed_move_bps'].iloc[idx], nan=0.0))
         meta['bar_move_bps'] = float(np.nan_to_num(features['bar_move_bps'].iloc[idx], nan=0.0))
+        meta['move_threshold_bps'] = float(np.nan_to_num(features['move_threshold'].iloc[idx], nan=0.0))
+        meta['rv_ratio'] = float(np.nan_to_num(features['rv_ratio'].iloc[idx], nan=0.0))
+        meta['move_ratio'] = float(np.nan_to_num(features['move_ratio'].iloc[idx], nan=0.0))
+        meta['signal_context'] = {
+            'ms_vol_state': float(np.nan_to_num(features['ms_vol_state'].iloc[idx], nan=np.nan)),
+            'ms_vol_confidence': float(np.nan_to_num(features['ms_vol_confidence'].iloc[idx], nan=np.nan)),
+            'ms_vol_entropy': float(np.nan_to_num(features['ms_vol_entropy'].iloc[idx], nan=np.nan)),
+        }
+        meta['execution_context'] = {
+            'spread_bps': float(np.nan_to_num(features['spread_bps'].iloc[idx], nan=np.nan)),
+            'depth_usd': float(np.nan_to_num(features['depth_usd'].iloc[idx], nan=np.nan)),
+            'expected_cost_bps': float(np.nan_to_num(features['expected_cost_bps'].iloc[idx], nan=np.nan)),
+        }
+        meta['context_columns_present'] = list(features.get('context_columns_present', []))
+        meta['context_columns_missing'] = list(features.get('context_columns_missing', []))
+        meta['context_defaulted'] = list(features.get('context_defaulted', []))
+        meta['context_quality'] = str(features.get('context_quality', 'ok'))
         return meta
 
 
@@ -288,13 +385,34 @@ class BreakoutTriggerDetectorV2(VolatilityBaseDetectorV2):
         rv_96 = pd.to_numeric(df['rv_96'], errors='coerce').ffill()
         rv_z = _ewma_z(rv_96, 288)
         vol_factor = pd.Series(1.0, index=df.index)
+        breakout_side = pd.Series('ambiguous', index=df.index, dtype=object)
+        breakout_side = breakout_side.mask(dist_up > dist_down, 'up')
+        breakout_side = breakout_side.mask(dist_down > dist_up, 'down')
+        context_columns = ('ms_vol_state', 'ms_vol_confidence', 'ms_vol_entropy')
+        context_present = _present_columns(df, context_columns)
+        context_missing = _missing_columns(df, context_columns)
         return {
             'rv_z': rv_z,
             'dynamic_threshold': breakout_q,
             'comp_ratio': comp_ratio,
+            'rolling_hi': rolling_hi,
+            'rolling_lo': rolling_lo,
+            'dist_up': dist_up,
+            'dist_down': dist_down,
+            'breakout_side': breakout_side,
             'breakout_dist': breakout_dist,
             'breakout_threshold': breakout_q,
             'vol_factor': vol_factor,
+            'ms_vol_state': _series_or_nan(df, 'ms_vol_state'),
+            'ms_vol_confidence': _series_or_nan(df, 'ms_vol_confidence'),
+            'ms_vol_entropy': _series_or_nan(df, 'ms_vol_entropy'),
+            'spread_bps': _series_or_nan(df, 'spread_bps'),
+            'depth_usd': _series_or_nan(df, 'depth_usd'),
+            'expected_cost_bps': _series_or_nan(df, 'expected_cost_bps'),
+            'context_columns_present': context_present,
+            'context_columns_missing': context_missing,
+            'context_defaulted': [],
+            'context_quality': _context_quality(missing=context_missing, defaulted=[]),
         }
 
     def compute_raw_mask(self, df: pd.DataFrame, *, features: Mapping[str, pd.Series], **params: Any) -> pd.Series:
@@ -314,6 +432,30 @@ class BreakoutTriggerDetectorV2(VolatilityBaseDetectorV2):
         meta = dict(super().compute_metadata(idx, features, **params))
         meta['event_semantics'] = 'breakout_trigger'
         meta['cluster_id'] = 'trend_momentum'
+        meta['detector_family'] = 'volatility_breakout'
+        meta['directionality'] = 'breakout_side'
+        meta['breakout_side'] = str(features['breakout_side'].iloc[idx])
+        meta['breakout_dist'] = float(np.nan_to_num(features['breakout_dist'].iloc[idx], nan=0.0))
+        meta['breakout_threshold'] = float(np.nan_to_num(features['breakout_threshold'].iloc[idx], nan=0.0))
+        meta['comp_ratio'] = float(np.nan_to_num(features['comp_ratio'].iloc[idx], nan=np.nan))
+        meta['rolling_hi'] = float(np.nan_to_num(features['rolling_hi'].iloc[idx], nan=np.nan))
+        meta['rolling_lo'] = float(np.nan_to_num(features['rolling_lo'].iloc[idx], nan=np.nan))
+        meta['dist_up'] = float(np.nan_to_num(features['dist_up'].iloc[idx], nan=0.0))
+        meta['dist_down'] = float(np.nan_to_num(features['dist_down'].iloc[idx], nan=0.0))
+        meta['signal_context'] = {
+            'ms_vol_state': float(np.nan_to_num(features['ms_vol_state'].iloc[idx], nan=np.nan)),
+            'ms_vol_confidence': float(np.nan_to_num(features['ms_vol_confidence'].iloc[idx], nan=np.nan)),
+            'ms_vol_entropy': float(np.nan_to_num(features['ms_vol_entropy'].iloc[idx], nan=np.nan)),
+        }
+        meta['execution_context'] = {
+            'spread_bps': float(np.nan_to_num(features['spread_bps'].iloc[idx], nan=np.nan)),
+            'depth_usd': float(np.nan_to_num(features['depth_usd'].iloc[idx], nan=np.nan)),
+            'expected_cost_bps': float(np.nan_to_num(features['expected_cost_bps'].iloc[idx], nan=np.nan)),
+        }
+        meta['context_columns_present'] = list(features.get('context_columns_present', []))
+        meta['context_columns_missing'] = list(features.get('context_columns_missing', []))
+        meta['context_defaulted'] = list(features.get('context_defaulted', []))
+        meta['context_quality'] = str(features.get('context_quality', 'ok'))
         return meta
 
 

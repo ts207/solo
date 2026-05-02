@@ -553,6 +553,27 @@ def build_live_trade_context(
         "open_interest_fresh": bool(market_features.get("open_interest_fresh", False)),
     }
 
+    signal_context = {
+        "canonical_regime": str(regime_snapshot.get("canonical_regime", "")).strip().upper(),
+        "primary_event_id": primary_event_id,
+        "event_side": str(detected_event.event_side).lower(),
+        "event_confidence": detected_event.event_confidence,
+        "event_severity": detected_event.event_severity,
+        "data_quality_flag": detected_event.data_quality_flag,
+        "ms_vol_state": safe_float(market_features.get("ms_vol_state"), float("nan")),
+        "ms_oi_state": safe_float(market_features.get("ms_oi_state"), float("nan")),
+        "ms_funding_state": safe_float(market_features.get("ms_funding_state"), float("nan")),
+        "ms_spread_state": safe_float(market_features.get("ms_spread_state"), float("nan")),
+    }
+    execution_context = {
+        "microstructure_regime": str(regime_snapshot.get("microstructure_regime", "")).strip().lower(),
+        "spread_bps": safe_float(market_features.get("spread_bps"), float("nan")),
+        "depth_usd": safe_float(market_features.get("depth_usd"), float("nan")),
+        "expected_cost_bps": safe_float(market_features.get("expected_cost_bps"), float("nan")),
+        "is_execution_tradable": bool(market_features.get("is_execution_tradable", False)),
+        "non_tradable_reasons": list(market_features.get("non_tradable_reasons", []) or []),
+    }
+
     episode_snapshot = {
         "episode_ids": active_episode_ids,
         "matches": [
@@ -606,7 +627,10 @@ def build_live_trade_context(
         threshold_snapshot=threshold_snapshot,
         detector_input_status=detector_input_status,
         live_features=dict(market_features),
-        regime_snapshot=regime_snapshot | {"market_state_quality": market_state_quality},
+        regime_snapshot=regime_snapshot | {"signal_context": signal_context, "execution_context": execution_context, "market_state_quality": market_state_quality},
+        signal_context=signal_context,
+        execution_context=execution_context,
+        market_state_quality=market_state_quality,
         execution_env=dict(execution_env),
         portfolio_state=dict(portfolio_state),
         active_event_families=active_event_families,

@@ -27,6 +27,9 @@ class LiveTradeContext(BaseModel):
     threshold_snapshot: dict[str, Any] = Field(default_factory=dict)
     detector_input_status: dict[str, Any] = Field(default_factory=dict)
     live_features: dict[str, Any] = Field(default_factory=dict)
+    signal_context: dict[str, Any] = Field(default_factory=dict)
+    execution_context: dict[str, Any] = Field(default_factory=dict)
+    market_state_quality: dict[str, Any] = Field(default_factory=dict)
     regime_snapshot: dict[str, Any] = Field(default_factory=dict)
     execution_env: dict[str, Any] = Field(default_factory=dict)
     portfolio_state: dict[str, Any] = Field(default_factory=dict)
@@ -77,6 +80,9 @@ class LiveTradeContext(BaseModel):
             "primary_event_id": self.primary_event_id,
             "canonical_regime": self.canonical_regime,
             "event_side": self.event_side,
+            "signal_context": dict(self.signal_context),
+            "execution_context": dict(self.execution_context),
+            "market_state_quality": dict(self.market_state_quality),
             "active_event_ids": list(self.active_event_ids),
             "active_episode_ids": list(self.active_episode_ids),
             "active_state_ids": list(self.active_state_ids),

@@ -20,10 +20,12 @@ PROTECTED_PREFIXES = [
 ]
 
 def check_status():
+    if not os.path.isdir(".git"):
+        return []
     try:
         # Check tracked modifications (staged and unstaged)
-        status = subprocess.check_output(["git", "status", "--porcelain"], text=True)
-    except subprocess.CalledProcessError:
+        status = subprocess.check_output(["git", "status", "--porcelain"], text=True, stderr=subprocess.DEVNULL)
+    except (subprocess.CalledProcessError, FileNotFoundError):
         return []
 
     modified_files = []
