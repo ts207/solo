@@ -1,4 +1,5 @@
 import os
+import site
 import subprocess
 import sys
 import sysconfig
@@ -27,9 +28,13 @@ def test_removed_pipeline_alias_hidden_from_cli_help():
     """Verify the old pipeline alias is no longer part of the public CLI."""
     repo_root = Path(__file__).parent.parent.parent.parent
     env = os.environ.copy()
-    site_packages = sysconfig.get_paths().get("purelib")
     pythonpath_parts = [str(repo_root)]
-    if site_packages:
+    candidate_site_paths = {
+        sysconfig.get_paths().get("purelib"),
+        sysconfig.get_paths().get("platlib"),
+        *site.getsitepackages(),
+    }
+    for site_packages in sorted(path for path in candidate_site_paths if path):
         pythonpath_parts.append(site_packages)
     if env.get("PYTHONPATH"):
         pythonpath_parts.append(env["PYTHONPATH"])

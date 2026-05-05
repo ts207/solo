@@ -26,6 +26,27 @@ def _load_cli_module():
     return module
 
 
+def _monitor_thesis_payload(run_id: str) -> dict:
+    thesis_id = f"thesis::{run_id}::BTCUSDT"
+    return {
+        "primary_event_id": "VOL_SHOCK",
+        "thesis_id": thesis_id,
+        "deployment_state": "monitor_only",
+        "runtime_manifest": {
+            "thesis_id": thesis_id,
+            "promotion_state": "monitor_only",
+            "allowed_runtime_modes": ["monitor_only"],
+        },
+        "timeframe": "5m",
+        "evidence": {"sample_size": 100},
+        "lineage": {
+            "source_run_id": run_id,
+            "run_id": run_id,
+            "candidate_id": f"cand::{run_id}",
+        },
+    }
+
+
 def test_cli_rejects_removed_strategy_subcommand(monkeypatch, capsys):
     cli = _load_cli_module()
     monkeypatch.setattr(sys, "argv", ["backtest", "strategy", "eval"])
@@ -341,20 +362,7 @@ def test_cli_deploy_bind_config_defaults_to_project_configs_and_emits_single_the
                 "thesis_count": 1,
                 "active_thesis_count": 0,
                 "pending_thesis_count": 0,
-                "theses": [
-                    {
-                        "primary_event_id": "VOL_SHOCK",
-                        "thesis_id": f"thesis::{run_id}::BTCUSDT",
-                        "deployment_state": "monitor_only",
-                        "timeframe": "5m",
-                        "evidence": {"sample_size": 100},
-                        "lineage": {
-                            "source_run_id": run_id,
-                            "run_id": run_id,
-                            "candidate_id": f"cand::{run_id}",
-                        },
-                    }
-                ],
+                "theses": [_monitor_thesis_payload(run_id)],
             }
         ),
         encoding="utf-8",
@@ -462,20 +470,7 @@ def test_cli_deploy_bind_config_does_not_inject_synthetic_microstructure_default
                 "thesis_count": 1,
                 "active_thesis_count": 0,
                 "pending_thesis_count": 0,
-                "theses": [
-                    {
-                        "primary_event_id": "VOL_SHOCK",
-                        "thesis_id": f"thesis::{run_id}::BTCUSDT",
-                        "deployment_state": "monitor_only",
-                        "timeframe": "5m",
-                        "evidence": {"sample_size": 100},
-                        "lineage": {
-                            "source_run_id": run_id,
-                            "run_id": run_id,
-                            "candidate_id": f"cand::{run_id}",
-                        },
-                    }
-                ],
+                "theses": [_monitor_thesis_payload(run_id)],
             }
         ),
         encoding="utf-8",

@@ -348,11 +348,7 @@ event_template_matrix:
         - normal
         - recovered
     trend_continuation:
-      status: allowed_with_required_context
-      required_contexts:
-        trend_phase:
-        - uptrend
-        - downtrend
+      status: forbidden
     generic_mean_reversion:
       status: forbidden
   VOL_SPIKE:
@@ -362,11 +358,7 @@ event_template_matrix:
         vol_phase:
         - expansion
     trend_continuation:
-      status: allowed_with_required_context
-      required_contexts:
-        trend_phase:
-        - uptrend
-        - downtrend
+      status: forbidden
     generic_mean_reversion:
       status: forbidden
   BREAKOUT_TRIGGER:
@@ -392,7 +384,7 @@ event_template_matrix:
         trend_structure:
         - breakout_hold
     trend_continuation:
-      status: allowed
+      status: forbidden
     false_breakout_reversal:
       status: research_only
   FALSE_BREAKOUT:
@@ -404,7 +396,7 @@ event_template_matrix:
     breakout_followthrough:
       status: allowed
     trend_continuation:
-      status: allowed
+      status: forbidden
   SWEEP_STOPRUN:
     stop_run_repair:
       status: allowed_with_required_context

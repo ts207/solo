@@ -1,0 +1,23 @@
+program_id: volshock_btc_long_12b
+description: Canonical VOL_SHOCK continuation slice
+run_mode: research
+objective_name: retail_profitability
+promotion_profile: research
+symbols:
+  - BTCUSDT
+timeframe: 5m
+start: "2024-01-01"
+end: "2024-01-31"
+instrument_classes:
+  - crypto
+hypothesis:
+  anchor:
+    type: event
+    event_id: VOL_SHOCK
+  filters: {}
+  sampling_policy:
+    entry_lag_bars: 1
+  template:
+    id: continuation
+  direction: long
+  horizon_bars: 12

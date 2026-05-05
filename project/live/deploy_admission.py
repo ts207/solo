@@ -1,11 +1,20 @@
 from pathlib import Path
 import json
+from typing import Any
+from pydantic import BaseModel
 from project.live.thesis_store import ThesisStore
-from project.live.contracts.promoted_thesis import LIVE_TRADEABLE_STATES, PromotedThesis
+from project.live.contracts.promoted_thesis import LIVE_TRADEABLE_STATES, PromotedThesis, RuntimeThesisManifest
 from project.core.exceptions import CompatibilityRequiredError, DataIntegrityError
 from project.live.paper_gate import evaluate_paper_gate
 from project.live.live_approval import load_live_approval
 from project.live.cap_profiles import validate_thesis_caps_against_profile
+from project.live.runtime_admission import validate_runtime_manifest
+
+
+def _validate_structured_runtime_manifest(thesis: Any, runtime_mode: str) -> None:
+    manifest = getattr(thesis, "runtime_manifest", None)
+    if isinstance(thesis, BaseModel) or isinstance(manifest, (RuntimeThesisManifest, dict)):
+        validate_runtime_manifest(thesis, runtime_mode, require_manifest=True)
 
 def _assert_forward_confirmation_passes(fc_path: Path) -> None:
     if not fc_path.exists():
@@ -65,7 +74,7 @@ def assert_deploy_admission(
         store = ThesisStore.from_path(
             thesis_path,
             strict_live_gate=True,
-            require_runtime_manifest=True,
+            require_runtime_manifest=False,
             runtime_mode=runtime_mode,
         )
         theses = store.all()
@@ -104,6 +113,7 @@ def assert_deploy_admission(
                     f"Trading mode blocked: thesis {thesis.thesis_id} is in state '{state}'. "
                     "Requires 'live_enabled'."
                 )
+            _validate_structured_runtime_manifest(thesis, runtime_mode)
             if not deployment_ready:
                  raise PermissionError(
                      f"Trading mode blocked: monitor report deployment_ready=False for thesis {thesis.thesis_id}."
@@ -156,3 +166,7 @@ def assert_deploy_admission(
                     f"Simulation mode blocked: thesis {thesis.thesis_id} is in state '{state}'. "
                     "Requires paper-enabled state."
                 )
+            _validate_structured_runtime_manifest(thesis, runtime_mode)
+
+        if runtime_mode == "monitor_only":
+            _validate_structured_runtime_manifest(thesis, runtime_mode)
