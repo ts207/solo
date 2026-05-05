@@ -84,6 +84,14 @@ METRICS_COLUMNS = [
     "mean_return_gross_bps",
     "mean_return_net_bps",
     "expected_cost_bps_per_trade",
+    "net_mean_bps_cost_1x",
+    "net_mean_bps_cost_1_5x",
+    "net_mean_bps_cost_2x",
+    "net_mean_bps_cost_3x",
+    "cost_break_even_multiplier",
+    "mechanism_success_rate",
+    "mechanism_label",
+    "mechanism_valid",
     "t_stat",
     "t_stat_gross",
     "t_stat_net",
@@ -407,6 +415,133 @@ def _weighted_newey_west_mean_std(
     return mean, std, t_stat
 
 
+
+def _cost_stress_metrics(
+    signed_gross: pd.Series,
+    base_cost_bps: pd.Series,
+    funding_cost_bps: pd.Series | None = None,
+) -> dict[str, float]:
+    if signed_gross.empty:
+        return {
+            "net_mean_bps_cost_1x": float("nan"),
+            "net_mean_bps_cost_1_5x": float("nan"),
+            "net_mean_bps_cost_2x": float("nan"),
+            "net_mean_bps_cost_3x": float("nan"),
+            "cost_break_even_multiplier": float("nan"),
+            "cost_survival_ratio": float("nan"),
+        }
+    gross = signed_gross.astype(float)
+    cost = base_cost_bps.reindex(gross.index).fillna(0.0).astype(float)
+    funding = (
+        funding_cost_bps.reindex(gross.index).fillna(0.0).astype(float)
+        if funding_cost_bps is not None
+        else pd.Series(0.0, index=gross.index)
+    )
+    out: dict[str, float] = {}
+    positive_count = 0
+    for multiplier, label in ((1.0, "1x"), (1.5, "1_5x"), (2.0, "2x"), (3.0, "3x")):
+        net = gross - (cost * multiplier) - funding
+        mean = float(net.mean()) if len(net) else float("nan")
+        out[f"net_mean_bps_cost_{label}"] = mean
+        if np.isfinite(mean) and mean > 0.0:
+            positive_count += 1
+    avg_cost = float(cost.mean()) if len(cost) else 0.0
+    avg_funding = float(funding.mean()) if len(funding) else 0.0
+    gross_mean = float(gross.mean()) if len(gross) else float("nan")
+    if avg_cost > 1e-12 and np.isfinite(gross_mean):
+        out["cost_break_even_multiplier"] = float(max(0.0, (gross_mean - avg_funding) / avg_cost))
+    else:
+        out["cost_break_even_multiplier"] = float("inf") if np.isfinite(gross_mean) and gross_mean > avg_funding else float("nan")
+    out["cost_survival_ratio"] = float(positive_count / 4.0)
+    return out
+
+def _mechanism_diagnostics(
+    *,
+    template_id: str,
+    features: pd.DataFrame,
+    event_indices: pd.Index,
+    horizon_bars: int,
+    direction_sign_value: float,
+    signed_gross: pd.Series,
+) -> dict[str, object]:
+    """Mechanism-level diagnostics separate PnL from stated market behavior.
+
+    These are intentionally conservative fallbacks: when the required mechanism
+    feature is absent, we mark the mechanism as unavailable instead of inventing
+    evidence.
+    """
+    template = str(template_id or "").strip().lower()
+    if len(event_indices) == 0:
+        return {"mechanism_success_rate": float("nan"), "mechanism_label": "none", "mechanism_valid": False}
+
+    close = features.get("close")
+
+    def _future_delta(column: str) -> pd.Series | None:
+        if column not in features.columns:
+            return None
+        series = pd.to_numeric(features[column], errors="coerce")
+        future = series.shift(-int(horizon_bars))
+        return future.loc[event_indices] - series.loc[event_indices]
+
+    label = "pnl_direction"
+    successes: pd.Series | None = None
+
+    if any(token in template for token in ("basis", "desync", "convergence")):
+        for col in ("basis_zscore", "basis_z", "desync_zscore", "spread_zscore"):
+            if col in features.columns:
+                series = pd.to_numeric(features[col], errors="coerce")
+                future = series.shift(-int(horizon_bars))
+                before = series.loc[event_indices].abs()
+                after = future.loc[event_indices].abs()
+                successes = after < before
+                label = f"{col}_converges_to_zero"
+                break
+    elif any(token in template for token in ("liquidity_refill", "overshoot_repair", "stop_run_repair", "repair")):
+        for col in ("spread_zscore", "liquidity_gap", "depth_imbalance", "overshoot_zscore"):
+            if col in features.columns:
+                series = pd.to_numeric(features[col], errors="coerce")
+                future = series.shift(-int(horizon_bars))
+                before = series.loc[event_indices].abs()
+                after = future.loc[event_indices].abs()
+                successes = after < before
+                label = f"{col}_repairs"
+                break
+    elif any(token in template for token in ("vol_decay", "volatility_decay", "mean_reversion")):
+        for col in ("rv", "realized_vol", "rv_pct_17280", "volatility"):
+            if col in features.columns:
+                delta = _future_delta(col)
+                if delta is not None:
+                    successes = delta < 0.0
+                    label = f"{col}_decays"
+                    break
+    elif any(token in template for token in ("breakout", "trend_follow", "followthrough", "continuation")) and close is not None:
+        close_s = pd.to_numeric(close, errors="coerce")
+        future_ret = (close_s.shift(-int(horizon_bars)) / close_s - 1.0).loc[event_indices]
+        successes = (future_ret * float(direction_sign_value)) > 0.0
+        label = "price_followthrough"
+    elif any(token in template for token in ("forced_flow", "liquidation", "rebound", "squeeze")):
+        for col in ("liquidation_count", "forced_flow_intensity", "liquidation_imbalance"):
+            if col in features.columns:
+                delta = _future_delta(col)
+                if delta is not None:
+                    successes = delta <= 0.0
+                    label = f"{col}_does_not_reaccelerate"
+                    break
+
+    if successes is None:
+        if len(signed_gross):
+            successes = signed_gross > 0.0
+            label = "pnl_direction_fallback"
+        else:
+            return {"mechanism_success_rate": float("nan"), "mechanism_label": "unavailable", "mechanism_valid": False}
+
+    clean = successes.dropna()
+    if clean.empty:
+        return {"mechanism_success_rate": float("nan"), "mechanism_label": label, "mechanism_valid": False}
+    rate = float(clean.astype(bool).mean())
+    return {"mechanism_success_rate": rate, "mechanism_label": label, "mechanism_valid": bool(rate >= 0.50)}
+
+
 def _normal_p_value(stat: float) -> float:
     # E-EVAL-001: one-sided right-tail p-value for directional hypotheses.
     # erfc(t/√2)/2 == P(Z > t) for Z ~ N(0,1).
@@ -674,6 +809,7 @@ def evaluate_hypothesis_batch(
         # funding_rate_scaled is the 8-hour decimal rate (e.g. 0.0001 = 1 bps).
         # A long position pays positive funding; short position receives it.
         # Cost per trade = rate * direction_sign * (horizon_bars / 96 funding periods).
+        _funding_cost_bps = pd.Series(0.0, index=signed.index)
         _funding_col = next(
             (c for c in ("funding_rate_scaled", "funding_rate_realized", "funding_rate")
              if c in features.columns),
@@ -688,6 +824,16 @@ def evaluate_hypothesis_batch(
             _funding_periods = hbars / 96.0  # 8h periods per trade
             _funding_cost_bps = _funding_at_events * direction_sign * _funding_periods * 1e4
             signed_net = signed_net - _funding_cost_bps
+
+        cost_stress_metrics = _cost_stress_metrics(signed, per_trade_cost_bps, _funding_cost_bps)
+        mechanism_metrics = _mechanism_diagnostics(
+            template_id=spec.template_id,
+            features=features,
+            event_indices=signed.index,
+            horizon_bars=hbars,
+            direction_sign_value=direction_sign,
+            signed_gross=signed,
+        )
 
         gross_mean_bps, gross_std, t_stat_gross = _weighted_newey_west_mean_std(
             signed,
@@ -795,6 +941,14 @@ def evaluate_hypothesis_batch(
                 "mean_return_gross_bps": round(gross_mean_bps, 4),
                 "mean_return_net_bps": round(net_mean_bps, 4),
                 "expected_cost_bps_per_trade": round(expected_cost_mean_bps, 4),
+                **{k: (round(v, 4) if np.isfinite(v) else v) for k, v in cost_stress_metrics.items()},
+                "mechanism_success_rate": (
+                    round(float(mechanism_metrics["mechanism_success_rate"]), 4)
+                    if np.isfinite(float(mechanism_metrics["mechanism_success_rate"]))
+                    else float("nan")
+                ),
+                "mechanism_label": str(mechanism_metrics["mechanism_label"]),
+                "mechanism_valid": bool(mechanism_metrics["mechanism_valid"]),
                 "t_stat": round(t_stat, 4),
                 "t_stat_gross": round(t_stat_gross, 4),
                 "t_stat_net": round(t_stat_net, 4),
@@ -961,6 +1115,8 @@ def evaluate_hypothesis_batch(
         row["mean_return_gross_bps"] = row.get("mean_return_gross_bps", round(gross_mean_bps, 4))
         row["mean_return_net_bps"] = row.get("mean_return_net_bps", round(net_mean_bps, 4))
         row["expected_cost_bps_per_trade"] = row.get("expected_cost_bps_per_trade", round(expected_cost_mean_bps, 4))
+        for _k, _v in cost_stress_metrics.items():
+            row[_k] = row.get(_k, round(_v, 4) if np.isfinite(_v) else _v)
         row["t_stat_gross"] = row.get("t_stat_gross", round(t_stat_gross, 4))
         row["t_stat_net"] = row.get("t_stat_net", round(t_stat_net, 4))
         row["t_stat"] = row.get("t_stat", round(t_stat_net, 4))

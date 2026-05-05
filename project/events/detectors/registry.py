@@ -183,6 +183,18 @@ def get_detector_metadata_adapter_class(
             governance_row.get("supports_quality_flag", governance_row.get("emits_quality_flag")),
             class_metadata.supports_quality_flag,
         ),
+        "supports_event_side": _coerce_bool(
+            governance_row.get("supports_event_side"),
+            class_metadata.supports_event_side,
+        ),
+        "supports_magnitude": _coerce_bool(
+            governance_row.get("supports_magnitude"),
+            class_metadata.supports_magnitude,
+        ),
+        "supports_severity_bucket": _coerce_bool(
+            governance_row.get("supports_severity_bucket"),
+            class_metadata.supports_severity_bucket,
+        ),
         "cooldown_semantics": str(
             governance_row.get("cooldown_semantics") or class_metadata.cooldown_semantics or "none"
         ).strip()

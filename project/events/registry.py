@@ -312,6 +312,18 @@ def validate_detector_contract_implementation_parity() -> dict[str, dict[str, di
                 "contract": contract.supports_quality_flag,
                 "implementation": metadata.supports_quality_flag,
             },
+            "supports_event_side": {
+                "contract": contract.supports_event_side,
+                "implementation": metadata.supports_event_side,
+            },
+            "supports_magnitude": {
+                "contract": contract.supports_magnitude,
+                "implementation": metadata.supports_magnitude,
+            },
+            "supports_severity_bucket": {
+                "contract": contract.supports_severity_bucket,
+                "implementation": metadata.supports_severity_bucket,
+            },
             "cooldown_semantics": {
                 "contract": contract.cooldown_semantics,
                 "implementation": metadata.cooldown_semantics,
@@ -459,6 +471,11 @@ def get_detector_contract(event_name: str) -> DetectorContract:
     research_only = _bool_from_row(row, "research_only", default=role in {"composite", "research_only"})
     detector_band = detector_metadata.detector_band
     runtime_default = _bool_from_row(row, "runtime_default", "runtime_eligible", default=detector_metadata.runtime_default)
+    # Detector runtime availability is distinct from thesis/runtime trading eligibility.
+    # deployable_core means the detector can run in runtime pipelines, even when
+    # governance keeps the event in paper/research-only thesis states.
+    if detector_band == "deployable_core":
+        runtime_default = True
     planning_default = _bool_from_row(row, "planning_default", "planning_eligible", default=detector_metadata.planning_default)
     promotion_eligible = _bool_from_row(row, "promotion_eligible", default=detector_metadata.promotion_eligible)
     primary_anchor_eligible = _bool_from_row(row, "primary_anchor_eligible", default=detector_metadata.primary_anchor_eligible)
@@ -497,6 +514,9 @@ def get_detector_contract(event_name: str) -> DetectorContract:
             supports_confidence=detector_metadata.supports_confidence,
             supports_severity=detector_metadata.supports_severity,
             supports_quality_flag=detector_metadata.supports_quality_flag,
+            supports_event_side=detector_metadata.supports_event_side,
+            supports_magnitude=detector_metadata.supports_magnitude,
+            supports_severity_bucket=detector_metadata.supports_severity_bucket,
             aliases=aliases_tuple,
             notes=str(row.get("notes", "")).strip(),
         )

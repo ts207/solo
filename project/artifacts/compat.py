@@ -3,7 +3,10 @@ from __future__ import annotations
 from pathlib import Path
 
 from project.artifacts.catalog import data_root, phase2_candidates_path, phase2_diagnostics_path
-from project.research.services.pathing import phase2_run_dir
+
+
+def _phase2_run_dir(*, root: Path, run_id: str) -> Path:
+    return Path(root) / "reports" / "phase2" / str(run_id)
 
 
 def phase2_candidates_compat_path(
@@ -22,7 +25,7 @@ def phase2_candidates_compat_path(
     resolved_root = data_root(root)
     legacy_event = str(event_type or "").strip()
     if legacy_event:
-        legacy_root = phase2_run_dir(data_root=resolved_root, run_id=run_id)
+        legacy_root = _phase2_run_dir(root=resolved_root, run_id=run_id)
         for legacy_base in (
             legacy_root / legacy_event,
             legacy_root / "legacy" / legacy_event,
@@ -55,7 +58,7 @@ def phase2_diagnostics_compat_path(
 
     resolved_root = data_root(root)
     legacy = (
-        phase2_run_dir(data_root=resolved_root, run_id=run_id)
+        _phase2_run_dir(root=resolved_root, run_id=run_id)
         / "search_engine"
         / "phase2_diagnostics.json"
     )

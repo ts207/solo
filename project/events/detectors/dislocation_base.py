@@ -13,6 +13,7 @@ from project.events.thresholding import (
     rolling_vol_regime_factor,
 )
 from project.features.context_guards import state_at_least
+from project.events.polarity import PolaritySemantics
 
 
 class BasisDetectorV2Base(BaseDetectorV2):
@@ -68,6 +69,27 @@ class BasisDetectorV2Base(BaseDetectorV2):
         if pd.isna(features["basis_zscore"].iloc[idx]) or pd.isna(features["basis_bps"].iloc[idx]):
             return "degraded"
         return "ok"
+
+
+    def compute_polarity_semantics(self, idx: int, features: Mapping[str, pd.Series], **params: Any) -> str:
+        return PolaritySemantics.BASIS_SPREAD_DIRECTION.value
+
+    def compute_event_side(self, idx: int, intensity: float, features: Mapping[str, pd.Series], **params: Any) -> str:
+        del intensity, params
+        basis = float(np.nan_to_num(features["basis_zscore"].iloc[idx], nan=0.0))
+        return "bullish" if basis > 0.0 else "bearish" if basis < 0.0 else "neutral"
+
+    def compute_polarity_source(self, idx: int, intensity: float, features: Mapping[str, pd.Series], **params: Any) -> str:
+        del idx, intensity, features, params
+        return "basis_zscore"
+
+    def compute_magnitude(self, idx: int, intensity: float, features: Mapping[str, pd.Series], **params: Any) -> float:
+        del intensity, params
+        return abs(float(np.nan_to_num(features["basis_zscore"].iloc[idx], nan=0.0)))
+
+    def compute_magnitude_source(self, idx: int, intensity: float, features: Mapping[str, pd.Series], **params: Any) -> str:
+        del idx, intensity, features, params
+        return "basis_zscore"
 
     def compute_metadata(self, idx: int, features: Mapping[str, pd.Series], **params: Any) -> Mapping[str, Any]:
         return {

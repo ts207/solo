@@ -11,12 +11,29 @@ import pandas as pd
 
 from project.core.config import get_data_root
 from project.io.utils import list_parquet_files, resolve_raw_dataset_dir
-from project.research.agent_io.proposal_schema import load_operator_proposal
-from project.research.agent_io.proposal_to_experiment import translate_and_validate_proposal
-from project.research.feature_surface_viability import analyze_feature_surface_viability
 
 _PARTITION_YEAR_RE = re.compile(r"year=(\d{4})")
 _PARTITION_MONTH_RE = re.compile(r"month=(\d{2})")
+
+
+def load_operator_proposal(*args: Any, **kwargs: Any) -> Any:
+    from project.research.agent_io.proposal_schema import load_operator_proposal as _impl
+
+    return _impl(*args, **kwargs)
+
+
+def translate_and_validate_proposal(*args: Any, **kwargs: Any) -> Any:
+    from project.research.agent_io.proposal_to_experiment import (
+        translate_and_validate_proposal as _impl,
+    )
+
+    return _impl(*args, **kwargs)
+
+
+def analyze_feature_surface_viability(*args: Any, **kwargs: Any) -> Any:
+    from project.research.feature_surface_viability import analyze_feature_surface_viability as _impl
+
+    return _impl(*args, **kwargs)
 
 
 @dataclass(frozen=True)

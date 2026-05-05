@@ -39,6 +39,7 @@ from project.events.detectors.positioning_base import (
     OIFlushDetectorV2,
     OISpikeNegativeDetectorV2,
     OISpikePositiveDetectorV2,
+    PriceDownOIDownDetectorV2,
 )
 from project.events.detectors.volatility_base import (
     BreakoutTriggerDetectorV2,
@@ -49,6 +50,7 @@ from project.events.detectors.volatility_base import (
     VolShockDetectorV2,
     VolSpikeDetectorV2,
 )
+from project.events.policy import DEPLOYABLE_CORE_EVENT_TYPES
 from project.events.event_output_schema import (
     REQUIRED_EVENT_OUTPUT_COLUMNS,
     DetectedEvent,
@@ -410,7 +412,13 @@ def _flush_df() -> pd.DataFrame:
     return df
 
 
-DEPLOYABLE_CORE_CASES = [
+def _price_down_oi_down_df() -> pd.DataFrame:
+    df = _flush_df()
+    df.loc[df.index[-10:], "close"] = np.linspace(100.0, 90.0, 10)
+    return df
+
+
+_DEPLOYABLE_CORE_CASE_CANDIDATES = [
     (BasisDislocationDetectorV2(), _basis_core_df(), {"symbol": "BTCUSDT", "timeframe": "5m"}),
     (FndDislocDetectorV2(), _basis_core_df(), {"symbol": "BTCUSDT", "timeframe": "5m"}),
     (SpotPerpBasisShockDetectorV2(), _basis_core_df(), {"symbol": "BTCUSDT", "timeframe": "5m"}),
@@ -424,8 +432,13 @@ DEPLOYABLE_CORE_CASES = [
 ]
 
 
+DEPLOYABLE_CORE_CASES = [
+    case for case in _DEPLOYABLE_CORE_CASE_CANDIDATES if case[0].event_name in DEPLOYABLE_CORE_EVENT_TYPES
+]
+
+
 ALL_V2_SCHEMA_CASES = [
-    *DEPLOYABLE_CORE_CASES,
+    *_DEPLOYABLE_CORE_CASE_CANDIDATES,
     (ProxyLiquidityStressDetectorV2(), _liquidity_proxy_df(), {"symbol": "BTCUSDT", "timeframe": "5m"}),
     (DepthCollapseDetectorV2(), _liquidity_misc_df(), {"symbol": "BTCUSDT", "timeframe": "5m"}),
     (LiquidityGapDetectorV2(), _liquidity_misc_df(), {"symbol": "BTCUSDT", "timeframe": "5m"}),
@@ -442,6 +455,7 @@ ALL_V2_SCHEMA_CASES = [
     (OISpikePositiveDetectorV2(), _oi_df().iloc[:170].copy(), {"symbol": "BTCUSDT", "timeframe": "5m"}),
     (OISpikeNegativeDetectorV2(), _oi_df().iloc[:260].copy(), {"symbol": "BTCUSDT", "timeframe": "5m"}),
     (OIFlushDetectorV2(), _flush_df(), {"symbol": "BTCUSDT", "timeframe": "5m"}),
+    (PriceDownOIDownDetectorV2(), _price_down_oi_down_df(), {"symbol": "BTCUSDT", "timeframe": "5m"}),
     (CrossVenueDesyncDetectorV2(), _cross_venue_df(), {"symbol": "BTCUSDT", "timeframe": "5m", "lookback_window": 40, "threshold": 2.0, "persistence_bars": 2, "min_basis_bps": 5}),
     (CrossAssetDesyncDetectorV2(), _pair_df(), {"symbol": "BTCUSDT", "timeframe": "5m", "lookback_window": 120, "threshold_z": 2.0, "threshold_quantile": 0.9}),
     (IndexComponentDivergenceDetectorV2(), _pair_df(), {"symbol": "BTCUSDT", "timeframe": "5m", "lookback_window": 120, "threshold_z": 2.0, "threshold_quantile": 0.9}),

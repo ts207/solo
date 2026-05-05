@@ -54,6 +54,13 @@ class EventDefinition:
     suppresses: tuple[Any, ...] = ()
     suppressed_by: tuple[Any, ...] = ()
     maturity_scores: dict[str, Any] = field(default_factory=dict)
+    eligibility: dict[str, Any] = field(default_factory=dict)
+    eligibility_reason: dict[str, Any] = field(default_factory=dict)
+    lifecycle_stage: str = "ontology_defined"
+    polarity_semantics: str = "unknown"
+    polarity_source: str = "unknown"
+    magnitude_source: str = "unknown"
+    anchor_role: str = "alpha_anchor"
     parameters: dict[str, Any] = field(default_factory=dict)
     raw: dict[str, Any] = field(default_factory=dict)
     spec_path: str = ""
@@ -344,6 +351,10 @@ class DomainRegistry:
         row["promotion_eligible"] = event.promotion_eligible
         row["primary_anchor_eligible"] = event.primary_anchor_eligible
         row["detector_band"] = event.detector_band
+        row.setdefault("polarity_semantics", event.polarity_semantics)
+        row.setdefault("polarity_source", event.polarity_source)
+        row.setdefault("magnitude_source", event.magnitude_source)
+        row.setdefault("anchor_role", event.anchor_role)
         row.setdefault("notes", event.notes)
         row.setdefault("routing_profile_ref", event.routing_profile_ref)
         row.setdefault("parameters", dict(event.parameters))

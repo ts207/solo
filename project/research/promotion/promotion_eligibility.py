@@ -158,6 +158,27 @@ def sign_consistency(row: dict[str, Any]) -> float:
 
 
 def cost_survival_ratio(row: dict[str, Any]) -> float:
+    """Return cost-survival score, preferring explicit stress net expectancy.
+
+    New evaluator rows expose net mean bps at 1x/1.5x/2x/3x costs.  When those
+    columns are present, the gate should use actual stressed expectancy rather
+    than legacy pass/fail flags.
+    """
+    stress_keys = [
+        "net_mean_bps_cost_1x",
+        "net_mean_bps_cost_1_5x",
+        "net_mean_bps_cost_2x",
+        "net_mean_bps_cost_3x",
+    ]
+    present_stress = [key for key in stress_keys if key in row and pd.notna(row.get(key))]
+    if present_stress:
+        passed = 0
+        for key in present_stress:
+            value = _quiet_float(row.get(key), np.nan)
+            if np.isfinite(value) and value > 0.0:
+                passed += 1
+        return float(passed / len(present_stress))
+
     scenario_keys = [
         "gate_after_cost_positive",
         "gate_after_cost_stressed_positive",

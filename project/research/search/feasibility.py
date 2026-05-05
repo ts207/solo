@@ -11,7 +11,7 @@ from project.domain.compiled_registry import get_domain_registry
 from project.domain.hypotheses import HypothesisSpec, TriggerType
 from project.domain.models import DomainRegistry
 from project.research.context_labels import canonicalize_context_label
-from project.research.search.compatibility import validate_event_template_compatibility
+from project.research.search.compatibility import event_template_compatibility_verdict, validate_event_template_compatibility
 from project.research.search.evaluator_utils import load_context_state_map
 from project.research.search.role_contracts import validate_standalone_event_role
 
@@ -260,6 +260,13 @@ def check_hypothesis_feasibility(
                 details["interaction_id"] = t.interaction_id or ""
     else:
         reasons.append("unsupported_trigger_type")
+
+    compatibility_verdict = event_template_compatibility_verdict(spec)
+    details["compatibility_status"] = compatibility_verdict.status
+    if compatibility_verdict.reason_codes:
+        details["compatibility_reason_codes"] = list(compatibility_verdict.reason_codes)
+    if compatibility_verdict.status == "forbidden":
+        reasons.append(compatibility_verdict.primary_reason)
 
     template_reason = _template_family_reason(spec, registry)
     if template_reason:

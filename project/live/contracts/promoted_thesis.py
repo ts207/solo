@@ -4,44 +4,131 @@ from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, computed_field, field_validator, model_validator
 
+
+def _compat_event_side(value: object) -> str:
+    token = str(value or "unknown").strip().lower()
+    mapping = {
+        "bullish": "long", "bull": "long", "buy": "long", "up": "long", "+1": "long", "1": "long",
+        "bearish": "short", "bear": "short", "sell": "short", "down": "short", "-1": "short",
+        "bidirectional": "both", "both": "both", "conditional": "conditional",
+        "neutral": "unknown", "flat": "unknown", "0": "unknown", "": "unknown",
+    }
+    return mapping.get(token, token if token in {"long", "short", "both", "conditional", "unknown"} else "unknown")
+
 # ---------------------------------------------------------------------------
 # Deployment lifecycle states
 #   Legacy:  monitor_only | paper_only | live_enabled | retired
 #   Sprint 7: adds richer escalation states
 # ---------------------------------------------------------------------------
 DeploymentState = Literal[
-    # Legacy states (kept for backward compat)
+    # Legacy states (kept for backward compatibility)
     "monitor_only",
     "paper_only",
-    # Sprint 7 lifecycle states
+    "live_enabled",
+    "retired",
+    # Contract-hardening maturity states
+    "candidate",
+    "validated",
+    "forward_confirmed",
     "promoted",
     "paper_enabled",
     "paper_approved",
+    "shadow_enabled",
+    "micro_live_approved",
+    "scaled_live_approved",
     "live_eligible",
-    "live_enabled",
     "live_paused",
     "live_disabled",
-    "retired",
 ]
 
 ALL_DEPLOYMENT_STATES: frozenset[str] = frozenset({
     "monitor_only",
     "paper_only",
+    "live_enabled",
+    "retired",
+    "candidate",
+    "validated",
+    "forward_confirmed",
     "promoted",
     "paper_enabled",
     "paper_approved",
+    "shadow_enabled",
+    "micro_live_approved",
+    "scaled_live_approved",
     "live_eligible",
-    "live_enabled",
     "live_paused",
     "live_disabled",
-    "retired",
 })
 
-# States that permit live order submission
-LIVE_TRADEABLE_STATES: frozenset[str] = frozenset({"live_enabled"})
+THESIS_STATE_ORDER: dict[str, int] = {
+    "candidate": 10,
+    "validated": 20,
+    "forward_confirmed": 30,
+    "promoted": 35,
+    "paper_enabled": 40,
+    "paper_only": 40,
+    "paper_approved": 50,
+    "shadow_enabled": 60,
+    "live_eligible": 70,
+    "micro_live_approved": 80,
+    "live_enabled": 80,  # legacy alias for executable live approval
+    "scaled_live_approved": 90,
+    "monitor_only": 0,
+    "live_paused": -10,
+    "live_disabled": -20,
+    "retired": -30,
+}
 
-# States that require an explicit live approval record to be present and approved
-LIVE_APPROVAL_REQUIRED_STATES: frozenset[str] = frozenset({"live_eligible", "live_enabled"})
+PAPER_COMPATIBLE_STATES: frozenset[str] = frozenset({
+    "paper_only",
+    "paper_enabled",
+    "paper_approved",
+    "shadow_enabled",
+    "live_eligible",
+    "micro_live_approved",
+    "scaled_live_approved",
+    "live_enabled",
+})
+
+SHADOW_COMPATIBLE_STATES: frozenset[str] = frozenset({
+    "shadow_enabled",
+    "live_eligible",
+    "micro_live_approved",
+    "scaled_live_approved",
+    "live_enabled",
+})
+
+# States that permit live order submission.  ``live_enabled`` is kept as a legacy alias;
+# new theses should use micro_live_approved or scaled_live_approved.
+LIVE_TRADEABLE_STATES: frozenset[str] = frozenset({
+    "micro_live_approved",
+    "scaled_live_approved",
+    "live_enabled",
+})
+
+# States that require an explicit live approval record to be present and approved.
+LIVE_APPROVAL_REQUIRED_STATES: frozenset[str] = frozenset({
+    "live_eligible",
+    "micro_live_approved",
+    "scaled_live_approved",
+    "live_enabled",
+})
+
+def deployment_state_rank(state: str) -> int:
+    return THESIS_STATE_ORDER.get(str(state).strip(), -999)
+
+def deployment_state_allows_runtime(state: str, runtime_mode: str) -> bool:
+    state = str(state).strip()
+    runtime_mode = str(runtime_mode).strip().lower()
+    if runtime_mode == "monitor_only":
+        return state not in {"retired", "live_disabled"}
+    if runtime_mode == "simulation":
+        return state in PAPER_COMPATIBLE_STATES
+    if runtime_mode == "shadow":
+        return state in SHADOW_COMPATIBLE_STATES
+    if runtime_mode == "trading":
+        return state in LIVE_TRADEABLE_STATES
+    return False
 
 
 class LiveApproval(BaseModel):
@@ -185,6 +272,28 @@ class ThesisSource(BaseModel):
     episode_contract_ids: list[str] = Field(default_factory=list)
 
 
+class RuntimeThesisManifest(BaseModel):
+    """Immutable runtime admission manifest for a promoted thesis package.
+
+    Hash fields are optional for legacy packages but should be populated by new
+    exporters before paper/shadow/live execution.
+    """
+
+    model_config = ConfigDict(frozen=True)
+
+    thesis_id: str = ""
+    thesis_version: str = ""
+    promotion_state: str = ""
+    event_contract_hash: str = ""
+    template_contract_hash: str = ""
+    domain_graph_hash: str = ""
+    evidence_bundle_hash: str = ""
+    forward_confirmation_hash: str = ""
+    risk_contract_hash: str = ""
+    expires_at_utc: str = ""
+    allowed_runtime_modes: list[str] = Field(default_factory=list)
+
+
 class PromotedThesis(BaseModel):
     model_config = ConfigDict(frozen=True)
 
@@ -200,6 +309,7 @@ class PromotedThesis(BaseModel):
     live_approval: LiveApproval = Field(default_factory=LiveApproval)
     # Per-thesis risk cap profile — must be configured for live_enabled theses
     cap_profile: ThesisCapProfile = Field(default_factory=ThesisCapProfile)
+    runtime_manifest: RuntimeThesisManifest = Field(default_factory=RuntimeThesisManifest)
     evidence_gaps: list[str] = Field(default_factory=list)
     status: Literal["pending_blueprint", "active", "paused", "retired"] = "pending_blueprint"
     evidence_freshness_date: str = ""
@@ -276,7 +386,22 @@ class PromotedThesis(BaseModel):
             data["primary_event_id"] = primary_event_id
         if event_family:
             data["event_family"] = event_family
+        data["event_side"] = _compat_event_side(data.get("event_side", "unknown"))
         return data
+
+    @model_validator(mode="after")
+    def _validate_deployment_state_contract(self) -> "PromotedThesis":
+        """Validate parse-time thesis state only.
+
+        Live approval and cap-profile checks are runtime-admission concerns, not
+        model-construction concerns.  Keeping bad live artifacts parseable makes
+        them auditable and lets DeploymentGate/runtime_admission emit structured
+        rejection reasons instead of hiding the payload behind a validation
+        exception.
+        """
+        if self.deployment_state not in ALL_DEPLOYMENT_STATES:
+            raise ValueError(f"unsupported deployment_state: {self.deployment_state}")
+        return self
 
     @field_validator("thesis_id", "timeframe", "primary_event_id")
     @classmethod

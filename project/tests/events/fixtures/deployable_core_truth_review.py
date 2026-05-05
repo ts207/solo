@@ -124,6 +124,8 @@ TRUTH_WINDOWS: tuple[EventTruthWindow, ...] = (
 def truth_windows_by_episode_event() -> dict[tuple[str, str], list[EventTruthWindow]]:
     out: dict[tuple[str, str], list[EventTruthWindow]] = {}
     for window in TRUTH_WINDOWS:
+        if window.event_name not in DEPLOYABLE_CORE_EVENT_TYPES:
+            continue
         out.setdefault((window.episode_id, window.event_name), []).append(window)
     return out
 

@@ -32,7 +32,7 @@ MONITOR_REPORT ?=
 
 .PHONY: help first-edge discover discover-proposal-plan discover-proposal list-artifacts summarize summarize-proposal explain-empty proposal-inspect \
 	validate promote export bind-config paper-run live-run deploy-status list-theses \
-	deploy-paper check-domain-graph domain-graph check-registry-sync benchmark-supported-path \
+	deploy-paper check-domain-graph domain-graph check-registry-sync contract-check benchmark-supported-path \
 	discover-cells-verify discover-cells-plan discover-cells-run \
 	check-hygiene clean clean-runtime clean-run-data clean-all-data clean-hygiene \
 	governance minimum-green-gate discover-doctor agent-check-fast agent-check-full agent-check check-protected-paths check-docs
@@ -65,6 +65,7 @@ help:
 	  '  make clean-runtime|clean-run-data|clean-all-data|clean-hygiene' \
 	  '  make check-domain-graph' \
 	  '  make check-registry-sync' \
+	  '  make contract-check' \
 	  '  make check-spec-sync' \
 	  '  make domain-graph' \
 	  '  make governance' \
@@ -102,6 +103,13 @@ check-domain-graph:
 
 check-registry-sync:
 	@PYTHONPATH=$(PYTHONPATH) $(PYTHON) project/scripts/check_registry_sync.py
+
+contract-check:
+	@PYTHONPATH=$(PYTHONPATH) $(PYTHON) project/scripts/check_domain_graph_freshness.py
+	@PYTHONPATH=$(PYTHONPATH) $(PYTHON) project/scripts/audit_detector_polarity.py --fail-on-runtime-unknown
+	@PYTHONPATH=$(PYTHONPATH) $(PYTHON) project/scripts/validate_template_promotion_contracts.py
+	@PYTHONPATH=$(PYTHONPATH) $(PYTHON) project/scripts/validate_runtime_manifests.py data/live/theses --runtime-mode simulation --require-manifest
+	@PYTHONPATH=$(PYTHONPATH) $(PYTHON) -m pytest -q project/tests/events project/tests/live project/tests/promote project/tests/contracts
 
 domain-graph:
 	@PYTHONPATH=$(PYTHONPATH) $(PYTHON) project/scripts/build_domain_graph.py

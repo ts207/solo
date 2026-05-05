@@ -42,6 +42,252 @@ _CELL_ORIGIN_SUPPORTIVE_STATUSES = {
 }
 
 
+
+
+def _generic_template_promotion_block(row: dict[str, Any]) -> tuple[bool, str]:
+    template_id = str(row.get("template_id", row.get("template", "")) or "").strip()
+    if not template_id:
+        return False, ""
+    try:
+        from project.domain.compiled_registry import get_domain_registry
+        operator = get_domain_registry().get_operator(template_id)
+        raw = operator.raw if operator is not None and isinstance(operator.raw, dict) else {}
+        status = str(raw.get("contract_status", "")).strip().lower()
+        if status == "abstract_template_family":
+            return True, "generic_template_not_promotable"
+    except Exception:
+        pass
+    if template_id in {"mean_reversion", "continuation", "exhaustion_reversal", "reversal_or_squeeze"}:
+        return True, "generic_template_not_promotable"
+    if template_id.startswith("generic_"):
+        return True, "generic_template_not_promotable"
+    return False, ""
+
+def _apply_generic_template_authority(result: dict[str, Any], reason: str) -> dict[str, Any]:
+    if not reason:
+        return result
+    out = dict(result)
+    out["eligible"] = False
+    out["promotion_status"] = "rejected"
+    out["promotion_decision"] = "rejected"
+    out["promotion_track"] = "fallback_only"
+    out["fallback_used"] = True
+    out["fallback_reason"] = reason
+    existing = [r for r in str(out.get("reject_reason", "")).split("|") if r]
+    out["reject_reason"] = "|".join(sorted(set(existing + [reason])))
+    out["promotion_fail_gate_primary"] = str(out.get("promotion_fail_gate_primary", "") or "gate_promo_template_contract")
+    out["promotion_fail_reason_primary"] = str(out.get("promotion_fail_reason_primary", "") or "failed_gate_promo_template_contract")
+    rejection_reasons = list(out.get("rejection_reasons", []) or [])
+    out["rejection_reasons"] = sorted(set(rejection_reasons + [reason]))
+    gate_results = dict(out.get("gate_results", {}) or {})
+    gate_results["template_contract"] = "fail"
+    out["gate_results"] = gate_results
+    out["gate_promo_template_contract"] = "fail"
+    audit = dict(out.get("promotion_audit", {}) or {})
+    audit["gate_promo_template_contract"] = "fail"
+    out["promotion_audit"] = audit
+    return out
+
+
+def _compatibility_promotion_block(row: dict[str, Any]) -> tuple[bool, str]:
+    """Block promotion when upstream event-template compatibility says non-promotable.
+
+    Cell discovery and feasibility now emit structured compatibility lineage.
+    Promotion must treat those fields as authoritative rather than advisory.
+    """
+    status = str(row.get("compatibility_status", "") or "").strip().lower()
+    raw_allowed = row.get("compatibility_promotion_allowed", None)
+    allowed = True
+    if raw_allowed is not None:
+        allowed = as_bool(raw_allowed)
+    if status in {"forbidden", "research_only"}:
+        allowed = False
+    reason_codes = str(row.get("compatibility_reason_codes", "") or "").strip()
+    if not allowed:
+        if reason_codes:
+            primary = reason_codes.split("|", 1)[0].strip()
+            return True, primary or "compatibility_promotion_block"
+        if status:
+            return True, f"compatibility_{status}_not_promotable"
+        return True, "compatibility_promotion_block"
+    return False, ""
+
+
+def _side_policy_resolution_block(row: dict[str, Any]) -> tuple[bool, str]:
+    """Require explicit directional semantics for promotion-path rows.
+
+    Generic discovery rows may omit side metadata, but promoted theses need an
+    auditable mapping from event polarity + template side_policy to trade side.
+    """
+    label_target = str(row.get("label_target", row.get("template_label_target", "fwd_return_h")) or "").strip().lower()
+    if label_target == "gate":
+        return False, ""
+    direction = str(row.get("direction", row.get("trade_direction", "")) or "").strip().lower()
+    side_policy = str(row.get("side_policy", row.get("template_side_policy", "")) or "").strip().lower()
+    event_side = str(row.get("event_side", row.get("resolved_event_side", "")) or "").strip().lower()
+    event_direction = row.get("event_direction", row.get("resolved_event_direction", None))
+
+    if direction in {"long", "short"}:
+        return False, ""
+    if side_policy in {"directional", "contrarian", "both"}:
+        # Side-policy driven rows need event polarity unless an explicit direction exists.
+        if event_side in {"bullish", "bearish", "long", "short", "up", "down"}:
+            return False, ""
+        try:
+            if float(event_direction) != 0.0:
+                return False, ""
+        except (TypeError, ValueError):
+            pass
+        return True, "side_policy_resolution_missing_event_polarity"
+    return True, "side_policy_resolution_missing"
+
+
+
+def _mechanism_evidence_block(row: dict[str, Any]) -> tuple[bool, str]:
+    label = str(row.get("mechanism_label", row.get("template_mechanism_label", "")) or "").strip().lower()
+    if not label or label in {"none", "unavailable"}:
+        # Do not force legacy rows without mechanism labels yet; concrete mechanism templates should emit one.
+        template_id = str(row.get("template_id", row.get("template", "")) or "").strip()
+        mechanism_templates = {
+            "basis_repair", "basis_convergence", "basis_funding_convergence", "desync_repair",
+            "liquidity_refill_repair", "overshoot_repair", "range_reversion", "vol_decay_mean_reversion",
+            "forced_flow_rebound", "long_flush_rebound", "positioning_flush_reversal",
+            "breakout_followthrough", "trend_continuation", "volatility_expansion_follow",
+        }
+        if template_id in mechanism_templates:
+            return True, "mechanism_label_missing"
+        return False, ""
+    valid_raw = row.get("mechanism_valid", None)
+    if valid_raw is not None and not as_bool(valid_raw):
+        return True, "mechanism_invalid"
+    try:
+        rate = float(row.get("mechanism_success_rate"))
+    except (TypeError, ValueError):
+        return True, "mechanism_success_missing"
+    thresholds = {
+        "basis_zscore_delta_h": 0.55,
+        "basis_convergence": 0.55,
+        "liquidity_normalization_confirmed": 0.55,
+        "deviation_recontracts": 0.55,
+        "volatility_decay": 0.55,
+        "trend_continuation_confirmed": 0.52,
+        "post_entry_directional_expansion": 0.52,
+        "post_climax_reversal": 0.53,
+        "forced_flow_rebound": 0.53,
+    }
+    threshold = thresholds.get(label, 0.50)
+    if rate < threshold:
+        return True, "mechanism_success_below_threshold"
+    return False, ""
+
+
+def _apply_hard_promotion_block(result: dict[str, Any], *, reason: str, gate: str) -> dict[str, Any]:
+    if not reason:
+        return result
+    out = dict(result)
+    out["eligible"] = False
+    out["promotion_status"] = "rejected"
+    out["promotion_decision"] = "rejected"
+    out["promotion_track"] = "fallback_only"
+    out["fallback_used"] = True
+    out["fallback_reason"] = gate
+    existing = [r for r in str(out.get("reject_reason", "")).split("|") if r]
+    out["reject_reason"] = "|".join(sorted(set(existing + [reason])))
+    out["promotion_fail_gate_primary"] = str(out.get("promotion_fail_gate_primary", "") or gate)
+    out["promotion_fail_reason_primary"] = str(out.get("promotion_fail_reason_primary", "") or f"failed_{gate}")
+    rejection_reasons = list(out.get("rejection_reasons", []) or [])
+    out["rejection_reasons"] = sorted(set(rejection_reasons + [reason]))
+    gate_results = dict(out.get("gate_results", {}) or {})
+    gate_results[gate.replace("gate_promo_", "")] = "fail"
+    out["gate_results"] = gate_results
+    out[gate] = "fail"
+    audit = dict(out.get("promotion_audit", {}) or {})
+    audit[gate] = "fail"
+    out["promotion_audit"] = audit
+    return out
+
+
+
+def _data_quality_promotion_block(row: dict[str, Any]) -> tuple[bool, str]:
+    """Hard-block promotion when required data quality is not production-grade.
+
+    The data-quality state may appear either as a direct column, in context
+    metadata, or inside required/supportive context mappings. Treat stale and
+    missing-required-feature as hard blockers; synthetic-only remains research
+    only and therefore blocks promotion/runtime.
+    """
+    blocked = {
+        "stale": "data_quality_stale",
+        "missing_required_feature": "data_quality_missing_required_feature",
+        "synthetic_only": "data_quality_synthetic_only_research_only",
+    }
+    candidates: list[str] = []
+    for key in (
+        "data_quality_state",
+        "context_data_quality_state",
+        "required_data_quality_state",
+    ):
+        value = row.get(key)
+        if value not in (None, ""):
+            candidates.append(str(value).strip().lower())
+    for mapping_key in ("context", "required_context", "supportive_context"):
+        value = row.get(mapping_key)
+        if isinstance(value, dict):
+            dq = value.get("data_quality_state")
+            if dq not in (None, ""):
+                candidates.append(str(dq).strip().lower())
+    for value in candidates:
+        if value in blocked:
+            return True, blocked[value]
+    return False, ""
+
+
+def _semantic_promotion_gate(row: dict[str, Any]) -> dict[str, Any]:
+    """Return a first-class semantic promotion verdict.
+
+    This consolidates the hard contract checks that make an evaluated candidate
+    safe to interpret as a promotable thesis, independent of statistical score.
+    """
+    reasons: list[str] = []
+
+    anchor_role = str(row.get("anchor_role", row.get("event_anchor_role", "")) or "").strip().lower()
+    if anchor_role in {"context_filter", "risk_guard", "execution_guard", "temporal_guard", "research_only"}:
+        reasons.append("anchor_role_not_tradeable")
+
+    context_timing = str(row.get("context_timing", row.get("context_eval_timing", "trigger")) or "").strip().lower()
+    if not context_timing:
+        reasons.append("context_timing_missing")
+
+    template_blocked, template_reason = _generic_template_promotion_block(row)
+    if template_blocked:
+        reasons.append(template_reason or "template_abstract_not_promotable")
+
+    compatibility_blocked, compatibility_reason = _compatibility_promotion_block(row)
+    if compatibility_blocked:
+        reasons.append(compatibility_reason or "compatibility_blocks_promotion")
+
+    side_blocked, side_reason = _side_policy_resolution_block(row)
+    if side_blocked:
+        reasons.append(side_reason or "event_side_required_missing")
+
+    data_blocked, data_reason = _data_quality_promotion_block(row)
+    if data_blocked:
+        reasons.append(data_reason or "data_quality_blocks_promotion")
+
+    mechanism_blocked, mechanism_reason = _mechanism_evidence_block(row)
+    if mechanism_blocked:
+        reasons.append(mechanism_reason or "mechanism_evidence_missing")
+
+    clean = []
+    for r in reasons:
+        if r and r not in clean:
+            clean.append(r)
+    return {
+        "semantic_pass": not clean,
+        "semantic_reasons": clean,
+        "semantic_reason_codes": "|".join(clean),
+    }
+
 def _is_cell_origin_row(row: dict[str, Any]) -> bool:
     return str(row.get("source_discovery_mode", "") or "").strip().lower() == _CELL_ORIGIN_MODE
 
@@ -234,6 +480,48 @@ def evaluate_row(
     try:
         reasons = _ReasonRecorder.create()
         event_type = str(row.get("event_type", row.get("event", ""))).strip() or "UNKNOWN_EVENT"
+        semantic_gate = _semantic_promotion_gate(row)
+        for semantic_reason in semantic_gate["semantic_reasons"]:
+            reasons.add_pair(
+                reject_reason=semantic_reason,
+                promo_fail_reason="gate_promo_semantic",
+                category="semantic_contract",
+            )
+
+        generic_template_blocked, generic_template_reason = _generic_template_promotion_block(row)
+        if generic_template_blocked:
+            reasons = _ReasonRecorder.create() if "reasons" not in locals() else reasons
+
+        if generic_template_blocked:
+            reasons.add_pair(
+                reject_reason=generic_template_reason,
+                promo_fail_reason="gate_promo_template_contract",
+                category="template_contract",
+            )
+
+        compatibility_blocked, compatibility_reason = _compatibility_promotion_block(row)
+        if compatibility_blocked:
+            reasons.add_pair(
+                reject_reason=compatibility_reason,
+                promo_fail_reason="gate_promo_compatibility",
+                category="compatibility",
+            )
+
+        side_policy_blocked, side_policy_reason = _side_policy_resolution_block(row)
+        if side_policy_blocked:
+            reasons.add_pair(
+                reject_reason=side_policy_reason,
+                promo_fail_reason="gate_promo_side_policy_resolution",
+                category="side_policy_resolution",
+            )
+
+        mechanism_blocked, mechanism_reason = _mechanism_evidence_block(row)
+        if mechanism_blocked:
+            reasons.add_pair(
+                reject_reason=mechanism_reason,
+                promo_fail_reason="gate_promo_mechanism_evidence",
+                category="mechanism_evidence",
+            )
 
         # Benchmark certification is diagnostic-only. Keep the status in the
         # promotion audit, but do not block candidate promotion on the presence
@@ -520,6 +808,10 @@ def evaluate_row(
                 "cell_origin_runtime_mapping_status": str(
                     cell_origin_eval["runtime_mapping_status"]
                 ),
+                "semantic_pass": bool(semantic_gate["semantic_pass"]),
+                "semantic_reasons": list(semantic_gate["semantic_reasons"]),
+                "semantic_reason_codes": str(semantic_gate["semantic_reason_codes"]),
+                "gate_promo_semantic": "pass" if bool(semantic_gate["semantic_pass"]) else "fail",
             }
         )
         result["is_continuation_template_family"] = continuation_eval[
@@ -580,6 +872,38 @@ def evaluate_row(
         bundle["rejection_reasons"] = list(bundle_decision.get("rejection_reasons", []))
         result = _apply_authoritative_bundle_decision(result, bundle, bundle_decision)
         result = _apply_cell_origin_authority(result, cell_origin_eval)
+        result = _apply_generic_template_authority(
+            result, generic_template_reason if generic_template_blocked else ""
+        )
+        result = _apply_hard_promotion_block(
+            result,
+            reason=compatibility_reason if compatibility_blocked else "",
+            gate="gate_promo_compatibility",
+        )
+        result = _apply_hard_promotion_block(
+            result,
+            reason=side_policy_reason if side_policy_blocked else "",
+            gate="gate_promo_side_policy_resolution",
+        )
+        data_quality_blocked, data_quality_reason = _data_quality_promotion_block(row)
+        result = _apply_hard_promotion_block(
+            result,
+            reason=data_quality_reason if data_quality_blocked else "",
+            gate="gate_promo_data_quality",
+        )
+        result = _apply_hard_promotion_block(
+            result,
+            reason=mechanism_reason if mechanism_blocked else "",
+            gate="gate_promo_mechanism_evidence",
+        )
+        result = _apply_hard_promotion_block(
+            result,
+            reason=semantic_gate["semantic_reason_codes"] if not bool(semantic_gate["semantic_pass"]) else "",
+            gate="gate_promo_semantic",
+        )
+        result["semantic_pass"] = bool(semantic_gate["semantic_pass"])
+        result["semantic_reasons"] = list(semantic_gate["semantic_reasons"])
+        result["semantic_reason_codes"] = str(semantic_gate["semantic_reason_codes"])
         return _restore_boolean_compat_gates(result)
     except Exception as e:
         if isinstance(e, PromotionDecisionError):

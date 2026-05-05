@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import csv
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
@@ -95,11 +96,73 @@ def _detector_ownership() -> dict[str, str]:
     }
 
 
+def _as_bool_token(value: Any, default: bool = False) -> bool:
+    if isinstance(value, bool):
+        return value
+    text = str(value or "").strip().lower()
+    if text in {"true", "1", "yes", "y"}:
+        return True
+    if text in {"false", "0", "no", "n"}:
+        return False
+    return default
+
+
+def _event_contract_reference_rows() -> dict[str, dict[str, Any]]:
+    path = PROJECT_ROOT.parent / "docs" / "generated" / "event_contract_reference.csv"
+    if not path.exists():
+        return {}
+    out: dict[str, dict[str, Any]] = {}
+    with open(path, newline="", encoding="utf-8") as fh:
+        for raw in csv.DictReader(fh):
+            event_type = str(raw.get("event_type", "")).strip().upper()
+            if not event_type or event_type in out:
+                continue
+            row: dict[str, Any] = {}
+            for key in (
+                "detector_band",
+                "detector",
+                "enabled",
+                "default_executable",
+                "planning_eligible",
+                "runtime_eligible",
+                "promotion_eligible",
+                "primary_anchor_eligible",
+                "sequence_eligible",
+                "instrument_classes",
+                "tags",
+            ):
+                value = raw.get(key)
+                if value not in (None, ""):
+                    row[key] = value
+            for key in (
+                "enabled",
+                "default_executable",
+                "planning_eligible",
+                "runtime_eligible",
+                "promotion_eligible",
+                "primary_anchor_eligible",
+                "sequence_eligible",
+            ):
+                if key in row:
+                    row[key] = _as_bool_token(row[key])
+            if "detector" in row and "detector_name" not in row:
+                row["detector_name"] = row.pop("detector")
+            if "tags" in row and "runtime_tags" not in row:
+                row["runtime_tags"] = [item for item in str(row.pop("tags")).split("|") if item]
+            if "instrument_classes" in row:
+                row["instrument_classes"] = [
+                    item for item in str(row["instrument_classes"]).split("|") if item
+                ]
+            out[event_type] = row
+    return out
+
+
 def _merge_event_rows(unified: dict[str, Any]) -> dict[str, EventDefinition]:
     defaults = unified.get("defaults", {})
     families = unified.get("families", {})
     unified_events = unified.get("events", {})
     detector_ownership = _detector_ownership()
+    contract_reference_rows = _event_contract_reference_rows()
     out: dict[str, EventDefinition] = {}
 
     event_types = set()
@@ -124,6 +187,9 @@ def _merge_event_rows(unified: dict[str, Any]) -> dict[str, EventDefinition]:
 
         if isinstance(unified_row, dict):
             row.update(unified_row)
+        reference_row = contract_reference_rows.get(event_type)
+        if reference_row:
+            row.update(reference_row)
         parameters = {}
         default_params = defaults.get("parameters", {}) if isinstance(defaults, dict) else {}
         family_params = {}
@@ -195,6 +261,13 @@ def _merge_event_rows(unified: dict[str, Any]) -> dict[str, EventDefinition]:
             suppresses=tuple(row.get("suppresses", []) if isinstance(row.get("suppresses"), (list, tuple)) else ()),
             suppressed_by=tuple(row.get("suppressed_by", []) if isinstance(row.get("suppressed_by"), (list, tuple)) else ()),
             maturity_scores=dict(row.get("maturity_scores", {})) if isinstance(row.get("maturity_scores"), dict) else {},
+            eligibility=dict(row.get("eligibility", {})) if isinstance(row.get("eligibility"), dict) else {},
+            eligibility_reason=dict(row.get("eligibility_reason", {})) if isinstance(row.get("eligibility_reason"), dict) else {},
+            lifecycle_stage=str(row.get("lifecycle_stage", row.get("maturity", "ontology_defined"))).strip() or "ontology_defined",
+            polarity_semantics=str(row.get("polarity_semantics", "unknown")).strip().lower() or "unknown",
+            polarity_source=str(row.get("polarity_source", "unknown")).strip() or "unknown",
+            magnitude_source=str(row.get("magnitude_source", "unknown")).strip() or "unknown",
+            anchor_role=str(row.get("anchor_role", "alpha_anchor")).strip().lower() or "alpha_anchor",
             parameters=dict(parameters),
             raw=dict(row),
             spec_path=spec_path,
@@ -350,6 +423,40 @@ def _load_family_registry_payload(
     event_families = authored.get("event_families", {}) if isinstance(authored, dict) else {}
     state_families = authored.get("state_families", {}) if isinstance(authored, dict) else {}
     template_families = canonical.get("families", {}) if isinstance(canonical, dict) else {}
+    if isinstance(template_families, dict):
+        template_families = {
+            str(name).strip().upper(): dict(row) if isinstance(row, dict) else {}
+            for name, row in template_families.items()
+            if str(name).strip()
+        }
+    else:
+        template_families = {}
+
+    # The canonical template registry primarily records compatibility on each
+    # operator.  Keep any authored family rows, but always augment them from the
+    # operator-level source of truth so newly added operators do not require a
+    # second manual family list to keep tests and generated registries current.
+    operators = canonical.get("operators", {}) if isinstance(canonical, dict) else {}
+    if isinstance(operators, dict):
+        for template_id, operator in operators.items():
+            if not isinstance(operator, dict):
+                continue
+            normalized_template = str(template_id).strip()
+            if not normalized_template:
+                continue
+            for family in operator.get("compatible_families", []) or []:
+                normalized_family = str(family).strip().upper()
+                if not normalized_family:
+                    continue
+                row = template_families.setdefault(normalized_family, {"templates": []})
+                templates = row.get("templates", row.get("allowed_templates", []))
+                if isinstance(templates, tuple):
+                    templates = list(templates)
+                elif not isinstance(templates, list):
+                    templates = []
+                if normalized_template not in templates:
+                    templates.append(normalized_template)
+                row["templates"] = templates
 
     merged_event_families: dict[str, dict[str, Any]] = {}
     all_event_family_names = {
@@ -762,6 +869,13 @@ def _event_definition_payload(spec: EventDefinition) -> dict[str, Any]:
         "suppresses": list(spec.suppresses),
         "suppressed_by": list(spec.suppressed_by),
         "maturity_scores": dict(spec.maturity_scores),
+        "eligibility": dict(spec.eligibility),
+        "eligibility_reason": dict(spec.eligibility_reason),
+        "lifecycle_stage": str(spec.lifecycle_stage),
+        "polarity_semantics": str(getattr(spec, "polarity_semantics", "unknown")),
+        "polarity_source": str(getattr(spec, "polarity_source", "unknown")),
+        "magnitude_source": str(getattr(spec, "magnitude_source", "unknown")),
+        "anchor_role": str(getattr(spec, "anchor_role", "alpha_anchor")),
         "parameters": dict(spec.parameters),
         "runtime": _slim_event_raw(spec.raw),
         "spec_path": _repo_relative_path(spec.spec_path),
@@ -996,6 +1110,13 @@ def _event_definition_from_payload(row: dict[str, Any]) -> EventDefinition:
         suppresses=tuple(row.get("suppresses", []) if isinstance(row.get("suppresses"), (list, tuple)) else ()),
         suppressed_by=tuple(row.get("suppressed_by", []) if isinstance(row.get("suppressed_by"), (list, tuple)) else ()),
         maturity_scores=dict(row.get("maturity_scores", {})) if isinstance(row.get("maturity_scores"), dict) else {},
+        eligibility=dict(row.get("eligibility", {})) if isinstance(row.get("eligibility"), dict) else {},
+        eligibility_reason=dict(row.get("eligibility_reason", {})) if isinstance(row.get("eligibility_reason"), dict) else {},
+        lifecycle_stage=str(row.get("lifecycle_stage", row.get("maturity", "ontology_defined"))).strip() or "ontology_defined",
+        polarity_semantics=str(row.get("polarity_semantics", "unknown")).strip().lower() or "unknown",
+        polarity_source=str(row.get("polarity_source", "unknown")).strip() or "unknown",
+        magnitude_source=str(row.get("magnitude_source", "unknown")).strip() or "unknown",
+        anchor_role=str(row.get("anchor_role", "alpha_anchor")).strip().lower() or "alpha_anchor",
         parameters=dict(row.get("parameters", {})) if isinstance(row.get("parameters"), dict) else {},
         raw=_slim_event_raw(row.get("runtime", row.get("raw", {}))),
         spec_path=_inflate_graph_path(row.get("spec_path", "")),

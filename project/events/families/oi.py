@@ -6,7 +6,6 @@ import numpy as np
 import pandas as pd
 
 from project.events.detectors.base import MarketEventDetector
-from project.events.detectors.registry import register_detector
 from project.events.detectors.threshold import ThresholdDetector
 from project.events.registries.oi import (
     ensure_oi_detectors_registered,
@@ -305,7 +304,3 @@ def analyze_oi_family(
     analyzer_results = run_analyzer_suite(events, market=market) if not events.empty else {}
     return events, analyzer_results
 
-
-register_detector("OI_SPIKE_POSITIVE", OISpikePositiveDetector)
-register_detector("OI_SPIKE_NEGATIVE", OISpikeNegativeDetector)
-register_detector("OI_FLUSH", OIFlushDetector)

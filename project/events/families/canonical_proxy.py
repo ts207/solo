@@ -172,6 +172,16 @@ class PriceVolImbalanceProxyDetector(_CanonicalProxyBase):
         del df, params
         return features["signal"].fillna(0.0)
 
+    def compute_direction(self, idx: int, features: dict[str, pd.Series], **params: Any) -> str:
+        del params
+        ret = float(np.nan_to_num(features["ret"].iloc[idx], nan=0.0))
+        return "up" if ret > 0.0 else "down" if ret < 0.0 else "non_directional"
+
+    def compute_metadata(self, idx: int, features: dict[str, pd.Series], **params: Any) -> dict[str, Any]:
+        meta = dict(super().compute_metadata(idx, features, **params))
+        meta.update({"event_semantics": "price_volume_imbalance_direction", "ret": float(np.nan_to_num(features["ret"].iloc[idx], nan=0.0))})
+        return meta
+
 
 class WickReversalProxyDetector(_CanonicalProxyBase):
     event_type = "WICK_REVERSAL_PROXY"
@@ -302,6 +312,18 @@ class WickReversalProxyDetector(_CanonicalProxyBase):
     ) -> pd.Series:
         del df, params
         return features["signal"].fillna(0.0)
+
+    def compute_direction(self, idx: int, features: dict[str, pd.Series], **params: Any) -> str:
+        del params
+        upper = float(np.nan_to_num(features["upper_wick"].iloc[idx], nan=0.0))
+        lower = float(np.nan_to_num(features["lower_wick"].iloc[idx], nan=0.0))
+        return "up" if upper > lower else "down" if lower > upper else "non_directional"
+
+    def compute_metadata(self, idx: int, features: dict[str, pd.Series], **params: Any) -> dict[str, Any]:
+        meta = dict(super().compute_metadata(idx, features, **params))
+        direction = self.compute_direction(idx, features, **params)
+        meta.update({"event_semantics": "wick_reversal_sweep_side", "sweep_side": direction})
+        return meta
 
 
 class AbsorptionProxyDetector(_CanonicalProxyBase):

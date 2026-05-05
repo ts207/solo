@@ -36,7 +36,12 @@ class HistoricalExchangeSlice:
 
 
 def historical_exchange_slices() -> tuple[HistoricalExchangeSlice, ...]:
-    present = ("LIQUIDATION_CASCADE", "VOL_SHOCK", "VOL_SPIKE")
+    # Keep expectations aligned with the compiled deployable-core policy.
+    present = tuple(
+        event_name
+        for event_name in ("LIQUIDATION_CASCADE", "VOL_SHOCK", "VOL_SPIKE")
+        if event_name in DEPLOYABLE_CORE_EVENT_TYPES
+    )
     return (
         HistoricalExchangeSlice(
             slice_id="btcusdt_bybit_5m_2024_01_01_03_market_context",

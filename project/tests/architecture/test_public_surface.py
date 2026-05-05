@@ -1,4 +1,7 @@
+import os
 import subprocess
+import sys
+import sysconfig
 from pathlib import Path
 
 
@@ -19,17 +22,26 @@ def test_makefile_exports_canonical_targets():
     assert "deploy-status:" in content
     assert "deploy-paper:" in content
 
-import sys
-
 
 def test_removed_pipeline_alias_hidden_from_cli_help():
     """Verify the old pipeline alias is no longer part of the public CLI."""
     repo_root = Path(__file__).parent.parent.parent.parent
+    env = os.environ.copy()
+    site_packages = sysconfig.get_paths().get("purelib")
+    pythonpath_parts = [str(repo_root)]
+    if site_packages:
+        pythonpath_parts.append(site_packages)
+    if env.get("PYTHONPATH"):
+        pythonpath_parts.append(env["PYTHONPATH"])
+    env["PYTHONPATH"] = os.pathsep.join(pythonpath_parts)
+
     result = subprocess.run(
-        [sys.executable, "-m", "project.cli", "-h"],
+        [sys.executable, "-S", "-m", "project.cli", "-h"],
         cwd=repo_root,
         capture_output=True,
-        text=True
+        text=True,
+        timeout=30,
+        env=env,
     )
     assert result.returncode == 0
     assert "pipeline" not in result.stdout

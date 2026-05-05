@@ -9,6 +9,15 @@ import pandas as pd
 
 from project.events.detector_contract import DetectorLogicContract, detector_metadata_from_class
 from project.events.shared import EVENT_COLUMNS, emit_event, format_event_id
+from project.events.polarity import (
+    anchor_role_from_event,
+    infer_magnitude_from_features,
+    infer_semantics_from_event,
+    infer_side_from_features,
+    normalize_event_side,
+    side_to_direction,
+    severity_bucket_from_score,
+)
 
 
 class BaseEventDetector(DetectorLogicContract, ABC):
@@ -22,9 +31,12 @@ class BaseEventDetector(DetectorLogicContract, ABC):
     timeframe_minutes: int = 5
     default_severity: str = "moderate"
     causal: bool = True
-    supports_confidence: bool = False
-    supports_severity: bool = False
-    supports_quality_flag: bool = False
+    supports_confidence: bool = True
+    supports_severity: bool = True
+    supports_quality_flag: bool = True
+    supports_event_side: bool = True
+    supports_magnitude: bool = True
+    supports_severity_bucket: bool = True
     cooldown_semantics: str = "not_supported"
     merge_key_strategy: str = "legacy_event_id"
     role: str = "trigger"
@@ -56,6 +68,18 @@ class BaseEventDetector(DetectorLogicContract, ABC):
         """Compute a boolean mask where True indicates an event trigger."""
         raise NotImplementedError
 
+
+    def compute_signal(self, df: pd.DataFrame) -> pd.Series:
+        """Compatibility signal for the DetectorLogicContract protocol.
+
+        Legacy BaseEventDetector subclasses implement ``compute_raw_mask`` rather
+        than a scalar signal.  Expose a boolean-as-float signal so lightweight
+        test detectors and legacy subclasses remain instantiable.
+        """
+        features = self.prepare_features(df)
+        mask = self.compute_raw_mask(df, features=features)
+        return pd.Series(mask.fillna(False).astype(float), index=df.index, dtype=float)
+
     def compute_intensity(
         self, df: pd.DataFrame, *, features: Mapping[str, pd.Series], **params: Any
     ) -> pd.Series:
@@ -81,6 +105,50 @@ class BaseEventDetector(DetectorLogicContract, ABC):
     ) -> str:
         """Return a direction label (up, down, neutral) for the event."""
         return "non_directional"
+
+    def compute_polarity_semantics(
+        self, idx: int, features: Mapping[str, pd.Series], **params: Any
+    ) -> str:
+        meta = dict(self.compute_metadata(idx, features, **params))
+        return infer_semantics_from_event(
+            event_id=self.compute_event_type(idx, features),
+            family=str(meta.get("canonical_family", meta.get("family", ""))),
+            subtype=str(meta.get("subtype", "")),
+            role=self.role,
+            metadata=meta,
+        )
+
+    def compute_event_side(
+        self, idx: int, intensity: float, features: Mapping[str, pd.Series], **params: Any
+    ) -> tuple[str, str]:
+        semantics = self.compute_polarity_semantics(idx, features, **params)
+        direction = self.compute_direction(idx, features, **params)
+        side, source = infer_side_from_features(
+            {**features, "direction": pd.Series([direction] * (idx + 1))},
+            idx,
+            semantics=semantics,
+            fallback_intensity=float(intensity),
+        )
+        if source == "unknown" and direction:
+            side, source = infer_side_from_features({"direction": pd.Series([direction] * (idx + 1))}, idx, semantics=semantics)
+        return side, source
+
+    def compute_magnitude_with_source(
+        self, idx: int, intensity: float, features: Mapping[str, pd.Series], **params: Any
+    ) -> tuple[float | None, str]:
+        return infer_magnitude_from_features(features, idx, fallback=float(intensity))
+
+    def compute_anchor_role(
+        self, idx: int, features: Mapping[str, pd.Series], semantics: str, **params: Any
+    ) -> str:
+        meta = dict(self.compute_metadata(idx, features, **params))
+        return anchor_role_from_event(
+            role=self.role,
+            deployment_disposition=str(meta.get("deployment_disposition", "")),
+            family=str(meta.get("canonical_family", meta.get("family", ""))),
+            event_id=self.compute_event_type(idx, features),
+            semantics=semantics,
+        )
 
     def compute_event_type(self, idx: int, features: Mapping[str, pd.Series]) -> str:
         """Return the event type for the event at the given index."""
@@ -136,8 +204,21 @@ class BaseEventDetector(DetectorLogicContract, ABC):
             current_event_type = self.compute_event_type(idx, features)
             severity = self.compute_severity(idx, intensity, features, **params)
             direction = self.compute_direction(idx, features, **params)
+            polarity_semantics = self.compute_polarity_semantics(idx, features, **params)
+            event_side, polarity_source = self.compute_event_side(idx, intensity, features, **params)
+            if event_side == "unknown" and direction:
+                fallback_side = normalize_event_side(direction)
+                if fallback_side != "unknown":
+                    event_side = fallback_side
+                    polarity_source = "direction"
+            magnitude, magnitude_source = self.compute_magnitude_with_source(idx, intensity, features, **params)
+            anchor_role = self.compute_anchor_role(idx, features, polarity_semantics, **params)
             meta = {
                 "causal": bool(self.causal),
+                "polarity_semantics": polarity_semantics,
+                "polarity_source": polarity_source,
+                "magnitude_source": magnitude_source,
+                "anchor_role": anchor_role,
                 **dict(self.compute_metadata(idx, features, **params)),
             }
 
@@ -150,6 +231,16 @@ class BaseEventDetector(DetectorLogicContract, ABC):
                 severity=severity,
                 timeframe_minutes=self.timeframe_minutes,
                 direction=direction,
+                event_side=event_side,
+                event_direction=side_to_direction(event_side),
+                magnitude=magnitude,
+                severity_bucket=(
+                    severity if isinstance(severity, str) else severity_bucket_from_score(intensity)
+                ),
+                polarity_semantics=polarity_semantics,
+                polarity_source=polarity_source,
+                magnitude_source=magnitude_source,
+                anchor_role=anchor_role,
                 causal=self.causal,
                 metadata={"event_idx": int(idx), **meta},
             )

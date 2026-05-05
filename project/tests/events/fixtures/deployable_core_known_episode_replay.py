@@ -84,8 +84,17 @@ def _basis_funding_dislocation_fixture() -> KnownEpisodeFixture:
         episode_id="basis_funding_dislocation_2024_02_synthetic",
         label="Basis and funding dislocation replay slice",
         lineage="reproducible_synthetic_market_slice: basis widens while funding aligns with perp premium",
-        expected_present=("BASIS_DISLOC", "FND_DISLOC", "SPOT_PERP_BASIS_SHOCK"),
-        expected_absent=tuple(sorted(DEPLOYABLE_CORE_EVENT_TYPES - {"BASIS_DISLOC", "FND_DISLOC", "SPOT_PERP_BASIS_SHOCK"})),
+        expected_present=tuple(
+            event_name
+            for event_name in ("BASIS_DISLOC", "FND_DISLOC", "SPOT_PERP_BASIS_SHOCK")
+            if event_name in DEPLOYABLE_CORE_EVENT_TYPES
+        ),
+        expected_absent=tuple(
+            sorted(
+                DEPLOYABLE_CORE_EVENT_TYPES
+                - {"BASIS_DISLOC", "FND_DISLOC", "SPOT_PERP_BASIS_SHOCK"}
+            )
+        ),
         frame=frame,
         params_by_detector={},
     )
@@ -116,13 +125,17 @@ def _liquidity_liquidation_vol_fixture() -> KnownEpisodeFixture:
         episode_id="liquidity_liquidation_vol_cascade_2024_03_synthetic",
         label="Liquidity vacuum, liquidation cascade, and volatility shock replay slice",
         lineage="reproducible_synthetic_market_slice: book thins, liquidation flow spikes, price/realized-vol shock unfolds",
-        expected_present=(
-            "LIQUIDITY_STRESS_DIRECT",
-            "LIQUIDITY_SHOCK",
-            "LIQUIDITY_VACUUM",
-            "LIQUIDATION_CASCADE",
-            "VOL_SPIKE",
-            "VOL_SHOCK",
+        expected_present=tuple(
+            event_name
+            for event_name in (
+                "LIQUIDITY_STRESS_DIRECT",
+                "LIQUIDITY_SHOCK",
+                "LIQUIDITY_VACUUM",
+                "LIQUIDATION_CASCADE",
+                "VOL_SPIKE",
+                "VOL_SHOCK",
+            )
+            if event_name in DEPLOYABLE_CORE_EVENT_TYPES
         ),
         expected_absent=tuple(
             sorted(

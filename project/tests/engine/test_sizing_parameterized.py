@@ -56,7 +56,7 @@ def test_kelly_clip_is_overridable():
         liquidity_usd=10_000_000.0,
         portfolio_state={"portfolio_value": 100_000.0},
         symbol="BTC",
-        max_kelly_multiplier=2.0,  # tighter clip
+        max_kelly_multiplier=0.25,  # tighter than the default fractional-Kelly clip
     )
     assert (
         clipped_lower["target_notional"] < base["target_notional"]

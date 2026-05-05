@@ -761,9 +761,9 @@ class LiveEngineRunner:
         try:
             store = None
             if thesis_path:
-                store = ThesisStore.from_path(thesis_path)
+                store = ThesisStore.from_path(thesis_path, require_runtime_manifest=strict_runtime, runtime_mode=self.runtime_mode)
             elif thesis_run_id:
-                store = ThesisStore.from_run_id(thesis_run_id)
+                store = ThesisStore.from_run_id(thesis_run_id, require_runtime_manifest=strict_runtime, runtime_mode=self.runtime_mode)
 
             if store:
                 # Workstream 1: Admission Control - verify it only contains promoted theses
@@ -898,10 +898,10 @@ class LiveEngineRunner:
         return list(self._decision_outcomes)
 
     def _ensure_runtime_mode_known(self) -> None:
-        if self.runtime_mode not in {"monitor_only", "simulation", "trading"}:
+        if self.runtime_mode not in {"monitor_only", "simulation", "shadow", "trading"}:
             raise RuntimeError(
                 f"Unsupported runtime_mode '{self.runtime_mode}'. "
-                "Expected 'monitor_only', 'simulation', or 'trading'."
+                "Expected 'monitor_only', 'simulation', 'shadow', or 'trading'."
             )
 
     def _ensure_runtime_ready_for_start(self) -> None:

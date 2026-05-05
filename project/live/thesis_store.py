@@ -16,6 +16,7 @@ from project.core.exceptions import (
 )
 from project.live.contracts import PromotedThesis
 from project.live.deployment import DeploymentGate
+from project.live.runtime_admission import validate_runtime_mode_against_theses
 from project.research.contracts.historical_trust import (
     HISTORICAL_TRUST_LEGACY,
     HISTORICAL_TRUST_REQUIRES_REVALIDATION,
@@ -163,6 +164,8 @@ class ThesisStore:
         path: str | Path,
         *,
         strict_live_gate: bool = True,
+        require_runtime_manifest: bool = False,
+        runtime_mode: str = "monitor_only",
     ) -> ThesisStore:
         resolved_path = Path(path)
         payload = _load_payload(resolved_path)
@@ -185,6 +188,8 @@ class ThesisStore:
         # Raises RuntimeError if strict_live_gate=True and violations are found.
         gate = DeploymentGate(strict=strict_live_gate)
         gate.validate_batch(theses)
+        if require_runtime_manifest:
+            validate_runtime_mode_against_theses(str(runtime_mode or "monitor_only"), theses, require_manifest=True)
         return cls(
             theses,
             run_id=str(payload.get("run_id", "")).strip(),
@@ -194,8 +199,21 @@ class ThesisStore:
         )
 
     @classmethod
-    def from_run_id(cls, run_id: str, *, data_root: Path | None = None) -> ThesisStore:
-        return cls.from_path(promoted_theses_path(run_id, data_root))
+    def from_run_id(
+        cls,
+        run_id: str,
+        *,
+        data_root: Path | None = None,
+        strict_live_gate: bool = True,
+        require_runtime_manifest: bool = False,
+        runtime_mode: str = "monitor_only",
+    ) -> ThesisStore:
+        return cls.from_path(
+            promoted_theses_path(run_id, data_root),
+            strict_live_gate=strict_live_gate,
+            require_runtime_manifest=require_runtime_manifest,
+            runtime_mode=runtime_mode,
+        )
 
     @classmethod
     def latest(

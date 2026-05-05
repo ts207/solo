@@ -303,6 +303,20 @@ states:
     tags: []
     family: MICROSTRUCTURE_CONTEXT
     source_event_type: OI_SPIKE_POSITIVE
+  MS_SPREAD_STATE:
+    enabled: true
+    instrument_classes:
+    - crypto
+    tags: []
+    family: MICROSTRUCTURE_CONTEXT
+    source_event_type: LIQUIDITY_STRESS_DIRECT
+  MS_TREND_STATE:
+    enabled: true
+    instrument_classes:
+    - crypto
+    tags: []
+    family: MICROSTRUCTURE_CONTEXT
+    source_event_type: TREND_EXHAUSTION_TRIGGER
   MS_VOL_STATE:
     enabled: true
     instrument_classes:

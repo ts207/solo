@@ -3,6 +3,9 @@ from __future__ import annotations
 import logging
 from dataclasses import dataclass
 from datetime import UTC, datetime
+from typing import Literal
+
+from project.live.contracts.promoted_thesis import deployment_state_allows_runtime
 
 _LOG = logging.getLogger(__name__)
 
@@ -11,8 +14,9 @@ _LOG = logging.getLogger(__name__)
 class RuntimeThesisState:
     thesis_id: str
     promotion_class: str
-    deployment_mode: str  # monitor_only, paper_only, live_enabled
+    deployment_mode: str  # monitor_only, simulation, shadow, trading
     state: str = "eligible"  # eligible, active, paused, degraded, disabled
+    promotion_state: str = "candidate"
     size_scalar: float = 1.0
     disable_reason: str = ""
     last_health_update: str = ""
@@ -34,17 +38,31 @@ class RuntimeThesisState:
         if reason:
             self.disable_reason = reason
 
+    def runtime_allowed(self, runtime_mode: str | None = None) -> bool:
+        return deployment_state_allows_runtime(
+            self.promotion_state or self.deployment_mode,
+            runtime_mode or self.deployment_mode,
+        )
+
+
 
 class ThesisStateManager:
     def __init__(self):
         self.states: dict[str, RuntimeThesisState] = {}
 
-    def register_thesis(self, thesis_id: str, promotion_class: str, deployment_mode: str):
+    def register_thesis(
+        self,
+        thesis_id: str,
+        promotion_class: str,
+        deployment_mode: str,
+        promotion_state: str | None = None,
+    ):
         if thesis_id not in self.states:
             self.states[thesis_id] = RuntimeThesisState(
                 thesis_id=thesis_id,
                 promotion_class=promotion_class,
                 deployment_mode=deployment_mode,
+                promotion_state=promotion_state or deployment_mode,
             )
 
     def get_state(self, thesis_id: str) -> RuntimeThesisState | None:

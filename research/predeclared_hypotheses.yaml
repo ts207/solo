@@ -1,0 +1,19 @@
+# Predeclared hypotheses registry.
+# Add one atomic hypothesis before running a proposal. Do not mutate entries after results.
+hypotheses:
+  - id: custom_shock_cont_btc_5m_h12
+    mechanism: forced-flow continuation after volatility shock
+    event_id: VOL_SHOCK
+    template: continuation
+    direction: long
+    horizon_bars: 12
+    symbol: BTCUSDT
+    timeframe: 5m
+    predeclared_at: "2026-05-01"
+    allowed_modifications:
+      - fix mechanical data issue without changing the hypothesis
+    forbidden_modifications:
+      - change horizon after result
+      - add filters after result
+      - add symbols after result
+      - flip direction after result

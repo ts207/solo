@@ -16,10 +16,10 @@ def test_wave2_calibration_artifacts_exist() -> None:
 
 
 def test_wave2_governance_policy_is_applied() -> None:
-    strong = get_detector_contract('FND_DISLOC')
+    strong = get_detector_contract('LIQUIDITY_VACUUM')
     conservative = get_detector_contract('FUNDING_NORMALIZATION_TRIGGER')
     assert strong.runtime_default is True
     assert strong.promotion_eligible is True
     assert conservative.runtime_default is False
-    assert conservative.promotion_eligible is True
+    assert conservative.promotion_eligible is False
     assert conservative.primary_anchor_eligible is False

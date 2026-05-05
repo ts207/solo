@@ -62,7 +62,12 @@ def assert_deploy_admission(
 
     # 1. Load and validate via ThesisStore (applies DeploymentGate)
     try:
-        store = ThesisStore.from_path(thesis_path, strict_live_gate=True)
+        store = ThesisStore.from_path(
+            thesis_path,
+            strict_live_gate=True,
+            require_runtime_manifest=True,
+            runtime_mode=runtime_mode,
+        )
         theses = store.all()
     except (CompatibilityRequiredError, DataIntegrityError):
         if runtime_mode == "monitor_only":

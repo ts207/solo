@@ -50,7 +50,6 @@ import pandas as pd
 
 from project.contracts.temporal_contracts import TemporalContract
 from project.core.causal_primitives import trailing_median, trailing_quantile
-from project.events.shared import emit_event, format_event_id
 
 # --- Temporal Contract ---
 
@@ -105,6 +104,88 @@ class LiquidityVacuumConfig:
 
 
 DEFAULT_LV_CONFIG = LiquidityVacuumConfig()
+
+_EVENT_COLUMNS = [
+    "event_type",
+    "event_id",
+    "symbol",
+    "anchor_ts",
+    "eval_bar_ts",
+    "enter_ts",
+    "detected_ts",
+    "signal_ts",
+    "exit_ts",
+    "event_idx",
+    "year",
+    "event_score",
+    "evt_signal_intensity",
+    "severity_bucket",
+    "direction",
+    "sign",
+    "event_side",
+    "event_direction",
+    "magnitude",
+    "polarity_semantics",
+    "polarity_source",
+    "magnitude_source",
+    "anchor_role",
+    "basis_z",
+    "spread_z",
+    "funding_rate_bps",
+    "carry_state",
+    "ms_trend_state",
+    "ms_spread_state",
+    "features_payload",
+]
+
+
+def format_event_id(event_type: str, symbol: str, idx: int, sub_idx: int = 0) -> str:
+    return f"{event_type.lower()}_{symbol}_{idx:08d}_{sub_idx:03d}"
+
+
+def emit_event(
+    *,
+    event_type: str,
+    symbol: str,
+    event_id: str,
+    eval_bar_ts: pd.Timestamp,
+    intensity: float = 1.0,
+    severity: str = "moderate",
+    metadata: dict[str, object] | None = None,
+    shift_bars: int = 0,
+) -> dict[str, object]:
+    # Local emission keeps this lightweight detector independent from the full
+    # event registry graph.  It mirrors the default fields produced by
+    # project.events.shared.emit_event for non-directional detector events.
+    eval_ts = pd.Timestamp(eval_bar_ts)
+    signal_ts = eval_ts + pd.Timedelta(minutes=5 * (max(int(shift_bars), 0) + 1))
+    row: dict[str, object] = {
+        "event_type": event_type,
+        "event_id": event_id,
+        "symbol": symbol,
+        "anchor_ts": eval_ts,
+        "eval_bar_ts": eval_ts,
+        "enter_ts": signal_ts,
+        "detected_ts": eval_ts,
+        "signal_ts": signal_ts,
+        "exit_ts": signal_ts,
+        "event_score": float(intensity),
+        "evt_signal_intensity": float(intensity),
+        "severity_bucket": severity,
+        "direction": "non_directional",
+        "sign": 0,
+        "event_side": "unknown",
+        "event_direction": 0,
+        "magnitude": float(intensity),
+        "polarity_semantics": "unknown",
+        "polarity_source": "unknown",
+        "magnitude_source": "unknown",
+        "anchor_role": "alpha_anchor",
+        "year": int(eval_ts.year),
+        "timestamp": signal_ts,
+    }
+    row.update(metadata or {})
+    return row
 
 
 def _compute_core_series(df: pd.DataFrame, cfg: LiquidityVacuumConfig) -> pd.DataFrame:
@@ -351,9 +432,7 @@ def _detect_events_with_threshold(
         # If no event, move to next bar
         i += 1
     if not event_rows:
-        from project.events.shared import EVENT_COLUMNS
-
-        return pd.DataFrame(columns=EVENT_COLUMNS)
+        return pd.DataFrame(columns=_EVENT_COLUMNS)
     return pd.DataFrame(event_rows)
 
 

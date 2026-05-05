@@ -6,12 +6,6 @@ from typing import Any
 
 from project.core.config import get_data_root
 from project.core.exceptions import DataIntegrityError
-from project.research.services.pathing import (
-    phase2_candidates_path as canonical_phase2_candidates_path,
-)
-from project.research.services.pathing import (
-    phase2_diagnostics_path as canonical_phase2_diagnostics_path,
-)
 
 
 def data_root(root: Path | None = None) -> Path:
@@ -91,7 +85,7 @@ def phase2_candidates_path(
     root: Path | None = None,
 ) -> Path:
     resolved_root = data_root(root)
-    parquet = canonical_phase2_candidates_path(data_root=resolved_root, run_id=run_id)
+    parquet = resolved_root / "reports" / "phase2" / str(run_id) / "phase2_candidates.parquet"
     if parquet.exists():
         return parquet
     csv = parquet.with_suffix(".csv")
@@ -104,9 +98,7 @@ def phase2_diagnostics_path(
     run_id: str,
     root: Path | None = None,
 ) -> Path:
-    resolved_root = data_root(root)
-    canonical = canonical_phase2_diagnostics_path(data_root=resolved_root, run_id=run_id)
-    return canonical
+    return data_root(root) / "reports" / "phase2" / str(run_id) / "phase2_diagnostics.json"
 
 
 def load_json_dict(path: Path) -> dict[str, Any]:

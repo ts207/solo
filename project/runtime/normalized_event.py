@@ -9,6 +9,8 @@ from typing import Any
 import pandas as pd
 
 from project.core.coercion import safe_int
+from project.research.direction_semantics import normalize_event_side, direction_sign
+from project.events.polarity import normalize_polarity_semantics
 
 _DEFAULT_LANE_ID = "alpha_5s"
 _DEFAULT_VENUE_ID = "bybit"
@@ -31,6 +33,15 @@ class NormalizedEvent:
     role: str
     provenance: str
     order_id: str = ""
+    event_side: str = "unknown"
+    event_direction: int = 0
+    magnitude: float = 0.0
+    severity: float = 0.0
+    confidence: float = 0.0
+    polarity_semantics: str = "unknown"
+    polarity_source: str = "unknown"
+    magnitude_source: str = "unknown"
+    anchor_role: str = "alpha_anchor"
 
 
 def to_us(value: Any) -> int | None:
@@ -93,6 +104,33 @@ def _first_timestamp_us(row: Mapping[str, Any], fields: Iterable[str]) -> int | 
     return None
 
 
+
+
+def _safe_float(value: Any, default: float = 0.0) -> float:
+    try:
+        out = float(value)
+    except (TypeError, ValueError):
+        return float(default)
+    if math.isnan(out) or math.isinf(out):
+        return float(default)
+    return float(out)
+
+
+def _row_event_side(row: Mapping[str, Any]) -> str:
+    for key in ("event_side", "side", "event_polarity", "direction", "event_direction"):
+        if key in row and str(row.get(key, "")).strip():
+            return normalize_event_side(row.get(key))
+    return "unknown"
+
+
+def _row_event_direction(row: Mapping[str, Any], side: str) -> int:
+    for key in ("event_direction", "direction_sign", "signed_direction"):
+        if key in row and str(row.get(key, "")).strip():
+            sign = direction_sign(row.get(key))
+            if sign != 0:
+                return int(sign)
+    return int(direction_sign(side))
+
 def normalize_event_rows(
     rows: Iterable[Mapping[str, Any]],
     *,
@@ -141,6 +179,9 @@ def normalize_event_rows(
             or _DEFAULT_PROVENANCE
         )
 
+        event_side = _row_event_side(row)
+        event_direction = _row_event_direction(row, event_side)
+
         events.append(
             NormalizedEvent(
                 event_id=event_id,
@@ -155,6 +196,15 @@ def normalize_event_rows(
                 role=role,
                 provenance=provenance,
                 order_id=str(row.get("order_id", "")).strip(),
+                event_side=event_side,
+                event_direction=event_direction,
+                magnitude=_safe_float(row.get("magnitude", row.get("trigger_value", 0.0)), 0.0),
+                severity=_safe_float(row.get("severity", 0.0), 0.0),
+                confidence=_safe_float(row.get("confidence", 0.0), 0.0),
+                polarity_semantics=normalize_polarity_semantics(row.get("polarity_semantics", "unknown")),
+                polarity_source=str(row.get("polarity_source", "unknown") or "unknown"),
+                magnitude_source=str(row.get("magnitude_source", "unknown") or "unknown"),
+                anchor_role=str(row.get("anchor_role", role) or role),
             )
         )
 
@@ -207,6 +257,15 @@ def normalized_events_from_frame(
                 role=str(getattr(row, "role", "") or "alpha"),
                 provenance=str(getattr(row, "provenance", "") or "market"),
                 order_id=str(getattr(row, "order_id", "") or ""),
+                event_side=normalize_event_side(getattr(row, "event_side", "unknown")),
+                event_direction=int(direction_sign(getattr(row, "event_direction", getattr(row, "event_side", 0)))),
+                magnitude=_safe_float(getattr(row, "magnitude", getattr(row, "trigger_value", 0.0)), 0.0),
+                severity=_safe_float(getattr(row, "severity", 0.0), 0.0),
+                confidence=_safe_float(getattr(row, "confidence", 0.0), 0.0),
+                polarity_semantics=normalize_polarity_semantics(getattr(row, "polarity_semantics", "unknown")),
+                polarity_source=str(getattr(row, "polarity_source", "unknown") or "unknown"),
+                magnitude_source=str(getattr(row, "magnitude_source", "unknown") or "unknown"),
+                anchor_role=str(getattr(row, "anchor_role", getattr(row, "role", "alpha_anchor")) or "alpha_anchor"),
             )
         )
     return events

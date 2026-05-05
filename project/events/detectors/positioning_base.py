@@ -14,6 +14,7 @@ from project.events.detectors.funding_support import (
 )
 from project.events.thresholding import rolling_percentile_rank
 from project.features.context_guards import state_at_least, state_at_most
+from project.events.polarity import PolaritySemantics
 
 
 class PositioningDetectorV2Base(BaseDetectorV2):
@@ -46,6 +47,26 @@ class BaseFundingDetectorV2(PositioningDetectorV2Base):
         if "funding_rate_scaled" in df.columns:
             return pd.to_numeric(df["funding_rate_scaled"], errors="coerce").astype(float)
         return pd.Series(0.0, index=df.index, dtype=float)
+
+    def compute_polarity_semantics(self, idx: int, features: Mapping[str, pd.Series], **params: Any) -> str:
+        return PolaritySemantics.FUNDING_CROWDING_SIDE.value
+
+    def compute_event_side(self, idx: int, intensity: float, features: Mapping[str, pd.Series], **params: Any) -> str:
+        del intensity, params
+        signed = float(np.nan_to_num(features.get("funding_signed", pd.Series(0.0, index=features["funding_abs_pct"].index)).iloc[idx], nan=0.0))
+        return "bullish" if signed > 0.0 else "bearish" if signed < 0.0 else "neutral"
+
+    def compute_polarity_source(self, idx: int, intensity: float, features: Mapping[str, pd.Series], **params: Any) -> str:
+        del idx, intensity, features, params
+        return "funding_signed"
+
+    def compute_magnitude(self, idx: int, intensity: float, features: Mapping[str, pd.Series], **params: Any) -> float:
+        del intensity, params
+        return abs(float(np.nan_to_num(features["funding_abs"].iloc[idx], nan=0.0)))
+
+    def compute_magnitude_source(self, idx: int, intensity: float, features: Mapping[str, pd.Series], **params: Any) -> str:
+        del idx, intensity, features, params
+        return "funding_abs"
 
     def compute_metadata(self, idx: int, features: Mapping[str, pd.Series], **params: Any) -> Mapping[str, Any]:
         f_pct = float(np.nan_to_num(features["funding_abs_pct"].iloc[idx], nan=0.0))
@@ -189,12 +210,52 @@ class BaseOIDetectorV2(PositioningDetectorV2Base):
         close_ret = pd.to_numeric(df["close"], errors="coerce").astype(float).pct_change(periods=1)
         return oi_z, close_ret, oi.pct_change(periods=1)
 
+    def compute_polarity_semantics(self, idx: int, features: Mapping[str, pd.Series], **params: Any) -> str:
+        return PolaritySemantics.PRICE_OI_QUADRANT.value
+
+    def _price_oi_quadrant(self, idx: int, features: Mapping[str, pd.Series]) -> str:
+        price = float(np.nan_to_num(features["close_ret"].iloc[idx], nan=0.0))
+        oi_delta = float(np.nan_to_num(features["oi_pct_change"].iloc[idx], nan=0.0))
+        if price > 0.0 and oi_delta > 0.0:
+            return "price_up_oi_up"
+        if price > 0.0 and oi_delta < 0.0:
+            return "price_up_oi_down"
+        if price < 0.0 and oi_delta > 0.0:
+            return "price_down_oi_up"
+        if price < 0.0 and oi_delta < 0.0:
+            return "price_down_oi_down"
+        return "price_oi_flat"
+
+    def compute_event_side(self, idx: int, intensity: float, features: Mapping[str, pd.Series], **params: Any) -> str:
+        del intensity, params
+        quadrant = self._price_oi_quadrant(idx, features)
+        if quadrant.startswith("price_up"):
+            return "bullish"
+        if quadrant.startswith("price_down"):
+            return "bearish"
+        return "neutral"
+
+    def compute_polarity_source(self, idx: int, intensity: float, features: Mapping[str, pd.Series], **params: Any) -> str:
+        del idx, intensity, features, params
+        return "price_oi_quadrant"
+
+    def compute_magnitude(self, idx: int, intensity: float, features: Mapping[str, pd.Series], **params: Any) -> float:
+        del intensity, params
+        oi_z = abs(float(np.nan_to_num(features["oi_z"].iloc[idx], nan=0.0)))
+        oi_pct = abs(float(np.nan_to_num(features["oi_pct_change"].iloc[idx], nan=0.0))) * 100.0
+        return max(oi_z, oi_pct)
+
+    def compute_magnitude_source(self, idx: int, intensity: float, features: Mapping[str, pd.Series], **params: Any) -> str:
+        del idx, intensity, features, params
+        return "max(abs(oi_z),abs(oi_pct_change)*100)"
+
     def compute_metadata(self, idx: int, features: Mapping[str, pd.Series], **params: Any) -> Mapping[str, Any]:
         return {
             "cluster_id": "positioning_oi",
             "oi_z": float(np.nan_to_num(features["oi_z"].iloc[idx], nan=0.0)),
             "oi_pct_change": float(np.nan_to_num(features["oi_pct_change"].iloc[idx], nan=0.0)),
             "close_ret": float(np.nan_to_num(features["close_ret"].iloc[idx], nan=0.0)),
+            "price_oi_quadrant": self._price_oi_quadrant(idx, features),
         }
 
     def compute_intensity(self, df: pd.DataFrame, *, features: Mapping[str, pd.Series], **params: Any) -> pd.Series:
@@ -257,3 +318,71 @@ class OIFlushDetectorV2(BaseOIDetectorV2):
 
     def compute_raw_mask(self, df: pd.DataFrame, *, features: Mapping[str, pd.Series], **params: Any) -> pd.Series:
         return features["mask"].fillna(False)
+
+
+class FundingPosExtremeOnsetDetectorV2(FundingExtremeOnsetDetectorV2):
+    event_name = "FUNDING_POS_EXTREME_ONSET"
+    def compute_raw_mask(self, df: pd.DataFrame, *, features: Mapping[str, pd.Series], **params: Any) -> pd.Series:
+        return (super().compute_raw_mask(df, features=features, **params) & (features["funding_signed"] > 0.0)).fillna(False)
+
+
+class FundingNegExtremeOnsetDetectorV2(FundingExtremeOnsetDetectorV2):
+    event_name = "FUNDING_NEG_EXTREME_ONSET"
+    def compute_raw_mask(self, df: pd.DataFrame, *, features: Mapping[str, pd.Series], **params: Any) -> pd.Series:
+        return (super().compute_raw_mask(df, features=features, **params) & (features["funding_signed"] < 0.0)).fillna(False)
+
+
+class FundingPosPersistenceDetectorV2(FundingPersistenceDetectorV2):
+    event_name = "FUNDING_POS_PERSISTENCE"
+    def compute_raw_mask(self, df: pd.DataFrame, *, features: Mapping[str, pd.Series], **params: Any) -> pd.Series:
+        return (super().compute_raw_mask(df, features=features, **params) & (features["funding_signed"] > 0.0)).fillna(False)
+
+
+class FundingNegPersistenceDetectorV2(FundingPersistenceDetectorV2):
+    event_name = "FUNDING_NEG_PERSISTENCE"
+    def compute_raw_mask(self, df: pd.DataFrame, *, features: Mapping[str, pd.Series], **params: Any) -> pd.Series:
+        return (super().compute_raw_mask(df, features=features, **params) & (features["funding_signed"] < 0.0)).fillna(False)
+
+
+class FundingPosNormalizationDetectorV2(FundingNormalizationDetectorV2):
+    event_name = "FUNDING_POS_NORMALIZATION"
+    def compute_raw_mask(self, df: pd.DataFrame, *, features: Mapping[str, pd.Series], **params: Any) -> pd.Series:
+        return (super().compute_raw_mask(df, features=features, **params) & (features["funding_signed"] > 0.0)).fillna(False)
+
+
+class FundingNegNormalizationDetectorV2(FundingNormalizationDetectorV2):
+    event_name = "FUNDING_NEG_NORMALIZATION"
+    def compute_raw_mask(self, df: pd.DataFrame, *, features: Mapping[str, pd.Series], **params: Any) -> pd.Series:
+        return (super().compute_raw_mask(df, features=features, **params) & (features["funding_signed"] < 0.0)).fillna(False)
+
+
+class FundingFlipToPositiveDetectorV2(FundingFlipDetectorV2):
+    event_name = "FUNDING_FLIP_TO_POSITIVE"
+    def compute_raw_mask(self, df: pd.DataFrame, *, features: Mapping[str, pd.Series], **params: Any) -> pd.Series:
+        return (super().compute_raw_mask(df, features=features, **params) & (features["funding_signed"] > 0.0)).fillna(False)
+
+
+class FundingFlipToNegativeDetectorV2(FundingFlipDetectorV2):
+    event_name = "FUNDING_FLIP_TO_NEGATIVE"
+    def compute_raw_mask(self, df: pd.DataFrame, *, features: Mapping[str, pd.Series], **params: Any) -> pd.Series:
+        return (super().compute_raw_mask(df, features=features, **params) & (features["funding_signed"] < 0.0)).fillna(False)
+
+
+class PriceUpOIUpDetectorV2(OISpikePositiveDetectorV2):
+    event_name = "PRICE_UP_OI_UP"
+
+
+class PriceDownOIUpDetectorV2(OISpikeNegativeDetectorV2):
+    event_name = "PRICE_DOWN_OI_UP"
+
+
+class PriceUpOIDownDetectorV2(OIFlushDetectorV2):
+    event_name = "PRICE_UP_OI_DOWN"
+    def compute_raw_mask(self, df: pd.DataFrame, *, features: Mapping[str, pd.Series], **params: Any) -> pd.Series:
+        return (super().compute_raw_mask(df, features=features, **params) & (features["close_ret"] > 0.0)).fillna(False)
+
+
+class PriceDownOIDownDetectorV2(OIFlushDetectorV2):
+    event_name = "PRICE_DOWN_OI_DOWN"
+    def compute_raw_mask(self, df: pd.DataFrame, *, features: Mapping[str, pd.Series], **params: Any) -> pd.Series:
+        return (super().compute_raw_mask(df, features=features, **params) & (features["close_ret"] < 0.0)).fillna(False)

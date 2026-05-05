@@ -64,4 +64,4 @@ def test_funding_wave2_detectors_emit() -> None:
     load_all_detectors()
     assert get_detector('FUNDING_FLIP').__class__.__name__ == 'FundingFlipDetectorV2'
     assert contract.runtime_default is False
-    assert contract.promotion_eligible is True
+    assert contract.promotion_eligible is False

@@ -128,6 +128,14 @@ class TrendAccelerationDetector(TrendBase):
         del df, params
         return (features["trend_abs"].fillna(0.0) * 100.0).clip(lower=0.0)
 
+    def compute_direction(self, idx: int, features: Mapping[str, pd.Series], **params: Any) -> str:
+        del params
+        trend = features.get("trend_raw")
+        if trend is None:
+            return "non_directional"
+        value = float(np.nan_to_num(trend.iloc[idx], nan=0.0))
+        return "up" if value > 0.0 else "down" if value < 0.0 else "non_directional"
+
 
 class TrendDecelerationDetector(TrendBase):
     event_type = "TREND_DECELERATION"
@@ -137,10 +145,12 @@ class TrendDecelerationDetector(TrendBase):
         trend_window = int(params.get("trend_window", 96))
         accel_window = int(params.get("accel_window", 3))
 
-        trend_abs = close.pct_change(trend_window).abs()
+        trend_raw = close.pct_change(trend_window)
+        trend_abs = trend_raw.abs()
         trend_delta = trend_abs.diff(accel_window)
         return {
             "close": close,
+            "trend_raw": trend_raw,
             "trend_abs": trend_abs,
             "trend_delta": trend_delta,
             "canonical_trend_state": self._canonical_trend_state(df),
@@ -169,6 +179,15 @@ class TrendDecelerationDetector(TrendBase):
             & canonical_trend_active
         ).fillna(False)
 
+    def compute_direction(self, idx: int, features: Mapping[str, pd.Series], **params: Any) -> str:
+        del params
+        value = float(np.nan_to_num(features["trend_raw"].iloc[idx], nan=0.0))
+        return "up" if value > 0.0 else "down" if value < 0.0 else "non_directional"
+
+    def compute_metadata(self, idx: int, features: Mapping[str, pd.Series], **params: Any) -> Mapping[str, Any]:
+        del params
+        return {"event_semantics": "weakening_existing_trend", "trend_raw": float(np.nan_to_num(features["trend_raw"].iloc[idx], nan=0.0))}
+
 
 class RangeBreakoutDetector(TrendBase):
     event_type = "RANGE_BREAKOUT"
@@ -187,6 +206,22 @@ class RangeBreakoutDetector(TrendBase):
         break_up = (features["close"] > features["rolling_max"]).fillna(False)
         break_dn = (features["close"] < features["rolling_min"]).fillna(False)
         return (break_up | break_dn).fillna(False)
+
+    def compute_direction(self, idx: int, features: Mapping[str, pd.Series], **params: Any) -> str:
+        del params
+        close = features["close"]
+        if bool(close.iloc[idx] > features["rolling_max"].iloc[idx]):
+            return "up"
+        if bool(close.iloc[idx] < features["rolling_min"].iloc[idx]):
+            return "down"
+        return "non_directional"
+
+    def compute_magnitude_with_source(self, idx: int, intensity: float, features: Mapping[str, pd.Series], **params: Any) -> tuple[float | None, str]:
+        del intensity, params
+        close = float(np.nan_to_num(features["close"].iloc[idx], nan=0.0))
+        up = abs((close - float(np.nan_to_num(features["rolling_max"].iloc[idx], nan=close))) / close) if close else 0.0
+        dn = abs((float(np.nan_to_num(features["rolling_min"].iloc[idx], nan=close)) - close) / close) if close else 0.0
+        return max(up, dn), "breakout_distance"
 
 
 class FalseBreakoutDetector(TrendBase):
@@ -296,6 +331,12 @@ class PullbackPivotDetector(TrendBase):
             False
         )
         return (pivot_up | pivot_dn).fillna(False)
+
+    def compute_direction(self, idx: int, features: Mapping[str, pd.Series], **params: Any) -> str:
+        del params
+        trend = float(np.nan_to_num(features["trend"].iloc[idx], nan=0.0))
+        retrace = float(np.nan_to_num(features["retrace"].iloc[idx], nan=0.0))
+        return "up" if trend > 0.0 and retrace < 0.0 else "down" if trend < 0.0 and retrace > 0.0 else "non_directional"
 
 
 class SREventDetector(TrendBase):

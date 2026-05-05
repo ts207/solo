@@ -1,28 +1,23 @@
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, Literal
+
+from project.events.polarity import normalize_event_side, side_to_direction
+
+_VALID_SIDE_POLICIES = {"directional", "contrarian", "both"}
 
 
 def _direction_sign(value: Any) -> int:
-    try:
-        num = float(value)
-    except (TypeError, ValueError):
-        num = 0.0
-    if num > 0:
-        return 1
-    if num < 0:
-        return -1
-    token = str(value or "").strip().lower()
-    if token in {"up", "long", "buy", "bull", "positive", "pos"}:
-        return 1
-    if token in {"down", "short", "sell", "bear", "negative", "neg"}:
-        return -1
-    return 0
+    return side_to_direction(value)
+
+
+def direction_sign(value: Any) -> int:
+    return _direction_sign(value)
 
 
 def normalize_side_policy(side_policy: str) -> str:
     token = str(side_policy or "").strip().lower()
-    if token not in {"directional", "contrarian", "both"}:
+    if token not in _VALID_SIDE_POLICIES:
         raise ValueError(
             f"Unsupported side_policy={side_policy!r}; expected directional|contrarian|both"
         )
@@ -46,16 +41,37 @@ def resolve_effect_sign(
     if evt_sign == 0:
         evt_sign = 1 if int(fallback_sign) >= 0 else -1
 
-    # Absolute policy semantics:
-    # 'directional' follows the event direction.
-    # 'contrarian' always flips the event direction.
     if policy == "directional":
         return int(evt_sign)
     if policy == "contrarian":
         return int(-evt_sign)
-
-    # Default 'both' policy — assume directional for effect sign resolution
     return int(evt_sign)
+
+
+def resolve_trade_direction(
+    *,
+    side_policy: str,
+    event_side: Any = "unknown",
+    event_direction: Any = 0,
+    explicit_direction: str | None = None,
+    label_target: str = "fwd_return_h",
+    fallback_sign: int = 1,
+) -> Literal["long", "short", "skip"]:
+    if explicit_direction:
+        token = str(explicit_direction).strip().lower()
+        if token in {"long", "short"}:
+            return token  # explicit overrides side policy
+    sign_source = event_direction if _direction_sign(event_direction) != 0 else event_side
+    sign = resolve_effect_sign(
+        template_verb="",
+        side_policy=side_policy,
+        event_direction=sign_source,
+        label_target=label_target,
+        fallback_sign=fallback_sign,
+    )
+    if sign == 0:
+        return "skip"
+    return "long" if sign > 0 else "short"
 
 
 def resolve_candidate_action(

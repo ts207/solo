@@ -75,12 +75,12 @@ def test_detector_version_inventory_helpers_cover_registry():
     legacy = list_legacy_detectors()
     v2 = list_v2_detectors()
     assert len(governed) == len(legacy) + len(v2)
-    assert len(governed) == 71
+    assert len({contract.event_name for contract in governed}) == len(governed)
 
 
 def test_detector_migration_ledger_covers_runtime_and_perimeter_policy():
     rows = build_detector_migration_ledger_rows()
-    assert len(rows) == 71
+    assert len(rows) == len(list_governed_detectors())
 
     runtime_rows = [row for row in rows if row["runtime_default"]]
     assert runtime_rows

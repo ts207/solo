@@ -4,6 +4,10 @@ from project.events.detectors.positioning_base import (
     OIFlushDetectorV2,
     OISpikeNegativeDetectorV2,
     OISpikePositiveDetectorV2,
+    PriceDownOIDownDetectorV2,
+    PriceDownOIUpDetectorV2,
+    PriceUpOIDownDetectorV2,
+    PriceUpOIUpDetectorV2,
 )
 from project.events.detectors.registry import register_detector
 
@@ -11,6 +15,10 @@ OI_DETECTORS = {
     "OI_SPIKE_POSITIVE": OISpikePositiveDetectorV2,
     "OI_SPIKE_NEGATIVE": OISpikeNegativeDetectorV2,
     "OI_FLUSH": OIFlushDetectorV2,
+    "PRICE_UP_OI_UP": PriceUpOIUpDetectorV2,
+    "PRICE_DOWN_OI_UP": PriceDownOIUpDetectorV2,
+    "PRICE_UP_OI_DOWN": PriceUpOIDownDetectorV2,
+    "PRICE_DOWN_OI_DOWN": PriceDownOIDownDetectorV2,
 }
 
 

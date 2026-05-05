@@ -8,6 +8,7 @@ import pandas as pd
 
 from project.events.detectors.base_v2 import BaseDetectorV2
 from project.events.episodes import build_episodes
+from project.events.polarity import PolaritySemantics, normalize_event_side
 from project.events.event_output_schema import (
     empty_event_output_frame,
     normalize_event_output_frame,
@@ -181,6 +182,30 @@ class LiquidationCascadeDetectorV2(EpisodeBaseDetectorV2):
     def compute_confidence(self, idx: int, features: Mapping[str, pd.Series], **params: Any) -> float:
         return 0.9
 
+    def compute_polarity_semantics(self, idx: int, features: Mapping[str, pd.Series], **params: Any) -> str:
+        return PolaritySemantics.LIQUIDATION_SIDE.value
+
+    def compute_event_side(self, idx: int, intensity: float, features: Mapping[str, pd.Series], **params: Any) -> str:
+        del intensity, params
+        raw = str(features.get('cascade_side', pd.Series('ambiguous', index=features['close'].index)).iloc[idx])
+        side = normalize_event_side(raw)
+        if side != 'unknown':
+            return side
+        move = float(np.nan_to_num(features['signed_move_bps'].iloc[idx], nan=0.0))
+        return 'bullish' if move > 0.0 else 'bearish' if move < 0.0 else 'neutral'
+
+    def compute_polarity_source(self, idx: int, intensity: float, features: Mapping[str, pd.Series], **params: Any) -> str:
+        del idx, intensity, features, params
+        return 'cascade_side'
+
+    def compute_magnitude(self, idx: int, intensity: float, features: Mapping[str, pd.Series], **params: Any) -> float:
+        del intensity, params
+        return float(np.nan_to_num(features['liquidation_notional'].iloc[idx], nan=0.0))
+
+    def compute_magnitude_source(self, idx: int, intensity: float, features: Mapping[str, pd.Series], **params: Any) -> str:
+        del idx, intensity, features, params
+        return 'liquidation_notional'
+
     def compute_metadata(self, idx: int, features: Mapping[str, pd.Series], **params: Any) -> Mapping[str, Any]:
         funding = features.get('funding_rate')
         funding_value = float(np.nan_to_num(funding.iloc[idx], nan=np.nan)) if funding is not None else float('nan')
@@ -298,6 +323,26 @@ class LiquidationCascadeProxyDetectorV2(EpisodeBaseDetectorV2):
 
     def compute_data_quality(self, idx: int, features: Mapping[str, pd.Series], **params: Any) -> str:
         return 'degraded'
+
+    def compute_polarity_semantics(self, idx: int, features: Mapping[str, pd.Series], **params: Any) -> str:
+        return PolaritySemantics.LIQUIDATION_SIDE.value
+
+    def compute_event_side(self, idx: int, intensity: float, features: Mapping[str, pd.Series], **params: Any) -> str:
+        del intensity, params
+        # Proxy detector only observes price drop + OI reduction; this corresponds to long-side forced deleveraging.
+        return 'bearish'
+
+    def compute_polarity_source(self, idx: int, intensity: float, features: Mapping[str, pd.Series], **params: Any) -> str:
+        del idx, intensity, features, params
+        return 'price_drop_oi_drop_proxy'
+
+    def compute_magnitude(self, idx: int, intensity: float, features: Mapping[str, pd.Series], **params: Any) -> float:
+        del intensity, params
+        return abs(float(np.nan_to_num(features['oi_pct_drop'].iloc[idx], nan=0.0)))
+
+    def compute_magnitude_source(self, idx: int, intensity: float, features: Mapping[str, pd.Series], **params: Any) -> str:
+        del idx, intensity, features, params
+        return 'oi_pct_drop'
 
     def compute_metadata(self, idx: int, features: Mapping[str, pd.Series], **params: Any) -> Mapping[str, Any]:
         return {'event_semantics': 'cascade_proxy_episode', 'evidence_tier': 'proxy'}

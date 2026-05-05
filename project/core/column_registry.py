@@ -22,7 +22,17 @@ class ColumnRegistry:
     def event_direction_cols(event_id: str) -> list[str]:
         """Returns standard search patterns for event-direction metadata columns."""
         eid = event_id.lower()
-        return [f"evt_direction_{eid}", f"event_direction_{eid}", f"{eid}_direction"]
+        return [
+            f"evt_direction_{eid}",
+            f"event_direction_{eid}",
+            f"{eid}_direction",
+            f"event_side_{eid}",
+            f"{eid}_side",
+            "event_direction",
+            "direction_sign",
+            "event_side",
+            "side",
+        ]
 
     @staticmethod
     def state_cols(state_id: str) -> list[str]:

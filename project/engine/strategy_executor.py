@@ -111,6 +111,7 @@ def _validated_executable_spec_provenance(params: dict[str, Any]) -> dict[str, A
         else ExecutableStrategySpec.model_validate(dict(raw_spec))
     )
     return {
+        "contract_source": "executable_strategy_spec",
         "runtime_provenance_validated": True,
         "runtime_provenance_source": "executable_strategy_spec",
         "proposal_id": str(spec.metadata.proposal_id).strip(),

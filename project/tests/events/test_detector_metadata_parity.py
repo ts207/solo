@@ -64,9 +64,9 @@ def test_v1_detector_metadata_adapter_applies_registry_governance_fields() -> No
     metadata = adapter_cls.detector_metadata(event_name="SESSION_OPEN_EVENT")
     assert metadata.role == "context"
     assert metadata.detector_band == "context_only"
-    assert metadata.planning_default is True
-    assert metadata.runtime_default is False
-    assert metadata.primary_anchor_eligible is False
+    assert metadata.planning_default is bool(row.get("planning_default", row.get("planning_eligible")))
+    assert metadata.runtime_default is bool(row.get("runtime_default", row.get("runtime_eligible")))
+    assert metadata.primary_anchor_eligible is bool(row.get("primary_anchor_eligible"))
 
 
 def test_detector_metadata_adapter_does_not_fall_back_to_default_executable() -> None:

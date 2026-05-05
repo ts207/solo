@@ -58,7 +58,7 @@ def test_default_planning_event_set_excludes_context_and_repair_only_events() ->
     registry = get_domain_registry()
     planning = set(governed_default_planning_event_ids())
 
-    assert "BASIS_DISLOC" in planning
+    assert "LIQUIDITY_VACUUM" in planning
     assert "CROSS_ASSET_DESYNC_EVENT" not in planning
     assert "FUNDING_TIMESTAMP_EVENT" not in planning
     assert planning <= set(registry.planning_eligible_event_ids())
@@ -78,9 +78,9 @@ def test_default_planning_event_set_excludes_hybridized_compatibility_events() -
 
 
 def test_default_planning_ignores_legacy_default_executable_input() -> None:
-    planning = set(default_planning_event_ids(["ABSORPTION_PROXY", "SESSION_OPEN_EVENT", "BASIS_DISLOC"]))
+    planning = set(default_planning_event_ids(["ABSORPTION_PROXY", "SESSION_OPEN_EVENT", "LIQUIDITY_VACUUM"]))
 
-    assert "BASIS_DISLOC" in planning
+    assert "LIQUIDITY_VACUUM" in planning
     assert "ABSORPTION_PROXY" not in planning
     assert "SESSION_OPEN_EVENT" not in planning
 

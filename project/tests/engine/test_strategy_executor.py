@@ -267,6 +267,10 @@ def test_build_live_order_metadata_uses_latest_strategy_row(monkeypatch, tmp_pat
 def test_calculate_strategy_returns_stamps_validated_executable_spec_provenance(
     monkeypatch, tmp_path
 ) -> None:
+    # This test exercises StrategyExecutor provenance stamping, not the full DSL
+    # interpreter.  Use the lightweight dummy strategy to avoid loading the
+    # registry-backed interpreter and domain graph during unit-test execution.
+    monkeypatch.setattr("project.engine.strategy_executor.get_strategy", lambda _: _DummyStrategy())
     monkeypatch.setattr(
         "project.engine.strategy_executor.load_symbol_constraints",
         lambda symbol, meta_dir: SymbolConstraints(

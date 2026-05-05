@@ -1,15 +1,14 @@
-version: edge_cells_v2
+version: edge_cells_v1
 event_atoms:
-- id: vol_cluster_shift_transition
-  event_family: volatility_transition
-  event_type: VOL_CLUSTER_SHIFT
+- id: vol_shock_core
+  event_family: volatility
+  event_type: VOL_SHOCK
   directions:
   - long
   - short
   templates:
   - mean_reversion
   - continuation
-  - volatility_expansion_follow
   horizons:
   - 12b
   - 24b
@@ -19,41 +18,39 @@ event_atoms:
   search_role: diagnostic
   promotion_role: ineligible
   runtime_role: observer
-- id: range_compression_end_transition
-  event_family: volatility_transition
-  event_type: RANGE_COMPRESSION_END
+- id: funding_extreme_core
+  event_family: funding
+  event_type: FUNDING_EXTREME_ONSET
   directions:
   - long
   - short
   templates:
+  - mean_reversion
   - continuation
-  - trend_continuation
-  - volatility_expansion_follow
   horizons:
   - 12b
   - 24b
   - 48b
   required_feature_keys:
-  - rv_96
+  - funding_rate_bps
   search_role: diagnostic
   promotion_role: ineligible
   runtime_role: observer
-- id: breakout_trigger_transition
-  event_family: volatility_transition
-  event_type: BREAKOUT_TRIGGER
+- id: funding_persistence_core
+  event_family: funding
+  event_type: FUNDING_PERSISTENCE_TRIGGER
   directions:
   - long
   - short
   templates:
+  - mean_reversion
   - continuation
-  - trend_continuation
-  - volatility_expansion_follow
   horizons:
   - 12b
   - 24b
   - 48b
   required_feature_keys:
-  - rv_96
+  - funding_rate_bps
   search_role: diagnostic
   promotion_role: ineligible
   runtime_role: observer

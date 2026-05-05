@@ -4,7 +4,6 @@ from collections.abc import Mapping
 from typing import Any
 
 from project.events.event_aliases import resolve_event_alias
-from project.events.registry import get_event_definition
 from project.events.schemas import EventRecord
 from project.events.timestamps import compute_canonical_timestamps
 
@@ -55,6 +54,8 @@ def emit_canonical_event(
     next_bar_ts: Any | None = None,
 ) -> EventRecord:
     normalized_event_type = resolve_event_alias(str(event_type).strip().upper())
+    from project.events.registry import get_event_definition
+
     registry_row = get_event_definition(normalized_event_type) or {}
     timestamps = compute_canonical_timestamps(
         eval_bar_ts,

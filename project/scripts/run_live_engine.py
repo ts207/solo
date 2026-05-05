@@ -28,10 +28,10 @@ class VenueConnectivityError(RuntimeError):
 
 def _normalize_runtime_mode(config: dict[str, Any], *, config_path: Path) -> str:
     runtime_mode = str(config.get("runtime_mode", "")).strip().lower()
-    if runtime_mode not in {"monitor_only", "trading", "simulation"}:
+    if runtime_mode not in {"monitor_only", "trading", "simulation", "shadow"}:
         raise LiveRuntimeConfigError(
             "Live engine config must set runtime_mode to 'monitor_only', 'simulation', "
-            f"or 'trading': {config_path}"
+            f"'shadow', or 'trading': {config_path}"
         )
     return runtime_mode
 

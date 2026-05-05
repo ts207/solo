@@ -18,7 +18,7 @@ from project.domain.compiled_registry import get_domain_registry
 from project.domain.hypotheses import HypothesisSpec, TriggerType
 from project.events.event_specs import EVENT_REGISTRY_SPECS
 from project.research.context_labels import canonicalize_context_label, expand_dimension_values
-from project.research.direction_semantics import normalize_side_policy, resolve_effect_sign
+from project.research.direction_semantics import direction_sign, normalize_side_policy, resolve_effect_sign
 
 log = logging.getLogger(__name__)
 
@@ -328,7 +328,11 @@ def event_direction_series(spec: HypothesisSpec, features: pd.DataFrame) -> pd.S
     event_id = str(spec.trigger.event_id or "").upper()
     for col in ColumnRegistry.event_direction_cols(event_id):
         if col in features.columns:
-            return pd.to_numeric(features[col], errors="coerce")
+            raw = features[col]
+            numeric = pd.to_numeric(raw, errors="coerce")
+            if numeric.notna().any():
+                return numeric
+            return raw.map(direction_sign).astype(float)
     return None
 
 

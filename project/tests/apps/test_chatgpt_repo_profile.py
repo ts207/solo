@@ -2,9 +2,12 @@ import asyncio
 import contextlib
 import json
 from collections.abc import Sequence
+
+import pytest
 from typing import Any
 
-from mcp.types import DEFAULT_NEGOTIATED_VERSION
+mcp_types = pytest.importorskip("mcp.types")
+DEFAULT_NEGOTIATED_VERSION = mcp_types.DEFAULT_NEGOTIATED_VERSION
 
 from project.apps.chatgpt.server import build_asgi_app, build_mcp_server, build_server_blueprint
 from project.apps.chatgpt.tool_catalog import (

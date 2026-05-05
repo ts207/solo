@@ -10,6 +10,11 @@ from project.live.policy import score_to_action, thresholds_from_config
 from project.live.retriever import ThesisMatch, retrieve_ranked_theses
 from project.live.scoring import DecisionScore, build_decision_score
 from project.live.thesis_store import ThesisStore
+from project.events.polarity import side_to_order_side
+
+
+def _side_to_order_side(value: object) -> str:
+    return side_to_order_side(value)
 
 
 def _thesis_canonical_regime(thesis) -> str:
@@ -20,15 +25,10 @@ def _thesis_canonical_regime(thesis) -> str:
 
 
 def _resolve_trade_side(match: ThesisMatch, context: LiveTradeContext) -> str:
-    if match.thesis.event_side == "long":
-        return "buy"
-    if match.thesis.event_side == "short":
-        return "sell"
-    if context.event_side == "long":
-        return "buy"
-    if context.event_side == "short":
-        return "sell"
-    return "flat"
+    thesis_side = _side_to_order_side(match.thesis.event_side)
+    if thesis_side != "flat":
+        return thesis_side
+    return _side_to_order_side(context.event_side)
 
 
 def _annotate_trade_intent(

@@ -18,6 +18,7 @@ from project.research.cell_discovery.models import (
     EventAtom,
 )
 from project.research.cell_discovery.paths import paths_for_run
+from project.research.search.compatibility import event_template_compatibility_verdict
 from project.spec_validation import validate_search_spec_doc
 
 
@@ -152,10 +153,12 @@ def _lineage_rows(registry: DiscoveryRegistry) -> list[dict[str, Any]]:
         for cell in cells:
             source_context_cell = cell.cell_id if cell is not None else "unconditional"
             runtime_executable = cell is not None and cell.executability_class == "runtime"
+            thesis_eligible_base = atom.promotion_role == "eligible"
             if cell is not None and cell.executability_class == "research_only":
-                thesis_eligible = False
+                thesis_eligible_base = False
             for hyp in _hypotheses_for_atom(atom, cell):
                 context = dict(hyp.context or {})
+                compatibility_verdict = event_template_compatibility_verdict(hyp)
                 source_cell_id = _source_cell_id(
                     atom=atom,
                     source_context_cell=source_context_cell,
@@ -179,8 +182,15 @@ def _lineage_rows(registry: DiscoveryRegistry) -> list[dict[str, Any]]:
                         "context_cell": cell.cell_id if cell is not None else "unconditional",
                         "context_json": json.dumps(context, sort_keys=True),
                         "context_dimension_count": len(context),
-                        "runtime_executable": bool(runtime_executable),
-                        "thesis_eligible": bool(atom.promotion_role == "eligible"),
+                        "runtime_executable": bool(runtime_executable and compatibility_verdict.paper_allowed),
+                        "thesis_eligible": bool(thesis_eligible_base and compatibility_verdict.promotion_allowed),
+                        "compatibility_status": compatibility_verdict.status,
+                        "compatibility_reason_codes": "|".join(compatibility_verdict.reason_codes),
+                        "compatibility_promotion_allowed": bool(compatibility_verdict.promotion_allowed),
+                        "compatibility_paper_allowed": bool(compatibility_verdict.paper_allowed),
+                        "compatibility_live_allowed": bool(compatibility_verdict.live_allowed),
+                        "polarity_semantics": compatibility_verdict.polarity_semantics,
+                        "anchor_role": compatibility_verdict.anchor_role,
                         "executability_class": (
                             "unconditional" if cell is None else cell.executability_class
                         ),

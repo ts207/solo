@@ -8,6 +8,7 @@ import pandas as pd
 
 from project.events.detectors.base_v2 import BaseDetectorV2
 from project.features.context_guards import state_at_least
+from project.events.polarity import PolaritySemantics
 
 
 class BaseLiquidityStressDetectorV2(BaseDetectorV2):
@@ -78,6 +79,30 @@ class BaseLiquidityStressDetectorV2(BaseDetectorV2):
         if pd.isna(features['depth'].iloc[idx]) or pd.isna(features['spread'].iloc[idx]):
             return 'degraded'
         return 'ok'
+
+    def compute_polarity_semantics(self, idx: int, features: Mapping[str, pd.Series], **params: Any) -> str:
+        event = str(getattr(self, "event_name", "")).upper()
+        if event in {"LIQUIDITY_STRESS_DIRECT", "LIQUIDITY_STRESS_PROXY", "DEPTH_COLLAPSE"}:
+            return PolaritySemantics.EXECUTION_GUARD.value
+        return PolaritySemantics.NEUTRAL_GUARD.value
+
+    def compute_event_side(self, idx: int, intensity: float, features: Mapping[str, pd.Series], **params: Any) -> str:
+        del idx, intensity, features, params
+        return "neutral"
+
+    def compute_polarity_source(self, idx: int, intensity: float, features: Mapping[str, pd.Series], **params: Any) -> str:
+        del idx, intensity, features, params
+        return "liquidity_guard"
+
+    def compute_magnitude(self, idx: int, intensity: float, features: Mapping[str, pd.Series], **params: Any) -> float:
+        del params
+        depth_ratio = float(np.nan_to_num((features["depth"].iloc[idx] / max(float(np.nan_to_num(features["depth_median"].iloc[idx], nan=0.0)), 1e-12)), nan=1.0))
+        spread_ratio = float(np.nan_to_num((features["spread"].iloc[idx] / max(float(np.nan_to_num(features["spread_median"].iloc[idx], nan=0.0)), 1e-12)), nan=1.0))
+        return max(float(intensity), spread_ratio, 1.0 / max(depth_ratio, 1e-12))
+
+    def compute_magnitude_source(self, idx: int, intensity: float, features: Mapping[str, pd.Series], **params: Any) -> str:
+        del idx, intensity, features, params
+        return "max(intensity,spread_ratio,inverse_depth_ratio)"
 
     def compute_metadata(self, idx: int, features: Mapping[str, pd.Series], **params: Any) -> Mapping[str, Any]:
         depth_val = float(np.nan_to_num(features['depth'].iloc[idx], nan=0.0))

@@ -303,8 +303,8 @@ class RiskEnforcer:
                     float(per.max_active_positions),
                 )
 
-        # 6. Max Active Theses
-        if thesis_id not in active_thesis_ids:
+        # 6. Max Active Theses (0 disables the global count cap).
+        if self.caps.max_active_theses > 0 and thesis_id not in active_thesis_ids:
             if len(active_thesis_ids) >= self.caps.max_active_theses:
                 return 0.0, self._reject(
                     timestamp,
@@ -345,7 +345,7 @@ class RiskEnforcer:
         # 7. Per-Symbol Cap
         current_symbol_notional = portfolio_state.get("symbol_exposures", {}).get(symbol, 0.0)
         total_symbol_notional = abs(current_symbol_notional) + abs(effective_notional)
-        if total_symbol_notional > self.caps.max_symbol_exposure:
+        if self.caps.max_symbol_exposure > 0.0 and total_symbol_notional > self.caps.max_symbol_exposure:
             available = max(0.0, self.caps.max_symbol_exposure - abs(current_symbol_notional))
             if self.caps.reject_on_breach:
                 return 0.0, self._reject(
@@ -395,7 +395,7 @@ class RiskEnforcer:
         # 9. Global Family Cap
         current_family_notional = portfolio_state.get("family_exposures", {}).get(family, 0.0)
         total_family_notional = abs(current_family_notional) + abs(effective_notional)
-        if total_family_notional > self.caps.max_family_exposure:
+        if self.caps.max_family_exposure > 0.0 and total_family_notional > self.caps.max_family_exposure:
             available = max(0.0, self.caps.max_family_exposure - abs(current_family_notional))
             if self.caps.reject_on_breach:
                 return 0.0, self._reject(
@@ -419,7 +419,7 @@ class RiskEnforcer:
         # 10. Max Gross Exposure
         current_gross = portfolio_state.get("gross_exposure", 0.0)
         total_gross = current_gross + abs(effective_notional)
-        if total_gross > self.caps.max_gross_exposure:
+        if self.caps.max_gross_exposure > 0.0 and total_gross > self.caps.max_gross_exposure:
             available = max(0.0, self.caps.max_gross_exposure - current_gross)
             if self.caps.reject_on_breach:
                 return 0.0, self._reject(

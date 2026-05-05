@@ -13,8 +13,13 @@ from project.events.event_output_schema import (
     empty_event_output_frame,
     normalize_event_output_frame,
 )
-from project.events.registry import get_detector_contract
 from project.events.sparsify import sparsify_mask
+from project.events.polarity import (
+    anchor_role_from_event,
+    infer_magnitude_from_features,
+    infer_semantics_from_event,
+    infer_side_from_features,
+)
 
 
 class BaseDetectorV2(DetectorLogicContract):
@@ -26,6 +31,9 @@ class BaseDetectorV2(DetectorLogicContract):
     supports_confidence: bool = True
     supports_severity: bool = True
     supports_quality_flag: bool = True
+    supports_event_side: bool = True
+    supports_magnitude: bool = True
+    supports_severity_bucket: bool = True
     cooldown_semantics: str = "event_timestamp_plus_cooldown_bars"
     merge_key_strategy: str = "symbol_plus_cluster_id"
     promotion_eligible: bool = True
@@ -33,6 +41,8 @@ class BaseDetectorV2(DetectorLogicContract):
     runtime_default: bool = True
 
     def __init__(self, **_: Any) -> None:
+        from project.events.registry import get_detector_contract
+
         self._contract = get_detector_contract(self.event_name)
 
     def prepare_features(self, df: pd.DataFrame, **params: Any) -> Mapping[str, pd.Series]:
@@ -106,6 +116,64 @@ class BaseDetectorV2(DetectorLogicContract):
                 minutes = 5
         return ts + timedelta(minutes=minutes * cooldown)
 
+    def compute_polarity_semantics(
+        self, idx: int, features: Mapping[str, pd.Series], **params: Any
+    ) -> str:
+        meta = dict(self.compute_metadata(idx, features, **params))
+        return infer_semantics_from_event(
+            event_id=self._contract.event_name,
+            family=self._contract.canonical_family,
+            subtype=self._contract.subtype,
+            role=self._contract.role,
+            metadata=meta,
+        )
+
+    def compute_event_side(
+        self, idx: int, intensity: float, features: Mapping[str, pd.Series], **params: Any
+    ) -> str:
+        semantics = self.compute_polarity_semantics(idx, features, **params)
+        return infer_side_from_features(features, idx, semantics=semantics, fallback_intensity=float(intensity))[0]
+
+    def compute_polarity_source(
+        self, idx: int, intensity: float, features: Mapping[str, pd.Series], **params: Any
+    ) -> str:
+        semantics = self.compute_polarity_semantics(idx, features, **params)
+        return infer_side_from_features(features, idx, semantics=semantics, fallback_intensity=float(intensity))[1]
+
+    def compute_magnitude(
+        self, idx: int, intensity: float, features: Mapping[str, pd.Series], **params: Any
+    ) -> float:
+        value, _source = infer_magnitude_from_features(features, idx, fallback=float(intensity))
+        return float(value if value is not None else abs(float(intensity)))
+
+    def compute_magnitude_source(
+        self, idx: int, intensity: float, features: Mapping[str, pd.Series], **params: Any
+    ) -> str:
+        _value, source = infer_magnitude_from_features(features, idx, fallback=float(intensity))
+        return source
+
+    def compute_anchor_role(
+        self, idx: int, features: Mapping[str, pd.Series], semantics: str, **params: Any
+    ) -> str:
+        return anchor_role_from_event(
+            role=self._contract.role,
+            deployment_disposition=str(getattr(self._contract, "deployment_disposition", "")),
+            family=self._contract.canonical_family,
+            event_id=self._contract.event_name,
+            semantics=semantics,
+        )
+
+    def compute_severity_bucket(
+        self, idx: int, severity: float, features: Mapping[str, pd.Series], **params: Any
+    ) -> str:
+        if severity >= 0.90:
+            return "extreme"
+        if severity >= 0.66:
+            return "high"
+        if severity >= 0.33:
+            return "medium"
+        return "low"
+
     def build_event(
         self,
         *,
@@ -120,6 +188,18 @@ class BaseDetectorV2(DetectorLogicContract):
         cooldown_until: pd.Timestamp | None = None,
     ) -> DetectedEvent:
         quality_flag = self.compute_data_quality(idx, features, **params)
+        severity = self.compute_severity(idx, intensity, features, **params) if self._contract.supports_severity else None
+        polarity_semantics = self.compute_polarity_semantics(idx, features, **params)
+        event_side = self.compute_event_side(idx, intensity, features, **params) if self._contract.supports_event_side else "unknown"
+        polarity_source = self.compute_polarity_source(idx, intensity, features, **params) if self._contract.supports_event_side else "unknown"
+        magnitude = self.compute_magnitude(idx, intensity, features, **params) if self._contract.supports_magnitude else None
+        magnitude_source = self.compute_magnitude_source(idx, intensity, features, **params) if self._contract.supports_magnitude else "unknown"
+        anchor_role = self.compute_anchor_role(idx, features, polarity_semantics, **params)
+        severity_bucket = (
+            self.compute_severity_bucket(idx, float(severity or 0.0), features, **params)
+            if self._contract.supports_severity_bucket
+            else "unknown"
+        )
         return DetectedEvent(
             event_name=self._contract.event_name,
             event_version=self._contract.event_version,
@@ -134,7 +214,14 @@ class BaseDetectorV2(DetectorLogicContract):
             evidence_mode=self._contract.evidence_mode,
             role=self._contract.role,
             confidence=self.compute_confidence(idx, features, **params) if self._contract.supports_confidence else None,
-            severity=self.compute_severity(idx, intensity, features, **params) if self._contract.supports_severity else None,
+            severity=severity,
+            event_side=event_side,
+            magnitude=magnitude,
+            severity_bucket=severity_bucket,
+            polarity_semantics=polarity_semantics,
+            polarity_source=polarity_source,
+            magnitude_source=magnitude_source,
+            anchor_role=anchor_role,
             trigger_value=float(intensity),
             threshold_snapshot={
                 'version': self._contract.threshold_schema_version,

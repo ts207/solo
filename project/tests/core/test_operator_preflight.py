@@ -66,6 +66,22 @@ def _stub_translation(*args, **kwargs) -> dict[str, object]:
     }
 
 
+def _stub_viability_pass(*args, **kwargs) -> dict[str, object]:
+    return {"status": "pass", "detectors": {}}
+
+
+def _stub_viability_block(*args, **kwargs) -> dict[str, object]:
+    return {
+        "status": "block",
+        "detectors": {
+            "LIQUIDATION_EXHAUSTION_REVERSAL": {
+                "status": "block",
+                "block_symbols": ["BTCUSDT"],
+            }
+        },
+    }
+
+
 def test_operator_preflight_passes_with_vendorless_local_raw_layout(tmp_path, monkeypatch) -> None:
     data_root = tmp_path / "data"
     raw_dir = data_root / "lake" / "raw" / "perp" / "BTCUSDT" / "ohlcv_5m"
@@ -94,6 +110,9 @@ def test_operator_preflight_passes_with_vendorless_local_raw_layout(tmp_path, mo
     )
     monkeypatch.setattr(
         "project.operator.preflight.translate_and_validate_proposal", _stub_translation
+    )
+    monkeypatch.setattr(
+        "project.operator.preflight.analyze_feature_surface_viability", _stub_viability_pass
     )
 
     out_json = tmp_path / "preflight.json"
@@ -134,6 +153,9 @@ def test_operator_preflight_blocks_when_ohlcv_is_missing(tmp_path, monkeypatch) 
     )
     monkeypatch.setattr(
         "project.operator.preflight.translate_and_validate_proposal", _stub_translation
+    )
+    monkeypatch.setattr(
+        "project.operator.preflight.analyze_feature_surface_viability", _stub_viability_pass
     )
 
     result = run_preflight(
@@ -182,6 +204,9 @@ def test_operator_preflight_warns_when_some_local_raw_shards_are_unreadable(
     )
     monkeypatch.setattr(
         "project.operator.preflight.translate_and_validate_proposal", _stub_translation
+    )
+    monkeypatch.setattr(
+        "project.operator.preflight.analyze_feature_surface_viability", _stub_viability_pass
     )
 
     from project.io import utils as io_utils
@@ -259,6 +284,9 @@ def test_operator_preflight_blocks_when_required_detector_surface_is_degenerate(
                 "required_states": [],
             }
         },
+    )
+    monkeypatch.setattr(
+        "project.operator.preflight.analyze_feature_surface_viability", _stub_viability_block
     )
 
     result = run_preflight(

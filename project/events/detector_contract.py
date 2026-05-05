@@ -52,6 +52,9 @@ class DetectorContract:
     supports_confidence: bool
     supports_severity: bool
     supports_quality_flag: bool
+    supports_event_side: bool = False
+    supports_magnitude: bool = False
+    supports_severity_bucket: bool = False
 
     aliases: tuple[str, ...] = ()
     notes: str = ""
@@ -128,6 +131,22 @@ class DetectorContract:
             raise DetectorContractError(
                 f"{self.event_name}: runtime detectors must expose confidence"
             )
+        if self.runtime_default and not self.supports_severity:
+            raise DetectorContractError(
+                f"{self.event_name}: runtime detectors must expose severity"
+            )
+        if self.runtime_default and not self.supports_event_side:
+            raise DetectorContractError(
+                f"{self.event_name}: runtime detectors must expose event side/polarity"
+            )
+        if self.runtime_default and not self.supports_magnitude:
+            raise DetectorContractError(
+                f"{self.event_name}: runtime detectors must expose magnitude"
+            )
+        if self.runtime_default and not self.supports_severity_bucket:
+            raise DetectorContractError(
+                f"{self.event_name}: runtime detectors must expose severity bucket"
+            )
         if self.role == "trigger" and not self.allowed_templates:
             raise DetectorContractError(
                 f"{self.event_name}: trigger detectors must define allowed_templates"
@@ -159,6 +178,9 @@ class NormalizedDetectorMetadata:
     supports_confidence: bool
     supports_severity: bool
     supports_quality_flag: bool
+    supports_event_side: bool
+    supports_magnitude: bool
+    supports_severity_bucket: bool
     cooldown_semantics: str
     merge_key_strategy: str
     role: str = "trigger"
@@ -234,6 +256,9 @@ def detector_metadata_from_class(
         supports_confidence=bool(getattr(detector_cls, "supports_confidence", False)),
         supports_severity=bool(getattr(detector_cls, "supports_severity", False)),
         supports_quality_flag=bool(getattr(detector_cls, "supports_quality_flag", False)),
+        supports_event_side=bool(getattr(detector_cls, "supports_event_side", False)),
+        supports_magnitude=bool(getattr(detector_cls, "supports_magnitude", False)),
+        supports_severity_bucket=bool(getattr(detector_cls, "supports_severity_bucket", False)),
         cooldown_semantics=str(getattr(detector_cls, "cooldown_semantics", "none")).strip()
         or "none",
         merge_key_strategy=str(getattr(detector_cls, "merge_key_strategy", "none")).strip()
@@ -269,6 +294,9 @@ class DetectorLogicContract(ABC):
     supports_confidence: ClassVar[bool] = False
     supports_severity: ClassVar[bool] = False
     supports_quality_flag: ClassVar[bool] = False
+    supports_event_side: ClassVar[bool] = False
+    supports_magnitude: ClassVar[bool] = False
+    supports_severity_bucket: ClassVar[bool] = False
     cooldown_semantics: ClassVar[str] = "none"
     merge_key_strategy: ClassVar[str] = "none"
     role: ClassVar[str] = "trigger"

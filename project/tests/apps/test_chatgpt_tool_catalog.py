@@ -11,9 +11,10 @@ def test_render_tool_carries_widget_metadata() -> None:
     assert render_tool.hints.read_only is True
 
 
-def test_read_only_hints_match_existing_edge_behavior() -> None:
+def test_read_only_hints_match_existing_edge_behavior(monkeypatch) -> None:
     compare_tool = get_tool_definition("edge_compare_runs")
     dashboard_tool = get_tool_definition("edge_get_operator_dashboard")
+    monkeypatch.setenv("EDGE_ENABLE_ADMIN_TOOLS", "1")
     invoke_tool = get_tool_definition("edge_invoke_operator")
     issue_run_tool = get_tool_definition("edge_issue_run")
     preview_tool = get_tool_definition("edge_preview_plan")
