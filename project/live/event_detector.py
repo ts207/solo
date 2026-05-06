@@ -12,8 +12,9 @@ import pandas as pd
 from project.core.coercion import safe_float
 from project.domain.compiled_registry import get_domain_registry
 from project.events.detector_contract import DetectorContract
+from project.events.data_capabilities import load_data_capability_profile
 from project.events.detectors.registry import get_detector_metadata_adapter_class
-from project.events.registry import get_detector_contract
+from project.events.registry import get_detector_contract, list_runtime_eligible_detectors
 from project.live.context_builder import (
     build_runtime_core_detector_input_surface,
     enrich_runtime_core_detector_history,
@@ -22,24 +23,24 @@ from project.live.policy import normalize_live_event_detector_config
 
 _LOG = logging.getLogger(__name__)
 
-_DEFAULT_SUPPORTED_EVENT_IDS: tuple[str, ...] = ("VOL_SHOCK",)
+_DEFAULT_SUPPORTED_EVENT_IDS: tuple[str, ...] = ()
 
 
 def _governed_runtime_core_event_ids() -> frozenset[str]:
-    """Return the set of event IDs eligible for governed runtime-core detection.
+    """Return detector IDs that may run in governed runtime detection.
 
-    Derived from the compiled domain graph (spec/domain/domain_graph.yaml) so
-    that adding a new event to the spec + rebuilding the domain is sufficient —
-    no manual sync with a hardcoded list here.
+    Runtime detectable is intentionally different from trade eligible: context
+    detectors must run so the composite thesis layer can see their evidence,
+    while non-trade-eligible raw events remain hard-blocked downstream.
     """
     try:
-        return frozenset(get_domain_registry().runtime_eligible_event_ids())
+        return frozenset(contract.event_name for contract in list_runtime_eligible_detectors())
     except Exception:
-        # Fallback to a known-good set if the compiled registry is unavailable.
         return frozenset({
-            "BASIS_DISLOC", "FND_DISLOC", "LIQUIDATION_CASCADE",
-            "LIQUIDITY_SHOCK", "LIQUIDITY_STRESS_DIRECT", "LIQUIDITY_VACUUM",
-            "OI_SPIKE_NEGATIVE", "SPOT_PERP_BASIS_SHOCK", "VOL_SHOCK", "VOL_SPIKE",
+            "LIQUIDITY_VACUUM", "LIQUIDITY_VACUUM_RECOVERY",
+            "OI_SPIKE_NEGATIVE", "OI_EXPANSION_STRESS", "OI_FLUSH",
+            "FUNDING_EXTREME_ONSET", "FUNDING_POS_EXTREME_ONSET", "FUNDING_NEG_EXTREME_ONSET",
+            "VOL_SHOCK", "VOL_SPIKE",
         })
 
 
@@ -53,6 +54,7 @@ class DetectedEvent:
     event_confidence: float | None = None
     event_severity: float | None = None
     data_quality_flag: str = "ok"
+    trade_eligible: bool = True
     event_version: str = "v2"
     threshold_version: str = "2.0"
 
@@ -84,6 +86,7 @@ def _build_detected_event(
     event_confidence: float | None = None,
     event_severity: float | None = None,
     data_quality_flag: str = "ok",
+    trade_eligible: bool = True,
     event_version: str = "v2",
     threshold_version: str = "2.0",
     event_family: str | None = None,
@@ -104,6 +107,7 @@ def _build_detected_event(
         event_confidence=event_confidence,
         event_severity=event_severity,
         data_quality_flag=str(data_quality_flag or "ok").strip().lower() or "ok",
+        trade_eligible=bool(trade_eligible),
         event_version=event_version,
         threshold_version=threshold_version,
     )
@@ -123,15 +127,10 @@ def _normalize_supported_event_ids(
     supported_event_ids: Sequence[str] | None,
     supported_event_families: Sequence[str] | None,
 ) -> list[str]:
-    configured_supported = (
-        supported_event_ids if supported_event_ids is not None else supported_event_families
-    )
-    tokens = [
-        str(item).strip().upper()
-        for item in list(configured_supported or _DEFAULT_SUPPORTED_EVENT_IDS)
-        if str(item).strip()
-    ]
-    return tokens or list(_DEFAULT_SUPPORTED_EVENT_IDS)
+    configured_supported = supported_event_ids if supported_event_ids is not None else supported_event_families
+    if configured_supported is None:
+        configured_supported = _DEFAULT_SUPPORTED_EVENT_IDS
+    return [str(item).strip().upper() for item in list(configured_supported or ()) if str(item).strip()]
 
 
 def _infer_event_side_from_row(row: Mapping[str, Any]) -> str:
@@ -317,6 +316,7 @@ class HeuristicLiveEventDetectionAdapter(LiveEventDetectionAdapter):
 
     def __init__(self, detector_config: Mapping[str, Any] | None = None) -> None:
         self._config = dict(detector_config or {})
+        self._data_capability_profile = load_data_capability_profile(self._config.get("data_capability_profile"))
 
     def detect_events(
         self,
@@ -366,6 +366,8 @@ class HeuristicLiveEventDetectionAdapter(LiveEventDetectionAdapter):
         }
         detected: list[DetectedEvent] = []
         for family in supported:
+            if self._data_capability_profile.detector_disabled(family):
+                continue
             detector = detectors.get(family)
             if detector is None:
                 continue
@@ -380,8 +382,10 @@ class GovernedRuntimeCoreEventDetectionAdapter(LiveEventDetectionAdapter):
 
     def __init__(self, detector_config: Mapping[str, Any] | None = None) -> None:
         self._config = dict(detector_config or {})
+        self._data_capability_profile = load_data_capability_profile(self._config.get("data_capability_profile"))
         self._history_limit = max(128, int(self._config.get("history_limit_bars", 4096) or 4096))
         self._history_by_key: dict[tuple[str, str], deque[dict[str, Any]]] = {}
+        self._event_history_by_key: dict[tuple[str, str], deque[DetectedEvent]] = {}
         self._warned_missing_inputs: set[tuple[str, str]] = set()
 
     def detect_events(
@@ -466,6 +470,7 @@ class GovernedRuntimeCoreEventDetectionAdapter(LiveEventDetectionAdapter):
                         detector_input_status=input_surface.detector_input_status,
                     )
                 )
+        detected.extend(self._build_composite_events(symbol=symbol, timeframe=timeframe, current_events=detected, row=row))
         return detected
 
     def _selected_contracts(
@@ -476,14 +481,17 @@ class GovernedRuntimeCoreEventDetectionAdapter(LiveEventDetectionAdapter):
     ) -> list[DetectorContract]:
         selected: list[DetectorContract] = []
         eligible = _governed_runtime_core_event_ids()
-        for event_id in _normalize_supported_event_ids(
-            supported_event_ids, supported_event_families
-        ):
+        requested = _normalize_supported_event_ids(supported_event_ids, supported_event_families)
+        profile_runtime = set(getattr(self._data_capability_profile, "runtime_detectable_detectors", frozenset()) or frozenset())
+        candidates = requested or sorted(profile_runtime or eligible)
+        for event_id in candidates:
             canonical = str(event_id).strip().upper()
-            if canonical not in eligible:
+            if canonical not in eligible and canonical not in profile_runtime:
+                continue
+            if self._data_capability_profile.detector_disabled(canonical):
                 continue
             contract = get_detector_contract(canonical)
-            if not contract.runtime_default:
+            if not contract.runtime_default and canonical not in profile_runtime:
                 continue
             selected.append(contract)
         return selected
@@ -511,6 +519,79 @@ class GovernedRuntimeCoreEventDetectionAdapter(LiveEventDetectionAdapter):
         frame = enrich_runtime_core_detector_history(frame, timeframe=timeframe)
         return frame
 
+
+    def _build_composite_events(
+        self,
+        *,
+        symbol: str,
+        timeframe: str,
+        current_events: Sequence[DetectedEvent],
+        row: Mapping[str, Any],
+    ) -> list[DetectedEvent]:
+        key = (str(symbol).upper(), str(timeframe))
+        history = self._event_history_by_key.setdefault(key, deque(maxlen=max(32, int(self._config.get("composite_event_history_limit", 256) or 256))))
+        for event in current_events:
+            history.append(event)
+        specs = dict(getattr(self._data_capability_profile, "composite_theses", {}) or {})
+        if not specs or not history or not current_events:
+            return []
+        recent = list(history)[-int(self._config.get("composite_lookback_events", 64) or 64):]
+        current_ids = {event.event_id for event in current_events}
+        def has_event(event_id: str) -> bool:
+            return any(ev.event_id == str(event_id).strip().upper() for ev in recent)
+        def has_any(group: object) -> bool:
+            return any(has_event(str(item)) for item in list(group or []))
+        def group_rules_pass(groups: object) -> bool:
+            return True if not groups else all(has_any(group) for group in list(groups or []))
+        def event_subtype(ev: DetectedEvent) -> str:
+            meta = ev.features.get("detector_metadata", {})
+            if not isinstance(meta, Mapping): meta = {}
+            return str(meta.get("positioning_subtype") or meta.get("flush_subtype") or ev.features.get("positioning_subtype") or ev.features.get("flush_subtype") or "").strip().lower()
+        def subtype_pass(spec: Mapping[str, Any]) -> bool:
+            exact = str(spec.get("required_subtype") or "").strip().lower()
+            any_of = {str(item).strip().lower() for item in list(spec.get("required_subtype_any") or []) if str(item).strip()}
+            if not exact and not any_of: return True
+            for ev in recent:
+                subtype = event_subtype(ev)
+                if exact and subtype == exact: return True
+                if any_of and subtype in any_of: return True
+            return False
+        def required_feeds_pass(spec: Mapping[str, Any]) -> bool:
+            required = [str(item).strip() for item in list(spec.get("requires_feeds") or []) if str(item).strip()]
+            if not required:
+                return True
+            return all(self._data_capability_profile.feed_available(feed) and pd.notna(row.get(feed)) for feed in required)
+        active_liquidity_vacuum = any(ev.event_id == "LIQUIDITY_VACUUM" for ev in recent[-12:])
+        composites: list[DetectedEvent] = []
+        for thesis_id, raw_spec in specs.items():
+            spec = dict(raw_spec or {})
+            thesis_token = str(thesis_id).strip().upper()
+            required_all = [str(item).strip().upper() for item in list(spec.get("required_all") or []) if str(item).strip()]
+            if required_all and not all(has_event(item) for item in required_all): continue
+            if not group_rules_pass(spec.get("required_any")): continue
+            if not group_rules_pass(spec.get("confirm_any")): continue
+            if not subtype_pass(spec): continue
+            if not required_feeds_pass(spec): continue
+            if str(spec.get("execution_filter") or "").strip().lower() == "no_active_liquidity_vacuum" and active_liquidity_vacuum: continue
+            trade_candidate = self._data_capability_profile.trade_candidate(thesis_token)
+            related = set(required_all)
+            for group_name in ("required_any", "confirm_any"):
+                for group in list(spec.get(group_name) or []):
+                    related.update(str(item).strip().upper() for item in list(group or []) if str(item).strip())
+            if related and not (current_ids & related): continue
+            evidence = [ev.event_id for ev in recent if not related or ev.event_id in related]
+            latest_side = next((ev.event_side for ev in reversed(recent) if not related or ev.event_id in related), "conditional")
+            composites.append(_build_detected_event(
+                event_id=thesis_token, event_family="COMPOSITE_THESIS", canonical_regime="COMPOSITE_THESIS", event_side=latest_side,
+                features={"symbol": str(symbol).upper(), "timeframe": str(timeframe), "data_capability_profile": self._data_capability_profile.name,
+                          "composite_thesis": thesis_token, "evidence_events": evidence[-16:],
+                          "triggered_by_current_events": sorted(current_ids), "trade_eligible": trade_candidate,
+                          "runtime_role": "trade_candidate" if trade_candidate else "evidence",
+                          "detector_metadata": {"composite_router": "data_capability_profile_v1", "trade_eligible": trade_candidate}},
+                event_confidence=min(1.0, 0.55 + 0.08 * len(set(evidence))), event_severity=min(1.0, 0.45 + 0.06 * len(evidence)),
+                data_quality_flag="ok", trade_eligible=trade_candidate, event_version="composite_v1", threshold_version="profile_composite_v1"))
+        return composites
+
     def _normalize_governed_event(
         self,
         *,
@@ -530,6 +611,11 @@ class GovernedRuntimeCoreEventDetectionAdapter(LiveEventDetectionAdapter):
             detector_metadata = {}
         features = dict(row)
         features.update(source_features)
+        profile_trade_eligible = self._data_capability_profile.trade_candidate(contract.event_name)
+        row_trade_eligible = bool(event_row.get("trade_eligible", True))
+        features["trade_eligible"] = bool(profile_trade_eligible and row_trade_eligible)
+        features["runtime_role"] = "trade_candidate" if features["trade_eligible"] else "evidence"
+        features["data_capability_profile"] = self._data_capability_profile.name
         features["detector_metadata"] = detector_metadata
         features["threshold_snapshot"] = threshold_snapshot
         features["detector_input_status"] = dict(detector_input_status)
@@ -553,6 +639,7 @@ class GovernedRuntimeCoreEventDetectionAdapter(LiveEventDetectionAdapter):
                 if contract.supports_quality_flag
                 else "ok"
             ),
+            trade_eligible=bool(features.get("trade_eligible", True)),
             event_version=contract.event_version,
             threshold_version=str(
                 threshold_snapshot.get("version", contract.threshold_schema_version)

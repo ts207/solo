@@ -436,3 +436,14 @@ def _age_seconds(value: str) -> float | None:
     if parsed.tzinfo is None:
         parsed = parsed.replace(tzinfo=UTC)
     return max(0.0, (datetime.now(UTC) - parsed.astimezone(UTC)).total_seconds())
+
+
+def build_deploy_status_report(
+    run_id: str,
+    *,
+    config_path: Path | None = None,
+    data_root: Path | None = None,
+) -> dict[str, Any]:
+    """Build the non-mutating deploy status payload used by the CLI."""
+
+    return deployment_status(run_id=run_id, data_root=data_root, config_path=config_path)

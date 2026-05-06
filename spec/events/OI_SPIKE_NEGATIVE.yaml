@@ -29,16 +29,21 @@ identity:
   venue_scope: single_venue
 governance:
   event_kind: market_event
-  default_executable: true
+  default_executable: false
   research_only: false
   strategy_only: false
-  context_tag: false
+  context_tag: true
   is_composite: false
   maturity: ''
   tier: B
-  operational_role: trigger
-  deployment_disposition: secondary_or_confirm
+  operational_role: context
+  deployment_disposition: context_only_positioning_stress
   runtime_category: active_runtime_event
+  detector_band: context_only
+  planning_eligible: true
+  runtime_trade_eligible: true
+  promotion_eligible: false
+  primary_anchor_eligible: false
 runtime:
   detector: OISpikeNegativeDetector
   enabled: true
@@ -54,9 +59,10 @@ runtime:
   - oi_dynamic
 semantics:
   cluster_id: oi_dynamic
-  notes: Direction stays in subtype; canonical regime is positioning expansion.
+  notes: No-liquidation OI stress context; subtyped and never standalone.
   precedence_rank: 0
 interaction:
   suppresses: []
   suppressed_by: []
-routing: {}
+routing:
+  standalone_trade_eligible: false

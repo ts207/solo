@@ -45,7 +45,7 @@ identity:
   venue_scope: single_venue
 governance:
   event_kind: market_event
-  default_executable: true
+  default_executable: false
   research_only: false
   strategy_only: false
   context_tag: false
@@ -53,11 +53,15 @@ governance:
   maturity: standard
   tier: B
   operational_role: trigger
-  deployment_disposition: secondary_or_confirm
-  runtime_category: active_runtime_event
+  deployment_disposition: disabled_without_liquidation_feed
+  runtime_category: disabled_by_data_capability
+  runtime_trade_eligible: false
+  promotion_eligible: false
+  primary_anchor_eligible: false
+  planning_eligible: false
 runtime:
   detector: ForcedFlowExhaustionDetector
-  enabled: true
+  enabled: false
   signal_column: forced_flow_exhaustion_event
   events_file: directional_exhaustion_after_forced_flow_events.parquet
   reports_dir: directional_exhaustion_after_forced_flow
@@ -77,3 +81,6 @@ interaction:
   suppresses: []
   suppressed_by: []
 routing: {}
+data_capability_policy:
+  requires_feed: liquidations
+  disabled_profile: no_liquidations_v1

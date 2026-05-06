@@ -1,0 +1,81 @@
+event_type: LIQUIDITY_VACUUM_RECOVERY
+synthetic_coverage: covered
+reports_dir: liquidity_vacuum_recovery
+events_file: liquidity_vacuum_recovery_events.parquet
+signal_column: liquidity_vacuum_recovery_event
+research_family: LIQUIDITY_DISLOCATION
+parameters:
+  median_window: 288
+  min_periods: 24
+  vacuum_depth_ratio_max: 0.3
+  vacuum_spread_ratio_min: 2.5
+  recovered_depth_ratio_min: 0.6
+  recovered_spread_ratio_max: 1.5
+  recovery_lookback_bars: 12
+  price_displacement_bps_min: 20
+detector:
+  signal_definition: Direct depth/spread recovery after a prior liquidity vacuum while price displacement remains.
+  required_columns:
+  - timestamp
+  - close
+  - high
+  - low
+  - depth_usd
+  - spread_bps
+  live_trade_required_columns:
+  - depth_usd
+  - spread_bps
+  proxy_mode_policy: No proxy mode. Requires direct depth and spread feeds.
+trigger: Book has recovered after a direct liquidity vacuum; candidate mean-reversion/tradability trigger.
+confirmation: Use with OI/funding/failed-continuation theses.
+cluster_id: liquidity_recovery
+identity:
+  canonical_regime: LIQUIDITY_STRESS
+  subtype: liquidity_vacuum_recovery
+  phase: recovery
+  evidence_mode: direct
+  layer: canonical
+  disposition: keep
+  asset_scope: single_asset
+  venue_scope: single_venue
+governance:
+  event_kind: market_event
+  default_executable: true
+  research_only: false
+  strategy_only: false
+  context_tag: false
+  is_composite: false
+  maturity: specialized
+  tier: B
+  operational_role: trigger
+  detector_band: research_trigger
+  planning_eligible: true
+  runtime_trade_eligible: true
+  promotion_eligible: false
+  primary_anchor_eligible: false
+  deployment_disposition: secondary_or_confirm_no_liquidation
+  runtime_category: active_runtime_event
+runtime:
+  detector: LiquidityVacuumRecoveryDetectorV2
+  enabled: true
+  signal_column: liquidity_vacuum_recovery_event
+  events_file: liquidity_vacuum_recovery_events.parquet
+  reports_dir: liquidity_vacuum_recovery
+  instrument_classes:
+  - crypto
+  - futures
+  requires_features:
+  - depth_usd
+  - spread_bps
+  sequence_eligible: true
+  runtime_tags:
+  - liquidity_recovery
+  - no_liquidations_v1
+semantics:
+  cluster_id: liquidity_recovery
+  notes: Tradability/mean-reversion trigger after direct liquidity vacuum recovery.
+  precedence_rank: 0
+interaction:
+  suppresses: []
+  suppressed_by: []
+routing: {}

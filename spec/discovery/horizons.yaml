@@ -1,4 +1,2 @@
-version: edge_cells_v1
-horizons:
-  - 12b
-  - 24b
+version: edge_cells_v2
+horizons: [12b, 24b, 48b]

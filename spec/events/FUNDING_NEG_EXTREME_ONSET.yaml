@@ -43,11 +43,27 @@ semantics:
 interaction:
   suppresses: []
   suppressed_by: []
-routing: {}
-
-
+routing:
+  standalone_trade_eligible: false
 expected_behavior:
   disabled_regimes:
   - 'low_liquidity: funding/OI signals unreliable'
   - 'stale_funding: funding timestamp unavailable or stale'
   - 'execution_friction_blocked: spread/slippage too high'
+governance:
+  context_tag: true
+  operational_role: context
+  detector_band: context_only
+  planning_eligible: true
+  runtime_trade_eligible: false
+  promotion_eligible: false
+  primary_anchor_eligible: false
+  default_executable: false
+  deployment_disposition: requires_pairing_no_liquidation
+  runtime_category: research_only_event
+pairing_required:
+  any_of:
+  - OI_EXPANSION_STRESS
+  - OI_FLUSH
+  - VOL_SHOCK
+  - FAILED_CONTINUATION

@@ -1,38 +1,39 @@
 {
-  "alias_count": 5,
+  "alias_count": 3,
   "band_counts": {
     "composite_or_fragile": 12,
-    "context_only": 5,
-    "research_trigger": 55
+    "context_only": 10,
+    "research_trigger": 51
   },
-  "governed_detectors": 72,
+  "governed_detectors": 73,
   "legacy_detectors": 40,
   "legacy_retired_safe": 40,
   "migration_bucket_counts": {
-    "promotion_eligible_middle_layer": 29,
-    "research_perimeter": 43
+    "promotion_eligible_middle_layer": 24,
+    "research_perimeter": 44,
+    "runtime_core_first": 5
   },
   "migration_owner_counts": {
-    "workstream_b": 43,
+    "workstream_b": 44,
     "workstream_c": 29
   },
   "migration_target_counts": {
-    "demote": 3,
+    "demote": 4,
     "migrate_to_v2": 29,
-    "retire": 26,
-    "wrap_v1": 14
+    "retire": 25,
+    "wrap_v1": 15
   },
   "role_counts": {
     "composite": 4,
-    "context": 5,
+    "context": 10,
     "research_only": 1,
-    "trigger": 62
+    "trigger": 58
   },
   "runtime_non_v2": 0,
-  "runtime_v2": 0,
-  "v2_detectors": 32,
+  "runtime_v2": 5,
+  "v2_detectors": 33,
   "version_counts": {
     "v1": 40,
-    "v2": 32
+    "v2": 33
   }
 }

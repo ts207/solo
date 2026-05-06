@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from project.events.detectors.positioning_base import (
+    OIExpansionStressDetectorV2,
     OIFlushDetectorV2,
     OISpikeNegativeDetectorV2,
     OISpikePositiveDetectorV2,
@@ -14,6 +15,7 @@ from project.events.detectors.registry import register_detector
 OI_DETECTORS = {
     "OI_SPIKE_POSITIVE": OISpikePositiveDetectorV2,
     "OI_SPIKE_NEGATIVE": OISpikeNegativeDetectorV2,
+    "OI_EXPANSION_STRESS": OIExpansionStressDetectorV2,
     "OI_FLUSH": OIFlushDetectorV2,
     "PRICE_UP_OI_UP": PriceUpOIUpDetectorV2,
     "PRICE_DOWN_OI_UP": PriceDownOIUpDetectorV2,

@@ -274,7 +274,7 @@ class FundingDetector(BaseFundingDetector):
 class FundingFlipDetector(ThresholdDetector):
     event_type = "FUNDING_FLIP"
     required_columns = ("timestamp", "funding_rate_scaled")
-    causal = False
+    causal = True
     min_spacing = 24
     min_magnitude_quantile: float = 0.75
 
@@ -288,7 +288,8 @@ class FundingFlipDetector(ThresholdDetector):
         q_mag = float(params.get("min_magnitude_quantile", self.min_magnitude_quantile))
         min_flip_abs = float(params.get("min_flip_abs", 2.5e-4))
 
-        funding_q_mag = funding_abs.rolling(window, min_periods=288).quantile(q_mag).shift(1)
+        min_periods = min(window, int(params.get("min_periods", 288)))
+        funding_q_mag = funding_abs.rolling(window, min_periods=min_periods).quantile(q_mag).shift(1)
         required_abs = funding_q_mag.fillna(0.0).clip(lower=min_flip_abs)
 
         return {
@@ -306,22 +307,23 @@ class FundingFlipDetector(ThresholdDetector):
         funding_abs = features["funding_abs"]
         funding_prev_abs = features["funding_prev_abs"]
         required_abs = features["required_abs"]
-        persistence_bars = int(params.get("persistence_bars", 2))
+        persistence_bars = max(1, int(params.get("persistence_bars", 2)))
 
-        sign_now = np.sign(funding)
-        sign_prev = np.sign(funding.shift(1))
+        sign_now = pd.Series(np.sign(funding), index=funding.index)
+        sign_prev = pd.Series(np.sign(funding.shift(1)), index=funding.index)
         flip = ((sign_now != sign_prev) & (sign_now != 0) & (sign_prev != 0)).fillna(False)
-        significant = ((funding_abs >= required_abs) & (funding_prev_abs >= required_abs)).fillna(
-            False
-        )
-        if persistence_bars > 1:
-            future_same_sign = pd.Series(True, index=funding.index, dtype=bool)
-            for step in range(1, persistence_bars):
-                future_same_sign &= (np.sign(funding.shift(-step)) == sign_now).fillna(False)
-        else:
-            future_same_sign = pd.Series(True, index=funding.index, dtype=bool)
+        significant = ((funding_abs >= required_abs) & (funding_prev_abs >= required_abs)).fillna(False)
+        flip_candidate = (flip & significant).fillna(False)
 
-        return (flip & significant & future_same_sign).fillna(False)
+        lag = persistence_bars - 1
+        if lag <= 0:
+            return flip_candidate
+        origin_candidate = flip_candidate.shift(lag, fill_value=False).astype(bool)
+        origin_sign = sign_now.shift(lag)
+        persisted = origin_candidate.copy()
+        for offset in range(0, lag + 1):
+            persisted &= (sign_now.shift(offset) == origin_sign).fillna(False)
+        return persisted.fillna(False)
 
     def compute_intensity(
         self, df: pd.DataFrame, *, features: dict[str, pd.Series], **params: Any

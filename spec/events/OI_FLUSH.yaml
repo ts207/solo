@@ -29,7 +29,7 @@ identity:
   venue_scope: single_venue
 governance:
   event_kind: market_event
-  default_executable: true
+  default_executable: false
   research_only: false
   strategy_only: false
   context_tag: false
@@ -37,10 +37,15 @@ governance:
   maturity: ''
   tier: B
   operational_role: trigger
-  deployment_disposition: secondary_or_confirm
+  deployment_disposition: secondary_or_confirm_no_liquidation
   runtime_category: active_runtime_event
+  detector_band: research_trigger
+  planning_eligible: true
+  runtime_trade_eligible: true
+  promotion_eligible: false
+  primary_anchor_eligible: false
 runtime:
-  detector: OIFlushDetector
+  detector: OIFlushDetectorV2
   enabled: true
   signal_column: oi_flush_event
   events_file: oi_shock_events.parquet
@@ -48,16 +53,44 @@ runtime:
   instrument_classes:
   - crypto
   - futures
-  requires_features: []
+  requires_features:
+  - timestamp
+  - oi_notional
+  - close
   sequence_eligible: true
   runtime_tags:
   - oi_dynamic
   - high_urgency
+  derives_features:
+  - ms_oi_state
+  - ms_oi_confidence
+  - ms_oi_entropy
 semantics:
   cluster_id: oi_dynamic
-  notes: OI flush folded into unwind/deleveraging regime.
+  notes: No-liquidation forced-flow proxy; requires pairing before trade routing.
   precedence_rank: 0
 interaction:
   suppresses: []
   suppressed_by: []
-routing: {}
+routing:
+  standalone_trade_eligible: false
+detector:
+  signal_definition: 'No-liquidation forced-flow proxy: sharp OI contraction during
+    a directional price move. ms_oi_state is quality/context, not a hard trigger gate.'
+  required_columns:
+  - timestamp
+  - oi_notional
+  - close
+  optional_columns:
+  - ms_oi_state
+  - ms_oi_confidence
+  - ms_oi_entropy
+  - failed_continuation
+  - liquidity_vacuum_recovery
+  - vol_shock
+  formula: 'core_flush[i] = oi_pct_change[i] <= flush_pct_th AND abs(close_ret[i])
+    >= price_move_threshold_bps/10000
+
+    quality = ok when ms_oi_state confirms contraction, degraded otherwise
+
+    trade_eligible = paired_context_present AND not standalone'

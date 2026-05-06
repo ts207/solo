@@ -19,6 +19,7 @@ SCRIPTS = [
     'project/scripts/build_contract_strictness_inventory.py',
     'project/scripts/build_detector_governance_artifacts.py',
     'project/scripts/build_legacy_surface_inventory.py',
+    'project/events/runtime_eligibility_report.py',
 ]
 
 

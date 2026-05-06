@@ -14,7 +14,7 @@ parameters:
   normalization_lookback: 96
   min_event_spacing: 576
   min_spacing: 576
-  event_lookahead: 96
+  post_event_horizon_bars: 96
   liquidation_abs_return: 0.03
   drawdown_abs_return: 0.03
   vol_burst_quantile: 0.9

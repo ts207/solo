@@ -268,6 +268,34 @@ class DepthCollapseDetectorV2(BaseLiquidityStressDetectorV2):
         return meta
 
 
+class LiquidityVacuumRecoveryDetectorV2(BaseLiquidityStressDetectorV2):
+    event_name = 'LIQUIDITY_VACUUM_RECOVERY'
+    required_columns = ('timestamp', 'close', 'high', 'low', 'depth_usd', 'spread_bps')
+    promotion_eligible = False
+    planning_default = True
+    runtime_default = True
+    def prepare_features(self, df: pd.DataFrame, **params: Any) -> Mapping[str, pd.Series]:
+        direct = DirectLiquidityStressDetectorV2().prepare_features(df, **params)
+        close = pd.to_numeric(df['close'], errors='coerce').replace(0.0, np.nan).astype(float)
+        depth_ratio = (direct['depth'] / direct['depth_median'].replace(0.0, np.nan)).replace([np.inf, -np.inf], np.nan)
+        spread_ratio = (direct['spread'] / direct['spread_median'].replace(0.0, np.nan)).replace([np.inf, -np.inf], np.nan)
+        lookback = int(params.get('recovery_lookback_bars', 12))
+        vacuum_mask = ((depth_ratio <= float(params.get('vacuum_depth_ratio_max', 0.30))) & (spread_ratio >= float(params.get('vacuum_spread_ratio_min', 2.5)))).fillna(False)
+        prior_vacuum = vacuum_mask.shift(1).rolling(window=lookback, min_periods=1).max().fillna(False).astype(bool)
+        vacuum_close = close.where(vacuum_mask).ffill()
+        displacement_bps = ((close / vacuum_close.replace(0.0, np.nan)) - 1.0) * 10000.0
+        recovered_raw = (prior_vacuum & (depth_ratio >= float(params.get('recovered_depth_ratio_min', 0.60))) & (spread_ratio <= float(params.get('recovered_spread_ratio_max', 1.5))) & (displacement_bps.abs() >= float(params.get('price_displacement_bps_min', 20.0)))).fillna(False)
+        recovered = (recovered_raw & ~recovered_raw.shift(1, fill_value=False)).fillna(False)
+        return {**direct, 'close': close, 'depth_ratio': depth_ratio, 'spread_ratio': spread_ratio, 'prior_vacuum': prior_vacuum, 'vacuum_close': vacuum_close, 'price_displacement_bps': displacement_bps, 'signal_intensity': (displacement_bps.abs()/100.0 + (1.0/depth_ratio.clip(lower=0.05))).replace([np.inf,-np.inf],np.nan), 'mask': recovered}
+    def compute_raw_mask(self, df: pd.DataFrame, *, features: Mapping[str, pd.Series], **params: Any) -> pd.Series:
+        return features['mask'].fillna(False)
+    def compute_intensity(self, df: pd.DataFrame, *, features: Mapping[str, pd.Series], **params: Any) -> pd.Series:
+        return pd.to_numeric(features.get('signal_intensity'), errors='coerce')
+    def compute_event_side(self, idx: int, intensity: float, features: Mapping[str, pd.Series], **params: Any) -> str:
+        displacement=float(np.nan_to_num(features['price_displacement_bps'].iloc[idx], nan=0.0)); return 'bullish' if displacement < 0.0 else 'bearish' if displacement > 0.0 else 'neutral'
+    def compute_metadata(self, idx: int, features: Mapping[str, pd.Series], **params: Any) -> Mapping[str, Any]:
+        meta=dict(super().compute_metadata(idx, features, **params)); meta.update({'cluster_id':'liquidity_vacuum_recovery','event_semantics':'book_recovered_after_vacuum','depth_ratio':float(np.nan_to_num(features['depth_ratio'].iloc[idx],nan=1.0)),'spread_ratio':float(np.nan_to_num(features['spread_ratio'].iloc[idx],nan=1.0)),'price_displacement_bps':float(np.nan_to_num(features['price_displacement_bps'].iloc[idx],nan=0.0)),'trade_eligible':True}); return meta
+
 class LiquidityGapDetectorV2(BaseDetectorV2):
     event_name = 'LIQUIDITY_GAP_PRINT'
     required_columns = ('timestamp', 'close', 'high', 'low')
@@ -340,8 +368,12 @@ class LiquidityVacuumDetectorV2(BaseLiquidityStressDetectorV2):
     def compute_raw_mask(self, df: pd.DataFrame, *, features: Mapping[str, pd.Series], **params: Any) -> pd.Series:
         depth_ratio = (features['depth'] / features['depth_median'].replace(0.0, np.nan)).fillna(1.0)
         spread_ratio = (features['spread'] / features['spread_median'].replace(0.0, np.nan)).fillna(1.0)
+        direct_evidence = features['evidence_tier'].astype(str).str.lower().eq('direct')
+        allow_proxy = bool(params.get('allow_proxy_vacuum_trigger', False))
+        evidence_gate = direct_evidence if not allow_proxy else pd.Series(True, index=depth_ratio.index, dtype=bool)
         return (
-            (depth_ratio <= float(params.get('vacuum_depth_ratio_max', 0.30)))
+            evidence_gate
+            & (depth_ratio <= float(params.get('vacuum_depth_ratio_max', 0.30)))
             & (spread_ratio >= float(params.get('vacuum_spread_ratio_min', 2.5)))
         ).fillna(False)
 
@@ -359,8 +391,17 @@ class LiquidityVacuumDetectorV2(BaseLiquidityStressDetectorV2):
             base -= 0.1
         return float(max(0.0, min(1.0, base)))
 
+    def compute_data_quality(self, idx: int, features: Mapping[str, pd.Series], **params: Any) -> str:
+        if str(features['evidence_tier'].iloc[idx]).lower() != 'direct':
+            return 'degraded'
+        return super().compute_data_quality(idx, features, **params)
+
     def compute_metadata(self, idx: int, features: Mapping[str, pd.Series], **params: Any) -> Mapping[str, Any]:
         meta = dict(super().compute_metadata(idx, features, **params))
+        evidence_tier = str(features['evidence_tier'].iloc[idx]).lower()
         meta['cluster_id'] = 'liquidity_vacuum'
         meta['event_semantics'] = 'thin_book_vacuum'
+        meta['trade_eligible'] = False
+        meta['standalone_trade_eligible'] = False
+        meta['proxy_trigger_allowed'] = bool(params.get('allow_proxy_vacuum_trigger', False))
         return meta

@@ -1,24 +1,24 @@
 # Event Contract Reference
 
-- Active events: `83`
+- Active events: `85`
 
 ## BASIS_FUNDING_DISLOCATION
 
 ### BASIS_DISLOC
 
-- Detector: `BasisDislocationDetector` | enabled=`True` | band=`research_trigger`
+- Detector: `BasisDislocationDetector` | enabled=`True` | band=``
 - Eligibility: planning=`False` | runtime=`False` | promotion=`False` | primary_anchor=`False` | legacy_default_executable=`True`
-- Family: canonical=`BASIS_FUNDING_DISLOCATION`
+- Family: canonical=`STATISTICAL_DISLOCATION`
 - Shape: subtype=`basis_dislocation` | phase=`shock` | evidence=`statistical` | layer=`canonical` | disposition=`merge`
 - Scope: asset=`single_asset` | venue=`cross_venue` | research_only=`False` | composite=`False` | context_tag=`False`
-- Runtime config: signal=`basis_dislocation_event` | file=`basis_dislocation_events.parquet` | templates=`['basis_convergence', 'basis_funding_convergence']` | horizons=`['15m', '60m']` | max_candidates=`350`
+- Runtime config: signal=`basis_dislocation_event` | file=`basis_dislocation_events.parquet` | templates=`['mean_reversion', 'overshoot_repair', 'tail_risk_avoid']` | horizons=`['15m', '60m']` | max_candidates=`350`
 - Thresholds: `{'merge_gap_bars': 1, 'cooldown_bars': 12, 'min_occurrences': 0, 'z_threshold': 5.0, 'lookback_window': 288, 'min_basis_bps': 10.0}`
 - Tags: `['basis_dislocation']`
 - Notes: Canonical basis dislocation surface.
 
 ### CROSS_VENUE_DESYNC
 
-- Detector: `CrossVenueDesyncDetector` | enabled=`True` | band=`research_trigger`
+- Detector: `CrossVenueDesyncDetector` | enabled=`True` | band=``
 - Eligibility: planning=`False` | runtime=`False` | promotion=`False` | primary_anchor=`False` | legacy_default_executable=`True`
 - Family: canonical=`INFORMATION_DESYNC`
 - Shape: subtype=`cross_venue_desync` | phase=`persistence` | evidence=`inferred_cross_asset` | layer=`canonical` | disposition=`merge`
@@ -30,31 +30,31 @@
 
 ### FND_DISLOC
 
-- Detector: `FndDislocDetector` | enabled=`True` | band=`research_trigger`
+- Detector: `FndDislocDetector` | enabled=`True` | band=``
 - Eligibility: planning=`False` | runtime=`False` | promotion=`False` | primary_anchor=`False` | legacy_default_executable=`True`
-- Family: canonical=`BASIS_FUNDING_DISLOCATION`
+- Family: canonical=`STATISTICAL_DISLOCATION`
 - Shape: subtype=`funding_dislocation` | phase=`shock` | evidence=`direct` | layer=`canonical` | disposition=`merge`
 - Scope: asset=`single_asset` | venue=`cross_venue` | research_only=`False` | composite=`False` | context_tag=`False`
-- Runtime config: signal=`funding_dislocation_event` | file=`funding_dislocation_events.parquet` | templates=`['basis_funding_convergence', 'basis_convergence']` | horizons=`['15m', '60m']` | max_candidates=`350`
+- Runtime config: signal=`funding_dislocation_event` | file=`funding_dislocation_events.parquet` | templates=`['mean_reversion', 'overshoot_repair', 'tail_risk_avoid']` | horizons=`['15m', '60m']` | max_candidates=`350`
 - Thresholds: `{'merge_gap_bars': 1, 'cooldown_bars': 12, 'min_occurrences': 0, 'threshold_bps': 2.0, 'funding_quantile': 0.95, 'alignment_window': 3, 'min_basis_bps': 5.0}`
 - Tags: `['basis_dislocation']`
 - Notes: Funding dislocation folded into basis/funding regime.
 
 ### FUNDING_EXTREME_ONSET
 
-- Detector: `FundingExtremeOnsetDetector` | enabled=`True` | band=`research_trigger`
-- Eligibility: planning=`False` | runtime=`False` | promotion=`False` | primary_anchor=`False` | legacy_default_executable=`True`
+- Detector: `FundingExtremeOnsetDetector` | enabled=`True` | band=`context_only`
+- Eligibility: planning=`True` | runtime=`False` | promotion=`False` | primary_anchor=`False` | legacy_default_executable=`False`
 - Family: canonical=`POSITIONING_EXTREMES`
 - Shape: subtype=`funding_extreme` | phase=`onset` | evidence=`direct` | layer=`canonical` | disposition=`merge`
-- Scope: asset=`single_asset` | venue=`cross_venue` | research_only=`False` | composite=`False` | context_tag=`False`
+- Scope: asset=`single_asset` | venue=`cross_venue` | research_only=`False` | composite=`False` | context_tag=`True`
 - Runtime config: signal=`funding_extreme_onset_event` | file=`funding_episode_events.parquet` | templates=`['reversal_or_squeeze', 'mean_reversion', 'continuation', 'exhaustion_reversal', 'convexity_capture', 'only_if_funding', 'only_if_oi', 'only_if_regime', 'only_if_highvol', 'tail_risk_avoid']` | horizons=`['5m', '60m']` | max_candidates=`500`
-- Thresholds: `{'merge_gap_bars': 1, 'cooldown_bars': 96, 'min_occurrences': 0, 'funding_pct_window': 2880, 'accel_lookback': 32, 'persistence_bars': 3, 'normalization_lookback': 96, 'min_event_spacing': 96, 'vol_burst_quantile': 0.9, 'htf_window': 384, 'htf_lookback': 96, 'pre_window': 96, 'post_window': 96, 'phase_tolerance_bars': 16, 'crossover_confirm_bars': 4, 'accel_quantile': 0.995, 'accel_near_zero_cutoff': 5, 'interaction_min_rows_per_year': 150, 'min_hazard_events': 50}`
+- Thresholds: `{'merge_gap_bars': 1, 'cooldown_bars': 0, 'min_occurrences': 0, 'funding_pct_window': 2880, 'accel_lookback': 32, 'persistence_bars': 3, 'normalization_lookback': 96, 'min_event_spacing': 96, 'vol_burst_quantile': 0.9, 'htf_window': 384, 'htf_lookback': 96, 'pre_window': 96, 'post_window': 96, 'phase_tolerance_bars': 16, 'crossover_confirm_bars': 4, 'accel_quantile': 0.995, 'accel_near_zero_cutoff': 5, 'interaction_min_rows_per_year': 150, 'min_hazard_events': 50}`
 - Tags: `['funding_crowding']`
 - Notes: Funding extreme onset under basis/funding dislocation.
 
 ### FUNDING_FLIP
 
-- Detector: `FundingFlipDetector` | enabled=`True` | band=`research_trigger`
+- Detector: `FundingFlipDetector` | enabled=`True` | band=``
 - Eligibility: planning=`False` | runtime=`False` | promotion=`False` | primary_anchor=`False` | legacy_default_executable=`True`
 - Family: canonical=`POSITIONING_EXTREMES`
 - Shape: subtype=`funding_flip` | phase=`flip` | evidence=`direct` | layer=`canonical` | disposition=`merge`
@@ -66,119 +66,119 @@
 
 ### FUNDING_FLIP_TO_NEGATIVE
 
-- Detector: `FundingFlipDetector` | enabled=`False` | band=`semantic_variant`
+- Detector: `FundingFlipDetector` | enabled=`False` | band=``
 - Eligibility: planning=`False` | runtime=`False` | promotion=`False` | primary_anchor=`False` | legacy_default_executable=`False`
 - Family: canonical=`POSITIONING_EXTREMES`
 - Shape: subtype=`funding_flip_to_negative` | phase=`flip` | evidence=`direct` | layer=`research_placeholder` | disposition=`rename`
 - Scope: asset=`single_asset` | venue=`cross_venue` | research_only=`False` | composite=`False` | context_tag=`False`
-- Runtime config: signal=`funding_flip_event` | file=`positioning_extremes_events.parquet` | templates=`['carry_unwind_reversal', 'tail_risk_avoid']` | horizons=`['5m', '60m']` | max_candidates=`250`
+- Runtime config: signal=`funding_flip_event` | file=`positioning_extremes_events.parquet` | templates=`['carry_continuation_confirmed', 'squeeze_followthrough_confirmed', 'reversal_or_squeeze', 'mean_reversion', 'continuation', 'exhaustion_reversal', 'convexity_capture', 'only_if_funding', 'only_if_oi', 'tail_risk_avoid']` | horizons=`['5m', '15m', '60m']` | max_candidates=`1000`
 - Thresholds: `{'merge_gap_bars': 1, 'cooldown_bars': 0, 'min_occurrences': 0}`
 - Notes: Semantic split of funding flip to negative; not a standalone detector.
 
 ### FUNDING_FLIP_TO_POSITIVE
 
-- Detector: `FundingFlipDetector` | enabled=`False` | band=`semantic_variant`
+- Detector: `FundingFlipDetector` | enabled=`False` | band=``
 - Eligibility: planning=`False` | runtime=`False` | promotion=`False` | primary_anchor=`False` | legacy_default_executable=`False`
 - Family: canonical=`POSITIONING_EXTREMES`
 - Shape: subtype=`funding_flip_to_positive` | phase=`flip` | evidence=`direct` | layer=`research_placeholder` | disposition=`rename`
 - Scope: asset=`single_asset` | venue=`cross_venue` | research_only=`False` | composite=`False` | context_tag=`False`
-- Runtime config: signal=`funding_flip_event` | file=`positioning_extremes_events.parquet` | templates=`['carry_unwind_reversal', 'tail_risk_avoid']` | horizons=`['5m', '60m']` | max_candidates=`250`
+- Runtime config: signal=`funding_flip_event` | file=`positioning_extremes_events.parquet` | templates=`['carry_continuation_confirmed', 'squeeze_followthrough_confirmed', 'reversal_or_squeeze', 'mean_reversion', 'continuation', 'exhaustion_reversal', 'convexity_capture', 'only_if_funding', 'only_if_oi', 'tail_risk_avoid']` | horizons=`['5m', '15m', '60m']` | max_candidates=`1000`
 - Thresholds: `{'merge_gap_bars': 1, 'cooldown_bars': 0, 'min_occurrences': 0}`
 - Notes: Semantic split of funding flip to positive; not a standalone detector.
 
 ### FUNDING_NEG_EXTREME_ONSET
 
-- Detector: `FundingExtremeOnsetDetector` | enabled=`False` | band=`semantic_variant`
-- Eligibility: planning=`False` | runtime=`False` | promotion=`False` | primary_anchor=`False` | legacy_default_executable=`False`
+- Detector: `FundingExtremeOnsetDetector` | enabled=`False` | band=`context_only`
+- Eligibility: planning=`True` | runtime=`False` | promotion=`False` | primary_anchor=`False` | legacy_default_executable=`False`
 - Family: canonical=`POSITIONING_EXTREMES`
 - Shape: subtype=`funding_negative_extreme_onset` | phase=`onset` | evidence=`direct` | layer=`research_placeholder` | disposition=`rename`
-- Scope: asset=`single_asset` | venue=`cross_venue` | research_only=`False` | composite=`False` | context_tag=`False`
-- Runtime config: signal=`funding_extreme_onset_event` | file=`funding_episode_events.parquet` | templates=`['carry_unwind_reversal', 'only_if_funding', 'tail_risk_avoid']` | horizons=`['60m']` | max_candidates=`250`
+- Scope: asset=`single_asset` | venue=`cross_venue` | research_only=`False` | composite=`False` | context_tag=`True`
+- Runtime config: signal=`funding_extreme_onset_event` | file=`funding_episode_events.parquet` | templates=`['carry_continuation_confirmed', 'squeeze_followthrough_confirmed', 'reversal_or_squeeze', 'mean_reversion', 'continuation', 'exhaustion_reversal', 'convexity_capture', 'only_if_funding', 'only_if_oi', 'tail_risk_avoid']` | horizons=`['5m', '15m', '60m']` | max_candidates=`1000`
 - Thresholds: `{'merge_gap_bars': 1, 'cooldown_bars': 0, 'min_occurrences': 0}`
 - Notes: Semantic split of negative funding extreme onset; not a standalone detector.
 
 ### FUNDING_NEG_NORMALIZATION
 
-- Detector: `FundingNormalizationDetector` | enabled=`False` | band=`semantic_variant`
+- Detector: `FundingNormalizationDetector` | enabled=`False` | band=``
 - Eligibility: planning=`False` | runtime=`False` | promotion=`False` | primary_anchor=`False` | legacy_default_executable=`False`
 - Family: canonical=`POSITIONING_EXTREMES`
 - Shape: subtype=`funding_negative_normalization` | phase=`normalization` | evidence=`direct` | layer=`research_placeholder` | disposition=`rename`
 - Scope: asset=`single_asset` | venue=`cross_venue` | research_only=`False` | composite=`False` | context_tag=`False`
-- Runtime config: signal=`funding_normalization_event` | file=`funding_episode_events.parquet` | templates=`['carry_unwind_reversal', 'only_if_funding', 'tail_risk_avoid']` | horizons=`['60m']` | max_candidates=`250`
+- Runtime config: signal=`funding_normalization_event` | file=`funding_episode_events.parquet` | templates=`['carry_continuation_confirmed', 'squeeze_followthrough_confirmed', 'reversal_or_squeeze', 'mean_reversion', 'continuation', 'exhaustion_reversal', 'convexity_capture', 'only_if_funding', 'only_if_oi', 'tail_risk_avoid']` | horizons=`['5m', '15m', '60m']` | max_candidates=`1000`
 - Thresholds: `{'merge_gap_bars': 1, 'cooldown_bars': 0, 'min_occurrences': 0}`
 - Notes: Semantic split of negative funding normalization; not a standalone detector.
 
 ### FUNDING_NEG_PERSISTENCE
 
-- Detector: `FundingPersistenceDetector` | enabled=`False` | band=`semantic_variant`
+- Detector: `FundingPersistenceDetector` | enabled=`False` | band=``
 - Eligibility: planning=`False` | runtime=`False` | promotion=`False` | primary_anchor=`False` | legacy_default_executable=`False`
 - Family: canonical=`POSITIONING_EXTREMES`
 - Shape: subtype=`funding_negative_persistence` | phase=`persistence` | evidence=`direct` | layer=`research_placeholder` | disposition=`rename`
 - Scope: asset=`single_asset` | venue=`cross_venue` | research_only=`False` | composite=`False` | context_tag=`False`
-- Runtime config: signal=`funding_persistence_event` | file=`funding_episode_events.parquet` | templates=`['carry_unwind_reversal', 'carry_continuation_confirmed', 'squeeze_followthrough_confirmed', 'only_if_funding', 'only_if_oi', 'tail_risk_avoid']` | horizons=`['5m', '60m']` | max_candidates=`250`
+- Runtime config: signal=`funding_persistence_event` | file=`funding_episode_events.parquet` | templates=`['carry_continuation_confirmed', 'squeeze_followthrough_confirmed', 'reversal_or_squeeze', 'mean_reversion', 'continuation', 'exhaustion_reversal', 'convexity_capture', 'only_if_funding', 'only_if_oi', 'tail_risk_avoid']` | horizons=`['5m', '15m', '60m']` | max_candidates=`1000`
 - Thresholds: `{'merge_gap_bars': 1, 'cooldown_bars': 0, 'min_occurrences': 0}`
 - Notes: Semantic split of negative funding persistence; not a standalone detector.
 
 ### FUNDING_NORMALIZATION_TRIGGER
 
-- Detector: `FundingNormalizationDetector` | enabled=`True` | band=`research_trigger`
+- Detector: `FundingNormalizationDetector` | enabled=`True` | band=``
 - Eligibility: planning=`False` | runtime=`False` | promotion=`False` | primary_anchor=`False` | legacy_default_executable=`True`
 - Family: canonical=`POSITIONING_EXTREMES`
 - Shape: subtype=`funding_normalization` | phase=`normalization` | evidence=`direct` | layer=`canonical` | disposition=`merge`
 - Scope: asset=`single_asset` | venue=`cross_venue` | research_only=`False` | composite=`False` | context_tag=`False`
 - Runtime config: signal=`funding_normalization_event` | file=`funding_episode_events.parquet` | templates=`['reversal_or_squeeze', 'mean_reversion', 'continuation', 'exhaustion_reversal', 'convexity_capture', 'only_if_funding', 'only_if_oi', 'tail_risk_avoid']` | horizons=`['60m']` | max_candidates=`500`
-- Thresholds: `{'merge_gap_bars': 1, 'cooldown_bars': 96, 'min_occurrences': 0, 'funding_pct_window': 2880, 'accel_lookback': 32, 'persistence_bars': 12, 'normalization_lookback': 96, 'min_prior_extreme_abs': 0.0004, 'min_event_spacing': 96, 'vol_burst_quantile': 0.9, 'htf_window': 384, 'htf_lookback': 96, 'pre_window': 96, 'post_window': 96, 'phase_tolerance_bars': 16, 'crossover_confirm_bars': 4, 'accel_quantile': 0.995, 'accel_near_zero_cutoff': 5, 'interaction_min_rows_per_year': 150, 'min_hazard_events': 50}`
+- Thresholds: `{'merge_gap_bars': 1, 'cooldown_bars': 0, 'min_occurrences': 0, 'funding_pct_window': 2880, 'accel_lookback': 32, 'persistence_bars': 12, 'normalization_lookback': 96, 'min_prior_extreme_abs': 0.0004, 'min_event_spacing': 96, 'vol_burst_quantile': 0.9, 'htf_window': 384, 'htf_lookback': 96, 'pre_window': 96, 'post_window': 96, 'phase_tolerance_bars': 16, 'crossover_confirm_bars': 4, 'accel_quantile': 0.995, 'accel_near_zero_cutoff': 5, 'interaction_min_rows_per_year': 150, 'min_hazard_events': 50}`
 - Tags: `['funding_crowding']`
 - Notes: Normalization phase of funding dislocation.
 
 ### FUNDING_PERSISTENCE_TRIGGER
 
-- Detector: `FundingPersistenceDetector` | enabled=`True` | band=`research_trigger`
-- Eligibility: planning=`True` | runtime=`False` | promotion=`True` | primary_anchor=`True` | legacy_default_executable=`True`
+- Detector: `FundingPersistenceDetector` | enabled=`True` | band=``
+- Eligibility: planning=`False` | runtime=`False` | promotion=`False` | primary_anchor=`False` | legacy_default_executable=`True`
 - Family: canonical=`POSITIONING_EXTREMES`
 - Shape: subtype=`funding_persistence` | phase=`persistence` | evidence=`direct` | layer=`canonical` | disposition=`merge`
 - Scope: asset=`single_asset` | venue=`cross_venue` | research_only=`False` | composite=`False` | context_tag=`False`
-- Runtime config: signal=`funding_persistence_event` | file=`funding_episode_events.parquet` | templates=`['carry_unwind_reversal', 'carry_continuation_confirmed', 'squeeze_followthrough_confirmed', 'only_if_funding', 'only_if_oi', 'tail_risk_avoid', 'only_if_regime']` | horizons=`['5m', '60m']` | max_candidates=`500`
-- Thresholds: `{'merge_gap_bars': 1, 'cooldown_bars': 576, 'min_occurrences': 0, 'funding_pct_window': 2880, 'accel_lookback': 32, 'persistence_bars': 12, 'normalization_lookback': 96, 'min_event_spacing': 576, 'min_spacing': 576, 'vol_burst_quantile': 0.9, 'htf_window': 384, 'htf_lookback': 96, 'pre_window': 96, 'post_window': 96, 'phase_tolerance_bars': 16, 'crossover_confirm_bars': 4, 'accel_quantile': 0.995, 'accel_near_zero_cutoff': 5, 'interaction_min_rows_per_year': 150, 'min_hazard_events': 50}`
+- Runtime config: signal=`funding_persistence_event` | file=`funding_episode_events.parquet` | templates=`['reversal_or_squeeze', 'mean_reversion', 'continuation', 'exhaustion_reversal', 'convexity_capture', 'only_if_funding', 'only_if_oi', 'tail_risk_avoid', 'only_if_regime']` | horizons=`['5m', '60m']` | max_candidates=`500`
+- Thresholds: `{'merge_gap_bars': 1, 'cooldown_bars': 0, 'min_occurrences': 0, 'funding_pct_window': 2880, 'accel_lookback': 32, 'persistence_bars': 12, 'normalization_lookback': 96, 'min_event_spacing': 576, 'min_spacing': 576, 'vol_burst_quantile': 0.9, 'htf_window': 384, 'htf_lookback': 96, 'pre_window': 96, 'post_window': 96, 'phase_tolerance_bars': 16, 'crossover_confirm_bars': 4, 'accel_quantile': 0.995, 'accel_near_zero_cutoff': 5, 'interaction_min_rows_per_year': 150, 'min_hazard_events': 50}`
 - Tags: `['funding_crowding']`
 - Notes: Persistence phase of funding dislocation.
 
 ### FUNDING_POS_EXTREME_ONSET
 
-- Detector: `FundingExtremeOnsetDetector` | enabled=`False` | band=`semantic_variant`
-- Eligibility: planning=`False` | runtime=`False` | promotion=`False` | primary_anchor=`False` | legacy_default_executable=`False`
+- Detector: `FundingExtremeOnsetDetector` | enabled=`False` | band=`context_only`
+- Eligibility: planning=`True` | runtime=`False` | promotion=`False` | primary_anchor=`False` | legacy_default_executable=`False`
 - Family: canonical=`POSITIONING_EXTREMES`
 - Shape: subtype=`funding_positive_extreme_onset` | phase=`onset` | evidence=`direct` | layer=`research_placeholder` | disposition=`rename`
-- Scope: asset=`single_asset` | venue=`cross_venue` | research_only=`False` | composite=`False` | context_tag=`False`
-- Runtime config: signal=`funding_extreme_onset_event` | file=`funding_episode_events.parquet` | templates=`['carry_unwind_reversal', 'only_if_funding', 'tail_risk_avoid']` | horizons=`['60m']` | max_candidates=`250`
+- Scope: asset=`single_asset` | venue=`cross_venue` | research_only=`False` | composite=`False` | context_tag=`True`
+- Runtime config: signal=`funding_extreme_onset_event` | file=`funding_episode_events.parquet` | templates=`['carry_continuation_confirmed', 'squeeze_followthrough_confirmed', 'reversal_or_squeeze', 'mean_reversion', 'continuation', 'exhaustion_reversal', 'convexity_capture', 'only_if_funding', 'only_if_oi', 'tail_risk_avoid']` | horizons=`['5m', '15m', '60m']` | max_candidates=`1000`
 - Thresholds: `{'merge_gap_bars': 1, 'cooldown_bars': 0, 'min_occurrences': 0}`
 - Notes: Semantic split of positive funding extreme onset; not a standalone detector.
 
 ### FUNDING_POS_NORMALIZATION
 
-- Detector: `FundingNormalizationDetector` | enabled=`False` | band=`semantic_variant`
+- Detector: `FundingNormalizationDetector` | enabled=`False` | band=``
 - Eligibility: planning=`False` | runtime=`False` | promotion=`False` | primary_anchor=`False` | legacy_default_executable=`False`
 - Family: canonical=`POSITIONING_EXTREMES`
 - Shape: subtype=`funding_positive_normalization` | phase=`normalization` | evidence=`direct` | layer=`research_placeholder` | disposition=`rename`
 - Scope: asset=`single_asset` | venue=`cross_venue` | research_only=`False` | composite=`False` | context_tag=`False`
-- Runtime config: signal=`funding_normalization_event` | file=`funding_episode_events.parquet` | templates=`['carry_unwind_reversal', 'only_if_funding', 'tail_risk_avoid']` | horizons=`['60m']` | max_candidates=`250`
+- Runtime config: signal=`funding_normalization_event` | file=`funding_episode_events.parquet` | templates=`['carry_continuation_confirmed', 'squeeze_followthrough_confirmed', 'reversal_or_squeeze', 'mean_reversion', 'continuation', 'exhaustion_reversal', 'convexity_capture', 'only_if_funding', 'only_if_oi', 'tail_risk_avoid']` | horizons=`['5m', '15m', '60m']` | max_candidates=`1000`
 - Thresholds: `{'merge_gap_bars': 1, 'cooldown_bars': 0, 'min_occurrences': 0}`
 - Notes: Semantic split of positive funding normalization; not a standalone detector.
 
 ### FUNDING_POS_PERSISTENCE
 
-- Detector: `FundingPersistenceDetector` | enabled=`False` | band=`semantic_variant`
+- Detector: `FundingPersistenceDetector` | enabled=`False` | band=``
 - Eligibility: planning=`False` | runtime=`False` | promotion=`False` | primary_anchor=`False` | legacy_default_executable=`False`
 - Family: canonical=`POSITIONING_EXTREMES`
 - Shape: subtype=`funding_positive_persistence` | phase=`persistence` | evidence=`direct` | layer=`research_placeholder` | disposition=`rename`
 - Scope: asset=`single_asset` | venue=`cross_venue` | research_only=`False` | composite=`False` | context_tag=`False`
-- Runtime config: signal=`funding_persistence_event` | file=`funding_episode_events.parquet` | templates=`['carry_unwind_reversal', 'carry_continuation_confirmed', 'squeeze_followthrough_confirmed', 'only_if_funding', 'only_if_oi', 'tail_risk_avoid']` | horizons=`['5m', '60m']` | max_candidates=`250`
+- Runtime config: signal=`funding_persistence_event` | file=`funding_episode_events.parquet` | templates=`['carry_continuation_confirmed', 'squeeze_followthrough_confirmed', 'reversal_or_squeeze', 'mean_reversion', 'continuation', 'exhaustion_reversal', 'convexity_capture', 'only_if_funding', 'only_if_oi', 'tail_risk_avoid']` | horizons=`['5m', '15m', '60m']` | max_candidates=`1000`
 - Thresholds: `{'merge_gap_bars': 1, 'cooldown_bars': 0, 'min_occurrences': 0}`
 - Notes: Semantic split of positive funding persistence; not a standalone detector.
 
 ### SEQ_FND_EXTREME_THEN_BREAKOUT
 
-- Detector: `EventSequenceDetector` | enabled=`True` | band=`composite_or_fragile`
+- Detector: `EventSequenceDetector` | enabled=`True` | band=``
 - Eligibility: planning=`False` | runtime=`False` | promotion=`False` | primary_anchor=`False` | legacy_default_executable=`False`
 - Family: canonical=`POSITIONING_EXTREMES`
 - Shape: subtype=`funding_extreme_then_breakout` | phase=`confirmation` | evidence=`sequence_confirmed` | layer=`composite` | disposition=`demote`
@@ -190,7 +190,7 @@
 
 ### SPOT_PERP_BASIS_SHOCK
 
-- Detector: `SpotPerpBasisShockDetector` | enabled=`True` | band=`research_trigger`
+- Detector: `SpotPerpBasisShockDetector` | enabled=`True` | band=``
 - Eligibility: planning=`False` | runtime=`False` | promotion=`False` | primary_anchor=`False` | legacy_default_executable=`True`
 - Family: canonical=`INFORMATION_DESYNC`
 - Shape: subtype=`spot_perp_basis_shock` | phase=`shock` | evidence=`inferred_cross_asset` | layer=`canonical` | disposition=`merge`
@@ -204,7 +204,7 @@
 
 ### CROSS_ASSET_DESYNC_EVENT
 
-- Detector: `CrossAssetDesyncDetector` | enabled=`True` | band=`context_only`
+- Detector: `CrossAssetDesyncDetector` | enabled=`True` | band=``
 - Eligibility: planning=`False` | runtime=`False` | promotion=`False` | primary_anchor=`False` | legacy_default_executable=`True`
 - Family: canonical=`INFORMATION_DESYNC`
 - Shape: subtype=`cross_asset_desync` | phase=`divergence` | evidence=`inferred_cross_asset` | layer=`canonical` | disposition=`keep`
@@ -216,7 +216,7 @@
 
 ### INDEX_COMPONENT_DIVERGENCE
 
-- Detector: `IndexComponentDivergenceDetector` | enabled=`True` | band=`research_trigger`
+- Detector: `IndexComponentDivergenceDetector` | enabled=`True` | band=``
 - Eligibility: planning=`False` | runtime=`False` | promotion=`False` | primary_anchor=`False` | legacy_default_executable=`True`
 - Family: canonical=`INFORMATION_DESYNC`
 - Shape: subtype=`index_component_divergence` | phase=`divergence` | evidence=`inferred_cross_asset` | layer=`canonical` | disposition=`keep`
@@ -228,7 +228,7 @@
 
 ### LEAD_LAG_BREAK
 
-- Detector: `LeadLagBreakDetector` | enabled=`True` | band=`research_trigger`
+- Detector: `LeadLagBreakDetector` | enabled=`True` | band=``
 - Eligibility: planning=`False` | runtime=`False` | promotion=`False` | primary_anchor=`False` | legacy_default_executable=`True`
 - Family: canonical=`INFORMATION_DESYNC`
 - Shape: subtype=`lead_lag_break` | phase=`divergence` | evidence=`inferred_cross_asset` | layer=`canonical` | disposition=`keep`
@@ -242,7 +242,7 @@
 
 ### FEE_REGIME_CHANGE_EVENT
 
-- Detector: `FeeRegimeChangeDetector` | enabled=`True` | band=`research_trigger`
+- Detector: `FeeRegimeChangeDetector` | enabled=`True` | band=``
 - Eligibility: planning=`False` | runtime=`False` | promotion=`False` | primary_anchor=`False` | legacy_default_executable=`True`
 - Family: canonical=`EXECUTION_FRICTION`
 - Shape: subtype=`fee_regime_change` | phase=`transition` | evidence=`direct` | layer=`canonical` | disposition=`keep`
@@ -254,11 +254,11 @@
 
 ### SLIPPAGE_SPIKE_EVENT
 
-- Detector: `SlippageSpikeDetector` | enabled=`True` | band=`research_trigger`
-- Eligibility: planning=`False` | runtime=`False` | promotion=`False` | primary_anchor=`False` | legacy_default_executable=`True`
+- Detector: `SlippageSpikeDetector` | enabled=`False` | band=`context_only`
+- Eligibility: planning=`True` | runtime=`False` | promotion=`False` | primary_anchor=`False` | legacy_default_executable=`False`
 - Family: canonical=`EXECUTION_FRICTION`
 - Shape: subtype=`slippage_spike` | phase=`shock` | evidence=`direct` | layer=`canonical` | disposition=`keep`
-- Scope: asset=`single_asset` | venue=`single_venue` | research_only=`False` | composite=`False` | context_tag=`False`
+- Scope: asset=`single_asset` | venue=`single_venue` | research_only=`True` | composite=`False` | context_tag=`True`
 - Runtime config: signal=`slippage_spike_event` | file=`execution_friction_events.parquet` | templates=`['slippage_aware_filter', 'tail_risk_avoid']` | horizons=`['5m', '15m']` | max_candidates=`300`
 - Thresholds: `{'merge_gap_bars': 0, 'cooldown_bars': 12, 'min_occurrences': 0, 'spread_z_threshold': 3.0, 'slippage_z_threshold': 3.0}`
 - Tags: `['execution_cost', 'high_urgency']`
@@ -266,7 +266,7 @@
 
 ### SPREAD_REGIME_WIDENING_EVENT
 
-- Detector: `SpreadRegimeWideningDetector` | enabled=`True` | band=`research_trigger`
+- Detector: `SpreadRegimeWideningDetector` | enabled=`True` | band=``
 - Eligibility: planning=`False` | runtime=`False` | promotion=`False` | primary_anchor=`False` | legacy_default_executable=`True`
 - Family: canonical=`EXECUTION_FRICTION`
 - Shape: subtype=`spread_regime_widening` | phase=`persistence` | evidence=`direct` | layer=`canonical` | disposition=`keep`
@@ -276,38 +276,24 @@
 - Tags: `['execution_cost', 'liquidity_stress']`
 - Notes: Persistent execution-friction regime widening.
 
-## FORCED_FLOW_EXHAUSTION
-
-### LIQUIDATION_EXHAUSTION_REVERSAL
-
-- Detector: `PostDeleveragingReboundDetector` | enabled=`False` | band=`research_trigger`
-- Eligibility: planning=`True` | runtime=`False` | promotion=`False` | primary_anchor=`False` | legacy_default_executable=`False`
-- Family: canonical=`FORCED_FLOW_AND_EXHAUSTION`
-- Shape: subtype=`liquidation_exhaustion_reversal` | phase=`recovery` | evidence=`hybrid` | layer=`canonical` | disposition=`merge`
-- Scope: asset=`single_asset` | venue=`single_venue` | research_only=`False` | composite=`False` | context_tag=`False`
-- Runtime config: signal=`liquidation_exhaustion_reversal_event` | file=`forced_flow_and_exhaustion_events.parquet` | templates=`[]` | horizons=`['60m']` | max_candidates=`400`
-- Thresholds: `{'merge_gap_bars': 0, 'cooldown_bars': 24, 'min_occurrences': 0, 'threshold_window': 2880, 'oi_drop_quantile': 0.8, 'liquidation_quantile': 0.85, 'spread_quantile': 0.7, 'return_quantile': 0.75, 'wick_quantile': 0.7, 'rebound_window': 6, 'rebound_quantile': 0.7, 'reversal_window': 3, 'reversal_quantile': 0.65, 'oi_drop_abs_min': 5.0, 'liquidation_abs_min': 25.0, 'liquidation_multiplier': 0.9, 'return_abs_min': 0.0025, 'spread_abs_min': 5.0, 'cluster_window': 12, 'rebound_window_bars': 12, 'post_cluster_lookback': 48, 'rv_peak_decay_ratio': 1.01, 'liq_cooldown_ratio': 0.55, 'liquidation_cooldown_abs_max': 100000.0, 'rebound_return_min': 0.001, 'wick_ratio_min': 0.55}`
-- Tags: `['forced_liquidation']`
-- Notes: Reversal after forced liquidation exhaustion.
-
 ## LIQUIDATION_CASCADE
 
 ### LIQUIDATION_CASCADE
 
-- Detector: `LiquidationCascadeDetector` | enabled=`True` | band=`deployable_core`
-- Eligibility: planning=`True` | runtime=`True` | promotion=`True` | primary_anchor=`True` | legacy_default_executable=`True`
-- Family: canonical=`FORCED_FLOW_AND_EXHAUSTION`
+- Detector: `LiquidationCascadeDetector` | enabled=`False` | band=``
+- Eligibility: planning=`False` | runtime=`False` | promotion=`False` | primary_anchor=`False` | legacy_default_executable=`False`
+- Family: canonical=`POSITIONING_EXTREMES`
 - Shape: subtype=`liquidation_cascade` | phase=`cascade` | evidence=`direct` | layer=`canonical` | disposition=`keep`
 - Scope: asset=`single_asset` | venue=`single_venue` | research_only=`False` | composite=`False` | context_tag=`False`
-- Runtime config: signal=`liquidation_cascade_event` | file=`liquidation_cascade_events.parquet` | templates=`[]` | horizons=`['5m', '15m', '60m']` | max_candidates=`1000`
+- Runtime config: signal=`liquidation_cascade_event` | file=`liquidation_cascade_events.parquet` | templates=`['reversal_or_squeeze', 'mean_reversion', 'continuation', 'exhaustion_reversal', 'convexity_capture', 'only_if_funding', 'only_if_oi', 'tail_risk_avoid']` | horizons=`['5m', '15m', '60m']` | max_candidates=`1000`
 - Thresholds: `{'merge_gap_bars': 1, 'cooldown_bars': 0, 'min_occurrences': 0, 'liq_multiplier': 3.0, 'median_window': 288, 'min_periods': 24, 'max_gap': 6}`
 - Tags: `['forced_liquidation', 'high_urgency']`
 - Notes: Structurally distinct canonical cascade regime.
 
 ### LIQUIDATION_CASCADE_PROXY
 
-- Detector: `LiquidationCascadeProxyDetector` | enabled=`True` | band=`composite_or_fragile`
-- Eligibility: planning=`False` | runtime=`False` | promotion=`False` | primary_anchor=`False` | legacy_default_executable=`True`
+- Detector: `LiquidationCascadeProxyDetector` | enabled=`False` | band=``
+- Eligibility: planning=`False` | runtime=`False` | promotion=`False` | primary_anchor=`False` | legacy_default_executable=`False`
 - Family: canonical=`POSITIONING_EXTREMES`
 - Shape: subtype=`liquidation_cascade_proxy` | phase=`onset` | evidence=`proxy` | layer=`canonical` | disposition=`merge`
 - Scope: asset=`single_asset` | venue=`single_venue` | research_only=`False` | composite=`False` | context_tag=`False`
@@ -320,7 +306,7 @@
 
 ### ABSORPTION_PROXY
 
-- Detector: `AbsorptionProxyDetector` | enabled=`True` | band=`composite_or_fragile`
+- Detector: `AbsorptionProxyDetector` | enabled=`True` | band=``
 - Eligibility: planning=`False` | runtime=`False` | promotion=`False` | primary_anchor=`False` | legacy_default_executable=`True`
 - Family: canonical=`LIQUIDITY_DISLOCATION`
 - Shape: subtype=`absorption` | phase=`persistence` | evidence=`hybrid` | layer=`canonical` | disposition=`merge`
@@ -331,19 +317,19 @@
 
 ### DEPTH_COLLAPSE
 
-- Detector: `DepthCollapseDetector` | enabled=`True` | band=`research_trigger`
+- Detector: `DepthCollapseDetector` | enabled=`True` | band=``
 - Eligibility: planning=`False` | runtime=`False` | promotion=`False` | primary_anchor=`False` | legacy_default_executable=`True`
 - Family: canonical=`LIQUIDITY_DISLOCATION`
 - Shape: subtype=`depth_collapse` | phase=`collapse` | evidence=`direct` | layer=`canonical` | disposition=`merge`
 - Scope: asset=`single_asset` | venue=`single_venue` | research_only=`False` | composite=`False` | context_tag=`False`
-- Runtime config: signal=`depth_collapse_event` | file=`liquidity_dislocation_events.parquet` | templates=`['liquidity_refill_repair', 'stop_run_repair', 'overshoot_repair', 'only_if_liquidity', 'slippage_aware_filter', 'mean_reversion']` | horizons=`['15m']` | max_candidates=`600`
+- Runtime config: signal=`depth_collapse_event` | file=`liquidity_dislocation_events.parquet` | templates=`['mean_reversion', 'continuation', 'stop_run_repair', 'overshoot_repair', 'only_if_liquidity', 'slippage_aware_filter']` | horizons=`['15m']` | max_candidates=`600`
 - Thresholds: `{'merge_gap_bars': 0, 'cooldown_bars': 12, 'min_occurrences': 0, 'lookback_window': 288, 'z_threshold': 3.0, 'min_volume_quantile': 0.2}`
 - Tags: `['liquidity_stress']`
 - Notes: Direct depth failure evidence for liquidity stress.
 
 ### DEPTH_STRESS_PROXY
 
-- Detector: `DepthStressProxyDetector` | enabled=`True` | band=`composite_or_fragile`
+- Detector: `DepthStressProxyDetector` | enabled=`True` | band=``
 - Eligibility: planning=`False` | runtime=`False` | promotion=`False` | primary_anchor=`False` | legacy_default_executable=`True`
 - Family: canonical=`LIQUIDITY_DISLOCATION`
 - Shape: subtype=`depth_collapse` | phase=`collapse` | evidence=`hybrid` | layer=`canonical` | disposition=`merge`
@@ -354,7 +340,7 @@
 
 ### LIQUIDITY_GAP_PRINT
 
-- Detector: `LiquidityGapDetector` | enabled=`True` | band=`research_trigger`
+- Detector: `LiquidityGapDetector` | enabled=`True` | band=``
 - Eligibility: planning=`False` | runtime=`False` | promotion=`False` | primary_anchor=`False` | legacy_default_executable=`True`
 - Family: canonical=`LIQUIDITY_DISLOCATION`
 - Shape: subtype=`gap_print` | phase=`shock` | evidence=`direct` | layer=`canonical` | disposition=`merge`
@@ -366,19 +352,19 @@
 
 ### LIQUIDITY_SHOCK
 
-- Detector: `LiquidityStressDetector` | enabled=`True` | band=`research_trigger`
+- Detector: `LiquidityStressDetector` | enabled=`True` | band=``
 - Eligibility: planning=`False` | runtime=`False` | promotion=`False` | primary_anchor=`False` | legacy_default_executable=`True`
 - Family: canonical=`LIQUIDITY_DISLOCATION`
 - Shape: subtype=`liquidity_shock` | phase=`shock` | evidence=`hybrid` | layer=`canonical` | disposition=`keep`
 - Scope: asset=`single_asset` | venue=`single_venue` | research_only=`False` | composite=`False` | context_tag=`False`
-- Runtime config: signal=`liquidity_shock_event` | file=`liquidity_shock_events.parquet` | templates=`['liquidity_refill_repair', 'stop_run_repair', 'overshoot_repair', 'only_if_liquidity', 'slippage_aware_filter']` | horizons=`['15m']` | max_candidates=`600`
+- Runtime config: signal=`liquidity_shock_event` | file=`liquidity_shock_events.parquet` | templates=`['mean_reversion', 'continuation', 'stop_run_repair', 'overshoot_repair', 'only_if_liquidity', 'slippage_aware_filter']` | horizons=`['15m']` | max_candidates=`600`
 - Thresholds: `{'merge_gap_bars': 1, 'cooldown_bars': 0, 'min_occurrences': 0, 'median_window': 288}`
 - Tags: `['liquidity_stress', 'high_urgency']`
 - Notes: High-level liquidity stress onset.
 
 ### LIQUIDITY_STRESS_DIRECT
 
-- Detector: `DirectLiquidityStressDetector` | enabled=`True` | band=`research_trigger`
+- Detector: `DirectLiquidityStressDetector` | enabled=`True` | band=``
 - Eligibility: planning=`False` | runtime=`False` | promotion=`False` | primary_anchor=`False` | legacy_default_executable=`True`
 - Family: canonical=`LIQUIDITY_DISLOCATION`
 - Shape: subtype=`liquidity_stress` | phase=`shock` | evidence=`direct` | layer=`canonical` | disposition=`merge`
@@ -389,7 +375,7 @@
 
 ### LIQUIDITY_STRESS_PROXY
 
-- Detector: `ProxyLiquidityStressDetector` | enabled=`True` | band=`composite_or_fragile`
+- Detector: `ProxyLiquidityStressDetector` | enabled=`True` | band=``
 - Eligibility: planning=`False` | runtime=`False` | promotion=`False` | primary_anchor=`False` | legacy_default_executable=`True`
 - Family: canonical=`LIQUIDITY_DISLOCATION`
 - Shape: subtype=`liquidity_stress` | phase=`shock` | evidence=`hybrid` | layer=`canonical` | disposition=`merge`
@@ -400,19 +386,31 @@
 
 ### LIQUIDITY_VACUUM
 
-- Detector: `LiquidityVacuumDetector` | enabled=`True` | band=`deployable_core`
-- Eligibility: planning=`True` | runtime=`True` | promotion=`True` | primary_anchor=`True` | legacy_default_executable=`True`
+- Detector: `LiquidityVacuumDetector` | enabled=`True` | band=`context_only`
+- Eligibility: planning=`True` | runtime=`True` | promotion=`False` | primary_anchor=`False` | legacy_default_executable=`False`
 - Family: canonical=`LIQUIDITY_DISLOCATION`
 - Shape: subtype=`liquidity_vacuum` | phase=`collapse` | evidence=`direct` | layer=`canonical` | disposition=`keep`
-- Scope: asset=`single_asset` | venue=`single_venue` | research_only=`False` | composite=`False` | context_tag=`False`
-- Runtime config: signal=`liquidity_vacuum_event` | file=`liquidity_vacuum_events.parquet` | templates=`['liquidity_refill_repair', 'only_if_liquidity', 'slippage_aware_filter']` | horizons=`['15m']` | max_candidates=`1000`
+- Scope: asset=`single_asset` | venue=`single_venue` | research_only=`False` | composite=`False` | context_tag=`True`
+- Runtime config: signal=`liquidity_vacuum_event` | file=`liquidity_vacuum_events.parquet` | templates=`['mean_reversion', 'stop_run_repair', 'overshoot_repair', 'continuation', 'only_if_liquidity', 'slippage_aware_filter']` | horizons=`['15m']` | max_candidates=`1000`
 - Thresholds: `{'merge_gap_bars': 2, 'cooldown_bars': 12, 'min_occurrences': 3, 'min_events_calibration': 1, 'shock_quantiles': '0.5,0.6,0.7', 'shock_quantile': 0.99, 'shock_threshold_mode': 'rolling', 'volume_window': 24, 'range_window': 24, 'vol_ratio_floor': 0.95, 'range_multiplier': 1.05, 'min_vacuum_bars': 1, 'max_vacuum_bars': 96, 'post_horizon_bars': 96, 'auc_horizon_bars': 96, 'range_expansion_threshold': 0.02}`
 - Tags: `['liquidity_stress', 'high_urgency']`
-- Notes: Thin-book vacuum regime.
+- Notes: Execution/risk guard. Raw vacuum is not an entry trigger; use LIQUIDITY_VACUUM_RECOVERY.
+
+### LIQUIDITY_VACUUM_RECOVERY
+
+- Detector: `LiquidityVacuumRecoveryDetectorV2` | enabled=`True` | band=`research_trigger`
+- Eligibility: planning=`True` | runtime=`True` | promotion=`False` | primary_anchor=`False` | legacy_default_executable=`True`
+- Family: canonical=`LIQUIDITY_DISLOCATION`
+- Shape: subtype=`liquidity_vacuum_recovery` | phase=`recovery` | evidence=`direct` | layer=`canonical` | disposition=`keep`
+- Scope: asset=`single_asset` | venue=`single_venue` | research_only=`False` | composite=`False` | context_tag=`False`
+- Runtime config: signal=`liquidity_vacuum_recovery_event` | file=`liquidity_vacuum_recovery_events.parquet` | templates=`['mean_reversion', 'continuation', 'stop_run_repair', 'overshoot_repair', 'only_if_liquidity', 'slippage_aware_filter']` | horizons=`['5m', '15m', '60m']` | max_candidates=`1000`
+- Thresholds: `{'merge_gap_bars': 1, 'cooldown_bars': 0, 'min_occurrences': 0, 'median_window': 288, 'min_periods': 24, 'vacuum_depth_ratio_max': 0.3, 'vacuum_spread_ratio_min': 2.5, 'recovered_depth_ratio_min': 0.6, 'recovered_spread_ratio_max': 1.5, 'recovery_lookback_bars': 12, 'price_displacement_bps_min': 20}`
+- Tags: `['liquidity_recovery', 'no_liquidations_v1']`
+- Notes: Tradability/mean-reversion trigger after direct liquidity vacuum recovery.
 
 ### ORDERFLOW_IMBALANCE_SHOCK
 
-- Detector: `OrderflowImbalanceDetector` | enabled=`True` | band=`research_trigger`
+- Detector: `OrderflowImbalanceDetector` | enabled=`True` | band=``
 - Eligibility: planning=`False` | runtime=`False` | promotion=`False` | primary_anchor=`False` | legacy_default_executable=`True`
 - Family: canonical=`LIQUIDITY_DISLOCATION`
 - Shape: subtype=`orderflow_imbalance` | phase=`shock` | evidence=`direct` | layer=`canonical` | disposition=`merge`
@@ -424,7 +422,7 @@
 
 ### PRICE_VOL_IMBALANCE_PROXY
 
-- Detector: `PriceVolImbalanceProxyDetector` | enabled=`True` | band=`composite_or_fragile`
+- Detector: `PriceVolImbalanceProxyDetector` | enabled=`True` | band=``
 - Eligibility: planning=`False` | runtime=`False` | promotion=`False` | primary_anchor=`False` | legacy_default_executable=`True`
 - Family: canonical=`LIQUIDITY_DISLOCATION`
 - Shape: subtype=`price_vol_imbalance` | phase=`shock` | evidence=`hybrid` | layer=`canonical` | disposition=`merge`
@@ -435,7 +433,7 @@
 
 ### SEQ_LIQ_VACUUM_THEN_DEPTH_RECOVERY
 
-- Detector: `EventSequenceDetector` | enabled=`True` | band=`composite_or_fragile`
+- Detector: `EventSequenceDetector` | enabled=`True` | band=``
 - Eligibility: planning=`False` | runtime=`False` | promotion=`False` | primary_anchor=`False` | legacy_default_executable=`False`
 - Family: canonical=`LIQUIDITY_DISLOCATION`
 - Shape: subtype=`liquidity_vacuum_then_depth_recovery` | phase=`confirmation` | evidence=`sequence_confirmed` | layer=`composite` | disposition=`demote`
@@ -447,19 +445,19 @@
 
 ### SPREAD_BLOWOUT
 
-- Detector: `SpreadBlowoutDetector` | enabled=`True` | band=`research_trigger`
+- Detector: `SpreadBlowoutDetector` | enabled=`True` | band=``
 - Eligibility: planning=`False` | runtime=`False` | promotion=`False` | primary_anchor=`False` | legacy_default_executable=`True`
 - Family: canonical=`LIQUIDITY_DISLOCATION`
 - Shape: subtype=`spread_widening` | phase=`shock` | evidence=`direct` | layer=`canonical` | disposition=`merge`
 - Scope: asset=`single_asset` | venue=`single_venue` | research_only=`False` | composite=`False` | context_tag=`False`
-- Runtime config: signal=`spread_blowout_event` | file=`liquidity_dislocation_events.parquet` | templates=`['liquidity_refill_repair', 'stop_run_repair', 'overshoot_repair', 'only_if_liquidity', 'slippage_aware_filter', 'mean_reversion']` | horizons=`['15m']` | max_candidates=`600`
+- Runtime config: signal=`spread_blowout_event` | file=`liquidity_dislocation_events.parquet` | templates=`['mean_reversion', 'continuation', 'stop_run_repair', 'overshoot_repair', 'only_if_liquidity', 'slippage_aware_filter']` | horizons=`['15m']` | max_candidates=`600`
 - Thresholds: `{'merge_gap_bars': 0, 'cooldown_bars': 12, 'min_occurrences': 0, 'lookback_window': 288, 'z_threshold': 3.0, 'min_volume_quantile': 0.2}`
 - Tags: `['liquidity_stress', 'execution_cost']`
 - Notes: Spread blowout retained as liquidity-stress subtype.
 
 ### SWEEP_STOPRUN
 
-- Detector: `StopRunDetector` | enabled=`True` | band=`research_trigger`
+- Detector: `StopRunDetector` | enabled=`True` | band=``
 - Eligibility: planning=`False` | runtime=`False` | promotion=`False` | primary_anchor=`False` | legacy_default_executable=`True`
 - Family: canonical=`LIQUIDITY_DISLOCATION`
 - Shape: subtype=`sweep_stoprun` | phase=`shock` | evidence=`hybrid` | layer=`canonical` | disposition=`merge`
@@ -471,7 +469,7 @@
 
 ### WICK_REVERSAL_PROXY
 
-- Detector: `WickReversalProxyDetector` | enabled=`True` | band=`composite_or_fragile`
+- Detector: `WickReversalProxyDetector` | enabled=`True` | band=``
 - Eligibility: planning=`False` | runtime=`False` | promotion=`False` | primary_anchor=`False` | legacy_default_executable=`True`
 - Family: canonical=`LIQUIDITY_DISLOCATION`
 - Shape: subtype=`wick_reversal` | phase=`recovery` | evidence=`hybrid` | layer=`canonical` | disposition=`merge`
@@ -482,43 +480,55 @@
 
 ## POSITIONING_EXPANSION
 
+### OI_SPIKE_NEGATIVE
+
+- Detector: `OISpikeNegativeDetector` | enabled=`True` | band=`context_only`
+- Eligibility: planning=`True` | runtime=`True` | promotion=`False` | primary_anchor=`False` | legacy_default_executable=`False`
+- Family: canonical=`POSITIONING_EXTREMES`
+- Shape: subtype=`oi_spike_negative` | phase=`expansion` | evidence=`direct` | layer=`canonical` | disposition=`merge`
+- Scope: asset=`single_asset` | venue=`single_venue` | research_only=`False` | composite=`False` | context_tag=`True`
+- Runtime config: signal=`oi_spike_neg_event` | file=`oi_shock_events.parquet` | templates=`['reversal_or_squeeze', 'mean_reversion', 'continuation', 'exhaustion_reversal', 'convexity_capture', 'only_if_funding', 'only_if_oi', 'tail_risk_avoid']` | horizons=`['5m', '60m']` | max_candidates=`250`
+- Thresholds: `{'merge_gap_bars': 1, 'cooldown_bars': 0, 'min_occurrences': 0, 'oi_window': 96, 'spike_z_th': 2.5}`
+- Tags: `['oi_dynamic']`
+- Notes: No-liquidation OI stress context; subtyped and never standalone.
+
 ### OI_SPIKE_POSITIVE
 
-- Detector: `OISpikePositiveDetector` | enabled=`True` | band=`research_trigger`
+- Detector: `OISpikePositiveDetector` | enabled=`True` | band=``
 - Eligibility: planning=`False` | runtime=`False` | promotion=`False` | primary_anchor=`False` | legacy_default_executable=`True`
 - Family: canonical=`POSITIONING_EXTREMES`
 - Shape: subtype=`oi_spike_positive` | phase=`expansion` | evidence=`direct` | layer=`canonical` | disposition=`merge`
 - Scope: asset=`single_asset` | venue=`single_venue` | research_only=`False` | composite=`False` | context_tag=`False`
-- Runtime config: signal=`oi_spike_pos_event` | file=`oi_shock_events.parquet` | templates=`['carry_continuation_confirmed', 'squeeze_followthrough_confirmed', 'only_if_funding', 'only_if_oi', 'tail_risk_avoid', 'convexity_capture', 'continuation', 'mean_reversion']` | horizons=`['60m']` | max_candidates=`250`
+- Runtime config: signal=`oi_spike_pos_event` | file=`oi_shock_events.parquet` | templates=`['carry_continuation_confirmed', 'squeeze_followthrough_confirmed', 'only_if_funding', 'only_if_oi', 'tail_risk_avoid']` | horizons=`['60m']` | max_candidates=`250`
 - Thresholds: `{'merge_gap_bars': 1, 'cooldown_bars': 0, 'min_occurrences': 0, 'oi_window': 96, 'spike_z_th': 2.5}`
 - Tags: `['oi_dynamic']`
 - Notes: Direction stays in subtype; canonical regime is positioning expansion.
 
 ### PRICE_DOWN_OI_UP
 
-- Detector: `OISpikePositiveDetector` | enabled=`False` | band=`semantic_variant`
+- Detector: `OISpikePositiveDetector` | enabled=`False` | band=``
 - Eligibility: planning=`False` | runtime=`False` | promotion=`False` | primary_anchor=`False` | legacy_default_executable=`False`
 - Family: canonical=`POSITIONING_EXTREMES`
 - Shape: subtype=`price_down_oi_up` | phase=`expansion` | evidence=`direct` | layer=`research_placeholder` | disposition=`rename`
 - Scope: asset=`single_asset` | venue=`single_venue` | research_only=`False` | composite=`False` | context_tag=`False`
-- Runtime config: signal=`oi_spike_pos_event` | file=`oi_shock_events.parquet` | templates=`['carry_continuation_confirmed', 'only_if_oi', 'tail_risk_avoid']` | horizons=`['60m']` | max_candidates=`250`
+- Runtime config: signal=`oi_spike_pos_event` | file=`oi_shock_events.parquet` | templates=`['carry_continuation_confirmed', 'squeeze_followthrough_confirmed', 'reversal_or_squeeze', 'mean_reversion', 'continuation', 'exhaustion_reversal', 'convexity_capture', 'only_if_funding', 'only_if_oi', 'tail_risk_avoid']` | horizons=`['5m', '15m', '60m']` | max_candidates=`1000`
 - Thresholds: `{'merge_gap_bars': 1, 'cooldown_bars': 0, 'min_occurrences': 0}`
 - Notes: Price down with OI up; short build or bearish expansion.
 
 ### PRICE_UP_OI_UP
 
-- Detector: `OISpikePositiveDetector` | enabled=`False` | band=`semantic_variant`
+- Detector: `OISpikePositiveDetector` | enabled=`False` | band=``
 - Eligibility: planning=`False` | runtime=`False` | promotion=`False` | primary_anchor=`False` | legacy_default_executable=`False`
 - Family: canonical=`POSITIONING_EXTREMES`
 - Shape: subtype=`price_up_oi_up` | phase=`expansion` | evidence=`direct` | layer=`research_placeholder` | disposition=`rename`
 - Scope: asset=`single_asset` | venue=`single_venue` | research_only=`False` | composite=`False` | context_tag=`False`
-- Runtime config: signal=`oi_spike_pos_event` | file=`oi_shock_events.parquet` | templates=`['carry_continuation_confirmed', 'squeeze_followthrough_confirmed', 'only_if_oi', 'tail_risk_avoid']` | horizons=`['60m']` | max_candidates=`250`
+- Runtime config: signal=`oi_spike_pos_event` | file=`oi_shock_events.parquet` | templates=`['carry_continuation_confirmed', 'squeeze_followthrough_confirmed', 'reversal_or_squeeze', 'mean_reversion', 'continuation', 'exhaustion_reversal', 'convexity_capture', 'only_if_funding', 'only_if_oi', 'tail_risk_avoid']` | horizons=`['5m', '15m', '60m']` | max_candidates=`1000`
 - Thresholds: `{'merge_gap_bars': 1, 'cooldown_bars': 0, 'min_occurrences': 0}`
 - Notes: Price up with OI up; long build or trend participation.
 
 ### SEQ_OI_SPIKEPOS_THEN_VOL_SPIKE
 
-- Detector: `EventSequenceDetector` | enabled=`True` | band=`composite_or_fragile`
+- Detector: `EventSequenceDetector` | enabled=`True` | band=``
 - Eligibility: planning=`False` | runtime=`False` | promotion=`False` | primary_anchor=`False` | legacy_default_executable=`False`
 - Family: canonical=`POSITIONING_EXTREMES`
 - Shape: subtype=`oi_spike_positive_then_vol_spike` | phase=`confirmation` | evidence=`sequence_confirmed` | layer=`composite` | disposition=`demote`
@@ -528,11 +538,25 @@
 - Tags: `['oi_dynamic', 'sequence']`
 - Notes: Composite positioning/volatility hypothesis.
 
+## POSITIONING_STRESS
+
+### OI_EXPANSION_STRESS
+
+- Detector: `OIExpansionStressDetectorV2` | enabled=`True` | band=`context_only`
+- Eligibility: planning=`True` | runtime=`True` | promotion=`False` | primary_anchor=`False` | legacy_default_executable=`False`
+- Family: canonical=`POSITIONING_EXTREMES`
+- Shape: subtype=`oi_expansion_stress` | phase=`stress` | evidence=`direct` | layer=`canonical` | disposition=`keep`
+- Scope: asset=`single_asset` | venue=`single_venue` | research_only=`False` | composite=`False` | context_tag=`True`
+- Runtime config: signal=`oi_expansion_stress_event` | file=`oi_expansion_stress_events.parquet` | templates=`['carry_continuation_confirmed', 'squeeze_followthrough_confirmed', 'reversal_or_squeeze', 'mean_reversion', 'continuation', 'exhaustion_reversal', 'convexity_capture', 'only_if_funding', 'only_if_oi', 'tail_risk_avoid']` | horizons=`['5m', '15m', '60m']` | max_candidates=`1000`
+- Thresholds: `{'merge_gap_bars': 1, 'cooldown_bars': 0, 'min_occurrences': 0, 'oi_window': 96, 'spike_z_th': 2.0, 'price_move_threshold_bps': 25}`
+- Tags: `['oi_dynamic', 'no_liquidations_v1']`
+- Notes: Subtypes: short_build_continuation, long_build_continuation, long_crowding_stress, short_squeeze_risk, squeeze_risk, avoid_size_down, ambiguous_positioning_stress. Never standalone.
+
 ## POSITIONING_UNWIND_DELEVERAGING
 
 ### DELEVERAGING_WAVE
 
-- Detector: `DeleveragingWaveDetector` | enabled=`True` | band=`research_trigger`
+- Detector: `DeleveragingWaveDetector` | enabled=`True` | band=``
 - Eligibility: planning=`False` | runtime=`False` | promotion=`False` | primary_anchor=`False` | legacy_default_executable=`True`
 - Family: canonical=`POSITIONING_EXTREMES`
 - Shape: subtype=`deleveraging_wave` | phase=`unwind` | evidence=`hybrid` | layer=`canonical` | disposition=`keep`
@@ -544,31 +568,19 @@
 
 ### OI_FLUSH
 
-- Detector: `OIFlushDetector` | enabled=`True` | band=`research_trigger`
-- Eligibility: planning=`False` | runtime=`False` | promotion=`False` | primary_anchor=`False` | legacy_default_executable=`True`
+- Detector: `OIFlushDetectorV2` | enabled=`True` | band=`research_trigger`
+- Eligibility: planning=`True` | runtime=`True` | promotion=`False` | primary_anchor=`False` | legacy_default_executable=`False`
 - Family: canonical=`POSITIONING_EXTREMES`
 - Shape: subtype=`oi_flush` | phase=`unwind` | evidence=`direct` | layer=`canonical` | disposition=`merge`
 - Scope: asset=`single_asset` | venue=`single_venue` | research_only=`False` | composite=`False` | context_tag=`False`
 - Runtime config: signal=`oi_flush_event` | file=`oi_shock_events.parquet` | templates=`['reversal_or_squeeze', 'mean_reversion', 'continuation', 'exhaustion_reversal', 'convexity_capture', 'only_if_funding', 'only_if_oi', 'only_if_regime', 'only_if_highvol', 'tail_risk_avoid']` | horizons=`['5m', '60m']` | max_candidates=`500`
 - Thresholds: `{'merge_gap_bars': 1, 'cooldown_bars': 0, 'min_occurrences': 0, 'oi_window': 96, 'spike_z_th': 2.5}`
 - Tags: `['oi_dynamic', 'high_urgency']`
-- Notes: OI flush folded into unwind/deleveraging regime.
-
-### OI_SPIKE_NEGATIVE
-
-- Detector: `OISpikeNegativeDetector` | enabled=`True` | band=`deployable_core`
-- Eligibility: planning=`True` | runtime=`True` | promotion=`False` | primary_anchor=`True` | legacy_default_executable=`True`
-- Family: canonical=`POSITIONING_EXTREMES`
-- Shape: subtype=`oi_flush` | phase=`unwind` | evidence=`direct` | layer=`canonical` | disposition=`merge`
-- Scope: asset=`single_asset` | venue=`single_venue` | research_only=`False` | composite=`False` | context_tag=`False`
-- Runtime config: signal=`oi_spike_neg_event` | file=`oi_shock_events.parquet` | templates=`['positioning_flush_reversal', 'long_flush_rebound', 'convexity_capture', 'only_if_funding', 'only_if_oi', 'tail_risk_avoid', 'continuation', 'mean_reversion']` | horizons=`['5m', '60m']` | max_candidates=`250`
-- Thresholds: `{'merge_gap_bars': 1, 'cooldown_bars': 0, 'min_occurrences': 0, 'oi_window': 96, 'spike_z_th': 2.5}`
-- Tags: `['oi_dynamic']`
-- Notes: Negative OI spike is normalized as OI contraction/unwind, not directional alpha.
+- Notes: No-liquidation forced-flow proxy; requires pairing before trade routing.
 
 ### POST_DELEVERAGING_REBOUND
 
-- Detector: `PostDeleveragingReboundDetector` | enabled=`True` | band=`research_trigger`
+- Detector: `PostDeleveragingReboundDetector` | enabled=`True` | band=``
 - Eligibility: planning=`False` | runtime=`False` | promotion=`False` | primary_anchor=`False` | legacy_default_executable=`True`
 - Family: canonical=`FORCED_FLOW_AND_EXHAUSTION`
 - Shape: subtype=`post_deleveraging_rebound` | phase=`recovery` | evidence=`hybrid` | layer=`canonical` | disposition=`merge`
@@ -579,23 +591,23 @@
 
 ### PRICE_DOWN_OI_DOWN
 
-- Detector: `OISpikeNegativeDetector` | enabled=`False` | band=`semantic_variant`
+- Detector: `OISpikeNegativeDetector` | enabled=`False` | band=``
 - Eligibility: planning=`False` | runtime=`False` | promotion=`False` | primary_anchor=`False` | legacy_default_executable=`False`
 - Family: canonical=`POSITIONING_EXTREMES`
 - Shape: subtype=`price_down_oi_down` | phase=`unwind` | evidence=`direct` | layer=`research_placeholder` | disposition=`rename`
 - Scope: asset=`single_asset` | venue=`single_venue` | research_only=`False` | composite=`False` | context_tag=`False`
-- Runtime config: signal=`oi_spike_neg_event` | file=`oi_shock_events.parquet` | templates=`['positioning_flush_reversal', 'long_flush_rebound', 'only_if_oi', 'tail_risk_avoid']` | horizons=`['60m']` | max_candidates=`250`
+- Runtime config: signal=`oi_spike_neg_event` | file=`oi_shock_events.parquet` | templates=`['carry_continuation_confirmed', 'squeeze_followthrough_confirmed', 'reversal_or_squeeze', 'mean_reversion', 'continuation', 'exhaustion_reversal', 'convexity_capture', 'only_if_funding', 'only_if_oi', 'tail_risk_avoid']` | horizons=`['5m', '15m', '60m']` | max_candidates=`1000`
 - Thresholds: `{'merge_gap_bars': 1, 'cooldown_bars': 0, 'min_occurrences': 0}`
 - Notes: Price down with OI down; long flush or deleveraging.
 
 ### PRICE_UP_OI_DOWN
 
-- Detector: `OISpikeNegativeDetector` | enabled=`False` | band=`semantic_variant`
+- Detector: `OISpikeNegativeDetector` | enabled=`False` | band=``
 - Eligibility: planning=`False` | runtime=`False` | promotion=`False` | primary_anchor=`False` | legacy_default_executable=`False`
 - Family: canonical=`POSITIONING_EXTREMES`
 - Shape: subtype=`price_up_oi_down` | phase=`unwind` | evidence=`direct` | layer=`research_placeholder` | disposition=`rename`
 - Scope: asset=`single_asset` | venue=`single_venue` | research_only=`False` | composite=`False` | context_tag=`False`
-- Runtime config: signal=`oi_spike_neg_event` | file=`oi_shock_events.parquet` | templates=`['squeeze_followthrough_confirmed', 'positioning_flush_reversal', 'only_if_oi', 'tail_risk_avoid']` | horizons=`['60m']` | max_candidates=`250`
+- Runtime config: signal=`oi_spike_neg_event` | file=`oi_shock_events.parquet` | templates=`['carry_continuation_confirmed', 'squeeze_followthrough_confirmed', 'reversal_or_squeeze', 'mean_reversion', 'continuation', 'exhaustion_reversal', 'convexity_capture', 'only_if_funding', 'only_if_oi', 'tail_risk_avoid']` | horizons=`['5m', '15m', '60m']` | max_candidates=`1000`
 - Thresholds: `{'merge_gap_bars': 1, 'cooldown_bars': 0, 'min_occurrences': 0}`
 - Notes: Price up with OI down; short squeeze or covering.
 
@@ -603,7 +615,7 @@
 
 ### BETA_SPIKE_EVENT
 
-- Detector: `BetaSpikeDetector` | enabled=`True` | band=`research_trigger`
+- Detector: `BetaSpikeDetector` | enabled=`True` | band=``
 - Eligibility: planning=`False` | runtime=`False` | promotion=`False` | primary_anchor=`False` | legacy_default_executable=`True`
 - Family: canonical=`REGIME_TRANSITION`
 - Shape: subtype=`beta_spike` | phase=`transition` | evidence=`inferred_cross_asset` | layer=`canonical` | disposition=`keep`
@@ -615,7 +627,7 @@
 
 ### CHOP_TO_TREND_SHIFT
 
-- Detector: `ChopToTrendDetector` | enabled=`True` | band=`research_trigger`
+- Detector: `ChopToTrendDetector` | enabled=`True` | band=``
 - Eligibility: planning=`False` | runtime=`False` | promotion=`False` | primary_anchor=`False` | legacy_default_executable=`True`
 - Family: canonical=`REGIME_TRANSITION`
 - Shape: subtype=`chop_to_trend` | phase=`transition` | evidence=`hybrid` | layer=`canonical` | disposition=`keep`
@@ -627,7 +639,7 @@
 
 ### CORRELATION_BREAKDOWN_EVENT
 
-- Detector: `CorrelationBreakdownDetector` | enabled=`True` | band=`research_trigger`
+- Detector: `CorrelationBreakdownDetector` | enabled=`True` | band=``
 - Eligibility: planning=`False` | runtime=`False` | promotion=`False` | primary_anchor=`False` | legacy_default_executable=`True`
 - Family: canonical=`REGIME_TRANSITION`
 - Shape: subtype=`correlation_breakdown` | phase=`transition` | evidence=`inferred_cross_asset` | layer=`canonical` | disposition=`keep`
@@ -639,7 +651,7 @@
 
 ### TREND_TO_CHOP_SHIFT
 
-- Detector: `TrendToChopDetector` | enabled=`True` | band=`research_trigger`
+- Detector: `TrendToChopDetector` | enabled=`True` | band=``
 - Eligibility: planning=`False` | runtime=`False` | promotion=`False` | primary_anchor=`False` | legacy_default_executable=`True`
 - Family: canonical=`REGIME_TRANSITION`
 - Shape: subtype=`trend_to_chop` | phase=`transition` | evidence=`hybrid` | layer=`canonical` | disposition=`keep`
@@ -651,7 +663,7 @@
 
 ### VOL_REGIME_SHIFT_EVENT
 
-- Detector: `VolRegimeShiftDetector` | enabled=`True` | band=`research_trigger`
+- Detector: `VolRegimeShiftDetector` | enabled=`True` | band=``
 - Eligibility: planning=`False` | runtime=`False` | promotion=`False` | primary_anchor=`False` | legacy_default_executable=`True`
 - Family: canonical=`REGIME_TRANSITION`
 - Shape: subtype=`vol_regime_shift` | phase=`transition` | evidence=`statistical` | layer=`canonical` | disposition=`keep`
@@ -665,7 +677,7 @@
 
 ### FUNDING_TIMESTAMP_EVENT
 
-- Detector: `FundingTimestampDetector` | enabled=`True` | band=`context_only`
+- Detector: `FundingTimestampDetector` | enabled=`True` | band=``
 - Eligibility: planning=`False` | runtime=`False` | promotion=`False` | primary_anchor=`False` | legacy_default_executable=`False`
 - Family: canonical=`TEMPORAL_STRUCTURE`
 - Shape: subtype=`funding_timestamp` | phase=`window` | evidence=`contextual` | layer=`context_tag` | disposition=`demote`
@@ -677,7 +689,7 @@
 
 ### SCHEDULED_NEWS_WINDOW_EVENT
 
-- Detector: `ScheduledNewsDetector` | enabled=`True` | band=`context_only`
+- Detector: `ScheduledNewsDetector` | enabled=`True` | band=``
 - Eligibility: planning=`False` | runtime=`False` | promotion=`False` | primary_anchor=`False` | legacy_default_executable=`False`
 - Family: canonical=`TEMPORAL_STRUCTURE`
 - Shape: subtype=`scheduled_news_window` | phase=`window` | evidence=`contextual` | layer=`context_tag` | disposition=`demote`
@@ -689,7 +701,7 @@
 
 ### SESSION_CLOSE_EVENT
 
-- Detector: `SessionCloseDetector` | enabled=`True` | band=`context_only`
+- Detector: `SessionCloseDetector` | enabled=`True` | band=``
 - Eligibility: planning=`False` | runtime=`False` | promotion=`False` | primary_anchor=`False` | legacy_default_executable=`False`
 - Family: canonical=`TEMPORAL_STRUCTURE`
 - Shape: subtype=`session_close` | phase=`window` | evidence=`contextual` | layer=`context_tag` | disposition=`demote`
@@ -701,7 +713,7 @@
 
 ### SESSION_OPEN_EVENT
 
-- Detector: `SessionOpenDetector` | enabled=`True` | band=`context_only`
+- Detector: `SessionOpenDetector` | enabled=`True` | band=``
 - Eligibility: planning=`False` | runtime=`False` | promotion=`False` | primary_anchor=`False` | legacy_default_executable=`False`
 - Family: canonical=`TEMPORAL_STRUCTURE`
 - Shape: subtype=`session_open` | phase=`window` | evidence=`contextual` | layer=`context_tag` | disposition=`demote`
@@ -715,7 +727,7 @@
 
 ### BAND_BREAK
 
-- Detector: `BandBreakDetector` | enabled=`True` | band=`research_trigger`
+- Detector: `BandBreakDetector` | enabled=`True` | band=``
 - Eligibility: planning=`False` | runtime=`False` | promotion=`False` | primary_anchor=`False` | legacy_default_executable=`True`
 - Family: canonical=`STATISTICAL_DISLOCATION`
 - Shape: subtype=`band_break` | phase=`breakout` | evidence=`statistical` | layer=`canonical` | disposition=`merge`
@@ -727,7 +739,7 @@
 
 ### COPULA_PAIRS_TRADING
 
-- Detector: `CopulaPairsTradingDetector` | enabled=`True` | band=`composite_or_fragile`
+- Detector: `CopulaPairsTradingDetector` | enabled=`True` | band=``
 - Eligibility: planning=`False` | runtime=`False` | promotion=`False` | primary_anchor=`False` | legacy_default_executable=`False`
 - Family: canonical=`STATISTICAL_DISLOCATION`
 - Shape: subtype=`copula_pairs_trading` | phase=`strategy` | evidence=`statistical` | layer=`strategy_construct` | disposition=`demote`
@@ -739,7 +751,7 @@
 
 ### GAP_OVERSHOOT
 
-- Detector: `GapOvershootDetector` | enabled=`True` | band=`research_trigger`
+- Detector: `GapOvershootDetector` | enabled=`True` | band=``
 - Eligibility: planning=`False` | runtime=`False` | promotion=`False` | primary_anchor=`False` | legacy_default_executable=`True`
 - Family: canonical=`STATISTICAL_DISLOCATION`
 - Shape: subtype=`gap_overshoot` | phase=`overshoot` | evidence=`statistical` | layer=`canonical` | disposition=`keep`
@@ -751,7 +763,7 @@
 
 ### OVERSHOOT_AFTER_SHOCK
 
-- Detector: `OvershootDetector` | enabled=`True` | band=`research_trigger`
+- Detector: `OvershootDetector` | enabled=`True` | band=``
 - Eligibility: planning=`False` | runtime=`False` | promotion=`False` | primary_anchor=`False` | legacy_default_executable=`True`
 - Family: canonical=`STATISTICAL_DISLOCATION`
 - Shape: subtype=`overshoot_after_shock` | phase=`overshoot` | evidence=`statistical` | layer=`canonical` | disposition=`keep`
@@ -763,7 +775,7 @@
 
 ### ZSCORE_STRETCH
 
-- Detector: `ZScoreStretchDetector` | enabled=`True` | band=`research_trigger`
+- Detector: `ZScoreStretchDetector` | enabled=`True` | band=``
 - Eligibility: planning=`False` | runtime=`False` | promotion=`False` | primary_anchor=`False` | legacy_default_executable=`True`
 - Family: canonical=`STATISTICAL_DISLOCATION`
 - Shape: subtype=`zscore_stretch` | phase=`stretch` | evidence=`statistical` | layer=`canonical` | disposition=`keep`
@@ -777,7 +789,7 @@
 
 ### PULLBACK_PIVOT
 
-- Detector: `PullbackPivotDetector` | enabled=`True` | band=`research_trigger`
+- Detector: `PullbackPivotDetector` | enabled=`True` | band=``
 - Eligibility: planning=`False` | runtime=`False` | promotion=`False` | primary_anchor=`False` | legacy_default_executable=`True`
 - Family: canonical=`TREND_STRUCTURE`
 - Shape: subtype=`pullback_pivot` | phase=`recovery` | evidence=`hybrid` | layer=`canonical` | disposition=`keep`
@@ -789,7 +801,7 @@
 
 ### RANGE_BREAKOUT
 
-- Detector: `RangeBreakoutDetector` | enabled=`True` | band=`research_trigger`
+- Detector: `RangeBreakoutDetector` | enabled=`True` | band=``
 - Eligibility: planning=`False` | runtime=`False` | promotion=`False` | primary_anchor=`False` | legacy_default_executable=`True`
 - Family: canonical=`TREND_STRUCTURE`
 - Shape: subtype=`range_breakout` | phase=`breakout` | evidence=`hybrid` | layer=`canonical` | disposition=`keep`
@@ -801,7 +813,7 @@
 
 ### SUPPORT_RESISTANCE_BREAK
 
-- Detector: `SREventDetector` | enabled=`True` | band=`research_trigger`
+- Detector: `SREventDetector` | enabled=`True` | band=``
 - Eligibility: planning=`False` | runtime=`False` | promotion=`False` | primary_anchor=`False` | legacy_default_executable=`True`
 - Family: canonical=`TREND_STRUCTURE`
 - Shape: subtype=`support_resistance_break` | phase=`breakout` | evidence=`hybrid` | layer=`canonical` | disposition=`merge`
@@ -813,7 +825,7 @@
 
 ### TREND_ACCELERATION
 
-- Detector: `TrendAccelerationDetector` | enabled=`True` | band=`research_trigger`
+- Detector: `TrendAccelerationDetector` | enabled=`True` | band=``
 - Eligibility: planning=`False` | runtime=`False` | promotion=`False` | primary_anchor=`False` | legacy_default_executable=`True`
 - Family: canonical=`TREND_STRUCTURE`
 - Shape: subtype=`trend_acceleration` | phase=`persistence` | evidence=`hybrid` | layer=`canonical` | disposition=`keep`
@@ -827,19 +839,19 @@
 
 ### CLIMAX_VOLUME_BAR
 
-- Detector: `ClimaxVolumeDetector` | enabled=`True` | band=`research_trigger`
+- Detector: `ClimaxVolumeDetector` | enabled=`True` | band=``
 - Eligibility: planning=`False` | runtime=`False` | promotion=`False` | primary_anchor=`False` | legacy_default_executable=`True`
 - Family: canonical=`FORCED_FLOW_AND_EXHAUSTION`
 - Shape: subtype=`climax_volume` | phase=`exhaustion` | evidence=`hybrid` | layer=`canonical` | disposition=`merge`
 - Scope: asset=`single_asset` | venue=`single_venue` | research_only=`False` | composite=`False` | context_tag=`False`
 - Runtime config: signal=`climax_volume_bar_event` | file=`forced_flow_and_exhaustion_events.parquet` | templates=`[]` | horizons=`['60m']` | max_candidates=`500`
-- Thresholds: `{'merge_gap_bars': 0, 'cooldown_bars': 48, 'min_occurrences': 0, 'liquidation_spike_z_threshold': 3.0, 'cascade_window_bars': 12, 'vol_quantile': 0.992, 'ret_quantile': 0.998, 'range_quantile': 0.995}`
+- Thresholds: `{'merge_gap_bars': 0, 'cooldown_bars': 48, 'min_occurrences': 0, 'liquidation_spike_z_threshold': 3.0, 'cascade_window_bars': 12, 'vol_quantile': 0.97, 'ret_quantile': 0.97, 'range_quantile': 0.95}`
 - Tags: `['exhaustion', 'high_urgency']`
 - Notes: Exhaustion marker rather than standalone family.
 
 ### FAILED_CONTINUATION
 
-- Detector: `FailedContinuationDetector` | enabled=`True` | band=`research_trigger`
+- Detector: `FailedContinuationDetector` | enabled=`True` | band=``
 - Eligibility: planning=`False` | runtime=`False` | promotion=`False` | primary_anchor=`False` | legacy_default_executable=`True`
 - Family: canonical=`FORCED_FLOW_AND_EXHAUSTION`
 - Shape: subtype=`failed_continuation` | phase=`failure` | evidence=`hybrid` | layer=`canonical` | disposition=`keep`
@@ -851,7 +863,7 @@
 
 ### FALSE_BREAKOUT
 
-- Detector: `FalseBreakoutDetector` | enabled=`True` | band=`research_trigger`
+- Detector: `FalseBreakoutDetector` | enabled=`True` | band=``
 - Eligibility: planning=`False` | runtime=`False` | promotion=`False` | primary_anchor=`False` | legacy_default_executable=`True`
 - Family: canonical=`TREND_STRUCTURE`
 - Shape: subtype=`false_breakout` | phase=`failure` | evidence=`hybrid` | layer=`canonical` | disposition=`merge`
@@ -863,7 +875,7 @@
 
 ### FLOW_EXHAUSTION_PROXY
 
-- Detector: `FlowExhaustionDetector` | enabled=`True` | band=`composite_or_fragile`
+- Detector: `FlowExhaustionDetector` | enabled=`True` | band=``
 - Eligibility: planning=`False` | runtime=`False` | promotion=`False` | primary_anchor=`False` | legacy_default_executable=`True`
 - Family: canonical=`FORCED_FLOW_AND_EXHAUSTION`
 - Shape: subtype=`flow_exhaustion` | phase=`exhaustion` | evidence=`hybrid` | layer=`canonical` | disposition=`merge`
@@ -874,8 +886,8 @@
 
 ### FORCED_FLOW_EXHAUSTION
 
-- Detector: `ForcedFlowExhaustionDetector` | enabled=`True` | band=`research_trigger`
-- Eligibility: planning=`False` | runtime=`False` | promotion=`False` | primary_anchor=`False` | legacy_default_executable=`True`
+- Detector: `ForcedFlowExhaustionDetector` | enabled=`False` | band=``
+- Eligibility: planning=`False` | runtime=`False` | promotion=`False` | primary_anchor=`False` | legacy_default_executable=`False`
 - Family: canonical=`FORCED_FLOW_AND_EXHAUSTION`
 - Shape: subtype=`forced_flow_exhaustion` | phase=`exhaustion` | evidence=`hybrid` | layer=`canonical` | disposition=`keep`
 - Scope: asset=`single_asset` | venue=`single_venue` | research_only=`False` | composite=`False` | context_tag=`False`
@@ -884,9 +896,21 @@
 - Tags: `['exhaustion', 'forced_liquidation']`
 - Notes: Exhaustion regime with forced-flow mechanics.
 
+### LIQUIDATION_EXHAUSTION_REVERSAL
+
+- Detector: `PostDeleveragingReboundDetector` | enabled=`False` | band=``
+- Eligibility: planning=`False` | runtime=`False` | promotion=`False` | primary_anchor=`False` | legacy_default_executable=`False`
+- Family: canonical=`FORCED_FLOW_AND_EXHAUSTION`
+- Shape: subtype=`liquidation_exhaustion_reversal` | phase=`recovery` | evidence=`hybrid` | layer=`canonical` | disposition=`merge`
+- Scope: asset=`single_asset` | venue=`single_venue` | research_only=`False` | composite=`False` | context_tag=`False`
+- Runtime config: signal=`liquidation_exhaustion_reversal_event` | file=`forced_flow_and_exhaustion_events.parquet` | templates=`[]` | horizons=`['60m']` | max_candidates=`400`
+- Thresholds: `{'merge_gap_bars': 0, 'cooldown_bars': 24, 'min_occurrences': 0, 'threshold_window': 2880, 'oi_drop_quantile': 0.8, 'liquidation_quantile': 0.85, 'spread_quantile': 0.7, 'return_quantile': 0.75, 'wick_quantile': 0.7, 'rebound_window': 6, 'rebound_quantile': 0.7, 'reversal_window': 3, 'reversal_quantile': 0.65, 'oi_drop_abs_min': 5.0, 'liquidation_abs_min': 25.0, 'liquidation_multiplier': 0.9, 'return_abs_min': 0.0025, 'spread_abs_min': 5.0, 'cluster_window': 12, 'rebound_window_bars': 12, 'post_cluster_lookback': 48, 'rv_peak_decay_ratio': 1.01, 'liq_cooldown_ratio': 0.55, 'liquidation_cooldown_abs_max': 100000.0, 'rebound_return_min': 0.001, 'wick_ratio_min': 0.55}`
+- Tags: `['forced_liquidation']`
+- Notes: Reversal after forced liquidation exhaustion.
+
 ### MOMENTUM_DIVERGENCE_TRIGGER
 
-- Detector: `MomentumDivergenceDetector` | enabled=`True` | band=`research_trigger`
+- Detector: `MomentumDivergenceDetector` | enabled=`True` | band=``
 - Eligibility: planning=`False` | runtime=`False` | promotion=`False` | primary_anchor=`False` | legacy_default_executable=`True`
 - Family: canonical=`FORCED_FLOW_AND_EXHAUSTION`
 - Shape: subtype=`momentum_divergence` | phase=`exhaustion` | evidence=`hybrid` | layer=`canonical` | disposition=`merge`
@@ -898,7 +922,7 @@
 
 ### TREND_DECELERATION
 
-- Detector: `TrendDecelerationDetector` | enabled=`True` | band=`research_trigger`
+- Detector: `TrendDecelerationDetector` | enabled=`True` | band=``
 - Eligibility: planning=`False` | runtime=`False` | promotion=`False` | primary_anchor=`False` | legacy_default_executable=`True`
 - Family: canonical=`TREND_STRUCTURE`
 - Shape: subtype=`trend_deceleration` | phase=`exhaustion` | evidence=`hybrid` | layer=`canonical` | disposition=`merge`
@@ -910,7 +934,7 @@
 
 ### TREND_EXHAUSTION_TRIGGER
 
-- Detector: `TrendExhaustionDetector` | enabled=`True` | band=`research_trigger`
+- Detector: `TrendExhaustionDetector` | enabled=`True` | band=``
 - Eligibility: planning=`False` | runtime=`False` | promotion=`False` | primary_anchor=`False` | legacy_default_executable=`True`
 - Family: canonical=`FORCED_FLOW_AND_EXHAUSTION`
 - Shape: subtype=`trend_exhaustion` | phase=`onset` | evidence=`hybrid` | layer=`canonical` | disposition=`keep`
@@ -924,7 +948,7 @@
 
 ### VOL_CLUSTER_SHIFT
 
-- Detector: `VolClusterShiftDetector` | enabled=`True` | band=`research_trigger`
+- Detector: `VolClusterShiftDetector` | enabled=`True` | band=``
 - Eligibility: planning=`False` | runtime=`False` | promotion=`False` | primary_anchor=`False` | legacy_default_executable=`True`
 - Family: canonical=`VOLATILITY_TRANSITION`
 - Shape: subtype=`vol_cluster_shift` | phase=`persistence` | evidence=`statistical` | layer=`canonical` | disposition=`merge`
@@ -936,7 +960,7 @@
 
 ### VOL_SPIKE
 
-- Detector: `VolSpikeDetector` | enabled=`True` | band=`research_trigger`
+- Detector: `VolSpikeDetector` | enabled=`True` | band=``
 - Eligibility: planning=`False` | runtime=`False` | promotion=`False` | primary_anchor=`False` | legacy_default_executable=`True`
 - Family: canonical=`VOLATILITY_TRANSITION`
 - Shape: subtype=`vol_spike` | phase=`shock` | evidence=`direct` | layer=`canonical` | disposition=`keep`
@@ -950,7 +974,7 @@
 
 ### BREAKOUT_TRIGGER
 
-- Detector: `BreakoutTriggerDetector` | enabled=`True` | band=`research_trigger`
+- Detector: `BreakoutTriggerDetector` | enabled=`True` | band=``
 - Eligibility: planning=`False` | runtime=`False` | promotion=`False` | primary_anchor=`False` | legacy_default_executable=`True`
 - Family: canonical=`VOLATILITY_TRANSITION`
 - Shape: subtype=`breakout_trigger` | phase=`breakout` | evidence=`hybrid` | layer=`canonical` | disposition=`merge`
@@ -962,7 +986,7 @@
 
 ### RANGE_COMPRESSION_END
 
-- Detector: `RangeCompressionDetector` | enabled=`True` | band=`research_trigger`
+- Detector: `RangeCompressionDetector` | enabled=`True` | band=``
 - Eligibility: planning=`False` | runtime=`False` | promotion=`False` | primary_anchor=`False` | legacy_default_executable=`True`
 - Family: canonical=`VOLATILITY_TRANSITION`
 - Shape: subtype=`range_compression_end` | phase=`breakout` | evidence=`hybrid` | layer=`canonical` | disposition=`merge`
@@ -974,7 +998,7 @@
 
 ### SEQ_VOL_COMP_THEN_BREAKOUT
 
-- Detector: `EventSequenceDetector` | enabled=`True` | band=`composite_or_fragile`
+- Detector: `EventSequenceDetector` | enabled=`True` | band=``
 - Eligibility: planning=`False` | runtime=`False` | promotion=`False` | primary_anchor=`False` | legacy_default_executable=`False`
 - Family: canonical=`VOLATILITY_TRANSITION`
 - Shape: subtype=`vol_compression_then_breakout` | phase=`confirmation` | evidence=`sequence_confirmed` | layer=`composite` | disposition=`demote`
@@ -986,7 +1010,7 @@
 
 ### VOL_RELAXATION_START
 
-- Detector: `VolRelaxationDetector` | enabled=`True` | band=`research_trigger`
+- Detector: `VolRelaxationDetector` | enabled=`True` | band=``
 - Eligibility: planning=`False` | runtime=`False` | promotion=`False` | primary_anchor=`False` | legacy_default_executable=`True`
 - Family: canonical=`VOLATILITY_TRANSITION`
 - Shape: subtype=`vol_relaxation_start` | phase=`normalization` | evidence=`direct` | layer=`canonical` | disposition=`keep`
@@ -1000,7 +1024,7 @@
 
 ### VOL_SHOCK
 
-- Detector: `VolShockRelaxationDetector` | enabled=`True` | band=`research_trigger`
+- Detector: `VolShockRelaxationDetector` | enabled=`True` | band=``
 - Eligibility: planning=`False` | runtime=`False` | promotion=`False` | primary_anchor=`False` | legacy_default_executable=`True`
 - Family: canonical=`VOLATILITY_TRANSITION`
 - Shape: subtype=`vol_shock` | phase=`shock` | evidence=`statistical` | layer=`canonical` | disposition=`keep`

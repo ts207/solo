@@ -3,7 +3,7 @@
 | Version | Count | Runtime Eligible | Promotion Eligible |
 |---|---|---|---|
 | v1 | 40 | 0 | 0 |
-| v2 | 32 | 0 | 0 |
+| v2 | 33 | 5 | 0 |
 
 Runtime eligible non-v2 detectors: **0**
-Runtime eligible v2 detectors: **0**
+Runtime eligible v2 detectors: **5**

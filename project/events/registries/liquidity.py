@@ -12,6 +12,7 @@ from project.events.detectors.liquidity_base import (
     LiquidityGapDetectorV2,
     LiquidityShockDetectorV2,
     LiquidityVacuumDetectorV2,
+    LiquidityVacuumRecoveryDetectorV2,
     ProxyLiquidityStressDetectorV2,
 )
 from project.events.detectors.registry import register_detector
@@ -21,6 +22,7 @@ LIQUIDITY_REGISTERED_DETECTORS = {
     "LIQUIDITY_STRESS_DIRECT": DirectLiquidityStressDetectorV2,
     "LIQUIDITY_STRESS_PROXY": ProxyLiquidityStressDetectorV2,
     "LIQUIDITY_VACUUM": LiquidityVacuumDetectorV2,
+    "LIQUIDITY_VACUUM_RECOVERY": LiquidityVacuumRecoveryDetectorV2,
     "LIQUIDITY_GAP_PRINT": LiquidityGapDetectorV2,
     "SPREAD_BLOWOUT": SpreadBlowoutDetector,
     "DEPTH_COLLAPSE": DepthCollapseDetectorV2,

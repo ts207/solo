@@ -12,10 +12,10 @@ def _store() -> ThesisStore:
         status="active",
         symbol_scope={"mode": "single_symbol", "symbols": ["BTCUSDT"], "candidate_symbol": "BTCUSDT"},
         timeframe="5m",
-        primary_event_id="VOL_SHOCK",
-        event_family="VOL_SHOCK",
+        primary_event_id="OI_FLUSH_REVERSAL",
+        event_family="COMPOSITE_THESIS",
         event_side="long",
-        required_context={"symbol": "BTCUSDT", "event_type": "VOL_SHOCK"},
+        required_context={"symbol": "BTCUSDT", "event_type": "OI_FLUSH_REVERSAL"},
         supportive_context={
             "canonical_regime": "VOLATILITY",
             "bridge_certified": True,
@@ -49,8 +49,8 @@ def test_decision_policy_emits_trade_small_for_strong_context() -> None:
         timestamp="2026-03-30T00:00:00Z",
         symbol="BTCUSDT",
         timeframe="5m",
-        primary_event_id="VOL_SHOCK",
-        event_family="VOL_SHOCK",
+        primary_event_id="OI_FLUSH_REVERSAL",
+        event_family="COMPOSITE_THESIS",
         event_side="long",
         live_features={"spread_bps": 2.0, "depth_usd": 100000.0, "tob_coverage": 0.95},
         regime_snapshot={"canonical_regime": "VOLATILITY"},
@@ -70,8 +70,8 @@ def test_decision_policy_rejects_when_no_match_exists() -> None:
         timestamp="2026-03-30T00:00:00Z",
         symbol="ETHUSDT",
         timeframe="5m",
-        primary_event_id="VOL_SHOCK",
-        event_family="VOL_SHOCK",
+        primary_event_id="OI_FLUSH_REVERSAL",
+        event_family="COMPOSITE_THESIS",
         event_side="long",
         live_features={"spread_bps": 2.0, "depth_usd": 100000.0, "tob_coverage": 0.95},
         regime_snapshot={"canonical_regime": "VOLATILITY"},
@@ -83,3 +83,84 @@ def test_decision_policy_rejects_when_no_match_exists() -> None:
 
     assert outcome.trade_intent.action == "reject"
     assert outcome.trade_intent.reasons_against == ["no_matching_thesis"]
+
+
+def test_decision_policy_rejects_atomic_event_even_with_matching_thesis() -> None:
+    context = LiveTradeContext(
+        timestamp="2026-03-30T00:00:00Z",
+        symbol="BTCUSDT",
+        timeframe="5m",
+        primary_event_id="VOL_SHOCK",
+        event_family="VOL_SHOCK",
+        event_side="long",
+        trade_eligible=True,
+        live_features={"spread_bps": 2.0, "depth_usd": 100000.0, "tob_coverage": 0.95},
+        regime_snapshot={"canonical_regime": "VOLATILITY"},
+        execution_env={"runtime_mode": "monitor_only"},
+        portfolio_state={"available_balance": 1000.0},
+    )
+
+    outcome = decide_trade_intent(context=context, thesis_store=_store(), include_pending=False)
+
+    assert outcome.trade_intent.action == "reject"
+    assert outcome.trade_intent.reasons_against == ["not_composite_trade_candidate"]
+
+
+def test_decision_policy_rejects_unapproved_composite_in_paper_mode() -> None:
+    context = LiveTradeContext(
+        timestamp="2026-03-30T00:00:00Z",
+        symbol="BTCUSDT",
+        timeframe="5m",
+        primary_event_id="OI_FLUSH_REVERSAL",
+        event_family="COMPOSITE_THESIS",
+        event_side="long",
+        live_features={"spread_bps": 2.0, "depth_usd": 100000.0, "tob_coverage": 0.95},
+        regime_snapshot={"canonical_regime": "VOLATILITY"},
+        execution_env={"runtime_mode": "simulation"},
+        portfolio_state={"available_balance": 1000.0},
+    )
+
+    outcome = decide_trade_intent(context=context, thesis_store=_store(), include_pending=False)
+
+    assert outcome.trade_intent.action == "reject"
+    assert outcome.trade_intent.reasons_against == ["composite_not_paper_approved"]
+
+
+def test_decision_policy_rejects_unapproved_composite_in_live_mode() -> None:
+    context = LiveTradeContext(
+        timestamp="2026-03-30T00:00:00Z",
+        symbol="BTCUSDT",
+        timeframe="5m",
+        primary_event_id="OI_FLUSH_REVERSAL",
+        event_family="COMPOSITE_THESIS",
+        event_side="long",
+        live_features={"spread_bps": 2.0, "depth_usd": 100000.0, "tob_coverage": 0.95},
+        regime_snapshot={"canonical_regime": "VOLATILITY"},
+        execution_env={"runtime_mode": "trading"},
+        portfolio_state={"available_balance": 1000.0},
+    )
+
+    outcome = decide_trade_intent(context=context, thesis_store=_store(), include_pending=False)
+
+    assert outcome.trade_intent.action == "reject"
+    assert outcome.trade_intent.reasons_against == ["composite_not_live_approved"]
+
+
+def test_decision_policy_rejects_killed_composite() -> None:
+    context = LiveTradeContext(
+        timestamp="2026-03-30T00:00:00Z",
+        symbol="BTCUSDT",
+        timeframe="5m",
+        primary_event_id="SQUEEZE_RISK_REVERSAL",
+        event_family="COMPOSITE_THESIS",
+        event_side="long",
+        live_features={"spread_bps": 2.0, "depth_usd": 100000.0, "tob_coverage": 0.95},
+        regime_snapshot={"canonical_regime": "VOLATILITY"},
+        execution_env={"runtime_mode": "monitor_only"},
+        portfolio_state={"available_balance": 1000.0},
+    )
+
+    outcome = decide_trade_intent(context=context, thesis_store=_store(), include_pending=False)
+
+    assert outcome.trade_intent.action == "reject"
+    assert outcome.trade_intent.reasons_against == ["composite_killed"]

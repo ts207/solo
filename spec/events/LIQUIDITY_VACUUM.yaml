@@ -27,34 +27,35 @@ parameters:
   cooldown_bars: 12
   anchor_rule: max_intensity
   min_occurrences: 3
+  median_window: 288
+  min_periods: 24
+  vacuum_depth_ratio_max: 0.3
+  vacuum_spread_ratio_min: 2.5
 detector:
-  signal_definition: 'Identifies bars where an absolute return shock (abs_return >=
-    t_shock) is immediately followed by consecutive bars with below-median volume
-    AND above-median intrabar range, indicating liquidity has withdrawn post-impulse.
+  signal_definition: Direct depth/spread liquidity vacuum. Detects thin-book stress
+    when live depth collapses and spread widens versus lagged trailing medians.
+  formula: 'depth_ratio[i] = depth_usd[i] / trailing_median(depth_usd, median_window,
+    lag=1)[i]
 
-    '
-  formula: 'abs_return[i]    = abs(close[i] / close[i-1] - 1)
+    spread_ratio[i] = spread_bps[i] / trailing_median(spread_bps, median_window, lag=1)[i]
 
-    vol_ratio[i]     = volume[i] / rolling_median(volume, volume_window)[i]
+    direct_vacuum[i] = depth_ratio[i] <= vacuum_depth_ratio_max AND spread_ratio[i]
+    >= vacuum_spread_ratio_min AND evidence_tier == direct
 
-    range_pct[i]     = (high[i] - low[i]) / close[i]
-
-    range_med[i]     = rolling_median(range_pct, range_window)[i]
-
-    shock_onset      = (abs_return[i] >= t_shock) AND (abs_return[i-1] < t_shock)
-
-    vacuum_bar[j]    = (vol_ratio[j] < vol_ratio_floor) AND (range_pct[j] > range_multiplier
-    * range_med[j])
-
-    event detected   = shock_onset[i] AND count(vacuum_bar, i+1..i+k) >= min_vacuum_bars
-
-    '
+    proxy_vacuum is research/context only and never standalone trade eligible.'
   required_columns:
   - timestamp
   - close
   - high
   - low
-  - volume
+  - depth_usd
+  - spread_bps
+  live_trade_required_columns:
+  - depth_usd
+  - spread_bps
+  proxy_mode_policy: Proxy-derived liquidity vacuum is research/risk-context only;
+    raw LIQUIDITY_VACUUM is never an entry trigger. Use LIQUIDITY_VACUUM_RECOVERY
+    for tradeability confirmation.
   lookback_bars: 480
   warmup_bars: 480
   bar_type: bar_close
@@ -115,16 +116,21 @@ identity:
   venue_scope: single_venue
 governance:
   event_kind: market_event
-  default_executable: true
+  default_executable: false
   research_only: false
   strategy_only: false
-  context_tag: false
+  context_tag: true
   is_composite: false
   maturity: ''
   tier: A
-  operational_role: trigger
-  deployment_disposition: primary_trigger_candidate
+  operational_role: context
+  deployment_disposition: context_only_execution_guard
   runtime_category: active_runtime_event
+  detector_band: context_only
+  planning_eligible: true
+  runtime_trade_eligible: false
+  promotion_eligible: false
+  primary_anchor_eligible: false
 runtime:
   detector: LiquidityVacuumDetector
   enabled: true
@@ -134,20 +140,28 @@ runtime:
   instrument_classes:
   - crypto
   - futures
-  requires_features: []
+  requires_features:
+  - timestamp
+  - close
+  - high
+  - low
+  - depth_usd
+  - spread_bps
   sequence_eligible: true
   runtime_tags:
   - liquidity_stress
   - high_urgency
 semantics:
   cluster_id: liquidity_stress
-  notes: Thin-book vacuum regime.
+  notes: Execution/risk guard. Raw vacuum is not an entry trigger; use LIQUIDITY_VACUUM_RECOVERY.
   precedence_rank: 0
 interaction:
   suppresses:
   - event_type: VOL_SHOCK
     penalty_factor: 0.5
     block: false
-    reason: 'Vol signal unreliable during thin-book conditions; vol expansion may be noise-driven. Partial penalty.'
+    reason: Vol signal unreliable during thin-book conditions; vol expansion may be
+      noise-driven. Partial penalty.
   suppressed_by: []
-routing: {}
+routing:
+  standalone_trade_eligible: false

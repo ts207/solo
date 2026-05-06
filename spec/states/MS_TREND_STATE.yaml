@@ -1,11 +1,14 @@
 version: 1
-kind: state_definition
-state_id: MS_TREND_STATE
-family: MICROSTRUCTURE_CONTEXT
-source_event_type: TREND_EXHAUSTION_TRIGGER
-activation_rule: microstructure trend context is directional
-decay_rule: trend context returns to neutral
-allowed_templates:
-- continuation
-state_scope: source_only
-min_events: 1
+kind: state_context_dimension
+state_name: ms_trend_state
+source_feature: ms_trend_state
+allowed_values:
+  - trend
+  - chop
+  - bullish
+  - bearish
+mapping:
+  trend: TREND_ACTIVE
+  chop: CHOP_ACTIVE
+  bullish: BULL_TREND_REGIME
+  bearish: BEAR_TREND_REGIME

@@ -4,8 +4,8 @@ event_type: LIQUIDATION_EXHAUSTION_REVERSAL
 synthetic_coverage: covered
 active: true
 status: implemented
-description: Canonical rebound phase after a forced deleveraging cluster cools, liquidation
-  pressure fades, and price reverses against the prior cluster direction.
+description: Canonical rebound phase after a forced deleveraging cluster cools, liquidation pressure fades, and price reverses
+  against the prior cluster direction.
 reports_dir: forced_flow_and_exhaustion
 events_file: forced_flow_and_exhaustion_events.parquet
 signal_column: liquidation_exhaustion_reversal_event
@@ -36,8 +36,7 @@ parameters:
   cooldown_bars: 24
   merge_gap_bars: 0
 notes:
-- This detector is evaluated on bar features and depends on a prior forced-flow cluster
-  being present in recent history.
+- This detector is evaluated on bar features and depends on a prior forced-flow cluster being present in recent history.
 research_family: FORCED_FLOW_AND_EXHAUSTION
 trigger: Detector triggers on liquidation exhaustion reversal pattern
 confirmation: Post-detection price action confirms signal validity
@@ -60,7 +59,7 @@ identity:
   venue_scope: single_venue
 governance:
   event_kind: market_event
-  default_executable: true
+  default_executable: false
   research_only: false
   strategy_only: false
   context_tag: false
@@ -68,11 +67,15 @@ governance:
   maturity: ''
   tier: B
   operational_role: trigger
-  deployment_disposition: secondary_or_confirm
-  runtime_category: active_runtime_event
+  deployment_disposition: disabled_without_liquidation_feed
+  runtime_category: disabled_by_data_capability
+  runtime_trade_eligible: false
+  promotion_eligible: false
+  primary_anchor_eligible: false
+  planning_eligible: false
 runtime:
   detector: PostDeleveragingReboundDetector
-  enabled: true
+  enabled: false
   signal_column: liquidation_exhaustion_reversal_event
   events_file: forced_flow_and_exhaustion_events.parquet
   reports_dir: forced_flow_and_exhaustion
@@ -84,8 +87,8 @@ runtime:
   runtime_tags:
   - forced_liquidation
 semantics:
-  summary: Canonical rebound phase after a forced deleveraging cluster cools, liquidation
-    pressure fades, and price reverses against the prior cluster direction.
+  summary: Canonical rebound phase after a forced deleveraging cluster cools, liquidation pressure fades, and price reverses
+    against the prior cluster direction.
   cluster_id: forced_liquidation
   notes: Reversal after forced liquidation exhaustion.
   precedence_rank: 0
@@ -93,3 +96,6 @@ interaction:
   suppresses: []
   suppressed_by: []
 routing: {}
+data_capability_policy:
+  requires_feed: liquidations
+  disabled_profile: no_liquidations_v1

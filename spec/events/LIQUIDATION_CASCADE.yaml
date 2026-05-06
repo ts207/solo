@@ -29,7 +29,7 @@ identity:
   venue_scope: single_venue
 governance:
   event_kind: market_event
-  default_executable: true
+  default_executable: false
   research_only: false
   strategy_only: false
   context_tag: false
@@ -37,11 +37,15 @@ governance:
   maturity: ''
   tier: A
   operational_role: trigger
-  deployment_disposition: primary_trigger_candidate
-  runtime_category: active_runtime_event
+  deployment_disposition: disabled_without_liquidation_feed
+  runtime_category: disabled_by_data_capability
+  runtime_trade_eligible: false
+  promotion_eligible: false
+  primary_anchor_eligible: false
+  planning_eligible: false
 runtime:
   detector: LiquidationCascadeDetector
-  enabled: true
+  enabled: false
   signal_column: liquidation_cascade_event
   events_file: liquidation_cascade_events.parquet
   reports_dir: liquidation_cascade
@@ -62,3 +66,6 @@ interaction:
   suppresses: []
   suppressed_by: []
 routing: {}
+data_capability_policy:
+  requires_feed: liquidations
+  disabled_profile: no_liquidations_v1

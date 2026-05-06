@@ -4,8 +4,8 @@ metadata:
   status: generated
   graph_role: runtime_read_model
   schema_version: 2
-  generated_at_utc: '2026-05-05T03:16:27Z'
-  spec_sources_digest: 43109091845098462e680b26973d5cf287cb8216657fe390caefc687aaac4fd1
+  generated_at_utc: '2026-05-06T05:30:04Z'
+  spec_sources_digest: a9a151817e31d9f8cd77c6c2593ee3b956a56dc70d70212b878dc09d48de014a
   notes: Compiled runtime read model. Semantic nodes are normalized for direct runtime/search
     loading.
 events:
@@ -39,7 +39,7 @@ events:
     runtime_category: active_runtime_event
     maturity: standard
     default_executable: true
-    detector_band: composite_or_fragile
+    detector_band: ''
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -58,28 +58,13 @@ events:
     suppresses: []
     suppressed_by: []
     maturity_scores: {}
-    eligibility:
-      ontology_defined: true
-      detector_verified: true
-      research_planning_allowed: true
-      primary_anchor_allowed: false
-      paper_anchor_allowed: false
-      promotion_candidate_allowed: false
-      shadow_runtime_allowed: false
-      micro_live_allowed: false
-      scaled_live_allowed: false
-    eligibility_reason:
-      primary_anchor_allowed: not_yet_governance_approved
-      paper_anchor_allowed: not_yet_governance_approved
-      promotion_candidate_allowed: not_yet_governance_approved
-      shadow_runtime_allowed: not_yet_governance_approved
-      micro_live_allowed: not_yet_governance_approved
-      scaled_live_allowed: not_yet_governance_approved
-    lifecycle_stage: detector_verified
-    polarity_semantics: liquidity_sweep_side
-    polarity_source: detector_specific_or_inferred
-    magnitude_source: detector_specific_or_intensity
-    anchor_role: confirmation_anchor
+    eligibility: {}
+    eligibility_reason: {}
+    lifecycle_stage: standard
+    polarity_semantics: unknown
+    polarity_source: unknown
+    magnitude_source: unknown
+    anchor_role: alpha_anchor
     parameters:
       merge_gap_bars: 0
       cooldown_bars: 96
@@ -152,7 +137,7 @@ events:
     runtime_category: active_runtime_event
     maturity: ''
     default_executable: true
-    detector_band: research_trigger
+    detector_band: ''
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -174,28 +159,13 @@ events:
     suppresses: []
     suppressed_by: []
     maturity_scores: {}
-    eligibility:
-      ontology_defined: true
-      detector_verified: true
-      research_planning_allowed: true
-      primary_anchor_allowed: false
-      paper_anchor_allowed: false
-      promotion_candidate_allowed: false
-      shadow_runtime_allowed: false
-      micro_live_allowed: false
-      scaled_live_allowed: false
-    eligibility_reason:
-      primary_anchor_allowed: not_yet_governance_approved
-      paper_anchor_allowed: not_yet_governance_approved
-      promotion_candidate_allowed: not_yet_governance_approved
-      shadow_runtime_allowed: not_yet_governance_approved
-      micro_live_allowed: not_yet_governance_approved
-      scaled_live_allowed: not_yet_governance_approved
-    lifecycle_stage: detector_verified
-    polarity_semantics: deviation_direction
-    polarity_source: detector_specific_or_inferred
-    magnitude_source: detector_specific_or_intensity
-    anchor_role: confirmation_anchor
+    eligibility: {}
+    eligibility_reason: {}
+    lifecycle_stage: ontology_defined
+    polarity_semantics: unknown
+    polarity_source: unknown
+    magnitude_source: unknown
+    anchor_role: alpha_anchor
     parameters:
       merge_gap_bars: 0
       cooldown_bars: 12
@@ -261,7 +231,7 @@ events:
     runtime_category: active_runtime_event
     maturity: ''
     default_executable: true
-    detector_band: research_trigger
+    detector_band: ''
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -283,27 +253,12 @@ events:
     suppresses: []
     suppressed_by: []
     maturity_scores: {}
-    eligibility:
-      ontology_defined: true
-      detector_verified: true
-      research_planning_allowed: true
-      primary_anchor_allowed: false
-      paper_anchor_allowed: false
-      promotion_candidate_allowed: false
-      shadow_runtime_allowed: false
-      micro_live_allowed: false
-      scaled_live_allowed: false
-    eligibility_reason:
-      primary_anchor_allowed: not_yet_governance_approved
-      paper_anchor_allowed: not_yet_governance_approved
-      promotion_candidate_allowed: not_yet_governance_approved
-      shadow_runtime_allowed: not_yet_governance_approved
-      micro_live_allowed: not_yet_governance_approved
-      scaled_live_allowed: not_yet_governance_approved
-    lifecycle_stage: detector_verified
-    polarity_semantics: basis_spread_direction
-    polarity_source: detector_specific_or_inferred
-    magnitude_source: detector_specific_or_intensity
+    eligibility: {}
+    eligibility_reason: {}
+    lifecycle_stage: ontology_defined
+    polarity_semantics: unknown
+    polarity_source: unknown
+    magnitude_source: unknown
     anchor_role: alpha_anchor
     parameters:
       merge_gap_bars: 1
@@ -367,7 +322,7 @@ events:
     runtime_category: active_runtime_event
     maturity: ''
     default_executable: true
-    detector_band: research_trigger
+    detector_band: ''
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -389,28 +344,13 @@ events:
     suppresses: []
     suppressed_by: []
     maturity_scores: {}
-    eligibility:
-      ontology_defined: true
-      detector_verified: true
-      research_planning_allowed: true
-      primary_anchor_allowed: false
-      paper_anchor_allowed: false
-      promotion_candidate_allowed: false
-      shadow_runtime_allowed: false
-      micro_live_allowed: false
-      scaled_live_allowed: false
-    eligibility_reason:
-      primary_anchor_allowed: not_yet_governance_approved
-      paper_anchor_allowed: not_yet_governance_approved
-      promotion_candidate_allowed: not_yet_governance_approved
-      shadow_runtime_allowed: not_yet_governance_approved
-      micro_live_allowed: not_yet_governance_approved
-      scaled_live_allowed: not_yet_governance_approved
-    lifecycle_stage: detector_verified
-    polarity_semantics: regime_transition
-    polarity_source: detector_specific_or_inferred
-    magnitude_source: detector_specific_or_intensity
-    anchor_role: risk_guard
+    eligibility: {}
+    eligibility_reason: {}
+    lifecycle_stage: ontology_defined
+    polarity_semantics: unknown
+    polarity_source: unknown
+    magnitude_source: unknown
+    anchor_role: alpha_anchor
     parameters:
       merge_gap_bars: 0
       cooldown_bars: 48
@@ -477,7 +417,7 @@ events:
     runtime_category: active_runtime_event
     maturity: ''
     default_executable: true
-    detector_band: research_trigger
+    detector_band: ''
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -500,28 +440,13 @@ events:
     suppresses: []
     suppressed_by: []
     maturity_scores: {}
-    eligibility:
-      ontology_defined: true
-      detector_verified: true
-      research_planning_allowed: true
-      primary_anchor_allowed: false
-      paper_anchor_allowed: false
-      promotion_candidate_allowed: false
-      shadow_runtime_allowed: false
-      micro_live_allowed: false
-      scaled_live_allowed: false
-    eligibility_reason:
-      primary_anchor_allowed: not_yet_governance_approved
-      paper_anchor_allowed: not_yet_governance_approved
-      promotion_candidate_allowed: not_yet_governance_approved
-      shadow_runtime_allowed: not_yet_governance_approved
-      micro_live_allowed: not_yet_governance_approved
-      scaled_live_allowed: not_yet_governance_approved
-    lifecycle_stage: detector_verified
-    polarity_semantics: price_direction
-    polarity_source: detector_specific_or_inferred
-    magnitude_source: detector_specific_or_intensity
-    anchor_role: confirmation_anchor
+    eligibility: {}
+    eligibility_reason: {}
+    lifecycle_stage: ontology_defined
+    polarity_semantics: unknown
+    polarity_source: unknown
+    magnitude_source: unknown
+    anchor_role: alpha_anchor
     parameters:
       merge_gap_bars: 0
       cooldown_bars: 12
@@ -592,7 +517,7 @@ events:
     runtime_category: active_runtime_event
     maturity: ''
     default_executable: true
-    detector_band: research_trigger
+    detector_band: ''
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -615,28 +540,13 @@ events:
     suppresses: []
     suppressed_by: []
     maturity_scores: {}
-    eligibility:
-      ontology_defined: true
-      detector_verified: true
-      research_planning_allowed: true
-      primary_anchor_allowed: false
-      paper_anchor_allowed: false
-      promotion_candidate_allowed: false
-      shadow_runtime_allowed: false
-      micro_live_allowed: false
-      scaled_live_allowed: false
-    eligibility_reason:
-      primary_anchor_allowed: not_yet_governance_approved
-      paper_anchor_allowed: not_yet_governance_approved
-      promotion_candidate_allowed: not_yet_governance_approved
-      shadow_runtime_allowed: not_yet_governance_approved
-      micro_live_allowed: not_yet_governance_approved
-      scaled_live_allowed: not_yet_governance_approved
-    lifecycle_stage: detector_verified
-    polarity_semantics: regime_transition
-    polarity_source: detector_specific_or_inferred
-    magnitude_source: detector_specific_or_intensity
-    anchor_role: risk_guard
+    eligibility: {}
+    eligibility_reason: {}
+    lifecycle_stage: ontology_defined
+    polarity_semantics: unknown
+    polarity_source: unknown
+    magnitude_source: unknown
+    anchor_role: alpha_anchor
     parameters:
       merge_gap_bars: 0
       cooldown_bars: 48
@@ -703,7 +613,7 @@ events:
     runtime_category: active_runtime_event
     maturity: ''
     default_executable: true
-    detector_band: research_trigger
+    detector_band: ''
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -726,28 +636,13 @@ events:
     suppresses: []
     suppressed_by: []
     maturity_scores: {}
-    eligibility:
-      ontology_defined: true
-      detector_verified: true
-      research_planning_allowed: true
-      primary_anchor_allowed: false
-      paper_anchor_allowed: false
-      promotion_candidate_allowed: false
-      shadow_runtime_allowed: false
-      micro_live_allowed: false
-      scaled_live_allowed: false
-    eligibility_reason:
-      primary_anchor_allowed: not_yet_governance_approved
-      paper_anchor_allowed: not_yet_governance_approved
-      promotion_candidate_allowed: not_yet_governance_approved
-      shadow_runtime_allowed: not_yet_governance_approved
-      micro_live_allowed: not_yet_governance_approved
-      scaled_live_allowed: not_yet_governance_approved
-    lifecycle_stage: detector_verified
-    polarity_semantics: price_direction
-    polarity_source: detector_specific_or_inferred
-    magnitude_source: detector_specific_or_intensity
-    anchor_role: confirmation_anchor
+    eligibility: {}
+    eligibility_reason: {}
+    lifecycle_stage: ontology_defined
+    polarity_semantics: unknown
+    polarity_source: unknown
+    magnitude_source: unknown
+    anchor_role: alpha_anchor
     parameters:
       merge_gap_bars: 0
       cooldown_bars: 48
@@ -820,7 +715,7 @@ events:
     runtime_category: research_only
     maturity: ''
     default_executable: false
-    detector_band: composite_or_fragile
+    detector_band: ''
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -842,28 +737,13 @@ events:
     suppresses: []
     suppressed_by: []
     maturity_scores: {}
-    eligibility:
-      ontology_defined: true
-      detector_verified: true
-      research_planning_allowed: true
-      primary_anchor_allowed: false
-      paper_anchor_allowed: false
-      promotion_candidate_allowed: false
-      shadow_runtime_allowed: false
-      micro_live_allowed: false
-      scaled_live_allowed: false
-    eligibility_reason:
-      primary_anchor_allowed: not_yet_governance_approved
-      paper_anchor_allowed: not_yet_governance_approved
-      promotion_candidate_allowed: not_yet_governance_approved
-      shadow_runtime_allowed: not_yet_governance_approved
-      micro_live_allowed: not_yet_governance_approved
-      scaled_live_allowed: not_yet_governance_approved
-    lifecycle_stage: detector_verified
-    polarity_semantics: basis_spread_direction
-    polarity_source: detector_specific_or_inferred
-    magnitude_source: detector_specific_or_intensity
-    anchor_role: research_only
+    eligibility: {}
+    eligibility_reason: {}
+    lifecycle_stage: ontology_defined
+    polarity_semantics: unknown
+    polarity_source: unknown
+    magnitude_source: unknown
+    anchor_role: alpha_anchor
     parameters:
       merge_gap_bars: 1
       cooldown_bars: 12
@@ -930,7 +810,7 @@ events:
     runtime_category: active_runtime_event
     maturity: ''
     default_executable: true
-    detector_band: research_trigger
+    detector_band: ''
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -952,28 +832,13 @@ events:
     suppresses: []
     suppressed_by: []
     maturity_scores: {}
-    eligibility:
-      ontology_defined: true
-      detector_verified: true
-      research_planning_allowed: true
-      primary_anchor_allowed: false
-      paper_anchor_allowed: false
-      promotion_candidate_allowed: false
-      shadow_runtime_allowed: false
-      micro_live_allowed: false
-      scaled_live_allowed: false
-    eligibility_reason:
-      primary_anchor_allowed: not_yet_governance_approved
-      paper_anchor_allowed: not_yet_governance_approved
-      promotion_candidate_allowed: not_yet_governance_approved
-      shadow_runtime_allowed: not_yet_governance_approved
-      micro_live_allowed: not_yet_governance_approved
-      scaled_live_allowed: not_yet_governance_approved
-    lifecycle_stage: detector_verified
-    polarity_semantics: regime_transition
-    polarity_source: detector_specific_or_inferred
-    magnitude_source: detector_specific_or_intensity
-    anchor_role: risk_guard
+    eligibility: {}
+    eligibility_reason: {}
+    lifecycle_stage: ontology_defined
+    polarity_semantics: unknown
+    polarity_source: unknown
+    magnitude_source: unknown
+    anchor_role: alpha_anchor
     parameters:
       merge_gap_bars: 0
       cooldown_bars: 48
@@ -1040,7 +905,7 @@ events:
     runtime_category: active_runtime_event
     maturity: ''
     default_executable: true
-    detector_band: context_only
+    detector_band: ''
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -1062,28 +927,13 @@ events:
     suppresses: []
     suppressed_by: []
     maturity_scores: {}
-    eligibility:
-      ontology_defined: true
-      detector_verified: true
-      research_planning_allowed: true
-      primary_anchor_allowed: false
-      paper_anchor_allowed: false
-      promotion_candidate_allowed: false
-      shadow_runtime_allowed: false
-      micro_live_allowed: false
-      scaled_live_allowed: false
-    eligibility_reason:
-      primary_anchor_allowed: not_yet_governance_approved
-      paper_anchor_allowed: not_yet_governance_approved
-      promotion_candidate_allowed: not_yet_governance_approved
-      shadow_runtime_allowed: not_yet_governance_approved
-      micro_live_allowed: not_yet_governance_approved
-      scaled_live_allowed: not_yet_governance_approved
-    lifecycle_stage: detector_verified
-    polarity_semantics: basis_spread_direction
-    polarity_source: detector_specific_or_inferred
-    magnitude_source: detector_specific_or_intensity
-    anchor_role: context_filter
+    eligibility: {}
+    eligibility_reason: {}
+    lifecycle_stage: ontology_defined
+    polarity_semantics: unknown
+    polarity_source: unknown
+    magnitude_source: unknown
+    anchor_role: alpha_anchor
     parameters:
       merge_gap_bars: 1
       cooldown_bars: 24
@@ -1204,7 +1054,7 @@ events:
     runtime_category: active_runtime_event
     maturity: standard
     default_executable: true
-    detector_band: research_trigger
+    detector_band: ''
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -1226,28 +1076,13 @@ events:
     suppresses: []
     suppressed_by: []
     maturity_scores: {}
-    eligibility:
-      ontology_defined: true
-      detector_verified: true
-      research_planning_allowed: true
-      primary_anchor_allowed: false
-      paper_anchor_allowed: false
-      promotion_candidate_allowed: false
-      shadow_runtime_allowed: false
-      micro_live_allowed: false
-      scaled_live_allowed: false
-    eligibility_reason:
-      primary_anchor_allowed: not_yet_governance_approved
-      paper_anchor_allowed: not_yet_governance_approved
-      promotion_candidate_allowed: not_yet_governance_approved
-      shadow_runtime_allowed: not_yet_governance_approved
-      micro_live_allowed: not_yet_governance_approved
-      scaled_live_allowed: not_yet_governance_approved
-    lifecycle_stage: detector_verified
-    polarity_semantics: basis_spread_direction
-    polarity_source: detector_specific_or_inferred
-    magnitude_source: detector_specific_or_intensity
-    anchor_role: confirmation_anchor
+    eligibility: {}
+    eligibility_reason: {}
+    lifecycle_stage: standard
+    polarity_semantics: unknown
+    polarity_source: unknown
+    magnitude_source: unknown
+    anchor_role: alpha_anchor
     parameters:
       merge_gap_bars: 1
       cooldown_bars: 0
@@ -1386,7 +1221,7 @@ events:
     runtime_category: active_runtime_event
     maturity: ''
     default_executable: true
-    detector_band: research_trigger
+    detector_band: ''
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -1424,28 +1259,13 @@ events:
         trend breakouts. Penalize continuation templates heavily.
     suppressed_by: []
     maturity_scores: {}
-    eligibility:
-      ontology_defined: true
-      detector_verified: true
-      research_planning_allowed: true
-      primary_anchor_allowed: false
-      paper_anchor_allowed: false
-      promotion_candidate_allowed: false
-      shadow_runtime_allowed: false
-      micro_live_allowed: false
-      scaled_live_allowed: false
-    eligibility_reason:
-      primary_anchor_allowed: not_yet_governance_approved
-      paper_anchor_allowed: not_yet_governance_approved
-      promotion_candidate_allowed: not_yet_governance_approved
-      shadow_runtime_allowed: not_yet_governance_approved
-      micro_live_allowed: not_yet_governance_approved
-      scaled_live_allowed: not_yet_governance_approved
-    lifecycle_stage: detector_verified
-    polarity_semantics: liquidation_side
-    polarity_source: detector_specific_or_inferred
-    magnitude_source: detector_specific_or_intensity
-    anchor_role: confirmation_anchor
+    eligibility: {}
+    eligibility_reason: {}
+    lifecycle_stage: ontology_defined
+    polarity_semantics: unknown
+    polarity_source: unknown
+    magnitude_source: unknown
+    anchor_role: alpha_anchor
     parameters:
       merge_gap_bars: 0
       cooldown_bars: 24
@@ -1516,7 +1336,7 @@ events:
     runtime_category: active_runtime_event
     maturity: standard
     default_executable: true
-    detector_band: research_trigger
+    detector_band: ''
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -1538,28 +1358,13 @@ events:
     suppresses: []
     suppressed_by: []
     maturity_scores: {}
-    eligibility:
-      ontology_defined: true
-      detector_verified: true
-      research_planning_allowed: true
-      primary_anchor_allowed: false
-      paper_anchor_allowed: false
-      promotion_candidate_allowed: false
-      shadow_runtime_allowed: false
-      micro_live_allowed: false
-      scaled_live_allowed: false
-    eligibility_reason:
-      primary_anchor_allowed: not_yet_governance_approved
-      paper_anchor_allowed: not_yet_governance_approved
-      promotion_candidate_allowed: not_yet_governance_approved
-      shadow_runtime_allowed: not_yet_governance_approved
-      micro_live_allowed: not_yet_governance_approved
-      scaled_live_allowed: not_yet_governance_approved
-    lifecycle_stage: detector_verified
-    polarity_semantics: neutral_guard
-    polarity_source: detector_specific_or_inferred
-    magnitude_source: detector_specific_or_intensity
-    anchor_role: risk_guard
+    eligibility: {}
+    eligibility_reason: {}
+    lifecycle_stage: standard
+    polarity_semantics: unknown
+    polarity_source: unknown
+    magnitude_source: unknown
+    anchor_role: alpha_anchor
     parameters:
       merge_gap_bars: 0
       cooldown_bars: 12
@@ -1633,7 +1438,7 @@ events:
     runtime_category: active_runtime_event
     maturity: standard
     default_executable: true
-    detector_band: composite_or_fragile
+    detector_band: ''
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -1652,28 +1457,13 @@ events:
     suppresses: []
     suppressed_by: []
     maturity_scores: {}
-    eligibility:
-      ontology_defined: true
-      detector_verified: true
-      research_planning_allowed: true
-      primary_anchor_allowed: false
-      paper_anchor_allowed: false
-      promotion_candidate_allowed: false
-      shadow_runtime_allowed: false
-      micro_live_allowed: false
-      scaled_live_allowed: false
-    eligibility_reason:
-      primary_anchor_allowed: not_yet_governance_approved
-      paper_anchor_allowed: not_yet_governance_approved
-      promotion_candidate_allowed: not_yet_governance_approved
-      shadow_runtime_allowed: not_yet_governance_approved
-      micro_live_allowed: not_yet_governance_approved
-      scaled_live_allowed: not_yet_governance_approved
-    lifecycle_stage: detector_verified
-    polarity_semantics: execution_guard
-    polarity_source: detector_specific_or_inferred
-    magnitude_source: detector_specific_or_intensity
-    anchor_role: execution_guard
+    eligibility: {}
+    eligibility_reason: {}
+    lifecycle_stage: standard
+    polarity_semantics: unknown
+    polarity_source: unknown
+    magnitude_source: unknown
+    anchor_role: alpha_anchor
     parameters:
       merge_gap_bars: 0
       cooldown_bars: 96
@@ -1750,7 +1540,7 @@ events:
     runtime_category: active_runtime_event
     maturity: ''
     default_executable: true
-    detector_band: research_trigger
+    detector_band: ''
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -1772,28 +1562,13 @@ events:
     suppresses: []
     suppressed_by: []
     maturity_scores: {}
-    eligibility:
-      ontology_defined: true
-      detector_verified: true
-      research_planning_allowed: true
-      primary_anchor_allowed: false
-      paper_anchor_allowed: false
-      promotion_candidate_allowed: false
-      shadow_runtime_allowed: false
-      micro_live_allowed: false
-      scaled_live_allowed: false
-    eligibility_reason:
-      primary_anchor_allowed: not_yet_governance_approved
-      paper_anchor_allowed: not_yet_governance_approved
-      promotion_candidate_allowed: not_yet_governance_approved
-      shadow_runtime_allowed: not_yet_governance_approved
-      micro_live_allowed: not_yet_governance_approved
-      scaled_live_allowed: not_yet_governance_approved
-    lifecycle_stage: detector_verified
-    polarity_semantics: price_direction
-    polarity_source: detector_specific_or_inferred
-    magnitude_source: detector_specific_or_intensity
-    anchor_role: confirmation_anchor
+    eligibility: {}
+    eligibility_reason: {}
+    lifecycle_stage: ontology_defined
+    polarity_semantics: unknown
+    polarity_source: unknown
+    magnitude_source: unknown
+    anchor_role: alpha_anchor
     parameters:
       merge_gap_bars: 0
       cooldown_bars: 24
@@ -1862,7 +1637,7 @@ events:
     runtime_category: active_runtime_event
     maturity: ''
     default_executable: true
-    detector_band: research_trigger
+    detector_band: ''
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -1885,28 +1660,13 @@ events:
     suppresses: []
     suppressed_by: []
     maturity_scores: {}
-    eligibility:
-      ontology_defined: true
-      detector_verified: true
-      research_planning_allowed: true
-      primary_anchor_allowed: false
-      paper_anchor_allowed: false
-      promotion_candidate_allowed: false
-      shadow_runtime_allowed: false
-      micro_live_allowed: false
-      scaled_live_allowed: false
-    eligibility_reason:
-      primary_anchor_allowed: not_yet_governance_approved
-      paper_anchor_allowed: not_yet_governance_approved
-      promotion_candidate_allowed: not_yet_governance_approved
-      shadow_runtime_allowed: not_yet_governance_approved
-      micro_live_allowed: not_yet_governance_approved
-      scaled_live_allowed: not_yet_governance_approved
-    lifecycle_stage: detector_verified
-    polarity_semantics: price_direction
-    polarity_source: detector_specific_or_inferred
-    magnitude_source: detector_specific_or_intensity
-    anchor_role: confirmation_anchor
+    eligibility: {}
+    eligibility_reason: {}
+    lifecycle_stage: ontology_defined
+    polarity_semantics: unknown
+    polarity_source: unknown
+    magnitude_source: unknown
+    anchor_role: alpha_anchor
     parameters:
       merge_gap_bars: 0
       cooldown_bars: 12
@@ -1976,7 +1736,7 @@ events:
     runtime_category: active_runtime_event
     maturity: ''
     default_executable: true
-    detector_band: research_trigger
+    detector_band: ''
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -1998,28 +1758,13 @@ events:
     suppresses: []
     suppressed_by: []
     maturity_scores: {}
-    eligibility:
-      ontology_defined: true
-      detector_verified: true
-      research_planning_allowed: true
-      primary_anchor_allowed: false
-      paper_anchor_allowed: false
-      promotion_candidate_allowed: false
-      shadow_runtime_allowed: false
-      micro_live_allowed: false
-      scaled_live_allowed: false
-    eligibility_reason:
-      primary_anchor_allowed: not_yet_governance_approved
-      paper_anchor_allowed: not_yet_governance_approved
-      promotion_candidate_allowed: not_yet_governance_approved
-      shadow_runtime_allowed: not_yet_governance_approved
-      micro_live_allowed: not_yet_governance_approved
-      scaled_live_allowed: not_yet_governance_approved
-    lifecycle_stage: detector_verified
-    polarity_semantics: regime_transition
-    polarity_source: detector_specific_or_inferred
-    magnitude_source: detector_specific_or_intensity
-    anchor_role: risk_guard
+    eligibility: {}
+    eligibility_reason: {}
+    lifecycle_stage: ontology_defined
+    polarity_semantics: unknown
+    polarity_source: unknown
+    magnitude_source: unknown
+    anchor_role: alpha_anchor
     parameters:
       merge_gap_bars: 0
       cooldown_bars: 12
@@ -2085,7 +1830,7 @@ events:
     runtime_category: active_runtime_event
     maturity: standard
     default_executable: true
-    detector_band: composite_or_fragile
+    detector_band: ''
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -2104,28 +1849,13 @@ events:
     suppresses: []
     suppressed_by: []
     maturity_scores: {}
-    eligibility:
-      ontology_defined: true
-      detector_verified: true
-      research_planning_allowed: true
-      primary_anchor_allowed: false
-      paper_anchor_allowed: false
-      promotion_candidate_allowed: false
-      shadow_runtime_allowed: false
-      micro_live_allowed: false
-      scaled_live_allowed: false
-    eligibility_reason:
-      primary_anchor_allowed: not_yet_governance_approved
-      paper_anchor_allowed: not_yet_governance_approved
-      promotion_candidate_allowed: not_yet_governance_approved
-      shadow_runtime_allowed: not_yet_governance_approved
-      micro_live_allowed: not_yet_governance_approved
-      scaled_live_allowed: not_yet_governance_approved
-    lifecycle_stage: detector_verified
-    polarity_semantics: liquidation_side
-    polarity_source: detector_specific_or_inferred
-    magnitude_source: detector_specific_or_intensity
-    anchor_role: confirmation_anchor
+    eligibility: {}
+    eligibility_reason: {}
+    lifecycle_stage: standard
+    polarity_semantics: unknown
+    polarity_source: unknown
+    magnitude_source: unknown
+    anchor_role: alpha_anchor
     parameters:
       merge_gap_bars: 0
       cooldown_bars: 12
@@ -2211,7 +1941,7 @@ events:
     runtime_category: active_runtime_event
     maturity: ''
     default_executable: true
-    detector_band: research_trigger
+    detector_band: ''
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -2233,27 +1963,12 @@ events:
     suppresses: []
     suppressed_by: []
     maturity_scores: {}
-    eligibility:
-      ontology_defined: true
-      detector_verified: true
-      research_planning_allowed: true
-      primary_anchor_allowed: false
-      paper_anchor_allowed: false
-      promotion_candidate_allowed: false
-      shadow_runtime_allowed: false
-      micro_live_allowed: false
-      scaled_live_allowed: false
-    eligibility_reason:
-      primary_anchor_allowed: not_yet_governance_approved
-      paper_anchor_allowed: not_yet_governance_approved
-      promotion_candidate_allowed: not_yet_governance_approved
-      shadow_runtime_allowed: not_yet_governance_approved
-      micro_live_allowed: not_yet_governance_approved
-      scaled_live_allowed: not_yet_governance_approved
-    lifecycle_stage: detector_verified
-    polarity_semantics: basis_spread_direction
-    polarity_source: detector_specific_or_inferred
-    magnitude_source: detector_specific_or_intensity
+    eligibility: {}
+    eligibility_reason: {}
+    lifecycle_stage: ontology_defined
+    polarity_semantics: unknown
+    polarity_source: unknown
+    magnitude_source: unknown
     anchor_role: alpha_anchor
     parameters:
       merge_gap_bars: 1
@@ -2317,16 +2032,16 @@ events:
     notes: Exhaustion regime with forced-flow mechanics.
     tier: B
     operational_role: trigger
-    deployment_disposition: secondary_or_confirm
-    runtime_category: active_runtime_event
+    deployment_disposition: disabled_without_liquidation_feed
+    runtime_category: disabled_by_data_capability
     maturity: standard
-    default_executable: true
-    detector_band: research_trigger
+    default_executable: false
+    detector_band: ''
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
     primary_anchor_eligible: false
-    enabled: true
+    enabled: false
     detector_name: ForcedFlowExhaustionDetector
     instrument_classes:
     - crypto
@@ -2344,28 +2059,13 @@ events:
     suppresses: []
     suppressed_by: []
     maturity_scores: {}
-    eligibility:
-      ontology_defined: true
-      detector_verified: true
-      research_planning_allowed: true
-      primary_anchor_allowed: false
-      paper_anchor_allowed: false
-      promotion_candidate_allowed: false
-      shadow_runtime_allowed: false
-      micro_live_allowed: false
-      scaled_live_allowed: false
-    eligibility_reason:
-      primary_anchor_allowed: not_yet_governance_approved
-      paper_anchor_allowed: not_yet_governance_approved
-      promotion_candidate_allowed: not_yet_governance_approved
-      shadow_runtime_allowed: not_yet_governance_approved
-      micro_live_allowed: not_yet_governance_approved
-      scaled_live_allowed: not_yet_governance_approved
-    lifecycle_stage: detector_verified
-    polarity_semantics: liquidation_side
-    polarity_source: detector_specific_or_inferred
-    magnitude_source: detector_specific_or_intensity
-    anchor_role: confirmation_anchor
+    eligibility: {}
+    eligibility_reason: {}
+    lifecycle_stage: standard
+    polarity_semantics: unknown
+    polarity_source: unknown
+    magnitude_source: unknown
+    anchor_role: alpha_anchor
     parameters:
       merge_gap_bars: 1
       cooldown_bars: 0
@@ -2384,6 +2084,9 @@ events:
         disabled_regimes:
         - 'Low volume: flow signals unreliable'
       cluster_id: exhaustion
+      data_capability_policy:
+        requires_feed: liquidations
+        disabled_profile: no_liquidations_v1
       window_end: 32
       anchor_mode: taker_imbalance
       anchor_quantile: 0.99
@@ -2438,7 +2141,7 @@ events:
     asset_scope: single_asset
     venue_scope: cross_venue
     is_composite: false
-    is_context_tag: false
+    is_context_tag: true
     is_strategy_construct: false
     research_only: false
     strategy_only: false
@@ -2447,13 +2150,13 @@ events:
     layer: canonical
     notes: Funding extreme onset under basis/funding dislocation.
     tier: B
-    operational_role: trigger
-    deployment_disposition: secondary_or_confirm
-    runtime_category: active_runtime_event
+    operational_role: context
+    deployment_disposition: requires_pairing_no_liquidation
+    runtime_category: research_only_event
     maturity: standard
-    default_executable: true
-    detector_band: research_trigger
-    planning_eligible: false
+    default_executable: false
+    detector_band: context_only
+    planning_eligible: true
     runtime_eligible: false
     promotion_eligible: false
     primary_anchor_eligible: false
@@ -2474,28 +2177,13 @@ events:
     suppresses: []
     suppressed_by: []
     maturity_scores: {}
-    eligibility:
-      ontology_defined: true
-      detector_verified: true
-      research_planning_allowed: true
-      primary_anchor_allowed: false
-      paper_anchor_allowed: false
-      promotion_candidate_allowed: false
-      shadow_runtime_allowed: false
-      micro_live_allowed: false
-      scaled_live_allowed: false
-    eligibility_reason:
-      primary_anchor_allowed: not_yet_governance_approved
-      paper_anchor_allowed: not_yet_governance_approved
-      promotion_candidate_allowed: not_yet_governance_approved
-      shadow_runtime_allowed: not_yet_governance_approved
-      micro_live_allowed: not_yet_governance_approved
-      scaled_live_allowed: not_yet_governance_approved
-    lifecycle_stage: detector_verified
-    polarity_semantics: funding_crowding_side
-    polarity_source: detector_specific_or_inferred
-    magnitude_source: detector_specific_or_intensity
-    anchor_role: confirmation_anchor
+    eligibility: {}
+    eligibility_reason: {}
+    lifecycle_stage: standard
+    polarity_semantics: unknown
+    polarity_source: unknown
+    magnitude_source: unknown
+    anchor_role: alpha_anchor
     parameters:
       merge_gap_bars: 1
       cooldown_bars: 0
@@ -2580,6 +2268,12 @@ events:
       trigger: Detector triggers on funding extreme onset pattern
       confirmation: Post-detection price action confirms signal validity
       cluster_id: funding_crowding
+      pairing_required:
+        any_of:
+        - OI_EXPANSION_STRESS
+        - OI_FLUSH
+        - VOL_SHOCK
+        - FAILED_CONTINUATION
       funding_pct_window: 2880
       extreme_pct: 95.0
       accel_pct: 95.0
@@ -2589,7 +2283,7 @@ events:
       normalization_pct: 50.0
       normalization_lookback: 96
       min_event_spacing: 96
-      event_lookahead: 96
+      post_event_horizon_bars: 96
       liquidation_abs_return: 0.03
       drawdown_abs_return: 0.03
       vol_burst_quantile: 0.9
@@ -2664,7 +2358,7 @@ events:
     runtime_category: active_runtime_event
     maturity: ''
     default_executable: true
-    detector_band: research_trigger
+    detector_band: ''
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -2687,28 +2381,13 @@ events:
     suppresses: []
     suppressed_by: []
     maturity_scores: {}
-    eligibility:
-      ontology_defined: true
-      detector_verified: true
-      research_planning_allowed: true
-      primary_anchor_allowed: false
-      paper_anchor_allowed: false
-      promotion_candidate_allowed: false
-      shadow_runtime_allowed: false
-      micro_live_allowed: false
-      scaled_live_allowed: false
-    eligibility_reason:
-      primary_anchor_allowed: not_yet_governance_approved
-      paper_anchor_allowed: not_yet_governance_approved
-      promotion_candidate_allowed: not_yet_governance_approved
-      shadow_runtime_allowed: not_yet_governance_approved
-      micro_live_allowed: not_yet_governance_approved
-      scaled_live_allowed: not_yet_governance_approved
-    lifecycle_stage: detector_verified
-    polarity_semantics: funding_crowding_side
-    polarity_source: detector_specific_or_inferred
-    magnitude_source: detector_specific_or_intensity
-    anchor_role: confirmation_anchor
+    eligibility: {}
+    eligibility_reason: {}
+    lifecycle_stage: ontology_defined
+    polarity_semantics: unknown
+    polarity_source: unknown
+    magnitude_source: unknown
+    anchor_role: alpha_anchor
     parameters:
       merge_gap_bars: 0
       cooldown_bars: 24
@@ -2782,7 +2461,7 @@ events:
     runtime_category: active_runtime_event
     maturity: ''
     default_executable: false
-    detector_band: semantic_variant
+    detector_band: ''
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -2801,29 +2480,13 @@ events:
     suppresses: []
     suppressed_by: []
     maturity_scores: {}
-    eligibility:
-      ontology_defined: true
-      detector_verified: true
-      research_planning_allowed: false
-      primary_anchor_allowed: false
-      paper_anchor_allowed: false
-      promotion_candidate_allowed: false
-      shadow_runtime_allowed: false
-      micro_live_allowed: false
-      scaled_live_allowed: false
-    eligibility_reason:
-      research_planning_allowed: not_yet_governance_approved
-      primary_anchor_allowed: not_yet_governance_approved
-      paper_anchor_allowed: not_yet_governance_approved
-      promotion_candidate_allowed: not_yet_governance_approved
-      shadow_runtime_allowed: not_yet_governance_approved
-      micro_live_allowed: not_yet_governance_approved
-      scaled_live_allowed: not_yet_governance_approved
-    lifecycle_stage: ontology_complete
-    polarity_semantics: funding_crowding_side
-    polarity_source: detector_specific_or_inferred
-    magnitude_source: detector_specific_or_intensity
-    anchor_role: context_filter
+    eligibility: {}
+    eligibility_reason: {}
+    lifecycle_stage: ontology_defined
+    polarity_semantics: unknown
+    polarity_source: unknown
+    magnitude_source: unknown
+    anchor_role: alpha_anchor
     parameters:
       merge_gap_bars: 1
       cooldown_bars: 0
@@ -2904,7 +2567,7 @@ events:
     runtime_category: active_runtime_event
     maturity: ''
     default_executable: false
-    detector_band: semantic_variant
+    detector_band: ''
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -2923,29 +2586,13 @@ events:
     suppresses: []
     suppressed_by: []
     maturity_scores: {}
-    eligibility:
-      ontology_defined: true
-      detector_verified: true
-      research_planning_allowed: false
-      primary_anchor_allowed: false
-      paper_anchor_allowed: false
-      promotion_candidate_allowed: false
-      shadow_runtime_allowed: false
-      micro_live_allowed: false
-      scaled_live_allowed: false
-    eligibility_reason:
-      research_planning_allowed: not_yet_governance_approved
-      primary_anchor_allowed: not_yet_governance_approved
-      paper_anchor_allowed: not_yet_governance_approved
-      promotion_candidate_allowed: not_yet_governance_approved
-      shadow_runtime_allowed: not_yet_governance_approved
-      micro_live_allowed: not_yet_governance_approved
-      scaled_live_allowed: not_yet_governance_approved
-    lifecycle_stage: ontology_complete
-    polarity_semantics: funding_crowding_side
-    polarity_source: detector_specific_or_inferred
-    magnitude_source: detector_specific_or_intensity
-    anchor_role: context_filter
+    eligibility: {}
+    eligibility_reason: {}
+    lifecycle_stage: ontology_defined
+    polarity_semantics: unknown
+    polarity_source: unknown
+    magnitude_source: unknown
+    anchor_role: alpha_anchor
     parameters:
       merge_gap_bars: 1
       cooldown_bars: 0
@@ -3012,7 +2659,7 @@ events:
     asset_scope: single_asset
     venue_scope: cross_venue
     is_composite: false
-    is_context_tag: false
+    is_context_tag: true
     is_strategy_construct: false
     research_only: false
     strategy_only: false
@@ -3021,13 +2668,13 @@ events:
     layer: research_placeholder
     notes: Semantic split of negative funding extreme onset; not a standalone detector.
     tier: ''
-    operational_role: ''
-    deployment_disposition: ''
-    runtime_category: active_runtime_event
+    operational_role: context
+    deployment_disposition: requires_pairing_no_liquidation
+    runtime_category: research_only_event
     maturity: ''
     default_executable: false
-    detector_band: semantic_variant
-    planning_eligible: false
+    detector_band: context_only
+    planning_eligible: true
     runtime_eligible: false
     promotion_eligible: false
     primary_anchor_eligible: false
@@ -3045,29 +2692,13 @@ events:
     suppresses: []
     suppressed_by: []
     maturity_scores: {}
-    eligibility:
-      ontology_defined: true
-      detector_verified: true
-      research_planning_allowed: false
-      primary_anchor_allowed: false
-      paper_anchor_allowed: false
-      promotion_candidate_allowed: false
-      shadow_runtime_allowed: false
-      micro_live_allowed: false
-      scaled_live_allowed: false
-    eligibility_reason:
-      research_planning_allowed: not_yet_governance_approved
-      primary_anchor_allowed: not_yet_governance_approved
-      paper_anchor_allowed: not_yet_governance_approved
-      promotion_candidate_allowed: not_yet_governance_approved
-      shadow_runtime_allowed: not_yet_governance_approved
-      micro_live_allowed: not_yet_governance_approved
-      scaled_live_allowed: not_yet_governance_approved
-    lifecycle_stage: ontology_complete
-    polarity_semantics: funding_crowding_side
-    polarity_source: detector_specific_or_inferred
-    magnitude_source: detector_specific_or_intensity
-    anchor_role: context_filter
+    eligibility: {}
+    eligibility_reason: {}
+    lifecycle_stage: ontology_defined
+    polarity_semantics: unknown
+    polarity_source: unknown
+    magnitude_source: unknown
+    anchor_role: alpha_anchor
     parameters:
       merge_gap_bars: 1
       cooldown_bars: 0
@@ -3094,6 +2725,12 @@ events:
         - 'low_liquidity: funding/OI signals unreliable'
         - 'stale_funding: funding timestamp unavailable or stale'
         - 'execution_friction_blocked: spread/slippage too high'
+      pairing_required:
+        any_of:
+        - OI_EXPANSION_STRESS
+        - OI_FLUSH
+        - VOL_SHOCK
+        - FAILED_CONTINUATION
     runtime:
       templates:
       - carry_continuation_confirmed
@@ -3148,7 +2785,7 @@ events:
     runtime_category: active_runtime_event
     maturity: ''
     default_executable: false
-    detector_band: semantic_variant
+    detector_band: ''
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -3167,29 +2804,13 @@ events:
     suppresses: []
     suppressed_by: []
     maturity_scores: {}
-    eligibility:
-      ontology_defined: true
-      detector_verified: true
-      research_planning_allowed: false
-      primary_anchor_allowed: false
-      paper_anchor_allowed: false
-      promotion_candidate_allowed: false
-      shadow_runtime_allowed: false
-      micro_live_allowed: false
-      scaled_live_allowed: false
-    eligibility_reason:
-      research_planning_allowed: not_yet_governance_approved
-      primary_anchor_allowed: not_yet_governance_approved
-      paper_anchor_allowed: not_yet_governance_approved
-      promotion_candidate_allowed: not_yet_governance_approved
-      shadow_runtime_allowed: not_yet_governance_approved
-      micro_live_allowed: not_yet_governance_approved
-      scaled_live_allowed: not_yet_governance_approved
-    lifecycle_stage: ontology_complete
-    polarity_semantics: funding_crowding_side
-    polarity_source: detector_specific_or_inferred
-    magnitude_source: detector_specific_or_intensity
-    anchor_role: context_filter
+    eligibility: {}
+    eligibility_reason: {}
+    lifecycle_stage: ontology_defined
+    polarity_semantics: unknown
+    polarity_source: unknown
+    magnitude_source: unknown
+    anchor_role: alpha_anchor
     parameters:
       merge_gap_bars: 1
       cooldown_bars: 0
@@ -3270,7 +2891,7 @@ events:
     runtime_category: active_runtime_event
     maturity: ''
     default_executable: false
-    detector_band: semantic_variant
+    detector_band: ''
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -3289,29 +2910,13 @@ events:
     suppresses: []
     suppressed_by: []
     maturity_scores: {}
-    eligibility:
-      ontology_defined: true
-      detector_verified: true
-      research_planning_allowed: false
-      primary_anchor_allowed: false
-      paper_anchor_allowed: false
-      promotion_candidate_allowed: false
-      shadow_runtime_allowed: false
-      micro_live_allowed: false
-      scaled_live_allowed: false
-    eligibility_reason:
-      research_planning_allowed: not_yet_governance_approved
-      primary_anchor_allowed: not_yet_governance_approved
-      paper_anchor_allowed: not_yet_governance_approved
-      promotion_candidate_allowed: not_yet_governance_approved
-      shadow_runtime_allowed: not_yet_governance_approved
-      micro_live_allowed: not_yet_governance_approved
-      scaled_live_allowed: not_yet_governance_approved
-    lifecycle_stage: ontology_complete
-    polarity_semantics: funding_crowding_side
-    polarity_source: detector_specific_or_inferred
-    magnitude_source: detector_specific_or_intensity
-    anchor_role: context_filter
+    eligibility: {}
+    eligibility_reason: {}
+    lifecycle_stage: ontology_defined
+    polarity_semantics: unknown
+    polarity_source: unknown
+    magnitude_source: unknown
+    anchor_role: alpha_anchor
     parameters:
       merge_gap_bars: 1
       cooldown_bars: 0
@@ -3392,7 +2997,7 @@ events:
     runtime_category: active_runtime_event
     maturity: ''
     default_executable: true
-    detector_band: research_trigger
+    detector_band: ''
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -3414,28 +3019,13 @@ events:
     suppresses: []
     suppressed_by: []
     maturity_scores: {}
-    eligibility:
-      ontology_defined: true
-      detector_verified: true
-      research_planning_allowed: true
-      primary_anchor_allowed: false
-      paper_anchor_allowed: false
-      promotion_candidate_allowed: false
-      shadow_runtime_allowed: false
-      micro_live_allowed: false
-      scaled_live_allowed: false
-    eligibility_reason:
-      primary_anchor_allowed: not_yet_governance_approved
-      paper_anchor_allowed: not_yet_governance_approved
-      promotion_candidate_allowed: not_yet_governance_approved
-      shadow_runtime_allowed: not_yet_governance_approved
-      micro_live_allowed: not_yet_governance_approved
-      scaled_live_allowed: not_yet_governance_approved
-    lifecycle_stage: detector_verified
-    polarity_semantics: funding_crowding_side
-    polarity_source: detector_specific_or_inferred
-    magnitude_source: detector_specific_or_intensity
-    anchor_role: confirmation_anchor
+    eligibility: {}
+    eligibility_reason: {}
+    lifecycle_stage: ontology_defined
+    polarity_semantics: unknown
+    polarity_source: unknown
+    magnitude_source: unknown
+    anchor_role: alpha_anchor
     parameters:
       merge_gap_bars: 1
       cooldown_bars: 0
@@ -3463,7 +3053,7 @@ events:
       normalization_lookback: 96
       min_prior_extreme_abs: 0.0004
       min_event_spacing: 96
-      event_lookahead: 96
+      post_event_horizon_bars: 96
       liquidation_abs_return: 0.03
       drawdown_abs_return: 0.03
       vol_burst_quantile: 0.9
@@ -3534,11 +3124,11 @@ events:
     runtime_category: active_runtime_event
     maturity: ''
     default_executable: true
-    detector_band: research_trigger
-    planning_eligible: true
+    detector_band: ''
+    planning_eligible: false
     runtime_eligible: false
-    promotion_eligible: true
-    primary_anchor_eligible: true
+    promotion_eligible: false
+    primary_anchor_eligible: false
     enabled: true
     detector_name: FundingPersistenceDetector
     instrument_classes:
@@ -3556,28 +3146,13 @@ events:
     suppresses: []
     suppressed_by: []
     maturity_scores: {}
-    eligibility:
-      ontology_defined: true
-      detector_verified: true
-      research_planning_allowed: true
-      primary_anchor_allowed: false
-      paper_anchor_allowed: false
-      promotion_candidate_allowed: false
-      shadow_runtime_allowed: false
-      micro_live_allowed: false
-      scaled_live_allowed: false
-    eligibility_reason:
-      primary_anchor_allowed: not_yet_governance_approved
-      paper_anchor_allowed: not_yet_governance_approved
-      promotion_candidate_allowed: not_yet_governance_approved
-      shadow_runtime_allowed: not_yet_governance_approved
-      micro_live_allowed: not_yet_governance_approved
-      scaled_live_allowed: not_yet_governance_approved
-    lifecycle_stage: detector_verified
-    polarity_semantics: funding_crowding_side
-    polarity_source: detector_specific_or_inferred
-    magnitude_source: detector_specific_or_intensity
-    anchor_role: confirmation_anchor
+    eligibility: {}
+    eligibility_reason: {}
+    lifecycle_stage: ontology_defined
+    polarity_semantics: unknown
+    polarity_source: unknown
+    magnitude_source: unknown
+    anchor_role: alpha_anchor
     parameters:
       merge_gap_bars: 1
       cooldown_bars: 0
@@ -3605,7 +3180,7 @@ events:
       normalization_lookback: 96
       min_event_spacing: 576
       min_spacing: 576
-      event_lookahead: 96
+      post_event_horizon_bars: 96
       liquidation_abs_return: 0.03
       drawdown_abs_return: 0.03
       vol_burst_quantile: 0.9
@@ -3664,7 +3239,7 @@ events:
     asset_scope: single_asset
     venue_scope: cross_venue
     is_composite: false
-    is_context_tag: false
+    is_context_tag: true
     is_strategy_construct: false
     research_only: false
     strategy_only: false
@@ -3673,13 +3248,13 @@ events:
     layer: research_placeholder
     notes: Semantic split of positive funding extreme onset; not a standalone detector.
     tier: ''
-    operational_role: ''
-    deployment_disposition: ''
-    runtime_category: active_runtime_event
+    operational_role: context
+    deployment_disposition: requires_pairing_no_liquidation
+    runtime_category: research_only_event
     maturity: ''
     default_executable: false
-    detector_band: semantic_variant
-    planning_eligible: false
+    detector_band: context_only
+    planning_eligible: true
     runtime_eligible: false
     promotion_eligible: false
     primary_anchor_eligible: false
@@ -3697,29 +3272,13 @@ events:
     suppresses: []
     suppressed_by: []
     maturity_scores: {}
-    eligibility:
-      ontology_defined: true
-      detector_verified: true
-      research_planning_allowed: false
-      primary_anchor_allowed: false
-      paper_anchor_allowed: false
-      promotion_candidate_allowed: false
-      shadow_runtime_allowed: false
-      micro_live_allowed: false
-      scaled_live_allowed: false
-    eligibility_reason:
-      research_planning_allowed: not_yet_governance_approved
-      primary_anchor_allowed: not_yet_governance_approved
-      paper_anchor_allowed: not_yet_governance_approved
-      promotion_candidate_allowed: not_yet_governance_approved
-      shadow_runtime_allowed: not_yet_governance_approved
-      micro_live_allowed: not_yet_governance_approved
-      scaled_live_allowed: not_yet_governance_approved
-    lifecycle_stage: ontology_complete
-    polarity_semantics: funding_crowding_side
-    polarity_source: detector_specific_or_inferred
-    magnitude_source: detector_specific_or_intensity
-    anchor_role: context_filter
+    eligibility: {}
+    eligibility_reason: {}
+    lifecycle_stage: ontology_defined
+    polarity_semantics: unknown
+    polarity_source: unknown
+    magnitude_source: unknown
+    anchor_role: alpha_anchor
     parameters:
       merge_gap_bars: 1
       cooldown_bars: 0
@@ -3746,6 +3305,12 @@ events:
         - 'low_liquidity: funding/OI signals unreliable'
         - 'stale_funding: funding timestamp unavailable or stale'
         - 'execution_friction_blocked: spread/slippage too high'
+      pairing_required:
+        any_of:
+        - OI_EXPANSION_STRESS
+        - OI_FLUSH
+        - VOL_SHOCK
+        - FAILED_CONTINUATION
     runtime:
       templates:
       - carry_continuation_confirmed
@@ -3800,7 +3365,7 @@ events:
     runtime_category: active_runtime_event
     maturity: ''
     default_executable: false
-    detector_band: semantic_variant
+    detector_band: ''
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -3819,29 +3384,13 @@ events:
     suppresses: []
     suppressed_by: []
     maturity_scores: {}
-    eligibility:
-      ontology_defined: true
-      detector_verified: true
-      research_planning_allowed: false
-      primary_anchor_allowed: false
-      paper_anchor_allowed: false
-      promotion_candidate_allowed: false
-      shadow_runtime_allowed: false
-      micro_live_allowed: false
-      scaled_live_allowed: false
-    eligibility_reason:
-      research_planning_allowed: not_yet_governance_approved
-      primary_anchor_allowed: not_yet_governance_approved
-      paper_anchor_allowed: not_yet_governance_approved
-      promotion_candidate_allowed: not_yet_governance_approved
-      shadow_runtime_allowed: not_yet_governance_approved
-      micro_live_allowed: not_yet_governance_approved
-      scaled_live_allowed: not_yet_governance_approved
-    lifecycle_stage: ontology_complete
-    polarity_semantics: funding_crowding_side
-    polarity_source: detector_specific_or_inferred
-    magnitude_source: detector_specific_or_intensity
-    anchor_role: context_filter
+    eligibility: {}
+    eligibility_reason: {}
+    lifecycle_stage: ontology_defined
+    polarity_semantics: unknown
+    polarity_source: unknown
+    magnitude_source: unknown
+    anchor_role: alpha_anchor
     parameters:
       merge_gap_bars: 1
       cooldown_bars: 0
@@ -3922,7 +3471,7 @@ events:
     runtime_category: active_runtime_event
     maturity: ''
     default_executable: false
-    detector_band: semantic_variant
+    detector_band: ''
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -3941,29 +3490,13 @@ events:
     suppresses: []
     suppressed_by: []
     maturity_scores: {}
-    eligibility:
-      ontology_defined: true
-      detector_verified: true
-      research_planning_allowed: false
-      primary_anchor_allowed: false
-      paper_anchor_allowed: false
-      promotion_candidate_allowed: false
-      shadow_runtime_allowed: false
-      micro_live_allowed: false
-      scaled_live_allowed: false
-    eligibility_reason:
-      research_planning_allowed: not_yet_governance_approved
-      primary_anchor_allowed: not_yet_governance_approved
-      paper_anchor_allowed: not_yet_governance_approved
-      promotion_candidate_allowed: not_yet_governance_approved
-      shadow_runtime_allowed: not_yet_governance_approved
-      micro_live_allowed: not_yet_governance_approved
-      scaled_live_allowed: not_yet_governance_approved
-    lifecycle_stage: ontology_complete
-    polarity_semantics: funding_crowding_side
-    polarity_source: detector_specific_or_inferred
-    magnitude_source: detector_specific_or_intensity
-    anchor_role: context_filter
+    eligibility: {}
+    eligibility_reason: {}
+    lifecycle_stage: ontology_defined
+    polarity_semantics: unknown
+    polarity_source: unknown
+    magnitude_source: unknown
+    anchor_role: alpha_anchor
     parameters:
       merge_gap_bars: 1
       cooldown_bars: 0
@@ -4044,7 +3577,7 @@ events:
     runtime_category: active_runtime_event
     maturity: ''
     default_executable: false
-    detector_band: context_only
+    detector_band: ''
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -4082,28 +3615,13 @@ events:
         falsely. Block for the payment bar and its cooldown window.
     suppressed_by: []
     maturity_scores: {}
-    eligibility:
-      ontology_defined: true
-      detector_verified: true
-      research_planning_allowed: true
-      primary_anchor_allowed: false
-      paper_anchor_allowed: false
-      promotion_candidate_allowed: false
-      shadow_runtime_allowed: false
-      micro_live_allowed: false
-      scaled_live_allowed: false
-    eligibility_reason:
-      primary_anchor_allowed: not_yet_governance_approved
-      paper_anchor_allowed: not_yet_governance_approved
-      promotion_candidate_allowed: not_yet_governance_approved
-      shadow_runtime_allowed: not_yet_governance_approved
-      micro_live_allowed: not_yet_governance_approved
-      scaled_live_allowed: not_yet_governance_approved
-    lifecycle_stage: detector_verified
-    polarity_semantics: temporal_guard
-    polarity_source: detector_specific_or_inferred
-    magnitude_source: detector_specific_or_intensity
-    anchor_role: context_filter
+    eligibility: {}
+    eligibility_reason: {}
+    lifecycle_stage: ontology_defined
+    polarity_semantics: unknown
+    polarity_source: unknown
+    magnitude_source: unknown
+    anchor_role: alpha_anchor
     parameters:
       merge_gap_bars: 0
       cooldown_bars: 12
@@ -4167,7 +3685,7 @@ events:
     runtime_category: active_runtime_event
     maturity: ''
     default_executable: true
-    detector_band: research_trigger
+    detector_band: ''
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -4189,28 +3707,13 @@ events:
     suppresses: []
     suppressed_by: []
     maturity_scores: {}
-    eligibility:
-      ontology_defined: true
-      detector_verified: true
-      research_planning_allowed: true
-      primary_anchor_allowed: false
-      paper_anchor_allowed: false
-      promotion_candidate_allowed: false
-      shadow_runtime_allowed: false
-      micro_live_allowed: false
-      scaled_live_allowed: false
-    eligibility_reason:
-      primary_anchor_allowed: not_yet_governance_approved
-      paper_anchor_allowed: not_yet_governance_approved
-      promotion_candidate_allowed: not_yet_governance_approved
-      shadow_runtime_allowed: not_yet_governance_approved
-      micro_live_allowed: not_yet_governance_approved
-      scaled_live_allowed: not_yet_governance_approved
-    lifecycle_stage: detector_verified
-    polarity_semantics: deviation_direction
-    polarity_source: detector_specific_or_inferred
-    magnitude_source: detector_specific_or_intensity
-    anchor_role: confirmation_anchor
+    eligibility: {}
+    eligibility_reason: {}
+    lifecycle_stage: ontology_defined
+    polarity_semantics: unknown
+    polarity_source: unknown
+    magnitude_source: unknown
+    anchor_role: alpha_anchor
     parameters:
       merge_gap_bars: 0
       cooldown_bars: 12
@@ -4277,7 +3780,7 @@ events:
     runtime_category: active_runtime_event
     maturity: ''
     default_executable: true
-    detector_band: research_trigger
+    detector_band: ''
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -4299,28 +3802,13 @@ events:
     suppresses: []
     suppressed_by: []
     maturity_scores: {}
-    eligibility:
-      ontology_defined: true
-      detector_verified: true
-      research_planning_allowed: true
-      primary_anchor_allowed: false
-      paper_anchor_allowed: false
-      promotion_candidate_allowed: false
-      shadow_runtime_allowed: false
-      micro_live_allowed: false
-      scaled_live_allowed: false
-    eligibility_reason:
-      primary_anchor_allowed: not_yet_governance_approved
-      paper_anchor_allowed: not_yet_governance_approved
-      promotion_candidate_allowed: not_yet_governance_approved
-      shadow_runtime_allowed: not_yet_governance_approved
-      micro_live_allowed: not_yet_governance_approved
-      scaled_live_allowed: not_yet_governance_approved
-    lifecycle_stage: detector_verified
-    polarity_semantics: basis_spread_direction
-    polarity_source: detector_specific_or_inferred
-    magnitude_source: detector_specific_or_intensity
-    anchor_role: confirmation_anchor
+    eligibility: {}
+    eligibility_reason: {}
+    lifecycle_stage: ontology_defined
+    polarity_semantics: unknown
+    polarity_source: unknown
+    magnitude_source: unknown
+    anchor_role: alpha_anchor
     parameters:
       merge_gap_bars: 0
       cooldown_bars: 12
@@ -4389,7 +3877,7 @@ events:
     runtime_category: active_runtime_event
     maturity: ''
     default_executable: true
-    detector_band: research_trigger
+    detector_band: ''
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -4411,28 +3899,13 @@ events:
     suppresses: []
     suppressed_by: []
     maturity_scores: {}
-    eligibility:
-      ontology_defined: true
-      detector_verified: true
-      research_planning_allowed: true
-      primary_anchor_allowed: false
-      paper_anchor_allowed: false
-      promotion_candidate_allowed: false
-      shadow_runtime_allowed: false
-      micro_live_allowed: false
-      scaled_live_allowed: false
-    eligibility_reason:
-      primary_anchor_allowed: not_yet_governance_approved
-      paper_anchor_allowed: not_yet_governance_approved
-      promotion_candidate_allowed: not_yet_governance_approved
-      shadow_runtime_allowed: not_yet_governance_approved
-      micro_live_allowed: not_yet_governance_approved
-      scaled_live_allowed: not_yet_governance_approved
-    lifecycle_stage: detector_verified
-    polarity_semantics: basis_spread_direction
-    polarity_source: detector_specific_or_inferred
-    magnitude_source: detector_specific_or_intensity
-    anchor_role: confirmation_anchor
+    eligibility: {}
+    eligibility_reason: {}
+    lifecycle_stage: ontology_defined
+    polarity_semantics: unknown
+    polarity_source: unknown
+    magnitude_source: unknown
+    anchor_role: alpha_anchor
     parameters:
       merge_gap_bars: 0
       cooldown_bars: 12
@@ -4497,16 +3970,16 @@ events:
     notes: Structurally distinct canonical cascade regime.
     tier: A
     operational_role: trigger
-    deployment_disposition: primary_trigger_candidate
-    runtime_category: active_runtime_event
+    deployment_disposition: disabled_without_liquidation_feed
+    runtime_category: disabled_by_data_capability
     maturity: ''
-    default_executable: true
-    detector_band: deployable_core
-    planning_eligible: true
-    runtime_eligible: true
-    promotion_eligible: true
-    primary_anchor_eligible: true
-    enabled: true
+    default_executable: false
+    detector_band: ''
+    planning_eligible: false
+    runtime_eligible: false
+    promotion_eligible: false
+    primary_anchor_eligible: false
+    enabled: false
     detector_name: LiquidationCascadeDetector
     instrument_classes:
     - crypto
@@ -4524,27 +3997,12 @@ events:
     suppresses: []
     suppressed_by: []
     maturity_scores: {}
-    eligibility:
-      ontology_defined: true
-      detector_verified: true
-      research_planning_allowed: true
-      primary_anchor_allowed: false
-      paper_anchor_allowed: false
-      promotion_candidate_allowed: false
-      shadow_runtime_allowed: false
-      micro_live_allowed: false
-      scaled_live_allowed: false
-    eligibility_reason:
-      primary_anchor_allowed: not_yet_governance_approved
-      paper_anchor_allowed: not_yet_governance_approved
-      promotion_candidate_allowed: not_yet_governance_approved
-      shadow_runtime_allowed: not_yet_governance_approved
-      micro_live_allowed: not_yet_governance_approved
-      scaled_live_allowed: not_yet_governance_approved
-    lifecycle_stage: detector_verified
-    polarity_semantics: liquidation_side
-    polarity_source: detector_specific_or_inferred
-    magnitude_source: detector_specific_or_intensity
+    eligibility: {}
+    eligibility_reason: {}
+    lifecycle_stage: ontology_defined
+    polarity_semantics: unknown
+    polarity_source: unknown
+    magnitude_source: unknown
     anchor_role: alpha_anchor
     parameters:
       merge_gap_bars: 1
@@ -4559,6 +4017,9 @@ events:
         - Funding reverses sign
         disabled_regimes:
         - 'Low liquidity regime: OI/vol signals unreliable'
+      data_capability_policy:
+        requires_feed: liquidations
+        disabled_profile: no_liquidations_v1
       liq_multiplier: 3.0
       median_window: 288
       min_periods: 24
@@ -4615,16 +4076,16 @@ events:
       LIQUIDATION_CASCADE but comparable recall for large cascade events.
     tier: C
     operational_role: trigger
-    deployment_disposition: secondary_or_confirm
-    runtime_category: active_runtime_event
+    deployment_disposition: disabled_without_liquidation_feed
+    runtime_category: disabled_by_data_capability
     maturity: experimental
-    default_executable: true
-    detector_band: composite_or_fragile
+    default_executable: false
+    detector_band: ''
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
     primary_anchor_eligible: false
-    enabled: true
+    enabled: false
     detector_name: LiquidationCascadeProxyDetector
     instrument_classes:
     - crypto
@@ -4642,28 +4103,13 @@ events:
     suppresses: []
     suppressed_by: []
     maturity_scores: {}
-    eligibility:
-      ontology_defined: true
-      detector_verified: true
-      research_planning_allowed: true
-      primary_anchor_allowed: false
-      paper_anchor_allowed: false
-      promotion_candidate_allowed: false
-      shadow_runtime_allowed: false
-      micro_live_allowed: false
-      scaled_live_allowed: false
-    eligibility_reason:
-      primary_anchor_allowed: not_yet_governance_approved
-      paper_anchor_allowed: not_yet_governance_approved
-      promotion_candidate_allowed: not_yet_governance_approved
-      shadow_runtime_allowed: not_yet_governance_approved
-      micro_live_allowed: not_yet_governance_approved
-      scaled_live_allowed: not_yet_governance_approved
-    lifecycle_stage: detector_verified
-    polarity_semantics: liquidation_side
-    polarity_source: detector_specific_or_inferred
-    magnitude_source: detector_specific_or_intensity
-    anchor_role: confirmation_anchor
+    eligibility: {}
+    eligibility_reason: {}
+    lifecycle_stage: experimental
+    polarity_semantics: unknown
+    polarity_source: unknown
+    magnitude_source: unknown
+    anchor_role: alpha_anchor
     parameters:
       merge_gap_bars: 1
       cooldown_bars: 0
@@ -4750,6 +4196,9 @@ events:
       trigger: Detector triggers on OI drop + volume surge + price drop coincidence
       confirmation: Post-detection price recovery confirms forced-selling exhaustion
       cluster_id: oi_dynamic
+      data_capability_policy:
+        requires_feed: liquidations
+        disabled_profile: no_liquidations_v1
       oi_window: 288
       vol_window: 288
       min_periods: 24
@@ -4807,12 +4256,12 @@ events:
     notes: Reversal after forced liquidation exhaustion.
     tier: B
     operational_role: trigger
-    deployment_disposition: secondary_or_confirm
-    runtime_category: active_runtime_event
+    deployment_disposition: disabled_without_liquidation_feed
+    runtime_category: disabled_by_data_capability
     maturity: ''
     default_executable: false
-    detector_band: research_trigger
-    planning_eligible: true
+    detector_band: ''
+    planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
     primary_anchor_eligible: false
@@ -4833,28 +4282,13 @@ events:
     suppresses: []
     suppressed_by: []
     maturity_scores: {}
-    eligibility:
-      ontology_defined: true
-      detector_verified: true
-      research_planning_allowed: true
-      primary_anchor_allowed: false
-      paper_anchor_allowed: false
-      promotion_candidate_allowed: false
-      shadow_runtime_allowed: false
-      micro_live_allowed: false
-      scaled_live_allowed: false
-    eligibility_reason:
-      primary_anchor_allowed: not_yet_governance_approved
-      paper_anchor_allowed: not_yet_governance_approved
-      promotion_candidate_allowed: not_yet_governance_approved
-      shadow_runtime_allowed: not_yet_governance_approved
-      micro_live_allowed: not_yet_governance_approved
-      scaled_live_allowed: not_yet_governance_approved
-    lifecycle_stage: detector_verified
-    polarity_semantics: liquidation_side
-    polarity_source: detector_specific_or_inferred
-    magnitude_source: detector_specific_or_intensity
-    anchor_role: confirmation_anchor
+    eligibility: {}
+    eligibility_reason: {}
+    lifecycle_stage: ontology_defined
+    polarity_semantics: unknown
+    polarity_source: unknown
+    magnitude_source: unknown
+    anchor_role: alpha_anchor
     parameters:
       merge_gap_bars: 0
       cooldown_bars: 24
@@ -4875,6 +4309,9 @@ events:
         disabled_regimes:
         - 'Low volume: flow signals unreliable'
       cluster_id: forced_liquidation
+      data_capability_policy:
+        requires_feed: liquidations
+        disabled_profile: no_liquidations_v1
       threshold_window: 2880
       oi_drop_quantile: 0.8
       liquidation_quantile: 0.85
@@ -4946,7 +4383,7 @@ events:
     runtime_category: active_runtime_event
     maturity: ''
     default_executable: true
-    detector_band: research_trigger
+    detector_band: ''
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -4968,28 +4405,13 @@ events:
     suppresses: []
     suppressed_by: []
     maturity_scores: {}
-    eligibility:
-      ontology_defined: true
-      detector_verified: true
-      research_planning_allowed: true
-      primary_anchor_allowed: false
-      paper_anchor_allowed: false
-      promotion_candidate_allowed: false
-      shadow_runtime_allowed: false
-      micro_live_allowed: false
-      scaled_live_allowed: false
-    eligibility_reason:
-      primary_anchor_allowed: not_yet_governance_approved
-      paper_anchor_allowed: not_yet_governance_approved
-      promotion_candidate_allowed: not_yet_governance_approved
-      shadow_runtime_allowed: not_yet_governance_approved
-      micro_live_allowed: not_yet_governance_approved
-      scaled_live_allowed: not_yet_governance_approved
-    lifecycle_stage: detector_verified
-    polarity_semantics: neutral_guard
-    polarity_source: detector_specific_or_inferred
-    magnitude_source: detector_specific_or_intensity
-    anchor_role: risk_guard
+    eligibility: {}
+    eligibility_reason: {}
+    lifecycle_stage: ontology_defined
+    polarity_semantics: unknown
+    polarity_source: unknown
+    magnitude_source: unknown
+    anchor_role: alpha_anchor
     parameters:
       merge_gap_bars: 0
       cooldown_bars: 12
@@ -5062,7 +4484,7 @@ events:
     runtime_category: active_runtime_event
     maturity: ''
     default_executable: true
-    detector_band: research_trigger
+    detector_band: ''
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -5085,28 +4507,13 @@ events:
     suppresses: []
     suppressed_by: []
     maturity_scores: {}
-    eligibility:
-      ontology_defined: true
-      detector_verified: true
-      research_planning_allowed: true
-      primary_anchor_allowed: false
-      paper_anchor_allowed: false
-      promotion_candidate_allowed: false
-      shadow_runtime_allowed: false
-      micro_live_allowed: false
-      scaled_live_allowed: false
-    eligibility_reason:
-      primary_anchor_allowed: not_yet_governance_approved
-      paper_anchor_allowed: not_yet_governance_approved
-      promotion_candidate_allowed: not_yet_governance_approved
-      shadow_runtime_allowed: not_yet_governance_approved
-      micro_live_allowed: not_yet_governance_approved
-      scaled_live_allowed: not_yet_governance_approved
-    lifecycle_stage: detector_verified
-    polarity_semantics: neutral_guard
-    polarity_source: detector_specific_or_inferred
-    magnitude_source: detector_specific_or_intensity
-    anchor_role: risk_guard
+    eligibility: {}
+    eligibility_reason: {}
+    lifecycle_stage: ontology_defined
+    polarity_semantics: unknown
+    polarity_source: unknown
+    magnitude_source: unknown
+    anchor_role: alpha_anchor
     parameters:
       merge_gap_bars: 1
       cooldown_bars: 0
@@ -5175,7 +4582,7 @@ events:
     runtime_category: active_runtime_event
     maturity: ''
     default_executable: true
-    detector_band: research_trigger
+    detector_band: ''
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -5194,28 +4601,13 @@ events:
     suppresses: []
     suppressed_by: []
     maturity_scores: {}
-    eligibility:
-      ontology_defined: true
-      detector_verified: true
-      research_planning_allowed: true
-      primary_anchor_allowed: false
-      paper_anchor_allowed: false
-      promotion_candidate_allowed: false
-      shadow_runtime_allowed: false
-      micro_live_allowed: false
-      scaled_live_allowed: false
-    eligibility_reason:
-      primary_anchor_allowed: not_yet_governance_approved
-      paper_anchor_allowed: not_yet_governance_approved
-      promotion_candidate_allowed: not_yet_governance_approved
-      shadow_runtime_allowed: not_yet_governance_approved
-      micro_live_allowed: not_yet_governance_approved
-      scaled_live_allowed: not_yet_governance_approved
-    lifecycle_stage: detector_verified
-    polarity_semantics: execution_guard
-    polarity_source: detector_specific_or_inferred
-    magnitude_source: detector_specific_or_intensity
-    anchor_role: execution_guard
+    eligibility: {}
+    eligibility_reason: {}
+    lifecycle_stage: ontology_defined
+    polarity_semantics: unknown
+    polarity_source: unknown
+    magnitude_source: unknown
+    anchor_role: alpha_anchor
     parameters:
       merge_gap_bars: 1
       cooldown_bars: 0
@@ -5285,7 +4677,7 @@ events:
     runtime_category: active_runtime_event
     maturity: standard
     default_executable: true
-    detector_band: composite_or_fragile
+    detector_band: ''
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -5304,28 +4696,13 @@ events:
     suppresses: []
     suppressed_by: []
     maturity_scores: {}
-    eligibility:
-      ontology_defined: true
-      detector_verified: true
-      research_planning_allowed: true
-      primary_anchor_allowed: false
-      paper_anchor_allowed: false
-      promotion_candidate_allowed: false
-      shadow_runtime_allowed: false
-      micro_live_allowed: false
-      scaled_live_allowed: false
-    eligibility_reason:
-      primary_anchor_allowed: not_yet_governance_approved
-      paper_anchor_allowed: not_yet_governance_approved
-      promotion_candidate_allowed: not_yet_governance_approved
-      shadow_runtime_allowed: not_yet_governance_approved
-      micro_live_allowed: not_yet_governance_approved
-      scaled_live_allowed: not_yet_governance_approved
-    lifecycle_stage: detector_verified
-    polarity_semantics: execution_guard
-    polarity_source: detector_specific_or_inferred
-    magnitude_source: detector_specific_or_intensity
-    anchor_role: execution_guard
+    eligibility: {}
+    eligibility_reason: {}
+    lifecycle_stage: standard
+    polarity_semantics: unknown
+    polarity_source: unknown
+    magnitude_source: unknown
+    anchor_role: alpha_anchor
     parameters:
       merge_gap_bars: 1
       cooldown_bars: 0
@@ -5382,25 +4759,25 @@ events:
     asset_scope: single_asset
     venue_scope: single_venue
     is_composite: false
-    is_context_tag: false
+    is_context_tag: true
     is_strategy_construct: false
     research_only: false
     strategy_only: false
     deconflict_priority: 0
     disposition: keep
     layer: canonical
-    notes: Thin-book vacuum regime.
+    notes: Execution/risk guard. Raw vacuum is not an entry trigger; use LIQUIDITY_VACUUM_RECOVERY.
     tier: A
-    operational_role: trigger
-    deployment_disposition: primary_trigger_candidate
+    operational_role: context
+    deployment_disposition: context_only_execution_guard
     runtime_category: active_runtime_event
     maturity: ''
-    default_executable: true
-    detector_band: deployable_core
+    default_executable: false
+    detector_band: context_only
     planning_eligible: true
     runtime_eligible: true
-    promotion_eligible: true
-    primary_anchor_eligible: true
+    promotion_eligible: false
+    primary_anchor_eligible: false
     enabled: true
     detector_name: LiquidityVacuumDetector
     instrument_classes:
@@ -5424,28 +4801,13 @@ events:
         be noise-driven. Partial penalty.
     suppressed_by: []
     maturity_scores: {}
-    eligibility:
-      ontology_defined: true
-      detector_verified: true
-      research_planning_allowed: true
-      primary_anchor_allowed: false
-      paper_anchor_allowed: false
-      promotion_candidate_allowed: false
-      shadow_runtime_allowed: false
-      micro_live_allowed: false
-      scaled_live_allowed: false
-    eligibility_reason:
-      primary_anchor_allowed: not_yet_governance_approved
-      paper_anchor_allowed: not_yet_governance_approved
-      promotion_candidate_allowed: not_yet_governance_approved
-      shadow_runtime_allowed: not_yet_governance_approved
-      micro_live_allowed: not_yet_governance_approved
-      scaled_live_allowed: not_yet_governance_approved
-    lifecycle_stage: detector_verified
-    polarity_semantics: neutral_guard
-    polarity_source: detector_specific_or_inferred
-    magnitude_source: detector_specific_or_intensity
-    anchor_role: risk_guard
+    eligibility: {}
+    eligibility_reason: {}
+    lifecycle_stage: ontology_defined
+    polarity_semantics: unknown
+    polarity_source: unknown
+    magnitude_source: unknown
+    anchor_role: alpha_anchor
     parameters:
       merge_gap_bars: 2
       cooldown_bars: 12
@@ -5483,6 +4845,12 @@ events:
         - high
         - low
         - volume
+        live_trade_required_columns:
+        - depth_usd
+        - spread_bps
+        proxy_mode_policy: proxy-derived liquidity vacuum is research/risk-context
+          only unless allow_proxy_vacuum_trigger is explicitly true; trade_eligible
+          is false for proxy evidence.
         lookback_bars: 480
         warmup_bars: 480
         bar_type: bar_close
@@ -5559,6 +4927,121 @@ events:
       - 15m
       max_candidates_per_run: 1000
     spec_path: spec/events/LIQUIDITY_VACUUM.yaml
+  LIQUIDITY_VACUUM_RECOVERY:
+    event_type: LIQUIDITY_VACUUM_RECOVERY
+    research_family: LIQUIDITY_DISLOCATION
+    canonical_family: LIQUIDITY_DISLOCATION
+    canonical_regime: LIQUIDITY_STRESS
+    event_kind: market_event
+    reports_dir: liquidity_vacuum_recovery
+    events_file: liquidity_vacuum_recovery_events.parquet
+    signal_column: liquidity_vacuum_recovery_event
+    subtype: liquidity_vacuum_recovery
+    phase: recovery
+    evidence_mode: direct
+    asset_scope: single_asset
+    venue_scope: single_venue
+    is_composite: false
+    is_context_tag: false
+    is_strategy_construct: false
+    research_only: false
+    strategy_only: false
+    deconflict_priority: 0
+    disposition: keep
+    layer: canonical
+    notes: Tradability/mean-reversion trigger after direct liquidity vacuum recovery.
+    tier: B
+    operational_role: trigger
+    deployment_disposition: secondary_or_confirm_no_liquidation
+    runtime_category: active_runtime_event
+    maturity: specialized
+    default_executable: true
+    detector_band: research_trigger
+    planning_eligible: true
+    runtime_eligible: true
+    promotion_eligible: false
+    primary_anchor_eligible: false
+    enabled: true
+    detector_name: LiquidityVacuumRecoveryDetectorV2
+    instrument_classes:
+    - crypto
+    - futures
+    requires_features:
+    - depth_usd
+    - spread_bps
+    runtime_tags:
+    - liquidity_recovery
+    - no_liquidations_v1
+    sequence_eligible: true
+    cluster_id: liquidity_recovery
+    collapse_target: ''
+    overlap_group: ''
+    precedence_rank: 0
+    routing_profile_ref: ''
+    suppresses: []
+    suppressed_by: []
+    maturity_scores: {}
+    eligibility: {}
+    eligibility_reason: {}
+    lifecycle_stage: specialized
+    polarity_semantics: unknown
+    polarity_source: unknown
+    magnitude_source: unknown
+    anchor_role: alpha_anchor
+    parameters:
+      merge_gap_bars: 1
+      cooldown_bars: 0
+      anchor_rule: max_intensity
+      min_occurrences: 0
+      synthetic_coverage: covered
+      research_family: LIQUIDITY_DISLOCATION
+      detector:
+        signal_definition: Direct depth/spread recovery after a prior liquidity vacuum
+          while price displacement remains.
+        required_columns:
+        - timestamp
+        - close
+        - high
+        - low
+        - depth_usd
+        - spread_bps
+        live_trade_required_columns:
+        - depth_usd
+        - spread_bps
+        proxy_mode_policy: No proxy mode. Requires direct depth and spread feeds.
+      trigger: Book has recovered after a direct liquidity vacuum; candidate mean-reversion/tradability
+        trigger.
+      confirmation: Use with OI/funding/failed-continuation theses.
+      cluster_id: liquidity_recovery
+      median_window: 288
+      min_periods: 24
+      vacuum_depth_ratio_max: 0.3
+      vacuum_spread_ratio_min: 2.5
+      recovered_depth_ratio_min: 0.6
+      recovered_spread_ratio_max: 1.5
+      recovery_lookback_bars: 12
+      price_displacement_bps_min: 20
+    runtime:
+      templates:
+      - mean_reversion
+      - continuation
+      - stop_run_repair
+      - overshoot_repair
+      - only_if_liquidity
+      - slippage_aware_filter
+      horizons:
+      - 5m
+      - 15m
+      - 60m
+      conditioning_cols:
+      - vol_regime
+      - carry_state
+      - funding_bps
+      - ms_trend_state
+      - ms_spread_state
+      - severity_bucket
+      max_candidates_per_run: 1000
+    spec_path: spec/events/LIQUIDITY_VACUUM_RECOVERY.yaml
   MOMENTUM_DIVERGENCE_TRIGGER:
     event_type: MOMENTUM_DIVERGENCE_TRIGGER
     research_family: FORCED_FLOW_AND_EXHAUSTION
@@ -5588,7 +5071,7 @@ events:
     runtime_category: active_runtime_event
     maturity: ''
     default_executable: true
-    detector_band: research_trigger
+    detector_band: ''
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -5610,28 +5093,13 @@ events:
     suppresses: []
     suppressed_by: []
     maturity_scores: {}
-    eligibility:
-      ontology_defined: true
-      detector_verified: true
-      research_planning_allowed: true
-      primary_anchor_allowed: false
-      paper_anchor_allowed: false
-      promotion_candidate_allowed: false
-      shadow_runtime_allowed: false
-      micro_live_allowed: false
-      scaled_live_allowed: false
-    eligibility_reason:
-      primary_anchor_allowed: not_yet_governance_approved
-      paper_anchor_allowed: not_yet_governance_approved
-      promotion_candidate_allowed: not_yet_governance_approved
-      shadow_runtime_allowed: not_yet_governance_approved
-      micro_live_allowed: not_yet_governance_approved
-      scaled_live_allowed: not_yet_governance_approved
-    lifecycle_stage: detector_verified
-    polarity_semantics: basis_spread_direction
-    polarity_source: detector_specific_or_inferred
-    magnitude_source: detector_specific_or_intensity
-    anchor_role: confirmation_anchor
+    eligibility: {}
+    eligibility_reason: {}
+    lifecycle_stage: ontology_defined
+    polarity_semantics: unknown
+    polarity_source: unknown
+    magnitude_source: unknown
+    anchor_role: alpha_anchor
     parameters:
       merge_gap_bars: 0
       cooldown_bars: 96
@@ -5673,6 +5141,116 @@ events:
       - severity_bucket
       max_candidates_per_run: 500
     spec_path: spec/events/MOMENTUM_DIVERGENCE_TRIGGER.yaml
+  OI_EXPANSION_STRESS:
+    event_type: OI_EXPANSION_STRESS
+    research_family: POSITIONING_EXTREMES
+    canonical_family: POSITIONING_EXTREMES
+    canonical_regime: POSITIONING_STRESS
+    event_kind: market_event
+    reports_dir: oi_shocks
+    events_file: oi_expansion_stress_events.parquet
+    signal_column: oi_expansion_stress_event
+    subtype: oi_expansion_stress
+    phase: stress
+    evidence_mode: direct
+    asset_scope: single_asset
+    venue_scope: single_venue
+    is_composite: false
+    is_context_tag: true
+    is_strategy_construct: false
+    research_only: false
+    strategy_only: false
+    deconflict_priority: 0
+    disposition: keep
+    layer: canonical
+    notes: 'Subtypes: short_build_continuation, long_build_continuation, long_crowding_stress,
+      short_squeeze_risk, squeeze_risk, avoid_size_down, ambiguous_positioning_stress.
+      Never standalone.'
+    tier: B
+    operational_role: context
+    deployment_disposition: context_only_positioning_stress
+    runtime_category: active_runtime_event
+    maturity: specialized
+    default_executable: false
+    detector_band: context_only
+    planning_eligible: true
+    runtime_eligible: true
+    promotion_eligible: false
+    primary_anchor_eligible: false
+    enabled: true
+    detector_name: OIExpansionStressDetectorV2
+    instrument_classes:
+    - crypto
+    - futures
+    requires_features:
+    - timestamp
+    - oi_notional
+    - close
+    runtime_tags:
+    - oi_dynamic
+    - no_liquidations_v1
+    sequence_eligible: true
+    cluster_id: oi_dynamic
+    collapse_target: ''
+    overlap_group: ''
+    precedence_rank: 0
+    routing_profile_ref: ''
+    suppresses: []
+    suppressed_by: []
+    maturity_scores: {}
+    eligibility: {}
+    eligibility_reason: {}
+    lifecycle_stage: specialized
+    polarity_semantics: unknown
+    polarity_source: unknown
+    magnitude_source: unknown
+    anchor_role: alpha_anchor
+    parameters:
+      merge_gap_bars: 1
+      cooldown_bars: 0
+      anchor_rule: max_intensity
+      min_occurrences: 0
+      synthetic_coverage: covered
+      research_family: POSITIONING_EXTREMES
+      trigger: Price moves materially while OI expands; subtype classifies positioning
+        stress without liquidation feed.
+      confirmation: Requires pairing before trade routing.
+      expected_behavior:
+        holding_horizon_bars: 4-24
+        invalidation_conditions:
+        - Liquidity vacuum active
+        - OI expansion fades immediately
+        disabled_regimes:
+        - Low-liquidity regime
+      cluster_id: oi_dynamic
+      oi_window: 96
+      spike_z_th: 2.0
+      price_move_threshold_bps: 25
+    runtime:
+      templates:
+      - carry_continuation_confirmed
+      - squeeze_followthrough_confirmed
+      - reversal_or_squeeze
+      - mean_reversion
+      - continuation
+      - exhaustion_reversal
+      - convexity_capture
+      - only_if_funding
+      - only_if_oi
+      - tail_risk_avoid
+      horizons:
+      - 5m
+      - 15m
+      - 60m
+      conditioning_cols:
+      - vol_regime
+      - carry_state
+      - funding_bps
+      - ms_trend_state
+      - ms_spread_state
+      - severity_bucket
+      max_candidates_per_run: 1000
+    spec_path: spec/events/OI_EXPANSION_STRESS.yaml
   OI_FLUSH:
     event_type: OI_FLUSH
     research_family: POSITIONING_EXTREMES
@@ -5695,20 +5273,20 @@ events:
     deconflict_priority: 0
     disposition: merge
     layer: canonical
-    notes: OI flush folded into unwind/deleveraging regime.
+    notes: No-liquidation forced-flow proxy; requires pairing before trade routing.
     tier: B
     operational_role: trigger
-    deployment_disposition: secondary_or_confirm
+    deployment_disposition: secondary_or_confirm_no_liquidation
     runtime_category: active_runtime_event
     maturity: ''
-    default_executable: true
+    default_executable: false
     detector_band: research_trigger
-    planning_eligible: false
-    runtime_eligible: false
+    planning_eligible: true
+    runtime_eligible: true
     promotion_eligible: false
     primary_anchor_eligible: false
     enabled: true
-    detector_name: OIFlushDetector
+    detector_name: OIFlushDetectorV2
     instrument_classes:
     - crypto
     - futures
@@ -5725,26 +5303,13 @@ events:
     suppresses: []
     suppressed_by: []
     maturity_scores: {}
-    eligibility:
-      ontology_defined: true
-      detector_verified: true
-      research_planning_allowed: true
-      primary_anchor_allowed: false
-      paper_anchor_allowed: true
-      promotion_candidate_allowed: true
-      shadow_runtime_allowed: false
-      micro_live_allowed: false
-      scaled_live_allowed: false
-    eligibility_reason:
-      primary_anchor_allowed: not_yet_governance_approved
-      shadow_runtime_allowed: not_yet_governance_approved
-      micro_live_allowed: not_yet_governance_approved
-      scaled_live_allowed: not_yet_governance_approved
-    lifecycle_stage: research_ready
-    polarity_semantics: price_oi_quadrant
-    polarity_source: detector_specific_or_inferred
-    magnitude_source: detector_specific_or_intensity
-    anchor_role: confirmation_anchor
+    eligibility: {}
+    eligibility_reason: {}
+    lifecycle_stage: ontology_defined
+    polarity_semantics: unknown
+    polarity_source: unknown
+    magnitude_source: unknown
+    anchor_role: alpha_anchor
     parameters:
       merge_gap_bars: 1
       cooldown_bars: 0
@@ -5804,25 +5369,25 @@ events:
     asset_scope: single_asset
     venue_scope: single_venue
     is_composite: false
-    is_context_tag: false
+    is_context_tag: true
     is_strategy_construct: false
     research_only: false
     strategy_only: false
     deconflict_priority: 0
     disposition: merge
     layer: canonical
-    notes: Direction stays in subtype; canonical regime is positioning expansion.
+    notes: No-liquidation OI stress context; subtyped and never standalone.
     tier: B
-    operational_role: trigger
-    deployment_disposition: secondary_or_confirm
+    operational_role: context
+    deployment_disposition: context_only_positioning_stress
     runtime_category: active_runtime_event
     maturity: ''
-    default_executable: true
-    detector_band: deployable_core
+    default_executable: false
+    detector_band: context_only
     planning_eligible: true
     runtime_eligible: true
     promotion_eligible: false
-    primary_anchor_eligible: true
+    primary_anchor_eligible: false
     enabled: true
     detector_name: OISpikeNegativeDetector
     instrument_classes:
@@ -5840,28 +5405,13 @@ events:
     suppresses: []
     suppressed_by: []
     maturity_scores: {}
-    eligibility:
-      ontology_defined: true
-      detector_verified: true
-      research_planning_allowed: true
-      primary_anchor_allowed: false
-      paper_anchor_allowed: false
-      promotion_candidate_allowed: false
-      shadow_runtime_allowed: false
-      micro_live_allowed: false
-      scaled_live_allowed: false
-    eligibility_reason:
-      primary_anchor_allowed: not_yet_governance_approved
-      paper_anchor_allowed: not_yet_governance_approved
-      promotion_candidate_allowed: not_yet_governance_approved
-      shadow_runtime_allowed: not_yet_governance_approved
-      micro_live_allowed: not_yet_governance_approved
-      scaled_live_allowed: not_yet_governance_approved
-    lifecycle_stage: detector_verified
-    polarity_semantics: price_oi_quadrant
-    polarity_source: detector_specific_or_inferred
-    magnitude_source: detector_specific_or_intensity
-    anchor_role: confirmation_anchor
+    eligibility: {}
+    eligibility_reason: {}
+    lifecycle_stage: ontology_defined
+    polarity_semantics: unknown
+    polarity_source: unknown
+    magnitude_source: unknown
+    anchor_role: alpha_anchor
     parameters:
       merge_gap_bars: 1
       cooldown_bars: 0
@@ -5933,7 +5483,7 @@ events:
     runtime_category: active_runtime_event
     maturity: ''
     default_executable: true
-    detector_band: research_trigger
+    detector_band: ''
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -5955,28 +5505,13 @@ events:
     suppresses: []
     suppressed_by: []
     maturity_scores: {}
-    eligibility:
-      ontology_defined: true
-      detector_verified: true
-      research_planning_allowed: true
-      primary_anchor_allowed: false
-      paper_anchor_allowed: false
-      promotion_candidate_allowed: false
-      shadow_runtime_allowed: false
-      micro_live_allowed: false
-      scaled_live_allowed: false
-    eligibility_reason:
-      primary_anchor_allowed: not_yet_governance_approved
-      paper_anchor_allowed: not_yet_governance_approved
-      promotion_candidate_allowed: not_yet_governance_approved
-      shadow_runtime_allowed: not_yet_governance_approved
-      micro_live_allowed: not_yet_governance_approved
-      scaled_live_allowed: not_yet_governance_approved
-    lifecycle_stage: detector_verified
-    polarity_semantics: price_oi_quadrant
-    polarity_source: detector_specific_or_inferred
-    magnitude_source: detector_specific_or_intensity
-    anchor_role: confirmation_anchor
+    eligibility: {}
+    eligibility_reason: {}
+    lifecycle_stage: ontology_defined
+    polarity_semantics: unknown
+    polarity_source: unknown
+    magnitude_source: unknown
+    anchor_role: alpha_anchor
     parameters:
       merge_gap_bars: 1
       cooldown_bars: 0
@@ -6044,7 +5579,7 @@ events:
     runtime_category: active_runtime_event
     maturity: standard
     default_executable: true
-    detector_band: research_trigger
+    detector_band: ''
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -6066,28 +5601,13 @@ events:
     suppresses: []
     suppressed_by: []
     maturity_scores: {}
-    eligibility:
-      ontology_defined: true
-      detector_verified: true
-      research_planning_allowed: true
-      primary_anchor_allowed: false
-      paper_anchor_allowed: false
-      promotion_candidate_allowed: false
-      shadow_runtime_allowed: false
-      micro_live_allowed: false
-      scaled_live_allowed: false
-    eligibility_reason:
-      primary_anchor_allowed: not_yet_governance_approved
-      paper_anchor_allowed: not_yet_governance_approved
-      promotion_candidate_allowed: not_yet_governance_approved
-      shadow_runtime_allowed: not_yet_governance_approved
-      micro_live_allowed: not_yet_governance_approved
-      scaled_live_allowed: not_yet_governance_approved
-    lifecycle_stage: detector_verified
-    polarity_semantics: liquidity_sweep_side
-    polarity_source: detector_specific_or_inferred
-    magnitude_source: detector_specific_or_intensity
-    anchor_role: confirmation_anchor
+    eligibility: {}
+    eligibility_reason: {}
+    lifecycle_stage: standard
+    polarity_semantics: unknown
+    polarity_source: unknown
+    magnitude_source: unknown
+    anchor_role: alpha_anchor
     parameters:
       merge_gap_bars: 0
       cooldown_bars: 12
@@ -6164,7 +5684,7 @@ events:
     runtime_category: active_runtime_event
     maturity: ''
     default_executable: true
-    detector_band: research_trigger
+    detector_band: ''
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -6186,28 +5706,13 @@ events:
     suppresses: []
     suppressed_by: []
     maturity_scores: {}
-    eligibility:
-      ontology_defined: true
-      detector_verified: true
-      research_planning_allowed: true
-      primary_anchor_allowed: false
-      paper_anchor_allowed: false
-      promotion_candidate_allowed: false
-      shadow_runtime_allowed: false
-      micro_live_allowed: false
-      scaled_live_allowed: false
-    eligibility_reason:
-      primary_anchor_allowed: not_yet_governance_approved
-      paper_anchor_allowed: not_yet_governance_approved
-      promotion_candidate_allowed: not_yet_governance_approved
-      shadow_runtime_allowed: not_yet_governance_approved
-      micro_live_allowed: not_yet_governance_approved
-      scaled_live_allowed: not_yet_governance_approved
-    lifecycle_stage: detector_verified
-    polarity_semantics: deviation_direction
-    polarity_source: detector_specific_or_inferred
-    magnitude_source: detector_specific_or_intensity
-    anchor_role: confirmation_anchor
+    eligibility: {}
+    eligibility_reason: {}
+    lifecycle_stage: ontology_defined
+    polarity_semantics: unknown
+    polarity_source: unknown
+    magnitude_source: unknown
+    anchor_role: alpha_anchor
     parameters:
       merge_gap_bars: 0
       cooldown_bars: 12
@@ -6275,7 +5780,7 @@ events:
     runtime_category: active_runtime_event
     maturity: ''
     default_executable: true
-    detector_band: research_trigger
+    detector_band: ''
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -6294,28 +5799,13 @@ events:
     suppresses: []
     suppressed_by: []
     maturity_scores: {}
-    eligibility:
-      ontology_defined: true
-      detector_verified: true
-      research_planning_allowed: true
-      primary_anchor_allowed: false
-      paper_anchor_allowed: false
-      promotion_candidate_allowed: false
-      shadow_runtime_allowed: false
-      micro_live_allowed: false
-      scaled_live_allowed: false
-    eligibility_reason:
-      primary_anchor_allowed: not_yet_governance_approved
-      paper_anchor_allowed: not_yet_governance_approved
-      promotion_candidate_allowed: not_yet_governance_approved
-      shadow_runtime_allowed: not_yet_governance_approved
-      micro_live_allowed: not_yet_governance_approved
-      scaled_live_allowed: not_yet_governance_approved
-    lifecycle_stage: detector_verified
-    polarity_semantics: liquidation_side
-    polarity_source: detector_specific_or_inferred
-    magnitude_source: detector_specific_or_intensity
-    anchor_role: confirmation_anchor
+    eligibility: {}
+    eligibility_reason: {}
+    lifecycle_stage: ontology_defined
+    polarity_semantics: unknown
+    polarity_source: unknown
+    magnitude_source: unknown
+    anchor_role: alpha_anchor
     parameters:
       merge_gap_bars: 0
       cooldown_bars: 24
@@ -6395,15 +5885,15 @@ events:
     strategy_only: false
     deconflict_priority: 0
     disposition: rename
-    layer: canonical
+    layer: research_placeholder
     notes: Price down with OI down; long flush or deleveraging.
-    tier: A
-    operational_role: trigger
-    deployment_disposition: primary_trigger_candidate
+    tier: ''
+    operational_role: ''
+    deployment_disposition: ''
     runtime_category: active_runtime_event
     maturity: ''
     default_executable: false
-    detector_band: semantic_variant
+    detector_band: ''
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -6422,25 +5912,12 @@ events:
     suppresses: []
     suppressed_by: []
     maturity_scores: {}
-    eligibility:
-      ontology_defined: true
-      detector_verified: true
-      research_planning_allowed: true
-      primary_anchor_allowed: false
-      paper_anchor_allowed: true
-      promotion_candidate_allowed: true
-      shadow_runtime_allowed: false
-      micro_live_allowed: false
-      scaled_live_allowed: false
-    eligibility_reason:
-      primary_anchor_allowed: not_yet_governance_approved
-      shadow_runtime_allowed: not_yet_governance_approved
-      micro_live_allowed: not_yet_governance_approved
-      scaled_live_allowed: not_yet_governance_approved
-    lifecycle_stage: research_ready
-    polarity_semantics: price_oi_quadrant
-    polarity_source: detector_specific_or_inferred
-    magnitude_source: detector_specific_or_intensity
+    eligibility: {}
+    eligibility_reason: {}
+    lifecycle_stage: ontology_defined
+    polarity_semantics: unknown
+    polarity_source: unknown
+    magnitude_source: unknown
     anchor_role: alpha_anchor
     parameters:
       merge_gap_bars: 1
@@ -6452,8 +5929,8 @@ events:
       research_family: POSITIONING_EXTREMES
       cluster_id: oi_dynamic
       role:
-        detector_role: trigger
-        trade_role: primary_trigger
+        detector_role: observer
+        trade_role: diagnostic
         state_role: none
         guard_role: none
       directionality:
@@ -6517,7 +5994,7 @@ events:
     runtime_category: active_runtime_event
     maturity: ''
     default_executable: false
-    detector_band: semantic_variant
+    detector_band: ''
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -6536,29 +6013,13 @@ events:
     suppresses: []
     suppressed_by: []
     maturity_scores: {}
-    eligibility:
-      ontology_defined: true
-      detector_verified: true
-      research_planning_allowed: false
-      primary_anchor_allowed: false
-      paper_anchor_allowed: false
-      promotion_candidate_allowed: false
-      shadow_runtime_allowed: false
-      micro_live_allowed: false
-      scaled_live_allowed: false
-    eligibility_reason:
-      research_planning_allowed: not_yet_governance_approved
-      primary_anchor_allowed: not_yet_governance_approved
-      paper_anchor_allowed: not_yet_governance_approved
-      promotion_candidate_allowed: not_yet_governance_approved
-      shadow_runtime_allowed: not_yet_governance_approved
-      micro_live_allowed: not_yet_governance_approved
-      scaled_live_allowed: not_yet_governance_approved
-    lifecycle_stage: ontology_complete
-    polarity_semantics: price_oi_quadrant
-    polarity_source: detector_specific_or_inferred
-    magnitude_source: detector_specific_or_intensity
-    anchor_role: context_filter
+    eligibility: {}
+    eligibility_reason: {}
+    lifecycle_stage: ontology_defined
+    polarity_semantics: unknown
+    polarity_source: unknown
+    magnitude_source: unknown
+    anchor_role: alpha_anchor
     parameters:
       merge_gap_bars: 1
       cooldown_bars: 0
@@ -6639,7 +6100,7 @@ events:
     runtime_category: active_runtime_event
     maturity: ''
     default_executable: false
-    detector_band: semantic_variant
+    detector_band: ''
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -6658,29 +6119,13 @@ events:
     suppresses: []
     suppressed_by: []
     maturity_scores: {}
-    eligibility:
-      ontology_defined: true
-      detector_verified: true
-      research_planning_allowed: false
-      primary_anchor_allowed: false
-      paper_anchor_allowed: false
-      promotion_candidate_allowed: false
-      shadow_runtime_allowed: false
-      micro_live_allowed: false
-      scaled_live_allowed: false
-    eligibility_reason:
-      research_planning_allowed: not_yet_governance_approved
-      primary_anchor_allowed: not_yet_governance_approved
-      paper_anchor_allowed: not_yet_governance_approved
-      promotion_candidate_allowed: not_yet_governance_approved
-      shadow_runtime_allowed: not_yet_governance_approved
-      micro_live_allowed: not_yet_governance_approved
-      scaled_live_allowed: not_yet_governance_approved
-    lifecycle_stage: ontology_complete
-    polarity_semantics: price_oi_quadrant
-    polarity_source: detector_specific_or_inferred
-    magnitude_source: detector_specific_or_intensity
-    anchor_role: context_filter
+    eligibility: {}
+    eligibility_reason: {}
+    lifecycle_stage: ontology_defined
+    polarity_semantics: unknown
+    polarity_source: unknown
+    magnitude_source: unknown
+    anchor_role: alpha_anchor
     parameters:
       merge_gap_bars: 1
       cooldown_bars: 0
@@ -6761,7 +6206,7 @@ events:
     runtime_category: active_runtime_event
     maturity: ''
     default_executable: false
-    detector_band: semantic_variant
+    detector_band: ''
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -6780,29 +6225,13 @@ events:
     suppresses: []
     suppressed_by: []
     maturity_scores: {}
-    eligibility:
-      ontology_defined: true
-      detector_verified: true
-      research_planning_allowed: false
-      primary_anchor_allowed: false
-      paper_anchor_allowed: false
-      promotion_candidate_allowed: false
-      shadow_runtime_allowed: false
-      micro_live_allowed: false
-      scaled_live_allowed: false
-    eligibility_reason:
-      research_planning_allowed: not_yet_governance_approved
-      primary_anchor_allowed: not_yet_governance_approved
-      paper_anchor_allowed: not_yet_governance_approved
-      promotion_candidate_allowed: not_yet_governance_approved
-      shadow_runtime_allowed: not_yet_governance_approved
-      micro_live_allowed: not_yet_governance_approved
-      scaled_live_allowed: not_yet_governance_approved
-    lifecycle_stage: ontology_complete
-    polarity_semantics: price_oi_quadrant
-    polarity_source: detector_specific_or_inferred
-    magnitude_source: detector_specific_or_intensity
-    anchor_role: context_filter
+    eligibility: {}
+    eligibility_reason: {}
+    lifecycle_stage: ontology_defined
+    polarity_semantics: unknown
+    polarity_source: unknown
+    magnitude_source: unknown
+    anchor_role: alpha_anchor
     parameters:
       merge_gap_bars: 1
       cooldown_bars: 0
@@ -6884,7 +6313,7 @@ events:
     runtime_category: active_runtime_event
     maturity: standard
     default_executable: true
-    detector_band: composite_or_fragile
+    detector_band: ''
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -6903,28 +6332,13 @@ events:
     suppresses: []
     suppressed_by: []
     maturity_scores: {}
-    eligibility:
-      ontology_defined: true
-      detector_verified: true
-      research_planning_allowed: true
-      primary_anchor_allowed: false
-      paper_anchor_allowed: false
-      promotion_candidate_allowed: false
-      shadow_runtime_allowed: false
-      micro_live_allowed: false
-      scaled_live_allowed: false
-    eligibility_reason:
-      primary_anchor_allowed: not_yet_governance_approved
-      paper_anchor_allowed: not_yet_governance_approved
-      promotion_candidate_allowed: not_yet_governance_approved
-      shadow_runtime_allowed: not_yet_governance_approved
-      micro_live_allowed: not_yet_governance_approved
-      scaled_live_allowed: not_yet_governance_approved
-    lifecycle_stage: detector_verified
-    polarity_semantics: price_direction
-    polarity_source: detector_specific_or_inferred
-    magnitude_source: detector_specific_or_intensity
-    anchor_role: confirmation_anchor
+    eligibility: {}
+    eligibility_reason: {}
+    lifecycle_stage: standard
+    polarity_semantics: unknown
+    polarity_source: unknown
+    magnitude_source: unknown
+    anchor_role: alpha_anchor
     parameters:
       merge_gap_bars: 0
       cooldown_bars: 24
@@ -7001,7 +6415,7 @@ events:
     runtime_category: active_runtime_event
     maturity: ''
     default_executable: true
-    detector_band: research_trigger
+    detector_band: ''
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -7023,28 +6437,13 @@ events:
     suppresses: []
     suppressed_by: []
     maturity_scores: {}
-    eligibility:
-      ontology_defined: true
-      detector_verified: true
-      research_planning_allowed: true
-      primary_anchor_allowed: false
-      paper_anchor_allowed: false
-      promotion_candidate_allowed: false
-      shadow_runtime_allowed: false
-      micro_live_allowed: false
-      scaled_live_allowed: false
-    eligibility_reason:
-      primary_anchor_allowed: not_yet_governance_approved
-      paper_anchor_allowed: not_yet_governance_approved
-      promotion_candidate_allowed: not_yet_governance_approved
-      shadow_runtime_allowed: not_yet_governance_approved
-      micro_live_allowed: not_yet_governance_approved
-      scaled_live_allowed: not_yet_governance_approved
-    lifecycle_stage: detector_verified
-    polarity_semantics: price_direction
-    polarity_source: detector_specific_or_inferred
-    magnitude_source: detector_specific_or_intensity
-    anchor_role: confirmation_anchor
+    eligibility: {}
+    eligibility_reason: {}
+    lifecycle_stage: ontology_defined
+    polarity_semantics: unknown
+    polarity_source: unknown
+    magnitude_source: unknown
+    anchor_role: alpha_anchor
     parameters:
       merge_gap_bars: 0
       cooldown_bars: 12
@@ -7113,7 +6512,7 @@ events:
     runtime_category: active_runtime_event
     maturity: ''
     default_executable: true
-    detector_band: research_trigger
+    detector_band: ''
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -7135,28 +6534,13 @@ events:
     suppresses: []
     suppressed_by: []
     maturity_scores: {}
-    eligibility:
-      ontology_defined: true
-      detector_verified: true
-      research_planning_allowed: true
-      primary_anchor_allowed: false
-      paper_anchor_allowed: false
-      promotion_candidate_allowed: false
-      shadow_runtime_allowed: false
-      micro_live_allowed: false
-      scaled_live_allowed: false
-    eligibility_reason:
-      primary_anchor_allowed: not_yet_governance_approved
-      paper_anchor_allowed: not_yet_governance_approved
-      promotion_candidate_allowed: not_yet_governance_approved
-      shadow_runtime_allowed: not_yet_governance_approved
-      micro_live_allowed: not_yet_governance_approved
-      scaled_live_allowed: not_yet_governance_approved
-    lifecycle_stage: detector_verified
-    polarity_semantics: price_direction
-    polarity_source: detector_specific_or_inferred
-    magnitude_source: detector_specific_or_intensity
-    anchor_role: confirmation_anchor
+    eligibility: {}
+    eligibility_reason: {}
+    lifecycle_stage: ontology_defined
+    polarity_semantics: unknown
+    polarity_source: unknown
+    magnitude_source: unknown
+    anchor_role: alpha_anchor
     parameters:
       merge_gap_bars: 0
       cooldown_bars: 12
@@ -7226,7 +6610,7 @@ events:
     runtime_category: active_runtime_event
     maturity: ''
     default_executable: true
-    detector_band: research_trigger
+    detector_band: ''
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -7248,28 +6632,13 @@ events:
     suppresses: []
     suppressed_by: []
     maturity_scores: {}
-    eligibility:
-      ontology_defined: true
-      detector_verified: true
-      research_planning_allowed: true
-      primary_anchor_allowed: false
-      paper_anchor_allowed: false
-      promotion_candidate_allowed: false
-      shadow_runtime_allowed: false
-      micro_live_allowed: false
-      scaled_live_allowed: false
-    eligibility_reason:
-      primary_anchor_allowed: not_yet_governance_approved
-      paper_anchor_allowed: not_yet_governance_approved
-      promotion_candidate_allowed: not_yet_governance_approved
-      shadow_runtime_allowed: not_yet_governance_approved
-      micro_live_allowed: not_yet_governance_approved
-      scaled_live_allowed: not_yet_governance_approved
-    lifecycle_stage: detector_verified
-    polarity_semantics: regime_transition
-    polarity_source: detector_specific_or_inferred
-    magnitude_source: detector_specific_or_intensity
-    anchor_role: confirmation_anchor
+    eligibility: {}
+    eligibility_reason: {}
+    lifecycle_stage: ontology_defined
+    polarity_semantics: unknown
+    polarity_source: unknown
+    magnitude_source: unknown
+    anchor_role: alpha_anchor
     parameters:
       merge_gap_bars: 0
       cooldown_bars: 12
@@ -7338,7 +6707,7 @@ events:
     runtime_category: active_runtime_event
     maturity: ''
     default_executable: false
-    detector_band: context_only
+    detector_band: ''
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -7380,28 +6749,13 @@ events:
         fire spuriously. Block entirely during active news window.'
     suppressed_by: []
     maturity_scores: {}
-    eligibility:
-      ontology_defined: true
-      detector_verified: true
-      research_planning_allowed: true
-      primary_anchor_allowed: false
-      paper_anchor_allowed: false
-      promotion_candidate_allowed: false
-      shadow_runtime_allowed: false
-      micro_live_allowed: false
-      scaled_live_allowed: false
-    eligibility_reason:
-      primary_anchor_allowed: not_yet_governance_approved
-      paper_anchor_allowed: not_yet_governance_approved
-      promotion_candidate_allowed: not_yet_governance_approved
-      shadow_runtime_allowed: not_yet_governance_approved
-      micro_live_allowed: not_yet_governance_approved
-      scaled_live_allowed: not_yet_governance_approved
-    lifecycle_stage: detector_verified
-    polarity_semantics: temporal_guard
-    polarity_source: detector_specific_or_inferred
-    magnitude_source: detector_specific_or_intensity
-    anchor_role: context_filter
+    eligibility: {}
+    eligibility_reason: {}
+    lifecycle_stage: ontology_defined
+    polarity_semantics: unknown
+    polarity_source: unknown
+    magnitude_source: unknown
+    anchor_role: alpha_anchor
     parameters:
       merge_gap_bars: 0
       cooldown_bars: 12
@@ -7464,7 +6818,7 @@ events:
     runtime_category: research_only
     maturity: ''
     default_executable: false
-    detector_band: composite_or_fragile
+    detector_band: ''
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -7487,28 +6841,13 @@ events:
     suppresses: []
     suppressed_by: []
     maturity_scores: {}
-    eligibility:
-      ontology_defined: true
-      detector_verified: true
-      research_planning_allowed: true
-      primary_anchor_allowed: false
-      paper_anchor_allowed: false
-      promotion_candidate_allowed: false
-      shadow_runtime_allowed: false
-      micro_live_allowed: false
-      scaled_live_allowed: false
-    eligibility_reason:
-      primary_anchor_allowed: not_yet_governance_approved
-      paper_anchor_allowed: not_yet_governance_approved
-      promotion_candidate_allowed: not_yet_governance_approved
-      shadow_runtime_allowed: not_yet_governance_approved
-      micro_live_allowed: not_yet_governance_approved
-      scaled_live_allowed: not_yet_governance_approved
-    lifecycle_stage: detector_verified
-    polarity_semantics: funding_crowding_side
-    polarity_source: detector_specific_or_inferred
-    magnitude_source: detector_specific_or_intensity
-    anchor_role: sequence_component
+    eligibility: {}
+    eligibility_reason: {}
+    lifecycle_stage: ontology_defined
+    polarity_semantics: unknown
+    polarity_source: unknown
+    magnitude_source: unknown
+    anchor_role: alpha_anchor
     parameters:
       merge_gap_bars: 1
       cooldown_bars: 24
@@ -7578,7 +6917,7 @@ events:
     runtime_category: research_only
     maturity: ''
     default_executable: false
-    detector_band: composite_or_fragile
+    detector_band: ''
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -7602,28 +6941,13 @@ events:
     suppresses: []
     suppressed_by: []
     maturity_scores: {}
-    eligibility:
-      ontology_defined: true
-      detector_verified: true
-      research_planning_allowed: true
-      primary_anchor_allowed: false
-      paper_anchor_allowed: false
-      promotion_candidate_allowed: false
-      shadow_runtime_allowed: false
-      micro_live_allowed: false
-      scaled_live_allowed: false
-    eligibility_reason:
-      primary_anchor_allowed: not_yet_governance_approved
-      paper_anchor_allowed: not_yet_governance_approved
-      promotion_candidate_allowed: not_yet_governance_approved
-      shadow_runtime_allowed: not_yet_governance_approved
-      micro_live_allowed: not_yet_governance_approved
-      scaled_live_allowed: not_yet_governance_approved
-    lifecycle_stage: detector_verified
-    polarity_semantics: neutral_guard
-    polarity_source: detector_specific_or_inferred
-    magnitude_source: detector_specific_or_intensity
-    anchor_role: sequence_component
+    eligibility: {}
+    eligibility_reason: {}
+    lifecycle_stage: ontology_defined
+    polarity_semantics: unknown
+    polarity_source: unknown
+    magnitude_source: unknown
+    anchor_role: alpha_anchor
     parameters:
       merge_gap_bars: 1
       cooldown_bars: 24
@@ -7690,7 +7014,7 @@ events:
     runtime_category: research_only
     maturity: ''
     default_executable: false
-    detector_band: composite_or_fragile
+    detector_band: ''
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -7713,28 +7037,13 @@ events:
     suppresses: []
     suppressed_by: []
     maturity_scores: {}
-    eligibility:
-      ontology_defined: true
-      detector_verified: true
-      research_planning_allowed: true
-      primary_anchor_allowed: false
-      paper_anchor_allowed: false
-      promotion_candidate_allowed: false
-      shadow_runtime_allowed: false
-      micro_live_allowed: false
-      scaled_live_allowed: false
-    eligibility_reason:
-      primary_anchor_allowed: not_yet_governance_approved
-      paper_anchor_allowed: not_yet_governance_approved
-      promotion_candidate_allowed: not_yet_governance_approved
-      shadow_runtime_allowed: not_yet_governance_approved
-      micro_live_allowed: not_yet_governance_approved
-      scaled_live_allowed: not_yet_governance_approved
-    lifecycle_stage: detector_verified
+    eligibility: {}
+    eligibility_reason: {}
+    lifecycle_stage: ontology_defined
     polarity_semantics: unknown
-    polarity_source: detector_specific_or_inferred
-    magnitude_source: detector_specific_or_intensity
-    anchor_role: sequence_component
+    polarity_source: unknown
+    magnitude_source: unknown
+    anchor_role: alpha_anchor
     parameters:
       merge_gap_bars: 1
       cooldown_bars: 24
@@ -7804,7 +7113,7 @@ events:
     runtime_category: research_only
     maturity: ''
     default_executable: false
-    detector_band: composite_or_fragile
+    detector_band: ''
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -7827,28 +7136,13 @@ events:
     suppresses: []
     suppressed_by: []
     maturity_scores: {}
-    eligibility:
-      ontology_defined: true
-      detector_verified: true
-      research_planning_allowed: true
-      primary_anchor_allowed: false
-      paper_anchor_allowed: false
-      promotion_candidate_allowed: false
-      shadow_runtime_allowed: false
-      micro_live_allowed: false
-      scaled_live_allowed: false
-    eligibility_reason:
-      primary_anchor_allowed: not_yet_governance_approved
-      paper_anchor_allowed: not_yet_governance_approved
-      promotion_candidate_allowed: not_yet_governance_approved
-      shadow_runtime_allowed: not_yet_governance_approved
-      micro_live_allowed: not_yet_governance_approved
-      scaled_live_allowed: not_yet_governance_approved
-    lifecycle_stage: detector_verified
-    polarity_semantics: price_direction
-    polarity_source: detector_specific_or_inferred
-    magnitude_source: detector_specific_or_intensity
-    anchor_role: sequence_component
+    eligibility: {}
+    eligibility_reason: {}
+    lifecycle_stage: ontology_defined
+    polarity_semantics: unknown
+    polarity_source: unknown
+    magnitude_source: unknown
+    anchor_role: alpha_anchor
     parameters:
       merge_gap_bars: 1
       cooldown_bars: 24
@@ -7915,7 +7209,7 @@ events:
     runtime_category: active_runtime_event
     maturity: ''
     default_executable: false
-    detector_band: context_only
+    detector_band: ''
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -7937,28 +7231,13 @@ events:
     suppresses: []
     suppressed_by: []
     maturity_scores: {}
-    eligibility:
-      ontology_defined: true
-      detector_verified: true
-      research_planning_allowed: true
-      primary_anchor_allowed: false
-      paper_anchor_allowed: false
-      promotion_candidate_allowed: false
-      shadow_runtime_allowed: false
-      micro_live_allowed: false
-      scaled_live_allowed: false
-    eligibility_reason:
-      primary_anchor_allowed: not_yet_governance_approved
-      paper_anchor_allowed: not_yet_governance_approved
-      promotion_candidate_allowed: not_yet_governance_approved
-      shadow_runtime_allowed: not_yet_governance_approved
-      micro_live_allowed: not_yet_governance_approved
-      scaled_live_allowed: not_yet_governance_approved
-    lifecycle_stage: detector_verified
-    polarity_semantics: temporal_guard
-    polarity_source: detector_specific_or_inferred
-    magnitude_source: detector_specific_or_intensity
-    anchor_role: context_filter
+    eligibility: {}
+    eligibility_reason: {}
+    lifecycle_stage: ontology_defined
+    polarity_semantics: unknown
+    polarity_source: unknown
+    magnitude_source: unknown
+    anchor_role: alpha_anchor
     parameters:
       merge_gap_bars: 0
       cooldown_bars: 12
@@ -8029,7 +7308,7 @@ events:
     runtime_category: active_runtime_event
     maturity: ''
     default_executable: false
-    detector_band: context_only
+    detector_band: ''
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -8051,28 +7330,13 @@ events:
     suppresses: []
     suppressed_by: []
     maturity_scores: {}
-    eligibility:
-      ontology_defined: true
-      detector_verified: true
-      research_planning_allowed: true
-      primary_anchor_allowed: false
-      paper_anchor_allowed: false
-      promotion_candidate_allowed: false
-      shadow_runtime_allowed: false
-      micro_live_allowed: false
-      scaled_live_allowed: false
-    eligibility_reason:
-      primary_anchor_allowed: not_yet_governance_approved
-      paper_anchor_allowed: not_yet_governance_approved
-      promotion_candidate_allowed: not_yet_governance_approved
-      shadow_runtime_allowed: not_yet_governance_approved
-      micro_live_allowed: not_yet_governance_approved
-      scaled_live_allowed: not_yet_governance_approved
-    lifecycle_stage: detector_verified
-    polarity_semantics: temporal_guard
-    polarity_source: detector_specific_or_inferred
-    magnitude_source: detector_specific_or_intensity
-    anchor_role: context_filter
+    eligibility: {}
+    eligibility_reason: {}
+    lifecycle_stage: ontology_defined
+    polarity_semantics: unknown
+    polarity_source: unknown
+    magnitude_source: unknown
+    anchor_role: alpha_anchor
     parameters:
       merge_gap_bars: 0
       cooldown_bars: 12
@@ -8129,26 +7393,26 @@ events:
     asset_scope: single_asset
     venue_scope: single_venue
     is_composite: false
-    is_context_tag: false
+    is_context_tag: true
     is_strategy_construct: false
-    research_only: false
+    research_only: true
     strategy_only: false
     deconflict_priority: 0
     disposition: keep
     layer: canonical
     notes: Execution friction shock.
     tier: B
-    operational_role: trigger
-    deployment_disposition: secondary_or_confirm
-    runtime_category: active_runtime_event
+    operational_role: context
+    deployment_disposition: context_only_execution_guard
+    runtime_category: research_only_event
     maturity: ''
-    default_executable: true
-    detector_band: research_trigger
-    planning_eligible: false
+    default_executable: false
+    detector_band: context_only
+    planning_eligible: true
     runtime_eligible: false
     promotion_eligible: false
     primary_anchor_eligible: false
-    enabled: true
+    enabled: false
     detector_name: SlippageSpikeDetector
     instrument_classes:
     - crypto
@@ -8166,28 +7430,13 @@ events:
     suppresses: []
     suppressed_by: []
     maturity_scores: {}
-    eligibility:
-      ontology_defined: true
-      detector_verified: true
-      research_planning_allowed: true
-      primary_anchor_allowed: false
-      paper_anchor_allowed: false
-      promotion_candidate_allowed: false
-      shadow_runtime_allowed: false
-      micro_live_allowed: false
-      scaled_live_allowed: false
-    eligibility_reason:
-      primary_anchor_allowed: not_yet_governance_approved
-      paper_anchor_allowed: not_yet_governance_approved
-      promotion_candidate_allowed: not_yet_governance_approved
-      shadow_runtime_allowed: not_yet_governance_approved
-      micro_live_allowed: not_yet_governance_approved
-      scaled_live_allowed: not_yet_governance_approved
-    lifecycle_stage: detector_verified
-    polarity_semantics: execution_guard
-    polarity_source: detector_specific_or_inferred
-    magnitude_source: detector_specific_or_intensity
-    anchor_role: execution_guard
+    eligibility: {}
+    eligibility_reason: {}
+    lifecycle_stage: ontology_defined
+    polarity_semantics: unknown
+    polarity_source: unknown
+    magnitude_source: unknown
+    anchor_role: alpha_anchor
     parameters:
       merge_gap_bars: 0
       cooldown_bars: 12
@@ -8252,7 +7501,7 @@ events:
     runtime_category: active_runtime_event
     maturity: ''
     default_executable: true
-    detector_band: research_trigger
+    detector_band: ''
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -8276,27 +7525,12 @@ events:
     suppresses: []
     suppressed_by: []
     maturity_scores: {}
-    eligibility:
-      ontology_defined: true
-      detector_verified: true
-      research_planning_allowed: true
-      primary_anchor_allowed: false
-      paper_anchor_allowed: false
-      promotion_candidate_allowed: false
-      shadow_runtime_allowed: false
-      micro_live_allowed: false
-      scaled_live_allowed: false
-    eligibility_reason:
-      primary_anchor_allowed: not_yet_governance_approved
-      paper_anchor_allowed: not_yet_governance_approved
-      promotion_candidate_allowed: not_yet_governance_approved
-      shadow_runtime_allowed: not_yet_governance_approved
-      micro_live_allowed: not_yet_governance_approved
-      scaled_live_allowed: not_yet_governance_approved
-    lifecycle_stage: detector_verified
-    polarity_semantics: basis_spread_direction
-    polarity_source: detector_specific_or_inferred
-    magnitude_source: detector_specific_or_intensity
+    eligibility: {}
+    eligibility_reason: {}
+    lifecycle_stage: ontology_defined
+    polarity_semantics: unknown
+    polarity_source: unknown
+    magnitude_source: unknown
     anchor_role: alpha_anchor
     parameters:
       merge_gap_bars: 0
@@ -8368,7 +7602,7 @@ events:
     runtime_category: active_runtime_event
     maturity: ''
     default_executable: true
-    detector_band: research_trigger
+    detector_band: ''
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -8416,28 +7650,13 @@ events:
         Penalize heavily but do not block entirely.
     suppressed_by: []
     maturity_scores: {}
-    eligibility:
-      ontology_defined: true
-      detector_verified: true
-      research_planning_allowed: true
-      primary_anchor_allowed: false
-      paper_anchor_allowed: false
-      promotion_candidate_allowed: false
-      shadow_runtime_allowed: false
-      micro_live_allowed: false
-      scaled_live_allowed: false
-    eligibility_reason:
-      primary_anchor_allowed: not_yet_governance_approved
-      paper_anchor_allowed: not_yet_governance_approved
-      promotion_candidate_allowed: not_yet_governance_approved
-      shadow_runtime_allowed: not_yet_governance_approved
-      micro_live_allowed: not_yet_governance_approved
-      scaled_live_allowed: not_yet_governance_approved
-    lifecycle_stage: detector_verified
-    polarity_semantics: execution_guard
-    polarity_source: detector_specific_or_inferred
-    magnitude_source: detector_specific_or_intensity
-    anchor_role: execution_guard
+    eligibility: {}
+    eligibility_reason: {}
+    lifecycle_stage: ontology_defined
+    polarity_semantics: unknown
+    polarity_source: unknown
+    magnitude_source: unknown
+    anchor_role: alpha_anchor
     parameters:
       merge_gap_bars: 0
       cooldown_bars: 12
@@ -8506,7 +7725,7 @@ events:
     runtime_category: active_runtime_event
     maturity: ''
     default_executable: true
-    detector_band: research_trigger
+    detector_band: ''
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -8529,28 +7748,13 @@ events:
     suppresses: []
     suppressed_by: []
     maturity_scores: {}
-    eligibility:
-      ontology_defined: true
-      detector_verified: true
-      research_planning_allowed: true
-      primary_anchor_allowed: false
-      paper_anchor_allowed: false
-      promotion_candidate_allowed: false
-      shadow_runtime_allowed: false
-      micro_live_allowed: false
-      scaled_live_allowed: false
-    eligibility_reason:
-      primary_anchor_allowed: not_yet_governance_approved
-      paper_anchor_allowed: not_yet_governance_approved
-      promotion_candidate_allowed: not_yet_governance_approved
-      shadow_runtime_allowed: not_yet_governance_approved
-      micro_live_allowed: not_yet_governance_approved
-      scaled_live_allowed: not_yet_governance_approved
-    lifecycle_stage: detector_verified
-    polarity_semantics: execution_guard
-    polarity_source: detector_specific_or_inferred
-    magnitude_source: detector_specific_or_intensity
-    anchor_role: execution_guard
+    eligibility: {}
+    eligibility_reason: {}
+    lifecycle_stage: ontology_defined
+    polarity_semantics: unknown
+    polarity_source: unknown
+    magnitude_source: unknown
+    anchor_role: alpha_anchor
     parameters:
       merge_gap_bars: 0
       cooldown_bars: 48
@@ -8618,7 +7822,7 @@ events:
     runtime_category: active_runtime_event
     maturity: ''
     default_executable: true
-    detector_band: research_trigger
+    detector_band: ''
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -8640,28 +7844,13 @@ events:
     suppresses: []
     suppressed_by: []
     maturity_scores: {}
-    eligibility:
-      ontology_defined: true
-      detector_verified: true
-      research_planning_allowed: true
-      primary_anchor_allowed: false
-      paper_anchor_allowed: false
-      promotion_candidate_allowed: false
-      shadow_runtime_allowed: false
-      micro_live_allowed: false
-      scaled_live_allowed: false
-    eligibility_reason:
-      primary_anchor_allowed: not_yet_governance_approved
-      paper_anchor_allowed: not_yet_governance_approved
-      promotion_candidate_allowed: not_yet_governance_approved
-      shadow_runtime_allowed: not_yet_governance_approved
-      micro_live_allowed: not_yet_governance_approved
-      scaled_live_allowed: not_yet_governance_approved
-    lifecycle_stage: detector_verified
-    polarity_semantics: price_direction
-    polarity_source: detector_specific_or_inferred
-    magnitude_source: detector_specific_or_intensity
-    anchor_role: confirmation_anchor
+    eligibility: {}
+    eligibility_reason: {}
+    lifecycle_stage: ontology_defined
+    polarity_semantics: unknown
+    polarity_source: unknown
+    magnitude_source: unknown
+    anchor_role: alpha_anchor
     parameters:
       merge_gap_bars: 0
       cooldown_bars: 12
@@ -8730,7 +7919,7 @@ events:
     runtime_category: active_runtime_event
     maturity: standard
     default_executable: true
-    detector_band: research_trigger
+    detector_band: ''
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -8753,28 +7942,13 @@ events:
     suppresses: []
     suppressed_by: []
     maturity_scores: {}
-    eligibility:
-      ontology_defined: true
-      detector_verified: true
-      research_planning_allowed: true
-      primary_anchor_allowed: false
-      paper_anchor_allowed: false
-      promotion_candidate_allowed: false
-      shadow_runtime_allowed: false
-      micro_live_allowed: false
-      scaled_live_allowed: false
-    eligibility_reason:
-      primary_anchor_allowed: not_yet_governance_approved
-      paper_anchor_allowed: not_yet_governance_approved
-      promotion_candidate_allowed: not_yet_governance_approved
-      shadow_runtime_allowed: not_yet_governance_approved
-      micro_live_allowed: not_yet_governance_approved
-      scaled_live_allowed: not_yet_governance_approved
-    lifecycle_stage: detector_verified
-    polarity_semantics: liquidity_sweep_side
-    polarity_source: detector_specific_or_inferred
-    magnitude_source: detector_specific_or_intensity
-    anchor_role: confirmation_anchor
+    eligibility: {}
+    eligibility_reason: {}
+    lifecycle_stage: standard
+    polarity_semantics: unknown
+    polarity_source: unknown
+    magnitude_source: unknown
+    anchor_role: alpha_anchor
     parameters:
       merge_gap_bars: 0
       cooldown_bars: 12
@@ -8845,7 +8019,7 @@ events:
     runtime_category: active_runtime_event
     maturity: ''
     default_executable: true
-    detector_band: research_trigger
+    detector_band: ''
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -8867,28 +8041,13 @@ events:
     suppresses: []
     suppressed_by: []
     maturity_scores: {}
-    eligibility:
-      ontology_defined: true
-      detector_verified: true
-      research_planning_allowed: true
-      primary_anchor_allowed: false
-      paper_anchor_allowed: false
-      promotion_candidate_allowed: false
-      shadow_runtime_allowed: false
-      micro_live_allowed: false
-      scaled_live_allowed: false
-    eligibility_reason:
-      primary_anchor_allowed: not_yet_governance_approved
-      paper_anchor_allowed: not_yet_governance_approved
-      promotion_candidate_allowed: not_yet_governance_approved
-      shadow_runtime_allowed: not_yet_governance_approved
-      micro_live_allowed: not_yet_governance_approved
-      scaled_live_allowed: not_yet_governance_approved
-    lifecycle_stage: detector_verified
-    polarity_semantics: price_direction
-    polarity_source: detector_specific_or_inferred
-    magnitude_source: detector_specific_or_intensity
-    anchor_role: confirmation_anchor
+    eligibility: {}
+    eligibility_reason: {}
+    lifecycle_stage: ontology_defined
+    polarity_semantics: unknown
+    polarity_source: unknown
+    magnitude_source: unknown
+    anchor_role: alpha_anchor
     parameters:
       merge_gap_bars: 0
       cooldown_bars: 0
@@ -8958,7 +8117,7 @@ events:
     runtime_category: active_runtime_event
     maturity: ''
     default_executable: true
-    detector_band: research_trigger
+    detector_band: ''
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -8980,28 +8139,13 @@ events:
     suppresses: []
     suppressed_by: []
     maturity_scores: {}
-    eligibility:
-      ontology_defined: true
-      detector_verified: true
-      research_planning_allowed: true
-      primary_anchor_allowed: false
-      paper_anchor_allowed: false
-      promotion_candidate_allowed: false
-      shadow_runtime_allowed: false
-      micro_live_allowed: false
-      scaled_live_allowed: false
-    eligibility_reason:
-      primary_anchor_allowed: not_yet_governance_approved
-      paper_anchor_allowed: not_yet_governance_approved
-      promotion_candidate_allowed: not_yet_governance_approved
-      shadow_runtime_allowed: not_yet_governance_approved
-      micro_live_allowed: not_yet_governance_approved
-      scaled_live_allowed: not_yet_governance_approved
-    lifecycle_stage: detector_verified
-    polarity_semantics: price_direction
-    polarity_source: detector_specific_or_inferred
-    magnitude_source: detector_specific_or_intensity
-    anchor_role: confirmation_anchor
+    eligibility: {}
+    eligibility_reason: {}
+    lifecycle_stage: ontology_defined
+    polarity_semantics: unknown
+    polarity_source: unknown
+    magnitude_source: unknown
+    anchor_role: alpha_anchor
     parameters:
       merge_gap_bars: 0
       cooldown_bars: 12
@@ -9070,7 +8214,7 @@ events:
     runtime_category: active_runtime_event
     maturity: ''
     default_executable: true
-    detector_band: research_trigger
+    detector_band: ''
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -9093,28 +8237,13 @@ events:
     suppresses: []
     suppressed_by: []
     maturity_scores: {}
-    eligibility:
-      ontology_defined: true
-      detector_verified: true
-      research_planning_allowed: true
-      primary_anchor_allowed: false
-      paper_anchor_allowed: false
-      promotion_candidate_allowed: false
-      shadow_runtime_allowed: false
-      micro_live_allowed: false
-      scaled_live_allowed: false
-    eligibility_reason:
-      primary_anchor_allowed: not_yet_governance_approved
-      paper_anchor_allowed: not_yet_governance_approved
-      promotion_candidate_allowed: not_yet_governance_approved
-      shadow_runtime_allowed: not_yet_governance_approved
-      micro_live_allowed: not_yet_governance_approved
-      scaled_live_allowed: not_yet_governance_approved
-    lifecycle_stage: detector_verified
-    polarity_semantics: price_direction
-    polarity_source: detector_specific_or_inferred
-    magnitude_source: detector_specific_or_intensity
-    anchor_role: confirmation_anchor
+    eligibility: {}
+    eligibility_reason: {}
+    lifecycle_stage: ontology_defined
+    polarity_semantics: unknown
+    polarity_source: unknown
+    magnitude_source: unknown
+    anchor_role: alpha_anchor
     parameters:
       merge_gap_bars: 0
       cooldown_bars: 96
@@ -9200,7 +8329,7 @@ events:
     runtime_category: active_runtime_event
     maturity: ''
     default_executable: true
-    detector_band: research_trigger
+    detector_band: ''
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -9223,28 +8352,13 @@ events:
     suppresses: []
     suppressed_by: []
     maturity_scores: {}
-    eligibility:
-      ontology_defined: true
-      detector_verified: true
-      research_planning_allowed: true
-      primary_anchor_allowed: false
-      paper_anchor_allowed: false
-      promotion_candidate_allowed: false
-      shadow_runtime_allowed: false
-      micro_live_allowed: false
-      scaled_live_allowed: false
-    eligibility_reason:
-      primary_anchor_allowed: not_yet_governance_approved
-      paper_anchor_allowed: not_yet_governance_approved
-      promotion_candidate_allowed: not_yet_governance_approved
-      shadow_runtime_allowed: not_yet_governance_approved
-      micro_live_allowed: not_yet_governance_approved
-      scaled_live_allowed: not_yet_governance_approved
-    lifecycle_stage: detector_verified
-    polarity_semantics: regime_transition
-    polarity_source: detector_specific_or_inferred
-    magnitude_source: detector_specific_or_intensity
-    anchor_role: risk_guard
+    eligibility: {}
+    eligibility_reason: {}
+    lifecycle_stage: ontology_defined
+    polarity_semantics: unknown
+    polarity_source: unknown
+    magnitude_source: unknown
+    anchor_role: alpha_anchor
     parameters:
       merge_gap_bars: 0
       cooldown_bars: 48
@@ -9311,7 +8425,7 @@ events:
     runtime_category: active_runtime_event
     maturity: ''
     default_executable: true
-    detector_band: research_trigger
+    detector_band: ''
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -9333,28 +8447,13 @@ events:
     suppresses: []
     suppressed_by: []
     maturity_scores: {}
-    eligibility:
-      ontology_defined: true
-      detector_verified: true
-      research_planning_allowed: true
-      primary_anchor_allowed: false
-      paper_anchor_allowed: false
-      promotion_candidate_allowed: false
-      shadow_runtime_allowed: false
-      micro_live_allowed: false
-      scaled_live_allowed: false
-    eligibility_reason:
-      primary_anchor_allowed: not_yet_governance_approved
-      paper_anchor_allowed: not_yet_governance_approved
-      promotion_candidate_allowed: not_yet_governance_approved
-      shadow_runtime_allowed: not_yet_governance_approved
-      micro_live_allowed: not_yet_governance_approved
-      scaled_live_allowed: not_yet_governance_approved
-    lifecycle_stage: detector_verified
-    polarity_semantics: regime_transition
-    polarity_source: detector_specific_or_inferred
-    magnitude_source: detector_specific_or_intensity
-    anchor_role: confirmation_anchor
+    eligibility: {}
+    eligibility_reason: {}
+    lifecycle_stage: ontology_defined
+    polarity_semantics: unknown
+    polarity_source: unknown
+    magnitude_source: unknown
+    anchor_role: alpha_anchor
     parameters:
       merge_gap_bars: 0
       cooldown_bars: 12
@@ -9423,7 +8522,7 @@ events:
     runtime_category: active_runtime_event
     maturity: ''
     default_executable: true
-    detector_band: research_trigger
+    detector_band: ''
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -9446,28 +8545,13 @@ events:
     suppresses: []
     suppressed_by: []
     maturity_scores: {}
-    eligibility:
-      ontology_defined: true
-      detector_verified: true
-      research_planning_allowed: true
-      primary_anchor_allowed: false
-      paper_anchor_allowed: false
-      promotion_candidate_allowed: false
-      shadow_runtime_allowed: false
-      micro_live_allowed: false
-      scaled_live_allowed: false
-    eligibility_reason:
-      primary_anchor_allowed: not_yet_governance_approved
-      paper_anchor_allowed: not_yet_governance_approved
-      promotion_candidate_allowed: not_yet_governance_approved
-      shadow_runtime_allowed: not_yet_governance_approved
-      micro_live_allowed: not_yet_governance_approved
-      scaled_live_allowed: not_yet_governance_approved
-    lifecycle_stage: detector_verified
-    polarity_semantics: regime_transition
-    polarity_source: detector_specific_or_inferred
-    magnitude_source: detector_specific_or_intensity
-    anchor_role: risk_guard
+    eligibility: {}
+    eligibility_reason: {}
+    lifecycle_stage: ontology_defined
+    polarity_semantics: unknown
+    polarity_source: unknown
+    magnitude_source: unknown
+    anchor_role: alpha_anchor
     parameters:
       merge_gap_bars: 0
       cooldown_bars: 48
@@ -9534,7 +8618,7 @@ events:
     runtime_category: active_runtime_event
     maturity: ''
     default_executable: true
-    detector_band: research_trigger
+    detector_band: ''
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -9556,28 +8640,13 @@ events:
     suppresses: []
     suppressed_by: []
     maturity_scores: {}
-    eligibility:
-      ontology_defined: true
-      detector_verified: true
-      research_planning_allowed: true
-      primary_anchor_allowed: false
-      paper_anchor_allowed: false
-      promotion_candidate_allowed: false
-      shadow_runtime_allowed: false
-      micro_live_allowed: false
-      scaled_live_allowed: false
-    eligibility_reason:
-      primary_anchor_allowed: not_yet_governance_approved
-      paper_anchor_allowed: not_yet_governance_approved
-      promotion_candidate_allowed: not_yet_governance_approved
-      shadow_runtime_allowed: not_yet_governance_approved
-      micro_live_allowed: not_yet_governance_approved
-      scaled_live_allowed: not_yet_governance_approved
-    lifecycle_stage: detector_verified
-    polarity_semantics: regime_transition
-    polarity_source: detector_specific_or_inferred
-    magnitude_source: detector_specific_or_intensity
-    anchor_role: confirmation_anchor
+    eligibility: {}
+    eligibility_reason: {}
+    lifecycle_stage: ontology_defined
+    polarity_semantics: unknown
+    polarity_source: unknown
+    magnitude_source: unknown
+    anchor_role: alpha_anchor
     parameters:
       merge_gap_bars: 0
       cooldown_bars: 12
@@ -9647,7 +8716,7 @@ events:
     runtime_category: active_runtime_event
     maturity: ''
     default_executable: true
-    detector_band: research_trigger
+    detector_band: ''
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -9670,27 +8739,12 @@ events:
     suppresses: []
     suppressed_by: []
     maturity_scores: {}
-    eligibility:
-      ontology_defined: true
-      detector_verified: true
-      research_planning_allowed: true
-      primary_anchor_allowed: false
-      paper_anchor_allowed: false
-      promotion_candidate_allowed: false
-      shadow_runtime_allowed: false
-      micro_live_allowed: false
-      scaled_live_allowed: false
-    eligibility_reason:
-      primary_anchor_allowed: not_yet_governance_approved
-      paper_anchor_allowed: not_yet_governance_approved
-      promotion_candidate_allowed: not_yet_governance_approved
-      shadow_runtime_allowed: not_yet_governance_approved
-      micro_live_allowed: not_yet_governance_approved
-      scaled_live_allowed: not_yet_governance_approved
-    lifecycle_stage: detector_verified
-    polarity_semantics: price_direction
-    polarity_source: detector_specific_or_inferred
-    magnitude_source: detector_specific_or_intensity
+    eligibility: {}
+    eligibility_reason: {}
+    lifecycle_stage: ontology_defined
+    polarity_semantics: unknown
+    polarity_source: unknown
+    magnitude_source: unknown
     anchor_role: alpha_anchor
     parameters:
       merge_gap_bars: 1
@@ -9827,7 +8881,7 @@ events:
     runtime_category: active_runtime_event
     maturity: ''
     default_executable: true
-    detector_band: research_trigger
+    detector_band: ''
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -9850,27 +8904,12 @@ events:
     suppresses: []
     suppressed_by: []
     maturity_scores: {}
-    eligibility:
-      ontology_defined: true
-      detector_verified: true
-      research_planning_allowed: true
-      primary_anchor_allowed: false
-      paper_anchor_allowed: false
-      promotion_candidate_allowed: false
-      shadow_runtime_allowed: false
-      micro_live_allowed: false
-      scaled_live_allowed: false
-    eligibility_reason:
-      primary_anchor_allowed: not_yet_governance_approved
-      paper_anchor_allowed: not_yet_governance_approved
-      promotion_candidate_allowed: not_yet_governance_approved
-      shadow_runtime_allowed: not_yet_governance_approved
-      micro_live_allowed: not_yet_governance_approved
-      scaled_live_allowed: not_yet_governance_approved
-    lifecycle_stage: detector_verified
-    polarity_semantics: price_direction
-    polarity_source: detector_specific_or_inferred
-    magnitude_source: detector_specific_or_intensity
+    eligibility: {}
+    eligibility_reason: {}
+    lifecycle_stage: ontology_defined
+    polarity_semantics: unknown
+    polarity_source: unknown
+    magnitude_source: unknown
     anchor_role: alpha_anchor
     parameters:
       merge_gap_bars: 1
@@ -9938,7 +8977,7 @@ events:
     runtime_category: active_runtime_event
     maturity: standard
     default_executable: true
-    detector_band: composite_or_fragile
+    detector_band: ''
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -9957,28 +8996,13 @@ events:
     suppresses: []
     suppressed_by: []
     maturity_scores: {}
-    eligibility:
-      ontology_defined: true
-      detector_verified: true
-      research_planning_allowed: true
-      primary_anchor_allowed: false
-      paper_anchor_allowed: false
-      promotion_candidate_allowed: false
-      shadow_runtime_allowed: false
-      micro_live_allowed: false
-      scaled_live_allowed: false
-    eligibility_reason:
-      primary_anchor_allowed: not_yet_governance_approved
-      paper_anchor_allowed: not_yet_governance_approved
-      promotion_candidate_allowed: not_yet_governance_approved
-      shadow_runtime_allowed: not_yet_governance_approved
-      micro_live_allowed: not_yet_governance_approved
-      scaled_live_allowed: not_yet_governance_approved
-    lifecycle_stage: detector_verified
-    polarity_semantics: liquidity_sweep_side
-    polarity_source: detector_specific_or_inferred
-    magnitude_source: detector_specific_or_intensity
-    anchor_role: confirmation_anchor
+    eligibility: {}
+    eligibility_reason: {}
+    lifecycle_stage: standard
+    polarity_semantics: unknown
+    polarity_source: unknown
+    magnitude_source: unknown
+    anchor_role: alpha_anchor
     parameters:
       merge_gap_bars: 0
       cooldown_bars: 12
@@ -10048,7 +9072,7 @@ events:
     runtime_category: active_runtime_event
     maturity: ''
     default_executable: true
-    detector_band: research_trigger
+    detector_band: ''
     planning_eligible: false
     runtime_eligible: false
     promotion_eligible: false
@@ -10070,28 +9094,13 @@ events:
     suppresses: []
     suppressed_by: []
     maturity_scores: {}
-    eligibility:
-      ontology_defined: true
-      detector_verified: true
-      research_planning_allowed: true
-      primary_anchor_allowed: false
-      paper_anchor_allowed: false
-      promotion_candidate_allowed: false
-      shadow_runtime_allowed: false
-      micro_live_allowed: false
-      scaled_live_allowed: false
-    eligibility_reason:
-      primary_anchor_allowed: not_yet_governance_approved
-      paper_anchor_allowed: not_yet_governance_approved
-      promotion_candidate_allowed: not_yet_governance_approved
-      shadow_runtime_allowed: not_yet_governance_approved
-      micro_live_allowed: not_yet_governance_approved
-      scaled_live_allowed: not_yet_governance_approved
-    lifecycle_stage: detector_verified
-    polarity_semantics: deviation_direction
-    polarity_source: detector_specific_or_inferred
-    magnitude_source: detector_specific_or_intensity
-    anchor_role: confirmation_anchor
+    eligibility: {}
+    eligibility_reason: {}
+    lifecycle_stage: ontology_defined
+    polarity_semantics: unknown
+    polarity_source: unknown
+    magnitude_source: unknown
+    anchor_role: alpha_anchor
     parameters:
       merge_gap_bars: 0
       cooldown_bars: 12
@@ -14196,6 +13205,26 @@ runtime:
         horizons:
         - 15m
         max_candidates_per_run: 1000
+      LIQUIDITY_VACUUM_RECOVERY:
+        templates:
+        - mean_reversion
+        - continuation
+        - stop_run_repair
+        - overshoot_repair
+        - only_if_liquidity
+        - slippage_aware_filter
+        horizons:
+        - 5m
+        - 15m
+        - 60m
+        conditioning_cols:
+        - vol_regime
+        - carry_state
+        - funding_bps
+        - ms_trend_state
+        - ms_spread_state
+        - severity_bucket
+        max_candidates_per_run: 1000
       MOMENTUM_DIVERGENCE_TRIGGER:
         templates:
         - mean_reversion
@@ -14215,6 +13244,30 @@ runtime:
         - ms_spread_state
         - severity_bucket
         max_candidates_per_run: 500
+      OI_EXPANSION_STRESS:
+        templates:
+        - carry_continuation_confirmed
+        - squeeze_followthrough_confirmed
+        - reversal_or_squeeze
+        - mean_reversion
+        - continuation
+        - exhaustion_reversal
+        - convexity_capture
+        - only_if_funding
+        - only_if_oi
+        - tail_risk_avoid
+        horizons:
+        - 5m
+        - 15m
+        - 60m
+        conditioning_cols:
+        - vol_regime
+        - carry_state
+        - funding_bps
+        - ms_trend_state
+        - ms_spread_state
+        - severity_bucket
+        max_candidates_per_run: 1000
       OI_FLUSH:
         templates:
         - reversal_or_squeeze

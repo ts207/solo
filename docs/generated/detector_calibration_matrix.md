@@ -23,8 +23,9 @@
 | LIQUIDITY_STRESS_DIRECT | v2 | 2.0 | rolling_quantile | major_crypto | 5m | synthetic_and_spec_seeded_v2_baseline | baseline_fixture |
 | LIQUIDITY_STRESS_PROXY | v2 | 2.0 | rolling_quantile | major_crypto | 5m | synthetic_and_spec_seeded_v2_baseline | baseline_fixture |
 | LIQUIDITY_VACUUM | v2 | 2.0 | rolling_quantile | major_crypto | 5m | synthetic_and_spec_seeded_v2_baseline | baseline_fixture |
+| LIQUIDITY_VACUUM_RECOVERY | v2 | 2.0 | rolling_quantile |  |  |  |  |
+| OI_EXPANSION_STRESS | v2 | 2.0 | rolling_quantile |  |  |  |  |
 | OI_FLUSH | v2 | 2.0 | rolling_zscore | major_crypto | 5m | synthetic_and_spec_seeded_v2_baseline | baseline_fixture |
-| OI_SPIKE_NEGATIVE | v2 | 2.0 | rolling_zscore | major_crypto | 5m | synthetic_and_spec_seeded_v2_baseline | baseline_fixture |
 | OI_SPIKE_NEGATIVE | v2 | 2.0 | rolling_zscore | major_crypto | 5m | synthetic_and_spec_seeded_v2_baseline | baseline_fixture |
 | OI_SPIKE_POSITIVE | v2 | 2.0 | rolling_zscore | major_crypto | 5m | synthetic_and_spec_seeded_v2_baseline | baseline_fixture |
 | RANGE_COMPRESSION_END | v2 | 2.0 | rolling_quantile | major_crypto | 5m | synthetic_and_spec_seeded_v2_baseline | baseline_fixture |

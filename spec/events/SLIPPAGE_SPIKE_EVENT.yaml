@@ -30,19 +30,24 @@ identity:
   venue_scope: single_venue
 governance:
   event_kind: market_event
-  default_executable: true
-  research_only: false
+  default_executable: false
+  research_only: true
   strategy_only: false
-  context_tag: false
+  context_tag: true
   is_composite: false
   maturity: ''
   tier: B
-  operational_role: trigger
-  deployment_disposition: secondary_or_confirm
-  runtime_category: active_runtime_event
+  operational_role: context
+  deployment_disposition: context_only_execution_guard
+  runtime_category: research_only_event
+  detector_band: context_only
+  planning_eligible: true
+  runtime_trade_eligible: false
+  promotion_eligible: false
+  primary_anchor_eligible: false
 runtime:
   detector: SlippageSpikeDetector
-  enabled: true
+  enabled: false
   signal_column: slippage_spike_event
   events_file: execution_friction_events.parquet
   reports_dir: execution_friction

@@ -1,0 +1,73 @@
+event_type: OI_EXPANSION_STRESS
+synthetic_coverage: covered
+reports_dir: oi_shocks
+events_file: oi_expansion_stress_events.parquet
+signal_column: oi_expansion_stress_event
+parameters:
+  oi_window: 96
+  spike_z_th: 2.0
+  price_move_threshold_bps: 25
+research_family: POSITIONING_EXTREMES
+trigger: Price moves materially while OI expands; subtype classifies positioning stress without liquidation feed.
+confirmation: Requires pairing before trade routing.
+expected_behavior:
+  holding_horizon_bars: 4-24
+  invalidation_conditions:
+  - Liquidity vacuum active
+  - OI expansion fades immediately
+  disabled_regimes:
+  - Low-liquidity regime
+cluster_id: oi_dynamic
+identity:
+  canonical_regime: POSITIONING_STRESS
+  subtype: oi_expansion_stress
+  phase: stress
+  evidence_mode: direct
+  layer: canonical
+  disposition: keep
+  asset_scope: single_asset
+  venue_scope: single_venue
+governance:
+  event_kind: market_event
+  default_executable: false
+  research_only: false
+  strategy_only: false
+  context_tag: true
+  is_composite: false
+  maturity: specialized
+  tier: B
+  operational_role: context
+  detector_band: context_only
+  planning_eligible: true
+  runtime_trade_eligible: true
+  promotion_eligible: false
+  primary_anchor_eligible: false
+  deployment_disposition: context_only_positioning_stress
+  runtime_category: active_runtime_event
+runtime:
+  detector: OIExpansionStressDetectorV2
+  enabled: true
+  signal_column: oi_expansion_stress_event
+  events_file: oi_expansion_stress_events.parquet
+  reports_dir: oi_shocks
+  instrument_classes:
+  - crypto
+  - futures
+  requires_features:
+  - timestamp
+  - oi_notional
+  - close
+  sequence_eligible: true
+  runtime_tags:
+  - oi_dynamic
+  - no_liquidations_v1
+semantics:
+  cluster_id: oi_dynamic
+  notes: 'Subtypes: short_build_continuation, long_build_continuation, long_crowding_stress, short_squeeze_risk, squeeze_risk,
+    avoid_size_down, ambiguous_positioning_stress. Never standalone.'
+  precedence_rank: 0
+interaction:
+  suppresses: []
+  suppressed_by: []
+routing:
+  standalone_trade_eligible: false

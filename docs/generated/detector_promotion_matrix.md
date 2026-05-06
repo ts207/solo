@@ -22,7 +22,7 @@
 | FLOW_EXHAUSTION_PROXY | v1 | composite_or_fragile | standard | False | False | False |
 | FND_DISLOC | v2 | research_trigger | production | False | False | False |
 | FORCED_FLOW_EXHAUSTION | v1 | research_trigger | standard | False | False | False |
-| FUNDING_EXTREME_ONSET | v2 | research_trigger | standard | False | False | False |
+| FUNDING_EXTREME_ONSET | v2 | context_only | standard | False | False | False |
 | FUNDING_FLIP | v2 | research_trigger | specialized | False | False | False |
 | FUNDING_NORMALIZATION_TRIGGER | v2 | research_trigger | specialized | False | False | False |
 | FUNDING_PERSISTENCE_TRIGGER | v2 | research_trigger | specialized | False | False | False |
@@ -37,11 +37,12 @@
 | LIQUIDITY_SHOCK | v2 | research_trigger | production | False | False | False |
 | LIQUIDITY_STRESS_DIRECT | v2 | research_trigger | specialized | False | False | False |
 | LIQUIDITY_STRESS_PROXY | v2 | composite_or_fragile | standard | False | False | False |
-| LIQUIDITY_VACUUM | v2 | research_trigger | production | False | False | False |
+| LIQUIDITY_VACUUM | v2 | context_only | production | False | True | False |
+| LIQUIDITY_VACUUM_RECOVERY | v2 | research_trigger | specialized | False | True | False |
 | MOMENTUM_DIVERGENCE_TRIGGER | v1 | research_trigger | specialized | False | False | False |
-| OI_FLUSH | v2 | research_trigger | specialized | False | False | False |
-| OI_SPIKE_NEGATIVE | v2 | research_trigger | specialized | False | False | False |
-| OI_SPIKE_NEGATIVE | v2 | research_trigger | specialized | False | False | False |
+| OI_EXPANSION_STRESS | v2 | context_only | specialized | False | True | False |
+| OI_FLUSH | v2 | research_trigger | specialized | False | True | False |
+| OI_SPIKE_NEGATIVE | v2 | context_only | specialized | False | True | False |
 | OI_SPIKE_POSITIVE | v2 | research_trigger | specialized | False | False | False |
 | ORDERFLOW_IMBALANCE_SHOCK | v1 | research_trigger | standard | False | False | False |
 | OVERSHOOT_AFTER_SHOCK | v1 | research_trigger | specialized | False | False | False |
@@ -57,7 +58,7 @@
 | SEQ_VOL_COMP_THEN_BREAKOUT | v1 | composite_or_fragile | standard | False | False | False |
 | SESSION_CLOSE_EVENT | v1 | context_only | standard | False | False | False |
 | SESSION_OPEN_EVENT | v1 | context_only | standard | False | False | False |
-| SLIPPAGE_SPIKE_EVENT | v1 | research_trigger | specialized | False | False | False |
+| SLIPPAGE_SPIKE_EVENT | v1 | context_only | specialized | False | False | False |
 | SPOT_PERP_BASIS_SHOCK | v2 | research_trigger | production | False | False | False |
 | SPREAD_BLOWOUT | v1 | research_trigger | specialized | False | False | False |
 | SPREAD_REGIME_WIDENING_EVENT | v1 | research_trigger | specialized | False | False | False |

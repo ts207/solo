@@ -20,6 +20,7 @@ class LiveTradeContext(BaseModel):
     event_confidence: float | None = None
     event_severity: float | None = None
     data_quality_flag: str = "ok"
+    trade_eligible: bool = True
     event_version: str = "v1"
     threshold_version: str = "1.0"
     event_evidence_mode: str = ""
@@ -80,6 +81,7 @@ class LiveTradeContext(BaseModel):
             "primary_event_id": self.primary_event_id,
             "canonical_regime": self.canonical_regime,
             "event_side": self.event_side,
+            "trade_eligible": self.trade_eligible,
             "signal_context": dict(self.signal_context),
             "execution_context": dict(self.execution_context),
             "market_state_quality": dict(self.market_state_quality),

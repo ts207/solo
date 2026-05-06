@@ -36,9 +36,10 @@ class BaseDetectorV2(DetectorLogicContract):
     supports_severity_bucket: bool = True
     cooldown_semantics: str = "event_timestamp_plus_cooldown_bars"
     merge_key_strategy: str = "symbol_plus_cluster_id"
-    promotion_eligible: bool = True
-    planning_default: bool = True
-    runtime_default: bool = True
+    # Safe-by-default: detectors must opt in via class/spec governance.
+    promotion_eligible: bool = False
+    planning_default: bool = False
+    runtime_default: bool = False
 
     def __init__(self, **_: Any) -> None:
         from project.events.registry import get_detector_contract
@@ -187,7 +188,9 @@ class BaseDetectorV2(DetectorLogicContract):
         merge_key: str | None = None,
         cooldown_until: pd.Timestamp | None = None,
     ) -> DetectedEvent:
+        computed_metadata = dict(detector_metadata or {})
         quality_flag = self.compute_data_quality(idx, features, **params)
+        metadata_trade_eligible = computed_metadata.get("trade_eligible", True)
         severity = self.compute_severity(idx, intensity, features, **params) if self._contract.supports_severity else None
         polarity_semantics = self.compute_polarity_semantics(idx, features, **params)
         event_side = self.compute_event_side(idx, intensity, features, **params) if self._contract.supports_event_side else "unknown"
@@ -230,9 +233,10 @@ class BaseDetectorV2(DetectorLogicContract):
                 'cooldown_bars': int(params.get('cooldown_bars', self._contract.cooldown_bars) or 0),
             },
             source_features=self.compute_source_features(idx, features, **params),
-            detector_metadata={"event_idx": int(idx), **dict(detector_metadata or {})},
+            detector_metadata={"event_idx": int(idx), **computed_metadata},
             required_context_present=True,
             data_quality_flag=quality_flag if self._contract.supports_quality_flag else 'ok',
+            trade_eligible=bool(metadata_trade_eligible) and str(quality_flag).strip().lower() != "invalid",
             merge_key=merge_key,
             cooldown_until=cooldown_until,
         )
@@ -242,7 +246,106 @@ class BaseDetectorV2(DetectorLogicContract):
         return self.compute_intensity(df, features=features)
 
     def validate_no_lookahead(self, df: pd.DataFrame, event_frame: pd.DataFrame) -> None:
-        return None
+        """Validate generic v2 no-lookahead invariants.
+
+        Timestamp/index checks catch impossible event placement. A bounded
+        prefix-stability replay catches detectors that only fire because they
+        read rows after the event bar. Replays use the params recorded by
+        ``detect_events`` when available; manually constructed frames still get
+        timestamp and event_idx validation.
+        """
+        if event_frame is None or event_frame.empty:
+            return
+        if df is None or df.empty:
+            raise ValueError("cannot validate events against an empty source frame")
+        if "timestamp" not in df.columns:
+            raise ValueError("source frame missing timestamp column")
+
+        source_ts = pd.to_datetime(df["timestamp"], utc=True, errors="coerce")
+        valid_source_ts = source_ts.dropna()
+        if valid_source_ts.empty:
+            raise ValueError("source frame has no valid timestamps")
+        if bool(valid_source_ts.duplicated().any()):
+            raise ValueError("source frame contains duplicate timestamps")
+        if not valid_source_ts.is_monotonic_increasing:
+            raise ValueError("source frame timestamps must be monotonic increasing")
+
+        event_ts_col = next(
+            (column for column in ("ts_start", "timestamp", "signal_ts") if column in event_frame.columns),
+            None,
+        )
+        if event_ts_col is None:
+            raise ValueError("event frame missing ts_start/timestamp/signal_ts column")
+        event_ts = pd.to_datetime(event_frame[event_ts_col], utc=True, errors="coerce")
+        valid_event_ts = event_ts.dropna()
+        if valid_event_ts.empty:
+            return
+        source_min = valid_source_ts.min()
+        source_max = valid_source_ts.max()
+        if bool((valid_event_ts < source_min).any()):
+            raise ValueError("event frame contains timestamps before source frame start")
+        if bool((valid_event_ts > source_max).any()):
+            raise ValueError("event frame contains timestamps after source frame end")
+
+        if "ts_end" in event_frame.columns:
+            event_end = pd.to_datetime(event_frame["ts_end"], utc=True, errors="coerce")
+            valid_end = event_ts.notna() & event_end.notna()
+            if bool((event_end[valid_end] < event_ts[valid_end]).any()):
+                raise ValueError("event frame contains ts_end before ts_start")
+            if bool((event_end.dropna() > source_max).any()):
+                raise ValueError("event frame contains ts_end after source frame end")
+
+        if "detector_metadata" not in event_frame.columns:
+            return
+
+        event_indices: list[tuple[int, pd.Timestamp, int]] = []
+        for row_pos, (ts_value, metadata) in enumerate(zip(event_ts, event_frame["detector_metadata"])):
+            if not isinstance(metadata, Mapping) or "event_idx" not in metadata or pd.isna(ts_value):
+                continue
+            try:
+                event_idx = int(metadata["event_idx"])
+            except Exception as exc:
+                raise ValueError("detector_metadata.event_idx must be an integer") from exc
+            if event_idx < 0 or event_idx >= len(source_ts):
+                raise ValueError("detector_metadata.event_idx outside source frame bounds")
+            source_value = source_ts.iloc[event_idx]
+            if pd.isna(source_value):
+                raise ValueError("detector_metadata.event_idx points at invalid source timestamp")
+            if pd.Timestamp(ts_value) != pd.Timestamp(source_value):
+                raise ValueError("event timestamp must equal source timestamp at detector_metadata.event_idx")
+            event_indices.append((event_idx, pd.Timestamp(ts_value), row_pos))
+
+        if not event_indices or not event_frame.attrs.get("validated_by_prefix_replay", True):
+            return
+
+        params = dict(event_frame.attrs.get("detector_params", {}) or {})
+        max_checks = int(event_frame.attrs.get("max_prefix_replay_checks", 25) or 25)
+        if len(event_indices) > max_checks:
+            positions = np.linspace(0, len(event_indices) - 1, num=max_checks, dtype=int)
+            checked = [event_indices[int(pos)] for pos in positions]
+        else:
+            checked = event_indices
+        expected_names = event_frame.get("event_name")
+        for event_idx, ts_value, row_pos in checked:
+            prefix = df.iloc[: event_idx + 1].copy()
+            replay = self.detect_events(prefix, params)
+            replay_ts_col = next(
+                (column for column in ("ts_start", "timestamp", "signal_ts") if column in replay.columns),
+                None,
+            )
+            if replay.empty or replay_ts_col is None:
+                raise ValueError(f"prefix replay did not reproduce {self.event_name} event at {ts_value}")
+            replay_ts = pd.to_datetime(replay[replay_ts_col], utc=True, errors="coerce")
+            same_ts = replay_ts == ts_value
+            if expected_names is not None and "event_name" in replay.columns:
+                same_ts = same_ts & (
+                    replay["event_name"].astype(str).str.upper() == str(expected_names.iloc[row_pos]).upper()
+                )
+            if not bool(same_ts.fillna(False).any()):
+                raise ValueError(
+                    f"prefix replay did not reproduce {self.event_name} event at {ts_value}; "
+                    "detector may depend on future rows"
+                )
 
 
     def detect(self, df: pd.DataFrame, *, symbol: str, **params: Any) -> pd.DataFrame:
@@ -307,7 +410,9 @@ class BaseDetectorV2(DetectorLogicContract):
                 cooldown_until=cooldown_until,
             )
             rows.append(event.as_dict())
-        return normalize_event_output_frame(pd.DataFrame(rows))
+        out = normalize_event_output_frame(pd.DataFrame(rows))
+        out.attrs["detector_params"] = dict(params or {})
+        return out
 
 
 FamilyBaseDetector = BaseDetectorV2

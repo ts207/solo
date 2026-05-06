@@ -61,6 +61,13 @@ from project.live.paper_ledger import PaperExecutionLedger
 from project.live.policy import build_live_decision_trace
 from project.live.portfolio_circuit import PortfolioCircuitBreaker, PortfolioCircuitConfig
 from project.live.risk import RiskEnforcer, RuntimeRiskCaps
+from project.live.runner_config import (
+    expected_slippage_bps,
+    resolve_execution_model_config,
+    resolve_live_quality_thresholds,
+    resolve_memory_root,
+    serialize_live_quality_thresholds,
+)
 from project.live.signal_monitor import SignalMonitor
 from project.live.state import LiveStateStore
 from project.live.thesis_disable_policy import (
@@ -347,37 +354,10 @@ class LiveEngineRunner:
             "runtime_mode": self.runtime_mode,
             "strategy_runtime_implemented": bool(self.strategy_runtime.get("implemented", False)),
             "execution_model": dict(self._execution_model_config),
-            "live_quality_gate": {
-                "min_samples": int(self._live_quality_thresholds.min_samples),
-                "max_slippage_drift_bps": float(
-                    self._live_quality_thresholds.max_slippage_drift_bps
-                ),
-                "disable_slippage_drift_bps": float(
-                    self._live_quality_thresholds.disable_slippage_drift_bps
-                ),
-                "min_fill_rate": float(self._live_quality_thresholds.min_fill_rate),
-                "disable_fill_rate": float(self._live_quality_thresholds.disable_fill_rate),
-                "max_edge_divergence_bps": float(
-                    self._live_quality_thresholds.max_edge_divergence_bps
-                ),
-                "disable_edge_divergence_bps": float(
-                    self._live_quality_thresholds.disable_edge_divergence_bps
-                ),
-                "max_stale_data_frequency": float(
-                    self._live_quality_thresholds.max_stale_data_frequency
-                ),
-                "disable_stale_data_frequency": float(
-                    self._live_quality_thresholds.disable_stale_data_frequency
-                ),
-                "max_thesis_decay_rate": float(
-                    self._live_quality_thresholds.max_thesis_decay_rate
-                ),
-                "disable_thesis_decay_rate": float(
-                    self._live_quality_thresholds.disable_thesis_decay_rate
-                ),
-                "min_risk_scale": float(self._live_quality_thresholds.min_risk_scale),
-                "kill_on_disable": bool(self._kill_on_live_quality_disable),
-            },
+            "live_quality_gate": serialize_live_quality_thresholds(
+                self._live_quality_thresholds,
+                kill_on_disable=self._kill_on_live_quality_disable,
+            ),
             "portfolio_candidate_batch_size": int(self._portfolio_candidate_batch_size),
             "event_detection_adapter": getattr(
                 self._event_detector, "adapter_id", self._event_detector.__class__.__name__
@@ -391,56 +371,16 @@ class LiveEngineRunner:
         }
 
     def _resolve_memory_root(self) -> Path | None:
-        memory_root = str(self.strategy_runtime.get("memory_root", "")).strip()
-        if not memory_root:
-            return None
-        return Path(memory_root)
+        return resolve_memory_root(self.strategy_runtime)
 
     def _resolve_execution_model_config(self) -> dict[str, Any]:
-        configured = self.strategy_runtime.get("execution_model", {})
-        config = dict(configured) if isinstance(configured, Mapping) else {}
-        if bool(self.strategy_runtime.get("implemented", False)):
-            config.setdefault("cost_model", "execution_simulator_v2")
-        return config
+        return resolve_execution_model_config(self.strategy_runtime)
 
     def _resolve_live_quality_thresholds(self) -> LiveQualityThresholds:
-        configured = self.strategy_runtime.get("live_quality_gate", {})
-        values = dict(configured) if isinstance(configured, Mapping) else {}
-        return LiveQualityThresholds(
-            min_samples=int(values.get("min_samples", 5) or 5),
-            max_slippage_drift_bps=float(values.get("max_slippage_drift_bps", 5.0) or 5.0),
-            disable_slippage_drift_bps=float(
-                values.get("disable_slippage_drift_bps", 15.0) or 15.0
-            ),
-            min_fill_rate=float(values.get("min_fill_rate", 0.70) or 0.70),
-            disable_fill_rate=float(values.get("disable_fill_rate", 0.40) or 0.40),
-            max_edge_divergence_bps=float(
-                values.get("max_edge_divergence_bps", 10.0) or 10.0
-            ),
-            disable_edge_divergence_bps=float(
-                values.get("disable_edge_divergence_bps", 25.0) or 25.0
-            ),
-            max_stale_data_frequency=float(
-                values.get("max_stale_data_frequency", 0.05) or 0.05
-            ),
-            disable_stale_data_frequency=float(
-                values.get("disable_stale_data_frequency", 0.20) or 0.20
-            ),
-            max_thesis_decay_rate=float(values.get("max_thesis_decay_rate", 0.25) or 0.25),
-            disable_thesis_decay_rate=float(
-                values.get("disable_thesis_decay_rate", 0.60) or 0.60
-            ),
-            min_risk_scale=float(values.get("min_risk_scale", 0.10) or 0.10),
-        )
+        return resolve_live_quality_thresholds(self.strategy_runtime)
 
     def _expected_slippage_bps(self) -> float:
-        return float(
-            self._execution_model_config.get(
-                "base_slippage_bps",
-                self.strategy_runtime.get("expected_slippage_bps", 0.0),
-            )
-            or 0.0
-        )
+        return expected_slippage_bps(self._execution_model_config, self.strategy_runtime)
 
     def _log_live_quality_decision(
         self,

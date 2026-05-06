@@ -221,13 +221,13 @@
   },
   {
     "anchor": false,
-    "detector_band": "research_trigger",
+    "detector_band": "context_only",
     "event_name": "FUNDING_EXTREME_ONSET",
     "event_version": "v2",
     "maturity": "standard",
-    "planning": false,
+    "planning": true,
     "promotion": false,
-    "role": "trigger",
+    "role": "context",
     "runtime": false
   },
   {
@@ -386,14 +386,25 @@
   },
   {
     "anchor": false,
-    "detector_band": "research_trigger",
+    "detector_band": "context_only",
     "event_name": "LIQUIDITY_VACUUM",
     "event_version": "v2",
     "maturity": "production",
-    "planning": false,
+    "planning": true,
+    "promotion": false,
+    "role": "context",
+    "runtime": true
+  },
+  {
+    "anchor": false,
+    "detector_band": "research_trigger",
+    "event_name": "LIQUIDITY_VACUUM_RECOVERY",
+    "event_version": "v2",
+    "maturity": "specialized",
+    "planning": true,
     "promotion": false,
     "role": "trigger",
-    "runtime": false
+    "runtime": true
   },
   {
     "anchor": false,
@@ -408,36 +419,36 @@
   },
   {
     "anchor": false,
+    "detector_band": "context_only",
+    "event_name": "OI_EXPANSION_STRESS",
+    "event_version": "v2",
+    "maturity": "specialized",
+    "planning": true,
+    "promotion": false,
+    "role": "context",
+    "runtime": true
+  },
+  {
+    "anchor": false,
     "detector_band": "research_trigger",
     "event_name": "OI_FLUSH",
     "event_version": "v2",
     "maturity": "specialized",
-    "planning": false,
+    "planning": true,
     "promotion": false,
     "role": "trigger",
-    "runtime": false
+    "runtime": true
   },
   {
     "anchor": false,
-    "detector_band": "research_trigger",
+    "detector_band": "context_only",
     "event_name": "OI_SPIKE_NEGATIVE",
     "event_version": "v2",
     "maturity": "specialized",
-    "planning": false,
+    "planning": true,
     "promotion": false,
-    "role": "trigger",
-    "runtime": false
-  },
-  {
-    "anchor": false,
-    "detector_band": "research_trigger",
-    "event_name": "OI_SPIKE_NEGATIVE",
-    "event_version": "v2",
-    "maturity": "specialized",
-    "planning": false,
-    "promotion": false,
-    "role": "trigger",
-    "runtime": false
+    "role": "context",
+    "runtime": true
   },
   {
     "anchor": false,
@@ -606,13 +617,13 @@
   },
   {
     "anchor": false,
-    "detector_band": "research_trigger",
+    "detector_band": "context_only",
     "event_name": "SLIPPAGE_SPIKE_EVENT",
     "event_version": "v1",
     "maturity": "specialized",
-    "planning": false,
+    "planning": true,
     "promotion": false,
-    "role": "trigger",
+    "role": "context",
     "runtime": false
   },
   {

@@ -34,7 +34,7 @@ Legacy detectors retired-safe: **40**
 | SEQ_VOL_COMP_THEN_BREAKOUT | composite | False | False | False | True |
 | SESSION_CLOSE_EVENT | context | False | False | False | True |
 | SESSION_OPEN_EVENT | context | False | False | False | True |
-| SLIPPAGE_SPIKE_EVENT | trigger | False | False | False | True |
+| SLIPPAGE_SPIKE_EVENT | context | False | False | False | True |
 | SPREAD_BLOWOUT | trigger | False | False | False | True |
 | SPREAD_REGIME_WIDENING_EVENT | trigger | False | False | False | True |
 | SUPPORT_RESISTANCE_BREAK | trigger | False | False | False | True |

@@ -43,6 +43,9 @@ _RUNTIME_CORE_EVENT_INPUT_BINDINGS: dict[str, dict[str, dict[str, Any]]] = {
             "accepted_sources": {"funding_rate_scaled", "funding_rate"},
         },
     },
+    "FUNDING_EXTREME_ONSET": {"timestamp": {"mode": "direct"}, "funding_rate_scaled": {"mode": "direct", "accepted_sources": {"funding_rate_scaled", "funding_rate"}}, "funding_abs": {"mode": "derived", "depends_on": ("funding_rate_scaled",)}, "funding_abs_pct": {"mode": "derived", "depends_on": ("funding_rate_scaled",)}},
+    "FUNDING_POS_EXTREME_ONSET": {"timestamp": {"mode": "direct"}, "funding_rate_scaled": {"mode": "direct", "accepted_sources": {"funding_rate_scaled", "funding_rate"}}, "funding_abs": {"mode": "derived", "depends_on": ("funding_rate_scaled",)}, "funding_abs_pct": {"mode": "derived", "depends_on": ("funding_rate_scaled",)}},
+    "FUNDING_NEG_EXTREME_ONSET": {"timestamp": {"mode": "direct"}, "funding_rate_scaled": {"mode": "direct", "accepted_sources": {"funding_rate_scaled", "funding_rate"}}, "funding_abs": {"mode": "derived", "depends_on": ("funding_rate_scaled",)}, "funding_abs_pct": {"mode": "derived", "depends_on": ("funding_rate_scaled",)}},
     "LIQUIDATION_CASCADE": {
         "timestamp": {"mode": "direct"},
         "liquidation_notional": {
@@ -82,12 +85,8 @@ _RUNTIME_CORE_EVENT_INPUT_BINDINGS: dict[str, dict[str, dict[str, Any]]] = {
             "accepted_sources": {"spread_bps", "book_ticker"},
         },
     },
-    "LIQUIDITY_VACUUM": {
-        "timestamp": {"mode": "direct"},
-        "close": {"mode": "direct"},
-        "high": {"mode": "direct"},
-        "low": {"mode": "direct"},
-    },
+    "LIQUIDITY_VACUUM": {"timestamp": {"mode": "direct"}, "close": {"mode": "direct"}, "high": {"mode": "direct"}, "low": {"mode": "direct"}, "depth_usd": {"mode": "direct", "accepted_sources": {"depth_usd", "liquidity_available"}}, "spread_bps": {"mode": "direct", "accepted_sources": {"spread_bps", "book_ticker"}}},
+    "LIQUIDITY_VACUUM_RECOVERY": {"timestamp": {"mode": "direct"}, "close": {"mode": "direct"}, "high": {"mode": "direct"}, "low": {"mode": "direct"}, "depth_usd": {"mode": "direct", "accepted_sources": {"depth_usd", "liquidity_available"}}, "spread_bps": {"mode": "direct", "accepted_sources": {"spread_bps", "book_ticker"}}},
     "OI_SPIKE_NEGATIVE": {
         "timestamp": {"mode": "direct"},
         "oi_notional": {
@@ -99,6 +98,8 @@ _RUNTIME_CORE_EVENT_INPUT_BINDINGS: dict[str, dict[str, dict[str, Any]]] = {
         "ms_oi_confidence": {"mode": "derived", "depends_on": ("oi_notional",)},
         "ms_oi_entropy": {"mode": "derived", "depends_on": ("oi_notional",)},
     },
+    "OI_EXPANSION_STRESS": {"timestamp": {"mode": "direct"}, "oi_notional": {"mode": "direct", "accepted_sources": {"oi_notional", "open_interest"}}, "close": {"mode": "direct"}, "funding_rate_scaled": {"mode": "direct", "accepted_sources": {"funding_rate_scaled", "funding_rate"}}, "ms_oi_state": {"mode": "derived", "depends_on": ("oi_notional",)}, "ms_oi_confidence": {"mode": "derived", "depends_on": ("oi_notional",)}, "ms_oi_entropy": {"mode": "derived", "depends_on": ("oi_notional",)}},
+    "OI_FLUSH": {"timestamp": {"mode": "direct"}, "oi_notional": {"mode": "direct", "accepted_sources": {"oi_notional", "open_interest"}}, "close": {"mode": "direct"}, "ms_oi_state": {"mode": "derived", "depends_on": ("oi_notional",)}, "ms_oi_confidence": {"mode": "derived", "depends_on": ("oi_notional",)}, "ms_oi_entropy": {"mode": "derived", "depends_on": ("oi_notional",)}},
     "SPOT_PERP_BASIS_SHOCK": {
         "timestamp": {"mode": "direct"},
         "close_perp": {"mode": "direct"},
@@ -311,6 +312,8 @@ def build_runtime_core_detector_input_surface(
         "oi_notional": float(open_interest),
         "funding_rate_scaled": float(funding_rate_scaled),
         "funding_rate": float(funding_rate_scaled),
+        "funding_abs": abs(float(funding_rate_scaled)),
+        "funding_abs_pct": safe_float(market_features.get("funding_abs_pct"), 0.0),
         "liquidation_notional": float(liquidation_notional),
         "liquidation_notional_usd": float(liquidation_notional),
         "move_bps": float(move_bps),
@@ -344,6 +347,8 @@ def build_runtime_core_detector_input_surface(
         "depth_usd": depth_source,
         "oi_notional": oi_source,
         "funding_rate_scaled": funding_source,
+        "funding_abs": "derived",
+        "funding_abs_pct": "derived",
         "liquidation_notional": liquidation_source,
     }
 
@@ -372,9 +377,16 @@ def enrich_runtime_core_detector_history(frame: pd.DataFrame, *, timeframe: str)
     )
     out["close_perp"] = pd.to_numeric(out["close_perp"], errors="coerce").fillna(close)
     out["close_spot"] = pd.to_numeric(out["close_spot"], errors="coerce").fillna(close)
-    out["funding_rate_scaled"] = pd.to_numeric(out["funding_rate_scaled"], errors="coerce").fillna(
-        0.0
-    )
+    out["funding_rate_scaled"] = pd.to_numeric(out["funding_rate_scaled"], errors="coerce").fillna(0.0)
+    out["funding_abs"] = out["funding_rate_scaled"].abs()
+    funding_window = 2880
+    funding_min_periods = 24
+    pct_values = []
+    f_abs = out["funding_abs"]
+    for pos, value in enumerate(f_abs):
+        prior = f_abs.iloc[max(0, pos - funding_window):pos].dropna()
+        pct_values.append(0.0 if len(prior) < funding_min_periods or pd.isna(value) else float((prior <= value).mean() * 100.0))
+    out["funding_abs_pct"] = pd.Series(pct_values, index=out.index, dtype=float)
     out["oi_notional"] = pd.to_numeric(out["oi_notional"], errors="coerce").fillna(0.0)
     out["liquidation_notional"] = pd.to_numeric(
         out["liquidation_notional"], errors="coerce"
@@ -560,6 +572,8 @@ def build_live_trade_context(
         "event_confidence": detected_event.event_confidence,
         "event_severity": detected_event.event_severity,
         "data_quality_flag": detected_event.data_quality_flag,
+        "trade_eligible": bool(getattr(detected_event, "trade_eligible", True)),
+        "data_capability_profile": str(detected_event.features.get("data_capability_profile", "")).strip(),
         "ms_vol_state": safe_float(market_features.get("ms_vol_state"), float("nan")),
         "ms_oi_state": safe_float(market_features.get("ms_oi_state"), float("nan")),
         "ms_funding_state": safe_float(market_features.get("ms_funding_state"), float("nan")),
@@ -611,6 +625,7 @@ def build_live_trade_context(
         event_confidence=detected_event.event_confidence,
         event_severity=detected_event.event_severity,
         data_quality_flag=detected_event.data_quality_flag,
+        trade_eligible=bool(getattr(detected_event, "trade_eligible", True)),
         event_version=detected_event.event_version,
         threshold_version=detected_event.threshold_version,
         event_evidence_mode=(
@@ -622,7 +637,10 @@ def build_live_trade_context(
             .lower()
         ),
         event_role=(
-            str(getattr(detector_contract, "role", "trigger")).strip().lower() or "trigger"
+            str(
+                detected_event.features.get("runtime_role")
+                or getattr(detector_contract, "role", "trigger")
+            ).strip().lower() or "trigger"
         ),
         threshold_snapshot=threshold_snapshot,
         detector_input_status=detector_input_status,

@@ -1,0 +1,46 @@
+experiment_id: short_build_continuation_strict_expansion_v1
+family: SHORT_BUILD_CONTINUATION_STRICT
+direction: short
+symbols:
+  - BTCUSDT
+  - ETHUSDT
+  - SOLUSDT
+  - BNBUSDT
+  - XRPUSDT
+  - LINKUSDT
+  - AVAXUSDT
+  - ADAUSDT
+  - DOGEUSDT
+  - LTCUSDT
+price_pct_grid: [80, 90, 95]
+oi_pct_grid: [95, 97.5, 99]
+failure_lookbacks: [12, 24, 48, 96]
+horizons: [48, 96]
+cooldowns: [6, 12, 24]
+exit_policies:
+  - time_stop12_max96
+  - time_stop24_max96
+cost_bps:
+  BTCUSDT: 6
+  ETHUSDT: 6
+  SOLUSDT: 10
+  BNBUSDT: 10
+  XRPUSDT: 12
+  LINKUSDT: 12
+  AVAXUSDT: 15
+  ADAUSDT: 15
+  DOGEUSDT: 15
+  LTCUSDT: 15
+approval_gates:
+  min_events: 100
+  min_t_stat: 2.0
+  min_cost_survival: 0.8
+  min_positive_symbols: 3
+  max_single_symbol_event_share: 0.5
+  max_single_symbol_pnl_share: 0.5
+  max_single_month_pnl_share: 0.4
+  require_adjacent_positive_rate: 0.5
+  require_best_variant_is_isolated: false
+status: research_only
+paper_approved: false
+live_approved: false

@@ -16,6 +16,10 @@ from project.events.polarity import (
     side_to_direction as _direction_from_side,
 )
 
+OPTIONAL_EVENT_OUTPUT_COLUMNS: tuple[str, ...] = (
+    "trade_eligible",
+)
+
 REQUIRED_EVENT_OUTPUT_COLUMNS: tuple[str, ...] = (
     "event_name",
     "event_version",
@@ -52,6 +56,7 @@ EVENT_OUTPUT_COLUMNS: tuple[str, ...] = (
     "canonical_family",
     "role",
     "detector_class",
+    *OPTIONAL_EVENT_OUTPUT_COLUMNS,
 )
 
 
@@ -92,6 +97,7 @@ class DetectedEvent:
     polarity_source: str = "unknown"
     magnitude_source: str = "unknown"
     anchor_role: str = "alpha_anchor"
+    trade_eligible: bool = True
 
     def __post_init__(self) -> None:
         if self.confidence is not None:
@@ -167,6 +173,10 @@ def normalize_event_output_frame(frame: pd.DataFrame | None) -> pd.DataFrame:
         out["magnitude_source"] = "unknown"
     if "anchor_role" not in out.columns:
         out["anchor_role"] = out["role"] if "role" in out.columns else "alpha_anchor"
+    if "trade_eligible" not in out.columns:
+        out["trade_eligible"] = True
+    else:
+        out["trade_eligible"] = out["trade_eligible"].fillna(True).astype(bool)
     optional_columns = [column for column in EVENT_OUTPUT_COLUMNS if column not in REQUIRED_EVENT_OUTPUT_COLUMNS]
     missing = [column for column in optional_columns if column not in out.columns]
     for column in missing:
