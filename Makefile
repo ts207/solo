@@ -6,7 +6,7 @@ AUDIT_SYMBOLS ?= $(SYMBOLS)
 AUDIT_YEARS ?= 2022,2023,2024,2025
 FORWARD_YEARS ?= 2026
 
-.PHONY: help detector-shadow-report detector-variant-validation detector-tune detector-exit-lab detector-targeted-expansion detector-mtf-lab detector-mtf-diagnose detector-regime-lab detector-oi-flush-lab detector-oi-flush-forward-shadow data-feed-audit ingest-bybit-book-ticker
+.PHONY: help detector-shadow-report detector-variant-validation detector-tune detector-exit-lab detector-targeted-expansion detector-mtf-lab detector-mtf-diagnose detector-regime-lab detector-oi-flush-lab detector-oi-flush-forward-shadow detector-cross-sectional-lab forward-shadow-status data-feed-audit ingest-bybit-book-ticker
 
 help:
 	@$(MAKE) -C $(ROOT_DIR) help
@@ -40,6 +40,12 @@ detector-oi-flush-lab:
 
 detector-oi-flush-forward-shadow:
 	@$(PYTHON) -m project.scripts.detector_oi_flush_forward_shadow --symbols "$(SYMBOLS)" --years "$(FORWARD_YEARS)"
+
+detector-cross-sectional-lab:
+	@$(PYTHON) -m project.scripts.detector_cross_sectional_lab --symbols "$(SYMBOLS)" --years "$(AUDIT_YEARS)"
+
+forward-shadow-status:
+	@$(PYTHON) -m project.scripts.forward_shadow_status --symbols "$(SYMBOLS)"
 
 data-feed-audit:
 	@$(PYTHON) -m project.scripts.data_feed_audit --symbols "$(AUDIT_SYMBOLS)" --years "$(AUDIT_YEARS)"

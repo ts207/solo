@@ -1,0 +1,12 @@
+active_research_families:
+  - CROSS_SECTIONAL_PERP_MOMENTUM
+  - VOL_COMPRESSION_BREAKOUT
+  - FUNDING_DIVERGENCE
+  - LIQUIDITY_SHOCK_RECOVERY_FORWARD
+  - SESSION_BREAKOUT_REVERSAL
+
+frozen_families:
+  - SHORT_BUILD_CONTINUATION
+
+do_not_trade:
+  - all_new_families_until_validated

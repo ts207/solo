@@ -4,8 +4,8 @@ metadata:
   status: generated
   graph_role: runtime_read_model
   schema_version: 2
-  generated_at_utc: '2026-05-06T05:30:04Z'
-  spec_sources_digest: a9a151817e31d9f8cd77c6c2593ee3b956a56dc70d70212b878dc09d48de014a
+  generated_at_utc: '2026-05-07T00:59:16Z'
+  spec_sources_digest: a99367bf81baa0dc79fdf382fce2e9fd066a4f444328fe89a6fe44178187a277
   notes: Compiled runtime read model. Semantic nodes are normalized for direct runtime/search
     loading.
 events:
@@ -10106,48 +10106,6 @@ states:
     context_family: ''
     context_label: ''
     spec_path: spec/states/MS_OI_STATE.yaml
-  MS_SPREAD_STATE:
-    state_id: MS_SPREAD_STATE
-    family: MICROSTRUCTURE_CONTEXT
-    source_event_type: LIQUIDITY_STRESS_DIRECT
-    state_scope: source_only
-    min_events: 1
-    activation_rule: bid-ask spread in elevated regime
-    decay_rule: spread normalizes to baseline
-    max_duration: null
-    features_required: []
-    allowed_templates:
-    - continuation
-    enabled: true
-    state_engine: ''
-    instrument_classes:
-    - crypto
-    runtime_tags: []
-    description: ''
-    context_family: ''
-    context_label: ''
-    spec_path: spec/states/MS_SPREAD_STATE.yaml
-  MS_TREND_STATE:
-    state_id: MS_TREND_STATE
-    family: MICROSTRUCTURE_CONTEXT
-    source_event_type: TREND_EXHAUSTION_TRIGGER
-    state_scope: source_only
-    min_events: 1
-    activation_rule: microstructure trend context is directional
-    decay_rule: trend context returns to neutral
-    max_duration: null
-    features_required: []
-    allowed_templates:
-    - continuation
-    enabled: true
-    state_engine: ''
-    instrument_classes:
-    - crypto
-    runtime_tags: []
-    description: ''
-    context_family: ''
-    context_label: ''
-    spec_path: spec/states/MS_TREND_STATE.yaml
   MS_VOL_STATE:
     state_id: MS_VOL_STATE
     family: MICROSTRUCTURE_CONTEXT
