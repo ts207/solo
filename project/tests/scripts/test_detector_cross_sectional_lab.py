@@ -14,12 +14,12 @@ def test_strategy_backlog_records_new_families_and_freezes_short_build() -> None
     payload = yaml.safe_load(path.read_text(encoding="utf-8"))
 
     assert payload["active_research_families"] == [
-        "CROSS_SECTIONAL_PERP_MOMENTUM",
-        "VOL_COMPRESSION_BREAKOUT",
-        "FUNDING_DIVERGENCE",
-        "LIQUIDITY_SHOCK_RECOVERY_FORWARD",
         "SESSION_BREAKOUT_REVERSAL",
+        "RELATIVE_STRENGTH_REGIME_ROTATION",
+        "VOL_EXPANSION_CONTINUATION",
+        "RANGE_RECLAIM_REVERSAL",
     ]
+    assert payload["blocked_or_deferred"] == ["LIQUIDITY_SHOCK_RECOVERY_FORWARD"]
     assert payload["frozen_families"] == ["SHORT_BUILD_CONTINUATION"]
     assert payload["do_not_trade"] == ["all_new_families_until_validated"]
 
