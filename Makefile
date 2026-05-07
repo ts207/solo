@@ -1,7 +1,11 @@
 ROOT_DIR := $(abspath $(dir $(lastword $(MAKEFILE_LIST)))/..)
 PYTHON ?= .venv/bin/python
+SYMBOLS ?= BTCUSDT,ETHUSDT,SOLUSDT,BNBUSDT,XRPUSDT,LINKUSDT,AVAXUSDT,ADAUSDT,DOGEUSDT,LTCUSDT
+BOOK_TICKER_RUN_ID ?= bybit_book_ticker_snapshot
+AUDIT_SYMBOLS ?= $(SYMBOLS)
+AUDIT_YEARS ?= 2022,2023,2024,2025
 
-.PHONY: help detector-shadow-report detector-variant-validation detector-tune detector-exit-lab detector-targeted-expansion detector-mtf-lab detector-mtf-diagnose detector-regime-lab detector-oi-flush-lab
+.PHONY: help detector-shadow-report detector-variant-validation detector-tune detector-exit-lab detector-targeted-expansion detector-mtf-lab detector-mtf-diagnose detector-regime-lab detector-oi-flush-lab data-feed-audit ingest-bybit-book-ticker
 
 help:
 	@$(MAKE) -C $(ROOT_DIR) help
@@ -31,7 +35,13 @@ detector-regime-lab:
 	@$(PYTHON) -m project.scripts.detector_regime_lab
 
 detector-oi-flush-lab:
-	@$(PYTHON) -m project.scripts.detector_oi_flush_lab $(if $(DEEP_REGIME),--deep-regime-grid,)
+	@$(PYTHON) -m project.scripts.detector_oi_flush_lab $(if $(DEEP_REGIME),--deep-regime-grid,) $(if $(FULL_EXIT),--full-exit-grid,)
+
+data-feed-audit:
+	@$(PYTHON) -m project.scripts.data_feed_audit --symbols "$(AUDIT_SYMBOLS)" --years "$(AUDIT_YEARS)"
+
+ingest-bybit-book-ticker:
+	@$(PYTHON) -m project.pipelines.ingest.ingest_bybit_derivatives_book_ticker --run_id "$(BOOK_TICKER_RUN_ID)" --symbols "$(SYMBOLS)"
 
 %:
 	@$(MAKE) -C $(ROOT_DIR) $@

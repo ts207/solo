@@ -1,8 +1,8 @@
 default_profile: no_liquidations_v1
 profiles:
   no_liquidations_v1:
-    description: Runtime profile for OHLCV + funding + OI + spread/depth, without liquidation feed.
-    available_feeds: {ohlcv: true, funding: true, open_interest: true, spread_bps: true, depth_usd: true, liquidations: false}
+    description: Runtime profile for OHLCV + funding + OI, without liquidation or historical book feed.
+    available_feeds: {ohlcv: true, funding: true, open_interest: true, best_bid: false, best_ask: false, spread_bps: false, depth_usd: false, liquidations: false}
     disabled_detectors: [LIQUIDATION_CASCADE, LIQUIDATION_CASCADE_PROXY, LIQUIDATION_EXHAUSTION_REVERSAL, FORCED_FLOW_EXHAUSTION, FORCED_FLOW_REVERSAL, LONG_STRESS_REVERSAL]
     runtime_detectable_detectors: [OI_EXPANSION_STRESS, OI_SPIKE_NEGATIVE, OI_FLUSH, LIQUIDITY_VACUUM, LIQUIDITY_VACUUM_RECOVERY, FUNDING_EXTREME_ONSET, FUNDING_POS_EXTREME_ONSET, FUNDING_NEG_EXTREME_ONSET, VOL_SHOCK, VOL_SPIKE, FAILED_CONTINUATION]
     context_only_detectors: [OI_SPIKE_NEGATIVE, OI_EXPANSION_STRESS, FUNDING_EXTREME_ONSET, FUNDING_POS_EXTREME_ONSET, FUNDING_NEG_EXTREME_ONSET, LIQUIDITY_VACUUM, SLIPPAGE_SPIKE_EVENT, WICK_REVERSAL_PROXY]

@@ -765,6 +765,7 @@ def build_oi_flush_lab_report(
     trend_regimes: list[str],
     cooldown_bars: int,
     cost_overrides: dict[str, float],
+    include_tp_sl: bool,
     json_output: Path,
     csv_output: Path,
 ) -> tuple[dict[str, Any], pd.DataFrame]:
@@ -783,7 +784,7 @@ def build_oi_flush_lab_report(
             "month": pooled["shadow_month"].astype(str).to_numpy(),
             "symbol_end_idx": pooled["_symbol_end_idx"].to_numpy(dtype=int),
         }
-        policies = _policy_defs()
+        policies = _policy_defs(include_tp_sl=include_tp_sl)
         for quadrant in QUADRANTS:
             for price_pct in price_thresholds:
                 for oi_pct in oi_thresholds:
@@ -829,8 +830,12 @@ def build_oi_flush_lab_report(
             "vol_regimes": vol_regimes,
             "trend_regimes": trend_regimes,
             "cooldown_bars": cooldown_bars,
-            "exit_policy_count": len(_policy_defs()),
-            "exit_search": "time_stop_all_variants_tp_sl_only_for_viable_path_rows",
+            "exit_policy_count": len(_policy_defs(include_tp_sl=include_tp_sl)),
+            "exit_search": (
+                "time_stop_all_variants_tp_sl_only_for_viable_path_rows"
+                if include_tp_sl
+                else "time_stop_all_variants"
+            ),
             "cost_bps_by_symbol": symbol_costs,
             "approval_policy": "research_only_outputs; reversal approval requires real spread/depth",
         },
@@ -908,6 +913,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--deep-regime-grid", action="store_true")
     parser.add_argument("--cooldown-bars", default=str(DEFAULT_COOLDOWN_BARS))
     parser.add_argument("--cost-overrides", default="")
+    parser.add_argument("--full-exit-grid", action="store_true")
     parser.add_argument("--json-output", default=str(DEFAULT_REPORT_DIR / "oi_flush_lab_report.json"))
     parser.add_argument("--csv-output", default=str(DEFAULT_REPORT_DIR / "top_oi_flush_variants.csv"))
     args = parser.parse_args(argv)
@@ -926,6 +932,7 @@ def main(argv: list[str] | None = None) -> int:
         trend_regimes=list(DEEP_TREND_REGIMES) if args.deep_regime_grid else _parse_csv(args.trend_regimes),
         cooldown_bars=int(args.cooldown_bars),
         cost_overrides=_parse_cost_overrides(args.cost_overrides),
+        include_tp_sl=bool(args.full_exit_grid),
         json_output=repo_root / args.json_output,
         csv_output=repo_root / args.csv_output,
     )
