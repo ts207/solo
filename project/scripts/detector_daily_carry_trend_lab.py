@@ -131,6 +131,10 @@ def _add_daily_features(frame_1d: pd.DataFrame) -> pd.DataFrame:
     out["ret_1d"] = grouped["close"].pct_change()
     out["ret_7d"] = grouped["close"].pct_change(7)
     out["ret_14d"] = grouped["close"].pct_change(14)
+    out["ret_30d"] = grouped["close"].pct_change(30)
+    out["close_ma_30d"] = grouped["close"].transform(
+        lambda series: pd.to_numeric(series, errors="coerce").rolling(30, min_periods=20).mean()
+    )
     out["oi_trend"] = grouped["oi_notional"].transform(
         lambda series: np.log(pd.to_numeric(series, errors="coerce").replace(0.0, np.nan)).diff(7)
     )
@@ -143,13 +147,20 @@ def _add_daily_features(frame_1d: pd.DataFrame) -> pd.DataFrame:
             pd.to_numeric(series, errors="coerce").rolling(14, min_periods=7).std() * math.sqrt(14)
         )
     )
+    realized_vol_30d = grouped["ret_1d"].transform(
+        lambda series: (
+            pd.to_numeric(series, errors="coerce").rolling(30, min_periods=15).std() * math.sqrt(30)
+        )
+    )
+    out["realized_vol_14d"] = realized_vol_14d
+    out["realized_vol_30d"] = realized_vol_30d
     out["crash_vol_pct"] = realized_vol_14d.groupby(out["symbol"], sort=False).transform(
         lambda series: _rolling_pct_rank(series, window=180, min_periods=30)
     )
     out["crash_filter_ok"] = (
         pd.to_numeric(out["crash_vol_pct"], errors="coerce").fillna(0.0) <= CRASH_VOL_PCT_MAX
     ) & (pd.to_numeric(out["ret_1d"], errors="coerce").abs().fillna(0.0) <= CRASH_ABS_RET_MAX)
-    for hold_days in (1, 2, 3, 5):
+    for hold_days in (1, 2, 3, 5, 10, 20):
         out[f"fwd_price_ret_{hold_days}d"] = grouped["close"].shift(-hold_days) / close - 1.0
         out[f"fwd_funding_long_bps_{hold_days}d"] = grouped["funding_long_bps"].transform(
             lambda series, h=hold_days: (
@@ -175,6 +186,14 @@ def _rank_score(df: pd.DataFrame, rank_signal: str) -> pd.Series:
         return pd.to_numeric(df["ret_7d"], errors="coerce")
     if rank_signal == "ret_14d":
         return pd.to_numeric(df["ret_14d"], errors="coerce")
+    if rank_signal == "ret_30d":
+        return pd.to_numeric(df["ret_30d"], errors="coerce")
+    if rank_signal == "ret_14d_vol_adj":
+        vol = pd.to_numeric(df["realized_vol_14d"], errors="coerce").replace(0.0, np.nan)
+        return pd.to_numeric(df["ret_14d"], errors="coerce") / vol
+    if rank_signal == "ret_30d_vol_adj":
+        vol = pd.to_numeric(df["realized_vol_30d"], errors="coerce").replace(0.0, np.nan)
+        return pd.to_numeric(df["ret_30d"], errors="coerce") / vol
     if rank_signal == "funding_carry":
         return pd.to_numeric(df["funding_carry"], errors="coerce")
     if rank_signal == "oi_trend":
