@@ -27,6 +27,7 @@ profiles:
       - LONG_SQUEEZE_SETUP_STRICT
       - FAILED_BREAKDOWN_RECLAIM
       - FAILED_BREAKOUT_REJECTION
+      - FUNDING_WINDOW_DRIFT_PLACEBO_FAILED
     killed_events: [SQUEEZE_RISK_REVERSAL]
     rejected_events:
       - FUNDING_CROWDING_BREAK_H96_ETHUSDT
@@ -34,6 +35,7 @@ profiles:
       - SHORT_BUILD_CONTINUATION_STRICT_GENERIC_5M
       - MTF_SHORT_BUILD_BREAKDOWN_CONTINUATION_GENERIC
       - MTF_SHORT_BUILD_HIGH_VOL_DOWNTREND
+      - FUNDING_WINDOW_DRIFT_AS_FUNDING_SPECIFIC_EDGE
     frozen_families:
       SHORT_BUILD_CONTINUATION:
         status: rejected
@@ -44,6 +46,16 @@ profiles:
           - new timeframe above 4h
           - direct liquidation data
     research_candidate_variants:
+      FUNDING_WINDOW_DRIFT:
+        status: placebo_failed_research_only
+        reason: shifted_plus_1_day_placebo_passed_core_gates
+        canonical_event_count: 197
+        canonical_net_bps: 78.66
+        canonical_t_stat: 3.53
+        shifted_plus_1_day_placebo_net_bps: 62.42
+        shifted_plus_1_day_placebo_t_stat: 2.53
+        paper_approved: false
+        live_approved: false
       FUNDING_CROWDING_BREAK_H96_ETHUSDT:
         event_id: FUNDING_CROWDING_BREAK_H96_ETHUSDT
         base_event: FUNDING_CROWDING_BREAK

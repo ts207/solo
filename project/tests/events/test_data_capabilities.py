@@ -18,6 +18,8 @@ def test_no_liquidation_profile_allows_only_composite_trade_candidates() -> None
     assert not profile.research_only("FUNDING_CROWDING_BREAK_H96_ETHUSDT")
     assert profile.rejected("FUNDING_CROWDING_BREAK_H96_ETHUSDT")
     assert profile.rejected("MTF_SHORT_BUILD_HIGH_VOL_DOWNTREND")
+    assert profile.rejected("FUNDING_WINDOW_DRIFT_AS_FUNDING_SPECIFIC_EDGE")
+    assert profile.research_only("FUNDING_WINDOW_DRIFT_PLACEBO_FAILED")
     assert profile.family_frozen("SHORT_BUILD_CONTINUATION")
     assert profile.killed("SQUEEZE_RISK_REVERSAL")
     assert not profile.trade_candidate("SQUEEZE_RISK_REVERSAL")
@@ -25,6 +27,11 @@ def test_no_liquidation_profile_allows_only_composite_trade_candidates() -> None
     variant = profile.research_candidate_variants["FUNDING_CROWDING_BREAK_H96_ETHUSDT"]
     assert variant["base_event"] == "FUNDING_CROWDING_BREAK"
     assert variant["status"] == "rejected_fresh_validation"
+    drift_variant = profile.research_candidate_variants["FUNDING_WINDOW_DRIFT"]
+    assert drift_variant["status"] == "placebo_failed_research_only"
+    assert drift_variant["reason"] == "shifted_plus_1_day_placebo_passed_core_gates"
+    assert drift_variant["paper_approved"] is False
+    assert drift_variant["live_approved"] is False
     assert not profile.trade_candidate("OI_FLUSH")
     assert not profile.trade_candidate("VOL_SHOCK")
     assert not profile.trade_candidate("FAILED_CONTINUATION")
