@@ -5,7 +5,7 @@ BOOK_TICKER_RUN_ID ?= bybit_book_ticker_snapshot
 AUDIT_SYMBOLS ?= $(SYMBOLS)
 AUDIT_YEARS ?= 2022,2023,2024,2025
 
-.PHONY: help detector-shadow-report detector-variant-validation detector-tune detector-exit-lab detector-targeted-expansion detector-mtf-lab detector-mtf-diagnose detector-regime-lab detector-oi-flush-lab data-feed-audit ingest-bybit-book-ticker
+.PHONY: help detector-shadow-report detector-variant-validation detector-tune detector-exit-lab detector-targeted-expansion detector-mtf-lab detector-mtf-diagnose detector-regime-lab detector-oi-flush-lab detector-oi-flush-forward-shadow data-feed-audit ingest-bybit-book-ticker
 
 help:
 	@$(MAKE) -C $(ROOT_DIR) help
@@ -36,6 +36,9 @@ detector-regime-lab:
 
 detector-oi-flush-lab:
 	@$(PYTHON) -m project.scripts.detector_oi_flush_lab $(if $(DEEP_REGIME),--deep-regime-grid,) $(if $(FULL_EXIT),--full-exit-grid,)
+
+detector-oi-flush-forward-shadow:
+	@$(PYTHON) -m project.scripts.detector_oi_flush_forward_shadow --symbols "$(SYMBOLS)" $(if $(AUDIT_YEARS),--years "$(AUDIT_YEARS)",)
 
 data-feed-audit:
 	@$(PYTHON) -m project.scripts.data_feed_audit --symbols "$(AUDIT_SYMBOLS)" --years "$(AUDIT_YEARS)"

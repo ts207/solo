@@ -99,3 +99,35 @@ profiles:
     rejected_events: []
     research_candidate_variants: {}
     requires_pairing: {}
+  forward_exec_quality_v1:
+    description: Forward OHLCV + funding + OI + observed book ticker snapshots; no historical book backfill.
+    available_feeds: {ohlcv: true, funding: true, open_interest: true, best_bid: true, best_ask: true, spread_bps: true, depth_usd: true, liquidations: false}
+    disabled_detectors: [LIQUIDATION_CASCADE, LIQUIDATION_CASCADE_PROXY, LIQUIDATION_EXHAUSTION_REVERSAL, FORCED_FLOW_EXHAUSTION, FORCED_FLOW_REVERSAL, LONG_STRESS_REVERSAL]
+    runtime_detectable_detectors: [OI_EXPANSION_STRESS, OI_SPIKE_NEGATIVE, OI_FLUSH, LIQUIDITY_VACUUM, LIQUIDITY_VACUUM_RECOVERY, FUNDING_EXTREME_ONSET, FUNDING_POS_EXTREME_ONSET, FUNDING_NEG_EXTREME_ONSET, VOL_SHOCK, VOL_SPIKE, FAILED_CONTINUATION]
+    context_only_detectors: [OI_SPIKE_NEGATIVE, OI_EXPANSION_STRESS, FUNDING_EXTREME_ONSET, FUNDING_POS_EXTREME_ONSET, FUNDING_NEG_EXTREME_ONSET, LIQUIDITY_VACUUM, SLIPPAGE_SPIKE_EVENT, WICK_REVERSAL_PROXY]
+    never_trade_standalone: [OI_SPIKE_NEGATIVE, OI_EXPANSION_STRESS, FUNDING_EXTREME_ONSET, FUNDING_POS_EXTREME_ONSET, FUNDING_NEG_EXTREME_ONSET, LIQUIDITY_VACUUM, SLIPPAGE_SPIKE_EVENT, WICK_REVERSAL_PROXY]
+    trade_candidate_events: [OI_FLUSH_REVERSAL, FUNDING_CROWDING_BREAK, SHORT_BUILD_CONTINUATION, SQUEEZE_RISK_REVERSAL]
+    paper_approved_events: []
+    live_approved_events: []
+    research_only_events: [OI_FLUSH_REVERSAL, OI_FLUSH_DOWN_REVERSAL_STRICT, OI_FLUSH_UP_REVERSAL_STRICT, OI_FLUSH_DOWN_CONTINUATION_STRICT, OI_FLUSH_UP_CONTINUATION_STRICT]
+    killed_events: [SQUEEZE_RISK_REVERSAL]
+    rejected_events:
+      - FUNDING_CROWDING_BREAK_H96_ETHUSDT
+      - SQUEEZE_RISK_REVERSAL
+      - SHORT_BUILD_CONTINUATION_STRICT_GENERIC_5M
+      - MTF_SHORT_BUILD_BREAKDOWN_CONTINUATION_GENERIC
+      - MTF_SHORT_BUILD_HIGH_VOL_DOWNTREND
+    frozen_families:
+      SHORT_BUILD_CONTINUATION:
+        status: rejected
+        reason: failed alt expansion, MTF, regime lab, walk-forward
+        require_material_change_any_of:
+          - new execution data
+          - new exchange/universe
+          - new timeframe above 4h
+          - direct liquidation data
+    forward_only:
+      require_event_ts_at_or_after_book_collection_start: true
+      approval_note: paper/live approvals remain empty until enough forward shadow events pass freshness, liquidity, cost survival, concentration, and walk-forward gates.
+    research_candidate_variants: {}
+    requires_pairing: {}

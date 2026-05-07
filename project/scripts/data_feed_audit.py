@@ -135,14 +135,42 @@ def _pct_missing(series: pd.Series) -> float | None:
     return float(series.isna().mean() * 100.0)
 
 
+def _book_summary(book: pd.DataFrame) -> dict[str, Any]:
+    if book.empty or "timestamp" not in book.columns:
+        return {
+            "book_ticker_forward_available": False,
+            "book_ticker_historical_backfill_available": False,
+            "book_ticker_entry_alignment_ok": False,
+            "book_ticker_collection_start_ts": None,
+            "book_ticker_collection_end_ts": None,
+            "book_ticker_rows": 0,
+        }
+    timestamps = pd.to_datetime(book["timestamp"], utc=True, errors="coerce").dropna().sort_values()
+    has_book = (
+        not timestamps.empty
+        and _first_column(book, BEST_BID_COLUMNS) is not None
+        and _first_column(book, BEST_ASK_COLUMNS) is not None
+        and _first_column(book, SPREAD_COLUMNS) is not None
+        and _first_column(book, DEPTH_COLUMNS) is not None
+    )
+    return {
+        "book_ticker_forward_available": bool(has_book),
+        "book_ticker_historical_backfill_available": False,
+        "book_ticker_entry_alignment_ok": False,
+        "book_ticker_collection_start_ts": timestamps.min().isoformat() if has_book else None,
+        "book_ticker_collection_end_ts": timestamps.max().isoformat() if has_book else None,
+        "book_ticker_rows": int(len(timestamps)) if has_book else 0,
+    }
+
+
 def _alignment_and_missing(
     bars: pd.DataFrame,
     oi: pd.DataFrame,
     funding: pd.DataFrame,
     book: pd.DataFrame,
-) -> tuple[bool, dict[str, Any], dict[str, Any]]:
+) -> tuple[bool, dict[str, Any], dict[str, Any], dict[str, Any]]:
     if bars.empty or "timestamp" not in bars.columns:
-        return False, {}, {}
+        return False, {}, {}, _book_summary(book)
     base = bars[["timestamp"]].copy().sort_values("timestamp")
     base["month"] = base["timestamp"].dt.strftime("%Y-%m")
     aligned = base.copy()
@@ -213,7 +241,12 @@ def _alignment_and_missing(
         and missing["oi_5m_missing_pct"] <= 1.0
         and missing["funding_missing_pct"] <= 1.0
     )
-    return timestamp_alignment_ok, missing, by_month
+    book_meta = _book_summary(book)
+    if book_meta["book_ticker_forward_available"] and not aligned["spread_bps"].dropna().empty:
+        book_meta["book_ticker_entry_alignment_ok"] = bool(
+            missing["spread_bps_missing_pct"] is not None and missing["spread_bps_missing_pct"] <= 1.0
+        )
+    return timestamp_alignment_ok, missing, by_month, book_meta
 
 
 def _audit_symbol(repo_root: Path, symbol: str, years: list[int]) -> dict[str, Any]:
@@ -222,7 +255,7 @@ def _audit_symbol(repo_root: Path, symbol: str, years: list[int]) -> dict[str, A
     frames = {feed: _read_many(paths) for feed, paths in files.items()}
     unknown_frame = _read_many(unknown)
     all_frames = [*frames.values(), unknown_frame]
-    timestamp_alignment_ok, missing_pct, by_month = _alignment_and_missing(
+    timestamp_alignment_ok, missing_pct, by_month, book_meta = _alignment_and_missing(
         frames["ohlcv_5m"],
         frames["open_interest"],
         frames["funding"],
@@ -242,6 +275,7 @@ def _audit_symbol(repo_root: Path, symbol: str, years: list[int]) -> dict[str, A
         "has_spread_bps": _columns_present(all_frames, SPREAD_COLUMNS),
         "has_depth_usd": _columns_present(all_frames, DEPTH_COLUMNS),
         "timestamp_alignment_ok": timestamp_alignment_ok,
+        **book_meta,
         "missing_pct": missing_pct,
         "missing_pct_by_month": by_month,
         "evidence": {
@@ -279,6 +313,11 @@ def build_data_feed_audit(
         "all_symbols_have_spread_bps": all(row["has_spread_bps"] for row in rows),
         "all_symbols_have_depth_usd": all(row["has_depth_usd"] for row in rows),
         "all_symbols_timestamp_alignment_ok": all(row["timestamp_alignment_ok"] for row in rows),
+        "all_symbols_book_ticker_forward_available": all(row["book_ticker_forward_available"] for row in rows),
+        "all_symbols_book_ticker_historical_backfill_available": all(
+            row["book_ticker_historical_backfill_available"] for row in rows
+        ),
+        "all_symbols_book_ticker_entry_alignment_ok": all(row["book_ticker_entry_alignment_ok"] for row in rows),
     }
     report = {
         "generated_at_utc": datetime.now(timezone.utc).isoformat(),
@@ -310,6 +349,12 @@ def build_data_feed_audit(
                 "has_spread_bps": row["has_spread_bps"],
                 "has_depth_usd": row["has_depth_usd"],
                 "timestamp_alignment_ok": row["timestamp_alignment_ok"],
+                "book_ticker_forward_available": row["book_ticker_forward_available"],
+                "book_ticker_historical_backfill_available": row["book_ticker_historical_backfill_available"],
+                "book_ticker_entry_alignment_ok": row["book_ticker_entry_alignment_ok"],
+                "book_ticker_collection_start_ts": row["book_ticker_collection_start_ts"],
+                "book_ticker_collection_end_ts": row["book_ticker_collection_end_ts"],
+                "book_ticker_rows": row["book_ticker_rows"],
                 **{key: value for key, value in row["missing_pct"].items()},
             }
             for row in rows
