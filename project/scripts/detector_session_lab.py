@@ -230,16 +230,14 @@ def _load_frames(
 
 def _array_context(df: pd.DataFrame, *, candidate_stride_bars: int) -> dict[str, Any]:
     symbols = df["symbol"].astype(str).to_numpy()
-    boundaries = np.flatnonzero(symbols[1:] != symbols[:-1]) + 1
-    starts = np.r_[0, boundaries]
-    ends = np.r_[boundaries, len(symbols)]
-    eval_indices = np.concatenate(
-        [
-            np.arange(start, end, candidate_stride_bars, dtype=int)
-            for start, end in zip(starts, ends, strict=False)
-        ]
-    )
+    timestamps = pd.to_datetime(df["timestamp"], utc=True, errors="coerce")
+    minute = timestamps.dt.minute.to_numpy(dtype=int)
+    hour = timestamps.dt.hour.to_numpy(dtype=int)
+    eval_indices = np.flatnonzero(minute == 0)
     return {
+        "timestamp": timestamps.astype(str).to_numpy(dtype=object),
+        "hour": hour,
+        "minute": minute,
         "close": pd.to_numeric(df["close"], errors="coerce").to_numpy(dtype=float),
         "high": pd.to_numeric(df["high"], errors="coerce").to_numpy(dtype=float),
         "low": pd.to_numeric(df["low"], errors="coerce").to_numpy(dtype=float),
@@ -407,9 +405,9 @@ def _variant_mask(
         directions = np.where(long_trend, "long", "short").astype(object)
     elif shape == "funding_drift":
         funding = context["funding_sign"][eval_indices]
-        # Funding settlement is UTC 00/08/16; infer it from the 5m bar position.
-        hour_index = (eval_indices % 288) // 12
-        funding_window = np.isin(hour_index, [0, 8, 16])
+        funding_window = np.isin(context["hour"][eval_indices], [0, 8, 16]) & (
+            context["minute"][eval_indices] == 0
+        )
         directional = (funding == "positive") | (funding == "negative")
         directions = np.where(funding == "negative", "long", "short").astype(object)
         mask &= funding_window
@@ -690,7 +688,7 @@ def build_session_report(
             "oi_modes": ["optional", "aligned"],
             "trend_filters": ["any", "aligned"],
             "exit_policies": exit_policies,
-            "candidate_sampling": f"first bar of each {cooldown_bars}-bar symbol block",
+            "candidate_sampling": "timestamp minute == 0",
             "extra_slippage_bps": extra_slippage_bps,
             "cost_bps_by_symbol": symbol_costs,
             "approval_policy": "research_only_outputs_require_fresh_validation_no_paper_or_live",

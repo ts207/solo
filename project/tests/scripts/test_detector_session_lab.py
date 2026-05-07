@@ -117,3 +117,16 @@ def test_session_lab_does_not_reference_book_data() -> None:
     ]
     for forbidden in forbidden_terms:
         assert forbidden not in source
+
+
+def test_session_lab_uses_actual_timestamp_minutes_for_eval_indices() -> None:
+    frame = _synthetic_session_frame().copy()
+    frame["timestamp"] = pd.date_range(
+        "2022-01-01 00:05:00", periods=len(frame), freq="5min", tz="UTC"
+    )
+
+    context = lab._array_context(frame, candidate_stride_bars=12)
+    eval_indices = context["eval_indices"]
+
+    assert len(eval_indices) > 0
+    assert set(context["minute"][eval_indices].tolist()) == {0}

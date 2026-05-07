@@ -4,9 +4,10 @@ SYMBOLS ?= BTCUSDT,ETHUSDT,SOLUSDT,BNBUSDT,XRPUSDT,LINKUSDT,AVAXUSDT,ADAUSDT,DOG
 BOOK_TICKER_RUN_ID ?= bybit_book_ticker_snapshot
 AUDIT_SYMBOLS ?= $(SYMBOLS)
 AUDIT_YEARS ?= 2022,2023,2024,2025
+VARIANT ?= FUNDING_WINDOW_DRIFT
 FORWARD_YEARS ?= 2026
 
-.PHONY: help detector-shadow-report detector-variant-validation detector-tune detector-exit-lab detector-targeted-expansion detector-mtf-lab detector-mtf-diagnose detector-regime-lab detector-oi-flush-lab detector-oi-flush-forward-shadow detector-cross-sectional-lab detector-vol-compression-lab detector-funding-divergence-lab detector-session-lab forward-shadow-status data-feed-audit ingest-bybit-book-ticker
+.PHONY: help detector-shadow-report detector-variant-validation detector-tune detector-exit-lab detector-targeted-expansion detector-mtf-lab detector-mtf-diagnose detector-regime-lab detector-oi-flush-lab detector-oi-flush-forward-shadow detector-cross-sectional-lab detector-vol-compression-lab detector-funding-divergence-lab detector-session-lab detector-session-diagnose forward-shadow-status data-feed-audit ingest-bybit-book-ticker
 
 help:
 	@$(MAKE) -C $(ROOT_DIR) help
@@ -52,6 +53,9 @@ detector-funding-divergence-lab:
 
 detector-session-lab:
 	@$(PYTHON) -m project.scripts.detector_session_lab --symbols "$(SYMBOLS)" --years "$(AUDIT_YEARS)"
+
+detector-session-diagnose:
+	@$(PYTHON) -m project.scripts.detector_session_diagnose --variant "$(VARIANT)" --symbols "$(SYMBOLS)" --years "$(AUDIT_YEARS)"
 
 forward-shadow-status:
 	@$(PYTHON) -m project.scripts.forward_shadow_status --symbols "$(SYMBOLS)"
