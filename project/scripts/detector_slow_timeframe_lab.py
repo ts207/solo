@@ -44,6 +44,9 @@ HORIZON_BARS = 1
 BASKET_SIZE_PER_SIDE = 2
 MIN_CROSS_SECTION = 6
 FUNDING_ABS_PCT_MAX = 90.0
+VARIANT_ID = (
+    "SLOW_RELATIVE_STRENGTH_ROTATION__4H__TOP2_BOTTOM2__MOM_24H_72H_VOL_ADJ__NO_EXTREME_FUNDING"
+)
 
 
 def _cost_for_symbol(symbol: str, overrides: dict[str, float]) -> float:
@@ -135,7 +138,8 @@ def _add_slow_features(frame_4h: pd.DataFrame) -> pd.DataFrame:
             * 100.0
         )
     )
-    out["fwd_ret_4h"] = grouped["close"].shift(-HORIZON_BARS) / close - 1.0
+    for hold_bars in (1, 3, 6):
+        out[f"fwd_ret_{hold_bars}x4h"] = grouped["close"].shift(-hold_bars) / close - 1.0
     return out
 
 
@@ -151,34 +155,52 @@ def _walk_forward_pass(by_year: dict[str, Any]) -> bool:
 
 
 def _evaluate_rotation(
-    df: pd.DataFrame, *, symbol_costs: dict[str, float], extra_slippage_bps: float
+    df: pd.DataFrame,
+    *,
+    symbol_costs: dict[str, float],
+    extra_slippage_bps: float,
+    direction_mode: str = "momentum",
+    rebalance_bars: int = 1,
+    hold_bars: int = HORIZON_BARS,
+    basket_size: int = BASKET_SIZE_PER_SIDE,
+    variant_id: str = VARIANT_ID,
 ) -> dict[str, Any]:
     returns: list[float] = []
     gross_returns: list[float] = []
     plus_slippage_returns: list[float] = []
     basket_details: list[dict[str, Any]] = []
     leg_details: list[dict[str, Any]] = []
-    for ts, group in df.groupby("timestamp", sort=True):
+    grouped = df.groupby("timestamp", sort=True)
+    for rebalance_idx, (ts, group) in enumerate(grouped):
+        if rebalance_idx % rebalance_bars != 0:
+            continue
         valid = group[
             np.isfinite(pd.to_numeric(group["score"], errors="coerce"))
-            & np.isfinite(pd.to_numeric(group["fwd_ret_4h"], errors="coerce"))
+            & np.isfinite(pd.to_numeric(group[f"fwd_ret_{hold_bars}x4h"], errors="coerce"))
             & (pd.to_numeric(group["funding_abs_pct"], errors="coerce") <= FUNDING_ABS_PCT_MAX)
         ].copy()
-        if len(valid) < max(MIN_CROSS_SECTION, BASKET_SIZE_PER_SIDE * 2):
+        if len(valid) < max(MIN_CROSS_SECTION, basket_size * 2):
             continue
         ranked = valid.sort_values("score", ascending=True)
-        shorts = ranked.head(BASKET_SIZE_PER_SIDE)
-        longs = ranked.tail(BASKET_SIZE_PER_SIDE).iloc[::-1]
-        legs = [(row, "long", "top_2") for _, row in longs.iterrows()] + [
-            (row, "short", "bottom_2") for _, row in shorts.iterrows()
-        ]
+        bottom = ranked.head(basket_size)
+        top = ranked.tail(basket_size).iloc[::-1]
+        if direction_mode == "momentum":
+            legs = [(row, "long", "top") for _, row in top.iterrows()] + [
+                (row, "short", "bottom") for _, row in bottom.iterrows()
+            ]
+        elif direction_mode == "reversal":
+            legs = [(row, "short", "top") for _, row in top.iterrows()] + [
+                (row, "long", "bottom") for _, row in bottom.iterrows()
+            ]
+        else:
+            raise ValueError(f"unsupported direction mode: {direction_mode}")
         leg_net: list[float] = []
         leg_gross: list[float] = []
         leg_plus_slippage: list[float] = []
         basket_symbols: list[str] = []
         for row, direction, rank_bucket in legs:
             symbol = str(row["symbol"])
-            fwd_ret = float(row["fwd_ret_4h"])
+            fwd_ret = float(row[f"fwd_ret_{hold_bars}x4h"])
             direction_mult = 1.0 if direction == "long" else -1.0
             gross_bps = fwd_ret * 10000.0 * direction_mult
             cost_bps = float(symbol_costs.get(symbol, 18.0))
@@ -202,7 +224,7 @@ def _evaluate_rotation(
                     "gross_bps": gross_bps,
                 }
             )
-        if len(leg_net) != BASKET_SIZE_PER_SIDE * 2:
+        if len(leg_net) != basket_size * 2:
             continue
         basket_net = float(np.mean(leg_net))
         basket_gross = float(np.mean(leg_gross))
@@ -227,6 +249,11 @@ def _evaluate_rotation(
         basket_details=basket_details,
         leg_details=leg_details,
         extra_slippage_bps=extra_slippage_bps,
+        variant_id=variant_id,
+        direction_mode=direction_mode,
+        rebalance_bars=rebalance_bars,
+        hold_bars=hold_bars,
+        basket_size=basket_size,
     )
 
 
@@ -238,6 +265,11 @@ def _row_from_events(
     basket_details: list[dict[str, Any]],
     leg_details: list[dict[str, Any]],
     extra_slippage_bps: float,
+    variant_id: str = VARIANT_ID,
+    direction_mode: str = "momentum",
+    rebalance_bars: int = 1,
+    hold_bars: int = HORIZON_BARS,
+    basket_size: int = BASKET_SIZE_PER_SIDE,
 ) -> dict[str, Any]:
     del extra_slippage_bps
     net_summary = _return_summary(returns)
@@ -253,7 +285,7 @@ def _row_from_events(
         symbol for symbol, stats in by_symbol.items() if (stats.get("net_bps") or -1e9) > 0.0
     )
     row = {
-        "variant_id": "SLOW_RELATIVE_STRENGTH_ROTATION__4H__TOP2_BOTTOM2__MOM_24H_72H_VOL_ADJ__NO_EXTREME_FUNDING",
+        "variant_id": variant_id,
         "family": FAMILY,
         "event_count": len(returns),
         "leg_count": len(leg_details),
@@ -261,9 +293,10 @@ def _row_from_events(
             "bar_interval": BAR_INTERVAL,
             "momentum_lookbacks": ["24h", "72h"],
             "score": "(ret_24h + ret_72h) / realized_vol_72h",
-            "basket": "long_top_2_short_bottom_2",
-            "rebalance": "every_4h",
-            "horizon": "next_4h",
+            "direction_mode": direction_mode,
+            "basket_size_per_side": basket_size,
+            "rebalance": f"every_{rebalance_bars * 4}h",
+            "horizon": f"next_{hold_bars * 4}h",
             "funding_filter": f"funding_abs_percentile <= {FUNDING_ABS_PCT_MAX:g}",
         },
         "best_exit": {
