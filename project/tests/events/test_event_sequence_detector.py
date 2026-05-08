@@ -10,6 +10,20 @@ class _DummyDetector(BaseEventDetector):
         return pd.Series(False, index=df.index, dtype=bool)
 
 
+class _NoDirectionTrigger:
+    def prepare_features(self, df: pd.DataFrame, **params):
+        return {"event_side": pd.Series(["bullish"] * len(df), index=df.index)}
+
+    def compute_raw_mask(self, df: pd.DataFrame, *, features, **params):
+        return pd.Series(True, index=df.index, dtype=bool)
+
+    def compute_intensity(self, df: pd.DataFrame, *, features, **params):
+        return pd.Series(1.0, index=df.index, dtype=float)
+
+    def compute_event_side(self, idx: int, intensity: float, features, **params):
+        return str(features["event_side"].iloc[idx])
+
+
 @pytest.mark.skip(reason="EventSequenceDetector requires full event data with rv_96 column")
 def test_event_sequence_detector():
     df = pd.DataFrame(
@@ -61,3 +75,20 @@ def test_event_sequence_detector_allows_non_sequence_components(monkeypatch):
 
     assert "anchor_mask" in features
     assert "trigger_mask" in features
+
+
+def test_event_sequence_detector_direction_falls_back_to_trigger_event_side(monkeypatch):
+    def fake_get_detector(event_name):
+        if event_name == "BREAKOUT_TRIGGER":
+            return _NoDirectionTrigger()
+        return _DummyDetector()
+
+    monkeypatch.setattr(
+        "project.events.detectors.sequence.get_detector",
+        fake_get_detector,
+    )
+    det = EventSequenceDetector(anchor_event="VOL_SHOCK", trigger_event="BREAKOUT_TRIGGER")
+    frame = pd.DataFrame({"timestamp": pd.date_range("2024-01-01", periods=2, tz="UTC")})
+    features = det.prepare_features(frame)
+
+    assert det.compute_direction(0, features) == "up"

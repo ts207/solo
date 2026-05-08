@@ -194,7 +194,9 @@ def build_parser() -> argparse.ArgumentParser:
         default="auto",
     )
     parser.add_argument(
-        "--discovery_profile", choices=["standard", "exploratory", "synthetic"], default="standard"
+        "--discovery_profile",
+        choices=["standard", "exploratory", "synthetic", "edge_probe"],
+        default="standard",
     )
     parser.add_argument(
         "--discovery-mode",
@@ -442,11 +444,7 @@ def _normalized_tokens(values: Any) -> set[str]:
         return {token} if token else set()
     if not isinstance(values, (list, tuple, set)):
         return set()
-    return {
-        str(value).strip().upper()
-        for value in values
-        if str(value).strip()
-    }
+    return {str(value).strip().upper() for value in values if str(value).strip()}
 
 
 def _experiment_trigger_hints(
@@ -505,10 +503,7 @@ def _experiment_promotion_enabled(args: argparse.Namespace) -> bool | None:
 
 def _requires_cross_venue_spot_pipeline(args: argparse.Namespace) -> bool:
     events, regimes = _experiment_trigger_hints(args)
-    return bool(
-        (events & _SPOT_PIPELINE_EVENT_HINTS)
-        or (regimes & _SPOT_PIPELINE_REGIME_HINTS)
-    )
+    return bool((events & _SPOT_PIPELINE_EVENT_HINTS) or (regimes & _SPOT_PIPELINE_REGIME_HINTS))
 
 
 def resolve_pipeline_artifact_contracts(
@@ -591,9 +586,7 @@ def build_contract_backed_execution_plan(
 
     obligations: list[PlannedArtifactObligation] = []
     for contract in list_artifact_contracts():
-        producing_stages = tuple(
-            selected_stage_families.get(contract.producer_stage_family, [])
-        )
+        producing_stages = tuple(selected_stage_families.get(contract.producer_stage_family, []))
         if not producing_stages:
             continue
         if contract.contract_id in {"promoted_theses", "live_thesis_index"} and (
@@ -646,7 +639,9 @@ def _strict_promotion_requires_negative_controls(args: argparse.Namespace) -> bo
     mode = str(getattr(args, "mode", "research") or "research").strip().lower()
     profile = str(getattr(args, "promotion_profile", "auto") or "auto").strip().lower()
     if profile == "auto":
-        profile = str(getattr(args, "candidate_promotion_profile", "auto") or "auto").strip().lower()
+        profile = (
+            str(getattr(args, "candidate_promotion_profile", "auto") or "auto").strip().lower()
+        )
     return mode in {"production", "certification"} or profile == "deploy"
 
 
@@ -756,7 +751,6 @@ def collect_startup_non_production_overrides(
     return overrides
 
 
-
 def _discover_local_cleaned_coverage(
     *,
     args: argparse.Namespace,
@@ -797,7 +791,9 @@ def _discover_local_cleaned_coverage(
                 symbol=symbol,
                 timeframe=tf,
             )
-            if not cleaned_dataset_covers_window(dataset_root, start=str(args.start), end=str(args.end)):
+            if not cleaned_dataset_covers_window(
+                dataset_root, start=str(args.start), end=str(args.end)
+            ):
                 timeframe_ok = False
                 coverage_gaps.append(
                     f"perp/{symbol}/bars_{tf} does not cover requested window {args.start}..{args.end}"
@@ -848,9 +844,8 @@ def _apply_local_cleaned_stage_shortcuts(
         return dict(stages), []
 
     external_root = str(local_cleaned.get("external_root", "") or "")
-    notes = (
-        "local cleaned bars satisfy the contract; stage skipped"
-        + (f" (source={external_root})" if external_root else "")
+    notes = "local cleaned bars satisfy the contract; stage skipped" + (
+        f" (source={external_root})" if external_root else ""
     )
 
     pruned: dict[str, Any] = dict(stages)
@@ -937,10 +932,9 @@ def prepare_run_preflight(
             print(f"ERROR: {issue}", file=sys.stderr)
         return {"exit_code": 2, "run_id": run_id}
 
-    if (
-        not cli_flag_present("--enable_cross_venue_spot_pipeline")
-        and _requires_cross_venue_spot_pipeline(args)
-    ):
+    if not cli_flag_present(
+        "--enable_cross_venue_spot_pipeline"
+    ) and _requires_cross_venue_spot_pipeline(args):
         args.enable_cross_venue_spot_pipeline = 0
         args.skip_ingest_spot_ohlcv = 1
 
@@ -951,7 +945,9 @@ def prepare_run_preflight(
             args.emit_run_hash = 0
 
     experiment_promotion_enabled = _experiment_promotion_enabled(args)
-    if experiment_promotion_enabled is not None and not cli_flag_present("--run_candidate_promotion"):
+    if experiment_promotion_enabled is not None and not cli_flag_present(
+        "--run_candidate_promotion"
+    ):
         args.run_candidate_promotion = 1 if experiment_promotion_enabled else 0
         if not experiment_promotion_enabled and not cli_flag_present("--run_edge_registry_update"):
             args.run_edge_registry_update = 0
@@ -978,19 +974,14 @@ def prepare_run_preflight(
             args.phase2_event_type = "all"
     # When --events is specified without --phase2_event_type, pin the search engine to the
     # same event(s). A single-event list becomes the event type; multiple events use "all".
-    if (
-        getattr(args, "events", None)
-        and not cli_flag_present("--phase2_event_type")
-    ):
+    if getattr(args, "events", None) and not cli_flag_present("--phase2_event_type"):
         events_list = [e.strip().upper() for e in args.events if str(e).strip()]
         if len(events_list) == 1:
             args.phase2_event_type = events_list[0]
         else:
             args.phase2_event_type = "all"
 
-    expectancy_script = (
-        project_root / "research" / "analyze_conditional_expectancy.py"
-    )
+    expectancy_script = project_root / "research" / "analyze_conditional_expectancy.py"
     expectancy_tail_requested = any(
         int(getattr(args, attr, 0) or 0)
         for attr in (
@@ -1050,7 +1041,11 @@ def prepare_run_preflight(
         "detectors": {},
         "issues": [],
     }
-    if int(getattr(args, "run_phase2_conditional", 0) or 0) and viability_target_events and not int(getattr(args, "dry_run", 0) or 0):
+    if (
+        int(getattr(args, "run_phase2_conditional", 0) or 0)
+        and viability_target_events
+        and not int(getattr(args, "dry_run", 0) or 0)
+    ):
         analysis_timeframe = parse_timeframes_csv(getattr(args, "timeframes", "5m"))[0]
         feature_surface_viability = analyze_feature_surface_viability(
             data_root=data_root,
@@ -1062,8 +1057,13 @@ def prepare_run_preflight(
             event_types=sorted(viability_target_events),
             market="perp",
         )
-        if str(feature_surface_viability.get("status", "unknown") or "unknown").strip().lower() == "block":
-            for event_name, payload in sorted(feature_surface_viability.get("detectors", {}).items()):
+        if (
+            str(feature_surface_viability.get("status", "unknown") or "unknown").strip().lower()
+            == "block"
+        ):
+            for event_name, payload in sorted(
+                feature_surface_viability.get("detectors", {}).items()
+            ):
                 blocked_symbols = list(payload.get("block_symbols", []))
                 if blocked_symbols:
                     print(
@@ -1141,9 +1141,7 @@ def prepare_run_preflight(
         "phase2_event_type": str(getattr(args, "phase2_event_type", "") or "").strip(),
         "phase2_event_type_source": phase2_event_type_source,
         "run_expectancy_analysis": bool(int(getattr(args, "run_expectancy_analysis", 0) or 0)),
-        "run_expectancy_robustness": bool(
-            int(getattr(args, "run_expectancy_robustness", 0) or 0)
-        ),
+        "run_expectancy_robustness": bool(int(getattr(args, "run_expectancy_robustness", 0) or 0)),
         "run_recommendations_checklist": bool(
             int(getattr(args, "run_recommendations_checklist", 0) or 0)
         ),

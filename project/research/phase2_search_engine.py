@@ -30,6 +30,13 @@ from project.domain.hypotheses import TriggerType
 from project.io.utils import ensure_dir, read_parquet, write_parquet
 from project.research._family_event_utils import load_features as load_features
 from project.research.knowledge.schemas import canonical_json, region_key, stable_hash
+from project.research.phase2_gate_funnel import (
+    _build_funnel_payload,
+    _build_gate_funnel,
+    _classify_metrics_counts,
+    _merge_rejection_reason_counts,
+    _resolve_search_min_t_stat,
+)
 from project.research.regime_routing import annotate_regime_metadata
 from project.research.search.bridge_adapter import (
     canonical_bridge_event_type,
@@ -43,13 +50,6 @@ from project.research.search.profile import resolve_search_profile
 from project.research.search.search_feature_utils import (
     ensure_expected_event_columns,
     prepare_search_features_for_symbol,
-)
-from project.research.phase2_gate_funnel import (
-    _build_funnel_payload,
-    _build_gate_funnel,
-    _classify_metrics_counts,
-    _merge_rejection_reason_counts,
-    _resolve_search_min_t_stat,
 )
 from project.research.services.pathing import (
     phase2_candidates_path,
@@ -70,13 +70,36 @@ from project.specs.manifest import finalize_manifest, start_manifest
 
 log = logging.getLogger(__name__)
 
+RAW_EDGE_PROBE_COLUMNS = [
+    "hypothesis_id",
+    "symbol",
+    "trigger_type",
+    "trigger_key",
+    "direction",
+    "horizon",
+    "template_id",
+    "entry_lag",
+    "context_signature",
+    "n",
+    "train_n_obs",
+    "validation_n_obs",
+    "test_n_obs",
+    "mean_return_gross_bps",
+    "mean_return_net_bps",
+    "after_cost_expectancy_bps",
+    "t_stat",
+    "hit_rate",
+    "sharpe",
+    "valid",
+    "invalid_reason",
+]
+
 _DEFAULT_BROAD_SEARCH_SPECS = {
     "",
     "full",
     "search_space.yaml",
     "spec/search_space.yaml",
 }
-
 
 
 def _safe_concat(frames: list, **kwargs) -> pd.DataFrame:
@@ -92,6 +115,193 @@ def _safe_concat(frames: list, **kwargs) -> pd.DataFrame:
 def _normalize_phase2_candidate_artifact(df: pd.DataFrame) -> pd.DataFrame:
     """Return the canonical producer shape for phase2 candidate artifacts."""
     return normalize_dataframe_for_schema(df, "phase2_candidates")
+
+
+def _first_existing_series(
+    frame: pd.DataFrame,
+    candidates: tuple[str, ...],
+    default: Any,
+) -> pd.Series:
+    for column in candidates:
+        if column in frame.columns:
+            return frame[column]
+    return pd.Series(default, index=frame.index)
+
+
+def _normalize_raw_edge_probe_candidates(metrics: pd.DataFrame, *, symbol: str) -> pd.DataFrame:
+    if metrics.empty:
+        return pd.DataFrame(columns=RAW_EDGE_PROBE_COLUMNS)
+    frame = metrics.copy()
+    out = pd.DataFrame(index=frame.index)
+    for column in RAW_EDGE_PROBE_COLUMNS:
+        out[column] = _first_existing_series(frame, (column,), "")
+
+    out["symbol"] = _first_existing_series(frame, ("symbol",), str(symbol).strip().upper())
+    out["template_id"] = _first_existing_series(frame, ("template_id", "rule_template"), "")
+    out["entry_lag"] = _first_existing_series(frame, ("entry_lag", "entry_lag_bars"), 0)
+    out["trigger_type"] = _first_existing_series(frame, ("trigger_type",), "event")
+    out["trigger_key"] = _first_existing_series(
+        frame,
+        ("trigger_key", "event_type", "canonical_event_type"),
+        "",
+    )
+    out["context_signature"] = _first_existing_series(
+        frame,
+        ("context_signature", "context_cell"),
+        "",
+    )
+    out["t_stat"] = _first_existing_series(frame, ("t_stat", "t_stat_net"), 0.0)
+    out["mean_return_net_bps"] = _first_existing_series(
+        frame,
+        ("mean_return_net_bps", "cost_adjusted_return_bps"),
+        0.0,
+    )
+    out["after_cost_expectancy_bps"] = _first_existing_series(
+        frame,
+        ("after_cost_expectancy_bps", "mean_return_net_bps", "cost_adjusted_return_bps"),
+        0.0,
+    )
+    out["valid"] = _first_existing_series(frame, ("valid",), False).fillna(False).astype(bool)
+    out["invalid_reason"] = _first_existing_series(frame, ("invalid_reason",), "").fillna("")
+
+    for column in (
+        "n",
+        "train_n_obs",
+        "validation_n_obs",
+        "test_n_obs",
+        "entry_lag",
+    ):
+        out[column] = pd.to_numeric(out[column], errors="coerce").fillna(0).astype(int)
+    for column in (
+        "mean_return_gross_bps",
+        "mean_return_net_bps",
+        "after_cost_expectancy_bps",
+        "t_stat",
+        "hit_rate",
+        "sharpe",
+    ):
+        out[column] = pd.to_numeric(out[column], errors="coerce").fillna(0.0).astype(float)
+    for column in (
+        "hypothesis_id",
+        "symbol",
+        "trigger_type",
+        "trigger_key",
+        "direction",
+        "horizon",
+        "template_id",
+        "context_signature",
+        "invalid_reason",
+    ):
+        out[column] = out[column].fillna("").astype(str)
+    return out[RAW_EDGE_PROBE_COLUMNS].reset_index(drop=True)
+
+
+def _top_trigger_keys(
+    frame: pd.DataFrame,
+    *,
+    value_column: str,
+    aggregate: str,
+    limit: int = 20,
+) -> list[dict[str, Any]]:
+    if frame.empty or "trigger_key" not in frame.columns or value_column not in frame.columns:
+        return []
+    working = frame.copy()
+    working["trigger_key"] = working["trigger_key"].fillna("").astype(str)
+    working[value_column] = pd.to_numeric(working[value_column], errors="coerce").fillna(0.0)
+    if aggregate == "sum":
+        ranked = working.groupby("trigger_key", dropna=False)[value_column].sum()
+    else:
+        ranked = working.groupby("trigger_key", dropna=False)[value_column].mean()
+    ranked = ranked.sort_values(ascending=False).head(limit)
+    return [
+        {"trigger_key": str(trigger_key), value_column: float(value)}
+        for trigger_key, value in ranked.items()
+    ]
+
+
+def _build_edge_probe_diagnostics(
+    frame: pd.DataFrame,
+    *,
+    hypotheses_generated: int,
+    hypotheses_feasible: int,
+) -> dict[str, Any]:
+    if frame.empty:
+        invalid_reason_counts: dict[str, int] = {}
+    else:
+        invalid_mask = ~frame["valid"].fillna(False).astype(bool)
+        invalid_reason_counts = {
+            str(reason): int(count)
+            for reason, count in (
+                frame.loc[invalid_mask, "invalid_reason"]
+                .fillna("")
+                .replace("", "invalid")
+                .value_counts()
+                .to_dict()
+                .items()
+            )
+        }
+    return {
+        "hypotheses_generated": int(hypotheses_generated),
+        "hypotheses_feasible": int(hypotheses_feasible),
+        "evaluated_rows": len(frame),
+        "nonzero_n_rows": int(
+            (pd.to_numeric(frame.get("n", 0), errors="coerce").fillna(0) > 0).sum()
+        )
+        if not frame.empty
+        else 0,
+        "positive_gross_rows": int(
+            (
+                pd.to_numeric(frame.get("mean_return_gross_bps", 0.0), errors="coerce").fillna(0.0)
+                > 0.0
+            ).sum()
+        )
+        if not frame.empty
+        else 0,
+        "positive_net_rows": int(
+            (
+                pd.to_numeric(frame.get("mean_return_net_bps", 0.0), errors="coerce").fillna(0.0)
+                > 0.0
+            ).sum()
+        )
+        if not frame.empty
+        else 0,
+        "invalid_reason_counts": invalid_reason_counts,
+        "top_trigger_keys_by_n": _top_trigger_keys(frame, value_column="n", aggregate="sum"),
+        "top_trigger_keys_by_gross_return": _top_trigger_keys(
+            frame,
+            value_column="mean_return_gross_bps",
+            aggregate="mean",
+        ),
+    }
+
+
+def _write_edge_probe_artifacts(
+    *,
+    out_dir: Path,
+    frames: list[pd.DataFrame],
+    hypotheses_generated: int,
+    hypotheses_feasible: int,
+) -> dict[str, Any]:
+    ensure_dir(out_dir)
+    raw = (
+        _safe_concat(frames, ignore_index=True)
+        if frames
+        else pd.DataFrame(columns=RAW_EDGE_PROBE_COLUMNS)
+    )
+    raw = raw[RAW_EDGE_PROBE_COLUMNS] if not raw.empty else raw
+    raw_path = out_dir / "raw_edge_probe_candidates.parquet"
+    diagnostics_path = out_dir / "edge_probe_diagnostics.json"
+    write_parquet(raw, raw_path)
+    diagnostics = _build_edge_probe_diagnostics(
+        raw,
+        hypotheses_generated=hypotheses_generated,
+        hypotheses_feasible=hypotheses_feasible,
+    )
+    write_json_report(diagnostics, diagnostics_path)
+    return {
+        "raw_candidates": str(raw_path),
+        "diagnostics": str(diagnostics_path),
+    }
 
 
 def _normalize_candidate_event_timestamp_artifact(
@@ -154,9 +364,9 @@ def _normalize_candidate_event_timestamp_artifact(
     out = out[columns].drop_duplicates(
         subset=["candidate_id", "hypothesis_id", "event_timestamp", "split_label"]
     )
-    return out.sort_values(["candidate_id", "event_timestamp", "split_label"], kind="stable").reset_index(
-        drop=True
-    )
+    return out.sort_values(
+        ["candidate_id", "event_timestamp", "split_label"], kind="stable"
+    ).reset_index(drop=True)
 
 
 def _is_default_broad_search_spec(search_spec: str) -> bool:
@@ -322,9 +532,7 @@ def _merge_edge_cell_lineage(frame: pd.DataFrame, lineage: pd.DataFrame) -> pd.D
             how="left",
         )
         return merged.drop(columns=["__edge_cell_symbol_key"])
-    lineage_cols = [
-        col for col in lineage.columns if col == "hypothesis_id" or col not in existing
-    ]
+    lineage_cols = [col for col in lineage.columns if col == "hypothesis_id" or col not in existing]
     return frame.merge(lineage[lineage_cols], on="hypothesis_id", how="left")
 
 
@@ -348,7 +556,6 @@ def _filter_edge_cell_authorized_hypotheses(
     return [spec for spec in hypotheses if str(spec.hypothesis_id()) in allowed]
 
 
-
 def _first_present_column(columns: list[str], available_columns: pd.Index) -> str | None:
     available = {str(column) for column in available_columns}
     for column in columns:
@@ -359,6 +566,7 @@ def _first_present_column(columns: list[str], available_columns: pd.Index) -> st
 
 def _event_signal_candidates(event_id: str) -> list[str]:
     from project.domain.compiled_registry import get_domain_registry
+
     event_def = get_domain_registry().get_event(str(event_id or "").strip().upper())
     signal_col = event_def.signal_column if event_def is not None else None
     return ColumnRegistry.event_cols(str(event_id or "").strip().upper(), signal_col=signal_col)
@@ -616,8 +824,9 @@ def _materialize_interaction_trigger_columns(
     return out
 
 
-
-def _latest_hierarchical_stage_frame(stage_artifacts: dict[str, pd.DataFrame] | None) -> pd.DataFrame:
+def _latest_hierarchical_stage_frame(
+    stage_artifacts: dict[str, pd.DataFrame] | None,
+) -> pd.DataFrame:
     if not stage_artifacts:
         return pd.DataFrame()
     for stage_name in (
@@ -1180,6 +1389,7 @@ def run(
     event_registry_override: str | None = None,
     discovery_mode: str = "search",
     lineage_path: str | Path | None = None,
+    cost_bps: float = 2.0,
 ) -> int:
     """
     Discovery v2 Search Engine Orchestrator. [STATUS: STABLE]
@@ -1233,6 +1443,7 @@ def run(
     )
     resolved_min_n = int(search_profile["min_n"])
     resolved_min_t_stat = float(search_profile["min_t_stat"])
+    edge_probe_enabled = str(search_profile["discovery_profile"]) == "edge_probe"
     multiplicity_max_q = float(phase2_gates.get("max_q_value", 0.05))
 
     # 1. Load data and evaluate symbols
@@ -1243,6 +1454,7 @@ def run(
     symbol_diagnostics = []
     metrics_frames = []
     candidate_universe_frames = []
+    raw_edge_probe_frames: list[pd.DataFrame] = []
     edge_cell_lineage = (
         _load_edge_cell_lineage(lineage_path)
         if str(discovery_mode or "search").strip() == "edge_cells"
@@ -1339,8 +1551,16 @@ def run(
                 },
                 "rejection_reason_counts": (
                     {
-                        **({"prior_tested_region": skipped_prior_regions} if skipped_prior_regions else {}),
-                        **({"negative_result_registry": skipped_negative} if skipped_negative else {}),
+                        **(
+                            {"prior_tested_region": skipped_prior_regions}
+                            if skipped_prior_regions
+                            else {}
+                        ),
+                        **(
+                            {"negative_result_registry": skipped_negative}
+                            if skipped_negative
+                            else {}
+                        ),
                     }
                 ),
             }
@@ -1501,6 +1721,8 @@ def run(
             except Exception as _h_exc:
                 log.warning("Failed to load search spec for hierarchical config: %s", _h_exc)
         _h_config = _load_hierarchical_config(_h_spec_doc) if not experiment_plan else None
+        if edge_probe_enabled:
+            _h_config = None
         _h_config = _apply_hierarchical_profile_overrides(
             _h_config,
             search_profile.get("hierarchical_overrides"),
@@ -1530,6 +1752,7 @@ def run(
                 bridge_gates=dict(bridge_gates),
                 data_root=data_root,
                 out_dir=out_dir,
+                cost_bps=float(cost_bps),
             )
 
             candidates = h_result.final_candidates
@@ -1558,9 +1781,7 @@ def run(
             ):
                 h_rejected_by_min_t_stat = int(
                     (
-                        ~h_candidate_universe["gate_search_min_t_stat"]
-                        .fillna(False)
-                        .astype(bool)
+                        ~h_candidate_universe["gate_search_min_t_stat"].fillna(False).astype(bool)
                     ).sum()
                 )
             if not candidates.empty:
@@ -1653,6 +1874,7 @@ def run(
             min_sample_size=resolved_min_n,
             use_context_quality=use_context_quality,
             folds=folds,
+            cost_bps=float(cost_bps),
         )
 
         if "fold_breakdown" in metrics.attrs and not metrics.attrs["fold_breakdown"].empty:
@@ -1661,7 +1883,9 @@ def run(
             "candidate_event_timestamps" in metrics.attrs
             and not metrics.attrs["candidate_event_timestamps"].empty
         ):
-            all_candidate_event_timestamps.append(metrics.attrs["candidate_event_timestamps"].copy())
+            all_candidate_event_timestamps.append(
+                metrics.attrs["candidate_event_timestamps"].copy()
+            )
 
         if metrics.empty:
             log.warning("No metrics returned for %s", symbol)
@@ -1714,6 +1938,17 @@ def run(
             )
             continue
 
+        if edge_probe_enabled:
+            raw_edge_probe_frames.append(
+                _normalize_raw_edge_probe_candidates(metrics, symbol=symbol)
+            )
+            _write_edge_probe_artifacts(
+                out_dir=out_dir,
+                frames=raw_edge_probe_frames,
+                hypotheses_generated=total_hypotheses_generated,
+                hypotheses_feasible=total_feasible_hypotheses,
+            )
+
         valid_metrics_rows, rejected_invalid_metrics, rejected_by_min_n = _classify_metrics_counts(
             metrics,
             min_n=resolved_min_n,
@@ -1734,7 +1969,9 @@ def run(
                 )
                 & (
                     (
-                        pd.to_numeric(metrics.get("t_stat_net", metrics.get("t_stat", 0.0)), errors="coerce")
+                        pd.to_numeric(
+                            metrics.get("t_stat_net", metrics.get("t_stat", 0.0)), errors="coerce"
+                        )
                         .abs()
                         .fillna(0.0)
                     )
@@ -1779,8 +2016,13 @@ def run(
         if isinstance(_bound_search_cfg, dict) and bool(_bound_search_cfg.get("enabled", False)):
             try:
                 from project.research.search.bound_search import BoundSearchSweep
+
                 _sweep = BoundSearchSweep.from_mapping(_bound_search_cfg)
-                if not metrics.empty and "event_type" in metrics.columns and "horizon" in metrics.columns:
+                if (
+                    not metrics.empty
+                    and "event_type" in metrics.columns
+                    and "horizon" in metrics.columns
+                ):
                     _bound_results = []
                     for _evt_type, _evt_group in metrics.groupby("event_type"):
                         _event_returns: dict[tuple[int, int], pd.Series] = {}
@@ -1797,11 +2039,13 @@ def run(
                         if _result.selected:
                             _best_h = _result.best_horizon
                             _best_lag = _result.best_lag
-                            _keep_mask = (
-                                (metrics["event_type"] != str(_evt_type))
-                                | (
-                                    (metrics["horizon"].astype(float).round(0).astype(int) == _best_h)
-                                    & (metrics.get("entry_lag", pd.Series(0, index=metrics.index)).fillna(0).astype(int) == _best_lag)
+                            _keep_mask = (metrics["event_type"] != str(_evt_type)) | (
+                                (metrics["horizon"].astype(float).round(0).astype(int) == _best_h)
+                                & (
+                                    metrics.get("entry_lag", pd.Series(0, index=metrics.index))
+                                    .fillna(0)
+                                    .astype(int)
+                                    == _best_lag
                                 )
                             )
                             metrics = metrics[_keep_mask].copy()
@@ -1877,6 +2121,7 @@ def run(
                 candidates["candidate_id"] = symbol + "::" + candidates["candidate_id"].astype(str)
             try:
                 from project.eval.empirical_bayes import apply_shrinkage, fit_prior
+
                 _eb_prior = fit_prior(candidates)
                 candidates = apply_shrinkage(candidates, _eb_prior)
             except Exception as _eb_exc:
@@ -2159,12 +2404,12 @@ def run(
         # the baseline candidate artifact written before downstream side artifacts.
         final_df = _normalize_phase2_candidate_artifact(final_df)
         write_parquet(final_df, output_path)
-        validate_schema_at_producer(final_df, "phase2_candidates", context="phase2_search_engine:diversified")
+        validate_schema_at_producer(
+            final_df, "phase2_candidates", context="phase2_search_engine:diversified"
+        )
 
     metrics_for_funnel = (
-        _safe_concat(metrics_frames, ignore_index=True)
-        if metrics_frames
-        else pd.DataFrame()
+        _safe_concat(metrics_frames, ignore_index=True) if metrics_frames else pd.DataFrame()
     )
     candidate_universe_for_funnel = (
         _safe_concat(candidate_universe_frames, ignore_index=True)
@@ -2239,6 +2484,20 @@ def run(
         main_diag["artifact_paths"]["funnel"] = str(funnel_path)
 
     write_json_report(main_diag, diagnostics_path)
+    if edge_probe_enabled:
+        edge_probe_paths = _write_edge_probe_artifacts(
+            out_dir=out_dir,
+            frames=raw_edge_probe_frames,
+            hypotheses_generated=total_hypotheses_generated,
+            hypotheses_feasible=total_feasible_hypotheses,
+        )
+        main_diag.setdefault("artifact_paths", {})
+        if isinstance(main_diag.get("artifact_paths"), dict):
+            main_diag["artifact_paths"]["raw_edge_probe_candidates"] = edge_probe_paths[
+                "raw_candidates"
+            ]
+            main_diag["artifact_paths"]["edge_probe_diagnostics"] = edge_probe_paths["diagnostics"]
+        write_json_report(main_diag, diagnostics_path)
 
     # Workstream B: Emit search-burden summary
     try:
@@ -2295,7 +2554,11 @@ def main(argv=None) -> int:
     parser.add_argument("--timeframe", default="5m")
     parser.add_argument("--start", default=None)
     parser.add_argument("--end", default=None)
-    parser.add_argument("--discovery_profile", choices=["standard", "exploratory", "synthetic"], default="standard")
+    parser.add_argument(
+        "--discovery_profile",
+        choices=["standard", "exploratory", "synthetic", "edge_probe"],
+        default="standard",
+    )
     parser.add_argument("--gate_profile", default="auto")
     parser.add_argument("--search_spec", default="spec/search_space.yaml")
     parser.add_argument("--phase2_event_type", default="")
@@ -2303,6 +2566,7 @@ def main(argv=None) -> int:
     parser.add_argument("--min_t_stat", type=float, default=None)
     parser.add_argument("--min_n", type=int, default=30)
     parser.add_argument("--search_budget", type=int, default=None)
+    parser.add_argument("--cost_bps", type=float, default=2.0)
     parser.add_argument("--use_context_quality", type=int, default=1)
     parser.add_argument("--enable_discovery_v2_scoring", type=int, default=1)
     parser.add_argument(
@@ -2365,6 +2629,7 @@ def main(argv=None) -> int:
             phase2_event_type=args.phase2_event_type,
             discovery_mode=args.discovery_mode,
             lineage_path=args.lineage_path,
+            cost_bps=float(args.cost_bps),
         )
         if diagnostics_path.exists():
             try:
@@ -2386,7 +2651,9 @@ def main(argv=None) -> int:
                 log.warning("Could not read candidate parquet for manifest stats: %s", exc)
         if regime_candidates_path.exists():
             try:
-                stats["regime_conditional_candidate_rows"] = len(read_parquet(regime_candidates_path))
+                stats["regime_conditional_candidate_rows"] = len(
+                    read_parquet(regime_candidates_path)
+                )
             except Exception as exc:
                 log.warning("Could not read regime candidates for manifest stats: %s", exc)
         finalize_manifest(manifest, "success" if rc == 0 else "failed", stats=stats)

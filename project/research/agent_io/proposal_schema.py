@@ -30,6 +30,7 @@ LEGACY_AGENT_PROPOSAL_FIELDS = (
     "entry_lags",
 )
 
+
 def _as_str_list(values: Any, *, field_name: str) -> list[str]:
     if values is None:
         return []
@@ -144,10 +145,25 @@ def _normalize_trigger_space(values: Any) -> dict[str, Any]:
             key,
             {}
             if key
-            in {"events", "states", "sequences", "transitions", "feature_predicates", "interactions"}
+            in {
+                "events",
+                "states",
+                "sequences",
+                "transitions",
+                "feature_predicates",
+                "interactions",
+            }
             else [],
         )
-    for key in ("canonical_regimes", "subtypes", "phases", "evidence_modes", "tiers", "operational_roles", "deployment_dispositions"):
+    for key in (
+        "canonical_regimes",
+        "subtypes",
+        "phases",
+        "evidence_modes",
+        "tiers",
+        "operational_roles",
+        "deployment_dispositions",
+    ):
         payload[key] = _as_str_list(payload.get(key), field_name=f"trigger_space.{key}")
     return payload
 
@@ -161,11 +177,9 @@ def _normalize_promotion_profile(raw: Any) -> str:
     raise ValueError(f"Unsupported promotion profile: {raw}")
 
 
-
-
 def _normalize_discovery_profile(raw: Any) -> str:
     value = str(raw or "standard").strip().lower()
-    if value not in {"standard", "exploratory", "synthetic"}:
+    if value not in {"standard", "exploratory", "synthetic", "edge_probe"}:
         raise ValueError(f"Unsupported discovery profile: {raw}")
     return value
 
@@ -205,11 +219,19 @@ def _normalize_bounded_spec(raw: Any) -> BoundedProposalSpec | None:
     if not isinstance(raw, dict):
         raise ValueError("bounded must be an object when provided")
     baseline_run_id = str(raw.get("baseline_run_id", "") or "").strip()
-    experiment_type = str(raw.get("experiment_type", "confirmation") or "confirmation").strip().lower()
+    experiment_type = (
+        str(raw.get("experiment_type", "confirmation") or "confirmation").strip().lower()
+    )
     allowed_change_field = str(raw.get("allowed_change_field", "") or "").strip()
     change_reason = str(raw.get("change_reason", "") or "").strip()
     compare_to_baseline = bool(raw.get("compare_to_baseline", True))
-    if experiment_type not in {"confirmation", "horizon_test", "regime_test", "template_fit_test", "negative_control"}:
+    if experiment_type not in {
+        "confirmation",
+        "horizon_test",
+        "regime_test",
+        "template_fit_test",
+        "negative_control",
+    }:
         raise ValueError(f"Unsupported bounded.experiment_type: {experiment_type}")
     return BoundedProposalSpec(
         baseline_run_id=baseline_run_id,
@@ -447,9 +469,7 @@ def _normalize_trigger_spec(raw: Any) -> TriggerSpec:
         return TriggerSpec(
             type=trigger_type,
             feature=_as_single_str(raw.get("feature"), field_name="hypothesis.trigger.feature"),
-            operator=_as_single_str(
-                raw.get("operator"), field_name="hypothesis.trigger.operator"
-            ),
+            operator=_as_single_str(raw.get("operator"), field_name="hypothesis.trigger.operator"),
             threshold=raw.get("threshold"),
         )
     if trigger_type == "sequence":
@@ -527,9 +547,7 @@ def _load_single_hypothesis_proposal(
         ),
         hypothesis=SingleHypothesisSpec(
             trigger=_normalize_trigger_spec(hypothesis.get("trigger")),
-            template=_as_single_str(
-                hypothesis.get("template"), field_name="hypothesis.template"
-            ),
+            template=_as_single_str(hypothesis.get("template"), field_name="hypothesis.template"),
             direction=_as_single_str(
                 hypothesis.get("direction"), field_name="hypothesis.direction"
             ),
@@ -613,7 +631,9 @@ def load_agent_proposal(path_or_payload: str | Path | dict[str, Any]) -> AgentPr
         knobs={str(key): value for key, value in knobs.items()},
         discovery_profile=_normalize_discovery_profile(raw.get("discovery_profile", "standard")),
         phase2_gate_profile=_normalize_phase2_gate_profile(raw.get("phase2_gate_profile", "auto")),
-        search_spec=str(raw.get("search_spec", "spec/search_space.yaml") or "spec/search_space.yaml").strip(),
+        search_spec=str(
+            raw.get("search_spec", "spec/search_space.yaml") or "spec/search_space.yaml"
+        ).strip(),
         config_overlays=_normalize_config_overlays(raw.get("config_overlays", [])),
         bounded=_normalize_bounded_spec(raw.get("bounded")),
     )
@@ -663,7 +683,9 @@ def validate_single_hypothesis_proposal(proposal: SingleHypothesisProposal) -> N
             )
     if trigger.type == "sequence":
         if len(trigger.events) < 2:
-            raise ValueError("sequence triggers require hypothesis.trigger.events with at least 2 events")
+            raise ValueError(
+                "sequence triggers require hypothesis.trigger.events with at least 2 events"
+            )
     if trigger.type == "interaction" and (not trigger.left or not trigger.right or not trigger.op):
         raise ValueError(
             "interaction triggers require hypothesis.trigger.left, hypothesis.trigger.right, and hypothesis.trigger.op"
@@ -690,9 +712,7 @@ def _compile_trigger_spec_to_trigger_space(trigger: TriggerSpec) -> dict[str, An
             {
                 "allowed_trigger_types": ["TRANSITION"],
                 "transitions": {
-                    "include": [
-                        {"from_state": trigger.from_state, "to_state": trigger.to_state}
-                    ]
+                    "include": [{"from_state": trigger.from_state, "to_state": trigger.to_state}]
                 },
             }
         )
@@ -781,6 +801,7 @@ def _log_legacy_usage(context: str):
     log_dir.mkdir(parents=True, exist_ok=True)
     log_path = log_dir / "legacy_usage.log"
     import datetime
+
     timestamp = datetime.datetime.now(datetime.UTC).isoformat()
     try:
         with log_path.open("a", encoding="utf-8") as f:
@@ -1134,9 +1155,7 @@ def _compile_anchor_to_trigger_space(anchor: AnchorSpec) -> dict[str, Any]:
             {
                 "allowed_trigger_types": ["TRANSITION"],
                 "transitions": {
-                    "include": [
-                        {"from_state": anchor.from_state, "to_state": anchor.to_state}
-                    ]
+                    "include": [{"from_state": anchor.from_state, "to_state": anchor.to_state}]
                 },
             }
         )

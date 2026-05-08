@@ -91,6 +91,9 @@ expression_templates:
   - momentum_fade
   - pullback_entry
   - overshoot_repair
+template_policy:
+  generic_templates_allowed: true
+  reason: Default tier1 search space already includes legacy generic mean_reversion and continuation templates; keep them explicit for raw effect probing and backward-compatible discovery.
 filter_templates: []
 execution_templates: []
 include_sequences: false

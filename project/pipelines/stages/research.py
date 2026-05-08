@@ -5,6 +5,7 @@ from pathlib import Path
 from typing import Any
 
 from project.events.config import ComposedEventConfig, compose_event_config
+from project.events.event_specs import EVENT_REGISTRY_SPECS
 from project.pipelines.stages.utils import script_supports_flag
 from project.research.experiment_engine import build_experiment_plan
 from project.research.registry_validation import (
@@ -141,7 +142,9 @@ def _resolve_candidate_promotion_thresholds(args: Any) -> dict[str, float]:
                 _LEGACY_PROMOTION_DEFAULTS["max_negative_control_pass_rate"],
             )
         ),
-        "require_forward_confirmation": bool(profile_defaults.get("require_forward_confirmation", False)),
+        "require_forward_confirmation": bool(
+            profile_defaults.get("require_forward_confirmation", False)
+        ),
     }
 
     for key, legacy_default in _LEGACY_PROMOTION_DEFAULTS.items():
@@ -320,6 +323,13 @@ def build_research_stages(
                 )
                 stages.append((f"analyze_events__{event_type}_{tf}", phase1_script, phase1_args))
 
+                if event_type not in EVENT_REGISTRY_SPECS:
+                    _LOG.info(
+                        "Skipping registry/canonical stages for non-registry-backed event %s",
+                        event_type,
+                    )
+                    continue
+
                 registry_stage_name = f"build_event_registry__{event_type}_{tf}"
                 stages.append(
                     (
@@ -402,6 +412,8 @@ def build_research_stages(
         ]
         if getattr(args, "search_budget", None):
             search_args.extend(["--search_budget", str(int(args.search_budget))])
+        if getattr(args, "cost_bps", None) is not None:
+            search_args.extend(["--cost_bps", str(float(args.cost_bps))])
         if experiment_plan:
             search_args.extend(["--experiment_config", str(args.experiment_config)])
             search_args.extend(["--program_id", experiment_plan.program_id])
@@ -468,9 +480,7 @@ def build_research_stages(
         stages.append(
             (
                 "generate_negative_control_summary",
-                project_root
-                / "research"
-                / "generate_negative_control_summary.py",
+                project_root / "research" / "generate_negative_control_summary.py",
                 [
                     "--run_id",
                     run_id,
@@ -539,7 +549,7 @@ def build_research_stages(
         stages.append(
             (
                 "update_edge_registry",
-            project_root / "research" / "update_edge_registry.py",
+                project_root / "research" / "update_edge_registry.py",
                 registry_args,
             )
         )
@@ -581,9 +591,7 @@ def build_research_stages(
         )
 
     if int(args.run_expectancy_analysis):
-        expectancy_script = (
-            project_root / "research" / "analyze_conditional_expectancy.py"
-        )
+        expectancy_script = project_root / "research" / "analyze_conditional_expectancy.py"
         expectancy_args = ["--run_id", run_id, "--symbols", symbols]
         if script_supports_flag(expectancy_script, "--retail_profile"):
             expectancy_args.extend(["--retail_profile", str(args.retail_profile)])

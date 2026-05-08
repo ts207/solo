@@ -84,6 +84,7 @@ def _evaluate_hypotheses(
     min_t_stat: float,
     symbol: str,
     bridge_gates: dict,
+    cost_bps: float = 2.0,
 ) -> pd.DataFrame:
     """Evaluate a hypothesis list and return bridge candidates.
 
@@ -105,6 +106,7 @@ def _evaluate_hypotheses(
             min_sample_size=min_n,
             use_context_quality=use_context_quality,
             folds=folds,
+            cost_bps=float(cost_bps),
         )
         if metrics is None or metrics.empty:
             return pd.DataFrame()
@@ -115,11 +117,15 @@ def _evaluate_hypotheses(
             min_t_stat=min_t_stat,
             min_n=min_n,
             bridge_min_t_stat=float(bridge_gates.get("search_bridge_min_t_stat", 2.0)),
-            bridge_min_robustness_score=float(bridge_gates.get("search_bridge_min_robustness_score", 0.7)),
+            bridge_min_robustness_score=float(
+                bridge_gates.get("search_bridge_min_robustness_score", 0.7)
+            ),
             bridge_min_regime_stability_score=float(
                 bridge_gates.get("search_bridge_min_regime_stability_score", 0.6)
             ),
-            bridge_min_stress_survival=float(bridge_gates.get("search_bridge_min_stress_survival", 0.5)),
+            bridge_min_stress_survival=float(
+                bridge_gates.get("search_bridge_min_stress_survival", 0.5)
+            ),
             bridge_stress_cost_buffer_bps=float(
                 bridge_gates.get("search_bridge_stress_cost_buffer_bps", 2.0)
             ),
@@ -131,7 +137,9 @@ def _evaluate_hypotheses(
         if hasattr(metrics, "attrs") and "fold_breakdown" in metrics.attrs:
             candidates.attrs["fold_breakdown"] = metrics.attrs["fold_breakdown"]
         if hasattr(metrics, "attrs") and "candidate_event_timestamps" in metrics.attrs:
-            candidates.attrs["candidate_event_timestamps"] = metrics.attrs["candidate_event_timestamps"]
+            candidates.attrs["candidate_event_timestamps"] = metrics.attrs[
+                "candidate_event_timestamps"
+            ]
 
         return candidates if candidates is not None else pd.DataFrame()
 
@@ -335,6 +343,7 @@ def _run_stage_a(
     min_t_stat: float,
     symbol: str,
     bridge_gates: dict,
+    cost_bps: float = 2.0,
     data_root: Path | None = None,
     run_id: str | None = None,
 ) -> tuple[pd.DataFrame, list]:
@@ -371,6 +380,7 @@ def _run_stage_a(
         min_t_stat=min_t_stat,
         symbol=symbol,
         bridge_gates=bridge_gates,
+        cost_bps=float(cost_bps),
     )
     candidates = _apply_v2_scoring(candidates, data_root=data_root, run_id=run_id)
     candidates = _annotate_lineage(candidates, stage=STAGE_TRIGGER_VIABILITY)
@@ -412,6 +422,7 @@ def _run_stage_b(
     min_t_stat: float,
     symbol: str,
     bridge_gates: dict,
+    cost_bps: float = 2.0,
     data_root: Path | None = None,
     run_id: str | None = None,
 ) -> tuple[pd.DataFrame, list]:
@@ -454,6 +465,7 @@ def _run_stage_b(
         min_t_stat=min_t_stat,
         symbol=symbol,
         bridge_gates=bridge_gates,
+        cost_bps=float(cost_bps),
     )
     candidates = _apply_v2_scoring(candidates, data_root=data_root, run_id=run_id)
 
@@ -510,6 +522,7 @@ def _run_stage_c(
     min_t_stat: float,
     symbol: str,
     bridge_gates: dict,
+    cost_bps: float = 2.0,
     data_root: Path | None = None,
     run_id: str | None = None,
 ) -> tuple[pd.DataFrame, list]:
@@ -552,6 +565,7 @@ def _run_stage_c(
         min_t_stat=min_t_stat,
         symbol=symbol,
         bridge_gates=bridge_gates,
+        cost_bps=float(cost_bps),
     )
     candidates = _apply_v2_scoring(candidates, data_root=data_root, run_id=run_id)
 
@@ -631,6 +645,7 @@ def _run_stage_d(
     min_t_stat: float,
     symbol: str,
     bridge_gates: dict,
+    cost_bps: float = 2.0,
     data_root: Path | None = None,
     run_id: str | None = None,
 ) -> pd.DataFrame:
@@ -683,6 +698,7 @@ def _run_stage_d(
         min_t_stat=min_t_stat,
         symbol=symbol,
         bridge_gates=bridge_gates,
+        cost_bps=float(cost_bps),
     )
     all_candidates = _apply_v2_scoring(all_candidates, data_root=data_root, run_id=run_id)
     all_candidates = _annotate_lineage(all_candidates, stage=STAGE_CONTEXT_REFINEMENT)
@@ -772,6 +788,7 @@ def run_hierarchical_search(
     bridge_gates: dict | None = None,
     data_root: Path | None = None,
     out_dir: Path | None = None,
+    cost_bps: float = 2.0,
 ) -> HierarchicalSearchResult:
     """Orchestrate Stage A → B → C → D for one symbol.
 
@@ -809,6 +826,7 @@ def run_hierarchical_search(
         min_t_stat=min_t_stat,
         symbol=symbol,
         bridge_gates=bridge_gates,
+        cost_bps=float(cost_bps),
         data_root=data_root,
         run_id=run_id,
     )
@@ -848,6 +866,7 @@ def run_hierarchical_search(
         min_t_stat=min_t_stat,
         symbol=symbol,
         bridge_gates=bridge_gates,
+        cost_bps=float(cost_bps),
         data_root=data_root,
         run_id=run_id,
     )
@@ -886,6 +905,7 @@ def run_hierarchical_search(
         min_t_stat=min_t_stat,
         symbol=symbol,
         bridge_gates=bridge_gates,
+        cost_bps=float(cost_bps),
         data_root=data_root,
         run_id=run_id,
     )
@@ -926,6 +946,7 @@ def run_hierarchical_search(
         min_t_stat=min_t_stat,
         symbol=symbol,
         bridge_gates=bridge_gates,
+        cost_bps=float(cost_bps),
         data_root=data_root,
         run_id=run_id,
     )

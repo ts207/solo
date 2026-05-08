@@ -163,6 +163,28 @@ def test_planner_uses_canonical_research_stage_paths(tmp_path):
     )
 
 
+def test_non_registry_backed_event_skips_registry_stages(tmp_path):
+    from project.pipelines.stages.research import build_research_stages
+
+    project_root = Path(__file__).parents[3] / "project"
+    stages = build_research_stages(
+        args=_make_args(),
+        run_id="r0",
+        symbols="BTCUSDT",
+        start="2024-01-01",
+        end="2024-03-01",
+        research_gate_profile="discovery",
+        project_root=project_root,
+        data_root=tmp_path,
+        phase2_event_chain=[("FORCED_FLOW_EXHAUSTION", "analyze_events.py", [])],
+    )
+
+    stage_names = [name for name, _path, _args in stages]
+    assert "analyze_events__FORCED_FLOW_EXHAUSTION_15m" in stage_names
+    assert "build_event_registry__FORCED_FLOW_EXHAUSTION_15m" not in stage_names
+    assert "canonicalize_event_episodes__FORCED_FLOW_EXHAUSTION_15m" not in stage_names
+
+
 def test_universal_event_analyzer_receives_runtime_parameter_overrides(tmp_path):
     from project.pipelines.stages.research import build_research_stages
 

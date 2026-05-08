@@ -37,3 +37,16 @@ def test_exploratory_profile_relaxes_discovery_thresholds_and_exposes_overrides(
     assert resolved["min_t_stat"] == 1.0
     assert resolved["hierarchical_overrides"]["trigger_viability"]["max_templates"] == 2
     assert resolved["hierarchical_overrides"]["execution_refinement"]["max_horizons"] == 3
+
+
+def test_edge_probe_profile_uses_raw_probe_thresholds_without_exploratory_overrides() -> None:
+    resolved = resolve_search_profile(
+        discovery_profile="edge_probe",
+        search_spec="spec/search_space.yaml",
+        min_n=30,
+        min_t_stat=None,
+    )
+    assert resolved["search_spec"] == "spec/search_space.yaml"
+    assert resolved["min_n"] == 1
+    assert resolved["min_t_stat"] == 0.0
+    assert resolved["hierarchical_overrides"] == {}

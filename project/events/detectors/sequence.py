@@ -10,6 +10,7 @@ import pandas as pd
 from project.domain.compiled_registry import get_domain_registry
 from project.events.detectors.base import BaseEventDetector
 from project.events.detectors.registry import get_detector
+from project.events.polarity import side_to_legacy_direction
 from project.spec_validation import load_ontology_events
 
 log = logging.getLogger(__name__)
@@ -176,4 +177,26 @@ class EventSequenceDetector(BaseEventDetector):
         # Direction follows the trigger event
         self._ensure_detectors()
         trigger_raw_features = {k.replace("trigger_", ""): v for k, v in features.items() if k.startswith("trigger_")}
-        return self._trigger_detector.compute_direction(idx, trigger_raw_features, **params)
+        compute_direction = getattr(self._trigger_detector, "compute_direction", None)
+        if callable(compute_direction):
+            return compute_direction(idx, trigger_raw_features, **params)
+
+        compute_event_side = getattr(self._trigger_detector, "compute_event_side", None)
+        if callable(compute_event_side):
+            try:
+                intensity_series = self._trigger_detector.compute_intensity(
+                    pd.DataFrame(index=next(iter(trigger_raw_features.values())).index),
+                    features=trigger_raw_features,
+                    **params,
+                )
+                intensity = float(pd.to_numeric(intensity_series, errors="coerce").iloc[idx])
+            except Exception:
+                intensity = 1.0
+            try:
+                return side_to_legacy_direction(
+                    compute_event_side(idx, intensity, trigger_raw_features, **params)
+                )
+            except Exception:
+                log.debug("Failed to infer sequence trigger direction", exc_info=True)
+
+        return "non_directional"

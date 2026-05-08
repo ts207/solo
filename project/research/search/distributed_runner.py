@@ -145,15 +145,16 @@ def _slice_chunk_features(chunk: Sequence[HypothesisSpec], features: pd.DataFram
 
 
 def _evaluate_chunk(
-    args: tuple[Sequence[HypothesisSpec], pd.DataFrame, int, bool, list[Any] | None],
+    args: tuple[Sequence[HypothesisSpec], pd.DataFrame, int, bool, list[Any] | None, float],
 ) -> pd.DataFrame:
     """Worker function: unpack and evaluate a chunk of hypotheses."""
-    chunk, features, min_sample_size, use_context_quality, folds = args
+    chunk, features, min_sample_size, use_context_quality, folds, cost_bps = args
     if features.empty:
         return pd.DataFrame(columns=METRICS_COLUMNS)
     return evaluate_hypothesis_batch(
         list(chunk),
         features,
+        cost_bps=cost_bps,
         min_sample_size=min_sample_size,
         use_context_quality=use_context_quality,
         folds=folds,
@@ -169,6 +170,7 @@ def run_distributed_search(
     min_sample_size: int = 20,
     use_context_quality: bool = True,
     folds: list[Any] | None = None,
+    cost_bps: float = 2.0,
 ) -> pd.DataFrame:
     """
     Evaluate hypotheses against features, optionally in parallel.
@@ -196,6 +198,7 @@ def run_distributed_search(
             evaluate_hypothesis_batch(
                 chunk,
                 features,
+                cost_bps=float(cost_bps),
                 min_sample_size=min_sample_size,
                 use_context_quality=use_context_quality,
                 folds=folds,
@@ -214,7 +217,14 @@ def run_distributed_search(
                 for chunk in chunks:
                     chunk_features = _slice_chunk_features(chunk, features)
                     args_list.append(
-                        (chunk, chunk_features, min_sample_size, use_context_quality, folds)
+                        (
+                            chunk,
+                            chunk_features,
+                            min_sample_size,
+                            use_context_quality,
+                            folds,
+                            float(cost_bps),
+                        )
                     )
 
                 parts = pool.map(_evaluate_chunk, args_list)
@@ -231,6 +241,7 @@ def run_distributed_search(
                 evaluate_hypothesis_batch(
                     chunk,
                     features,
+                    cost_bps=float(cost_bps),
                     min_sample_size=min_sample_size,
                     use_context_quality=use_context_quality,
                     folds=folds,

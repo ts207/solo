@@ -39,6 +39,32 @@ def _first_existing_column(df: pd.DataFrame, names: Sequence[str]) -> str | None
     return None
 
 
+def _timestamp_from_first_usable(
+    df: pd.DataFrame,
+    names: Sequence[str],
+    *,
+    fallback: pd.Series | None = None,
+    required: bool = True,
+) -> pd.Series | None:
+    out: pd.Series | None = None
+    for name in names:
+        if name not in df.columns:
+            continue
+        candidate = ts_ns_utc(df[name], allow_nat=True)
+        out = candidate if out is None else out.fillna(candidate)
+        if not out.isna().any():
+            break
+    if out is None:
+        out = fallback
+    elif fallback is not None:
+        out = out.fillna(fallback)
+    if out is None:
+        return None
+    if required and out.isna().any():
+        return ts_ns_utc(out)
+    return out
+
+
 def _feature_payload(row: pd.Series) -> str:
     keys = [
         "adverse_proxy_excess",
@@ -85,24 +111,22 @@ def normalize_phase1_events(
     if out.empty:
         return _empty_registry_events()
 
-    phenom_col = _first_existing_column(
+    phenom_ts = _timestamp_from_first_usable(
         out, ["phenom_enter_ts", "anchor_ts", "timestamp", "event_ts", "start_ts", "enter_ts"]
     )
-    if phenom_col is None:
+    if phenom_ts is None:
         return _empty_registry_events()
 
-    out["phenom_enter_ts"] = ts_ns_utc(out[phenom_col])
+    out["phenom_enter_ts"] = phenom_ts
 
-    entry_col = _first_existing_column(
+    entry_ts = _timestamp_from_first_usable(
         out,
         ["enter_ts", "signal_ts", "trigger_ts", "timestamp", "anchor_ts", "event_ts", "start_ts"],
+        fallback=out["phenom_enter_ts"],
     )
-    if entry_col is not None:
-        out["enter_ts"] = ts_ns_utc(out[entry_col])
-    else:
-        out["enter_ts"] = out["phenom_enter_ts"]
+    out["enter_ts"] = entry_ts if entry_ts is not None else out["phenom_enter_ts"]
 
-    exit_col = _first_existing_column(
+    exit_ts = _timestamp_from_first_usable(
         out,
         [
             "exit_ts",
@@ -113,31 +137,30 @@ def normalize_phase1_events(
             "end_time",
             "exit_time",
         ],
+        fallback=out["enter_ts"],
     )
-    if exit_col is not None:
-        out["exit_ts"] = ts_ns_utc(out[exit_col])
-    else:
-        out["exit_ts"] = out["enter_ts"]
+    out["exit_ts"] = exit_ts if exit_ts is not None else out["enter_ts"]
 
-    det_col = _first_existing_column(
-        out, ["detected_ts", "detection_ts", "signal_ts", "trigger_ts"]
+    detected_ts = _timestamp_from_first_usable(
+        out,
+        ["detected_ts", "detection_ts", "signal_ts", "trigger_ts"],
+        fallback=out["phenom_enter_ts"],
     )
-    if det_col is not None:
-        out["detected_ts"] = ts_ns_utc(out[det_col])
-    else:
-        out["detected_ts"] = out["phenom_enter_ts"]
+    out["detected_ts"] = detected_ts if detected_ts is not None else out["phenom_enter_ts"]
 
-    sig_col = _first_existing_column(out, ["signal_ts"])
-    if sig_col is not None and sig_col != det_col:
-        out["signal_ts"] = ts_ns_utc(out[sig_col])
-    else:
-        out["signal_ts"] = out["detected_ts"]
+    signal_ts = _timestamp_from_first_usable(
+        out,
+        ["signal_ts"],
+        fallback=out["detected_ts"],
+    )
+    out["signal_ts"] = signal_ts if signal_ts is not None else out["detected_ts"]
 
-    eval_col = _first_existing_column(out, ["eval_bar_ts"])
-    if eval_col is not None:
-        out["eval_bar_ts"] = ts_ns_utc(out[eval_col])
-    else:
-        out["eval_bar_ts"] = out["phenom_enter_ts"]
+    eval_ts = _timestamp_from_first_usable(
+        out,
+        ["eval_bar_ts"],
+        fallback=out["phenom_enter_ts"],
+    )
+    out["eval_bar_ts"] = eval_ts if eval_ts is not None else out["phenom_enter_ts"]
 
     out["timestamp"] = out["signal_ts"]
     out = out.dropna(subset=["timestamp", "enter_ts", "detected_ts", "signal_ts"]).copy()

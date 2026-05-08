@@ -148,7 +148,12 @@ def test_classify_metrics_counts_separates_min_sample_rejections() -> None:
     metrics = pd.DataFrame(
         [
             {"valid": False, "invalid_reason": "min_sample_size", "n": 1, "t_stat": 0.0},
-            {"valid": False, "invalid_reason": "direction_resolution_failed", "n": 40, "t_stat": 0.0},
+            {
+                "valid": False,
+                "invalid_reason": "direction_resolution_failed",
+                "n": 40,
+                "t_stat": 0.0,
+            },
             {"valid": True, "invalid_reason": "", "n": 40, "t_stat": 1.0},
             {"valid": True, "invalid_reason": "", "n": 40, "t_stat": 2.0},
         ]
@@ -166,11 +171,17 @@ def test_classify_metrics_counts_separates_min_sample_rejections() -> None:
 
 
 def test_resolve_search_min_t_stat_uses_phase2_gate_default_when_cli_omitted() -> None:
-    assert _resolve_search_min_t_stat(explicit_min_t_stat=None, phase2_gates={"min_t_stat": 1.75}) == 1.75
+    assert (
+        _resolve_search_min_t_stat(explicit_min_t_stat=None, phase2_gates={"min_t_stat": 1.75})
+        == 1.75
+    )
 
 
 def test_resolve_search_min_t_stat_prefers_explicit_cli_override() -> None:
-    assert _resolve_search_min_t_stat(explicit_min_t_stat=2.25, phase2_gates={"min_t_stat": 1.75}) == 2.25
+    assert (
+        _resolve_search_min_t_stat(explicit_min_t_stat=2.25, phase2_gates={"min_t_stat": 1.75})
+        == 2.25
+    )
 
 
 def test_build_gate_funnel_tracks_cumulative_survivors() -> None:
@@ -400,6 +411,124 @@ def test_flat_search_materializes_generated_event_columns_without_reloading_feat
     assert load_calls["count"] == 1
 
 
+def test_edge_probe_writes_pre_gate_raw_artifacts(tmp_path: Path, monkeypatch) -> None:
+    features = pd.DataFrame(
+        {
+            "timestamp": pd.date_range("2024-01-01", periods=12, freq="5min", tz="UTC"),
+            "symbol": ["BTCUSDT"] * 12,
+            "close": [100.0 + idx * 0.1 for idx in range(12)],
+        }
+    )
+    hypothesis = HypothesisSpec(
+        trigger=TriggerSpec.event("VOL_SHOCK"),
+        direction="long",
+        horizon="12b",
+        template_id="continuation",
+    )
+    metrics = pd.DataFrame(
+        [
+            {
+                "hypothesis_id": "hyp_positive_gross",
+                "trigger_type": "event",
+                "trigger_key": "VOL_SHOCK",
+                "direction": "long",
+                "horizon": "12b",
+                "template_id": "continuation",
+                "entry_lag": 1,
+                "context_signature": "{}",
+                "n": 7,
+                "train_n_obs": 3,
+                "validation_n_obs": 2,
+                "test_n_obs": 2,
+                "mean_return_gross_bps": 4.0,
+                "mean_return_net_bps": -1.0,
+                "after_cost_expectancy_bps": -1.0,
+                "t_stat": -0.2,
+                "hit_rate": 0.4,
+                "sharpe": -0.1,
+                "valid": True,
+                "invalid_reason": "",
+            },
+            {
+                "hypothesis_id": "hyp_no_hits",
+                "trigger_type": "event",
+                "trigger_key": "VOL_SHOCK",
+                "direction": "short",
+                "horizon": "12b",
+                "template_id": "continuation",
+                "entry_lag": 1,
+                "context_signature": "{}",
+                "n": 0,
+                "train_n_obs": 0,
+                "validation_n_obs": 0,
+                "test_n_obs": 0,
+                "mean_return_gross_bps": 0.0,
+                "mean_return_net_bps": 0.0,
+                "after_cost_expectancy_bps": 0.0,
+                "t_stat": 0.0,
+                "hit_rate": 0.0,
+                "sharpe": 0.0,
+                "valid": False,
+                "invalid_reason": "no_trigger_hits",
+            },
+        ]
+    )
+    raw_path = tmp_path / "out" / "raw_edge_probe_candidates.parquet"
+
+    monkeypatch.setattr(search_engine, "load_features", lambda **_: features.copy())
+    monkeypatch.setattr(
+        search_engine,
+        "generate_hypotheses_with_audit",
+        lambda *args, **kwargs: (
+            [hypothesis],
+            {
+                "counts": {"generated": 2, "feasible": 2, "rejected": 0},
+                "rejection_reason_counts": {},
+            },
+        ),
+    )
+    monkeypatch.setattr(search_engine, "_build_required_walkforward_folds", lambda _features: [])
+    monkeypatch.setattr(search_engine, "_load_search_spec_doc", lambda _path: {"triggers": {}})
+    monkeypatch.setattr(search_engine, "_load_hierarchical_config", lambda _doc: {"enabled": True})
+    monkeypatch.setattr(
+        search_engine, "run_distributed_search", lambda *args, **kwargs: metrics.copy()
+    )
+
+    def _split_bridge_candidates(_metrics, **_kwargs):
+        assert raw_path.exists()
+        return pd.DataFrame(), pd.DataFrame()
+
+    monkeypatch.setattr(search_engine, "split_bridge_candidates", _split_bridge_candidates)
+    monkeypatch.setattr(
+        search_engine, "hypotheses_to_bridge_candidates", lambda *args, **kwargs: pd.DataFrame()
+    )
+
+    rc = search_engine.run(
+        run_id="edge_probe_artifacts",
+        symbols="BTCUSDT",
+        data_root=tmp_path,
+        out_dir=tmp_path / "out",
+        timeframe="5m",
+        search_spec=str(tmp_path / "search_spec.yaml"),
+        discovery_profile="edge_probe",
+    )
+
+    assert rc == 0
+    raw = pd.read_parquet(raw_path)
+    assert list(raw.columns) == search_engine.RAW_EDGE_PROBE_COLUMNS
+    assert raw["hypothesis_id"].tolist() == ["hyp_positive_gross", "hyp_no_hits"]
+    assert raw["symbol"].tolist() == ["BTCUSDT", "BTCUSDT"]
+
+    diagnostics = json.loads((tmp_path / "out" / "edge_probe_diagnostics.json").read_text())
+    assert diagnostics["hypotheses_generated"] == 2
+    assert diagnostics["hypotheses_feasible"] == 2
+    assert diagnostics["evaluated_rows"] == 2
+    assert diagnostics["nonzero_n_rows"] == 1
+    assert diagnostics["positive_gross_rows"] == 1
+    assert diagnostics["positive_net_rows"] == 0
+    assert diagnostics["invalid_reason_counts"] == {"no_trigger_hits": 1}
+
+
 def test_edge_cells_run_propagates_window_to_feature_preparation(
     tmp_path: Path, monkeypatch
 ) -> None:
@@ -458,8 +587,22 @@ def test_materialize_sequence_trigger_columns_builds_expected_mask() -> None:
             "timestamp": pd.date_range("2024-01-01", periods=6, freq="5min", tz="UTC"),
             "symbol": ["BTCUSDT"] * 6,
             "close": [100.0, 101.0, 102.0, 103.0, 104.0, 105.0],
-            EVENT_REGISTRY_SPECS["FND_DISLOC"].signal_column: [False, True, False, False, True, False],
-            EVENT_REGISTRY_SPECS["BREAKOUT_TRIGGER"].signal_column: [False, False, True, False, False, True],
+            EVENT_REGISTRY_SPECS["FND_DISLOC"].signal_column: [
+                False,
+                True,
+                False,
+                False,
+                True,
+                False,
+            ],
+            EVENT_REGISTRY_SPECS["BREAKOUT_TRIGGER"].signal_column: [
+                False,
+                False,
+                True,
+                False,
+                False,
+                True,
+            ],
         }
     )
     sequence_spec = HypothesisSpec(
@@ -480,7 +623,9 @@ def test_materialize_sequence_trigger_columns_builds_expected_mask() -> None:
     assert observed[sequence_col].tolist() == [False, False, True, False, False, True]
 
 
-def test_materialize_sequence_trigger_columns_writes_zero_hit_column_when_components_absent() -> None:
+def test_materialize_sequence_trigger_columns_writes_zero_hit_column_when_components_absent() -> (
+    None
+):
     features = pd.DataFrame(
         {
             "timestamp": pd.date_range("2024-01-01", periods=3, freq="5min", tz="UTC"),
@@ -565,8 +710,22 @@ def test_materialize_interaction_trigger_columns_builds_confirm_mask() -> None:
             "timestamp": pd.date_range("2024-01-01", periods=6, freq="5min", tz="UTC"),
             "symbol": ["BTCUSDT"] * 6,
             "close": [100.0, 101.0, 102.0, 103.0, 104.0, 105.0],
-            EVENT_REGISTRY_SPECS["BREAKOUT_TRIGGER"].signal_column: [False, True, False, False, False, False],
-            EVENT_REGISTRY_SPECS["VOL_SPIKE"].signal_column: [False, False, True, False, False, False],
+            EVENT_REGISTRY_SPECS["BREAKOUT_TRIGGER"].signal_column: [
+                False,
+                True,
+                False,
+                False,
+                False,
+                False,
+            ],
+            EVENT_REGISTRY_SPECS["VOL_SPIKE"].signal_column: [
+                False,
+                False,
+                True,
+                False,
+                False,
+                False,
+            ],
         }
     )
     interaction_spec = HypothesisSpec(
@@ -595,9 +754,33 @@ def test_materialize_interaction_trigger_columns_respects_left_event_direction()
             "timestamp": pd.date_range("2024-01-01", periods=7, freq="5min", tz="UTC"),
             "symbol": ["BTCUSDT"] * 7,
             "close": [100.0, 101.0, 102.0, 103.0, 104.0, 105.0, 106.0],
-            EVENT_REGISTRY_SPECS["BREAKOUT_TRIGGER"].signal_column: [False, True, False, False, True, False, False],
-            EVENT_REGISTRY_SPECS["VOL_SPIKE"].signal_column: [False, False, True, False, False, True, False],
-            ColumnRegistry.event_direction_cols("BREAKOUT_TRIGGER")[0]: [0.0, 1.0, 0.0, 0.0, -1.0, 0.0, 0.0],
+            EVENT_REGISTRY_SPECS["BREAKOUT_TRIGGER"].signal_column: [
+                False,
+                True,
+                False,
+                False,
+                True,
+                False,
+                False,
+            ],
+            EVENT_REGISTRY_SPECS["VOL_SPIKE"].signal_column: [
+                False,
+                False,
+                True,
+                False,
+                False,
+                True,
+                False,
+            ],
+            ColumnRegistry.event_direction_cols("BREAKOUT_TRIGGER")[0]: [
+                0.0,
+                1.0,
+                0.0,
+                0.0,
+                -1.0,
+                0.0,
+                0.0,
+            ],
         }
     )
     interaction_spec = HypothesisSpec(
@@ -657,8 +840,22 @@ def test_materialize_interaction_trigger_columns_builds_exclude_mask() -> None:
             "timestamp": pd.date_range("2024-01-01", periods=6, freq="5min", tz="UTC"),
             "symbol": ["BTCUSDT"] * 6,
             "close": [100.0, 101.0, 102.0, 103.0, 104.0, 105.0],
-            EVENT_REGISTRY_SPECS["BREAKOUT_TRIGGER"].signal_column: [False, True, False, False, True, False],
-            EVENT_REGISTRY_SPECS["VOL_SPIKE"].signal_column: [False, False, True, False, False, False],
+            EVENT_REGISTRY_SPECS["BREAKOUT_TRIGGER"].signal_column: [
+                False,
+                True,
+                False,
+                False,
+                True,
+                False,
+            ],
+            EVENT_REGISTRY_SPECS["VOL_SPIKE"].signal_column: [
+                False,
+                False,
+                True,
+                False,
+                False,
+                False,
+            ],
         }
     )
     interaction_spec = HypothesisSpec(
@@ -753,7 +950,9 @@ def test_main_writes_real_manifest(tmp_path: Path, monkeypatch) -> None:
         ).to_parquet(
             search_engine.phase2_candidates_path(run_id=run_id, data_root=tmp_path), index=False
         )
-        (out_dir / "regime_conditional_candidates.parquet").parent.mkdir(parents=True, exist_ok=True)
+        (out_dir / "regime_conditional_candidates.parquet").parent.mkdir(
+            parents=True, exist_ok=True
+        )
         pd.DataFrame([{"candidate_id": "adj_1"}]).to_parquet(
             out_dir / "regime_conditional_candidates.parquet",
             index=False,
@@ -773,7 +972,9 @@ def test_main_writes_real_manifest(tmp_path: Path, monkeypatch) -> None:
 
     monkeypatch.setattr(search_engine, "run", _fake_run)
 
-    rc = search_engine.main(["--run_id", run_id, "--symbols", "BTCUSDT", "--data_root", str(tmp_path)])
+    rc = search_engine.main(
+        ["--run_id", run_id, "--symbols", "BTCUSDT", "--data_root", str(tmp_path)]
+    )
 
     assert rc == 0
     manifest = json.loads((tmp_path / "runs" / run_id / "phase2_search_engine.json").read_text())

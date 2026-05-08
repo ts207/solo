@@ -8,6 +8,8 @@ DEFAULT_SEARCH_MIN_N = 30
 DEFAULT_MIN_T_STAT = 1.5
 _EXPLORATORY_SEARCH_MIN_N = 24
 _EXPLORATORY_MIN_T_STAT = 1.0
+_EDGE_PROBE_SEARCH_MIN_N = 1
+_EDGE_PROBE_MIN_T_STAT = 0.0
 
 _EXPLORATORY_HIERARCHICAL_OVERRIDES: dict[str, Any] = {
     "trigger_viability": {
@@ -47,12 +49,15 @@ def resolve_search_profile(
     profile = str(discovery_profile or "standard").strip().lower()
     resolved_search_spec = str(search_spec or DEFAULT_SEARCH_SPEC).strip() or DEFAULT_SEARCH_SPEC
     resolved_min_n = int(min_n)
-    resolved_min_t_stat = (
-        DEFAULT_MIN_T_STAT if min_t_stat is None else float(min_t_stat)
-    )
+    resolved_min_t_stat = DEFAULT_MIN_T_STAT if min_t_stat is None else float(min_t_stat)
 
     if profile == "synthetic":
-        if resolved_search_spec in {"", DEFAULT_SEARCH_SPEC, "spec/search_space.yaml", "search_space.yaml"}:
+        if resolved_search_spec in {
+            "",
+            DEFAULT_SEARCH_SPEC,
+            "spec/search_space.yaml",
+            "search_space.yaml",
+        }:
             resolved_search_spec = "synthetic_truth"
         if resolved_min_n >= DEFAULT_SEARCH_MIN_N:
             resolved_min_n = 8
@@ -63,6 +68,11 @@ def resolve_search_profile(
             resolved_min_n = _EXPLORATORY_SEARCH_MIN_N
         if resolved_min_t_stat >= DEFAULT_MIN_T_STAT:
             resolved_min_t_stat = _EXPLORATORY_MIN_T_STAT
+    elif profile == "edge_probe":
+        if resolved_min_n >= DEFAULT_SEARCH_MIN_N:
+            resolved_min_n = _EDGE_PROBE_SEARCH_MIN_N
+        if resolved_min_t_stat >= DEFAULT_MIN_T_STAT:
+            resolved_min_t_stat = _EDGE_PROBE_MIN_T_STAT
 
     return {
         "discovery_profile": profile,
